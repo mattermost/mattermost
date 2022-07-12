@@ -7935,6 +7935,26 @@ func testChannelPostCountsByDuration(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    userID,
+		ChannelId: channel.Id,
+		Message:   "test",
+		Props: model.StringInterface{
+			"from_bot": true,
+		},
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		UserId:    userID,
+		ChannelId: channel.Id,
+		Message:   "test",
+		Props: model.StringInterface{
+			"from_webhook": true,
+		},
+	})
+	require.NoError(t, err)
+
 	dpc, err := ss.Channel().PostCountsByDuration([]string{channelSaved.Id}, 0, &userID, model.PostsByDay, time.Now().Location())
 	require.NoError(t, err)
 	require.Len(t, dpc, 1)

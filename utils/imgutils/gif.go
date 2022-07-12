@@ -12,10 +12,9 @@ package imgutils
 import (
 	"bufio"
 	"compress/lzw"
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"image"
-	"image/color"
 	"io"
 )
 
@@ -100,7 +99,7 @@ type decoder struct {
 	hasTransparentIndex bool
 
 	// Computed.
-	globalColorTable color.Palette
+	hasGlobalColorTable bool
 
 	// Used when decoding.
 	imageCount int
@@ -274,26 +273,22 @@ func (d *decoder) readHeaderAndScreenDescriptor() error {
 	if fields := d.tmp[10]; fields&fColorTable != 0 {
 		d.backgroundIndex = d.tmp[11]
 		// readColorTable overwrites the contents of d.tmp, but that's OK.
-		if d.globalColorTable, err = d.readColorTable(fields); err != nil {
+		if err = d.readColorTable(fields); err != nil {
 			return err
 		}
+		d.hasGlobalColorTable = true
 	}
 	// d.tmp[12] is the Pixel Aspect Ratio, which is ignored.
 	return nil
 }
 
-func (d *decoder) readColorTable(fields byte) (color.Palette, error) {
+func (d *decoder) readColorTable(fields byte) error {
 	n := 1 << (1 + uint(fields&fColorTableBitsMask))
 	err := readFull(d.r, d.tmp[:3*n])
 	if err != nil {
-		return nil, fmt.Errorf("gif: reading color table: %s", err)
+		return fmt.Errorf("gif: reading color table: %s", err)
 	}
-	j, p := 0, make(color.Palette, n)
-	for i := range p {
-		p[i] = color.RGBA{d.tmp[j+0], d.tmp[j+1], d.tmp[j+2], 0xFF}
-		j += 3
-	}
-	return p, nil
+	return nil
 }
 
 func (d *decoder) readExtension() error {
@@ -371,41 +366,17 @@ func (d *decoder) readGraphicControl() error {
 }
 
 func (d *decoder) readImageDescriptor() error {
-	m, err := d.newImageFromDescriptor()
+	err := d.checkImageFromDescriptor()
 	if err != nil {
 		return err
 	}
 	useLocalColorTable := d.imageFields&fColorTable != 0
 	if useLocalColorTable {
-		m.Palette, err = d.readColorTable(d.imageFields)
-		if err != nil {
+		if err = d.readColorTable(d.imageFields); err != nil {
 			return err
 		}
-	} else {
-		if d.globalColorTable == nil {
-			return errors.New("gif: no color table")
-		}
-		m.Palette = d.globalColorTable
-	}
-	if d.hasTransparentIndex {
-		if !useLocalColorTable {
-			// Clone the global color table.
-			m.Palette = append(color.Palette(nil), d.globalColorTable...)
-		}
-		if ti := int(d.transparentIndex); ti < len(m.Palette) {
-			m.Palette[ti] = color.RGBA{}
-		} else {
-			// The transparentIndex is out of range, which is an error
-			// according to the spec, but Firefox and Google Chrome
-			// seem OK with this, so we enlarge the palette with
-			// transparent colors. See golang.org/issue/15059.
-			p := make(color.Palette, ti+1)
-			copy(p, m.Palette)
-			for i := len(m.Palette); i < len(p); i++ {
-				p[i] = color.RGBA{}
-			}
-			m.Palette = p
-		}
+	} else if !d.hasGlobalColorTable {
+		return errors.New("gif: no color table")
 	}
 	litWidth, err := readByte(d.r)
 	if err != nil {
@@ -418,12 +389,14 @@ func (d *decoder) readImageDescriptor() error {
 	br := &blockReader{d: d}
 	lzwr := lzw.NewReader(br, lzw.LSB, int(litWidth))
 	defer lzwr.Close()
-	if err = readFull(lzwr, m.Pix); err != nil {
+
+	if _, err := io.Copy(io.Discard, lzwr); err != nil {
 		if err != io.ErrUnexpectedEOF {
 			return fmt.Errorf("gif: reading image data: %v", err)
 		}
 		return errNotEnough
 	}
+
 	// In theory, both lzwr and br should be exhausted. Reading from them
 	// should yield (0, io.EOF).
 	//
@@ -455,9 +428,9 @@ func (d *decoder) readImageDescriptor() error {
 	return nil
 }
 
-func (d *decoder) newImageFromDescriptor() (*image.Paletted, error) {
+func (d *decoder) checkImageFromDescriptor() error {
 	if err := readFull(d.r, d.tmp[:9]); err != nil {
-		return nil, fmt.Errorf("gif: can't read image descriptor: %s", err)
+		return fmt.Errorf("gif: can't read image descriptor: %s", err)
 	}
 	left := int(d.tmp[0]) + int(d.tmp[1])<<8
 	top := int(d.tmp[2]) + int(d.tmp[3])<<8
@@ -482,12 +455,10 @@ func (d *decoder) newImageFromDescriptor() (*image.Paletted, error) {
 	// imageBounds.Max (d.width, d.height) and not frameBounds.Min (left, top)
 	// against imageBounds.Min (0, 0).
 	if left+width > d.width || top+height > d.height {
-		return nil, errors.New("gif: frame bounds larger than image bounds")
+		return errors.New("gif: frame bounds larger than image bounds")
 	}
-	return image.NewPaletted(image.Rectangle{
-		Min: image.Point{left, top},
-		Max: image.Point{left + width, top + height},
-	}, nil), nil
+
+	return nil
 }
 
 func (d *decoder) readBlock() (int, error) {
@@ -501,10 +472,34 @@ func (d *decoder) readBlock() (int, error) {
 	return int(n), nil
 }
 
-func CountFrames(r io.Reader) (int, error) {
+func CountGIFFrames(r io.Reader) (int, error) {
 	var d decoder
 	if err := d.decode(r, false); err != nil {
 		return -1, err
 	}
 	return d.imageCount, nil
+}
+
+func GenGIFData(width, height uint16, nFrames int) []byte {
+	header := []byte{
+		'G', 'I', 'F', '8', '9', 'a', // header
+		0, 0, 0, 0, // width and height
+		128, 0, 0, // other header information
+		0, 0, 0, 1, 1, 1, // color table
+	}
+	binary.LittleEndian.PutUint16(header[6:], width)
+	binary.LittleEndian.PutUint16(header[8:], height)
+	frame := []byte{
+		0x2c,                   // block introducer
+		0, 0, 0, 0, 1, 0, 1, 0, // position and dimensions of the frame
+		0,                      // other frame information
+		0x2, 0x2, 0x4c, 0x1, 0, // encoded pixel data
+	}
+	trailer := []byte{0x3b}
+	gifData := header
+	for i := 0; i < nFrames; i++ {
+		gifData = append(gifData, frame...)
+	}
+	gifData = append(gifData, trailer...)
+	return gifData
 }

@@ -40,6 +40,10 @@ func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*mo
 	return s.srv.getChannelMember(context.Background(), channelID, userID)
 }
 
+func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return s.srv.getChannelsForTeamForUser(teamID, userID, opts)
+}
+
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -1818,8 +1822,8 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, opts)
+func (s *Server) getChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	list, err := s.Store.Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1831,6 +1835,10 @@ func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *mode
 	}
 
 	return list, nil
+}
+
+func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return a.Srv().getChannelsForTeamForUser(teamID, userID, opts)
 }
 
 func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
