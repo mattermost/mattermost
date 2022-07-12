@@ -203,5 +203,5 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
 	}
-	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]interface{}{interval: interval})
+	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

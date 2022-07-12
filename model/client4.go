@@ -18,29 +18,30 @@ import (
 )
 
 const (
-	HeaderRequestId          = "X-Request-ID"
-	HeaderVersionId          = "X-Version-ID"
-	HeaderClusterId          = "X-Cluster-ID"
-	HeaderEtagServer         = "ETag"
-	HeaderEtagClient         = "If-None-Match"
-	HeaderForwarded          = "X-Forwarded-For"
-	HeaderRealIP             = "X-Real-IP"
-	HeaderForwardedProto     = "X-Forwarded-Proto"
-	HeaderToken              = "token"
-	HeaderCsrfToken          = "X-CSRF-Token"
-	HeaderBearer             = "BEARER"
-	HeaderAuth               = "Authorization"
-	HeaderCloudToken         = "X-Cloud-Token"
-	HeaderRemoteclusterToken = "X-RemoteCluster-Token"
-	HeaderRemoteclusterId    = "X-RemoteCluster-Id"
-	HeaderRequestedWith      = "X-Requested-With"
-	HeaderRequestedWithXML   = "XMLHttpRequest"
-	HeaderRange              = "Range"
-	STATUS                   = "status"
-	StatusOk                 = "OK"
-	StatusFail               = "FAIL"
-	StatusUnhealthy          = "UNHEALTHY"
-	StatusRemove             = "REMOVE"
+	HeaderRequestId            = "X-Request-ID"
+	HeaderVersionId            = "X-Version-ID"
+	HeaderClusterId            = "X-Cluster-ID"
+	HeaderEtagServer           = "ETag"
+	HeaderEtagClient           = "If-None-Match"
+	HeaderForwarded            = "X-Forwarded-For"
+	HeaderRealIP               = "X-Real-IP"
+	HeaderForwardedProto       = "X-Forwarded-Proto"
+	HeaderToken                = "token"
+	HeaderCsrfToken            = "X-CSRF-Token"
+	HeaderBearer               = "BEARER"
+	HeaderAuth                 = "Authorization"
+	HeaderCloudToken           = "X-Cloud-Token"
+	HeaderRemoteclusterToken   = "X-RemoteCluster-Token"
+	HeaderRemoteclusterId      = "X-RemoteCluster-Id"
+	HeaderRequestedWith        = "X-Requested-With"
+	HeaderRequestedWithXML     = "XMLHttpRequest"
+	HeaderHasInaccessiblePosts = "Has-Inaccessible-Posts"
+	HeaderRange                = "Range"
+	STATUS                     = "status"
+	StatusOk                   = "OK"
+	StatusFail                 = "FAIL"
+	StatusUnhealthy            = "UNHEALTHY"
+	StatusRemove               = "REMOVE"
 
 	ClientDir = "client"
 
@@ -1372,7 +1373,7 @@ func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, 
 // is true and a valid code is provided. If activate is false, then code is not
 // required and multi-factor authentication is disabled for the user.
 func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (*Response, error) {
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 	requestBody["activate"] = activate
 	requestBody["code"] = code
 
@@ -1454,7 +1455,7 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (*Response, error) {
 
 // UpdateUserActive updates status of a user whether active or not.
 func (c *Client4) UpdateUserActive(userId string, active bool) (*Response, error) {
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 	requestBody["active"] = active
 	r, err := c.DoAPIPut(c.userRoute(userId)+"/active", StringInterfaceToJSON(requestBody))
 	if err != nil {
@@ -3292,7 +3293,7 @@ func (c *Client4) PermanentDeleteChannel(channelId string) (*Response, error) {
 
 // MoveChannel moves the channel to the destination team.
 func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response, error) {
-	requestBody := map[string]interface{}{
+	requestBody := map[string]any{
 		"team_id": teamId,
 		"force":   force,
 	}
@@ -4126,7 +4127,7 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 
 // SearchPostsWithMatches returns any posts with matching terms string, including.
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response, error) {
-	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	requestBody := map[string]any{"terms": terms, "is_or_search": isOrSearch}
 	var route string
 	if teamId == "" {
 		route = c.postsRoute() + "/search"
@@ -4553,7 +4554,7 @@ func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response,
 // GetEnvironmentConfig will retrieve a map mirroring the server configuration where fields
 // are set to true if the corresponding config setting is set through an environment variable.
 // Settings that haven't been set through environment variables will be missing from the map.
-func (c *Client4) GetEnvironmentConfig() (map[string]interface{}, *Response, error) {
+func (c *Client4) GetEnvironmentConfig() (map[string]any, *Response, error) {
 	r, err := c.DoAPIGet(c.configRoute()+"/environment", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -5140,7 +5141,7 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 
 // ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
 func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response, error) {
-	params := map[string]interface{}{
+	params := map[string]any{
 		"include_deleted": includeDeleted,
 		"dry_run":         dryRun,
 		"user_ids":        userIDs,
@@ -5262,7 +5263,7 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
 // If includeRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
 func (c *Client4) SyncLdap(includeRemovedMembers bool) (*Response, error) {
-	reqBody, jsonErr := json.Marshal(map[string]interface{}{
+	reqBody, jsonErr := json.Marshal(map[string]any{
 		"include_removed_members": includeRemovedMembers,
 	})
 	if jsonErr != nil {
@@ -5478,7 +5479,7 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 }
 
 func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]interface{}{
+	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]any{
 		"from":        fromAuthService,
 		"force":       force,
 		"match_field": matchField,
@@ -5491,7 +5492,7 @@ func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, f
 }
 
 func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]interface{}{
+	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]any{
 		"from":    fromAuthService,
 		"auto":    auto,
 		"matches": usersMap,
@@ -6003,7 +6004,7 @@ func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int)
 
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
 func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response, error) {
-	body, jsonErr := json.Marshal(map[string]interface{}{"term": term})
+	body, jsonErr := json.Marshal(map[string]any{"term": term})
 	if jsonErr != nil {
 		return nil, nil, NewAppError("SearchTeamsForRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
@@ -6066,7 +6067,7 @@ func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage i
 
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
 func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response, error) {
-	body, jsonErr := json.Marshal(map[string]interface{}{"term": term})
+	body, jsonErr := json.Marshal(map[string]any{"term": term})
 	if jsonErr != nil {
 		return nil, nil, NewAppError("SearchChannelsForRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
@@ -7232,7 +7233,7 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.
 func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*Response, error) {
 	url := c.userTermsOfServiceRoute(userId)
-	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
+	data := map[string]any{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
 	if err != nil {
 		return BuildResponse(r), err
@@ -7274,7 +7275,7 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 // CreateTermsOfService creates new terms of service.
 func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response, error) {
 	url := c.termsOfServiceRoute()
-	data := map[string]interface{}{"text": text}
+	data := map[string]any{"text": text}
 	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7573,7 +7574,7 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 
 // RequestTrialLicense will request a trial license and install it in the server
 func (c *Client4) RequestTrialLicense(users int) (*Response, error) {
-	b, jsonErr := json.Marshal(map[string]interface{}{"users": users, "terms_accepted": true})
+	b, jsonErr := json.Marshal(map[string]any{"users": users, "terms_accepted": true})
 	if jsonErr != nil {
 		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}

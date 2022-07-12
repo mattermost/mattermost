@@ -194,7 +194,7 @@ func (m RemoteClusterMsg) IsValid() *AppError {
 	}
 
 	if len(m.Payload) == 0 {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "PayLoad"}, "", http.StatusBadRequest)
+		return NewAppError("RemoteClusterMsg.IsValid", "api.context.invalid_body_param.app_error", map[string]any{"Name": "PayLoad"}, "", http.StatusBadRequest)
 	}
 
 	return nil

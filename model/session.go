@@ -97,7 +97,7 @@ func (s *Session) IsValid() *AppError {
 
 	if len(s.Roles) > UserRolesMaxLength {
 		return NewAppError("Session.IsValid", "model.session.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
 	}
 
 	return nil

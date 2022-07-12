@@ -8656,22 +8656,6 @@
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Din kostnadsfria prova-på-period på 30 dagar slutar snart"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, din 30-dagars prova-på-tperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud testperiod avslutas"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Lägg till betalmetod"
-  },
-  {
     "id": "api.command_remote.displayname.help",
     "translation": "Visningsnamn för säker anslutning"
   },
@@ -8694,22 +8678,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kunde inte skicka automatisk svar från användaren."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Din kostnadsfria 30-dagars prova-på-period av Mattermost har avslutats"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 30-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutades {{.TodayDate}}. Vi hoppas du uppskattade vår flexibla och säkra samarbetsplattform. Lägg in din betalningsinformation för att säkerställa att ditt team kan fortsätta samarbeta i Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Din testperiod av Mattermost Cloud är slut"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Starta din prenumeration"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9361,5 +9329,25 @@
   {
     "id": "api.insights.license_error",
     "translation": "Din licens stöder inte funktionen Insights."
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "En medlem av {{.TeamName}} meddelar dig att uppgradera det här arbetsområdet."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har redan notifierat systemadministratören"
   }
 ]

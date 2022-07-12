@@ -30,7 +30,7 @@ func TestPluginCommand(t *testing.T) {
 
 	t.Run("command handled by plugin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]any{
 				"TeamId": args.TeamId,
 			}
 		})
@@ -111,7 +111,7 @@ func TestPluginCommand(t *testing.T) {
 
 	t.Run("re-entrant command registration on config change", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]any{
 				"TeamId": args.TeamId,
 			}
 		})
@@ -162,7 +162,7 @@ func TestPluginCommand(t *testing.T) {
 				// Saving the plugin config eventually results in a call to
 				// OnConfigurationChange. This used to deadlock on account of
 				// effectively acquiring a RWLock reentrantly.
-				err := p.API.SavePluginConfig(map[string]interface{}{
+				err := p.API.SavePluginConfig(map[string]any{
 					"TeamId": p.configuration.TeamId,
 				})
 				if err != nil {
@@ -218,7 +218,7 @@ func TestPluginCommand(t *testing.T) {
 
 	t.Run("plugins can override built-in commands", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]any{
 				"TeamId": args.TeamId,
 			}
 		})
@@ -379,7 +379,7 @@ func TestPluginCommand(t *testing.T) {
 
 	t.Run("plugin returning status code 0", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]any{
 				"TeamId": args.TeamId,
 			}
 		})

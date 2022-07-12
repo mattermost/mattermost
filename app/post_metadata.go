@@ -53,11 +53,12 @@ func (s *Server) initPostMetadata() {
 
 func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts:      make(map[string]*model.Post, len(originalList.Posts)),
-		Order:      originalList.Order,
-		NextPostId: originalList.NextPostId,
-		PrevPostId: originalList.PrevPostId,
-		HasNext:    originalList.HasNext,
+		Posts:                make(map[string]*model.Post, len(originalList.Posts)),
+		Order:                originalList.Order,
+		NextPostId:           originalList.NextPostId,
+		PrevPostId:           originalList.PrevPostId,
+		HasNext:              originalList.HasNext,
+		HasInaccessiblePosts: originalList.HasInaccessiblePosts,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -433,7 +434,7 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	firstLink := ""
 	images := []string{}
 
-	markdown.Inspect(str, func(blockOrInline interface{}) bool {
+	markdown.Inspect(str, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
 			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(link) {
@@ -743,7 +744,7 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 
 	if format == "gif" {
 		// Decoding the config may have read some of the image data, so re-read the data that has already been read first
-		frameCount, err := imgutils.CountFrames(io.MultiReader(buf, body))
+		frameCount, err := imgutils.CountGIFFrames(io.MultiReader(buf, body))
 		if err != nil {
 			return nil, err
 		}

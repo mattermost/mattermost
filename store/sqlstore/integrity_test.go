@@ -212,6 +212,7 @@ func createReaction(ss store.Store, userId, postId string) *model.Reaction {
 		UserId:    userId,
 		PostId:    postId,
 		EmojiName: model.NewId(),
+		ChannelId: model.NewId(),
 	}
 	reaction, _ = ss.Reaction().Save(reaction)
 	return reaction

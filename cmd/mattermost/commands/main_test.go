@@ -72,7 +72,7 @@ type TestNewTeamSettings struct {
 type TestPluginSettings struct {
 	Enable                  *bool
 	Directory               *string `restricted:"true"`
-	Plugins                 map[string]map[string]interface{}
+	Plugins                 map[string]map[string]any
 	PluginStates            map[string]*model.PluginState
 	SignaturePublicKeyFiles []string
 }

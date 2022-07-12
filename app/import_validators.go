@@ -492,7 +492,7 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]interface{}{"Username": favoriter}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]any{"Username": favoriter}, "", http.StatusBadRequest)
 			}
 		}
 	}
@@ -539,7 +539,7 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]interface{}{"Username": flagger}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]any{"Username": flagger}, "", http.StatusBadRequest)
 			}
 		}
 	}

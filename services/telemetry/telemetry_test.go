@@ -44,7 +44,7 @@ type testTelemetryPayload struct {
 		UserId     string
 		Event      string
 		Timestamp  time.Time
-		Properties map[string]interface{}
+		Properties map[string]any
 	}
 	Context struct {
 		Library struct {
@@ -59,10 +59,10 @@ type testBatch struct {
 	UserId     string
 	Event      string
 	Timestamp  time.Time
-	Properties map[string]interface{}
+	Properties map[string]any
 }
 
-func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]interface{}) {
+func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]any) {
 	t.Helper()
 	assert.NotEmpty(t, actual.MessageId)
 	assert.False(t, actual.SentAt.IsZero())
@@ -354,7 +354,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
-		Plugins: map[string]map[string]interface{}{
+		Plugins: map[string]map[string]any{
 			"test": {
 				"foo": "bar",
 			},
@@ -438,12 +438,12 @@ func TestRudderTelemetry(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		service.SendTelemetry("Testing Telemetry", map[string]interface{}{
+		service.SendTelemetry("Testing Telemetry", map[string]any{
 			"hey": testValue,
 		})
 		select {
 		case result := <-pchan:
-			assertPayload(t, result, "Testing Telemetry", map[string]interface{}{
+			assertPayload(t, result, "Testing Telemetry", map[string]any{
 				"hey": testValue,
 			})
 		case <-time.After(time.Second * 1):

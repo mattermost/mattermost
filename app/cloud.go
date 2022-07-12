@@ -70,7 +70,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 
 		post := &model.Post{
-			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]interface{}{"TeamName": team.Name}),
+			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]any{"TeamName": team.Name}),
 			UserId:    systemBot.UserId,
 			ChannelId: channel.Id,
 			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
