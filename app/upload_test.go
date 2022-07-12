@@ -241,7 +241,7 @@ func TestUploadData(t *testing.T) {
 		us.Filename = "test.gif"
 		us.FileSize = int64(len(gifData))
 		var appErr *model.AppError
-		us, appErr = th.App.CreateUploadSession(us)
+		us, appErr = th.App.CreateUploadSession(th.Context, us)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
