@@ -8638,5 +8638,33 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Um membro do {{.TeamName}} notificou você para fazer upgrade deste espaço de trabalho."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Não foi possível restaurar a equipe porque o limite de equipes foi atingido"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Não foi possível criar equipe porque o limite de equipes foi atingido"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Erro ao atualizar a assinatura do webhook."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Administrador já notificado"
+  },
+  {
+    "id": "Channels",
+    "translation": "Canais"
+  },
+  {
+    "id": "Boards",
+    "translation": "Quadros"
   }
 ]

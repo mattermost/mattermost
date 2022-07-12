@@ -3,7 +3,11 @@
 
 package model
 
-import "strings"
+import (
+	"os"
+	"strconv"
+	"strings"
+)
 
 const (
 	EventTypeFailedPayment                = "failed-payment"
@@ -11,8 +15,6 @@ const (
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
-	EventTypeTrialWillEnd                 = "trial-will-end"
-	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string
@@ -38,6 +40,9 @@ const (
 	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
+
+const defaultCloudNotifyAdminCoolOffDays = 30
+const CloudNotifyAdminInfo = "cloud_notify_admin_info"
 
 // Product model represents a product on the cloud system.
 type Product struct {
@@ -170,13 +175,13 @@ type Invoice struct {
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 type InvoiceLineItem struct {
-	PriceID      string                 `json:"price_id"`
-	Total        int64                  `json:"total"`
-	Quantity     float64                `json:"quantity"`
-	PricePerUnit int64                  `json:"price_per_unit"`
-	Description  string                 `json:"description"`
-	Type         string                 `json:"type"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	PriceID      string         `json:"price_id"`
+	Total        int64          `json:"total"`
+	Quantity     float64        `json:"quantity"`
+	PricePerUnit int64          `json:"price_per_unit"`
+	Description  string         `json:"description"`
+	Type         string         `json:"type"`
+	Metadata     map[string]any `json:"metadata"`
 }
 
 type CWSWebhookPayload struct {
@@ -229,4 +234,24 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
+}
+
+type NotifyAdminToUpgradeRequest struct {
+	CurrentTeamId string `json:"current_team_id"`
+}
+
+type AdminNotificationUserInfo struct {
+	LastUserIDToNotify        string
+	LastNotificationTimestamp int64
+}
+
+func CanNotify(lastNotificationTimestamp int64) bool {
+	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
+	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
+	if parseError != nil {
+		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
+	}
+	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
+	timeDiff := GetMillis() - lastNotificationTimestamp
+	return timeDiff >= int64(daysToMillis)
 }

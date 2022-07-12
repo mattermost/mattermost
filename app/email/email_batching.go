@@ -276,7 +276,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 			tm := time.Unix(notification.post.CreateAt/1000, 0)
 			timezone, _ := tm.Zone()
 
-			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]interface{}{
+			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]any{
 				"Hour":     tm.Hour(),
 				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
 				"Month":    translateFunc(tm.Month().String()),
@@ -292,7 +292,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 			otherChannelMembersCount := 0
 
 			if threadsEnabled && notification.post.RootId != "" {
-				props := map[string]interface{}{"channelName": channelDisplayName}
+				props := map[string]any{"channelName": channelDisplayName}
 				channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads", props)
 				if channel.Type == model.ChannelTypeDirect {
 					channelDisplayName = translateFunc("api.push_notification.title.collapsed_threads_dm")
@@ -320,7 +320,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
 
-	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]interface{}{
+	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]any{
 		"SiteName": es.config().TeamSettings.SiteName,
 		"Year":     tm.Year(),
 		"Month":    translateFunc(tm.Month().String()),
@@ -344,7 +344,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		mlog.Error("Unable to render email", mlog.Err(renderErr))
 	}
 
-	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles); nErr != nil {
+	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", ""); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

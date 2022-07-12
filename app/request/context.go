@@ -45,7 +45,7 @@ func EmptyContext() *Context {
 	}
 }
 
-func (c *Context) T(translationID string, args ...interface{}) string {
+func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
 func (c *Context) Session() *model.Session {

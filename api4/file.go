@@ -254,7 +254,7 @@ NextPart:
 			if err != nil && err != io.EOF {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
-					map[string]interface{}{"Formname": formname},
+					map[string]any{"Formname": formname},
 					err.Error(), http.StatusBadRequest)
 				return nil
 			}
@@ -367,7 +367,7 @@ NextPart:
 	if expectClientIds && len(clientIds) != nFiles {
 		c.Err = model.NewAppError("uploadFileMultipart",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": nFiles},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": nFiles},
 			"", http.StatusBadRequest)
 		return nil
 	}
@@ -412,7 +412,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if len(clientIds) != 0 && len(clientIds) != len(fileHeaders) {
 		c.Err = model.NewAppError("uploadFilesMultipartBuffered",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
 			"", http.StatusBadRequest)
 		return nil
 	}

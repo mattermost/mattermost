@@ -50,7 +50,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}))
 
-	for _, data := range [](map[string]interface{}){
+	for _, data := range [](map[string]any){
 		{"path": "/og-data/", "title": "Test Title", "cacheMissCount": 1},
 		{"path": "/no-og-data/", "title": "", "cacheMissCount": 2},
 

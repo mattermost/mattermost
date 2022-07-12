@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"io"
+	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,23 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
+
+func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
+	ext := strings.ToLower(filepath.Ext(name))
+	info := &model.FileInfo{
+		Name:     name,
+		MimeType: mime.TypeByExtension(ext),
+	}
+	if info.IsImage() {
+		config, _, err := a.ch.imgDecoder.DecodeConfig(file)
+		if err != nil {
+			return nil, err
+		}
+		info.Width = config.Width
+		info.Height = config.Height
+	}
+	return info, nil
+}
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -47,7 +65,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
-					map[string]interface{}{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
+					map[string]any{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
 				return false
 			}
 			if newInfo != nil {
@@ -102,7 +120,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
 	}
 
 	us.FileOffset = 0
@@ -121,11 +139,11 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 		channel, err := a.GetChannel(us.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
-				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
 		}
 		if channel.DeleteAt != 0 {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -217,7 +235,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 				errStr = err.Error()
 			}
 			return nil, model.NewAppError("UploadData", "app.upload.upload_data.first_part_too_small.app_error",
-				map[string]interface{}{"Size": minFirstPartSize}, errStr, http.StatusBadRequest)
+				map[string]any{"Size": minFirstPartSize}, errStr, http.StatusBadRequest)
 		}
 	} else if us.FileOffset < us.FileSize {
 		// resume upload
@@ -244,10 +262,11 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	info, err := model.GetInfoForBytes(us.Filename, file, int(us.FileSize))
+	// generate file info
+	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
 	file.Close()
-	if err != nil {
-		return nil, err
+	if genErr != nil {
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, genErr.Error(), http.StatusInternalServerError)
 	}
 
 	info.CreatorId = us.UserId
@@ -266,7 +285,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
-				map[string]interface{}{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
+				map[string]any{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]

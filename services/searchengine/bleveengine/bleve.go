@@ -134,7 +134,7 @@ func (b *BleveEngine) createOrOpenIndex(indexName string, mapping *mapping.Index
 		return index, nil
 	}
 
-	index, err := bleve.NewUsing(indexPath, mapping, "scorch", "scorch", map[string]interface{}{
+	index, err := bleve.NewUsing(indexPath, mapping, "scorch", "scorch", map[string]any{
 		"forceSegmentType":    "zap",
 		"forceSegmentVersion": 15,
 	})

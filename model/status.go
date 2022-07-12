@@ -56,8 +56,8 @@ func StatusListToJSON(u []*Status) ([]byte, error) {
 	return json.Marshal(list)
 }
 
-func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {
-	interfaceMap := map[string]interface{}{}
+func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]any {
+	interfaceMap := map[string]any{}
 	for _, s := range statusMap {
 		// Omitted statues mean offline
 		if s.Status != StatusOffline {
