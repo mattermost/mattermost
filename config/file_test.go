@@ -295,7 +295,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a string variable, with custom defaults", func(t *testing.T) {
@@ -322,7 +322,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 
 		// environment override should take priority over the custom default value
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a bool variable", func(t *testing.T) {
@@ -348,7 +348,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
-		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for an int variable", func(t *testing.T) {
@@ -374,7 +374,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
-		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"TeamSettings": map[string]any{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for an int64 variable", func(t *testing.T) {
@@ -400,7 +400,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a slice variable - one value", func(t *testing.T) {
@@ -426,7 +426,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a slice variable - three values", func(t *testing.T) {
@@ -452,7 +452,7 @@ func TestFileStoreGetEnvironmentOverrides(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, fs.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 	})
 }
 
@@ -647,7 +647,7 @@ func TestFileStoreLoad(t *testing.T) {
 		err := configStore.Load()
 		require.NoError(t, err)
 		assert.Equal(t, "http://override", *configStore.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, configStore.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, configStore.GetEnvironmentOverrides())
 	})
 
 	t.Run("do not persist environment variables - string", func(t *testing.T) {
@@ -669,7 +669,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
@@ -694,7 +694,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
-		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"EnableUploads": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, false, *actualConfig.PluginSettings.EnableUploads)
@@ -719,7 +719,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
-		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"TeamSettings": map[string]any{"MaxUsersPerTeam": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *actualConfig.TeamSettings.MaxUsersPerTeam)
@@ -744,7 +744,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"TLSStrictTransportMaxAge": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, int64(63072000), *actualConfig.ServiceSettings.TLSStrictTransportMaxAge)
@@ -769,7 +769,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, []string{}, actualConfig.SqlSettings.DataSourceReplicas)
@@ -796,7 +796,7 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, actualConfig.SqlSettings.DataSourceReplicas)

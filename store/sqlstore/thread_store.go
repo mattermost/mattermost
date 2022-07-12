@@ -938,7 +938,7 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 
 // Top threads in all public channels and private channels userID is a member of. Returns a list of threads ranked by interactions.
 func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	var args []interface{}
+	var args []any
 	query := `select
 		threads_list.PostId,
 		threads_list.ReplyCount,
@@ -1012,7 +1012,7 @@ func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string,
 }
 
 func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
-	var args []interface{}
+	var args []any
 
 	// gets all threads within the team which user follows.
 	query := `select 

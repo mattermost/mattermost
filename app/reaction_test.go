@@ -92,7 +92,6 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	th.Server.configStore.SetReadOnlyFF(false)
 	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -252,6 +251,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-team-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		_, err := th.App.GetTopReactionsForTeamSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})
@@ -263,7 +263,6 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	th.Server.configStore.SetReadOnlyFF(false)
 	defer th.Server.configStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 
 	userId := th.BasicUser.Id
 
@@ -423,6 +422,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 
 	t.Run("get-top-reactions-for-user-since feature flag", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		_, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		assert.NotNil(t, err)
 	})

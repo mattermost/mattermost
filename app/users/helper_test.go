@@ -91,7 +91,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			sessionCache: cache,
 			config:       configStore.Get,
 			sessionPool: sync.Pool{
-				New: func() interface{} {
+				New: func() any {
 					return &model.Session{}
 				},
 			},

@@ -40,6 +40,10 @@ func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*mo
 	return s.srv.getChannelMember(context.Background(), channelID, userID)
 }
 
+func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return s.srv.getChannelsForTeamForUser(teamID, userID, opts)
+}
+
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -188,7 +192,7 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 	}
 
 	if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
-		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
 	}
 
 	channel.CreatorId = userID
@@ -799,7 +803,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Message:   T("api.channel.restore_channel.unarchived", map[string]any{"Username": user.Username}),
 			Type:      model.PostTypeChannelRestored,
 			UserId:    userID,
 			Props: model.StringInterface{
@@ -820,7 +824,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 
 			post := &model.Post{
 				ChannelId: channel.Id,
-				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
+				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]any{"Username": systemBot.Username}),
 				Type:      model.PostTypeChannelRestored,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{
@@ -1363,7 +1367,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 	}
 
 	if channel.Name == model.DefaultChannelName {
-		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -1457,7 +1461,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
 		}
 		if len(nonMembers) > 0 {
-			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1594,7 +1598,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
 	profiles, err := a.Srv().Store.User().GetProfiles(options)
 	if err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	var preferences model.Preferences
@@ -1619,7 +1623,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	}
 
 	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -1818,8 +1822,8 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, opts)
+func (s *Server) getChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	list, err := s.Store.Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1831,6 +1835,10 @@ func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *mode
 	}
 
 	return list, nil
+}
+
+func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return a.Srv().getChannelsForTeamForUser(teamID, userID, opts)
 }
 
 func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
@@ -2404,7 +2412,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 
 	if channel.Name == model.DefaultChannelName {
 		if !isGuest {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -2414,7 +2422,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if len(nonMembers) == 0 {
-			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -3172,6 +3180,10 @@ func (a *App) GetPinnedPosts(channelID string) (*model.PostList, *model.AppError
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
 	return posts, nil
 }
 
@@ -3302,11 +3314,11 @@ func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError
 			}
 
 			for _, channel := range channelList {
-				channelMentionsProp := make(map[string]interface{}, len(channelMentions[channel]))
+				channelMentionsProp := make(map[string]any, len(channelMentions[channel]))
 				for _, channelMention := range channelMentions[channel] {
 					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
 						if mentioned.Type == model.ChannelTypeOpen {
-							channelMentionsProp[mentioned.Name] = map[string]interface{}{
+							channelMentionsProp[mentioned.Name] = map[string]any{
 								"display_name": mentioned.DisplayName,
 							}
 						}

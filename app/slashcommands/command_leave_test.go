@@ -50,7 +50,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 	t.Run("Should error when no Channel ID in args", func(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId: th.BasicUser.Id,
-			T:      func(s string, args ...interface{}) string { return s },
+			T:      func(s string, args ...any) string { return s },
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "api.command_leave.fail.app_error", actual.Text)
@@ -61,7 +61,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    th.BasicUser.Id,
 			ChannelId: publicChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 		}
 		actual := lp.DoCommand(th.App, th.Context, args, "")
 		assert.Equal(t, "api.command_leave.fail.app_error", actual.Text)
@@ -72,7 +72,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    th.BasicUser.Id,
 			ChannelId: publicChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			TeamId:    th.BasicTeam.Id,
 			SiteURL:   "http://localhost:8065",
 		}
@@ -90,7 +90,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    th.BasicUser.Id,
 			ChannelId: privateChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			TeamId:    th.BasicTeam.Id,
 			SiteURL:   "http://localhost:8065",
 		}
@@ -102,7 +102,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    th.BasicUser.Id,
 			ChannelId: defaultChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			TeamId:    th.BasicTeam.Id,
 			SiteURL:   "http://localhost:8065",
 		}
@@ -114,7 +114,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    guest.Id,
 			ChannelId: defaultChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			TeamId:    th.BasicTeam.Id,
 			SiteURL:   "http://localhost:8065",
 		}
@@ -132,7 +132,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 		args := &model.CommandArgs{
 			UserId:    guest.Id,
 			ChannelId: publicChannel.Id,
-			T:         func(s string, args ...interface{}) string { return s },
+			T:         func(s string, args ...any) string { return s },
 			TeamId:    th.BasicTeam.Id,
 			SiteURL:   "http://localhost:8065",
 		}

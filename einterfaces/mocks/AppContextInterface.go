@@ -87,14 +87,14 @@ func (_m *AppContextInterface) Session() *model.Session {
 }
 
 // T provides a mock function with given fields: translationID, args
-func (_m *AppContextInterface) T(translationID string, args ...interface{}) string {
-	var _ca []interface{}
+func (_m *AppContextInterface) T(translationID string, args ...any) string {
+	var _ca []any
 	_ca = append(_ca, translationID)
 	_ca = append(_ca, args...)
 	ret := _m.Called(_ca...)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, ...interface{}) string); ok {
+	if rf, ok := ret.Get(0).(func(string, ...any) string); ok {
 		r0 = rf(translationID, args...)
 	} else {
 		r0 = ret.Get(0).(string)

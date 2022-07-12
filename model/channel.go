@@ -38,27 +38,27 @@ const (
 )
 
 type Channel struct {
-	Id                string                 `json:"id"`
-	CreateAt          int64                  `json:"create_at"`
-	UpdateAt          int64                  `json:"update_at"`
-	DeleteAt          int64                  `json:"delete_at"`
-	TeamId            string                 `json:"team_id"`
-	Type              ChannelType            `json:"type"`
-	DisplayName       string                 `json:"display_name"`
-	Name              string                 `json:"name"`
-	Header            string                 `json:"header"`
-	Purpose           string                 `json:"purpose"`
-	LastPostAt        int64                  `json:"last_post_at"`
-	TotalMsgCount     int64                  `json:"total_msg_count"`
-	ExtraUpdateAt     int64                  `json:"extra_update_at"`
-	CreatorId         string                 `json:"creator_id"`
-	SchemeId          *string                `json:"scheme_id"`
-	Props             map[string]interface{} `json:"props"`
-	GroupConstrained  *bool                  `json:"group_constrained"`
-	Shared            *bool                  `json:"shared"`
-	TotalMsgCountRoot int64                  `json:"total_msg_count_root"`
-	PolicyID          *string                `json:"policy_id"`
-	LastRootPostAt    int64                  `json:"last_root_post_at"`
+	Id                string         `json:"id"`
+	CreateAt          int64          `json:"create_at"`
+	UpdateAt          int64          `json:"update_at"`
+	DeleteAt          int64          `json:"delete_at"`
+	TeamId            string         `json:"team_id"`
+	Type              ChannelType    `json:"type"`
+	DisplayName       string         `json:"display_name"`
+	Name              string         `json:"name"`
+	Header            string         `json:"header"`
+	Purpose           string         `json:"purpose"`
+	LastPostAt        int64          `json:"last_post_at"`
+	TotalMsgCount     int64          `json:"total_msg_count"`
+	ExtraUpdateAt     int64          `json:"extra_update_at"`
+	CreatorId         string         `json:"creator_id"`
+	SchemeId          *string        `json:"scheme_id"`
+	Props             map[string]any `json:"props"`
+	GroupConstrained  *bool          `json:"group_constrained"`
+	Shared            *bool          `json:"shared"`
+	TotalMsgCountRoot int64          `json:"total_msg_count_root"`
+	PolicyID          *string        `json:"policy_id"`
+	LastRootPostAt    int64          `json:"last_root_post_at"`
 }
 
 type ChannelWithTeamData struct {
@@ -188,6 +188,14 @@ func (o *Channel) TotalMsgCount_() float64 {
 	return float64(o.TotalMsgCount)
 }
 
+func (o *Channel) TotalMsgCountRoot_() float64 {
+	return float64(o.TotalMsgCountRoot)
+}
+
+func (o *Channel) LastRootPostAt_() float64 {
+	return float64(o.LastRootPostAt)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -296,11 +304,11 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 
 func (o *Channel) MakeNonNil() {
 	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+		o.Props = make(map[string]any)
 	}
 }
 
-func (o *Channel) AddProp(key string, value interface{}) {
+func (o *Channel) AddProp(key string, value any) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
@@ -342,7 +350,7 @@ func (t ChannelType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *ChannelType) UnmarshalGraphQL(input interface{}) error {
+func (t *ChannelType) UnmarshalGraphQL(input any) error {
 	chType, ok := input.(string)
 	if !ok {
 		return errors.New("wrong type")

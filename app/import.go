@@ -314,7 +314,7 @@ func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *
 		}
 		return a.importEmoji(line.Emoji, dryRun)
 	default:
-		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}
 }
 

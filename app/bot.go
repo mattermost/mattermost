@@ -447,7 +447,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PatchBot", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -626,7 +626,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 
 	T := i18n.GetUserTranslations(user.Locale)
 	message = T("app.bot.get_disable_bot_sysadmin_message",
-		map[string]interface{}{
+		map[string]any{
 			"UserName":           user.Username,
 			"NumBots":            len(userBots),
 			"BotNames":           botList,
