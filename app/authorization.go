@@ -96,10 +96,6 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 		return false
 	}
 
-	if session.IsUnrestricted() {
-		return true
-	}
-
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
@@ -115,6 +111,10 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 	channel, appErr := a.GetChannel(channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
+	}
+
+	if session.IsUnrestricted() {
+		return true
 	}
 
 	if appErr == nil && channel.TeamId != "" {
