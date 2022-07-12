@@ -39,10 +39,6 @@ func NewContext(ctx context.Context, requestId, ipAddress, path, userAgent, acce
 }
 
 func EmptyContext(logger mlog.LoggerIFace) *Context {
-	if logger == nil {
-		logger, _ = mlog.NewLogger() // NewLogger without arguments never errors
-	}
-
 	return &Context{
 		t:       i18n.T,
 		logger:  logger,
