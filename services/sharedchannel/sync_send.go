@@ -331,7 +331,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 				Message:   T("sharedchannel.cannot_deliver_post", map[string]any{"Remote": rc.DisplayName}),
 				CreateAt:  post.CreateAt + 1,
 			}
-			scs.app.SendEphemeralPost(request.EmptyContext(), post.UserId, ephemeral)
+			scs.app.SendEphemeralPost(request.EmptyContext(scs.server.GetLogger()), post.UserId, ephemeral)
 
 			notified[post.UserId] = true
 		}

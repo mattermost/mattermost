@@ -146,7 +146,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           request.EmptyContext(),
+		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
 	}
 	th.Context.SetLogger(testLogger)

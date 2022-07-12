@@ -133,7 +133,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	th := &TestHelper{
 		App:               a,
-		Context:           request.EmptyContext(),
+		Context:           request.EmptyContext(testLogger),
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,

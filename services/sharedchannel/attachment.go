@@ -157,7 +157,7 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
 	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(), &us)
+	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(scs.server.GetLogger()), &us)
 	if appErr != nil {
 		return appErr
 	}

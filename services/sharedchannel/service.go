@@ -166,7 +166,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 		Message:   text,
 		CreateAt:  model.GetMillis(),
 	}
-	scs.app.SendEphemeralPost(request.EmptyContext(), userId, ephemeral)
+	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.GetLogger()), userId, ephemeral)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -229,7 +229,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 		},
 	}
 
-	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(), channel, readonlyChannelModerations)
+	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(scs.server.GetLogger()), channel, readonlyChannelModerations)
 	return err
 }
 
