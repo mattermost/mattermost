@@ -64,15 +64,19 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 		return nil, fmt.Errorf("all teams were not found. Requested %d; Found %d", len(teamIDs), len(teams))
 	}
 
-	// We pre-calculate this so that it's not computed in separate goroutines outside
-	// the dataloader.
-	for i, team := range teams {
-		if (!team.AllowOpenInvite || team.Type != model.TeamOpen) &&
-			!c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
-			c.SetPermissionError(model.PermissionViewTeam)
-			return nil, c.Err
+	var teamsToCheck []string
+	for _, team := range teams {
+		if !team.AllowOpenInvite || team.Type != model.TeamOpen {
+			teamsToCheck = append(teamsToCheck, team.Id)
 		}
+	}
 
+	if !c.App.SessionHasPermissionToTeams(*c.AppContext.Session(), teamsToCheck, model.PermissionViewMembers) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return nil, c.Err
+	}
+
+	for i, team := range teams {
 		teams[i] = c.App.SanitizeTeam(*c.AppContext.Session(), team)
 	}
 

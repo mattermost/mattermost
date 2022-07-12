@@ -57,6 +57,40 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, p
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
+// SessionHasPermissionToTeams returns true only if user has access to all teams.
+func (a *App) SessionHasPermissionToTeams(session model.Session, teamIDs []string, permission *model.Permission) bool {
+	for _, teamID := range teamIDs {
+		if teamID == "" {
+			return false
+		}
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	// Getting the list of unique roles from all teams.
+	var roles []string
+	uniqueRoles := make(map[string]bool)
+	for _, teamID := range teamIDs {
+		tm := session.GetTeamByTeamId(teamID)
+		if tm != nil {
+			for _, role := range tm.GetRoles() {
+				uniqueRoles[role] = true
+			}
+		}
+	}
+
+	for role := range uniqueRoles {
+		roles = append(roles, role)
+	}
+
+	if a.RolesGrantPermission(roles, permission.Id) {
+		return true
+	}
+
+	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+}
+
 func (a *App) SessionHasPermissionToChannel(session model.Session, channelID string, permission *model.Permission) bool {
 	if channelID == "" {
 		return false
@@ -85,6 +119,65 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 
 	if appErr == nil && channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+	}
+
+	return a.SessionHasPermissionTo(session, permission)
+}
+
+// SessionHasPermissionToChannels returns true only if user has access to all channels.
+func (a *App) SessionHasPermissionToChannels(session model.Session, channelIDs []string, permission *model.Permission) bool {
+	for _, channelID := range channelIDs {
+		if channelID == "" {
+			return false
+		}
+	}
+
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+
+	var channelRoles []string
+	uniqueRoles := make(map[string]bool)
+	if err == nil {
+		for _, channelID := range channelIDs {
+			if roles, ok := ids[channelID]; ok {
+				for _, role := range strings.Fields(roles) {
+					uniqueRoles[role] = true
+				}
+			}
+		}
+	}
+
+	for role := range uniqueRoles {
+		channelRoles = append(channelRoles, role)
+	}
+
+	if a.RolesGrantPermission(channelRoles, permission.Id) {
+		return true
+	}
+
+	channels, appErr := a.GetChannels(channelIDs)
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+		return false
+	}
+
+	// Get TeamIDs from channels
+	uniqueTeamIDs := make(map[string]bool)
+	for _, ch := range channels {
+		if ch.TeamId != "" {
+			uniqueTeamIDs[ch.TeamId] = true
+		}
+	}
+
+	var teamIDs []string
+	for teamID := range uniqueTeamIDs {
+		teamIDs = append(teamIDs, teamID)
+	}
+
+	if appErr == nil && len(teamIDs) > 0 {
+		return a.SessionHasPermissionToTeams(session, teamIDs, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
