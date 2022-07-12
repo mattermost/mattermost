@@ -1418,7 +1418,7 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
 // ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 // Use GetLastAccessiblePostTime() to access the result.
-func (a *App) ComputeLastAccessiblePostTime() *model.AppError {
+func (a *App) ComputeLastAccessiblePostTime() error {
 	limit, appErr := a.getCloudMessagesHistoryLimit()
 	if appErr != nil {
 		return appErr

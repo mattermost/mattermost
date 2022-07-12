@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
 )
 
 func TestCreateUploadSession(t *testing.T) {
@@ -231,6 +232,23 @@ func TestUploadData(t *testing.T) {
 		require.NotZero(t, info.Height)
 		require.NotEmpty(t, info.ThumbnailPath)
 		require.NotEmpty(t, info.PreviewPath)
+	})
+
+	t.Run("huge GIF", func(t *testing.T) {
+		gifData := imgutils.GenGIFData(65535, 65535, 10)
+
+		us.Id = model.NewId()
+		us.Filename = "test.gif"
+		us.FileSize = int64(len(gifData))
+		var appErr *model.AppError
+		us, appErr = th.App.CreateUploadSession(us)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, us)
+
+		info, appErr := th.App.UploadData(th.Context, us, bytes.NewReader(gifData))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.upload.upload_data.large_image.app_error", appErr.Id)
+		require.Empty(t, info)
 	})
 }
 

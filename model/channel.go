@@ -188,6 +188,14 @@ func (o *Channel) TotalMsgCount_() float64 {
 	return float64(o.TotalMsgCount)
 }
 
+func (o *Channel) TotalMsgCountRoot_() float64 {
+	return float64(o.TotalMsgCountRoot)
+}
+
+func (o *Channel) LastRootPostAt_() float64 {
+	return float64(o.LastRootPostAt)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {

@@ -2877,7 +2877,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 
 	err := th.App.ComputeLastAccessiblePostTime()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
 }

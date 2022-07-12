@@ -6994,38 +6994,6 @@
     "translation": "برنامه ها را به فضای کاری خود اضافه کنید"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "دوره آزمایشی 14 روزه رایگان Mattermost شما به زودی به پایان می رسد"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}، دوره آزمایشی 14 روزه شما از Mattermost، سه روز دیگر در {{.TrialEnd}} به پایان می رسد. لطفاً اطلاعات پرداخت خود را اضافه کنید تا مطمئن شوید که تیم شما همچنان می‌تواند از مزایای Mattermost Cloud بهره مند شود."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "پایان آزمایشی Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "افزودن روش پرداخت"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "دوره آزمایشی 14 روزه رایگان Mattermost امروز به پایان رسید"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}، دوره آزمایشی رایگان 14 روزه Mattermost Cloud Professional امروز، {{.TodayDate}} به پایان رسید. لطفاً اطلاعات پرداخت خود را اضافه کنید تا مطمئن شوید که تیم شما همچنان می‌تواند از مزایای Cloud Professional بهره مند شود."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "آزمایش Mattermost cloud به پایان رسیده است"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "شروع اشتراک"
-  },
-  {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "نمی توان طرح را برای تیم تنظیم کرد زیرا طرح ارائه شده یک طرح تیمی نیست."
   },

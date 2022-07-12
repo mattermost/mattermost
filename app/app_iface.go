@@ -78,7 +78,7 @@ type AppIface interface {
 	ClientConfigWithComputed() map[string]string
 	// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 	// Use GetLastAccessiblePostTime() to access the result.
-	ComputeLastAccessiblePostTime() *model.AppError
+	ComputeLastAccessiblePostTime() error
 	// ConvertBotToUser converts a bot to user.
 	ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.
