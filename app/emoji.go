@@ -66,7 +66,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 
 	imageData := multiPartImageData.File["image"]
 	if len(imageData) == 0 {
-		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "", http.StatusBadRequest)
+		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -123,7 +123,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	}
 
 	if config.Width > MaxEmojiOriginalWidth || config.Height > MaxEmojiOriginalHeight {
-		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large.app_error", map[string]interface{}{
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large.app_error", map[string]any{
 			"MaxWidth":  MaxEmojiOriginalWidth,
 			"MaxHeight": MaxEmojiOriginalHeight,
 		}, "", http.StatusBadRequest)

@@ -165,12 +165,12 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	}
 }
 
-func (ts *TelemetryService) SendTelemetry(event string, properties map[string]interface{}) {
+func (ts *TelemetryService) SendTelemetry(event string, properties map[string]any) {
 	if ts.rudderClient != nil {
 		var context *rudder.Context
 		// if we are part of a cloud installation, add it's ID to the tracked event's context
 		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
-			context = &rudder.Context{Traits: map[string]interface{}{"installationId": installationId}}
+			context = &rudder.Context{Traits: map[string]any{"installationId": installationId}}
 		}
 		ts.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
@@ -193,11 +193,11 @@ func isDefaultArray(setting, defaultValue []string) bool {
 	return true
 }
 
-func isDefault(setting interface{}, defaultValue interface{}) bool {
+func isDefault(setting any, defaultValue any) bool {
 	return setting == defaultValue
 }
 
-func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue interface{}) interface{} {
+func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue any) any {
 	settings, ok := pluginSettings.Plugins[plugin]
 	if !ok {
 		return defaultValue
@@ -331,7 +331,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	activity := map[string]interface{}{
+	activity := map[string]any{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -357,7 +357,7 @@ func (ts *TelemetryService) trackActivity() {
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
 			tmpStorage = usage
 		}
-		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+		activity["storage_bytes"] = utils.RoundOffToZeroesResolution(float64(tmpStorage), 8)
 	}
 
 	ts.SendTelemetry(TrackActivity, activity)
@@ -365,7 +365,7 @@ func (ts *TelemetryService) trackActivity() {
 
 func (ts *TelemetryService) trackConfig() {
 	cfg := ts.srv.Config()
-	ts.SendTelemetry(TrackConfigService, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigService, map[string]any{
 		"web_server_mode":                                         *cfg.ServiceSettings.WebserverMode,
 		"enable_security_fix_alert":                               *cfg.ServiceSettings.EnableSecurityFixAlert,
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
@@ -449,7 +449,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 	})
 
-	ts.SendTelemetry(TrackConfigTeam, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigTeam, map[string]any{
 		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
 		"enable_open_server":                      *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                *cfg.TeamSettings.EnableUserDeactivation,
@@ -472,14 +472,14 @@ func (ts *TelemetryService) trackConfig() {
 		"experimental_default_channels":           len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})
 
-	ts.SendTelemetry(TrackConfigClientReq, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigClientReq, map[string]any{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
 		"ios_latest_version":     cfg.ClientRequirements.IosLatestVersion,
 		"ios_min_version":        cfg.ClientRequirements.IosMinVersion,
 	})
 
-	ts.SendTelemetry(TrackConfigSQL, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigSQL, map[string]any{
 		"driver_name":                          *cfg.SqlSettings.DriverName,
 		"trace":                                cfg.SqlSettings.Trace,
 		"max_idle_conns":                       *cfg.SqlSettings.MaxIdleConns,
@@ -493,7 +493,7 @@ func (ts *TelemetryService) trackConfig() {
 		"migrations_statement_timeout_seconds": *cfg.SqlSettings.MigrationsStatementTimeoutSeconds,
 	})
 
-	ts.SendTelemetry(TrackConfigLog, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLog, map[string]any{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
 		"console_json":             *cfg.LogSettings.ConsoleJson,
@@ -505,7 +505,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.SendTelemetry(TrackConfigAudit, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigAudit, map[string]any{
 		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
 		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
 		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
@@ -515,7 +515,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.SendTelemetry(TrackConfigNotificationLog, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigNotificationLog, map[string]any{
 		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
 		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
 		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
@@ -526,7 +526,7 @@ func (ts *TelemetryService) trackConfig() {
 		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
-	ts.SendTelemetry(TrackConfigPassword, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigPassword, map[string]any{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
 		"number":         *cfg.PasswordSettings.Number,
@@ -534,7 +534,7 @@ func (ts *TelemetryService) trackConfig() {
 		"symbol":         *cfg.PasswordSettings.Symbol,
 	})
 
-	ts.SendTelemetry(TrackConfigFile, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigFile, map[string]any{
 		"enable_public_links":           cfg.FileSettings.EnablePublicLink,
 		"driver_name":                   *cfg.FileSettings.DriverName,
 		"isdefault_directory":           isDefault(*cfg.FileSettings.Directory, model.FileSettingsDefaultDirectory),
@@ -553,7 +553,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_mobile_download":        *cfg.FileSettings.EnableMobileDownload,
 	})
 
-	ts.SendTelemetry(TrackConfigEmail, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigEmail, map[string]any{
 		"enable_sign_up_with_email":            cfg.EmailSettings.EnableSignUpWithEmail,
 		"enable_sign_in_with_email":            *cfg.EmailSettings.EnableSignInWithEmail,
 		"enable_sign_in_with_username":         *cfg.EmailSettings.EnableSignInWithUsername,
@@ -581,7 +581,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_inactivity_email":              *cfg.EmailSettings.EnableInactivityEmail,
 	})
 
-	ts.SendTelemetry(TrackConfigRate, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigRate, map[string]any{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
 		"vary_by_user":             *cfg.RateLimitSettings.VaryByUser,
@@ -591,19 +591,19 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_vary_by_header": isDefault(cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
-	ts.SendTelemetry(TrackConfigPrivacy, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigPrivacy, map[string]any{
 		"show_email_address": cfg.PrivacySettings.ShowEmailAddress,
 		"show_full_name":     cfg.PrivacySettings.ShowFullName,
 	})
 
-	ts.SendTelemetry(TrackConfigTheme, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigTheme, map[string]any{
 		"enable_theme_selection":  *cfg.ThemeSettings.EnableThemeSelection,
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TeamSettingsDefaultTeamText),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
 	})
 
-	ts.SendTelemetry(TrackConfigOAuth, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigOAuth, map[string]any{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
 		"openid_gitlab":    *cfg.GitLabSettings.Enable && strings.Contains(*cfg.GitLabSettings.Scope, model.ServiceOpenid),
 		"enable_google":    cfg.GoogleSettings.Enable,
@@ -613,7 +613,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_openid":    cfg.OpenIdSettings.Enable,
 	})
 
-	ts.SendTelemetry(TrackConfigSupport, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigSupport, map[string]any{
 		"isdefault_terms_of_service_link":              isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SupportSettingsDefaultTermsOfServiceLink),
 		"isdefault_privacy_policy_link":                isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SupportSettingsDefaultPrivacyPolicyLink),
 		"isdefault_about_link":                         isDefault(*cfg.SupportSettings.AboutLink, model.SupportSettingsDefaultAboutLink),
@@ -625,7 +625,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
 	})
 
-	ts.SendTelemetry(TrackConfigLDAP, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLDAP, map[string]any{
 		"enable":                                 *cfg.LdapSettings.Enable,
 		"enable_sync":                            *cfg.LdapSettings.EnableSync,
 		"enable_admin_filter":                    *cfg.LdapSettings.EnableAdminFilter,
@@ -656,18 +656,18 @@ func (ts *TelemetryService) trackConfig() {
 		"isnotempty_private_key":                 !isDefault(*cfg.LdapSettings.PrivateKeyFile, ""),
 	})
 
-	ts.SendTelemetry(TrackConfigCompliance, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigCompliance, map[string]any{
 		"enable":       *cfg.ComplianceSettings.Enable,
 		"enable_daily": *cfg.ComplianceSettings.EnableDaily,
 	})
 
-	ts.SendTelemetry(TrackConfigLocalization, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigLocalization, map[string]any{
 		"default_server_locale": *cfg.LocalizationSettings.DefaultServerLocale,
 		"default_client_locale": *cfg.LocalizationSettings.DefaultClientLocale,
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
 	})
 
-	ts.SendTelemetry(TrackConfigSAML, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigSAML, map[string]any{
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
@@ -696,7 +696,7 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_login_button_text_color":   isDefault(*cfg.SamlSettings.LoginButtonTextColor, ""),
 	})
 
-	ts.SendTelemetry(TrackConfigCluster, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigCluster, map[string]any{
 		"enable":                                *cfg.ClusterSettings.Enable,
 		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
 		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
@@ -707,19 +707,19 @@ func (ts *TelemetryService) trackConfig() {
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
-	ts.SendTelemetry(TrackConfigMetrics, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigMetrics, map[string]any{
 		"enable":             *cfg.MetricsSettings.Enable,
 		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
 	})
 
-	ts.SendTelemetry(TrackConfigNativeApp, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigNativeApp, map[string]any{
 		"isdefault_app_custom_url_schemes":    isDefaultArray(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NativeappSettingsDefaultAppDownloadLink),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NativeappSettingsDefaultAndroidAppDownloadLink),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NativeappSettingsDefaultIosAppDownloadLink),
 	})
 
-	ts.SendTelemetry(TrackConfigExperimental, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigExperimental, map[string]any{
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.ClientSideCertCheckPrimaryAuth),
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
@@ -731,11 +731,11 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
 	})
 
-	ts.SendTelemetry(TrackConfigAnalytics, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigAnalytics, map[string]any{
 		"isdefault_max_users_for_statistics": isDefault(*cfg.AnalyticsSettings.MaxUsersForStatistics, model.AnalyticsSettingsDefaultMaxUsersForStatistics),
 	})
 
-	ts.SendTelemetry(TrackConfigAnnouncement, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigAnnouncement, map[string]any{
 		"enable_banner":               *cfg.AnnouncementSettings.EnableBanner,
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.AnnouncementSettingsDefaultBannerColor),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.AnnouncementSettingsDefaultBannerTextColor),
@@ -744,7 +744,7 @@ func (ts *TelemetryService) trackConfig() {
 		"user_notices_enabled":        *cfg.AnnouncementSettings.UserNoticesEnabled,
 	})
 
-	ts.SendTelemetry(TrackConfigElasticsearch, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigElasticsearch, map[string]any{
 		"isdefault_connection_url": isDefault(*cfg.ElasticsearchSettings.ConnectionURL, model.ElasticsearchSettingsDefaultConnectionURL),
 		"isdefault_username":       isDefault(*cfg.ElasticsearchSettings.Username, model.ElasticsearchSettingsDefaultUsername),
 		"isdefault_password":       isDefault(*cfg.ElasticsearchSettings.Password, model.ElasticsearchSettingsDefaultPassword),
@@ -768,7 +768,7 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.trackPluginConfig(cfg, model.PluginSettingsDefaultMarketplaceURL)
 
-	ts.SendTelemetry(TrackConfigDataRetention, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigDataRetention, map[string]any{
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"enable_boards_deletion":        *cfg.DataRetentionSettings.EnableBoardsDeletion,
@@ -781,7 +781,7 @@ func (ts *TelemetryService) trackConfig() {
 		"cleanup_config_threshold_days": *cfg.JobSettings.CleanupConfigThresholdDays,
 	})
 
-	ts.SendTelemetry(TrackConfigMessageExport, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigMessageExport, map[string]any{
 		"enable_message_export":                 *cfg.MessageExportSettings.EnableExport,
 		"export_format":                         *cfg.MessageExportSettings.ExportFormat,
 		"daily_run_time":                        *cfg.MessageExportSettings.DailyRunTime,
@@ -795,39 +795,39 @@ func (ts *TelemetryService) trackConfig() {
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
-	ts.SendTelemetry(TrackConfigDisplay, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigDisplay, map[string]any{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomURLSchemes) != 0,
 	})
 
-	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigGuestAccounts, map[string]any{
 		"enable":                                 *cfg.GuestAccountsSettings.Enable,
 		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
 		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
 		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
 	})
 
-	ts.SendTelemetry(TrackConfigImageProxy, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigImageProxy, map[string]any{
 		"enable":                               *cfg.ImageProxySettings.Enable,
 		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
 		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 
-	ts.SendTelemetry(TrackConfigBleve, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigBleve, map[string]any{
 		"enable_indexing":          *cfg.BleveSettings.EnableIndexing,
 		"enable_searching":         *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":      *cfg.BleveSettings.EnableAutocomplete,
 		"bulk_indexing_batch_size": *cfg.BleveSettings.BatchSize,
 	})
 
-	ts.SendTelemetry(TrackConfigExport, map[string]interface{}{
+	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 
-	// Convert feature flags to map[string]interface{} for sending
+	// Convert feature flags to map[string]any for sending
 	flags := cfg.FeatureFlags.ToMap()
-	interfaceFlags := make(map[string]interface{})
+	interfaceFlags := make(map[string]any)
 	for k, v := range flags {
 		interfaceFlags[k] = v
 	}
@@ -836,7 +836,7 @@ func (ts *TelemetryService) trackConfig() {
 
 func (ts *TelemetryService) trackLicense() {
 	if license := ts.srv.License(); license != nil {
-		data := map[string]interface{}{
+		data := map[string]any{
 			"customer_id": license.Customer.Id,
 			"license_id":  license.Id,
 			"issued":      license.IssuedAt,
@@ -911,7 +911,7 @@ func (ts *TelemetryService) trackPlugins() {
 		totalDisabledCount = -1     // -1 to indicate disabled or error
 	}
 
-	ts.SendTelemetry(TrackPlugins, map[string]interface{}{
+	ts.SendTelemetry(TrackPlugins, map[string]any{
 		"enabled_plugins":               totalEnabledCount,
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
@@ -930,7 +930,7 @@ func (ts *TelemetryService) trackPlugins() {
 }
 
 func (ts *TelemetryService) trackServer() {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"edition":           model.BuildEnterpriseReady,
 		"version":           model.CurrentVersion,
 		"database_type":     *ts.srv.Config().SqlSettings.DriverName,
@@ -960,7 +960,7 @@ func (ts *TelemetryService) trackPermissions() {
 		phase2Complete = true
 	}
 
-	ts.SendTelemetry(TrackPermissionsGeneral, map[string]interface{}{
+	ts.SendTelemetry(TrackPermissionsGeneral, map[string]any{
 		"phase_1_migration_complete": phase1Complete,
 		"phase_2_migration_complete": phase2Complete,
 	})
@@ -1038,24 +1038,38 @@ func (ts *TelemetryService) trackPermissions() {
 		systemReadOnlyAdminCount = 0
 	}
 
-	ts.SendTelemetry(TrackPermissionsSystemScheme, map[string]interface{}{
-		"system_admin_permissions":                    systemAdminPermissions,
-		"system_user_permissions":                     systemUserPermissions,
-		"system_manager_permissions":                  systemManagerPermissions,
-		"system_user_manager_permissions":             systemUserManagerPermissions,
-		"system_read_only_admin_permissions":          systemReadOnlyAdminPermissions,
-		"team_admin_permissions":                      teamAdminPermissions,
-		"team_user_permissions":                       teamUserPermissions,
-		"team_guest_permissions":                      teamGuestPermissions,
-		"channel_admin_permissions":                   channelAdminPermissions,
-		"channel_user_permissions":                    channelUserPermissions,
-		"channel_guest_permissions":                   channelGuestPermissions,
-		"system_manager_permissions_modified":         systemManagerPermissionsModified,
-		"system_manager_count":                        systemManagerCount,
-		"system_user_manager_permissions_modified":    systemUserManagerPermissionsModified,
-		"system_user_manager_count":                   systemUserManagerCount,
-		"system_read_only_admin_permissions_modified": systemReadOnlyAdminPermissionsModified,
-		"system_read_only_admin_count":                systemReadOnlyAdminCount,
+	systemCustomGroupAdminPermissions := ""
+	systemCustomGroupAdminPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemCustomGroupAdminRoleId); err == nil {
+		systemCustomGroupAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
+		systemCustomGroupAdminPermissions = strings.Join(role.Permissions, " ")
+	}
+	systemCustomGroupAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SystemCustomGroupAdminRoleId}})
+	if countErr != nil {
+		systemCustomGroupAdminCount = 0
+	}
+
+	ts.SendTelemetry(TrackPermissionsSystemScheme, map[string]any{
+		"system_admin_permissions":                       systemAdminPermissions,
+		"system_user_permissions":                        systemUserPermissions,
+		"system_manager_permissions":                     systemManagerPermissions,
+		"system_user_manager_permissions":                systemUserManagerPermissions,
+		"system_read_only_admin_permissions":             systemReadOnlyAdminPermissions,
+		"team_admin_permissions":                         teamAdminPermissions,
+		"team_user_permissions":                          teamUserPermissions,
+		"team_guest_permissions":                         teamGuestPermissions,
+		"channel_admin_permissions":                      channelAdminPermissions,
+		"channel_user_permissions":                       channelUserPermissions,
+		"channel_guest_permissions":                      channelGuestPermissions,
+		"system_manager_permissions_modified":            systemManagerPermissionsModified,
+		"system_manager_count":                           systemManagerCount,
+		"system_user_manager_permissions_modified":       systemUserManagerPermissionsModified,
+		"system_user_manager_count":                      systemUserManagerCount,
+		"system_read_only_admin_permissions_modified":    systemReadOnlyAdminPermissionsModified,
+		"system_read_only_admin_count":                   systemReadOnlyAdminCount,
+		"system_custom_group_admin_permissions":          systemCustomGroupAdminPermissions,
+		"system_custom_group_admin_permissions_modified": systemCustomGroupAdminPermissionsModified,
+		"system_custom_group_admin_count":                systemCustomGroupAdminCount,
 	})
 
 	if schemes, err := ts.srv.GetSchemes(model.SchemeScopeTeam, 0, 100); err == nil {
@@ -1092,7 +1106,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 			count, _ := ts.dbStore.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
-			ts.SendTelemetry(TrackPermissionsTeamSchemes, map[string]interface{}{
+			ts.SendTelemetry(TrackPermissionsTeamSchemes, map[string]any{
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
@@ -1107,7 +1121,7 @@ func (ts *TelemetryService) trackPermissions() {
 }
 
 func (ts *TelemetryService) trackElasticsearch() {
-	data := map[string]interface{}{}
+	data := map[string]any{}
 
 	for _, engine := range ts.searchEngine.GetActiveEngines() {
 		if engine.GetVersion() != 0 && engine.GetName() == "elasticsearch" {
@@ -1179,7 +1193,7 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
-	ts.SendTelemetry(TrackGroups, map[string]interface{}{
+	ts.SendTelemetry(TrackGroups, map[string]any{
 		"group_count":                        groupCount,
 		"ldap_group_count":                   ldapGroupCount,
 		"custom_group_count":                 customGroupCount,
@@ -1238,7 +1252,7 @@ func (ts *TelemetryService) trackChannelModeration() {
 		mlog.Debug("Could not get use_channel_mentions_guest_disabled_count", mlog.Err(err))
 	}
 
-	ts.SendTelemetry(TrackChannelModeration, map[string]interface{}{
+	ts.SendTelemetry(TrackChannelModeration, map[string]any{
 		"channel_scheme_count": channelSchemeCount,
 
 		"create_post_user_disabled_count":  createPostUser,
@@ -1322,7 +1336,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WarnMetricStatusStorePrefix) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.SendTelemetry(TrackWarnMetrics, map[string]interface{}{
+				ts.SendTelemetry(TrackWarnMetrics, map[string]any{
 					key: value != "false",
 				})
 			}
@@ -1331,7 +1345,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 }
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
-	pluginConfigData := map[string]interface{}{
+	pluginConfigData := map[string]any{
 		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, model.PluginIdNPS, "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,

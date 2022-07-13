@@ -56,7 +56,7 @@ func TestWebSocketEventImmutable(t *testing.T) {
 	require.NotEqual(t, m.GetBroadcast(), new.GetBroadcast())
 	require.Equal(t, new.GetBroadcast(), broadcast)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"key":  "val",
 		"key2": "val2",
 	}
@@ -85,12 +85,12 @@ func TestWebSocketEventFromJSON(t *testing.T) {
 	require.NotNil(t, ev, "should have parsed")
 	require.Equal(t, ev.EventType(), "test")
 	require.Equal(t, ev.GetSequence(), int64(45))
-	require.Equal(t, ev.data, map[string]interface{}{"key": "val"})
+	require.Equal(t, ev.data, map[string]any{"key": "val"})
 	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
 }
 
 func TestWebSocketResponse(t *testing.T) {
-	m := NewWebSocketResponse("OK", 1, map[string]interface{}{})
+	m := NewWebSocketResponse("OK", 1, map[string]any{})
 	e := NewWebSocketError(1, &AppError{})
 	m.Add("RootId", NewId())
 	json, err := m.ToJSON()

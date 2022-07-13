@@ -174,7 +174,7 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, error) {
 	term = sanitizeSearchTerm(term, "\\")
 	tokens := []*model.UserAccessToken{}
-	params := []interface{}{term, term, term}
+	params := []any{term, term, term}
 	query := `
 		SELECT
 			uat.*

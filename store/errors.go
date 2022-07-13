@@ -10,12 +10,12 @@ import (
 
 // ErrInvalidInput indicates an error that has occurred due to an invalid input.
 type ErrInvalidInput struct {
-	Entity string      // The entity which was sent as the input.
-	Field  string      // The field of the entity which was invalid.
-	Value  interface{} // The actual value of the field.
+	Entity string // The entity which was sent as the input.
+	Field  string // The field of the entity which was invalid.
+	Value  any    // The actual value of the field.
 }
 
-func NewErrInvalidInput(entity, field string, value interface{}) *ErrInvalidInput {
+func NewErrInvalidInput(entity, field string, value any) *ErrInvalidInput {
 	return &ErrInvalidInput{
 		Entity: entity,
 		Field:  field,
@@ -27,7 +27,7 @@ func (e *ErrInvalidInput) Error() string {
 	return fmt.Sprintf("invalid input: entity: %s field: %s value: %s", e.Entity, e.Field, e.Value)
 }
 
-func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value interface{}) {
+func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value any) {
 	entity = e.Entity
 	field = e.Field
 	value = e.Value

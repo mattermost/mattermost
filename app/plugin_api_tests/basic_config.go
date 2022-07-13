@@ -19,7 +19,7 @@ type BasicConfig struct {
 	BasicUserID          string
 }
 
-func IsEmpty(object interface{}) bool {
+func IsEmpty(object any) bool {
 
 	// get nil case out of the way
 	if object == nil {

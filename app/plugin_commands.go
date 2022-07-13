@@ -142,7 +142,7 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 
 	// Checking if plugin is working or not
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]interface{}{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]any{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
 	}
 
 	pluginHooks, err := pluginsEnvironment.HooksForPlugin(matched.PluginId)
@@ -163,7 +163,7 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 	// Checking if plugin crashed after running the command
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
 		errMessage := fmt.Sprintf("err= Plugin %s crashed due to /%s command", matched.PluginId, trigger)
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]interface{}{"Command": trigger, "PluginId": matched.PluginId}, errMessage, http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]any{"Command": trigger, "PluginId": matched.PluginId}, errMessage, http.StatusInternalServerError)
 	}
 	// This is a response from the plugin, which may set an incorrect status code;
 	// e.g setting a status code of 0 will crash the server. So we always bucket everything under 500.

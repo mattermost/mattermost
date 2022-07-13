@@ -168,7 +168,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 
 	queryString, args, err := fs.getQueryBuilder().
 		Update("FileInfo").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"UpdateAt":        info.UpdateAt,
 			"DeleteAt":        info.DeleteAt,
 			"Path":            info.Path,

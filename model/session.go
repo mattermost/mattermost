@@ -97,7 +97,7 @@ func (s *Session) IsValid() *AppError {
 
 	if len(s.Roles) > UserRolesMaxLength {
 		return NewAppError("Session.IsValid", "model.session.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -147,9 +147,9 @@ func (s *Session) AddProp(key string, value string) {
 }
 
 func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range s.TeamMembers {
-		if team.TeamId == teamId {
-			return team
+	for _, tm := range s.TeamMembers {
+		if tm.TeamId == teamId {
+			return tm
 		}
 	}
 

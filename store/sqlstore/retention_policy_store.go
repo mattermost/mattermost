@@ -32,7 +32,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...interface{}) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
 	}
@@ -169,7 +169,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyID string, channelIDs []string) (query string, args []interface{}, err error) {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyID string, channelIDs []string) (query string, args []any, err error) {
 	if len(channelIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesChannels").
@@ -182,7 +182,7 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(poli
 	return
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyID string, teamIDs []string) (query string, args []interface{}, err error) {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyID string, teamIDs []string) (query string, args []any, err error) {
 	if len(teamIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesTeams").
@@ -213,7 +213,7 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	policyUpdateQuery := ""
-	policyUpdateArgs := []interface{}{}
+	policyUpdateArgs := []any{}
 	if patch.DisplayName != "" || patch.PostDurationDays != nil {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
@@ -231,9 +231,9 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	channelsDeleteQuery := ""
-	channelsDeleteArgs := []interface{}{}
+	channelsDeleteArgs := []any{}
 	channelsInsertQuery := ""
-	channelsInsertArgs := []interface{}{}
+	channelsInsertArgs := []any{}
 	if patch.ChannelIDs != nil {
 		channelsDeleteQuery, channelsDeleteArgs, err = s.getQueryBuilder().
 			Delete("RetentionPoliciesChannels").
@@ -250,9 +250,9 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	teamsDeleteQuery := ""
-	teamsDeleteArgs := []interface{}{}
+	teamsDeleteArgs := []any{}
 	teamsInsertQuery := ""
-	teamsInsertArgs := []interface{}{}
+	teamsInsertArgs := []any{}
 	if patch.TeamIDs != nil {
 		teamsDeleteQuery, teamsDeleteArgs, err = s.getQueryBuilder().
 			Delete("RetentionPoliciesTeams").
@@ -309,14 +309,14 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	return &newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (string, []interface{}, error) {
+func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (string, []any, error) {
 	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
 // buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
 // policy display name and ID.
-func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (string, []interface{}, error) {
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (string, []any, error) {
 	rpcSubQuery := s.getQueryBuilder().
 		Select("RetentionPolicies.Id, COUNT(RetentionPoliciesChannels.ChannelId) AS Count").
 		From("RetentionPolicies").

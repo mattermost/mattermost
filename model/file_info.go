@@ -5,12 +5,13 @@ package model
 
 import (
 	"image"
-	"image/gif"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
 )
 
 const (
@@ -156,13 +157,13 @@ func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *App
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
 				data.Seek(0, io.SeekStart)
-				gifConfig, err := gif.DecodeAll(data)
+				frameCount, err := imgutils.CountGIFFrames(data)
 				if err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif
 					info.HasPreviewImage = true
 					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, err.Error(), http.StatusBadRequest)
 				}
-				info.HasPreviewImage = len(gifConfig.Image) == 1
+				info.HasPreviewImage = frameCount == 1
 			} else {
 				info.HasPreviewImage = true
 			}

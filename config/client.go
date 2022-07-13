@@ -244,6 +244,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
+	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
+
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)

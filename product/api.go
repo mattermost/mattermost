@@ -4,14 +4,15 @@
 package product
 
 import (
+	"database/sql"
 	"io"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // RouterService enables registering the product router to the server. After registering the
@@ -40,6 +41,7 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
@@ -48,8 +50,7 @@ type PermissionService interface {
 // The service shall be registered via app.ClusterKey key.
 type ClusterService interface {
 	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
-	PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
-	SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by
@@ -61,6 +62,7 @@ type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
+	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -82,14 +84,15 @@ type UserService interface {
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
+	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 }
 
 // TeamService provides team related utilities.
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, error)
-	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error)
+	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
+	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 }
 
 // BotService is just a copy implementation of mattermost-plugin-api EnsureBot method.
@@ -108,19 +111,25 @@ type ConfigService interface {
 	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
 }
 
-// Hooks is an interim solution for enabling plugin hooks on the multi-product architecture. After the
-// focalboard migration is completed, this API should replaced with something else that would enable a
-// product to register any hook. Currently this is added to unblock the migration.
-type Hooks interface {
-	plugin.ProductHooks
-}
-
 // HooksService is the API for adding exiting plugin hooks to the server so that they can be called as
 // they were. This Service is required to be used after the products start. Otherwise it will return an error.
 //
 // The service shall be registered via app.HooksKey service key.
 type HooksService interface {
-	RegisterHooks(productID string, hooks Hooks) error
+	// RegisterHook checks whether if the 'hooks' implements any method of plugin.Hooks methods. Rather than
+	// using the whole plugin.Hooks interface with its 20+ methods, a product can implement any exiting method
+	// of plugin.Hooks w/o requiring to declare which method they implemented or not. This is going to be
+	// checked on runtime. We have individual interfaces for each method declared in plugin.Hooks interface.
+	// Hence, while registering a product, the service will check if the product implements any of these individual
+	// interfaces. If so, a map of hook IDs that are implemented will be used to call the hooks. The method will
+	// return an error in case if there is an incorrect implementation of the any of the individual interface in runtime.
+	// Consider checking plugin.Hooks for the reference.
+	// Following methods are not allowed to be implemented in the product:
+	//  - plugin.Hooks.OnActivate
+	//  - plugin.Hooks.OnDeactivate
+	//  - plugin.Hooks.Implemented
+	//  - plugin.Hooks.ServeHTTP
+	RegisterHooks(productID string, hooks any) error
 }
 
 // FilestoreService is the API for accessing the file store.
@@ -147,4 +156,32 @@ type FileInfoStoreService interface {
 // The service shall be registered via app.CloudKey service key.
 type CloudService interface {
 	GetCloudLimits() (*model.ProductLimits, error)
+}
+
+// KVStoreService is the API for accessing the KVStore service APIs.
+//
+// The service shall be registered via app.KVStoreKey service key.
+type KVStoreService interface {
+	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+}
+
+// LogService is the API for accessing the log service APIs.
+//
+// The service shall be registered via app.LogKey service key.
+type LogService interface {
+	mlog.LoggerIFace
+}
+
+// StoreService is the API for accessing the Store service APIs.
+//
+// The service shall be registered via app.StoreKey service key.
+type StoreService interface {
+	GetMasterDB() *sql.DB
+}
+
+// SystemService is the API for accessing the System service APIs.
+//
+// The service shall be registered via app.SystemKey service key.
+type SystemService interface {
+	GetDiagnosticId() string
 }

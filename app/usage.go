@@ -49,7 +49,7 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return utils.RoundOffToZeroes(float64(count)), nil
+	return utils.RoundOffToZeroesResolution(float64(count), 3), nil
 }
 
 // GetStorageUsage returns the sum of files' sizes stored on this instance
