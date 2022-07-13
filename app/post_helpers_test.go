@@ -332,7 +332,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("ascending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(0), postFromCreateAt(1), postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}
-		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, _, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}, filteredPosts)
@@ -340,7 +340,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("descending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
-		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, _, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
@@ -348,7 +348,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(1), postFromCreateAt(0), postFromCreateAt(3), postFromCreateAt(2)}
-		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: false})
+		filteredPosts, _, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: false})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
@@ -366,12 +366,14 @@ func TestIsInaccessiblePost(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{CreateAt: 3}
-	r, appErr := th.App.isInaccessiblePost(post)
+	r, firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, false, r)
+	assert.Equal(t, 0, firstInaccessiblePostTime)
 
 	post = &model.Post{CreateAt: 1}
-	r, appErr = th.App.isInaccessiblePost(post)
+	r, firstInaccessiblePostTime, appErr = th.App.isInaccessiblePost(post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, true, r)
+	assert.Equal(t, 1, firstInaccessiblePostTime)
 }

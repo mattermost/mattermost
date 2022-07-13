@@ -437,7 +437,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
+	postsList, hasInaccessiblePosts, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -471,6 +471,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
+	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
