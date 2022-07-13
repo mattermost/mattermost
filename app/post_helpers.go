@@ -82,11 +82,15 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 
 	n := 0
 	for i, postId := range order {
-		if posts[postId].CreateAt >= earliestAccessibleTime {
+		if createAt := posts[postId].CreateAt; createAt >= earliestAccessibleTime {
 			order[n] = order[i]
 			n++
 		} else {
 			postList.HasInaccessiblePosts = true
+
+			if createAt > postList.FirstInaccessiblePostTime {
+				postList.FirstInaccessiblePostTime = createAt
+			}
 			delete(posts, postId)
 		}
 	}
@@ -96,8 +100,9 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 	// for example GetPosts in the CollapsedThreads = false path, parents are not added
 	// to Order
 	for postId := range posts {
-		if posts[postId].CreateAt < earliestAccessibleTime {
+		if createAt := posts[postId].CreateAt; createAt < earliestAccessibleTime {
 			postList.HasInaccessiblePosts = true
+			postList.FirstInaccessiblePostTime = createAt
 			delete(posts, postId)
 		}
 	}
@@ -147,12 +152,18 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 		if bounds.noAccessible() {
 			if lenPosts > 0 {
 				postList.HasInaccessiblePosts = true
+				firstPostCreatedAt := postList.Posts[postList.Order[0]].CreateAt
+				lastPostCreatedAt := postList.Posts[postList.Order[len(postList.Order)-1]].CreateAt
+				postList.FirstInaccessiblePostTime = max(firstPostCreatedAt, lastPostCreatedAt)
 			}
 			postList.Posts = map[string]*model.Post{}
 			postList.Order = []string{}
 			return nil
 		}
 		postList.HasInaccessiblePosts = true
+		firstPostCreatedAt := postList.Posts[postList.Order[0]].CreateAt
+		lastPostCreatedAt := postList.Posts[postList.Order[len(postList.Order)-1]].CreateAt
+		postList.FirstInaccessiblePostTime = max(firstPostCreatedAt, lastPostCreatedAt)
 
 		posts := postList.Posts
 		order := postList.Order

@@ -53,12 +53,13 @@ func (s *Server) initPostMetadata() {
 
 func (a *App) PreparePostListForClient(originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts:                make(map[string]*model.Post, len(originalList.Posts)),
-		Order:                originalList.Order,
-		NextPostId:           originalList.NextPostId,
-		PrevPostId:           originalList.PrevPostId,
-		HasNext:              originalList.HasNext,
-		HasInaccessiblePosts: originalList.HasInaccessiblePosts,
+		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
+		Order:                     originalList.Order,
+		NextPostId:                originalList.NextPostId,
+		PrevPostId:                originalList.PrevPostId,
+		HasNext:                   originalList.HasNext,
+		HasInaccessiblePosts:      originalList.HasInaccessiblePosts,
+		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
 	for id, originalPost := range originalList.Posts {
