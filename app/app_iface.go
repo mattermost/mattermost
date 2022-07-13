@@ -298,10 +298,14 @@ type AppIface interface {
 	SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError)
 	// SendNoCardPaymentFailedEmail
 	SendNoCardPaymentFailedEmail() *model.AppError
+	// SessionHasPermissionToChannels returns true only if user has access to all channels.
+	SessionHasPermissionToChannels(session model.Session, channelIDs []string, permission *model.Permission) bool
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
 	SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError
+	// SessionHasPermissionToTeams returns true only if user has access to all teams.
+	SessionHasPermissionToTeams(session model.Session, teamIDs []string, permission *model.Permission) bool
 	// SessionIsRegistered determines if a specific session has been registered
 	SessionIsRegistered(session model.Session) bool
 	// SetSessionExpireInHours sets the session's expiry the specified number of hours

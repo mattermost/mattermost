@@ -15321,6 +15321,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannels(session model.Session, channelIDs []string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToChannels(session, channelIDs, permission)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToCreateJob")
@@ -15407,6 +15424,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToTeam(session model.Session, 
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionToTeam(session, teamID, permission)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(session model.Session, teamIDs []string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToTeams")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToTeams(session, teamIDs, permission)
 
 	return resultVar0
 }

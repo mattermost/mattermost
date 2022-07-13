@@ -6368,6 +6368,10 @@
     "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
   },
   {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },

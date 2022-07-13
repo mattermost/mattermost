@@ -147,9 +147,9 @@ func (s *Session) AddProp(key string, value string) {
 }
 
 func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range s.TeamMembers {
-		if team.TeamId == teamId {
-			return team
+	for _, tm := range s.TeamMembers {
+		if tm.TeamId == teamId {
+			return tm
 		}
 	}
 
