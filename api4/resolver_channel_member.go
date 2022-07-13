@@ -26,11 +26,6 @@ func (cm *channelMember) User(ctx context.Context) (*user, error) {
 
 // match with api4.Channel
 func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	loader, err := getChannelsLoader(ctx)
 	if err != nil {
 		return nil, err
@@ -42,19 +37,6 @@ func (cm *channelMember) Channel(ctx context.Context) (*channel, error) {
 		return nil, err
 	}
 	channel := result.(*channel)
-
-	if channel.Type == model.ChannelTypeOpen {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) &&
-			!c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), cm.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadPublicChannel)
-			return nil, c.Err
-		}
-	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), cm.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return nil, c.Err
-		}
-	}
 
 	return channel, nil
 }
@@ -93,6 +75,32 @@ func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error)
 
 	if len(channels) != len(channelIDs) {
 		return nil, fmt.Errorf("all channels were not found. Requested %d; Found %d", len(channelIDs), len(channels))
+	}
+
+	var openChannels, nonOpenChannels, teamsForOpenChannels []string
+	uniqueTeams := make(map[string]bool)
+	for _, ch := range channels {
+		if ch.Type == model.ChannelTypeOpen {
+			openChannels = append(openChannels, ch.Id)
+			uniqueTeams[ch.TeamId] = true
+		} else {
+			nonOpenChannels = append(nonOpenChannels, ch.Id)
+		}
+	}
+
+	for teamID := range uniqueTeams {
+		teamsForOpenChannels = append(teamsForOpenChannels, teamID)
+	}
+
+	if len(openChannels) > 0 && !c.App.SessionHasPermissionToChannels(*c.AppContext.Session(), openChannels, model.PermissionReadChannel) &&
+		!c.App.SessionHasPermissionToTeams(*c.AppContext.Session(), teamsForOpenChannels, model.PermissionReadPublicChannel) {
+		c.SetPermissionError(model.PermissionReadPublicChannel)
+		return nil, c.Err
+	}
+
+	if len(nonOpenChannels) > 0 && !c.App.SessionHasPermissionToChannels(*c.AppContext.Session(), nonOpenChannels, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return nil, c.Err
 	}
 
 	appErr = c.App.FillInChannelsProps(model.ChannelList(channels))

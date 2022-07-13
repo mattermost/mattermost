@@ -9349,5 +9349,17 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Yönetici zaten bilgilendirilmiş"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Değer işlenemedi:{{.Value}} int64 olarak"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından ileti alınamadı."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Erişilebilen son ileti alınırken sorun çıktı"
   }
 ]
