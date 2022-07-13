@@ -522,10 +522,12 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
 		hasPermission = true
-	} else if channel, cErr := c.App.GetChannel(rPost.ChannelId); cErr == nil {
-		if channel.Type == model.ChannelTypeOpen &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-			hasPermission = true
+	} else if !*c.App.Config().MessageExportSettings.EnableExport {
+		if channel, cErr := c.App.GetChannel(rPost.ChannelId); cErr == nil {
+			if channel.Type == model.ChannelTypeOpen &&
+				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+				hasPermission = true
+			}
 		}
 	}
 
