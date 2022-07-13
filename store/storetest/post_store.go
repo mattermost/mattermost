@@ -1031,7 +1031,6 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 		thread, err = ss.Thread().Get(rootPost1.Id)
 		require.NoError(t, err)
-		require.NotEqual(t, replyPost3.CreateAt, thread.LastReplyAt)
 		// last reply at should have changed
 		require.Equal(t, replyPost1.CreateAt, thread.LastReplyAt)
 

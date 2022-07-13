@@ -2840,33 +2840,23 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			}
 		}
 
-		postsQueryString, args, err := s.getQueryBuilder().
-			Select("COALESCE(MAX(CreateAt), 0) as LastReplyAt, COUNT(*) AS ReplyCount").
+		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
 			From("Posts").
 			Where(sq.Eq{
 				"RootId":   rootId,
 				"DeleteAt": 0,
-			}).
-			ToSql()
+			})
 
-		if err != nil {
-			return errors.Wrap(err, "failed to create SQL query to count threads's posts")
-		}
-
-		val := struct {
-			ReplyCount  int64
-			LastReplyAt int64
-		}{}
-
-		err = transaction.Get(&val, postsQueryString, args...)
-
-		if err != nil {
-			return errors.Wrap(err, "failed to get LastReplyAt, and ReplyCount")
-		}
+		lastReplyCountSubquery := sq.Select("Count(*)").
+			From("Posts").
+			Where(sq.Eq{
+				"RootId":   rootId,
+				"DeleteAt": 0,
+			})
 
 		updateQueryString, updateArgs, err := updateQuery.
-			Set("LastReplyAt", val.LastReplyAt).
-			Set("ReplyCount", val.ReplyCount).
+			Set("LastReplyAt", lastReplyAtSubquery).
+			Set("ReplyCount", lastReplyCountSubquery).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
