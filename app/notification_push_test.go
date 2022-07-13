@@ -1425,7 +1425,9 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
+	defer th.TearDown()
+
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	mockPreferenceStore := mocks.PreferenceStore{}
