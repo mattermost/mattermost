@@ -4158,8 +4158,8 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
 	var args []any
-	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
-	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
 
 	query := `
 		SELECT
@@ -4260,6 +4260,13 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	var args []any
 	var query string
 
+	var propsQuery string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	}
+
 	query = `
 		SELECT
 			Posts.ChannelId AS ID,
@@ -4269,17 +4276,19 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			Channels.TeamId AS TeamID,
 			count(Posts.Id) AS MessageCount
 		FROM
-			Posts 
+			Posts
 			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
 			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
-		WHERE 
-			Posts.DeleteAt = 0 
+		WHERE
+			Posts.DeleteAt = 0
 			AND Posts.CreateAt > ?
 			AND Posts.Type = ''
 			AND Posts.UserID = ?
 			AND Channels.DeleteAt = 0
-			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
-			AND ChannelMembers.UserId = ?`
+			AND (Channels.Type = 'O' OR Channels.Type = 'P')
+			AND ChannelMembers.UserId = ? `
+
+	query += propsQuery
 
 	args = []any{since, userID, userID}
 
@@ -4290,13 +4299,13 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	}
 
 	query += `
-		Group By 
+		Group By
 			Posts.ChannelId,
 			Channels.Type,
 			Channels.DisplayName,
 			Channels.Name,
 			Channels.TeamId
-		ORDER BY 
+		ORDER BY
 			MessageCount DESC,
 			Name ASC
 		LIMIT ?
@@ -4323,14 +4332,14 @@ func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMill
 		} else {
 			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
 		}
-		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if duration == model.PostsByDay {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
 		} else {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
 		}
-		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
 	}
 	query := sq.
 		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").

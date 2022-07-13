@@ -276,6 +276,26 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	assert.False(t, wc.hasMsgLoss())
 }
 
+func TestWebConnClearDeadQueue(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	wc := th.App.NewWebConn(&WebConnConfig{
+		WebSocket: &websocket.Conn{},
+	})
+
+	var i int
+	for ; i < 2; i++ {
+		msg := &model.WebSocketEvent{}
+		msg = msg.SetSequence(int64(i))
+		wc.addToDeadQueue(msg)
+	}
+
+	wc.clearDeadQueue()
+
+	assert.Equal(t, 0, wc.deadQueuePointer)
+}
+
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
