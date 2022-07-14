@@ -54,7 +54,7 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
@@ -99,7 +99,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	for i := range emailList {
 		email := strings.ToLower(emailList[i])
 		if !model.IsValidEmail(email) {
-			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Address": email}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Address": email}, "", http.StatusBadRequest)
 			return
 		}
 		emailList[i] = email
@@ -148,7 +148,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 				Error: nil,
 			}
 			if !isEmailAddressAllowed(email, allowedDomains) {
-				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
 			} else {
 				goodEmails = append(goodEmails, email)
@@ -195,7 +195,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		if len(invalidEmailList) > 0 {
 			s := strings.Join(invalidEmailList, ", ")
-			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
 		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false)

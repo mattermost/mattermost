@@ -13,8 +13,7 @@ type Record struct {
 	Error     EventError             `json:"error,omitempty"`
 }
 
-// EventData -- The new audit log schema proposes that all audit log events include
-// the EventData struct.
+// EventData contains all event specific data about the modified entity
 type EventData struct {
 	Parameters  map[string]interface{} `json:"parameters"`      // Payload and parameters being processed as part of the request
 	PriorState  map[string]interface{} `json:"prior_state"`     // Prior state of the object being modified, nil if no prior state
@@ -22,6 +21,7 @@ type EventData struct {
 	ObjectType  string                 `json:"object_type"`     // String representation of the object type. eg. "post"
 }
 
+// EventActor is the subject triggering the event
 type EventActor struct {
 	UserId    string `json:"user_id"`
 	SessionId string `json:"session_id"`
@@ -29,11 +29,13 @@ type EventActor struct {
 	IpAddress string `json:"ip_address"`
 }
 
+// EventMeta is a key-value store to store related information to the event that is not directly related to the modified entity
 type EventMeta struct {
 	ApiPath   string `json:"api_path"`
 	ClusterId string `json:"cluster_id"`
 }
 
+// EventError contains error information in case of failure of the event
 type EventError struct {
 	Description string `json:"description,omitempty"`
 	Code        int    `json:"status_code,omitempty"`
@@ -56,6 +58,7 @@ func (rec *Record) Fail() {
 	rec.Status = Fail
 }
 
+// AddEventParameter adds a parameter, e.g. query or post body, to the event
 func (rec *Record) AddEventParameter(key string, val interface{}) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]interface{})
@@ -68,26 +71,34 @@ func (rec *Record) AddEventParameter(key string, val interface{}) {
 	}
 }
 
+
+// AddEventPriorState adds the prior state of the modified object to the audit record
 func (rec *Record) AddEventPriorState(object Auditable) {
 	rec.EventData.PriorState = object.Auditable()
 }
 
+// AddEventResultState adds the result state of the modified object to the audit record
 func (rec *Record) AddEventResultState(object Auditable) {
 	rec.EventData.ResultState = object.Auditable()
 }
 
+// AddEventObjectType adds the object type of the modified object to the audit record
 func (rec *Record) AddEventObjectType(objectType string) {
 	rec.EventData.ObjectType = objectType
 }
 
+// AddMeta adds a key/value entry to the audit record that can be used for related information not directly related to
+// the modified object, e.g. authentication method
 func (rec *Record) AddMeta(name string, val interface{}) {
 	rec.Meta[name] = val
 }
 
+// AddErrorCode adds the error code for a failed event to the audit record
 func (rec *Record) AddErrorCode(code int) {
 	rec.Error.Code = code
 }
 
+// AddErrorDesc adds the error description for a failed event to the audit record
 func (rec *Record) AddErrorDesc(description string) {
 	rec.Error.Description = description
 }

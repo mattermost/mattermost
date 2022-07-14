@@ -167,7 +167,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -254,7 +254,7 @@ NextPart:
 			if err != nil && err != io.EOF {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
-					map[string]interface{}{"Formname": formname},
+					map[string]any{"Formname": formname},
 					err.Error(), http.StatusBadRequest)
 				return nil
 			}
@@ -312,7 +312,7 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return nil
 		}
@@ -367,7 +367,7 @@ NextPart:
 	if expectClientIds && len(clientIds) != nFiles {
 		c.Err = model.NewAppError("uploadFileMultipart",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": nFiles},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": nFiles},
 			"", http.StatusBadRequest)
 		return nil
 	}
@@ -401,7 +401,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -412,7 +412,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if len(clientIds) != 0 && len(clientIds) != len(fileHeaders) {
 		c.Err = model.NewAppError("uploadFilesMultipartBuffered",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
 			"", http.StatusBadRequest)
 		return nil
 	}

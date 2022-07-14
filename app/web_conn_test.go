@@ -103,7 +103,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 
 	// Create another channel with just BasicUser (implicitly) and SystemAdminUser to test channel broadcast
-	channel2 := th.CreateChannel(th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, channel2)
 
 	cases := []struct {
@@ -274,6 +274,26 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, 0, ind)
 	assert.False(t, wc.hasMsgLoss())
+}
+
+func TestWebConnClearDeadQueue(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	wc := th.App.NewWebConn(&WebConnConfig{
+		WebSocket: &websocket.Conn{},
+	})
+
+	var i int
+	for ; i < 2; i++ {
+		msg := &model.WebSocketEvent{}
+		msg = msg.SetSequence(int64(i))
+		wc.addToDeadQueue(msg)
+	}
+
+	wc.clearDeadQueue()
+
+	assert.Equal(t, 0, wc.deadQueuePointer)
 }
 
 func TestWebConnDrainDeadQueue(t *testing.T) {

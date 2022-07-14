@@ -85,7 +85,7 @@ func fixTypeName(t string) string {
 	if t == "...func(*UploadFileTask)" {
 		t = "...func(*app.UploadFileTask)"
 	}
-	if strings.Contains(t, ".") || strings.Contains(t, "{}") {
+	if strings.Contains(t, ".") || strings.Contains(t, "{}") || t == "map[string]any" {
 		return t
 	}
 	typeOnly := textRegexp.FindString(t)

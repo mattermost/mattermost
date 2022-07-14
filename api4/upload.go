@@ -54,7 +54,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
@@ -65,7 +65,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
-	rus, err := c.App.CreateUploadSession(&us)
+	rus, err := c.App.CreateUploadSession(c.AppContext, &us)
 	if err != nil {
 		c.Err = err
 		return
@@ -132,7 +132,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}

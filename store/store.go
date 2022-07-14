@@ -14,7 +14,7 @@ import (
 )
 
 type StoreResult struct {
-	Data interface{}
+	Data any
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -385,6 +385,8 @@ type PostStore interface {
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
+	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
+	GetNthRecentPostTime(n int64) (int64, error)
 }
 
 type UserStore interface {

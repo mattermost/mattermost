@@ -15,6 +15,7 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
+	t.Skip("MM-45725")
 	cluster := &ClusterMock{Busy: &Busy{}}
 	busy := NewBusy(cluster)
 

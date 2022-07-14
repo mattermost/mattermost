@@ -596,7 +596,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		serviceSettings, ok := envConfig["ServiceSettings"]
 		require.True(t, ok, "should've returned ServiceSettings")
 
-		serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{})
+		serviceSettingsAsMap, ok := serviceSettings.(map[string]any)
 		require.True(t, ok, "should've returned ServiceSettings as a map")
 
 		siteURL, ok := serviceSettingsAsMap["SiteURL"]

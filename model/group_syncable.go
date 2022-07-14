@@ -71,7 +71,7 @@ func (syncable *GroupSyncable) IsValid() *AppError {
 }
 
 func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
-	var kvp map[string]interface{}
+	var kvp map[string]any
 	err := json.Unmarshal(b, &kvp)
 	if err != nil {
 		return err

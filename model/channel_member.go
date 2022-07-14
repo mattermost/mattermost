@@ -100,6 +100,10 @@ func (o *ChannelMember) MentionCountRoot_() float64 {
 	return float64(o.MentionCountRoot)
 }
 
+func (o *ChannelMember) MsgCountRoot_() float64 {
+	return float64(o.MsgCountRoot)
+}
+
 func (o *ChannelMember) LastUpdateAt_() float64 {
 	return float64(o.LastUpdateAt)
 }
@@ -162,7 +166,7 @@ func (o *ChannelMember) IsValid() *AppError {
 
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

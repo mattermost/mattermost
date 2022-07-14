@@ -176,6 +176,10 @@ db/migrations/mysql/000087_sidebar_categories_index.down.sql
 db/migrations/mysql/000087_sidebar_categories_index.up.sql
 db/migrations/mysql/000088_remaining_migrations.down.sql
 db/migrations/mysql/000088_remaining_migrations.up.sql
+db/migrations/mysql/000089_add-channelid-to-reaction.down.sql
+db/migrations/mysql/000089_add-channelid-to-reaction.up.sql
+db/migrations/mysql/000090_create_enums.down.sql
+db/migrations/mysql/000090_create_enums.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -352,3 +356,7 @@ db/migrations/postgres/000087_sidebar_categories_index.down.sql
 db/migrations/postgres/000087_sidebar_categories_index.up.sql
 db/migrations/postgres/000088_remaining_migrations.down.sql
 db/migrations/postgres/000088_remaining_migrations.up.sql
+db/migrations/postgres/000089_add-channelid-to-reaction.down.sql
+db/migrations/postgres/000089_add-channelid-to-reaction.up.sql
+db/migrations/postgres/000090_create_enums.down.sql
+db/migrations/postgres/000090_create_enums.up.sql

@@ -281,6 +281,6 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	b, _ := json.Marshal(map[string]interface{}{"num_affected": numAffected})
+	b, _ := json.Marshal(map[string]any{"num_affected": numAffected})
 	w.Write(b)
 }

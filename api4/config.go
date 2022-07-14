@@ -166,7 +166,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -285,7 +285,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
 		return
 	}
 
@@ -293,7 +293,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if cfg.PluginSettings.MarketplaceURL != nil && cfg.PluginSettings.EnableUploads != nil {
 		// Breaking it down to 2 conditions to make it simple.
 		if *cfg.PluginSettings.MarketplaceURL != *appCfg.PluginSettings.MarketplaceURL && !*cfg.PluginSettings.EnableUploads {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -306,7 +306,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}

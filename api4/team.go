@@ -439,7 +439,7 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
-			err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+			err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 		} else {
 			err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
 		}
@@ -746,7 +746,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("addTeamMember", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("addTeamMember", "api.team.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -862,7 +862,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(nonMembers) > 0 {
-			c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 			return
 		}
 	}
@@ -1201,7 +1201,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var payload []byte
 	if props.Page != nil && props.PerPage != nil {
-		twc := map[string]interface{}{"teams": teams, "total_count": totalCount}
+		twc := map[string]any{"teams": teams, "total_count": totalCount}
 		payload = model.ToJSON(twc)
 	} else {
 		js, jsonErr := json.Marshal(teams)

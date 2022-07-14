@@ -170,8 +170,8 @@ jobs:
       - run:
           command: |
             cd mattermost-server
-            make einterfaces-mocks store-mocks
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
+            make mocks
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
 
   check-email-templates:
     docker:

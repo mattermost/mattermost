@@ -389,7 +389,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Roles) > UserRolesMaxLength {
 		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -880,6 +880,13 @@ func (u *User) ToPatch() *UserPatch {
 		Position: &u.Position, Email: &u.Email,
 		Props: u.Props, NotifyProps: u.NotifyProps,
 		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":       u.Id,
+		"username": u.Username,
 	}
 }
 

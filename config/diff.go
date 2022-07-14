@@ -13,9 +13,9 @@ import (
 type ConfigDiffs []ConfigDiff
 
 type ConfigDiff struct {
-	Path      string      `json:"path"`
-	BaseVal   interface{} `json:"base_val"`
-	ActualVal interface{} `json:"actual_val"`
+	Path      string `json:"path"`
+	BaseVal   any    `json:"base_val"`
+	ActualVal any    `json:"actual_val"`
 }
 
 func (c *ConfigDiff) Auditable() map[string]interface{} {

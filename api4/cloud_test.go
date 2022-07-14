@@ -428,6 +428,75 @@ func Test_validateBusinessEmail(t *testing.T) {
 	})
 }
 
+func Test_validateWorkspaceBusinessEmail(t *testing.T) {
+	t.Run("validate the Cloud Customer has used a valid email to create the workspace", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloudCustomerInfo := model.CloudCustomerInfo{
+			Email: "valid@mattermost.com",
+		}
+
+		cloudCustomer := &model.CloudCustomer{
+			CloudCustomerInfo: cloudCustomerInfo,
+		}
+
+		cloud.Mock.On("GetCloudCustomer", th.SystemAdminUser.Id).Return(cloudCustomer, nil)
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, cloudCustomerInfo.Email).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
+		require.NoError(t, err)
+	})
+
+	t.Run("validate the Cloud Customer has used a invalid email to create the workspace and must validate admin email", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloudCustomerInfo := model.CloudCustomerInfo{
+			Email: "invalid@gmail.com",
+		}
+
+		cloudCustomer := &model.CloudCustomer{
+			CloudCustomerInfo: cloudCustomerInfo,
+		}
+
+		cloud.Mock.On("GetCloudCustomer", th.SystemAdminUser.Id).Return(cloudCustomer, nil)
+
+		// first call to validate the cloud customer email
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, cloudCustomerInfo.Email).Return(errors.New("invalid email"))
+
+		// second call to validate the user admin email
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, th.SystemAdminUser.Email).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
+		require.NoError(t, err)
+	})
+}
+
 func TestGetCloudProducts(t *testing.T) {
 	cloudProducts := []*model.Product{
 		{

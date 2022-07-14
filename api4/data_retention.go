@@ -361,7 +361,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 		TeamIds:         props.TeamIds,
 	}
 
-	channels, _, appErr := c.App.SearchAllChannels(props.Term, opts)
+	channels, _, appErr := c.App.SearchAllChannels(c.AppContext, props.Term, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
