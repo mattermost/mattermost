@@ -574,8 +574,8 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	require.Contains(t, string(data),
-		fmt.Sprintf(`"diff":[{"path":"ServiceSettings.ReadTimeout","base_val":%d,"actual_val":%d}]`,
-			timeoutVal, timeoutVal+1))
+		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}]`,
+			timeoutVal+1, timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {

@@ -88,7 +88,8 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("emoji", emoji)
+	auditRec.AddEventResultState(&emoji)
+	auditRec.AddEventObjectType("emoji")
 
 	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
@@ -136,11 +137,12 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
 	if err != nil {
-		auditRec.AddMeta("emoji_id", c.Params.EmojiId)
+		auditRec.AddEventParameter("emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("emoji", emoji)
+	auditRec.AddEventPriorState(emoji)
+	auditRec.AddEventObjectType("emoji")
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
 	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)

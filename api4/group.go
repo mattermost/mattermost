@@ -164,7 +164,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group", group)
+	auditRec.AddEventParameter("group", group)
 
 	newGroup, err := c.App.CreateGroupWithUserIds(group)
 	if err != nil {
@@ -172,7 +172,8 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("group", newGroup)
+	auditRec.AddEventResultState(newGroup)
+	auditRec.AddEventObjectType("group")
 	js, jsonErr := json.Marshal(newGroup)
 	if jsonErr != nil {
 		c.Err = model.NewAppError("createGroup", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
@@ -225,7 +226,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group", group)
+	auditRec.AddEventParameter("group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
 		if groupPatch.Name == nil {
@@ -261,7 +262,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", group)
+	auditRec.AddEventResultState(group)
+	auditRec.AddEventObjectType("group")
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
@@ -310,9 +312,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
-	auditRec.AddMeta("syncable_id", syncableID)
-	auditRec.AddMeta("syncable_type", syncableType)
+	auditRec.AddEventParameter("group_id", c.Params.GroupId)
+	auditRec.AddEventParameter("syncable_id", syncableID)
+	auditRec.AddEventParameter("syncable_type", syncableType)
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -320,6 +322,8 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam(fmt.Sprintf("Group%s", syncableType.String()))
 		return
 	}
+
+	auditRec.AddEventParameter("patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -343,6 +347,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.AddEventResultState(groupSyncable)
+	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
 		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
@@ -465,9 +472,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
-	auditRec.AddMeta("old_syncable_id", syncableID)
-	auditRec.AddMeta("old_syncable_type", syncableType)
+	auditRec.AddEventParameter("group_id", c.Params.GroupId)
+	auditRec.AddEventParameter("old_syncable_id", syncableID)
+	auditRec.AddEventParameter("old_syncable_type", syncableType)
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -475,6 +482,8 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam(fmt.Sprintf("Group[%s]Patch", syncableType.String()))
 		return
 	}
+
+	auditRec.AddEventParameter("patch", patch)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",
@@ -502,8 +511,8 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
-	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
+	auditRec.AddEventResultState(groupSyncable)
+	auditRec.AddEventObjectType("group_syncable")
 
 	c.App.Srv().Go(func() {
 		c.App.SyncRolesAndMembership(c.AppContext, syncableID, syncableType, false)
@@ -538,9 +547,9 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unlinkGroupSyncable", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
-	auditRec.AddMeta("syncable_id", syncableID)
-	auditRec.AddMeta("syncable_type", syncableType)
+	auditRec.AddEventParameter("group_id", c.Params.GroupId)
+	auditRec.AddEventParameter("syncable_id", syncableID)
+	auditRec.AddEventParameter("syncable_type", syncableType)
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -978,7 +987,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddEventParameter("group_id", c.Params.GroupId)
 
 	_, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
@@ -1027,7 +1036,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("addGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("addGroupMembers", newMembers)
+	auditRec.AddEventParameter("addGroupMembers", newMembers)
 
 	members, err := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
 	if err != nil {
@@ -1080,7 +1089,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deleteGroupMembers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("deleteGroupMembers", deleteBody)
+	auditRec.AddEventParameter("deleteGroupMembers", deleteBody)
 
 	members, err := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
 	if err != nil {
