@@ -27,6 +27,19 @@ func (b accessibleBounds) noAccessible() bool {
 	return b.start == noAccessibleBounds.start && b.end == noAccessibleBounds.end
 }
 
+// assumes checking was already performed that at least one post is inaccessible
+func (b accessibleBounds) getInaccessibleRange(listLength int) (int, int) {
+	var start, end int
+	if b.start == 0 {
+		start = b.end + 1
+		end = listLength - 1
+	} else {
+		start = 0
+		end = b.start - 1
+	}
+	return start, end
+}
+
 var noAccessibleBounds = accessibleBounds{start: -1, end: -1}
 var allAccessibleBounds = func(lenPosts int) accessibleBounds { return accessibleBounds{start: 0, end: lenPosts - 1} }
 
@@ -102,7 +115,9 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 	for postId := range posts {
 		if createAt := posts[postId].CreateAt; createAt < earliestAccessibleTime {
 			postList.HasInaccessiblePosts = true
-			postList.FirstInaccessiblePostTime = createAt
+			if createAt > postList.FirstInaccessiblePostTime {
+				postList.FirstInaccessiblePostTime = createAt
+			}
 			delete(posts, postId)
 		}
 	}
@@ -165,9 +180,10 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 			return nil
 		}
 		postList.HasInaccessiblePosts = true
-		firstPostCreatedAt := postList.Posts[postList.Order[0]].CreateAt
-		lastPostCreatedAt := postList.Posts[postList.Order[len(postList.Order)-1]].CreateAt
-		postList.FirstInaccessiblePostTime = max(firstPostCreatedAt, lastPostCreatedAt)
+		startInaccessibleIndex, endInaccessibleIndex := bounds.getInaccessibleRange(len(postList.Order))
+		startInaccessibleCreatedAt := postList.Posts[postList.Order[startInaccessibleIndex]].CreateAt
+		endInaccessibleCreatedAt := postList.Posts[postList.Order[endInaccessibleIndex]].CreateAt
+		postList.FirstInaccessiblePostTime = max(startInaccessibleCreatedAt, endInaccessibleCreatedAt)
 
 		posts := postList.Posts
 		order := postList.Order
@@ -243,8 +259,9 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 			return filteredPosts, lenPosts > 0, firstInaccessiblePostTime, nil
 		}
 
-		firstPostCreatedAt := posts[0].CreateAt
-		lastPostCreatedAt := posts[len(posts)-1].CreateAt
+		startInaccessibleIndex, endInaccessibleIndex := bounds.getInaccessibleRange(len(posts))
+		firstPostCreatedAt := posts[startInaccessibleIndex].CreateAt
+		lastPostCreatedAt := posts[endInaccessibleIndex].CreateAt
 		firstInaccessiblePostTime := max(firstPostCreatedAt, lastPostCreatedAt)
 		filteredPosts = posts[bounds.start : bounds.end+1]
 		return filteredPosts, true, firstInaccessiblePostTime, nil

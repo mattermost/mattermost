@@ -231,6 +231,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			"post_d",
 			"post_e",
 		}, postList.Order)
+		assert.Equal(t, int64(1), postList.FirstInaccessiblePostTime)
 	})
 
 	t.Run("descending order returns correct posts", func(t *testing.T) {
@@ -259,6 +260,8 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			"post_d",
 			"post_c",
 		}, postList.Order)
+
+		assert.Equal(t, int64(1), postList.FirstInaccessiblePostTime)
 	})
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
@@ -332,18 +335,20 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("ascending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(0), postFromCreateAt(1), postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}
-		filteredPosts, _, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, _, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}, filteredPosts)
+		assert.Equal(t, int64(1), firstInaccessiblePostTime)
 	})
 
 	t.Run("descending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
-		filteredPosts, _, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, _, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
+		assert.Equal(t, int64(1), firstInaccessiblePostTime)
 	})
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
@@ -375,5 +380,5 @@ func TestIsInaccessiblePost(t *testing.T) {
 	r, firstInaccessiblePostTime, appErr = th.App.isInaccessiblePost(post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, true, r)
-	assert.Equal(t, 1, firstInaccessiblePostTime)
+	assert.Equal(t, int64(1), firstInaccessiblePostTime)
 }
