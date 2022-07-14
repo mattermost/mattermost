@@ -787,6 +787,7 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
+		pl.UniqueOrder()
 		pl.HasNext = hasNext
 	}
 	return pl, nil
