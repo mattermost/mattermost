@@ -1850,8 +1850,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	channel.SchemeId = &scheme.Id
 
-
-	updatedChannel, err := c.App.UpdateChannelScheme(channel)
+	updatedChannel, err := c.App.UpdateChannelScheme(c.AppContext, channel)
 	if err != nil {
 		c.Err = err
 		return

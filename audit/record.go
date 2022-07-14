@@ -71,7 +71,6 @@ func (rec *Record) AddEventParameter(key string, val interface{}) {
 	}
 }
 
-
 // AddEventPriorState adds the prior state of the modified object to the audit record
 func (rec *Record) AddEventPriorState(object Auditable) {
 	rec.EventData.PriorState = object.Auditable()
