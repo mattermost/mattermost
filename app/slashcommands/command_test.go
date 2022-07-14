@@ -50,8 +50,8 @@ func TestMoveCommand(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer func() {
-		th.App.PermanentDeleteTeam(sourceTeam)
-		th.App.PermanentDeleteTeam(targetTeam)
+		th.App.PermanentDeleteTeam(th.Context, sourceTeam)
+		th.App.PermanentDeleteTeam(th.Context, targetTeam)
 	}()
 
 	// Move a command and check the team is updated.
@@ -610,7 +610,7 @@ func TestMentionsToPublicChannels(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToPublicChannels(data.message, data.inTeam)
+		actualMap := th.App.MentionsToPublicChannels(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }

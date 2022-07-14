@@ -4,7 +4,6 @@
 package slashcommands
 
 import (
-	"context"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -67,7 +66,7 @@ func (*KickProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 }
 
 func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(args.ChannelId)
+	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_remove.channel.app_error"),
@@ -77,14 +76,14 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelMembers) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -124,7 +123,7 @@ func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message 
 		}
 	}
 
-	_, err = a.GetChannelMember(context.Background(), args.ChannelId, userProfile.Id)
+	_, err = a.GetChannelMember(c, args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{

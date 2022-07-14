@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -56,10 +57,11 @@ type PushNotification struct {
 	replyToThreadType  string
 }
 
-func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+func (a *App) sendPushNotificationSync(c request.CTX, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
 	msg, appErr := a.BuildPushNotificationMessage(
+		c,
 		*cfg.EmailSettings.PushNotificationContents,
 		post,
 		user,
@@ -218,7 +220,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, rootID string) *model.AppError {
+func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID, channelID, rootID string) *model.AppError {
 	msg := &model.PushNotification{
 		Type:             model.PushTypeClear,
 		Version:          model.PushMessageV2,
@@ -226,7 +228,7 @@ func (a *App) clearPushNotificationSync(currentSessionId, userID, channelID, roo
 		RootId:           rootID,
 		ContentAvailable: 1,
 		Badge:            0,
-		IsCRTEnabled:     a.IsCRTEnabledForUser(userID),
+		IsCRTEnabled:     a.IsCRTEnabledForUser(c, userID),
 	}
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
@@ -288,7 +290,7 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 	}
 }
 
-func (s *Server) createPushNotificationsHub() {
+func (s *Server) createPushNotificationsHub(c request.CTX) {
 	buffer := *s.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
@@ -299,11 +301,11 @@ func (s *Server) createPushNotificationsHub() {
 		stopChan:          make(chan struct{}),
 		buffer:            buffer,
 	}
-	go hub.start()
+	go hub.start(c)
 	s.PushNotificationsHub = hub
 }
 
-func (hub *PushNotificationsHub) start() {
+func (hub *PushNotificationsHub) start(c request.CTX) {
 	hub.wg.Add(1)
 	defer hub.wg.Done()
 	for {
@@ -330,9 +332,10 @@ func (hub *PushNotificationsHub) start() {
 				var err *model.AppError
 				switch notification.notificationType {
 				case notificationTypeClear:
-					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelID, notification.rootID)
+					err = hub.app.clearPushNotificationSync(c, notification.currentSessionId, notification.userID, notification.channelID, notification.rootID)
 				case notificationTypeMessage:
 					err = hub.app.sendPushNotificationSync(
+						c,
 						notification.post,
 						notification.user,
 						notification.channel,
@@ -552,7 +555,7 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 	return false
 }
 
-func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
 
 	var msg *model.PushNotification
@@ -563,9 +566,9 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 	}
 
 	if contentsConfig == model.IdLoadedNotification {
-		msg = a.buildIdLoadedPushNotificationMessage(channel, post, user)
+		msg = a.buildIdLoadedPushNotificationMessage(c, channel, post, user)
 	} else {
-		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+		msg = a.buildFullPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
@@ -615,13 +618,13 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	return "true"
 }
 
-func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
+func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model.Channel, post *model.Post, user *model.User) *model.PushNotification {
 	userLocale := i18n.GetUserTranslations(user.Locale)
 	msg := &model.PushNotification{
 		PostId:       post.Id,
 		ChannelId:    post.ChannelId,
 		RootId:       post.RootId,
-		IsCRTEnabled: a.IsCRTEnabledForUser(user.Id),
+		IsCRTEnabled: a.IsCRTEnabledForUser(c, user.Id),
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,
 		TeamId:       channel.TeamId,
@@ -634,7 +637,7 @@ func (a *App) buildIdLoadedPushNotificationMessage(channel *model.Channel, post 
 	return msg
 }
 
-func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
 
 	msg := &model.PushNotification{
@@ -656,7 +659,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		msg.ChannelName = channelName
 	}
 
-	if a.IsCRTEnabledForUser(user.Id) {
+	if a.IsCRTEnabledForUser(c, user.Id) {
 		msg.IsCRTEnabled = true
 		if post.RootId != "" {
 			if contentsConfig != model.GenericNoChannelNotification {

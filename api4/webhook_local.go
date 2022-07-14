@@ -38,7 +38,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	channel, err := c.App.GetChannel(hook.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
