@@ -374,7 +374,7 @@ func TestIsInaccessiblePost(t *testing.T) {
 	r, firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, false, r)
-	assert.Equal(t, 0, firstInaccessiblePostTime)
+	assert.Equal(t, int64(0), firstInaccessiblePostTime)
 
 	post = &model.Post{CreateAt: 1}
 	r, firstInaccessiblePostTime, appErr = th.App.isInaccessiblePost(post)
