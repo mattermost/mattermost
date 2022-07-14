@@ -154,7 +154,7 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 		args.AddUserMention(username, userID)
 	}
 
-	for channelName, channelID := range a.MentionsToPublicChannels(args.Command, args.TeamId) {
+	for channelName, channelID := range a.MentionsToPublicChannels(c, args.Command, args.TeamId) {
 		args.AddChannelMention(channelName, channelID)
 	}
 

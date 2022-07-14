@@ -146,9 +146,10 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
 	}
+	th.Context.SetLogger(testLogger)
 
 	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
 		searchEngine.BleveEngine = s.SearchEngine.BleveEngine
@@ -467,14 +468,14 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicDeletedChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicDeletedChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId, false)
 	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
 	th.LoginBasic()
@@ -894,7 +895,7 @@ func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
 	}

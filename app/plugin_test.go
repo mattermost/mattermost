@@ -638,7 +638,7 @@ func TestChannelsPluginsInit(t *testing.T) {
 	defer th.TearDown()
 
 	runNoPanicTest := func(t *testing.T) {
-		ctx := request.EmptyContext()
+		ctx := request.EmptyContext(th.TestLogger)
 		path, _ := fileutils.FindDir("tests")
 
 		require.NotPanics(t, func() {

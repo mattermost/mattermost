@@ -38,7 +38,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	channel, err := c.App.GetChannel(hook.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -51,6 +51,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("localCreateIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("hook", hook)
 	auditRec.AddMeta("channel", channel)
 	c.LogAudit("attempt")
 
@@ -61,7 +62,8 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("hook", incomingHook)
+	auditRec.AddEventResultState(incomingHook)
+	auditRec.AddEventObjectType("incoming_webhook")
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
@@ -79,7 +81,7 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("createOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("hook_id", hook.Id)
+	auditRec.AddEventParameter("hook", hook)
 	c.LogAudit("attempt")
 
 	if hook.CreatorId == "" {
@@ -101,9 +103,8 @@ func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("hook_display", rhook.DisplayName)
-	auditRec.AddMeta("channel_id", rhook.ChannelId)
-	auditRec.AddMeta("team_id", rhook.TeamId)
+	auditRec.AddEventResultState(rhook)
+	auditRec.AddEventObjectType("outgoing_webhook")
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
