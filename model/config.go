@@ -940,15 +940,16 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels            *bool   `access:"experimental_features"`
-	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
+	ClientSideCertEnable              *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck               *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds   *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin               *bool   `access:"experimental_features,write_restrictable"`
+	UseNewSAMLLibrary                 *bool   `access:"experimental_features,cloud_restrictable"`
+	CloudBilling                      *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels              *bool   `access:"experimental_features"`
+	EnableRemoteClusterService        *bool   `access:"experimental_features"`
+	EnableAppBar                      *bool   `access:"experimental_features"`
+	EnableUpgradeForSelfHostedStarter *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -986,6 +987,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
+	}
+
+	if s.EnableUpgradeForSelfHostedStarter == nil {
+		s.EnableUpgradeForSelfHostedStarter = NewBool(true)
 	}
 }
 
