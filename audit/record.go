@@ -60,7 +60,15 @@ func (rec *Record) Fail() {
 
 // AddEventParameter adds a parameter, e.g. query or post body, to the event
 func (rec *Record) AddEventParameter(key string, val interface{}) {
-	rec.EventData.Parameters[key] = val
+	if rec.EventData.Parameters == nil {
+		rec.EventData.Parameters = make(map[string]interface{})
+	}
+
+	if auditableVal, ok := val.(Auditable); ok {
+		rec.EventData.Parameters[key] = auditableVal.Auditable()
+	} else {
+		rec.EventData.Parameters[key] = val
+	}
 }
 
 // AddEventPriorState adds the prior state of the modified object to the audit record

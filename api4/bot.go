@@ -39,7 +39,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot", bot)
+	auditRec.AddEventParameter("bot", bot)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
 		c.SetPermissionError(model.PermissionCreateBot)
@@ -65,7 +65,8 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("bot", createdBot) // overwrite meta
+	auditRec.AddEventObjectType("bot")
+	auditRec.AddEventResultState(createdBot) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
@@ -89,7 +90,8 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot_id", botUserId)
+	auditRec.AddEventParameter("id", botUserId)
+	auditRec.AddEventParameter("bot", botPatch)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
@@ -103,7 +105,8 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("bot", updatedBot)
+	auditRec.AddEventResultState(updatedBot)
+	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -205,8 +208,8 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 
 	auditRec := c.MakeAuditRecord("updateBotActive", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot_id", botUserId)
-	auditRec.AddMeta("enable", active)
+	auditRec.AddEventParameter("id", botUserId)
+	auditRec.AddEventParameter("enable", active)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
@@ -220,7 +223,8 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("bot", bot)
+	auditRec.AddEventResultState(bot)
+	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -238,8 +242,8 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec := c.MakeAuditRecord("assignBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot_id", botUserId)
-	auditRec.AddMeta("assign_user_id", userId)
+	auditRec.AddEventParameter("id", botUserId)
+	auditRec.AddEventParameter("user_id", userId)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
@@ -260,7 +264,8 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("bot", bot)
+	auditRec.AddEventResultState(bot)
+	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -290,9 +295,9 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("convertBotToUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("bot", bot)
-	auditRec.AddMeta("userPatch", userPatch)
-	auditRec.AddMeta("set_system_admin", systemAdmin)
+	auditRec.AddEventParameter("bot", bot)
+	auditRec.AddEventParameter("userPatch", userPatch)
+	auditRec.AddEventParameter("set_system_admin", systemAdmin)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -306,7 +311,8 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("convertedTo", user)
+	auditRec.AddEventResultState(user)
+	auditRec.AddEventObjectType("user")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))

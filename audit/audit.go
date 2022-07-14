@@ -32,12 +32,12 @@ func (a *Audit) Init(maxQueueSize int) {
 // LogRecord emits an audit record with complete info.
 func (a *Audit) LogRecord(level mlog.Level, rec Record) {
 	flds := []mlog.Field{
-		mlog.String("event_name", rec.EventName),
+		mlog.String(KeyEventName, rec.EventName),
 		mlog.String(KeyStatus, rec.Status),
-		mlog.Any("actor", rec.Actor),
-		mlog.Any("event", rec.EventData),
-		mlog.Any("meta", rec.Meta),
-		mlog.Any("error", rec.Error),
+		mlog.Any(KeyActor, rec.Actor),
+		mlog.Any(KeyEvent, rec.EventData),
+		mlog.Any(KeyMeta, rec.Meta),
+		mlog.Any(KeyError, rec.Error),
 	}
 
 	a.logger.Log(level, "", flds...)
