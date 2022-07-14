@@ -4,12 +4,12 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -58,7 +58,7 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, p
 }
 
 // SessionHasPermissionToTeams returns true only if user has access to all teams.
-func (a *App) SessionHasPermissionToTeams(session model.Session, teamIDs []string, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, teamIDs []string, permission *model.Permission) bool {
 	for _, teamID := range teamIDs {
 		if teamID == "" {
 			return false
@@ -91,7 +91,7 @@ func (a *App) SessionHasPermissionToTeams(session model.Session, teamIDs []strin
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *App) SessionHasPermissionToChannel(session model.Session, channelID string, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
 	if channelID == "" {
 		return false
 	}
@@ -108,7 +108,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 		}
 	}
 
-	channel, appErr := a.GetChannel(channelID)
+	channel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
@@ -125,7 +125,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 }
 
 // SessionHasPermissionToChannels returns true only if user has access to all channels.
-func (a *App) SessionHasPermissionToChannels(session model.Session, channelIDs []string, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Session, channelIDs []string, permission *model.Permission) bool {
 	for _, channelID := range channelIDs {
 		if channelID == "" {
 			return false
@@ -158,7 +158,7 @@ func (a *App) SessionHasPermissionToChannels(session model.Session, channelIDs [
 		return true
 	}
 
-	channels, appErr := a.GetChannels(channelIDs)
+	channels, appErr := a.GetChannels(c, channelIDs)
 	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
@@ -177,7 +177,7 @@ func (a *App) SessionHasPermissionToChannels(session model.Session, channelIDs [
 	}
 
 	if appErr == nil && len(teamIDs) > 0 {
-		return a.SessionHasPermissionToTeams(session, teamIDs, permission)
+		return a.SessionHasPermissionToTeams(c, session, teamIDs, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
@@ -219,11 +219,11 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToCategory(session model.Session, userID, teamID, categoryId string) bool {
+func (a *App) SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool {
 	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
 		return true
 	}
-	category, err := a.GetSidebarCategory(categoryId)
+	category, err := a.GetSidebarCategory(c, categoryId)
 	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
@@ -285,12 +285,12 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool {
+func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
 	if channelID == "" || askingUserId == "" {
 		return false
 	}
 
-	channelMember, err := a.GetChannelMember(context.Background(), channelID, askingUserId)
+	channelMember, err := a.GetChannelMember(c, channelID, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
 		if a.RolesGrantPermission(roles, permission.Id) {
@@ -299,7 +299,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 	}
 
 	var channel *model.Channel
-	channel, err = a.GetChannel(channelID)
+	channel, err = a.GetChannel(c, channelID)
 	if err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
@@ -393,6 +393,6 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 	return nil
 }
 
-func (a *App) HasPermissionToReadChannel(userID string, channel *model.Channel) bool {
-	return a.HasPermissionToChannel(userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
+func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

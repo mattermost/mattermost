@@ -20,7 +20,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		return nil, err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 		return err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return err
 	}

@@ -39,7 +39,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 			return
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), cookie.ChannelId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), cookie.ChannelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -101,7 +101,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	submit.UserId = c.AppContext.Session().UserId
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), submit.ChannelId, model.PermissionReadChannel) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), submit.ChannelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
