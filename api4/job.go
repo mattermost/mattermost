@@ -112,7 +112,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("job", job)
+	auditRec.AddEventParameter("job", job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
@@ -132,7 +132,8 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("job", rjob) // overwrite meta
+	auditRec.AddEventResultState(rjob)
+	auditRec.AddEventObjectType("job")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rjob); err != nil {
@@ -213,13 +214,16 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("job_id", c.Params.JobId)
+	auditRec.AddEventParameter("job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddEventPriorState(job)
+	auditRec.AddEventObjectType("job")
 
 	// if permission to create, permission to cancel, same permission
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)

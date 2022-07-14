@@ -26,6 +26,8 @@ const (
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
 	PreferenceNameCollapseSetting         = "collapse_previews"
 	PreferenceNameMessageDisplay          = "message_display"
+	PreferenceNameCollapseConsecutive     = "collapse_consecutive_messages"
+	PreferenceNameColorizeUsernames       = "colorize_usernames"
 	PreferenceNameNameFormat              = "name_format"
 	PreferenceNameUseMilitaryTime         = "use_military_time"
 	PreferenceRecommendedNextSteps        = "recommended_next_steps"
@@ -57,6 +59,7 @@ const (
 	PreferenceEmailIntervalFifteenAsSeconds  = "900"
 	PreferenceEmailIntervalHour              = "hour"
 	PreferenceEmailIntervalHourAsSeconds     = "3600"
+	PreferenceCloudUserEphemeralInfo         = "cloud_user_ephemeral_info"
 )
 
 type Preference struct {

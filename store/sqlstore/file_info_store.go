@@ -168,7 +168,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 
 	queryString, args, err := fs.getQueryBuilder().
 		Update("FileInfo").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"UpdateAt":        info.UpdateAt,
 			"DeleteAt":        info.DeleteAt,
 			"Path":            info.Path,
@@ -633,9 +633,9 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 			}
 
 			query = query.Where(sq.Or{
-				sq.Expr("to_tsvector('english', FileInfo.Name) @@  to_tsquery('english', ?)", queryTerms),
-				sq.Expr("to_tsvector('english', Translate(FileInfo.Name, '.,-', '   ')) @@  to_tsquery('english', ?)", queryTerms),
-				sq.Expr("to_tsvector('english', FileInfo.Content) @@  to_tsquery('english', ?)", queryTerms),
+				sq.Expr(fmt.Sprintf("to_tsvector('%[1]s', FileInfo.Name) @@  to_tsquery('%[1]s', ?)", fs.pgDefaultTextSearchConfig), queryTerms),
+				sq.Expr(fmt.Sprintf("to_tsvector('%[1]s', Translate(FileInfo.Name, '.,-', '   ')) @@  to_tsquery('%[1]s', ?)", fs.pgDefaultTextSearchConfig), queryTerms),
+				sq.Expr(fmt.Sprintf("to_tsvector('%[1]s', FileInfo.Content) @@  to_tsquery('%[1]s', ?)", fs.pgDefaultTextSearchConfig), queryTerms),
 			})
 		} else if fs.DriverName() == model.DatabaseDriverMysql {
 			var err error
@@ -739,7 +739,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime int64, startFileID
 
 func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error) {
 	query := fs.getQueryBuilder().
-		Select("SUM(Size)").
+		Select("COALESCE(SUM(Size), 0)").
 		From("FileInfo")
 
 	if !includeDeleted {

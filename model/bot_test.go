@@ -24,7 +24,7 @@ func TestBotTrace(t *testing.T) {
 		DeleteAt:       4,
 	}
 
-	require.Equal(t, map[string]interface{}{"user_id": bot.UserId}, bot.Trace())
+	require.Equal(t, map[string]any{"user_id": bot.UserId}, bot.Trace())
 }
 
 func TestBotClone(t *testing.T) {

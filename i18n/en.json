@@ -188,6 +188,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -464,16 +468,16 @@
     "translation": "Internal error during cloud api request."
   },
   {
-    "id": "api.cloud.cloud_free_feature_flag_off_error",
-    "translation": "CloudFree feature flag is off."
-  },
-  {
     "id": "api.cloud.cws_webhook_event_missing_error",
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
   {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Already notified admin"
   },
   {
     "id": "api.cloud.request_error",
@@ -490,6 +494,10 @@
   {
     "id": "api.cloud.teams_limit_reached.restore",
     "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "A member of {{.TeamName}} has notified you to upgrade this workspace."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -1907,7 +1915,11 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Your license doesn't support Insights feature."
   },
   {
     "id": "api.invalid_channel",
@@ -2052,6 +2064,10 @@
   {
     "id": "api.license_error",
     "translation": "api endpoint requires a license"
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
   },
   {
     "id": "api.marshal_error",
@@ -3128,44 +3144,12 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start Subscription"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud trial has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 30-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 30-day trial of Mattermost has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Add Payment method"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud trial ending"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 30-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 30-day trial of Mattermost is ending soon"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Confirmation"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -4532,6 +4516,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "Unable to get private channels."
   },
@@ -5448,6 +5436,10 @@
     "translation": "insert error"
   },
   {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
   },
@@ -5482,6 +5474,10 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Error fetching last accessible post"
   },
   {
     "id": "app.license.generate_renewal_token.app_error",
@@ -5820,6 +5816,10 @@
     "translation": "Unable to get user counts with posts."
   },
   {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can not fetch the post as it is past the cloud's plan limit."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
@@ -5870,6 +5870,14 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to get top threads for team."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to get top threads for user."
   },
   {
     "id": "app.post.marshal.app_error",
@@ -6358,6 +6366,10 @@
   {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
     "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
@@ -6894,6 +6906,10 @@
   {
     "id": "brand.save_brand_image.save_image.app_error",
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -8530,10 +8546,6 @@
   {
     "id": "model.incoming_hook.username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

@@ -198,7 +198,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	return true, nil
 }
 
-func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue interface{}) (bool, error) {
+func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue any) (bool, error) {
 	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
 		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
@@ -213,7 +213,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userID string, k
 	return pref.Value == expectedValue, nil
 }
 
-func validateConfigEntry(conf *model.Config, path string, expectedValue interface{}) bool {
+func validateConfigEntry(conf *model.Config, path string, expectedValue any) bool {
 	value, found := config.GetValueByPath(strings.Split(path, "."), *conf)
 	if !found {
 		return false

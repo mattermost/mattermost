@@ -96,7 +96,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 	var conditions []string
 	var conditionsSql string
 	var additionalJoin string
-	var args []interface{}
+	var args []any
 
 	if !options.IncludeDeleted {
 		conditions = append(conditions, "b.DeleteAt = 0")

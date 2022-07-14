@@ -26,14 +26,15 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			DisplayName string                       `json:"displayName"`
 			Sorting     model.SidebarCategorySorting `json:"sorting"`
 			ChannelIDs  []string                     `json:"channelIds"`
+			TeamID      string                       `json:"teamId"`
 		} `json:"sidebarCategories"`
 	}
 
 	input := graphQLInput{
 		OperationName: "sidebarCategories",
 		Query: `
-	query sidebarCategories($userId: String = "", $teamId: String = "") {
-		sidebarCategories(userId: $userId, teamId: $teamId) {
+	query sidebarCategories($userId: String = "", $teamId: String = "", $excludeTeam: Boolean = false) {
+		sidebarCategories(userId: $userId, teamId: $teamId, excludeTeam: $excludeTeam) {
 			id
 			displayName
 			sorting
@@ -41,7 +42,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		}
 	}
 	`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userId": "me",
 			"teamId": th.BasicTeam.Id,
 		},
@@ -68,5 +69,67 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		assert.Equal(t, categories.Categories[i].DisplayName, q.SidebarCategories[i].DisplayName)
 		assert.Equal(t, categories.Categories[i].Sorting, q.SidebarCategories[i].Sorting)
 		assert.Equal(t, categories.Categories[i].ChannelIds(), q.SidebarCategories[i].ChannelIDs)
+	}
+
+	input = graphQLInput{
+		OperationName: "sidebarCategories",
+		Query: `
+	query sidebarCategories($userId: String = "", $teamId: String = "", $excludeTeam: Boolean = false) {
+		sidebarCategories(userId: $userId, teamId: $teamId, excludeTeam: $excludeTeam) {
+			id
+			displayName
+			sorting
+			channelIds
+		}
+	}
+	`,
+		Variables: map[string]any{
+			"userId":      "me",
+			"teamId":      th.BasicTeam.Id,
+			"excludeTeam": true,
+		},
+	}
+
+	resp, err = th.MakeGraphQLRequest(&input)
+	require.NoError(t, err)
+	require.Len(t, resp.Errors, 0)
+	require.NoError(t, json.Unmarshal(resp.Data, &q))
+	assert.Len(t, q.SidebarCategories, 0)
+
+	// Adding a new team
+	myTeam := th.CreateTeam()
+	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
+	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
+	th.LinkUserToTeam(th.BasicUser, myTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
+
+	input = graphQLInput{
+		OperationName: "sidebarCategories",
+		Query: `
+	query sidebarCategories($userId: String = "", $teamId: String = "", $excludeTeam: Boolean = false) {
+		sidebarCategories(userId: $userId, teamId: $teamId, excludeTeam: $excludeTeam) {
+			id
+			displayName
+			sorting
+			channelIds
+			teamId
+		}
+	}
+	`,
+		Variables: map[string]any{
+			"userId":      "me",
+			"teamId":      th.BasicTeam.Id,
+			"excludeTeam": true,
+		},
+	}
+
+	resp, err = th.MakeGraphQLRequest(&input)
+	require.NoError(t, err)
+	require.Len(t, resp.Errors, 0)
+	require.NoError(t, json.Unmarshal(resp.Data, &q))
+	assert.Len(t, q.SidebarCategories, 3)
+	for _, cat := range q.SidebarCategories {
+		assert.Equal(t, myTeam.Id, cat.TeamID)
 	}
 }

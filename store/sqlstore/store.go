@@ -131,7 +131,8 @@ type SqlStore struct {
 	licenseMutex      sync.RWMutex
 	metrics           einterfaces.MetricsInterface
 
-	isBinaryParam bool
+	isBinaryParam             bool
+	pgDefaultTextSearchConfig string
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -167,6 +168,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.isBinaryParam, err = store.computeBinaryParam()
 	if err != nil {
 		mlog.Fatal("Failed to compute binary param", mlog.Err(err))
+	}
+
+	store.pgDefaultTextSearchConfig, err = store.computeDefaultTextSearchConfig()
+	if err != nil {
+		mlog.Fatal("Failed to compute default text search config", mlog.Err(err))
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -335,6 +341,16 @@ func (ss *SqlStore) computeBinaryParam() (bool, error) {
 	}
 
 	return DSNHasBinaryParam(*ss.settings.DataSource)
+}
+
+func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		return "", nil
+	}
+
+	var defaultTextSearchConfig string
+	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
+	return defaultTextSearchConfig, err
 }
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
@@ -1151,7 +1167,7 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 		}
 
 		if tableCollation != connCollation.Value {
-			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("expected", connCollation.Value), mlog.String("found", tableCollation))
+			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("connection_collation", connCollation.Value), mlog.String("table_collation", tableCollation))
 		}
 	}
 

@@ -56,8 +56,8 @@ type channelMember struct {
 	MsgCountRoot     int64
 }
 
-func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]interface{} {
-	return map[string]interface{}{
+func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
+	return map[string]any{
 		"ChannelId":        cm.ChannelId,
 		"UserId":           cm.UserId,
 		"Roles":            cm.ExplicitRoles,
@@ -109,8 +109,8 @@ func channelMemberSliceColumns() []string {
 	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
 }
 
-func channelMemberToSlice(member *model.ChannelMember) []interface{} {
-	resultSlice := []interface{}{}
+func channelMemberToSlice(member *model.ChannelMember) []any {
+	resultSlice := []any{}
 	resultSlice = append(resultSlice, member.ChannelId)
 	resultSlice = append(resultSlice, member.UserId)
 	resultSlice = append(resultSlice, member.ExplicitRoles)
@@ -504,7 +504,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 		return nil
 	}
 
-	vals := map[string]interface{}{
+	vals := map[string]any{
 		"id":          publicChannel.Id,
 		"deleteat":    publicChannel.DeleteAt,
 		"teamid":      publicChannel.TeamId,
@@ -752,7 +752,7 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
-			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
+			s.GetReplicaX().Get(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]any{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
 				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 			}
@@ -1356,7 +1356,7 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 }
 
 func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (model.ChannelList, error) {
-	props := make(map[string]interface{})
+	props := make(map[string]any)
 	props["teamId"] = teamId
 
 	idQuery := ""
@@ -2581,7 +2581,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		unreadRoot = 0
 	}
 
-	params := map[string]interface{}{
+	params := map[string]any{
 		"mentions":        mentionCount,
 		"mentionsroot":    mentionCountRoot,
 		"unreadcount":     unread,
@@ -3035,7 +3035,7 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 	var (
 		channels = model.ChannelList{}
 		sql      string
-		args     []interface{}
+		args     []any
 	)
 
 	// build the like clause
@@ -3292,14 +3292,26 @@ func (s SqlChannelStore) channelSearchQuery(opts *store.ChannelSearchOpts) sq.Se
 			LeftJoin("RetentionPoliciesChannels ON c.Id = RetentionPoliciesChannels.ChannelId")
 	}
 
-	likeClause, likeTerm := s.buildLIKEClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
+	likeFields := "c.Name, c.DisplayName, c.Purpose"
+	if opts.IncludeSearchById {
+		likeFields = likeFields + ", c.Id"
+	}
+
+	likeClause, likeTerm := s.buildLIKEClause(opts.Term, likeFields)
+
 	if likeTerm != "" {
+		// Keep the number of likeTerms same as the number of columns
+		// (c.Name, c.DisplayName, c.Purpose, c.Id?)
+		likeTerms := make([]any, len(strings.Split(likeFields, ",")))
+		for i := 0; i < len(likeTerms); i++ {
+			likeTerms[i] = likeTerm
+		}
 		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(opts.Term, "c.Name, c.DisplayName, c.Purpose")
 		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
+
 		query = query.Where(sq.Or{
-			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
-			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(likeClause, likeTerms...),
 			sq.Expr(fulltextClause, fulltextTerm),
 		})
 	}
@@ -3472,7 +3484,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextTerm = strings.Join(splitTerm, " & ")
 
-		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
+		fulltextClause = fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', :FulltextTerm))", s.pgDefaultTextSearchConfig, convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
@@ -3513,7 +3525,7 @@ func (s SqlChannelStore) buildFulltextClauseX(term string, searchColumns ...stri
 		// join the search term with &
 		fulltextTerm = strings.Join(splitTerm, " & ")
 
-		expr := fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', ?))", strings.Join(searchColumns, " || ' ' || "))
+		expr := fmt.Sprintf("((to_tsvector('%[1]s', %[2]s)) @@ to_tsquery('%[1]s', ?))", s.pgDefaultTextSearchConfig, strings.Join(searchColumns, " || ' ' || "))
 		return sq.Expr(expr, fulltextTerm)
 
 	}
@@ -4145,9 +4157,9 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 // b) those that are public channels in the given team.
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
-	var args []interface{}
-	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false')`
-	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false')`
+	var args []any
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
 
 	query := `
 		SELECT
@@ -4173,7 +4185,7 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
 				AND Posts.Type = ''`
-	args = []interface{}{since}
+	args = []any{since}
 
 	if s.DriverName() == model.DatabaseDriverMysql {
 		query += mySqlPropsQuery
@@ -4245,8 +4257,15 @@ func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string
 // after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
 func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
-	var args []interface{}
+	var args []any
 	var query string
+
+	var propsQuery string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	}
 
 	query = `
 		SELECT
@@ -4257,19 +4276,21 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 			Channels.TeamId AS TeamID,
 			count(Posts.Id) AS MessageCount
 		FROM
-			Posts 
+			Posts
 			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
 			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
-		WHERE 
-			Posts.DeleteAt = 0 
+		WHERE
+			Posts.DeleteAt = 0
 			AND Posts.CreateAt > ?
 			AND Posts.Type = ''
 			AND Posts.UserID = ?
 			AND Channels.DeleteAt = 0
-			AND (Channels.Type = 'O' OR Channels.Type = 'P') 
-			AND ChannelMembers.UserId = ?`
+			AND (Channels.Type = 'O' OR Channels.Type = 'P')
+			AND ChannelMembers.UserId = ? `
 
-	args = []interface{}{since, userID, userID}
+	query += propsQuery
+
+	args = []any{since, userID, userID}
 
 	if teamID != "" {
 		query += `
@@ -4278,13 +4299,13 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	}
 
 	query += `
-		Group By 
+		Group By
 			Posts.ChannelId,
 			Channels.Type,
 			Channels.DisplayName,
 			Channels.Name,
 			Channels.TeamId
-		ORDER BY 
+		ORDER BY
 			MessageCount DESC,
 			Name ASC
 		LIMIT ?
@@ -4296,4 +4317,54 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	}
 
 	return model.GetTopChannelListWithPagination(channels, limit), nil
+}
+
+func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
+	var unixSelect string
+	var propsQuery string
+	loc := atLocation.String()
+	if loc == "Local" {
+		loc = "UTC"
+	}
+	if s.DriverName() == model.DatabaseDriverMysql {
+		if duration == model.PostsByDay {
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%d') AS duration`
+		} else {
+			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
+		}
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		if duration == model.PostsByDay {
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
+		} else {
+			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
+		}
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	}
+	query := sq.
+		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").
+		From("Posts").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.Gt{"Posts.CreateAt": sinceUnixMillis},
+			sq.Eq{"Posts.Type": ""},
+			sq.Eq{"Channels.Id": channelIDs},
+		}).
+		Where(propsQuery).
+		GroupBy("channelid", "duration").
+		OrderBy("channelid", "duration")
+	if userID != nil && model.IsValidId(*userID) {
+		query = query.Where(sq.And{sq.Eq{"Posts.UserId": *userID}})
+	}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse query")
+	}
+	dailyPostCounts := make([]*model.DurationPostCount, 0)
+	if err := s.GetReplicaX().Select(&dailyPostCounts, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get post counts by duration")
+	}
+
+	return dailyPostCounts, nil
 }

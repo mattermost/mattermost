@@ -111,8 +111,8 @@ type Features struct {
 	FutureFeatures *bool `json:"future_features"`
 }
 
-func (f *Features) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (f *Features) ToMap() map[string]any {
+	return map[string]any{
 		"ldap":                        *f.LDAP,
 		"ldap_groups":                 *f.LDAPGroups,
 		"mfa":                         *f.MFA,

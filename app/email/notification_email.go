@@ -37,7 +37,7 @@ func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18
 		onlyImages = onlyImages && info.IsImage()
 	}
 
-	props := map[string]interface{}{"Filenames": strings.Join(filenames, ", ")}
+	props := map[string]any{"Filenames": strings.Join(filenames, ", ")}
 
 	if onlyImages {
 		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)

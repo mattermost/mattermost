@@ -108,7 +108,7 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
 	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

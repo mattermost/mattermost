@@ -25,7 +25,7 @@ func (a *App) createDefaultChannelMemberships(c *request.Context, since int64, c
 	}
 
 	for _, userChannel := range channelMembers {
-		channel, err := a.GetChannel(userChannel.ChannelID)
+		channel, err := a.GetChannel(c, userChannel.ChannelID)
 		if err != nil {
 			return err
 		}
@@ -179,7 +179,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(c *request.Context, chann
 	}
 
 	for _, userChannel := range channelMembers {
-		channel, err := a.GetChannel(userChannel.ChannelId)
+		channel, err := a.GetChannel(c, userChannel.ChannelId)
 		if err != nil {
 			return err
 		}
@@ -227,7 +227,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		}
 		return nil
 	default:
-		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
+		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]any{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
 }
 
@@ -250,6 +250,6 @@ func (a *App) SyncRolesAndMembership(c *request.Context, syncableID string, sync
 	case model.GroupSyncableTypeChannel:
 		a.createDefaultChannelMemberships(c, since, &syncableID, includeRemovedMembers)
 		a.deleteGroupConstrainedChannelMemberships(c, &syncableID)
-		a.ClearChannelMembersCache(syncableID)
+		a.ClearChannelMembersCache(c, syncableID)
 	}
 }
