@@ -140,6 +140,12 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
+func (u *UserAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auth_service": u.AuthService,
+	}
+}
+
 //msgp:ignore UserForIndexing
 type UserForIndexing struct {
 	Id          string   `json:"id"`
@@ -826,6 +832,13 @@ func (u *User) ToPatch() *UserPatch {
 		Position: &u.Position, Email: &u.Email,
 		Props: u.Props, NotifyProps: u.NotifyProps,
 		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":       u.Id,
+		"username": u.Username,
 	}
 }
 

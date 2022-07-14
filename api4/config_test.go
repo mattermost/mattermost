@@ -572,8 +572,9 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
+
 	require.Contains(t, string(data),
-		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
+		fmt.Sprintf(`"diff":[{"path":"ServiceSettings.ReadTimeout","base_val":%d,"actual_val":%d}]`,
 			timeoutVal, timeoutVal+1))
 }
 

@@ -76,7 +76,7 @@ func TestInviteProvider(t *testing.T) {
 	_, err = th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
-	groupChannel, _ = th.App.UpdateChannel(groupChannel)
+	groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
 
 	groupChannelNonUser := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
 

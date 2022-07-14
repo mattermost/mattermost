@@ -41,7 +41,7 @@ func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 	var channel *model.Channel
 	var noChannelErr *model.AppError
 
-	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
+	if channel, noChannelErr = a.GetChannel(c, args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_mute.no_channel.error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -62,7 +62,7 @@ func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 		}
 	}
 
-	channelMember, err := a.ToggleMuteChannel(channel.Id, args.UserId)
+	channelMember, err := a.ToggleMuteChannel(c, channel.Id, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_mute.not_member.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
 	}

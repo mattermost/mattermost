@@ -43,8 +43,8 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 		return
 	}
 	if c.Err != nil {
-		rec.AddMeta("err", c.Err.Id)
-		rec.AddMeta("code", c.Err.StatusCode)
+		rec.AddErrorCode(c.Err.StatusCode)
+		rec.AddErrorDesc(c.Err.Error())
 		if c.Err.Id == "api.context.permissions.app_error" {
 			level = app.LevelPerms
 		}
@@ -56,16 +56,25 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 // MakeAuditRecord creates a audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
-		APIPath:   c.AppContext.Path(),
-		Event:     event,
+		EventName: event,
 		Status:    initialStatus,
-		UserID:    c.AppContext.Session().UserId,
-		SessionID: c.AppContext.Session().Id,
-		Client:    c.AppContext.UserAgent(),
-		IPAddress: c.AppContext.IPAddress(),
-		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
+		Actor: audit.EventActor{
+			UserId:    c.AppContext.Session().UserId,
+			SessionId: c.AppContext.Session().Id,
+			Client:    c.AppContext.UserAgent(),
+			IpAddress: c.AppContext.IPAddress(),
+		},
+		Meta: map[string]interface{}{
+			audit.KeyAPIPath:   c.AppContext.Path(),
+			audit.KeyClusterID: c.App.GetClusterId(),
+		},
+		EventData: audit.EventData{
+			Parameters:  map[string]interface{}{},
+			PriorState:  map[string]interface{}{},
+			ResultState: map[string]interface{}{},
+			ObjectType:  "",
+		},
 	}
-	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
 
 	return rec
 }

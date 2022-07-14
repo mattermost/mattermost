@@ -314,12 +314,12 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("commandargs", commandArgs)
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionUseSlashCommands) {
 		c.SetPermissionError(model.PermissionUseSlashCommands)
 		return
 	}
 
-	channel, err := c.App.GetChannel(commandArgs.ChannelId)
+	channel, err := c.App.GetChannel(c.AppContext, commandArgs.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
