@@ -8,6 +8,7 @@ const (
 
 	KeyAPIPath   = "api_path"
 	KeyEvent     = "event"
+	KeyEventData = "event_data"
 	KeyStatus    = "status"
 	KeyUserID    = "user_id"
 	KeySessionID = "session_id"
