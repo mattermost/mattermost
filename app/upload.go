@@ -117,7 +117,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 	return nil
 }
 
-func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
 			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
@@ -136,7 +136,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	}
 
 	if us.Type == model.UploadTypeAttachment {
-		channel, err := a.GetChannel(us.ChannelId)
+		channel, err := a.GetChannel(c, us.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
 				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)

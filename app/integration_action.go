@@ -301,7 +301,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
-		a.SendEphemeralPost(userID, ephemeralPost)
+		a.SendEphemeralPost(c, userID, ephemeralPost)
 	}
 
 	return clientTriggerId, nil

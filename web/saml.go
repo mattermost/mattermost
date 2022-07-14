@@ -152,7 +152,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogErrorByCode(err)
 				break
 			}
-			c.App.AddDirectChannels(teamId, user)
+			c.App.AddDirectChannels(c.AppContext, teamId, user)
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
