@@ -572,9 +572,10 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	data, err := ioutil.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
+
 	require.Contains(t, string(data),
-		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
-			timeoutVal, timeoutVal+1))
+		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}]`,
+			timeoutVal+1, timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
@@ -595,7 +596,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		serviceSettings, ok := envConfig["ServiceSettings"]
 		require.True(t, ok, "should've returned ServiceSettings")
 
-		serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{})
+		serviceSettingsAsMap, ok := serviceSettings.(map[string]any)
 		require.True(t, ok, "should've returned ServiceSettings as a map")
 
 		siteURL, ok := serviceSettingsAsMap["SiteURL"]

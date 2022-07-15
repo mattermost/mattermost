@@ -24,13 +24,13 @@ func TestAuditModelTypeConv(t *testing.T) {
 	userPatch := &UserPatch{}
 
 	type args struct {
-		val interface{}
+		val any
 	}
 	tests := []struct {
 		name          string
 		args          args
 		wantConverted bool
-		wantNewVal    interface{}
+		wantNewVal    any
 	}{
 		{name: "nil value", args: args{val: nil}, wantConverted: false, wantNewVal: nil},
 		{name: "string value", args: args{val: "hello"}, wantConverted: false, wantNewVal: "hello"},

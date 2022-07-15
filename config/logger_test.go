@@ -38,13 +38,13 @@ func TestMloggerConfigFromAuditConfig(t *testing.T) {
 		assert.ElementsMatch(t, targetCfg.Levels, []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI})
 
 		// check format options
-		optionsExpected := map[string]interface{}{
+		optionsExpected := map[string]any{
 			"disable_timestamp":  false,
 			"disable_msg":        true,
 			"disable_stacktrace": true,
 			"disable_level":      true,
 		}
-		var optionsReceived map[string]interface{}
+		var optionsReceived map[string]any
 		err = json.Unmarshal(targetCfg.FormatOptions, &optionsReceived)
 		require.NoError(t, err, "unmarshal should not fail")
 		assert.Equal(t, optionsExpected, optionsReceived)

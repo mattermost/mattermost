@@ -511,7 +511,7 @@ func TestDiffSanitized(t *testing.T) {
 			defaultConfigGen(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": true,
 					},
@@ -915,7 +915,7 @@ func TestDiff(t *testing.T) {
 			"map type change",
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": true,
 					},
@@ -924,7 +924,7 @@ func TestDiff(t *testing.T) {
 			}(),
 			func() *model.Config {
 				cfg := defaultConfigGen()
-				cfg.PluginSettings.Plugins = map[string]map[string]interface{}{
+				cfg.PluginSettings.Plugins = map[string]map[string]any{
 					"com.mattermost.newplugin": {
 						"key": "string",
 					},
@@ -934,15 +934,15 @@ func TestDiff(t *testing.T) {
 			ConfigDiffs{
 				{
 					Path: "PluginSettings.Plugins",
-					BaseVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					BaseVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": true,
 							},
 						}
 					}(),
-					ActualVal: func() interface{} {
-						return map[string]map[string]interface{}{
+					ActualVal: func() any {
+						return map[string]map[string]any{
 							"com.mattermost.newplugin": {
 								"key": "string",
 							},

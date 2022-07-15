@@ -546,7 +546,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, inChannelUser, th.BasicChannel, false)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
 	_, resp, err := client.CreatePost(post1)
@@ -586,7 +586,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
 			require.NoError(t, err)
 
-			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]any)
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -2113,14 +2113,14 @@ func TestDeletePostEvent(t *testing.T) {
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
 
 	defer th.TearDown()
 
 	testCases := []struct {
 		description string
 		client      *model.Client4
-		delete_by   interface{}
+		delete_by   any
 	}{
 		{"Do not send delete_by to regular user", th.Client, nil},
 		{"Send delete_by to system admin user", th.SystemAdminClient, th.SystemAdminUser.Id},
@@ -2469,8 +2469,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
-	th.App.AddUserToChannel(user, th.BasicChannel, false)
-	th.App.AddUserToChannel(user, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, user, th.BasicChannel2, false)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)
@@ -2686,15 +2686,15 @@ func TestSetChannelUnread(t *testing.T) {
 	require.NotNil(t, pp2)
 
 	// Ensure that post have been read
-	unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+	unread, err := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	unread, appErr := th.App.GetChannelUnread(c1.Id, u2.Id)
+	unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, appErr = th.App.ViewChannel(c1toc2, u2.Id, s2.Id, false)
+	_, appErr = th.App.ViewChannel(th.Context, c1toc2, u2.Id, s2.Id, false)
 	require.Nil(t, appErr)
-	unread, appErr = th.App.GetChannelUnread(c1.Id, u2.Id)
+	unread, appErr = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(0), unread.MsgCount)
 
@@ -2702,7 +2702,7 @@ func TestSetChannelUnread(t *testing.T) {
 		r, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
-		unread, appErr := th.App.GetChannelUnread(c1.Id, u1.Id)
+		unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
@@ -2717,32 +2717,32 @@ func TestSetChannelUnread(t *testing.T) {
 		require.NotNil(t, p1)
 
 		// Ensure that post have been read
-		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err := th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr := th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr := th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
 		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(3), unread.MsgCount)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
 		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(1), unread.MsgCount)
 	})
@@ -2759,36 +2759,36 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Ensure that post have been read
-		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err := th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
 		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
 		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(2), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
@@ -2797,12 +2797,12 @@ func TestSetChannelUnread(t *testing.T) {
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, appErr := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		unread, appErr := th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(1), unread.MsgCount)
 		r, _ = th.Client.SetPostUnread(u1.Id, pp1.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, appErr = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		unread, appErr = th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
@@ -2876,7 +2876,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 
 		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
-		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(3), channelUnread.MentionCount)
@@ -2890,7 +2890,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		// test websocket event for marking post as unread
 		var caught bool
 		var exit bool
-		var data map[string]interface{}
+		var data map[string]any
 		for {
 			select {
 			case ev := <-userWSClient.EventChannel:
@@ -2924,7 +2924,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	t.Run("Mark root post as unread", func(t *testing.T) {
 		_, err := th.Client.SetPostUnread(th.BasicUser.Id, rootPost1.Id, false)
 		require.NoError(t, err)
-		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(4), channelUnread.MentionCount)
@@ -3138,7 +3138,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 					Name: "test-name",
 					Integration: &model.PostActionIntegration{
 						URL: "https://test.test/action",
-						Context: map[string]interface{}{
+						Context: map[string]any{
 							"test-ctx": "some-value",
 						},
 					},
@@ -3153,13 +3153,13 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 
 	actualPost, _, err := client.GetPost(rpost.Id, "")
 	require.NoError(t, err)
-	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	attachments, _ := actualPost.Props["attachments"].([]any)
 	require.Equal(t, 1, len(attachments))
-	att, _ := attachments[0].(map[string]interface{})
+	att, _ := attachments[0].(map[string]any)
 	require.NotNil(t, att)
-	actions, _ := att["actions"].([]interface{})
+	actions, _ := att["actions"].([]any)
 	require.Equal(t, 1, len(actions))
-	action, _ := actions[0].(map[string]interface{})
+	action, _ := actions[0].(map[string]any)
 	require.NotNil(t, action)
 	// integration must be omitted
 	require.Nil(t, action["integration"])

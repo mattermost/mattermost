@@ -18,9 +18,9 @@ import (
 )
 
 type graphQLInput struct {
-	Query         string                 `json:"query"`
-	OperationName string                 `json:"operationName"`
-	Variables     map[string]interface{} `json:"variables"`
+	Query         string         `json:"query"`
+	OperationName string         `json:"operationName"`
+	Variables     map[string]any `json:"variables"`
 }
 
 // Unique type to hold our context.
@@ -100,6 +100,8 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 		response = &graphql.Response{Errors: []*gqlerrors.QueryError{err2}}
 		return
 	}
+
+	c.GraphQLOperationName = params.OperationName
 
 	// Populate the context with required info.
 	reqCtx := r.Context()

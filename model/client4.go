@@ -18,29 +18,30 @@ import (
 )
 
 const (
-	HeaderRequestId          = "X-Request-ID"
-	HeaderVersionId          = "X-Version-ID"
-	HeaderClusterId          = "X-Cluster-ID"
-	HeaderEtagServer         = "ETag"
-	HeaderEtagClient         = "If-None-Match"
-	HeaderForwarded          = "X-Forwarded-For"
-	HeaderRealIP             = "X-Real-IP"
-	HeaderForwardedProto     = "X-Forwarded-Proto"
-	HeaderToken              = "token"
-	HeaderCsrfToken          = "X-CSRF-Token"
-	HeaderBearer             = "BEARER"
-	HeaderAuth               = "Authorization"
-	HeaderCloudToken         = "X-Cloud-Token"
-	HeaderRemoteclusterToken = "X-RemoteCluster-Token"
-	HeaderRemoteclusterId    = "X-RemoteCluster-Id"
-	HeaderRequestedWith      = "X-Requested-With"
-	HeaderRequestedWithXML   = "XMLHttpRequest"
-	HeaderRange              = "Range"
-	STATUS                   = "status"
-	StatusOk                 = "OK"
-	StatusFail               = "FAIL"
-	StatusUnhealthy          = "UNHEALTHY"
-	StatusRemove             = "REMOVE"
+	HeaderRequestId            = "X-Request-ID"
+	HeaderVersionId            = "X-Version-ID"
+	HeaderClusterId            = "X-Cluster-ID"
+	HeaderEtagServer           = "ETag"
+	HeaderEtagClient           = "If-None-Match"
+	HeaderForwarded            = "X-Forwarded-For"
+	HeaderRealIP               = "X-Real-IP"
+	HeaderForwardedProto       = "X-Forwarded-Proto"
+	HeaderToken                = "token"
+	HeaderCsrfToken            = "X-CSRF-Token"
+	HeaderBearer               = "BEARER"
+	HeaderAuth                 = "Authorization"
+	HeaderCloudToken           = "X-Cloud-Token"
+	HeaderRemoteclusterToken   = "X-RemoteCluster-Token"
+	HeaderRemoteclusterId      = "X-RemoteCluster-Id"
+	HeaderRequestedWith        = "X-Requested-With"
+	HeaderRequestedWithXML     = "XMLHttpRequest"
+	HeaderHasInaccessiblePosts = "Has-Inaccessible-Posts"
+	HeaderRange                = "Range"
+	STATUS                     = "status"
+	StatusOk                   = "OK"
+	StatusFail                 = "FAIL"
+	StatusUnhealthy            = "UNHEALTHY"
+	StatusRemove               = "REMOVE"
 
 	ClientDir = "client"
 
@@ -1372,7 +1373,7 @@ func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, 
 // is true and a valid code is provided. If activate is false, then code is not
 // required and multi-factor authentication is disabled for the user.
 func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (*Response, error) {
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 	requestBody["activate"] = activate
 	requestBody["code"] = code
 
@@ -1454,7 +1455,7 @@ func (c *Client4) UpdateUserRoles(userId, roles string) (*Response, error) {
 
 // UpdateUserActive updates status of a user whether active or not.
 func (c *Client4) UpdateUserActive(userId string, active bool) (*Response, error) {
-	requestBody := make(map[string]interface{})
+	requestBody := make(map[string]any)
 	requestBody["active"] = active
 	r, err := c.DoAPIPut(c.userRoute(userId)+"/active", StringInterfaceToJSON(requestBody))
 	if err != nil {
@@ -3292,7 +3293,7 @@ func (c *Client4) PermanentDeleteChannel(channelId string) (*Response, error) {
 
 // MoveChannel moves the channel to the destination team.
 func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response, error) {
-	requestBody := map[string]interface{}{
+	requestBody := map[string]any{
 		"team_id": teamId,
 		"force":   force,
 	}
@@ -4126,7 +4127,7 @@ func (c *Client4) SearchPostsWithParams(teamId string, params *SearchParameter) 
 
 // SearchPostsWithMatches returns any posts with matching terms string, including.
 func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch bool) (*PostSearchResults, *Response, error) {
-	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	requestBody := map[string]any{"terms": terms, "is_or_search": isOrSearch}
 	var route string
 	if teamId == "" {
 		route = c.postsRoute() + "/search"
@@ -4159,10 +4160,14 @@ func (c *Client4) DoPostAction(postId, actionId string) (*Response, error) {
 func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (*Response, error) {
 	var body []byte
 	if selected != "" || cookieStr != "" {
-		body, _ = json.Marshal(DoPostActionRequest{
+		var jsonErr error
+		body, jsonErr = json.Marshal(DoPostActionRequest{
 			SelectedOption: selected,
 			Cookie:         cookieStr,
 		})
+		if jsonErr != nil {
+			return nil, NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	r, err := c.DoAPIPost(c.postRoute(postId)+"/actions/"+actionId, string(body))
 	if err != nil {
@@ -4212,7 +4217,10 @@ func (c *Client4) GetTopThreadsForUserSince(teamId string, timeRange string, pag
 // provided data. Used with interactive message buttons, menus and
 // slash commands.
 func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (*Response, error) {
-	b, _ := json.Marshal(request)
+	b, jsonErr := json.Marshal(request)
+	if jsonErr != nil {
+		return nil, NewAppError("OpenInteractiveDialog", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPost("/actions/dialogs/open", string(b))
 	if err != nil {
 		return BuildResponse(r), err
@@ -4224,7 +4232,10 @@ func (c *Client4) OpenInteractiveDialog(request OpenDialogRequest) (*Response, e
 // SubmitInteractiveDialog will submit the provided dialog data to the integration
 // configured by the URL. Used with the interactive dialogs integration feature.
 func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (*SubmitDialogResponse, *Response, error) {
-	b, _ := json.Marshal(request)
+	b, jsonErr := json.Marshal(request)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SubmitInteractiveDialog", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPost("/actions/dialogs/submit", string(b))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -4561,7 +4572,7 @@ func (c *Client4) GetOldClientConfig(etag string) (map[string]string, *Response,
 // GetEnvironmentConfig will retrieve a map mirroring the server configuration where fields
 // are set to true if the corresponding config setting is set through an environment variable.
 // Settings that haven't been set through environment variables will be missing from the map.
-func (c *Client4) GetEnvironmentConfig() (map[string]interface{}, *Response, error) {
+func (c *Client4) GetEnvironmentConfig() (map[string]any, *Response, error) {
 	r, err := c.DoAPIGet(c.configRoute()+"/environment", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -5148,12 +5159,15 @@ func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataR
 
 // ResetSamlAuthDataToEmail resets the AuthData field of SAML users to their Email.
 func (c *Client4) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response, error) {
-	params := map[string]interface{}{
+	params := map[string]any{
 		"include_deleted": includeDeleted,
 		"dry_run":         dryRun,
 		"user_ids":        userIDs,
 	}
-	b, _ := json.Marshal(params)
+	b, jsonErr := json.Marshal(params)
+	if jsonErr != nil {
+		return 0, nil, NewAppError("ResetSamlAuthDataToEmail", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.samlRoute()+"/reset_auth_data", b)
 	if err != nil {
 		return 0, BuildResponse(r), err
@@ -5267,9 +5281,12 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response, error) {
 // If includeRemovedMembers is true, then group members who left or were removed from a
 // synced team/channel will be re-joined; otherwise, they will be excluded.
 func (c *Client4) SyncLdap(includeRemovedMembers bool) (*Response, error) {
-	reqBody, _ := json.Marshal(map[string]interface{}{
+	reqBody, jsonErr := json.Marshal(map[string]any{
 		"include_removed_members": includeRemovedMembers,
 	})
+	if jsonErr != nil {
+		return nil, NewAppError("SyncLdap", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.ldapRoute()+"/sync", reqBody)
 	if err != nil {
 		return BuildResponse(r), err
@@ -5480,7 +5497,7 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response, error) 
 }
 
 func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]interface{}{
+	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/ldap", StringInterfaceToJSON(map[string]any{
 		"from":        fromAuthService,
 		"force":       force,
 		"match_field": matchField,
@@ -5493,7 +5510,7 @@ func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, f
 }
 
 func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (*Response, error) {
-	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]interface{}{
+	r, err := c.DoAPIPost(c.usersRoute()+"/migrate_auth/saml", StringInterfaceToJSON(map[string]any{
 		"from":    fromAuthService,
 		"auto":    auto,
 		"matches": usersMap,
@@ -6005,7 +6022,10 @@ func (c *Client4) GetTeamsForRetentionPolicy(policyID string, page, perPage int)
 
 // SearchTeamsForRetentionPolicy will search the teams to which the specified policy is currently applied.
 func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([]*Team, *Response, error) {
-	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	body, jsonErr := json.Marshal(map[string]any{"term": term})
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchTeamsForRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/teams/search", body)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -6021,7 +6041,10 @@ func (c *Client4) SearchTeamsForRetentionPolicy(policyID string, term string) ([
 // AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
-	body, _ := json.Marshal(teamIDs)
+	body, jsonErr := json.Marshal(teamIDs)
+	if jsonErr != nil {
+		return nil, NewAppError("AddTeamsToRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/teams", body)
 	if err != nil {
 		return BuildResponse(r), err
@@ -6033,7 +6056,10 @@ func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) (
 // RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) (*Response, error) {
-	body, _ := json.Marshal(teamIDs)
+	body, jsonErr := json.Marshal(teamIDs)
+	if jsonErr != nil {
+		return nil, NewAppError("RemoveTeamsFromRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIDeleteBytes(c.dataRetentionPolicyRoute(policyID)+"/teams", body)
 	if err != nil {
 		return BuildResponse(r), err
@@ -6059,7 +6085,10 @@ func (c *Client4) GetChannelsForRetentionPolicy(policyID string, page, perPage i
 
 // SearchChannelsForRetentionPolicy will search the channels to which the specified policy is currently applied.
 func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string) (ChannelListWithTeamData, *Response, error) {
-	body, _ := json.Marshal(map[string]interface{}{"term": term})
+	body, jsonErr := json.Marshal(map[string]any{"term": term})
+	if jsonErr != nil {
+		return nil, nil, NewAppError("SearchChannelsForRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/channels/search", body)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -6075,7 +6104,10 @@ func (c *Client4) SearchChannelsForRetentionPolicy(policyID string, term string)
 // AddChannelsToRetentionPolicy will add the specified channels to the granular data retention policy
 // with the specified ID.
 func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
-	body, _ := json.Marshal(channelIDs)
+	body, jsonErr := json.Marshal(channelIDs)
+	if jsonErr != nil {
+		return nil, NewAppError("AddChannelsToRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.dataRetentionPolicyRoute(policyID)+"/channels", body)
 	if err != nil {
 		return BuildResponse(r), err
@@ -6087,7 +6119,10 @@ func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []str
 // RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
 // with the specified ID.
 func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) (*Response, error) {
-	body, _ := json.Marshal(channelIDs)
+	body, jsonErr := json.Marshal(channelIDs)
+	if jsonErr != nil {
+		return nil, NewAppError("RemoveChannelsFromRetentionPolicy", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIDeleteBytes(c.dataRetentionPolicyRoute(policyID)+"/channels", body)
 	if err != nil {
 		return BuildResponse(r), err
@@ -7216,7 +7251,7 @@ func (c *Client4) GetServerBusy() (*ServerBusyState, *Response, error) {
 // RegisterTermsOfServiceAction saves action performed by a user against a specific terms of service.
 func (c *Client4) RegisterTermsOfServiceAction(userId, termsOfServiceId string, accepted bool) (*Response, error) {
 	url := c.userTermsOfServiceRoute(userId)
-	data := map[string]interface{}{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
+	data := map[string]any{"termsOfServiceId": termsOfServiceId, "accepted": accepted}
 	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
 	if err != nil {
 		return BuildResponse(r), err
@@ -7258,7 +7293,7 @@ func (c *Client4) GetUserTermsOfService(userId, etag string) (*UserTermsOfServic
 // CreateTermsOfService creates new terms of service.
 func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *Response, error) {
 	url := c.termsOfServiceRoute()
-	data := map[string]interface{}{"text": text}
+	data := map[string]any{"text": text}
 	r, err := c.DoAPIPost(url, StringInterfaceToJSON(data))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7315,7 +7350,10 @@ func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
 }
 
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
-	payload, _ := json.Marshal(patch)
+	payload, jsonErr := json.Marshal(patch)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroup", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPut(c.groupRoute(groupID)+"/patch", string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7363,7 +7401,10 @@ func (c *Client4) DeleteGroupMembers(groupID string, userIds *GroupModifyMembers
 }
 
 func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	payload, _ := json.Marshal(patch)
+	payload, jsonErr := json.Marshal(patch)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("LinkGroupSyncable", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	url := fmt.Sprintf("%s/link", c.groupSyncableRoute(groupID, syncableID, syncableType))
 	r, err := c.DoAPIPost(url, string(payload))
 	if err != nil {
@@ -7414,7 +7455,10 @@ func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableTy
 }
 
 func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response, error) {
-	payload, _ := json.Marshal(patch)
+	payload, jsonErr := json.Marshal(patch)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("PatchGroupSyncable", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPut(c.groupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7548,7 +7592,10 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 
 // RequestTrialLicense will request a trial license and install it in the server
 func (c *Client4) RequestTrialLicense(users int) (*Response, error) {
-	b, _ := json.Marshal(map[string]interface{}{"users": users, "terms_accepted": true})
+	b, jsonErr := json.Marshal(map[string]any{"users": users, "terms_accepted": true})
+	if jsonErr != nil {
+		return nil, NewAppError("RequestTrialLicense", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPost("/trial-license", string(b))
 	if err != nil {
 		return BuildResponse(r), err
@@ -7587,7 +7634,10 @@ func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string
 }
 
 func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
-	payload, _ := json.Marshal(category)
+	payload, jsonErr := json.Marshal(category)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("CreateSidebarCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	route := c.userCategoryRoute(userID, teamID)
 	r, err := c.DoAPIPostBytes(route, payload)
 	if err != nil {
@@ -7603,7 +7653,10 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, cat
 }
 
 func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response, error) {
-	payload, _ := json.Marshal(categories)
+	payload, jsonErr := json.Marshal(categories)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateSidebarCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	route := c.userCategoryRoute(userID, teamID)
 
 	r, err := c.DoAPIPutBytes(route, payload)
@@ -7632,7 +7685,10 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag str
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string, order []string) ([]string, *Response, error) {
-	payload, _ := json.Marshal(order)
+	payload, jsonErr := json.Marshal(order)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateSidebarCategoryOrderForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	route := c.userCategoryRoute(userID, teamID) + "/order"
 	r, err := c.DoAPIPutBytes(route, payload)
 	if err != nil {
@@ -7659,7 +7715,10 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 }
 
 func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response, error) {
-	payload, _ := json.Marshal(category)
+	payload, jsonErr := json.Marshal(category)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateSidebarCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	route := c.userCategoryRoute(userID, teamID) + "/" + categoryID
 	r, err := c.DoAPIPutBytes(route, payload)
 	if err != nil {
@@ -7845,8 +7904,10 @@ func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response, error)
 }
 
 func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) (*Response, error) {
-	json, _ := json.Marshal(confirmRequest)
-
+	json, jsonErr := json.Marshal(confirmRequest)
+	if jsonErr != nil {
+		return nil, NewAppError("ConfirmCustomerPayment", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/payment/confirm", json)
 	if err != nil {
 		return BuildResponse(r), err
@@ -7857,7 +7918,10 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 }
 
 func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscription, *Response, error) {
-	payload, _ := json.Marshal(email)
+	payload, jsonErr := json.Marshal(email)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7868,6 +7932,32 @@ func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscriptio
 	json.NewDecoder(r.Body).Decode(&subscription)
 
 	return subscription, BuildResponse(r), nil
+}
+
+func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
+	r, err := c.DoAPIPost(c.cloudRoute()+"/validate-workspace-business-email", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+	nrJSON, jsonErr := json.Marshal(nr)
+	if jsonErr != nil {
+		return 0
+	}
+
+	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
+	if err != nil {
+		return r.StatusCode
+	}
+
+	closeBody(r)
+
+	return r.StatusCode
 }
 
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
@@ -7921,8 +8011,10 @@ func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response, error) {
 }
 
 func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response, error) {
-	customerBytes, _ := json.Marshal(customerInfo)
-
+	customerBytes, jsonErr := json.Marshal(customerInfo)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateCloudCustomer", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/customer", customerBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7936,8 +8028,10 @@ func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCu
 }
 
 func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, *Response, error) {
-	addressBytes, _ := json.Marshal(address)
-
+	addressBytes, jsonErr := json.Marshal(address)
+	if jsonErr != nil {
+		return nil, nil, NewAppError("UpdateCloudCustomerAddress", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
 	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/customer/address", addressBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err

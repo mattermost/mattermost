@@ -621,7 +621,7 @@ func TestNowhereNil(t *testing.T) {
 
 	testCases := []struct {
 		Description string
-		Value       interface{}
+		Value       any
 		Expected    bool
 	}{
 		{
@@ -770,7 +770,7 @@ func TestNowhereNil(t *testing.T) {
 
 // checkNowhereNil checks that the given interface value is not nil, and if a struct, that all of
 // its public fields are also nowhere nil
-func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
+func checkNowhereNil(t *testing.T, name string, value any) bool {
 	if value == nil {
 		return false
 	}

@@ -26,7 +26,7 @@ func TestInvitePeopleProvider(t *testing.T) {
 
 	// Test without required permissions
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
 		UserId:    notTeamUser.Id,

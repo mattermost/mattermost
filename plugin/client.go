@@ -15,7 +15,7 @@ const (
 // Starts the serving of a Mattermost plugin over net/rpc. gRPC is not yet supported.
 //
 // Call this when your plugin is ready to start.
-func ClientMain(pluginImplementation interface{}) {
+func ClientMain(pluginImplementation any) {
 	if impl, ok := pluginImplementation.(interface {
 		SetAPI(api API)
 		SetDriver(driver Driver)

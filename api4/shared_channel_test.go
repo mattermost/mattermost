@@ -44,7 +44,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 			CreatorId: th.BasicChannel.CreatorId,
 			RemoteId:  model.NewId(),
 		}
-		_, err := th.App.SaveSharedChannel(sc)
+		_, err := th.App.SaveSharedChannel(th.Context, sc)
 		require.NoError(t, err)
 		savedIds = append(savedIds, channel.Id)
 	}
@@ -124,7 +124,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 		CreatorId: th.BasicChannel.CreatorId,
 		RemoteId:  rc.RemoteId,
 	}
-	sc, err := th.App.SaveSharedChannel(sc)
+	sc, err := th.App.SaveSharedChannel(th.Context, sc)
 	require.NoError(t, err)
 
 	// create a shared channel remote to connect them
