@@ -312,6 +312,9 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
+// Ensure hooksService implements `product.HooksService`
+var _ product.HooksService = &hooksService{}
+
 type hooksService struct {
 	ch *Channels
 }

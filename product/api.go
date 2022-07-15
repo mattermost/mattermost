@@ -5,7 +5,6 @@ package product
 
 import (
 	"database/sql"
-	"io"
 
 	"github.com/gorilla/mux"
 
@@ -136,12 +135,7 @@ type HooksService interface {
 //
 // The service shall be registered via app.FilestoreKey service key.
 type FilestoreService interface {
-	Reader(path string) (filestore.ReadCloseSeeker, error)
-	FileExists(path string) (bool, error)
-	CopyFile(oldPath, newPath string) error
-	MoveFile(oldPath, newPath string) error
-	WriteFile(fr io.Reader, path string) (int64, error)
-	RemoveFile(path string) error
+	filestore.FileBackend
 }
 
 // FileInfoStoreService is the API for accessing the file info store.

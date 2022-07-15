@@ -24,12 +24,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
+// teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
 type teamServiceWrapper struct {
 	app AppIface
 }
@@ -41,6 +43,9 @@ func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember
 func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
+
+// Ensure the wrapper implements the product service.
+var _ product.TeamService = &teamServiceWrapper{}
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active

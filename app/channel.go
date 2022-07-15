@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -22,27 +23,31 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+// channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
 type channelsWrapper struct {
 	srv *Server
 }
 
-func (s *channelsWrapper) GetDirectChannel(c request.CTX, userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.srv.getDirectChannel(c, userID1, userID2)
+func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
+	return s.srv.getDirectChannel(request.EmptyContext(s.srv.GetLogger()), userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
-func (s *channelsWrapper) GetChannelByID(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	return s.srv.getChannel(c, channelID)
+func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
+	return s.srv.getChannel(request.EmptyContext(s.srv.GetLogger()), channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
-func (s *channelsWrapper) GetChannelMember(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return s.srv.getChannelMember(c, channelID, userID)
+func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	return s.srv.getChannelMember(request.EmptyContext(s.srv.GetLogger()), channelID, userID)
 }
 
-func (s *channelsWrapper) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return s.srv.getChannelsForTeamForUser(c, teamID, userID, opts)
+func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.GetLogger()), teamID, userID, opts)
 }
+
+// Ensure the wrapper implements the product service.
+var _ product.ChannelService = &channelsWrapper{}
 
 // DefaultChannelNames returns the list of system-wide default channel names.
 //

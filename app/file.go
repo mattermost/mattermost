@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -47,6 +48,10 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
+var _ product.FileInfoStoreService = &fileInfoWrapper{}
+
+// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
 type fileInfoWrapper struct {
 	srv *Server
 }
