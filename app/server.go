@@ -55,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
@@ -393,6 +394,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
+
+	// ensure app implements `product.UserService`
+	var _ product.UserService = (*App)(nil)
 
 	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},

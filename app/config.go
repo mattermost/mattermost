@@ -22,6 +22,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -30,6 +31,9 @@ import (
 const (
 	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
+
+// ensure the config wrapper implements `product.ConfigService`
+var _ product.ConfigService = (*configWrapper)(nil)
 
 // configWrapper is an adapter struct that only exposes the
 // config related functionality to be passed down to other products.
