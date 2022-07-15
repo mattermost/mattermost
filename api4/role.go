@@ -122,6 +122,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
+	auditRec.AddEventParameter("role_patch", patch)
 	defer c.LogAuditRec(auditRec)
 
 	oldRole, err := c.App.GetRole(c.Params.RoleId)
@@ -129,7 +130,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("role", oldRole)
+	auditRec.AddEventPriorState(oldRole)
+	auditRec.AddEventObjectType("role")
 
 	// manage_system permission is required to patch system_admin
 	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
@@ -207,8 +209,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(role)
 	auditRec.Success()
-	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {

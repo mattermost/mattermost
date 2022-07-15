@@ -27,6 +27,19 @@ type TeamMember struct {
 	ExplicitRoles string `json:"explicit_roles"`
 }
 
+func (o *TeamMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"team_id":        o.TeamId,
+		"user_id":        o.UserId,
+		"roles":          o.Roles,
+		"delete_at":      o.DeleteAt,
+		"scheme_guest":   o.SchemeGuest,
+		"scheme_user":    o.SchemeUser,
+		"scheme_admin":   o.SchemeAdmin,
+		"explicit_roles": o.ExplicitRoles,
+	}
+}
+
 //msgp:ignore TeamUnread
 type TeamUnread struct {
 	TeamId             string `json:"team_id"`

@@ -13,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -27,8 +28,8 @@ func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID st
 	return s.app.HasPermissionToTeam(userID, teamID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToChannel(askingUserID, channelID, permission)
+func (s *permissionsServiceWrapper) HasPermissionToChannel(c request.CTX, askingUserID string, channelID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToChannel(c, askingUserID, channelID, permission)
 }
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
