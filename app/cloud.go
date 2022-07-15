@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -106,6 +107,10 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	return nil
 }
 
+// Ensure cloud service wrapper implements `product.CloudService`
+var _ product.CloudService = (*cloudWrapper)(nil)
+
+// cloudWrapper provides an implementation of `product.CloudService` for use by products.
 type cloudWrapper struct {
 	cloud einterfaces.CloudInterface
 }

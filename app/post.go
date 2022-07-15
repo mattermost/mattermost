@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -33,6 +34,10 @@ const (
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
+// Ensure post service wrapper implements `product.PostService`
+var _ product.PostService = (*postServiceWrapper)(nil)
+
+// postServiceWrapper provides an implementation of `product.PostService` for use by products.
 type postServiceWrapper struct {
 	app AppIface
 }
