@@ -52,7 +52,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("post", &post)
+	auditRec.AddEventParameter("post", &post)
 
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
@@ -90,7 +90,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	auditRec.AddMeta("post", rp) // overwrite meta
+	auditRec.AddEventResultState(rp)
+	auditRec.AddEventObjectType("post")
 
 	if setOnlineBool {
 		c.App.SetStatusOnline(c.AppContext.Session().UserId, false)
@@ -485,14 +486,15 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	auditRec.AddMeta("post_id", c.Params.PostId)
+	auditRec.AddEventParameter("post_id", c.Params.PostId)
 
 	post, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
 	}
-	auditRec.AddMeta("post", post)
+	auditRec.AddEventPriorState(post)
+	auditRec.AddEventObjectType("post")
 
 	if c.AppContext.Session().UserId == post.UserId {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
@@ -711,6 +713,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
+	auditRec.AddEventParameter("post", post.Auditable())
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
@@ -729,7 +732,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
-	auditRec.AddMeta("post", originalPost)
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = originalPost.FileIds
@@ -750,7 +754,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", rpost)
+	auditRec.AddEventResultState(rpost)
 
 	if err := rpost.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -770,6 +774,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
+	auditRec.AddEventParameter("patch", post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
@@ -780,7 +785,8 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
-	auditRec.AddMeta("post", originalPost)
+	auditRec.AddEventPriorState(originalPost)
+	auditRec.AddEventObjectType("post")
 
 	var permission *model.Permission
 	if c.AppContext.Session().UserId == originalPost.UserId {
@@ -801,7 +807,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("patch", patchedPost)
+	auditRec.AddEventResultState(patchedPost)
 
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -843,6 +849,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
+	auditRec.AddEventParameter("post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
@@ -855,7 +862,8 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("post", post)
+	auditRec.AddEventPriorState(post)
+	auditRec.AddEventObjectType("post")
 
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
@@ -865,7 +873,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", patchedPost)
+	auditRec.AddEventResultState(patchedPost)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

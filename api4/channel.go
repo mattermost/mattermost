@@ -88,7 +88,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", channel)
+	auditRec.AddEventParameter("channel", channel)
 
 	if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePublicChannel) {
 		c.SetPermissionError(model.PermissionCreatePublicChannel)
@@ -107,7 +107,8 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("channel", sc) // overwrite meta
+	auditRec.AddEventResultState(sc)
+	auditRec.AddEventObjectType("channel")
 	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
@@ -136,6 +137,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateChannel", audit.Fail)
+	auditRec.AddEventParameter("channel", channel)
 	defer c.LogAuditRec(auditRec)
 
 	originalOldChannel, appErr := c.App.GetChannel(c.AppContext, channel.Id)
@@ -145,7 +147,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	oldChannel := originalOldChannel.DeepCopy()
 
-	auditRec.AddMeta("channel", oldChannel)
+	auditRec.AddEventPriorState(oldChannel)
 
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
@@ -220,6 +222,8 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.AddEventResultState(updatedChannel)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
@@ -249,8 +253,8 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateChannelPrivacy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", channel)
-	auditRec.AddMeta("new_type", privacy)
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventPriorState(channel)
 
 	if model.ChannelType(privacy) == model.ChannelTypeOpen && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic) {
 		c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
@@ -272,7 +276,6 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", user)
 
 	channel.Type = model.ChannelType(privacy)
 
@@ -282,6 +285,8 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(updatedChannel)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("name=" + updatedChannel.Name)
 
@@ -311,7 +316,8 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", oldChannel)
+	auditRec.AddEventParameter("channel", patch)
+	auditRec.AddEventPriorState(oldChannel)
 
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
@@ -357,9 +363,10 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(rchannel)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("")
-	auditRec.AddMeta("patch", rchannel)
 
 	if err := json.NewEncoder(w).Encode(rchannel); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -381,7 +388,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", channel)
+	auditRec.AddEventPriorState(channel)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -394,6 +401,8 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(channel)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
 	c.LogAudit("name=" + channel.Name)
 
@@ -422,6 +431,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createDirectChannel", audit.Fail)
+	auditRec.AddEventParameter("user_ids", userIds)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateDirectChannel) {
@@ -439,7 +449,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		otherUserId = userIds[1]
 	}
 
-	auditRec.AddMeta("other_user_id", otherUserId)
+	auditRec.AddEventParameter("user_id", otherUserId)
 
 	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, otherUserId)
 	if err != nil {
@@ -458,8 +468,9 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(sc)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
-	auditRec.AddMeta("channel", sc)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(sc); err != nil {
@@ -510,6 +521,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createGroupChannel", audit.Fail)
+	auditRec.AddEventParameter("user_ids", userIds)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateGroupChannel) {
@@ -542,8 +554,9 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(groupChannel)
+	auditRec.AddEventObjectType("channel")
 	auditRec.Success()
-	auditRec.AddMeta("channel", groupChannel)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(groupChannel); err != nil {
@@ -1211,8 +1224,9 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteChannel", audit.Fail)
+	auditRec.AddEventParameter("id", c.Params.ChannelId)
+	auditRec.AddEventPriorState(channel)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channeld", channel)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
@@ -1507,8 +1521,8 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("updateChannelMemberRoles", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", c.Params.ChannelId)
-	auditRec.AddMeta("roles", newRoles)
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles) {
 		c.SetPermissionError(model.PermissionManageChannelRoles)
@@ -1539,8 +1553,8 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord("updateChannelMemberSchemeRoles", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", c.Params.ChannelId)
-	auditRec.AddMeta("roles", schemeRoles)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("roles", schemeRoles)
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles) {
 		c.SetPermissionError(model.PermissionManageChannelRoles)
@@ -1571,8 +1585,8 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord("updateChannelMemberNotifyProps", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", c.Params.ChannelId)
-	auditRec.AddMeta("props", props)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("props", props)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -1603,6 +1617,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("addChannelMember", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("props", props)
+
 	member := &model.ChannelMember{
 		ChannelId: c.Params.ChannelId,
 		UserId:    userId,
@@ -1632,9 +1650,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addChannelMember", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", channel)
+	auditRec.AddEventParameter("channel_id", member.ChannelId)
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
@@ -1719,6 +1735,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddEventResultState(cm)
+	auditRec.AddEventObjectType("channel_member")
 	auditRec.AddMeta("add_user_id", cm.UserId)
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 
@@ -1748,8 +1766,8 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("removeChannelMember", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel", channel)
-	auditRec.AddMeta("remove_user_id", user.Id)
+	auditRec.AddEventParameter("channel_id", channel.Id)
+	auditRec.AddEventParameter("user_id", user.Id)
 
 	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
@@ -1799,7 +1817,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateChannelScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("new_scheme_id", *schemeID)
+	auditRec.AddEventParameter("scheme_id", *schemeID)
 
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -1828,16 +1846,18 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("channel", channel)
-	auditRec.AddMeta("old_scheme_id", channel.SchemeId)
+	auditRec.AddEventPriorState(channel)
 
 	channel.SchemeId = &scheme.Id
 
-	_, err = c.App.UpdateChannelScheme(c.AppContext, channel)
+	updatedChannel, err := c.App.UpdateChannelScheme(c.AppContext, channel)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddEventResultState(updatedChannel)
+	auditRec.AddEventObjectType("channel")
 
 	auditRec.Success()
 
@@ -2002,7 +2022,7 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = appErr
 		return
 	}
-	auditRec.AddMeta("patch", channelModerationsPatch)
+	auditRec.AddEventParameter("patch", channelModerationsPatch)
 
 	b, marshalErr := json.Marshal(channelModerations)
 	if marshalErr != nil {
@@ -2047,7 +2067,11 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("moveChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", channel.Id)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventPriorState(channel)
+
+	// TODO check and verify if the below three things are parameters or prior state if any
 	auditRec.AddMeta("channel_name", channel.Name)
 	auditRec.AddMeta("team_id", team.Id)
 	auditRec.AddMeta("team_name", team.Name)
@@ -2087,6 +2111,9 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddEventResultState(channel)
+	auditRec.AddEventObjectType("channel")
 
 	auditRec.Success()
 	c.LogAudit("channel=" + channel.Name)

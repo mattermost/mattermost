@@ -44,6 +44,22 @@ type Team struct {
 	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
 }
 
+func (o *Team) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    o.Id,
+		"create_at":             o.CreateAt,
+		"update_at":             o.UpdateAt,
+		"delete_at":             o.DeleteAt,
+		"type":                  o.Type,
+		"invite_id":             o.InviteId,
+		"allow_open_invite":     o.AllowOpenInvite,
+		"scheme_id":             o.SchemeId,
+		"group_constrained":     o.GroupConstrained,
+		"policy_id":             o.PolicyID,
+		"cloud_limits_archived": o.CloudLimitsArchived,
+	}
+}
+
 type TeamPatch struct {
 	DisplayName         *string `json:"display_name"`
 	Description         *string `json:"description"`

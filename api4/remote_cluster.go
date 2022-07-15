@@ -89,6 +89,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
+	auditRec.AddEventParameter("remote_cluster_frame", frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -134,6 +135,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
+	auditRec.AddEventParameter("remote_cluster_frame", frame)
 	defer c.LogAuditRec(auditRec)
 
 	remoteId := c.GetRemoteID(r)
@@ -187,7 +189,7 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("uploadRemoteData", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("upload_id", c.Params.UploadId)
+	auditRec.AddEventParameter("upload_id", c.Params.UploadId)
 
 	us, err := c.App.GetUploadSession(c.Params.UploadId)
 	if err != nil {
@@ -257,7 +259,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("remoteUploadProfileImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
-		auditRec.AddMeta("filename", imageArray[0].Filename)
+		auditRec.AddEventParameter("filename", imageArray[0].Filename)
 	}
 
 	user, err := c.App.GetUser(c.Params.UserId)
