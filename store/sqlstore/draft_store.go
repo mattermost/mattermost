@@ -138,7 +138,8 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 			sq.Eq{"Drafts.UserId": userID},
 			sq.Eq{"Drafts.DeleteAt": 0},
 			sq.NotEq{"Drafts.Message": ""},
-		})
+		}).
+		OrderBy("Drafts.UpdateAt DESC")
 
 	if teamID != "" {
 		query = query.

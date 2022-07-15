@@ -193,7 +193,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID string) (*model.Draft, *mode
 		mlog.Warn("Failed to encode draft to JSON")
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", draft.ChannelId, draft.UserId, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil)
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
 
