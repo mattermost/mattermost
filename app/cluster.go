@@ -11,7 +11,7 @@ import (
 )
 
 // ensure cluster service wrapper implements `product.ClusterService`
-var _ product.ClusterService = &clusterWrapper{}
+var _ product.ClusterService = (*clusterWrapper)(nil)
 
 // clusterWrapper provides an implementation of `product.ClusterService` for use by products.
 type clusterWrapper struct {

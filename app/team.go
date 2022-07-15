@@ -45,7 +45,7 @@ func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID s
 }
 
 // Ensure the wrapper implements the product service.
-var _ product.TeamService = &teamServiceWrapper{}
+var _ product.TeamService = (*teamServiceWrapper)(nil)
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active

@@ -23,7 +23,7 @@ const (
 )
 
 // Ensure bot service wrapper implements `product.BotService`
-var _ product.BotService = &botServiceWrapper{}
+var _ product.BotService = (*botServiceWrapper)(nil)
 
 // botServiceWrapper provides an implementation of `product.BotService` for use by products.
 type botServiceWrapper struct {

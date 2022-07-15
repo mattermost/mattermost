@@ -49,7 +49,7 @@ const (
 )
 
 // Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
-var _ product.FileInfoStoreService = &fileInfoWrapper{}
+var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
 
 // fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
 type fileInfoWrapper struct {

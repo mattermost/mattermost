@@ -35,7 +35,7 @@ const (
 var atMentionPattern = regexp.MustCompile(`\B@`)
 
 // Ensure post service wrapper implements `product.PostService`
-var _ product.PostService = &postServiceWrapper{}
+var _ product.PostService = (*postServiceWrapper)(nil)
 
 // postServiceWrapper provides an implementation of `product.PostService` for use by products.
 type postServiceWrapper struct {

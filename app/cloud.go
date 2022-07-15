@@ -108,7 +108,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 }
 
 // Ensure cloud service wrapper implements `product.CloudService`
-var _ product.CloudService = &cloudWrapper{}
+var _ product.CloudService = (*cloudWrapper)(nil)
 
 // cloudWrapper provides an implementation of `product.CloudService` for use by products.
 type cloudWrapper struct {

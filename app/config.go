@@ -33,7 +33,7 @@ const (
 )
 
 // ensure the config wrapper implements `product.ConfigService`
-var _ product.ConfigService = &configWrapper{}
+var _ product.ConfigService = (*configWrapper)(nil)
 
 // configWrapper is an adapter struct that only exposes the
 // config related functionality to be passed down to other products.

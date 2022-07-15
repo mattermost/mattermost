@@ -40,7 +40,7 @@ type pluginSignaturePath struct {
 }
 
 //Ensure routerService implements `product.RouterService`
-var _ product.RouterService = &routerService{}
+var _ product.RouterService = (*routerService)(nil)
 
 type routerService struct {
 	mu        sync.Mutex

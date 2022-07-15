@@ -22,7 +22,7 @@ const permissionsExportBatchSize = 100
 const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
 
 // Ensure permissions service wrapper implements `product.PermissionService`
-var _ product.PermissionService = &permissionsServiceWrapper{}
+var _ product.PermissionService = (*permissionsServiceWrapper)(nil)
 
 // permissionsServiceWrapper provides an implementation of `product.PermissionService` for use by products.
 type permissionsServiceWrapper struct {

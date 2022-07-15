@@ -176,7 +176,7 @@ func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 }
 
 // Ensure system service adapter implements `product.SystemService`
-var _ product.SystemService = &systemServiceAdapter{}
+var _ product.SystemService = (*systemServiceAdapter)(nil)
 
 // systemServiceAdapter provides a collection of system APIs for use by products.
 type systemServiceAdapter struct {

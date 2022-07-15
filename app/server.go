@@ -396,7 +396,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	// ensure app implements `product.UserService`
-	var _ product.UserService = &App{}
+	var _ product.UserService = (*App)(nil)
 
 	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},

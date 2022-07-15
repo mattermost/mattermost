@@ -16,7 +16,7 @@ import (
 )
 
 // Ensure KV store wrapper implements `product.KVStoreService`
-var _ product.KVStoreService = &kvStoreWrapper{}
+var _ product.KVStoreService = (*kvStoreWrapper)(nil)
 
 // kvStoreWrapper provides an implementation of `product.KVStoreService` for use by products.
 type kvStoreWrapper struct {

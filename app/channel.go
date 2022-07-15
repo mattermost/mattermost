@@ -47,7 +47,7 @@ func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string
 }
 
 // Ensure the wrapper implements the product service.
-var _ product.ChannelService = &channelsWrapper{}
+var _ product.ChannelService = (*channelsWrapper)(nil)
 
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
