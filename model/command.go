@@ -41,6 +41,26 @@ type Command struct {
 	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
+func (o *Command) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                 o.Id,
+		"create_at":          o.CreateAt,
+		"update_at":          o.UpdateAt,
+		"delete_at":          o.DeleteAt,
+		"creator_id":         o.CreatorId,
+		"team_id":            o.TeamId,
+		"trigger":            o.Trigger,
+		"username":           o.Username,
+		"icon_url":           o.IconURL,
+		"auto_complete":      o.AutoComplete,
+		"auto_complete_desc": o.AutoCompleteDesc,
+		"auto_complete_hint": o.AutoCompleteHint,
+		"display_name":       o.DisplayName,
+		"description":        o.Description,
+		"url":                o.URL,
+	}
+}
+
 func (o *Command) IsValid() *AppError {
 	if !IsValidId(o.Id) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "", http.StatusBadRequest)

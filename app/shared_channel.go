@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) checkChannelNotShared(channelId string) error {
+func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(channelId); err != nil {
+	if _, err := a.GetChannel(c, channelId); err != nil {
 		return fmt.Errorf("cannot share this channel: %w", err)
 	}
 
@@ -58,8 +59,8 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 
 // SharedChannels
 
-func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	if err := a.checkChannelNotShared(sc.ChannelId); err != nil {
+func (a *App) SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
+	if err := a.checkChannelNotShared(c, sc.ChannelId); err != nil {
 		return nil, err
 	}
 	return a.Srv().Store.SharedChannel().Save(sc)

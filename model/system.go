@@ -31,6 +31,7 @@ const (
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
 	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
+	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
 )

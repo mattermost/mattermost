@@ -140,7 +140,7 @@ func TestPostAction(t *testing.T) {
 			user1 := th.CreateUser()
 			user2 := th.CreateUser()
 
-			return th.CreateGroupChannel(user1, user2)
+			return th.CreateGroupChannel(th.Context, user1, user2)
 		}},
 	}
 
@@ -501,7 +501,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		TeamId:     th.BasicTeam.Id,
 		CallbackId: "someid",
 		State:      "somestate",
-		Submission: map[string]interface{}{
+		Submission: map[string]any{
 			"name1": "value1",
 		},
 	}

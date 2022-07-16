@@ -8,14 +8,14 @@ import (
 	"os"
 )
 
-func CommandPrintln(a ...interface{}) (int, error) {
+func CommandPrintln(a ...any) (int, error) {
 	return fmt.Println(a...)
 }
 
-func CommandPrintErrorln(a ...interface{}) (int, error) {
+func CommandPrintErrorln(a ...any) (int, error) {
 	return fmt.Fprintln(os.Stderr, a...)
 }
 
-func CommandPrettyPrintln(a ...interface{}) (int, error) {
+func CommandPrettyPrintln(a ...any) (int, error) {
 	return fmt.Fprintln(os.Stdout, a...)
 }
