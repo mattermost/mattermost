@@ -785,7 +785,9 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 
 		for _, p := range posts {
 			if p.Id == id {
-				// "id" is already added in the "pl"
+				// Based on the conditions above such as sq.Or{ sq.Eq{"p.Id": rootId}, sq.Eq{"p.RootId": rootId}, }
+				// posts may contain the "id" post which has already been fetched and added in the "pl"
+				// So, skip the "id" to avoid duplicate entry of the post
 				continue
 			}
 
