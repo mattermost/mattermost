@@ -96,7 +96,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 				},
 			},
 		},
-		Context:     &request.Context{},
+		Context:     request.EmptyContext(nil),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,
