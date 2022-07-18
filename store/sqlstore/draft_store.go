@@ -21,7 +21,7 @@ type SqlDraftStore struct {
 }
 
 func draftSliceColumns() []string {
-	return []string{"CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "UserId", "FileIds", "Props"}
+	return []string{"CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "PostId", "ChannelId", "UserId", "FileIds", "Props"}
 }
 
 func draftToSlice(draft *model.Draft) []interface{} {
@@ -31,6 +31,7 @@ func draftToSlice(draft *model.Draft) []interface{} {
 		draft.DeleteAt,
 		draft.Message,
 		draft.RootId,
+		draft.PostId,
 		draft.ChannelId,
 		draft.UserId,
 		model.ArrayToJSON(draft.FileIds),
@@ -46,7 +47,7 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 	}
 }
 
-func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, error) {
+func (s *SqlDraftStore) Get(userId, channelId, rootId, postId string) (*model.Draft, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Drafts").
@@ -54,6 +55,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, err
 			"UserId":    userId,
 			"ChannelId": channelId,
 			"RootId":    rootId,
+			"PostId":    postId,
 		})
 
 	dt := model.Draft{}
@@ -106,6 +108,7 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 		Set("UserId", draft.UserId).
 		Set("ChannelId", draft.ChannelId).
 		Set("RootId", draft.RootId).
+		Set("PostId", draft.PostId).
 		Set("Message", draft.Message).
 		Set("Props", draft.Props).
 		Set("FileIds", draft.FileIds).
@@ -113,6 +116,7 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 			"UserId":    draft.UserId,
 			"ChannelId": draft.ChannelId,
 			"RootId":    draft.RootId,
+			"PostId":    draft.PostId,
 		})
 
 	sql, args, err := query.ToSql()
@@ -134,10 +138,12 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 	query := s.getQueryBuilder().
 		Select("Drafts.*").
 		From("Drafts").
+		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
 		Where(sq.And{
-			sq.Eq{"Drafts.UserId": userID},
-			sq.Eq{"Drafts.DeleteAt": 0},
 			sq.NotEq{"Drafts.Message": ""},
+			sq.Eq{"Drafts.DeleteAt": 0},
+			sq.Eq{"Drafts.UserId": userID},
+			sq.Eq{"ChannelMembers.UserId": userID},
 		}).
 		OrderBy("Drafts.UpdateAt DESC")
 
@@ -159,7 +165,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 	return drafts, nil
 }
 
-func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
+func (s *SqlDraftStore) Delete(userID, channelID, rootID, postID string) error {
 	time := model.GetMillis()
 	query := s.getQueryBuilder().
 		Update("Drafts").
@@ -169,6 +175,7 @@ func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
 			"UserId":    userID,
 			"ChannelId": channelID,
 			"RootId":    rootID,
+			"PostId":    postID,
 		})
 
 	sql, args, err := query.ToSql()

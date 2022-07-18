@@ -2887,10 +2887,10 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID string, postID string) error {
 	start := time.Now()
 
-	err := s.DraftStore.Delete(userID, channelID, rootID)
+	err := s.DraftStore.Delete(userID, channelID, rootID, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2903,10 +2903,10 @@ func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID st
 	return err
 }
 
-func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string, postID string) (*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.Get(userID, channelID, rootID)
+	result, err := s.DraftStore.Get(userID, channelID, rootID, postID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

@@ -3154,7 +3154,7 @@ func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (
 	return result, err
 }
 
-func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, rootID string, postID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -3163,7 +3163,7 @@ func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, roo
 	}()
 
 	defer span.Finish()
-	err := s.DraftStore.Delete(userID, channelID, rootID)
+	err := s.DraftStore.Delete(userID, channelID, rootID, postID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3172,7 +3172,7 @@ func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, roo
 	return err
 }
 
-func (s *OpenTracingLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+func (s *OpenTracingLayerDraftStore) Get(userID string, channelID string, rootID string, postID string) (*model.Draft, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -3181,7 +3181,7 @@ func (s *OpenTracingLayerDraftStore) Get(userID string, channelID string, rootID
 	}()
 
 	defer span.Finish()
-	result, err := s.DraftStore.Get(userID, channelID, rootID)
+	result, err := s.DraftStore.Get(userID, channelID, rootID, postID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

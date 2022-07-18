@@ -16,6 +16,7 @@ type Draft struct {
 	UserId    string `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	RootId    string `json:"root_id"`
+	PostId    string `json:"post_id"`
 
 	Message string `json:"message"`
 
@@ -26,35 +27,39 @@ type Draft struct {
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
 	if o.CreateAt == 0 {
-		return NewAppError("Post.IsValid", "model.post.is_valid.create_at.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.create_at.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	if o.UpdateAt == 0 {
-		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.update_at.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidId(o.UserId) {
-		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(o.ChannelId) {
-		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
-		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(IsValidId(o.PostId) || o.PostId == "") {
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.post_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxDraftSize {
-		return NewAppError("Post.IsValid", "model.post.is_valid.msg.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.msg.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(ArrayToJSON(o.FileIds)) > PostFileidsMaxRunes {
-		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.file_ids.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(StringInterfaceToJSON(o.GetProps())) > PostPropsMaxRunes {
-		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.props.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	return nil

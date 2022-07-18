@@ -3531,11 +3531,11 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 
 }
 
-func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID string, postID string) error {
 
 	tries := 0
 	for {
-		err := s.DraftStore.Delete(userID, channelID, rootID)
+		err := s.DraftStore.Delete(userID, channelID, rootID, postID)
 		if err == nil {
 			return nil
 		}
@@ -3552,11 +3552,11 @@ func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID st
 
 }
 
-func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string, postID string) (*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.Get(userID, channelID, rootID)
+		result, err := s.DraftStore.Get(userID, channelID, rootID, postID)
 		if err == nil {
 			return result, nil
 		}

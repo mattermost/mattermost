@@ -15,8 +15,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	draft, err := a.Srv().Store.Draft().Get(userID, channelID, rootID)
+func (a *App) GetDraft(userID, channelID, rootID, postID string) (*model.Draft, *model.AppError) {
+	draft, err := a.Srv().Store.Draft().Get(userID, channelID, rootID, postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -31,7 +31,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft, *model.AppError) {
-	dt, err := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
+	dt, err := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, draft.PostId)
 	var notFoundErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &notFoundErr) {
 		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
@@ -172,13 +172,13 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 	return drafts, nil
 }
 
-func (a *App) DeleteDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	draft, nErr := a.Srv().Store.Draft().Get(userID, channelID, rootID)
+func (a *App) DeleteDraft(userID, channelID, rootID, postID string) (*model.Draft, *model.AppError) {
+	draft, nErr := a.Srv().Store.Draft().Get(userID, channelID, rootID, postID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.Draft().Delete(userID, channelID, rootID); err != nil {
+	if err := a.Srv().Store.Draft().Delete(userID, channelID, rootID, postID); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
