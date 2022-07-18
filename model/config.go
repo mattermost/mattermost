@@ -3135,6 +3135,12 @@ type Config struct {
 	ExportSettings            ExportSettings
 }
 
+func (o *Config) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		// TODO
+	}
+}
+
 func (o *Config) Clone() *Config {
 	buf, err := json.Marshal(o)
 	if err != nil {

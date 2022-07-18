@@ -39,6 +39,10 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
 
+ifeq ($(BUILD_NUMBER),dev)
+	export MM_FEATUREFLAGS_GRAPHQL = true
+endif
+
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true

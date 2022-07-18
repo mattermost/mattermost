@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
 type StoreResult struct {
@@ -1024,6 +1025,9 @@ type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
 }
+
+// Ensure store service adapter implements `product.StoreService`
+var _ product.StoreService = (*StoreServiceAdapter)(nil)
 
 // StoreServiceAdapter provides a simple Store wrapper for use with products.
 type StoreServiceAdapter struct {
