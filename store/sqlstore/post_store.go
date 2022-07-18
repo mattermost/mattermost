@@ -784,10 +784,14 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 		}
 
 		for _, p := range posts {
+			if p.Id == id {
+				// "id" is already added in the "pl"
+				continue
+			}
+
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
-		pl.UniqueOrder()
 		pl.HasNext = hasNext
 	}
 	return pl, nil
