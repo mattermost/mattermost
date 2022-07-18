@@ -1401,9 +1401,9 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments      *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
-	EnableMobileUpload         *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
-	EnableMobileDownload       *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
+	EnableFileAttachments      *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileUpload         *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileDownload       *bool   `access:"site_file_sharing_and_downloads"`
 	MaxFileSize                *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageResolution         *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageDecoderConcurrency *int64  `access:"environment_file_storage,cloud_restrictable"`
@@ -3127,6 +3127,12 @@ type Config struct {
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
+}
+
+func (o *Config) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		// TODO
+	}
 }
 
 func (o *Config) Clone() *Config {

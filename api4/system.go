@@ -268,8 +268,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -342,8 +342,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJSON(lines)))
 }
@@ -569,7 +569,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -620,7 +620,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("seconds", i)
+	auditRec.AddEventParameter("seconds", i)
 
 	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
@@ -935,7 +935,8 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
-	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
+	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
+	auditRec.AddEventParameter("onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {

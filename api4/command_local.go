@@ -30,6 +30,7 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("localCreateCommand", audit.Fail)
+	auditRec.AddEventParameter("command", cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -41,7 +42,8 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("success")
-	auditRec.AddMeta("command", rcmd)
+	auditRec.AddEventResultState(rcmd)
+	auditRec.AddEventObjectType("command")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {

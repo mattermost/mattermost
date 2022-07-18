@@ -1167,7 +1167,7 @@ func (ss *SqlStore) ensureDatabaseCollation() error {
 		}
 
 		if tableCollation != connCollation.Value {
-			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("expected", connCollation.Value), mlog.String("found", tableCollation))
+			mlog.Warn("Table collation mismatch", mlog.String("table_name", tableName), mlog.String("connection_collation", connCollation.Value), mlog.String("table_collation", tableCollation))
 		}
 	}
 
