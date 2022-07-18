@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/marketplace"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -37,6 +38,9 @@ type pluginSignaturePath struct {
 	path          string
 	signaturePath string
 }
+
+//Ensure routerService implements `product.RouterService`
+var _ product.RouterService = (*routerService)(nil)
 
 type routerService struct {
 	mu        sync.Mutex
