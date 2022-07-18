@@ -397,9 +397,11 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 	}
-	ctx4, cancel4 := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel4()
-	defer b.client.RemoveObject(ctx4, b.bucket, partName, s3.RemoveObjectOptions{})
+	defer func() {
+		ctx4, cancel4 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel4()
+		b.client.RemoveObject(ctx4, b.bucket, partName, s3.RemoveObjectOptions{})
+	}()
 
 	src1Opts := s3.CopySrcOptions{
 		Bucket: b.bucket,
