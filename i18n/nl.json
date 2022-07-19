@@ -9361,5 +9361,9 @@
   {
     "id": "api.authorization_error.guest",
     "translation": " "
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
   }
 ]

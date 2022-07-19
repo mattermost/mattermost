@@ -56,7 +56,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
 	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
-	props["EnableUpgradeForSelfHostedStarter"] = strconv.FormatBool(*c.ExperimentalSettings.EnableUpgradeForSelfHostedStarter)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
