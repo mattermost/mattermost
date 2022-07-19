@@ -6368,6 +6368,10 @@
     "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
   },
   {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
@@ -7978,6 +7982,10 @@
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",

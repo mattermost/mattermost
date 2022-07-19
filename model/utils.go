@@ -186,6 +186,20 @@ func (si StringInterface) Value() (driver.Value, error) {
 	return string(j), err
 }
 
+func (StringInterface) ImplementsGraphQLType(name string) bool {
+	return name == "StringInterface"
+}
+
+func (si *StringInterface) UnmarshalGraphQL(input any) error {
+	json, ok := input.(map[string]any)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*si = json
+	return nil
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 

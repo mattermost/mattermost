@@ -45,7 +45,7 @@ func getStorageUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usage = utils.RoundOffToZeroes(float64(usage))
+	usage = utils.RoundOffToZeroesResolution(float64(usage), 8)
 	json, err := json.Marshal(&model.StorageUsage{Bytes: usage})
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getStorageUsage", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)

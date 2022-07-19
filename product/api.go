@@ -5,7 +5,6 @@ package product
 
 import (
 	"database/sql"
-	"io"
 
 	"github.com/gorilla/mux"
 
@@ -41,6 +40,7 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
@@ -61,6 +61,7 @@ type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
+	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -134,12 +135,7 @@ type HooksService interface {
 //
 // The service shall be registered via app.FilestoreKey service key.
 type FilestoreService interface {
-	Reader(path string) (filestore.ReadCloseSeeker, error)
-	FileExists(path string) (bool, error)
-	CopyFile(oldPath, newPath string) error
-	MoveFile(oldPath, newPath string) error
-	WriteFile(fr io.Reader, path string) (int64, error)
-	RemoveFile(path string) error
+	filestore.FileBackend
 }
 
 // FileInfoStoreService is the API for accessing the file info store.

@@ -5473,7 +5473,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya sürdürmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -8508,22 +8508,6 @@
     "translation": "Doğrudan paylaşılmış bir kanal eklenirken bir sorun çıktı."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "30 günlük Mattermost deneme süreniz yakında sona erecek"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 30 günlük Mattermost deneme süreniz 3 gün sonra {{.TrialEnd}} tarihinde sona erecek. Ekibinizin Mattermost Cloud özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloud deneme süresi sona eriyor"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Ödeme yöntemi ekle"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "Aynı adresi kullanan bir güvenli bağlantı zaten var."
   },
@@ -8694,22 +8678,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kullanıcının otomatik yanıtı gönderilemedi."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 30 günlük Mattermost Cloud Enterprise ücretsiz deneme süreniz {{.TodayDate}} tarihinde sona erdi. Esnek ve güvenli iş birliği platformumuzu beğendiğinizi umarız. Takımınızın Cloud Enterprise özelliklerini kullanmayı sürdürebilmesi için ödeme bilgilerinizi ekleyebilirsiniz."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "30 günlük Mattermost deneme süreniz sona erdi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloud deneme süresi sona erdi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Aboneliği başlat"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9373,5 +9341,29 @@
   {
     "id": "api.insights.license_error",
     "translation": "Lisansınızda içgörü özelliği yok."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "{{.TeamName}} takımının bir üyesi bu çalışma alanını yükseltmesi için bilgilendirildi."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Yönetici zaten bilgilendirilmiş"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Değer işlenemedi:{{.Value}} int64 olarak"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından ileti alınamadı."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Erişilebilen son ileti alınırken sorun çıktı"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Yüklenen verilerden dosya bilgileri oluşturulamadı."
   }
 ]

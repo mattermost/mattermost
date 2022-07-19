@@ -58,6 +58,22 @@ type Session struct {
 	Local          bool          `json:"local" db:"-"`
 }
 
+func (s *Session) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               s.Id,
+		"create_at":        s.CreateAt,
+		"expires_at":       s.ExpiresAt,
+		"last_activity_at": s.LastActivityAt,
+		"user_id":          s.UserId,
+		"device_id":        s.DeviceId,
+		"roles":            s.Roles,
+		"is_oauth":         s.IsOAuth,
+		"expired_notify":   s.ExpiredNotify,
+		"local":            s.Local,
+		// TODO: props and members?
+	}
+}
+
 // Returns true if the session is unrestricted, which should grant it
 // with all permissions. This is used for local mode sessions
 func (s *Session) IsUnrestricted() bool {
@@ -147,9 +163,9 @@ func (s *Session) AddProp(key string, value string) {
 }
 
 func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range s.TeamMembers {
-		if team.TeamId == teamId {
-			return team
+	for _, tm := range s.TeamMembers {
+		if tm.TeamId == teamId {
+			return tm
 		}
 	}
 
@@ -227,4 +243,8 @@ func (s *Session) CreateAt_() float64 {
 
 func (s *Session) ExpiresAt_() float64 {
 	return float64(s.ExpiresAt)
+}
+
+func (s *Session) LastActivityAt_() float64 {
+	return float64(s.LastActivityAt)
 }

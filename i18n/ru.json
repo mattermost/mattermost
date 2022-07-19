@@ -7017,7 +7017,7 @@
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "Не удалось найти прикрепленные сообщения."
+    "translation": "Не удалось найти закрепленные сообщения."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
@@ -8668,18 +8668,6 @@
     "translation": "Не удалось отправить автоматический ответ от пользователя."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавить способ оплаты"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Отображаемое название безопасного соединения"
   },
@@ -8690,18 +8678,6 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Не удалось сбросить поле AuthData в Email."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная версия Mattermost закончилась сегодня"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Начать подписку"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -8938,14 +8914,6 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Напоминание"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, Ваша 14-дневная пробная версия Mattermost заканчивается через 3 дня {{.TrialEnd}}. Пожалуйста, добавьте свою платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ваша 14-дневная бесплатная пробная версия Mattermost Cloud Enterprise закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы ваша команда могла продолжать пользоваться преимуществами Cloud Enterprise. Если вы не добавите свою платежную информацию в течение 30 дней, мы навсегда удалим вашу рабочую область в облаке, и вы потеряете все связанные с ней данные."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",

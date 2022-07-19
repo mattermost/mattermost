@@ -13,12 +13,12 @@ const (
 )
 
 type AppIface interface {
-	ComputeLastAccessiblePostTime() *model.AppError
+	ComputeLastAccessiblePostTime() error
 }
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
 	isEnabled := func(_ *model.Config) bool {
-		return license != nil && *license.Features.Cloud
+		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(_ *model.Job) error {
 		return app.ComputeLastAccessiblePostTime()
