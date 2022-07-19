@@ -365,7 +365,7 @@ type ServiceSettings struct {
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
@@ -940,16 +940,15 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable              *bool   `access:"experimental_features,cloud_restrictable"`
-	ClientSideCertCheck               *string `access:"experimental_features,cloud_restrictable"`
-	LinkMetadataTimeoutMilliseconds   *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	RestrictSystemAdmin               *bool   `access:"experimental_features,write_restrictable"`
-	UseNewSAMLLibrary                 *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudBilling                      *bool   `access:"experimental_features,write_restrictable"`
-	EnableSharedChannels              *bool   `access:"experimental_features"`
-	EnableRemoteClusterService        *bool   `access:"experimental_features"`
-	EnableAppBar                      *bool   `access:"experimental_features"`
-	EnableUpgradeForSelfHostedStarter *bool   `access:"experimental_features"`
+	ClientSideCertEnable            *bool   `access:"experimental_features,cloud_restrictable"`
+	ClientSideCertCheck             *string `access:"experimental_features,cloud_restrictable"`
+	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
+	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
+	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
+	EnableSharedChannels            *bool   `access:"experimental_features"`
+	EnableRemoteClusterService      *bool   `access:"experimental_features"`
+	EnableAppBar                    *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -987,10 +986,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
-	}
-
-	if s.EnableUpgradeForSelfHostedStarter == nil {
-		s.EnableUpgradeForSelfHostedStarter = NewBool(true)
 	}
 }
 
@@ -1798,7 +1793,7 @@ type SupportSettings struct {
 	TermsOfServiceLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	PrivacyPolicyLink                      *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
