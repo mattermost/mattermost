@@ -1602,7 +1602,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.SyncableId, groupTeam.SyncableId)
 	require.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	require.Equal(t, d1.CreateAt, groupTeam.CreateAt)
-	require.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt }, d1.UpdateAt, ">", groupTeam.UpdateAt)
+	require.Condition(t, func() bool { return d1.UpdateAt >= groupTeam.UpdateAt }, d1.UpdateAt, ">=", groupTeam.UpdateAt)
 
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
