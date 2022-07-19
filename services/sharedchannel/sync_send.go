@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -330,7 +331,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 				Message:   T("sharedchannel.cannot_deliver_post", map[string]any{"Remote": rc.DisplayName}),
 				CreateAt:  post.CreateAt + 1,
 			}
-			scs.app.SendEphemeralPost(post.UserId, ephemeral)
+			scs.app.SendEphemeralPost(request.EmptyContext(scs.server.GetLogger()), post.UserId, ephemeral)
 
 			notified[post.UserId] = true
 		}

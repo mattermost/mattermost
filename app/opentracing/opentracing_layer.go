@@ -86,7 +86,7 @@ func (a *OpenTracingAppLayer) ActivateMfa(userID string, token string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts app.ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddChannelMember(c request.CTX, userID string, channel *model.Channel, opts app.ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddChannelMember")
 
@@ -162,7 +162,7 @@ func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostLi
 	a.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage, collapsedThreads)
 }
 
-func (a *OpenTracingAppLayer) AddDirectChannels(teamID string, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddDirectChannels")
 
@@ -174,7 +174,7 @@ func (a *OpenTracingAppLayer) AddDirectChannels(teamID string, user *model.User)
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.AddDirectChannels(teamID, user)
+	resultVar0 := a.app.AddDirectChannels(c, teamID, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -493,7 +493,7 @@ func (a *OpenTracingAppLayer) AddTeamsToRetentionPolicy(policyID string, teamIDs
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToChannel")
 
@@ -505,7 +505,7 @@ func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddUserToChannel(user, channel, skipTeamMemberIntegrityCheck)
+	resultVar0, resultVar1 := a.app.AddUserToChannel(c, user, channel, skipTeamMemberIntegrityCheck)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -826,7 +826,7 @@ func (a *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.
 	return resultVar0, resultVar1, resultVar2, resultVar3, resultVar4
 }
 
-func (a *OpenTracingAppLayer) AutocompleteChannels(userID string, term string) (model.ChannelListWithTeamData, *model.AppError) {
+func (a *OpenTracingAppLayer) AutocompleteChannels(c request.CTX, userID string, term string) (model.ChannelListWithTeamData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteChannels")
 
@@ -838,7 +838,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannels(userID string, term string) (
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AutocompleteChannels(userID, term)
+	resultVar0, resultVar1 := a.app.AutocompleteChannels(c, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -848,7 +848,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannels(userID string, term string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AutocompleteChannelsForSearch(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteChannelsForSearch")
 
@@ -860,7 +860,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannelsForSearch(teamID string, userI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AutocompleteChannelsForSearch(teamID, userID, term)
+	resultVar0, resultVar1 := a.app.AutocompleteChannelsForSearch(c, teamID, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -870,7 +870,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannelsForSearch(teamID string, userI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AutocompleteChannelsForTeam(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) AutocompleteChannelsForTeam(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteChannelsForTeam")
 
@@ -882,7 +882,7 @@ func (a *OpenTracingAppLayer) AutocompleteChannelsForTeam(teamID string, userID 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AutocompleteChannelsForTeam(teamID, userID, term)
+	resultVar0, resultVar1 := a.app.AutocompleteChannelsForTeam(c, teamID, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -973,7 +973,7 @@ func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.Reaction
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+func (a *OpenTracingAppLayer) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPushNotificationMessage")
 
@@ -985,7 +985,7 @@ func (a *OpenTracingAppLayer) BuildPushNotificationMessage(contentsConfig string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BuildPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+	resultVar0, resultVar1 := a.app.BuildPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1454,7 +1454,7 @@ func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ClearChannelMembersCache(channelID string) {
+func (a *OpenTracingAppLayer) ClearChannelMembersCache(c request.CTX, channelID string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearChannelMembersCache")
 
@@ -1466,7 +1466,7 @@ func (a *OpenTracingAppLayer) ClearChannelMembersCache(channelID string) {
 	}()
 
 	defer span.Finish()
-	a.app.ClearChannelMembersCache(channelID)
+	a.app.ClearChannelMembersCache(c, channelID)
 }
 
 func (a *OpenTracingAppLayer) ClearLatestVersionCache() {
@@ -1864,7 +1864,7 @@ func (a *OpenTracingAppLayer) CreateBot(c *request.Context, bot *model.Bot) (*mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateChannel(c *request.Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannel")
 
@@ -1886,7 +1886,7 @@ func (a *OpenTracingAppLayer) CreateChannel(c *request.Context, channel *model.C
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateChannelScheme(c request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelScheme")
 
@@ -1898,7 +1898,7 @@ func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateChannelScheme(channel)
+	resultVar0, resultVar1 := a.app.CreateChannelScheme(c, channel)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1908,7 +1908,7 @@ func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelWithUser")
 
@@ -2066,7 +2066,7 @@ func (a *OpenTracingAppLayer) CreateGroup(group *model.Group) (*model.Group, *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateGroupChannel(userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGroupChannel")
 
@@ -2078,7 +2078,7 @@ func (a *OpenTracingAppLayer) CreateGroupChannel(userIDs []string, creatorId str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateGroupChannel(userIDs, creatorId)
+	resultVar0, resultVar1 := a.app.CreateGroupChannel(c, userIDs, creatorId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2286,7 +2286,7 @@ func (a *OpenTracingAppLayer) CreatePasswordRecoveryToken(userID string, email s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePost(c *request.Context, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePost")
 
@@ -2330,7 +2330,7 @@ func (a *OpenTracingAppLayer) CreatePostAsUser(c *request.Context, post *model.P
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePostMissingChannel(c *request.Context, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePostMissingChannel")
 
@@ -2440,7 +2440,7 @@ func (a *OpenTracingAppLayer) CreateSession(session *model.Session) (*model.Sess
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateSidebarCategory(userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateSidebarCategory(c request.CTX, userID string, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSidebarCategory")
 
@@ -2452,7 +2452,7 @@ func (a *OpenTracingAppLayer) CreateSidebarCategory(userID string, teamID string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateSidebarCategory(userID, teamID, newCategory)
+	resultVar0, resultVar1 := a.app.CreateSidebarCategory(c, userID, teamID, newCategory)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2528,7 +2528,7 @@ func (a *OpenTracingAppLayer) CreateTermsOfService(text string, userID string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUploadSession")
 
@@ -2540,7 +2540,7 @@ func (a *OpenTracingAppLayer) CreateUploadSession(us *model.UploadSession) (*mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateUploadSession(us)
+	resultVar0, resultVar1 := a.app.CreateUploadSession(c, us)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2682,7 +2682,7 @@ func (a *OpenTracingAppLayer) CreateUserWithToken(c *request.Context, user *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateWebhookPost(c *request.Context, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text string, overrideUsername string, overrideIconURL string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateWebhookPost")
 
@@ -2836,7 +2836,7 @@ func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userID string, appID st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DefaultChannelNames() []string {
+func (a *OpenTracingAppLayer) DefaultChannelNames(c request.CTX) []string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DefaultChannelNames")
 
@@ -2848,7 +2848,7 @@ func (a *OpenTracingAppLayer) DefaultChannelNames() []string {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DefaultChannelNames()
+	resultVar0 := a.app.DefaultChannelNames(c)
 
 	return resultVar0
 }
@@ -2919,7 +2919,7 @@ func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteChannel(c *request.Context, channel *model.Channel, userID string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannel")
 
@@ -2941,7 +2941,7 @@ func (a *OpenTracingAppLayer) DeleteChannel(c *request.Context, channel *model.C
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannelScheme")
 
@@ -2953,7 +2953,7 @@ func (a *OpenTracingAppLayer) DeleteChannelScheme(channel *model.Channel) (*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteChannelScheme(channel)
+	resultVar0, resultVar1 := a.app.DeleteChannelScheme(c, channel)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -3242,7 +3242,7 @@ func (a *OpenTracingAppLayer) DeletePluginKey(pluginID string, key string) *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeletePost(postID string, deleteByID string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) DeletePost(c request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePost")
 
@@ -3254,7 +3254,7 @@ func (a *OpenTracingAppLayer) DeletePost(postID string, deleteByID string) (*mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeletePost(postID, deleteByID)
+	resultVar0, resultVar1 := a.app.DeletePost(c, postID, deleteByID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -3440,7 +3440,7 @@ func (a *OpenTracingAppLayer) DeleteSharedChannelRemote(id string) (bool, error)
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteSidebarCategory(userID string, teamID string, categoryId string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteSidebarCategory(c request.CTX, userID string, teamID string, categoryId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSidebarCategory")
 
@@ -3452,7 +3452,7 @@ func (a *OpenTracingAppLayer) DeleteSidebarCategory(userID string, teamID string
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteSidebarCategory(userID, teamID, categoryId)
+	resultVar0 := a.app.DeleteSidebarCategory(c, userID, teamID, categoryId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3484,7 +3484,7 @@ func (a *OpenTracingAppLayer) DeleteToken(token *model.Token) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DemoteUserToGuest(user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DemoteUserToGuest")
 
@@ -3496,7 +3496,7 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(user *model.User) *model.AppErro
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DemoteUserToGuest(user)
+	resultVar0 := a.app.DemoteUserToGuest(c, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4184,7 +4184,7 @@ func (a *OpenTracingAppLayer) FileSize(path string) (int64, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) FillInChannelProps(channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) FillInChannelProps(c request.CTX, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInChannelProps")
 
@@ -4196,7 +4196,7 @@ func (a *OpenTracingAppLayer) FillInChannelProps(channel *model.Channel) *model.
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.FillInChannelProps(channel)
+	resultVar0 := a.app.FillInChannelProps(c, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4206,7 +4206,7 @@ func (a *OpenTracingAppLayer) FillInChannelProps(channel *model.Channel) *model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FillInChannelsProps(channelList model.ChannelList) *model.AppError {
+func (a *OpenTracingAppLayer) FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInChannelsProps")
 
@@ -4218,7 +4218,7 @@ func (a *OpenTracingAppLayer) FillInChannelsProps(channelList model.ChannelList)
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.FillInChannelsProps(channelList)
+	resultVar0 := a.app.FillInChannelsProps(c, channelList)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4228,7 +4228,7 @@ func (a *OpenTracingAppLayer) FillInChannelsProps(channelList model.ChannelList)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) FillInPostProps(c request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInPostProps")
 
@@ -4240,7 +4240,7 @@ func (a *OpenTracingAppLayer) FillInPostProps(post *model.Post, channel *model.C
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.FillInPostProps(post, channel)
+	resultVar0 := a.app.FillInPostProps(c, post, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4411,7 +4411,7 @@ func (a *OpenTracingAppLayer) GetActivePluginManifests() ([]*model.Manifest, *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllChannels(page int, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllChannels(c request.CTX, page int, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllChannels")
 
@@ -4423,7 +4423,7 @@ func (a *OpenTracingAppLayer) GetAllChannels(page int, perPage int, opts model.C
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllChannels(page, perPage, opts)
+	resultVar0, resultVar1 := a.app.GetAllChannels(c, page, perPage, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4433,7 +4433,7 @@ func (a *OpenTracingAppLayer) GetAllChannels(page int, perPage int, opts model.C
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllChannelsCount")
 
@@ -4445,7 +4445,7 @@ func (a *OpenTracingAppLayer) GetAllChannelsCount(opts model.ChannelSearchOpts) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllChannelsCount(opts)
+	resultVar0, resultVar1 := a.app.GetAllChannelsCount(c, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4868,7 +4868,7 @@ func (a *OpenTracingAppLayer) GetBulkReactionsForPosts(postIDs []string) (map[st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannel(channelID string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannel")
 
@@ -4880,7 +4880,7 @@ func (a *OpenTracingAppLayer) GetChannel(channelID string) (*model.Channel, *mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannel(channelID)
+	resultVar0, resultVar1 := a.app.GetChannel(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4890,7 +4890,7 @@ func (a *OpenTracingAppLayer) GetChannel(channelID string) (*model.Channel, *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelByName(channelName string, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelByName(c request.CTX, channelName string, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelByName")
 
@@ -4902,7 +4902,7 @@ func (a *OpenTracingAppLayer) GetChannelByName(channelName string, teamID string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelByName(channelName, teamID, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetChannelByName(c, channelName, teamID, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4912,7 +4912,7 @@ func (a *OpenTracingAppLayer) GetChannelByName(channelName string, teamID string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelByNameForTeamName(channelName string, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelByNameForTeamName(c request.CTX, channelName string, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelByNameForTeamName")
 
@@ -4924,7 +4924,7 @@ func (a *OpenTracingAppLayer) GetChannelByNameForTeamName(channelName string, te
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetChannelByNameForTeamName(c, channelName, teamName, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4934,7 +4934,7 @@ func (a *OpenTracingAppLayer) GetChannelByNameForTeamName(channelName string, te
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelCounts(c request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelCounts")
 
@@ -4946,7 +4946,7 @@ func (a *OpenTracingAppLayer) GetChannelCounts(teamID string, userID string) (*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelCounts(teamID, userID)
+	resultVar0, resultVar1 := a.app.GetChannelCounts(c, teamID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4956,7 +4956,7 @@ func (a *OpenTracingAppLayer) GetChannelCounts(teamID string, userID string) (*m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelFileCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelFileCount")
 
@@ -4968,7 +4968,7 @@ func (a *OpenTracingAppLayer) GetChannelFileCount(channelID string) (int64, *mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelFileCount(channelID)
+	resultVar0, resultVar1 := a.app.GetChannelFileCount(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5000,7 +5000,7 @@ func (a *OpenTracingAppLayer) GetChannelGroupUsers(channelID string) ([]*model.U
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelGuestCount(channelID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelGuestCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelGuestCount")
 
@@ -5012,7 +5012,7 @@ func (a *OpenTracingAppLayer) GetChannelGuestCount(channelID string) (int64, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelGuestCount(channelID)
+	resultVar0, resultVar1 := a.app.GetChannelGuestCount(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5022,7 +5022,7 @@ func (a *OpenTracingAppLayer) GetChannelGuestCount(channelID string) (int64, *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMember(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMember")
 
@@ -5034,7 +5034,7 @@ func (a *OpenTracingAppLayer) GetChannelMember(ctx context.Context, channelID st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMember(ctx, channelID, userID)
+	resultVar0, resultVar1 := a.app.GetChannelMember(c, channelID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5044,7 +5044,7 @@ func (a *OpenTracingAppLayer) GetChannelMember(ctx context.Context, channelID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMemberCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMemberCount")
 
@@ -5056,7 +5056,7 @@ func (a *OpenTracingAppLayer) GetChannelMemberCount(channelID string) (int64, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMemberCount(channelID)
+	resultVar0, resultVar1 := a.app.GetChannelMemberCount(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5066,7 +5066,7 @@ func (a *OpenTracingAppLayer) GetChannelMemberCount(channelID string) (int64, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersByIds(c request.CTX, channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersByIds")
 
@@ -5078,7 +5078,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersByIds(channelID string, userIDs [
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersByIds(channelID, userIDs)
+	resultVar0, resultVar1 := a.app.GetChannelMembersByIds(c, channelID, userIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5088,7 +5088,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersByIds(channelID string, userIDs [
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersForUser(teamID string, userID string) (model.ChannelMembers, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersForUser(c request.CTX, teamID string, userID string) (model.ChannelMembers, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersForUser")
 
@@ -5100,7 +5100,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersForUser(teamID string, userID str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersForUser(teamID, userID)
+	resultVar0, resultVar1 := a.app.GetChannelMembersForUser(c, teamID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5110,7 +5110,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersForUser(teamID string, userID str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(userID string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(c request.CTX, userID string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersForUserWithPagination")
 
@@ -5122,7 +5122,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(userID stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersForUserWithPagination(userID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetChannelMembersForUserWithPagination(c, userID, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5132,7 +5132,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(userID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersPage(channelID string, page int, perPage int) (model.ChannelMembers, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersPage(c request.CTX, channelID string, page int, perPage int) (model.ChannelMembers, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersPage")
 
@@ -5144,7 +5144,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersPage(channelID string, page int, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersPage(channelID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetChannelMembersPage(c, channelID, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5154,7 +5154,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersPage(channelID string, page int, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersTimezones(channelID string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersTimezones(c request.CTX, channelID string) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersTimezones")
 
@@ -5166,7 +5166,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersTimezones(channelID string) ([]st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersTimezones(channelID)
+	resultVar0, resultVar1 := a.app.GetChannelMembersTimezones(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5176,7 +5176,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersTimezones(channelID string) ([]st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelMembersWithTeamDataForUserWithPagination(userID string, page int, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, page int, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersWithTeamDataForUserWithPagination")
 
@@ -5188,7 +5188,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersWithTeamDataForUserWithPagination
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelMembersWithTeamDataForUserWithPagination(userID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetChannelMembersWithTeamDataForUserWithPagination(c, userID, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5198,7 +5198,7 @@ func (a *OpenTracingAppLayer) GetChannelMembersWithTeamDataForUserWithPagination
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelModerationsForChannel(c request.CTX, channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelModerationsForChannel")
 
@@ -5210,7 +5210,7 @@ func (a *OpenTracingAppLayer) GetChannelModerationsForChannel(channel *model.Cha
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelModerationsForChannel(channel)
+	resultVar0, resultVar1 := a.app.GetChannelModerationsForChannel(c, channel)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5220,7 +5220,7 @@ func (a *OpenTracingAppLayer) GetChannelModerationsForChannel(channel *model.Cha
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(channelID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelPinnedPostCount")
 
@@ -5232,7 +5232,7 @@ func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(channelID string) (int64
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelPinnedPostCount(channelID)
+	resultVar0, resultVar1 := a.app.GetChannelPinnedPostCount(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5264,7 +5264,7 @@ func (a *OpenTracingAppLayer) GetChannelPoliciesForUser(userID string, offset in
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelUnread(channelID string, userID string) (*model.ChannelUnread, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelUnread(c request.CTX, channelID string, userID string) (*model.ChannelUnread, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelUnread")
 
@@ -5276,7 +5276,7 @@ func (a *OpenTracingAppLayer) GetChannelUnread(channelID string, userID string) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelUnread(channelID, userID)
+	resultVar0, resultVar1 := a.app.GetChannelUnread(c, channelID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5286,7 +5286,7 @@ func (a *OpenTracingAppLayer) GetChannelUnread(channelID string, userID string) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannels(channelIDs []string) ([]*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannels")
 
@@ -5298,7 +5298,7 @@ func (a *OpenTracingAppLayer) GetChannels(channelIDs []string) ([]*model.Channel
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannels(channelIDs)
+	resultVar0, resultVar1 := a.app.GetChannels(c, channelIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5308,7 +5308,7 @@ func (a *OpenTracingAppLayer) GetChannels(channelIDs []string) ([]*model.Channel
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsByNames(c request.CTX, channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsByNames")
 
@@ -5320,7 +5320,7 @@ func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsByNames(channelNames, teamID)
+	resultVar0, resultVar1 := a.app.GetChannelsByNames(c, channelNames, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5396,7 +5396,7 @@ func (a *OpenTracingAppLayer) GetChannelsForSchemePage(scheme *model.Scheme, pag
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForTeamForUser")
 
@@ -5408,7 +5408,7 @@ func (a *OpenTracingAppLayer) GetChannelsForTeamForUser(teamID string, userID st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsForTeamForUser(teamID, userID, opts)
+	resultVar0, resultVar1 := a.app.GetChannelsForTeamForUser(c, teamID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5418,7 +5418,7 @@ func (a *OpenTracingAppLayer) GetChannelsForTeamForUser(teamID string, userID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForTeamForUserWithCursor")
 
@@ -5430,7 +5430,7 @@ func (a *OpenTracingAppLayer) GetChannelsForTeamForUserWithCursor(teamID string,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsForTeamForUserWithCursor(teamID, userID, opts, afterChannelID)
+	resultVar0, resultVar1 := a.app.GetChannelsForTeamForUserWithCursor(c, teamID, userID, opts, afterChannelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5440,7 +5440,7 @@ func (a *OpenTracingAppLayer) GetChannelsForTeamForUserWithCursor(teamID string,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt int, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForUser")
 
@@ -5452,7 +5452,7 @@ func (a *OpenTracingAppLayer) GetChannelsForUser(userID string, includeDeleted b
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsForUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
+	resultVar0, resultVar1 := a.app.GetChannelsForUser(c, userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5462,7 +5462,7 @@ func (a *OpenTracingAppLayer) GetChannelsForUser(userID string, includeDeleted b
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsUserNotIn")
 
@@ -5474,7 +5474,7 @@ func (a *OpenTracingAppLayer) GetChannelsUserNotIn(teamID string, userID string,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsUserNotIn(teamID, userID, offset, limit)
+	resultVar0, resultVar1 := a.app.GetChannelsUserNotIn(c, teamID, userID, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5755,7 +5755,7 @@ func (a *OpenTracingAppLayer) GetDefaultProfileImage(user *model.User) ([]byte, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetDeletedChannels(teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDeletedChannels")
 
@@ -5767,7 +5767,7 @@ func (a *OpenTracingAppLayer) GetDeletedChannels(teamID string, offset int, limi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetDeletedChannels(teamID, offset, limit, userID)
+	resultVar0, resultVar1 := a.app.GetDeletedChannels(c, teamID, offset, limit, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6190,7 +6190,7 @@ func (a *OpenTracingAppLayer) GetGroupByRemoteID(remoteID string, groupSource mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupChannel")
 
@@ -6202,7 +6202,7 @@ func (a *OpenTracingAppLayer) GetGroupChannel(userIDs []string) (*model.Channel,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupChannel(userIDs)
+	resultVar0, resultVar1 := a.app.GetGroupChannel(c, userIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7072,7 +7072,7 @@ func (a *OpenTracingAppLayer) GetNotificationNameFormat(user *model.User) string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(teamID string) (int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(c request.CTX, teamID string) (int, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNumberOfChannelsOnTeam")
 
@@ -7084,7 +7084,7 @@ func (a *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(teamID string) (int, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetNumberOfChannelsOnTeam(teamID)
+	resultVar0, resultVar1 := a.app.GetNumberOfChannelsOnTeam(c, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7358,7 +7358,7 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) ([]byte, e
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(c *request.Context, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(c request.CTX, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannel")
 
@@ -7534,7 +7534,7 @@ func (a *OpenTracingAppLayer) GetPasswordRecoveryToken(token string) (*model.Tok
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPermalinkPost(c *request.Context, postID string, userID string) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPermalinkPost")
 
@@ -7556,7 +7556,7 @@ func (a *OpenTracingAppLayer) GetPermalinkPost(c *request.Context, postID string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPinnedPosts(channelID string) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPinnedPosts")
 
@@ -7568,7 +7568,7 @@ func (a *OpenTracingAppLayer) GetPinnedPosts(channelID string) (*model.PostList,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPinnedPosts(channelID)
+	resultVar0, resultVar1 := a.app.GetPinnedPosts(c, channelID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7749,7 +7749,7 @@ func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelID string, time int64, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostIfAuthorized(postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIfAuthorized")
 
@@ -7761,7 +7761,7 @@ func (a *OpenTracingAppLayer) GetPostIfAuthorized(postID string, session *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostIfAuthorized(postID, session, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetPostIfAuthorized(c, postID, session, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7920,7 +7920,7 @@ func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(c request.CTX, channelID string, userID string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsForChannelAroundLastUnread")
 
@@ -7932,7 +7932,7 @@ func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelID strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(c, channelID, userID, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8091,7 +8091,7 @@ func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPrivateChannelsForTeam")
 
@@ -8103,7 +8103,7 @@ func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamID string, offset in
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPrivateChannelsForTeam(teamID, offset, limit)
+	resultVar0, resultVar1 := a.app.GetPrivateChannelsForTeam(c, teamID, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8157,7 +8157,7 @@ func (a *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(c request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPublicChannelsByIdsForTeam")
 
@@ -8169,7 +8169,7 @@ func (a *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(teamID string, chann
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPublicChannelsByIdsForTeam(teamID, channelIDs)
+	resultVar0, resultVar1 := a.app.GetPublicChannelsByIdsForTeam(c, teamID, channelIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8179,7 +8179,7 @@ func (a *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(teamID string, chann
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPublicChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPublicChannelsForTeam")
 
@@ -8191,7 +8191,7 @@ func (a *OpenTracingAppLayer) GetPublicChannelsForTeam(teamID string, offset int
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPublicChannelsForTeam(teamID, offset, limit)
+	resultVar0, resultVar1 := a.app.GetPublicChannelsForTeam(c, teamID, offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8670,7 +8670,7 @@ func (a *OpenTracingAppLayer) GetSchemeByName(name string) (*model.Scheme, *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
+func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(c request.CTX, channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemeRolesForChannel")
 
@@ -8682,7 +8682,7 @@ func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelID string) (guestR
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetSchemeRolesForChannel(channelID)
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetSchemeRolesForChannel(c, channelID)
 
 	if resultVar3 != nil {
 		span.LogFields(spanlog.Error(resultVar3))
@@ -8995,7 +8995,7 @@ func (a *OpenTracingAppLayer) GetSharedChannelsCount(opts model.SharedChannelFil
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategories")
 
@@ -9007,7 +9007,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategories(userID string, opts *store.Si
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSidebarCategories(userID, opts)
+	resultVar0, resultVar1 := a.app.GetSidebarCategories(c, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9017,7 +9017,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategories(userID string, opts *store.Si
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSidebarCategoriesForTeamForUser(c request.CTX, userID string, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategoriesForTeamForUser")
 
@@ -9029,7 +9029,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategoriesForTeamForUser(userID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSidebarCategoriesForTeamForUser(userID, teamID)
+	resultVar0, resultVar1 := a.app.GetSidebarCategoriesForTeamForUser(c, userID, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9039,7 +9039,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategoriesForTeamForUser(userID string, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategory")
 
@@ -9051,7 +9051,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategory(categoryId string) (*model.Side
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSidebarCategory(categoryId)
+	resultVar0, resultVar1 := a.app.GetSidebarCategory(c, categoryId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9061,7 +9061,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategory(categoryId string) (*model.Side
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSidebarCategoryOrder(userID string, teamID string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSidebarCategoryOrder(c request.CTX, userID string, teamID string) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategoryOrder")
 
@@ -9073,7 +9073,7 @@ func (a *OpenTracingAppLayer) GetSidebarCategoryOrder(userID string, teamID stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSidebarCategoryOrder(userID, teamID)
+	resultVar0, resultVar1 := a.app.GetSidebarCategoryOrder(c, userID, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9508,7 +9508,7 @@ func (a *OpenTracingAppLayer) GetTeamPoliciesForUser(userID string, offset int, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
+func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(c request.CTX, teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamSchemeChannelRoles")
 
@@ -9520,7 +9520,7 @@ func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamID string) (guestRol
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetTeamSchemeChannelRoles(teamID)
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetTeamSchemeChannelRoles(c, teamID)
 
 	if resultVar3 != nil {
 		span.LogFields(spanlog.Error(resultVar3))
@@ -9860,7 +9860,7 @@ func (a *OpenTracingAppLayer) GetTokenById(token string) (*model.Token, *model.A
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTopChannelsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTopChannelsForTeamSince(c request.CTX, teamID string, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopChannelsForTeamSince")
 
@@ -9872,7 +9872,7 @@ func (a *OpenTracingAppLayer) GetTopChannelsForTeamSince(teamID string, userID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTopChannelsForTeamSince(teamID, userID, opts)
+	resultVar0, resultVar1 := a.app.GetTopChannelsForTeamSince(c, teamID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9882,7 +9882,7 @@ func (a *OpenTracingAppLayer) GetTopChannelsForTeamSince(teamID string, userID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTopChannelsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTopChannelsForUserSince(c request.CTX, userID string, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopChannelsForUserSince")
 
@@ -9894,7 +9894,7 @@ func (a *OpenTracingAppLayer) GetTopChannelsForUserSince(userID string, teamID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTopChannelsForUserSince(userID, teamID, opts)
+	resultVar0, resultVar1 := a.app.GetTopChannelsForUserSince(c, userID, teamID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9948,7 +9948,7 @@ func (a *OpenTracingAppLayer) GetTopReactionsForUserSince(userID string, teamID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTopThreadsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTopThreadsForTeamSince(c request.CTX, teamID string, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopThreadsForTeamSince")
 
@@ -9960,7 +9960,7 @@ func (a *OpenTracingAppLayer) GetTopThreadsForTeamSince(teamID string, userID st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTopThreadsForTeamSince(teamID, userID, opts)
+	resultVar0, resultVar1 := a.app.GetTopThreadsForTeamSince(c, teamID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9970,7 +9970,7 @@ func (a *OpenTracingAppLayer) GetTopThreadsForTeamSince(teamID string, userID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTopThreadsForUserSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTopThreadsForUserSince(c request.CTX, teamID string, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopThreadsForUserSince")
 
@@ -9982,7 +9982,7 @@ func (a *OpenTracingAppLayer) GetTopThreadsForUserSince(teamID string, userID st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTopThreadsForUserSince(teamID, userID, opts)
+	resultVar0, resultVar1 := a.app.GetTopThreadsForUserSince(c, teamID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11095,7 +11095,7 @@ func (a *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) HasPermissionToChannel(askingUserId string, channelID string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannel")
 
@@ -11107,7 +11107,7 @@ func (a *OpenTracingAppLayer) HasPermissionToChannel(askingUserId string, channe
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.HasPermissionToChannel(askingUserId, channelID, permission)
+	resultVar0 := a.app.HasPermissionToChannel(c, askingUserId, channelID, permission)
 
 	return resultVar0
 }
@@ -11129,7 +11129,7 @@ func (a *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) HasPermissionToReadChannel(userID string, channel *model.Channel) bool {
+func (a *OpenTracingAppLayer) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToReadChannel")
 
@@ -11141,7 +11141,7 @@ func (a *OpenTracingAppLayer) HasPermissionToReadChannel(userID string, channel 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.HasPermissionToReadChannel(userID, channel)
+	resultVar0 := a.app.HasPermissionToReadChannel(c, userID, channel)
 
 	return resultVar0
 }
@@ -11494,7 +11494,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(memberInvite *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) IsCRTEnabledForUser(userID string) bool {
+func (a *OpenTracingAppLayer) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsCRTEnabledForUser")
 
@@ -11506,7 +11506,7 @@ func (a *OpenTracingAppLayer) IsCRTEnabledForUser(userID string) bool {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.IsCRTEnabledForUser(userID)
+	resultVar0 := a.app.IsCRTEnabledForUser(c, userID)
 
 	return resultVar0
 }
@@ -11628,7 +11628,7 @@ func (a *OpenTracingAppLayer) IsUserSignUpAllowed() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) JoinChannel(c *request.Context, channel *model.Channel, userID string) *model.AppError {
+func (a *OpenTracingAppLayer) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinChannel")
 
@@ -11650,7 +11650,7 @@ func (a *OpenTracingAppLayer) JoinChannel(c *request.Context, channel *model.Cha
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) JoinDefaultChannels(c *request.Context, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
+func (a *OpenTracingAppLayer) JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinDefaultChannels")
 
@@ -11694,7 +11694,7 @@ func (a *OpenTracingAppLayer) JoinUserToTeam(c *request.Context, team *model.Tea
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) LeaveChannel(c *request.Context, channelID string, userID string) *model.AppError {
+func (a *OpenTracingAppLayer) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LeaveChannel")
 
@@ -12058,7 +12058,7 @@ func (a *OpenTracingAppLayer) MakePermissionError(s *model.Session, permissions 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
+func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelAsUnreadFromPost")
 
@@ -12070,7 +12070,7 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelAsUnreadFromPost(postID, userID, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.MarkChannelAsUnreadFromPost(c, postID, userID, collapsedThreadsSupported)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12080,7 +12080,7 @@ func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *OpenTracingAppLayer) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelsAsViewed")
 
@@ -12092,7 +12092,7 @@ func (a *OpenTracingAppLayer) MarkChannelsAsViewed(channelIDs []string, userID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12119,7 +12119,7 @@ func (a *OpenTracingAppLayer) MaxPostSize() int {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MentionsToPublicChannels(message string, teamID string) model.ChannelMentionMap {
+func (a *OpenTracingAppLayer) MentionsToPublicChannels(c request.CTX, message string, teamID string) model.ChannelMentionMap {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MentionsToPublicChannels")
 
@@ -12131,7 +12131,7 @@ func (a *OpenTracingAppLayer) MentionsToPublicChannels(message string, teamID st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MentionsToPublicChannels(message, teamID)
+	resultVar0 := a.app.MentionsToPublicChannels(c, message, teamID)
 
 	return resultVar0
 }
@@ -12192,7 +12192,7 @@ func (a *OpenTracingAppLayer) MigrateIdLDAP(toAttribute string) *model.AppError 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MoveChannel(c *request.Context, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveChannel")
 
@@ -12466,7 +12466,7 @@ func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatc
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchChannel(c *request.Context, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchChannel")
 
@@ -12488,7 +12488,7 @@ func (a *OpenTracingAppLayer) PatchChannel(c *request.Context, channel *model.Ch
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchChannelModerationsForChannel")
 
@@ -12500,7 +12500,7 @@ func (a *OpenTracingAppLayer) PatchChannelModerationsForChannel(channel *model.C
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	resultVar0, resultVar1 := a.app.PatchChannelModerationsForChannel(c, channel, channelModerationsPatch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12686,7 +12686,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteChannel")
 
@@ -12698,7 +12698,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteChannel(channel *model.Channel) *mo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteChannel(channel)
+	resultVar0 := a.app.PermanentDeleteChannel(c, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12708,7 +12708,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteChannel(channel *model.Channel) *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteTeam(team *model.Team) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteTeam")
 
@@ -12720,7 +12720,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteTeam(team *model.Team) *model.AppEr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteTeam(team)
+	resultVar0 := a.app.PermanentDeleteTeam(c, team)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12730,7 +12730,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteTeam(team *model.Team) *model.AppEr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PermanentDeleteTeamId(teamID string) *model.AppError {
+func (a *OpenTracingAppLayer) PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteTeamId")
 
@@ -12742,7 +12742,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteTeamId(teamID string) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteTeamId(teamID)
+	resultVar0 := a.app.PermanentDeleteTeamId(c, teamID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12830,7 +12830,7 @@ func (a *OpenTracingAppLayer) PostActionCookieSecret() []byte {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *OpenTracingAppLayer) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostAddToChannelMessage")
 
@@ -12852,7 +12852,7 @@ func (a *OpenTracingAppLayer) PostAddToChannelMessage(c *request.Context, user *
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
+func (a *OpenTracingAppLayer) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostCountsByDuration")
 
@@ -12864,7 +12864,7 @@ func (a *OpenTracingAppLayer) PostCountsByDuration(channelIDs []string, sinceUni
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
+	resultVar0, resultVar1 := a.app.PostCountsByDuration(c, channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12891,7 +12891,7 @@ func (a *OpenTracingAppLayer) PostPatchWithProxyRemovedFromImageURLs(patch *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(c *request.Context, userID string, channel *model.Channel, oldChannelDisplayName string, newChannelDisplayName string) *model.AppError {
+func (a *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(c request.CTX, userID string, channel *model.Channel, oldChannelDisplayName string, newChannelDisplayName string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelDisplayNameMessage")
 
@@ -12913,7 +12913,7 @@ func (a *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(c *request.Con
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader string, newChannelHeader string) *model.AppError {
+func (a *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(c request.CTX, userID string, channel *model.Channel, oldChannelHeader string, newChannelHeader string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelHeaderMessage")
 
@@ -12935,7 +12935,7 @@ func (a *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(c *request.Context,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+func (a *OpenTracingAppLayer) PostUpdateChannelPurposeMessage(c request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelPurposeMessage")
 
@@ -13008,7 +13008,7 @@ func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isN
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PreparePostForClientWithEmbedsAndImages(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+func (a *OpenTracingAppLayer) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostForClientWithEmbedsAndImages")
 
@@ -13020,12 +13020,12 @@ func (a *OpenTracingAppLayer) PreparePostForClientWithEmbedsAndImages(originalPo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PreparePostForClientWithEmbedsAndImages(originalPost, isNewPost, isEditPost)
+	resultVar0 := a.app.PreparePostForClientWithEmbedsAndImages(c, originalPost, isNewPost, isEditPost)
 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PreparePostListForClient(originalList *model.PostList) *model.PostList {
+func (a *OpenTracingAppLayer) PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostListForClient")
 
@@ -13037,7 +13037,7 @@ func (a *OpenTracingAppLayer) PreparePostListForClient(originalList *model.PostL
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PreparePostListForClient(originalList)
+	resultVar0 := a.app.PreparePostListForClient(c, originalList)
 
 	return resultVar0
 }
@@ -13348,7 +13348,7 @@ func (a *OpenTracingAppLayer) ReloadConfig() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveAllDeactivatedMembersFromChannel")
 
@@ -13360,7 +13360,7 @@ func (a *OpenTracingAppLayer) RemoveAllDeactivatedMembersFromChannel(channel *mo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveAllDeactivatedMembersFromChannel(channel)
+	resultVar0 := a.app.RemoveAllDeactivatedMembersFromChannel(c, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -13649,7 +13649,7 @@ func (a *OpenTracingAppLayer) RemoveTeamsFromRetentionPolicy(policyID string, te
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveUserFromChannel(c *request.Context, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUserFromChannel")
 
@@ -13693,7 +13693,7 @@ func (a *OpenTracingAppLayer) RemoveUserFromTeam(c *request.Context, teamID stri
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveUsersFromChannelNotMemberOfTeam(c *request.Context, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUsersFromChannelNotMemberOfTeam")
 
@@ -13715,7 +13715,7 @@ func (a *OpenTracingAppLayer) RemoveUsersFromChannelNotMemberOfTeam(c *request.C
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) RenameChannel(c request.CTX, channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RenameChannel")
 
@@ -13727,7 +13727,7 @@ func (a *OpenTracingAppLayer) RenameChannel(channel *model.Channel, newChannelNa
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.RenameChannel(channel, newChannelName, newDisplayName)
+	resultVar0, resultVar1 := a.app.RenameChannel(c, channel, newChannelName, newDisplayName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13847,7 +13847,7 @@ func (a *OpenTracingAppLayer) ResetSamlAuthDataToEmail(includeDeleted bool, dryR
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RestoreChannel(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestoreChannel")
 
@@ -14121,7 +14121,7 @@ func (a *OpenTracingAppLayer) RolesGrantPermission(roleNames []string, permissio
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SanitizePostListMetadataForUser(postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) SanitizePostListMetadataForUser(c request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizePostListMetadataForUser")
 
@@ -14133,7 +14133,7 @@ func (a *OpenTracingAppLayer) SanitizePostListMetadataForUser(postList *model.Po
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SanitizePostListMetadataForUser(postList, userID)
+	resultVar0, resultVar1 := a.app.SanitizePostListMetadataForUser(c, postList, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14143,7 +14143,7 @@ func (a *OpenTracingAppLayer) SanitizePostListMetadataForUser(postList *model.Po
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SanitizePostMetadataForUser(post *model.Post, userID string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizePostMetadataForUser")
 
@@ -14155,7 +14155,7 @@ func (a *OpenTracingAppLayer) SanitizePostMetadataForUser(post *model.Post, user
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SanitizePostMetadataForUser(post, userID)
+	resultVar0, resultVar1 := a.app.SanitizePostMetadataForUser(c, post, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14317,7 +14317,7 @@ func (a *OpenTracingAppLayer) SaveReactionForPost(c *request.Context, reaction *
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (a *OpenTracingAppLayer) SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveSharedChannel")
 
@@ -14329,7 +14329,7 @@ func (a *OpenTracingAppLayer) SaveSharedChannel(sc *model.SharedChannel) (*model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SaveSharedChannel(sc)
+	resultVar0, resultVar1 := a.app.SaveSharedChannel(c, sc)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14400,7 +14400,7 @@ func (a *OpenTracingAppLayer) SchemesIterator(scope string, batchSize int) func(
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SearchAllChannels(term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchAllChannels(c request.CTX, term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchAllChannels")
 
@@ -14412,7 +14412,7 @@ func (a *OpenTracingAppLayer) SearchAllChannels(term string, opts model.ChannelS
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.SearchAllChannels(term, opts)
+	resultVar0, resultVar1, resultVar2 := a.app.SearchAllChannels(c, term, opts)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -14444,7 +14444,7 @@ func (a *OpenTracingAppLayer) SearchAllTeams(searchOpts *model.TeamSearch) ([]*m
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) SearchArchivedChannels(teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchArchivedChannels(c request.CTX, teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchArchivedChannels")
 
@@ -14456,7 +14456,7 @@ func (a *OpenTracingAppLayer) SearchArchivedChannels(teamID string, term string,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchArchivedChannels(teamID, term, userID)
+	resultVar0, resultVar1 := a.app.SearchArchivedChannels(c, teamID, term, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14466,7 +14466,7 @@ func (a *OpenTracingAppLayer) SearchArchivedChannels(teamID string, term string,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchChannels(teamID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchChannels(c request.CTX, teamID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannels")
 
@@ -14478,7 +14478,7 @@ func (a *OpenTracingAppLayer) SearchChannels(teamID string, term string) (model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchChannels(teamID, term)
+	resultVar0, resultVar1 := a.app.SearchChannels(c, teamID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14488,7 +14488,7 @@ func (a *OpenTracingAppLayer) SearchChannels(teamID string, term string) (model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchChannelsForUser(userID string, teamID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchChannelsForUser(c request.CTX, userID string, teamID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannelsForUser")
 
@@ -14500,7 +14500,7 @@ func (a *OpenTracingAppLayer) SearchChannelsForUser(userID string, teamID string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchChannelsForUser(userID, teamID, term)
+	resultVar0, resultVar1 := a.app.SearchChannelsForUser(c, userID, teamID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14510,7 +14510,7 @@ func (a *OpenTracingAppLayer) SearchChannelsForUser(userID string, teamID string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannelsUserNotIn")
 
@@ -14522,7 +14522,7 @@ func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(teamID string, userID stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchChannelsUserNotIn(teamID, userID, term)
+	resultVar0, resultVar1 := a.app.SearchChannelsUserNotIn(c, teamID, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14593,7 +14593,7 @@ func (a *OpenTracingAppLayer) SearchFilesInTeamForUser(c *request.Context, terms
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchGroupChannels(userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchGroupChannels(c request.CTX, userID string, term string) (model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchGroupChannels")
 
@@ -14605,7 +14605,7 @@ func (a *OpenTracingAppLayer) SearchGroupChannels(userID string, term string) (m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchGroupChannels(userID, term)
+	resultVar0, resultVar1 := a.app.SearchGroupChannels(c, userID, term)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14923,7 +14923,7 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponse(c *request.Context, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
 
@@ -14945,7 +14945,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(c *request.Context, channel *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c *request.Context, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponseIfNecessary")
 
@@ -14989,7 +14989,7 @@ func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail s
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendEphemeralPost(userID string, post *model.Post) *model.Post {
+func (a *OpenTracingAppLayer) SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEphemeralPost")
 
@@ -15001,7 +15001,7 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(userID string, post *model.Post)
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendEphemeralPost(userID, post)
+	resultVar0 := a.app.SendEphemeralPost(c, userID, post)
 
 	return resultVar0
 }
@@ -15028,7 +15028,7 @@ func (a *OpenTracingAppLayer) SendNoCardPaymentFailedEmail() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
+func (a *OpenTracingAppLayer) SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifications")
 
@@ -15040,7 +15040,7 @@ func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Te
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendNotifications(post, team, channel, sender, parentPostList, setOnline)
+	resultVar0, resultVar1 := a.app.SendNotifications(c, post, team, channel, sender, parentPostList, setOnline)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15182,7 +15182,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToAny(session model.Session, p
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToCategory(session model.Session, userID string, teamID string, categoryId string) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToCategory(c request.CTX, session model.Session, userID string, teamID string, categoryId string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToCategory")
 
@@ -15194,12 +15194,12 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToCategory(session model.Sessi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToCategory(session, userID, teamID, categoryId)
+	resultVar0 := a.app.SessionHasPermissionToCategory(c, session, userID, teamID, categoryId)
 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToChannel(session model.Session, channelID string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannel")
 
@@ -15211,7 +15211,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannel(session model.Sessio
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToChannel(session, channelID, permission)
+	resultVar0 := a.app.SessionHasPermissionToChannel(c, session, channelID, permission)
 
 	return resultVar0
 }
@@ -15233,7 +15233,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToChannels(session model.Session, channelIDs []string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannels(c request.CTX, session model.Session, channelIDs []string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannels")
 
@@ -15245,7 +15245,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannels(session model.Sessi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToChannels(session, channelIDs, permission)
+	resultVar0 := a.app.SessionHasPermissionToChannels(c, session, channelIDs, permission)
 
 	return resultVar0
 }
@@ -15340,7 +15340,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToTeam(session model.Session, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(session model.Session, teamIDs []string, permission *model.Permission) bool {
+func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(c request.CTX, session model.Session, teamIDs []string, permission *model.Permission) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToTeams")
 
@@ -15352,7 +15352,7 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(session model.Session,
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SessionHasPermissionToTeams(session, teamIDs, permission)
+	resultVar0 := a.app.SessionHasPermissionToTeams(c, session, teamIDs, permission)
 
 	return resultVar0
 }
@@ -15408,7 +15408,7 @@ func (a *OpenTracingAppLayer) SessionIsRegistered(session model.Session) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetActiveChannel(userID string, channelID string) *model.AppError {
+func (a *OpenTracingAppLayer) SetActiveChannel(c request.CTX, userID string, channelID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetActiveChannel")
 
@@ -15420,7 +15420,7 @@ func (a *OpenTracingAppLayer) SetActiveChannel(userID string, channelID string) 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetActiveChannel(userID, channelID)
+	resultVar0 := a.app.SetActiveChannel(c, userID, channelID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16368,7 +16368,7 @@ func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ToggleMuteChannel(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) ToggleMuteChannel(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ToggleMuteChannel")
 
@@ -16380,7 +16380,7 @@ func (a *OpenTracingAppLayer) ToggleMuteChannel(channelID string, userID string)
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ToggleMuteChannel(channelID, userID)
+	resultVar0, resultVar1 := a.app.ToggleMuteChannel(c, channelID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16407,7 +16407,7 @@ func (a *OpenTracingAppLayer) TotalWebsocketConnections() int {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) TriggerWebhook(c *request.Context, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+func (a *OpenTracingAppLayer) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TriggerWebhook")
 
@@ -16503,7 +16503,7 @@ func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannel")
 
@@ -16515,7 +16515,7 @@ func (a *OpenTracingAppLayer) UpdateChannel(channel *model.Channel) (*model.Chan
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannel(channel)
+	resultVar0, resultVar1 := a.app.UpdateChannel(c, channel)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16525,7 +16525,7 @@ func (a *OpenTracingAppLayer) UpdateChannel(channel *model.Channel) (*model.Chan
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberNotifyProps")
 
@@ -16537,7 +16537,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(data map[string]str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannelMemberNotifyProps(data, channelID, userID)
+	resultVar0, resultVar1 := a.app.UpdateChannelMemberNotifyProps(c, data, channelID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16547,7 +16547,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(data map[string]str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelMemberRoles(channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberRoles")
 
@@ -16559,7 +16559,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberRoles(channelID string, userID 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannelMemberRoles(channelID, userID, newRoles)
+	resultVar0, resultVar1 := a.app.UpdateChannelMemberRoles(c, channelID, userID, newRoles)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16569,7 +16569,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberRoles(channelID string, userID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberSchemeRoles")
 
@@ -16581,7 +16581,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(channelID string, u
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannelMemberSchemeRoles(channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
+	resultVar0, resultVar1 := a.app.UpdateChannelMemberSchemeRoles(c, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16591,7 +16591,7 @@ func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(channelID string, u
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelPrivacy")
 
@@ -16613,7 +16613,7 @@ func (a *OpenTracingAppLayer) UpdateChannelPrivacy(c *request.Context, oldChanne
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelScheme")
 
@@ -16625,7 +16625,7 @@ func (a *OpenTracingAppLayer) UpdateChannelScheme(channel *model.Channel) (*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateChannelScheme(channel)
+	resultVar0, resultVar1 := a.app.UpdateChannelScheme(c, channel)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -16687,7 +16687,7 @@ func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
 	a.app.UpdateDNDStatusOfUsers()
 }
 
-func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
+func (a *OpenTracingAppLayer) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateEphemeralPost")
 
@@ -16699,7 +16699,7 @@ func (a *OpenTracingAppLayer) UpdateEphemeralPost(userID string, post *model.Pos
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateEphemeralPost(userID, post)
+	resultVar0 := a.app.UpdateEphemeralPost(c, userID, post)
 
 	return resultVar0
 }
@@ -16932,7 +16932,7 @@ func (a *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *mod
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateOutgoingWebhook(oldHook *model.OutgoingWebhook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateOutgoingWebhook(c request.CTX, oldHook *model.OutgoingWebhook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateOutgoingWebhook")
 
@@ -16944,7 +16944,7 @@ func (a *OpenTracingAppLayer) UpdateOutgoingWebhook(oldHook *model.OutgoingWebho
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateOutgoingWebhook(oldHook, updatedHook)
+	resultVar0, resultVar1 := a.app.UpdateOutgoingWebhook(c, oldHook, updatedHook)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17240,7 +17240,7 @@ func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteCursor(id string, cursor 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateSidebarCategories(userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateSidebarCategories(c request.CTX, userID string, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSidebarCategories")
 
@@ -17252,7 +17252,7 @@ func (a *OpenTracingAppLayer) UpdateSidebarCategories(userID string, teamID stri
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateSidebarCategories(userID, teamID, categories)
+	resultVar0, resultVar1 := a.app.UpdateSidebarCategories(c, userID, teamID, categories)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17262,7 +17262,7 @@ func (a *OpenTracingAppLayer) UpdateSidebarCategories(userID string, teamID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateSidebarCategoryOrder(userID string, teamID string, categoryOrder []string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateSidebarCategoryOrder(c request.CTX, userID string, teamID string, categoryOrder []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSidebarCategoryOrder")
 
@@ -17274,7 +17274,7 @@ func (a *OpenTracingAppLayer) UpdateSidebarCategoryOrder(userID string, teamID s
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateSidebarCategoryOrder(userID, teamID, categoryOrder)
+	resultVar0 := a.app.UpdateSidebarCategoryOrder(c, userID, teamID, categoryOrder)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17416,7 +17416,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, teamID st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadFollowForUserFromChannelAdd(userID string, teamID string, threadID string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID string, teamID string, threadID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadFollowForUserFromChannelAdd")
 
@@ -17428,7 +17428,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUserFromChannelAdd(userID str
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID)
+	resultVar0 := a.app.UpdateThreadFollowForUserFromChannelAdd(c, userID, teamID, threadID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17438,7 +17438,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUserFromChannelAdd(userID str
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUser(currentSessionId string, userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUser(c request.CTX, currentSessionId string, userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUser")
 
@@ -17450,7 +17450,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(currentSessionId string, u
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, timestamp)
+	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(c, currentSessionId, userID, teamID, threadID, timestamp)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17460,7 +17460,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(currentSessionId string, u
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUserByPost(currentSessionId string, userID string, teamID string, threadID string, postID string) (*model.ThreadResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId string, userID string, teamID string, threadID string, postID string) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUserByPost")
 
@@ -17472,7 +17472,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUserByPost(currentSessionId str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID)
+	resultVar0, resultVar1 := a.app.UpdateThreadReadForUserByPost(c, currentSessionId, userID, teamID, threadID, postID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17996,7 +17996,7 @@ func (a *OpenTracingAppLayer) VerifyUserEmail(userID string, email string) *mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *OpenTracingAppLayer) ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ViewChannel")
 
@@ -18008,7 +18008,7 @@ func (a *OpenTracingAppLayer) ViewChannel(view *model.ChannelView, userID string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ViewChannel(view, userID, currentSessionId, collapsedThreadsSupported)
+	resultVar0, resultVar1 := a.app.ViewChannel(c, view, userID, currentSessionId, collapsedThreadsSupported)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

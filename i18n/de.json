@@ -9244,7 +9244,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": "Hinter Insights verbirgt sich ein Feature-Flag, das nicht aktiviert ist."
+    "translation": "Insights wird durch ein Feature-Flag verborgen, das nicht aktiviert ist."
   },
   {
     "id": "app.channel.get_top_for_user_since.app_error",
