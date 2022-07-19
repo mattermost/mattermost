@@ -9314,5 +9314,9 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Már korábban értesítettük a rendszergazdát"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nem sikerült legenerálni a fájl információt a feltöltött adatból."
   }
 ]
