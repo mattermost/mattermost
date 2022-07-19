@@ -232,12 +232,17 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errValidatingEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
-	if errValidatingEmail != nil {
-		c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingEmail.Error(), http.StatusInternalServerError)
+	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
+	if emailErr != nil {
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, emailErr.Error(), http.StatusForbidden)
+		emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
+		json, _ := json.Marshal(emailResp)
+		w.Write(json)
 		return
 	}
-	ReturnStatusOK(w)
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: "paputisima"}
+	json, _ := json.Marshal(emailResp)
+	w.Write(json)
 }
 
 func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -263,20 +268,25 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	errValidatingSystemEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
+	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
 
 	// if the current workspace email is not a valid business email
-	if errValidatingSystemEmail != nil {
+	if emailErr != nil {
 		// grab the current admin email and validate it
 		errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
 		if errValidatingAdminEmail != nil {
-			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
+			emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
+			json, _ := json.Marshal(emailResp)
+			w.Write(json)
 			return
 		}
 	}
 
 	// if any of the emails is valid, return ok
-	ReturnStatusOK(w)
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: "true"}
+	json, _ := json.Marshal(emailResp)
+	w.Write(json)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
