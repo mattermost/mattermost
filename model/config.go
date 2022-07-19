@@ -1406,29 +1406,30 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments      *bool   `access:"site_file_sharing_and_downloads"`
-	EnableMobileUpload         *bool   `access:"site_file_sharing_and_downloads"`
-	EnableMobileDownload       *bool   `access:"site_file_sharing_and_downloads"`
-	MaxFileSize                *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageResolution         *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageDecoderConcurrency *int64  `access:"environment_file_storage,cloud_restrictable"`
-	DriverName                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	Directory                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	EnablePublicLink           *bool   `access:"site_public_links,cloud_restrictable"`
-	ExtractContent             *bool   `access:"environment_file_storage,write_restrictable"`
-	ArchiveRecursion           *bool   `access:"environment_file_storage,write_restrictable"`
-	PublicLinkSalt             *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
-	InitialFont                *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
-	AmazonS3AccessKeyId        *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SecretAccessKey    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Bucket             *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3PathPrefix         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Region             *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Endpoint           *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SSL                *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SignV2             *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SSE                *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3Trace              *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	EnableFileAttachments              *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
+	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
+	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
+	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
+	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
+	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
+	AmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1532,6 +1533,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
 	}
+
+	if s.AmazonS3RequestTimeoutMilliseconds == nil {
+		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
 }
 
 func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
@@ -1542,18 +1547,19 @@ func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool, skipV
 		}
 	}
 	return filestore.FileBackendSettings{
-		DriverName:              *s.DriverName,
-		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
-		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
-		AmazonS3Bucket:          *s.AmazonS3Bucket,
-		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
-		AmazonS3Region:          *s.AmazonS3Region,
-		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
-		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
-		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
-		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
-		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
-		SkipVerify:              skipVerify,
+		DriverName:                         *s.DriverName,
+		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:                 *s.AmazonS3PathPrefix,
+		AmazonS3Region:                     *s.AmazonS3Region,
+		AmazonS3Endpoint:                   *s.AmazonS3Endpoint,
+		AmazonS3SSL:                        s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:                     s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:                        s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      s.AmazonS3Trace != nil && *s.AmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *s.AmazonS3RequestTimeoutMilliseconds,
+		SkipVerify:                         skipVerify,
 	}
 }
 
@@ -3414,6 +3420,10 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.MaxImageDecoderConcurrency < -1 || *s.MaxImageDecoderConcurrency == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.image_decoder_concurrency.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
+	}
+
+	if *s.AmazonS3RequestTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
 	return nil
