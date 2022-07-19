@@ -13,7 +13,7 @@ func (api *API) InitDrafts() {
 
 	api.BaseRoutes.TeamForUser.Handle("/drafts", api.APISessionRequired(getDrafts)).Methods("GET")
 
-	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[0-9]+}", api.APISessionRequired(deleteDraft)).Methods("DELETE")
+	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods("DELETE")
 	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods("DELETE")
 }
 
