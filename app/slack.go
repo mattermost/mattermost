@@ -50,7 +50,7 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 	}
 
 	importer := slackimport.New(a.ch.srv.Store, actions, a.Config())
-	return importer.SlackImport(fileData, fileSize, teamID)
+	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
 func (a *App) ProcessSlackText(text string) string {

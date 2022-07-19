@@ -5473,7 +5473,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya devam etmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
+    "translation": "Oturumun süresi dolmuş: Lütfen bildirimleri almaya sürdürmek için oturum açın. {{.siteName}} oturumlarının süresi, sistem yöneticiniz tarafından her {{.hoursCount}} saatte bir dolacak şekilde ayarlanmış."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -9361,5 +9361,9 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Erişilebilen son ileti alınırken sorun çıktı"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Yüklenen verilerden dosya bilgileri oluşturulamadı."
   }
 ]

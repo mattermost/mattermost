@@ -414,6 +414,21 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
+func (r *Role) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":             r.Id,
+		"name":           r.Name,
+		"display_name":   r.DisplayName,
+		"description":    r.Description,
+		"create_at":      r.CreateAt,
+		"update_at":      r.UpdateAt,
+		"delete_at":      r.DeleteAt,
+		"permissions":    r.Permissions,
+		"scheme_managed": r.SchemeManaged,
+		"built_in":       r.BuiltIn,
+	}
+}
+
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
@@ -427,6 +442,18 @@ func (r *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		r.Permissions = *patch.Permissions
 	}
+}
+
+func (r *Role) CreateAt_() float64 {
+	return float64(r.CreateAt)
+}
+
+func (r *Role) UpdateAt_() float64 {
+	return float64(r.UpdateAt)
+}
+
+func (r *Role) DeleteAt_() float64 {
+	return float64(r.DeleteAt)
 }
 
 // MergeChannelHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
