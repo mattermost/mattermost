@@ -1776,7 +1776,7 @@ func (a *OpenTracingAppLayer) Config() *model.Config {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertBotToUser")
 
@@ -1788,7 +1788,7 @@ func (a *OpenTracingAppLayer) ConvertBotToUser(bot *model.Bot, userPatch *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ConvertBotToUser(bot, userPatch, sysadmin)
+	resultVar0, resultVar1 := a.app.ConvertBotToUser(c, bot, userPatch, sysadmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2110,7 +2110,7 @@ func (a *OpenTracingAppLayer) CreateGroupWithUserIds(group *model.GroupWithUserI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateGuest(c *request.Context, user *model.User) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGuest")
 
@@ -2550,7 +2550,7 @@ func (a *OpenTracingAppLayer) CreateUploadSession(c request.CTX, us *model.Uploa
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUser(c *request.Context, user *model.User) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUser")
 
@@ -2594,7 +2594,7 @@ func (a *OpenTracingAppLayer) CreateUserAccessToken(token *model.UserAccessToken
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserAsAdmin(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserAsAdmin")
 
@@ -2616,7 +2616,7 @@ func (a *OpenTracingAppLayer) CreateUserAsAdmin(c *request.Context, user *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserFromSignup(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserFromSignup")
 
@@ -2638,7 +2638,7 @@ func (a *OpenTracingAppLayer) CreateUserFromSignup(c *request.Context, user *mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserWithInviteId(c *request.Context, user *model.User, inviteId string, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId string, redirect string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserWithInviteId")
 
@@ -2660,7 +2660,7 @@ func (a *OpenTracingAppLayer) CreateUserWithInviteId(c *request.Context, user *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserWithToken(c *request.Context, user *model.User, token *model.Token) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserWithToken")
 
@@ -11672,7 +11672,7 @@ func (a *OpenTracingAppLayer) JoinDefaultChannels(c request.CTX, teamID string, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) JoinUserToTeam(c *request.Context, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+func (a *OpenTracingAppLayer) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinUserToTeam")
 
@@ -13781,7 +13781,7 @@ func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(c *request.Context,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString string, newPassword string) *model.AppError {
+func (a *OpenTracingAppLayer) ResetPasswordFromToken(c request.CTX, userSuppliedTokenString string, newPassword string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPasswordFromToken")
 
@@ -13793,7 +13793,7 @@ func (a *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString str
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ResetPasswordFromToken(userSuppliedTokenString, newPassword)
+	resultVar0 := a.app.ResetPasswordFromToken(c, userSuppliedTokenString, newPassword)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15482,7 +15482,7 @@ func (a *OpenTracingAppLayer) SetCustomStatus(userID string, cs *model.CustomSta
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetDefaultProfileImage")
 
@@ -15494,7 +15494,7 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetDefaultProfileImage(user)
+	resultVar0 := a.app.SetDefaultProfileImage(c, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15592,7 +15592,7 @@ func (a *OpenTracingAppLayer) SetPluginKeyWithOptions(pluginID string, key strin
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImage")
 
@@ -15604,7 +15604,7 @@ func (a *OpenTracingAppLayer) SetProfileImage(userID string, imageData *multipar
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetProfileImage(userID, imageData)
+	resultVar0 := a.app.SetProfileImage(c, userID, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15614,7 +15614,7 @@ func (a *OpenTracingAppLayer) SetProfileImage(userID string, imageData *multipar
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetProfileImageFromFile(userID string, file io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromFile")
 
@@ -15626,7 +15626,7 @@ func (a *OpenTracingAppLayer) SetProfileImageFromFile(userID string, file io.Rea
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetProfileImageFromFile(userID, file)
+	resultVar0 := a.app.SetProfileImageFromFile(c, userID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15636,7 +15636,7 @@ func (a *OpenTracingAppLayer) SetProfileImageFromFile(userID string, file io.Rea
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError {
+func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromMultiPartFile")
 
@@ -15648,7 +15648,7 @@ func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userID string, fi
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetProfileImageFromMultiPartFile(userID, file)
+	resultVar0 := a.app.SetProfileImageFromMultiPartFile(c, userID, file)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17592,7 +17592,7 @@ func (a *OpenTracingAppLayer) UpdateUserAuth(userID string, userAuth *model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserRoles")
 
@@ -17604,7 +17604,7 @@ func (a *OpenTracingAppLayer) UpdateUserRoles(userID string, newRoles string, se
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUserRoles(userID, newRoles, sendWebSocketEvent)
+	resultVar0, resultVar1 := a.app.UpdateUserRoles(c, userID, newRoles, sendWebSocketEvent)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17614,7 +17614,7 @@ func (a *OpenTracingAppLayer) UpdateUserRoles(userID string, newRoles string, se
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserRolesWithUser")
 
@@ -17626,7 +17626,7 @@ func (a *OpenTracingAppLayer) UpdateUserRolesWithUser(user *model.User, newRoles
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
+	resultVar0, resultVar1 := a.app.UpdateUserRolesWithUser(c, user, newRoles, sendWebSocketEvent)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17930,7 +17930,7 @@ func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
+func (a *OpenTracingAppLayer) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyEmailFromToken")
 
@@ -17942,7 +17942,7 @@ func (a *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.VerifyEmailFromToken(userSuppliedTokenString)
+	resultVar0 := a.app.VerifyEmailFromToken(c, userSuppliedTokenString)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

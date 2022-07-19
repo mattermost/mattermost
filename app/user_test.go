@@ -88,7 +88,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.SetDefaultProfileImage(&model.User{
+	err := th.App.SetDefaultProfileImage(th.Context, &model.User{
 		Id:       model.NewId(),
 		Username: "notvaliduser",
 	})
@@ -97,7 +97,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user := th.BasicUser
 
-	err = th.App.SetDefaultProfileImage(user)
+	err = th.App.SetDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
 	user = getUserFromDB(th.App, user.Id, t)
@@ -525,7 +525,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(user2.Id, newEmail)
 		assert.NoError(t, err)
 
-		appErr = th.App.VerifyEmailFromToken(token.Token)
+		appErr = th.App.VerifyEmailFromToken(th.Context, token.Token)
 		assert.Nil(t, appErr)
 
 		user2, appErr = th.App.GetUser(user2.Id)
@@ -649,9 +649,9 @@ func TestUpdateUserEmail(t *testing.T) {
 		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
 		require.Error(t, err)
 
-		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
-		require.Nil(t, th.App.VerifyEmailFromToken(secondToken.Token))
-		require.NotNil(t, th.App.VerifyEmailFromToken(firstToken.Token))
+		require.NotNil(t, th.App.VerifyEmailFromToken(th.Context, firstToken.Token))
+		require.Nil(t, th.App.VerifyEmailFromToken(th.Context, secondToken.Token))
+		require.NotNil(t, th.App.VerifyEmailFromToken(th.Context, firstToken.Token))
 	})
 }
 
@@ -1096,7 +1096,7 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
 		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
-		err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
 		assert.Nil(t, err)
 	})
 
@@ -1112,7 +1112,7 @@ func TestPasswordRecovery(t *testing.T) {
 		_, err = th.App.UpdateUser(th.BasicUser, false)
 		assert.Nil(t, err)
 
-		err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
 		assert.NotNil(t, err)
 	})
 
@@ -1120,7 +1120,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(token.Token, "abcdefgh", model.GetMillis())
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillis())
 		assert.Nil(t, err)
 	})
 
@@ -1128,7 +1128,7 @@ func TestPasswordRecovery(t *testing.T) {
 		token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, err)
 
-		err = th.App.resetPasswordFromToken(token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
+		err = th.App.resetPasswordFromToken(th.Context, token.Token, "abcdefgh", model.GetMillisForTime(time.Now().Add(25*time.Hour)))
 		assert.NotNil(t, err)
 	})
 
@@ -1604,12 +1604,12 @@ func TestUpdateUserRolesWithUser(t *testing.T) {
 	assert.Equal(t, user.Roles, model.SystemUserRoleId)
 
 	// Upgrade to sysadmin.
-	user, err := th.App.UpdateUserRolesWithUser(user, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	user, err := th.App.UpdateUserRolesWithUser(th.Context, user, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(t, err)
 	assert.Equal(t, user.Roles, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
 
 	// Test bad role.
-	_, err = th.App.UpdateUserRolesWithUser(user, "does not exist", false)
+	_, err = th.App.UpdateUserRolesWithUser(th.Context, user, "does not exist", false)
 	require.NotNil(t, err)
 }
 

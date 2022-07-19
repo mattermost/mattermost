@@ -702,7 +702,7 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 		return err
 	}
 
-	return api.app.SetProfileImageFromFile(userID, bytes.NewReader(data))
+	return api.app.SetProfileImageFromFile(api.ctx, userID, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {

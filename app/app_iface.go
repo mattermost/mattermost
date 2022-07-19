@@ -80,7 +80,7 @@ type AppIface interface {
 	// Use GetLastAccessiblePostTime() to access the result.
 	ComputeLastAccessiblePostTime() error
 	// ConvertBotToUser converts a bot to user.
-	ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
+	ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
 	// CreateBot creates the given bot and corresponding user.
@@ -94,10 +94,10 @@ type AppIface interface {
 	CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
-	CreateGuest(c *request.Context, user *model.User) (*model.User, *model.AppError)
+	CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError)
 	// CreateUser creates a user and sets several fields of the returned User struct to
 	// their zero values.
-	CreateUser(c *request.Context, user *model.User) (*model.User, *model.AppError)
+	CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
 	// DefaultChannelNames returns the list of system-wide default channel names.
@@ -499,10 +499,10 @@ type AppIface interface {
 	CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	CreateUserAsAdmin(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserFromSignup(c *request.Context, user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserWithInviteId(c *request.Context, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
-	CreateUserWithToken(c *request.Context, user *model.User, token *model.Token) (*model.User, *model.AppError)
+	CreateUserAsAdmin(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
+	CreateUserFromSignup(c request.CTX, user *model.User, redirect string) (*model.User, *model.AppError)
+	CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
+	CreateUserWithToken(c request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(c request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
 	DBHealthCheckDelete() error
 	DBHealthCheckWrite() error
@@ -873,7 +873,7 @@ type AppIface interface {
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
-	JoinUserToTeam(c *request.Context, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
+	JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError
 	LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError
@@ -960,7 +960,7 @@ type AppIface interface {
 	RemoveUserFromTeam(c *request.Context, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError
-	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
+	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
@@ -1036,14 +1036,14 @@ type AppIface interface {
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
 	SetChannels(ch *Channels)
 	SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError
-	SetDefaultProfileImage(user *model.User) *model.AppError
+	SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
 	SetPluginKey(pluginID string, key string, value []byte) *model.AppError
 	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError
-	SetProfileImageFromFile(userID string, file io.Reader) *model.AppError
-	SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError
+	SetProfileImage(c request.CTX, userID string, imageData *multipart.FileHeader) *model.AppError
+	SetProfileImageFromFile(c request.CTX, userID string, file io.Reader) *model.AppError
+	SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError
 	SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
@@ -1126,8 +1126,8 @@ type AppIface interface {
 	UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError
 	UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError)
 	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
-	UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
+	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
+	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
@@ -1135,7 +1135,7 @@ type AppIface interface {
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
-	VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError
+	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)

@@ -784,7 +784,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3990,7 +3990,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
@@ -4004,7 +4004,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		rtoken, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4069,7 +4069,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4111,7 +4111,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4171,7 +4171,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4191,7 +4191,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4216,7 +4216,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4264,7 +4264,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4307,7 +4307,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4332,7 +4332,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4359,7 +4359,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, resp, err := th.Client.GetUserAccessTokens(0, 100)
 		require.Error(t, err)
@@ -4372,7 +4372,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		require.NoError(t, err)
@@ -4392,7 +4392,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		require.NoError(t, err)
@@ -4415,7 +4415,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -4451,7 +4451,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			token, _, err := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 			require.NoError(t, err)
@@ -4489,7 +4489,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4533,7 +4533,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4572,7 +4572,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
@@ -4608,7 +4608,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4652,7 +4652,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4691,7 +4691,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
@@ -4735,7 +4735,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4782,7 +4782,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4825,7 +4825,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -4848,7 +4848,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -5219,7 +5219,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	user := th.BasicUser
-	th.App.UpdateUserRoles(user.Id, model.SystemGuestRoleId, false)
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(user.Id, "")
