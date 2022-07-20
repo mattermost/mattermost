@@ -32,7 +32,7 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 		Extension: ext,
 	}
 
-	if ext != "" && ext[0] == '.' {
+	if ext != "" {
 		// The client expects a file extension without the leading period
 		info.Extension = ext[1:]
 	}
