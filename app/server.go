@@ -1029,7 +1029,7 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	s.platformService.Shutdown()
+	s.platformService.ShutdownMetrics()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {

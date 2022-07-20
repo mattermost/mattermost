@@ -158,5 +158,5 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 }
 
 func (ps *PlatformService) RestartMetrics() {
-	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.Config)
+	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
 }

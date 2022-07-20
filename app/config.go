@@ -84,7 +84,7 @@ func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeCluster
 		}
 		w.srv.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
 	} else {
-		w.srv.platformService.Shutdown() // TODO: remove when this moved to the platform service
+		w.srv.platformService.ShutdownMetrics() // TODO: remove when this moved to the platform service
 	}
 
 	if w.srv.Cluster != nil {

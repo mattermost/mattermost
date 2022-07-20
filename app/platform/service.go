@@ -37,7 +37,7 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Shutdown() {
+func (ps *PlatformService) ShutdownMetrics() {
 	if ps.metrics != nil {
 		ps.metrics.stopMetricsServer()
 	}
