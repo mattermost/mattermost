@@ -34,7 +34,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		outPath := *app.Config().ExportSettings.Directory
-		exportFilename := model.NewId() + "_export.zip"
+		exportFilename := job.Id + "_export.zip"
 
 		rd, wr := io.Pipe()
 

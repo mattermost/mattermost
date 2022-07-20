@@ -21,7 +21,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
@@ -164,7 +163,6 @@ func init() {
 	gob.Register(&pq.Error{})
 	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
-	gob.Register(&opengraph.OpenGraph{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
