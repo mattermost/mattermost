@@ -244,3 +244,7 @@ func (s *Session) CreateAt_() float64 {
 func (s *Session) ExpiresAt_() float64 {
 	return float64(s.ExpiresAt)
 }
+
+func (s *Session) LastActivityAt_() float64 {
+	return float64(s.LastActivityAt)
+}
