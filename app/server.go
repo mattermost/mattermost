@@ -35,6 +35,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -177,6 +178,7 @@ type Server struct {
 	configStore             *configWrapper
 	filestore               filestore.FileBackend
 
+	platformService  *platform.PlatformService
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
@@ -707,7 +709,7 @@ func (s *Server) SetupMetricsServer() {
 
 	s.StopMetricsServer()
 
-	if err := s.InitMetricsRouter(); err != nil {
+	if err := s.initMetricsRouter(); err != nil {
 		mlog.Error("Error initiating metrics router.", mlog.Err(err))
 	}
 
@@ -1648,7 +1650,7 @@ func (s *Server) HandleMetrics(route string, h http.Handler) {
 	}
 }
 
-func (s *Server) InitMetricsRouter() error {
+func (s *Server) initMetricsRouter() error {
 	s.metricsRouter = mux.NewRouter()
 	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
 
