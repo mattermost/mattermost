@@ -46,14 +46,6 @@ func (o *PostList) Clone() *PostList {
 	}
 }
 
-func (o *PostList) ForPlugin() *PostList {
-	copy := o.Clone()
-	for k, p := range copy.Posts {
-		copy.Posts[k] = p.ForPlugin()
-	}
-	return copy
-}
-
 func (o *PostList) ToSlice() []*Post {
 	var posts []*Post
 
