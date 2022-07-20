@@ -31,12 +31,13 @@ func (a *App) GetDraft(userID, channelID, rootID, postID string) (*model.Draft, 
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft, *model.AppError) {
-	dt, err := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, draft.PostId)
+	dt, dErr := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, draft.PostId)
 	var notFoundErr *store.ErrNotFound
-	if err != nil && !errors.As(err, &notFoundErr) {
-		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+	if dErr != nil && !errors.As(dErr, &notFoundErr) {
+		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, dErr.Error(), http.StatusInternalServerError)
 	}
 
+	var err *model.AppError
 	if dt == nil {
 		dt, err = a.CreateDraft(c, draft)
 		if err != nil {
