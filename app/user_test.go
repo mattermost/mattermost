@@ -140,11 +140,11 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
 	})
 
-	_, err := th.App.UpdateUser(user, false)
+	_, err := th.App.UpdateUser(th.Context, user, false)
 	assert.Nil(t, err)
 
 	user.Email = "asdf@ghjk.l"
-	_, err = th.App.UpdateUser(user, false)
+	_, err = th.App.UpdateUser(th.Context, user, false)
 	assert.NotNil(t, err)
 
 	t.Run("Restricted Domains must be ignored for guest users", func(t *testing.T) {
@@ -156,7 +156,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 		})
 
 		guest.Email = "asdf@bar.com"
-		updatedGuest, err := th.App.UpdateUser(guest, false)
+		updatedGuest, err := th.App.UpdateUser(th.Context, guest, false)
 		require.Nil(t, err)
 		require.Equal(t, guest.Email, updatedGuest.Email)
 	})
@@ -170,11 +170,11 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 		})
 
 		guest.Email = "asdf@bar.com"
-		_, err := th.App.UpdateUser(guest, false)
+		_, err := th.App.UpdateUser(th.Context, guest, false)
 		require.NotNil(t, err)
 
 		guest.Email = "asdf@foo.com"
-		updatedGuest, err := th.App.UpdateUser(guest, false)
+		updatedGuest, err := th.App.UpdateUser(th.Context, guest, false)
 		require.Nil(t, err)
 		require.Equal(t, guest.Email, updatedGuest.Email)
 	})
@@ -189,7 +189,7 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
 		user.Username = *group.Name
-		u, err := th.App.UpdateUser(user, false)
+		u, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
 		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
@@ -215,7 +215,7 @@ func TestUpdateUserMissingFields(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			_, err := th.App.UpdateUser(tc.input, false)
+			_, err := th.App.UpdateUser(th.Context, tc.input, false)
 
 			if name == "no missing fields" {
 				assert.Nil(t, err)
@@ -517,7 +517,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := th.MakeEmail()
 
 		user.Email = newEmail
-		user2, appErr := th.App.UpdateUser(user, false)
+		user2, appErr := th.App.UpdateUser(th.Context, user, false)
 		assert.Nil(t, appErr)
 		assert.Equal(t, currentEmail, user2.Email)
 		assert.True(t, user2.EmailVerified)
@@ -544,7 +544,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
-		botuser2, appErr := th.App.UpdateUser(&botuser, false)
+		botuser2, appErr := th.App.UpdateUser(th.Context, &botuser, false)
 		assert.Nil(t, appErr)
 		assert.Equal(t, botuser2.Email, newBotEmail)
 
@@ -559,7 +559,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := user2.Email
 
 		user.Email = newEmail
-		user3, err := th.App.UpdateUser(user, false)
+		user3, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
 		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
@@ -573,7 +573,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := th.MakeEmail()
 
 		user.Email = newEmail
-		user2, err := th.App.UpdateUser(user, false)
+		user2, err := th.App.UpdateUser(th.Context, user, false)
 		assert.Nil(t, err)
 		assert.Equal(t, newEmail, user2.Email)
 
@@ -588,7 +588,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
-		botuser2, err := th.App.UpdateUser(&botuser, false)
+		botuser2, err := th.App.UpdateUser(th.Context, &botuser, false)
 		assert.Nil(t, err)
 		assert.Equal(t, botuser2.Email, newBotEmail)
 	})
@@ -602,7 +602,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := user2.Email
 
 		user.Email = newEmail
-		user3, err := th.App.UpdateUser(user, false)
+		user3, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
 		assert.Equal(t, err.Id, "app.user.save.email_exists.app_error")
 		assert.Nil(t, user3)
@@ -616,7 +616,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// we update the email a first time and update. The first
 		// token is sent with the email
 		user.Email = th.MakeEmail()
-		_, appErr := th.App.UpdateUser(user, true)
+		_, appErr := th.App.UpdateUser(th.Context, user, true)
 		require.Nil(t, appErr)
 
 		tokens := []*model.Token{}
@@ -632,7 +632,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		// time and another token gets sent. The first one should not
 		// work anymore and the second should work properly
 		user.Email = th.MakeEmail()
-		_, appErr = th.App.UpdateUser(user, true)
+		_, appErr = th.App.UpdateUser(th.Context, user, true)
 		require.Nil(t, appErr)
 
 		require.Eventually(t, func() bool {
@@ -1109,7 +1109,7 @@ func TestPasswordRecovery(t *testing.T) {
 		})
 
 		th.BasicUser.Email = th.MakeEmail()
-		_, err = th.App.UpdateUser(th.BasicUser, false)
+		_, err = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		assert.Nil(t, err)
 
 		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")
@@ -1636,7 +1636,7 @@ func TestPatchUser(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, testUser)
 
 	t.Run("Patch with a username already exists", func(t *testing.T) {
-		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(th.BasicUser.Username),
 		}, true)
 
@@ -1645,7 +1645,7 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch with a email already exists", func(t *testing.T) {
-		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Email: model.NewString(th.BasicUser.Email),
 		}, true)
 
@@ -1654,7 +1654,7 @@ func TestPatchUser(t *testing.T) {
 	})
 
 	t.Run("Patch username with a new username", func(t *testing.T) {
-		_, err := th.App.PatchUser(testUser.Id, &model.UserPatch{
+		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
 			Username: model.NewString(model.NewId()),
 		}, true)
 

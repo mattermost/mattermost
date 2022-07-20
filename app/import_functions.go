@@ -527,7 +527,7 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
-			if savedUser, appErr = a.UpdateUser(user, false); appErr != nil {
+			if savedUser, appErr = a.UpdateUser(c, user, false); appErr != nil {
 				return appErr
 			}
 		}

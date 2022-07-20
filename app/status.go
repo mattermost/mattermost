@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -405,7 +406,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	}
 }
 
-func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError {
 	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
 		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -416,26 +417,26 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 	}
 
 	user.SetCustomStatus(cs)
-	_, updateErr := a.UpdateUser(user, true)
+	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
 		return updateErr
 	}
 
 	if err := a.addRecentCustomStatus(userID, cs); err != nil {
-		a.Log().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (a *App) RemoveCustomStatus(userID string) *model.AppError {
+func (a *App) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
 	user.ClearCustomStatus()
-	_, updateErr := a.UpdateUser(user, true)
+	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
 		return updateErr
 	}

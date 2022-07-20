@@ -149,14 +149,14 @@ func TestSendNotifications(t *testing.T) {
 		}
 
 		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
-		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		th.BasicUser, appErr = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		require.Nil(t, appErr)
 		t.Run("user wants notifications on all comments", func(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
 		})
 
 		th.BasicUser.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
-		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		th.BasicUser, appErr = th.App.UpdateUser(th.Context, th.BasicUser, false)
 		require.Nil(t, appErr)
 		t.Run("user wants notifications on root comment", func(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
@@ -2723,13 +2723,13 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		oldValue := th.BasicUser2.NotifyProps[model.CommentsNotifyProp]
 		newNotifyProps := th.BasicUser2.NotifyProps
 		newNotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
-		u2, appErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+		u2, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
 		require.Nil(t, appErr)
 		require.Equal(t, model.CommentsNotifyAny, u2.NotifyProps[model.CommentsNotifyProp])
 		defer func() {
 			newNotifyProps := th.BasicUser2.NotifyProps
 			newNotifyProps[model.CommentsNotifyProp] = oldValue
-			_, nAppErr := th.App.PatchUser(th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
+			_, nAppErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{NotifyProps: newNotifyProps}, false)
 			require.Nil(t, nAppErr)
 		}()
 

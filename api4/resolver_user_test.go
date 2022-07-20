@@ -172,7 +172,7 @@ func TestGraphQLUser(t *testing.T) {
 
 	t.Run("Update", func(t *testing.T) {
 		th.BasicUser.Props = map[string]string{"testpropkey": "testpropvalue"}
-		th.App.UpdateUser(th.BasicUser, false)
+		th.App.UpdateUser(th.Context, th.BasicUser, false)
 
 		input := graphQLInput{
 			OperationName: "user",

@@ -3506,7 +3506,7 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(c request.CTX, user *model.User)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DisableAutoResponder(userID string, asAdmin bool) *model.AppError {
+func (a *OpenTracingAppLayer) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableAutoResponder")
 
@@ -3518,7 +3518,7 @@ func (a *OpenTracingAppLayer) DisableAutoResponder(userID string, asAdmin bool) 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DisableAutoResponder(userID, asAdmin)
+	resultVar0 := a.app.DisableAutoResponder(c, userID, asAdmin)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12620,7 +12620,7 @@ func (a *OpenTracingAppLayer) PatchTeam(teamID string, patch *model.TeamPatch) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchUser")
 
@@ -12632,7 +12632,7 @@ func (a *OpenTracingAppLayer) PatchUser(userID string, patch *model.UserPatch, a
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchUser(userID, patch, asAdmin)
+	resultVar0, resultVar1 := a.app.PatchUser(c, userID, patch, asAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13407,7 +13407,7 @@ func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
 	a.app.RemoveConfigListener(id)
 }
 
-func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveCustomStatus")
 
@@ -13419,7 +13419,7 @@ func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveCustomStatus(userID)
+	resultVar0 := a.app.RemoveCustomStatus(c, userID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15460,7 +15460,7 @@ func (a *OpenTracingAppLayer) SetChannels(ch *app.Channels) {
 	a.app.SetChannels(ch)
 }
 
-func (a *OpenTracingAppLayer) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+func (a *OpenTracingAppLayer) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetCustomStatus")
 
@@ -15472,7 +15472,7 @@ func (a *OpenTracingAppLayer) SetCustomStatus(userID string, cs *model.CustomSta
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SetCustomStatus(userID, cs)
+	resultVar0 := a.app.SetCustomStatus(c, userID, cs)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16851,7 +16851,7 @@ func (a *OpenTracingAppLayer) UpdateLastActivityAtIfNeeded(session model.Session
 	a.app.UpdateLastActivityAtIfNeeded(session)
 }
 
-func (a *OpenTracingAppLayer) UpdateMfa(activate bool, userID string, token string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateMfa(c request.CTX, activate bool, userID string, token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateMfa")
 
@@ -16863,7 +16863,7 @@ func (a *OpenTracingAppLayer) UpdateMfa(activate bool, userID string, token stri
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateMfa(activate, userID, token)
+	resultVar0 := a.app.UpdateMfa(c, activate, userID, token)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16976,7 +16976,7 @@ func (a *OpenTracingAppLayer) UpdatePassword(user *model.User, newPassword strin
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePasswordAsUser(userID string, currentPassword string, newPassword string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdatePasswordAsUser(c request.CTX, userID string, currentPassword string, newPassword string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordAsUser")
 
@@ -16988,7 +16988,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordAsUser(userID string, currentPasswor
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdatePasswordAsUser(userID, currentPassword, newPassword)
+	resultVar0 := a.app.UpdatePasswordAsUser(c, userID, currentPassword, newPassword)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16998,7 +16998,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordAsUser(userID string, currentPasswor
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(userID string, newPassword string, method string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(c request.CTX, userID string, newPassword string, method string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordByUserIdSendEmail")
 
@@ -17010,7 +17010,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(userID string, new
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdatePasswordByUserIdSendEmail(userID, newPassword, method)
+	resultVar0 := a.app.UpdatePasswordByUserIdSendEmail(c, userID, newPassword, method)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17020,7 +17020,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(userID string, new
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(user *model.User, newPassword string, method string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword string, method string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordSendEmail")
 
@@ -17032,7 +17032,7 @@ func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(user *model.User, newPassw
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdatePasswordSendEmail(user, newPassword, method)
+	resultVar0 := a.app.UpdatePasswordSendEmail(c, user, newPassword, method)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -17504,7 +17504,7 @@ func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userID string, teamID str
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUser")
 
@@ -17516,7 +17516,7 @@ func (a *OpenTracingAppLayer) UpdateUser(user *model.User, sendNotifications boo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUser(user, sendNotifications)
+	resultVar0, resultVar1 := a.app.UpdateUser(c, user, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17548,7 +17548,7 @@ func (a *OpenTracingAppLayer) UpdateUserActive(c *request.Context, userID string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserAsUser")
 
@@ -17560,7 +17560,7 @@ func (a *OpenTracingAppLayer) UpdateUserAsUser(user *model.User, asAdmin bool) (
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUserAsUser(user, asAdmin)
+	resultVar0, resultVar1 := a.app.UpdateUserAsUser(c, user, asAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

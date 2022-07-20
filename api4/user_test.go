@@ -642,7 +642,7 @@ func TestGetUser(t *testing.T) {
 	user := th.CreateUser()
 	user.Props = map[string]string{"testpropkey": "testpropvalue"}
 
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		ruser, resp, err := client.GetUser(user.Id, "")
@@ -698,7 +698,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 
 	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
 
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	ruser, _, err := th.Client.GetUser(user.Id, "")
 	require.NoError(t, err)

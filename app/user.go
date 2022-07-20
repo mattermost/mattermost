@@ -855,7 +855,7 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	return nil
 }
 
-func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) *model.AppError {
+func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPassword string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -880,7 +880,7 @@ func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) 
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
+	return a.UpdatePasswordSendEmail(c, user, newPassword, T("api.user.update_password.menu"))
 }
 
 func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError {
@@ -999,8 +999,8 @@ func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
 	user.SanitizeProfile(options)
 }
 
-func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError) {
-	updatedUser, err := a.UpdateUser(user, true)
+func (a *App) UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError) {
+	updatedUser, err := a.UpdateUser(c, user, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,7 +1039,7 @@ func (a *App) CheckProviderAttributes(user *model.User, patch *model.UserPatch) 
 	return conflictField
 }
 
-func (a *App) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
+func (a *App) PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -1047,7 +1047,7 @@ func (a *App) PatchUser(userID string, patch *model.UserPatch, asAdmin bool) (*m
 
 	user.Patch(patch)
 
-	updatedUser, err := a.UpdateUser(user, true)
+	updatedUser, err := a.UpdateUser(c, user, true)
 	if err != nil {
 		return nil, err
 	}
@@ -1112,7 +1112,7 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	return nil
 }
 
-func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
 	prev, err := a.ch.srv.userService.GetUser(user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -1192,13 +1192,13 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv().Go(func() {
 					if err := a.SendEmailVerification(userUpdate.New, newEmail, ""); err != nil {
-						mlog.Error("Failed to send email verification", mlog.Err(err))
+						c.Logger().Error("Failed to send email verification", mlog.Err(err))
 					}
 				})
 			} else {
 				a.Srv().Go(func() {
 					if err := a.Srv().EmailService.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
-						mlog.Error("Failed to send email change email", mlog.Err(err))
+						c.Logger().Error("Failed to send email change email", mlog.Err(err))
 					}
 				})
 			}
@@ -1207,7 +1207,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv().Go(func() {
 				if err := a.Srv().EmailService.SendChangeUsernameEmail(userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
-					mlog.Error("Failed to send change username email", mlog.Err(err))
+					c.Logger().Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
@@ -1251,7 +1251,7 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 	return nil
 }
 
-func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
+func (a *App) UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError {
 	if activate {
 		if err := a.ActivateMfa(userID, token); err != nil {
 			return err
@@ -1265,25 +1265,25 @@ func (a *App) UpdateMfa(activate bool, userID, token string) *model.AppError {
 	a.Srv().Go(func() {
 		user, err := a.GetUser(userID)
 		if err != nil {
-			mlog.Error("Failed to get user", mlog.Err(err))
+			c.Logger().Error("Failed to get user", mlog.Err(err))
 			return
 		}
 
 		if err := a.Srv().EmailService.SendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Failed to send mfa change email", mlog.Err(err))
+			c.Logger().Error("Failed to send mfa change email", mlog.Err(err))
 		}
 	})
 
 	return nil
 }
 
-func (a *App) UpdatePasswordByUserIdSendEmail(userID, newPassword, method string) *model.AppError {
+func (a *App) UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
-	return a.UpdatePasswordSendEmail(user, newPassword, method)
+	return a.UpdatePasswordSendEmail(c, user, newPassword, method)
 }
 
 func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
@@ -1302,14 +1302,14 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 	return nil
 }
 
-func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError {
+func (a *App) UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError {
 	if err := a.UpdatePassword(user, newPassword); err != nil {
 		return err
 	}
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Failed to send password change email", mlog.Err(err))
+			c.Logger().Error("Failed to send password change email", mlog.Err(err))
 		}
 	})
 
@@ -1373,7 +1373,7 @@ func (a *App) resetPasswordFromToken(c request.CTX, userSuppliedTokenString, new
 
 	T := i18n.GetUserTranslations(user.Locale)
 
-	if err := a.UpdatePasswordSendEmail(user, newPassword, T("api.user.reset_password.method")); err != nil {
+	if err := a.UpdatePasswordSendEmail(c, user, newPassword, T("api.user.reset_password.method")); err != nil {
 		return err
 	}
 
@@ -2319,7 +2319,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 
 	user.Patch(userPatch)
 
-	user, err := a.UpdateUser(user, false)
+	user, err := a.UpdateUser(c, user, false)
 	if err != nil {
 		return nil, err
 	}
