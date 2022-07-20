@@ -313,10 +313,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// We make a copy of the post for the plugin hook to avoid a race condition,
 	// and to remove the non-GOB-encodable Metadata from it.
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginPost := rpost.ForPlugin()
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginContext, rpost.ForPlugin())
+				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 				return true
 			}, plugin.MessageHasBeenPostedID)
 		})
