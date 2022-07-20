@@ -150,3 +150,13 @@ func (pm *platformMetrics) initMetricsRouter() error {
 
 	return nil
 }
+
+func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
+	if ps.metrics.router != nil {
+		ps.metrics.router.Handle(route, h)
+	}
+}
+
+func (ps *PlatformService) RestartMetrics() {
+	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.Config)
+}
