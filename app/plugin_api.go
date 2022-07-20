@@ -513,7 +513,7 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ForPlugin().ToSlice(), nil
+	return postList.ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -547,11 +547,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
-	if results != nil {
-		results = results.ForPlugin()
-	}
-	return results, appErr
+	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -631,11 +627,7 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
-	if post != nil {
-		post = post.ForPlugin()
-	}
-	return post, appErr
+	return api.app.CreatePostMissingChannel(api.ctx, post, true)
 }
 
 func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -651,11 +643,11 @@ func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.App
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.SendEphemeralPost(api.ctx, userID, post).ForPlugin()
+	return api.app.SendEphemeralPost(api.ctx, userID, post)
 }
 
 func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.UpdateEphemeralPost(api.ctx, userID, post).ForPlugin()
+	return api.app.UpdateEphemeralPost(api.ctx, userID, post)
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
@@ -668,59 +660,31 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+	return api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	post, appErr := api.app.GetSinglePost(postID, false)
-	if post != nil {
-		post = post.ForPlugin()
-	}
-	return post, appErr
+	return api.app.GetSinglePost(postID, false)
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 }
 
 func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
-	if list != nil {
-		list = list.ForPlugin()
-	}
-	return list, appErr
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, appErr := api.app.UpdatePost(api.ctx, post, false)
-	if post != nil {
-		post = post.ForPlugin()
-	}
-	return post, appErr
+	return api.app.UpdatePost(api.ctx, post, false)
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
