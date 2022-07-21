@@ -7881,7 +7881,7 @@ func (a *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, bool, int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsByIds")
 
@@ -7893,14 +7893,14 @@ func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, bo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetPostsByIds(postIDs)
+	resultVar0, resultVar1, resultVar2 := a.app.GetPostsByIds(postIDs)
 
-	if resultVar3 != nil {
-		span.LogFields(spanlog.Error(resultVar3))
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1, resultVar2, resultVar3
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (a *OpenTracingAppLayer) GetPostsEtag(channelID string, collapsedThreads bool) string {

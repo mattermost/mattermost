@@ -866,12 +866,12 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		}
 	}
 
-	isInaccessible, firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
+	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if isInaccessible {
-		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", map[string]any{"firstInaccessiblePostTime": firstInaccessiblePostTime}, "", http.StatusForbidden)
+	if firstInaccessiblePostTime != 0 {
+		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
 	return post, nil
@@ -1875,24 +1875,24 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 }
 
 // GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
-func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, bool, int64, *model.AppError) {
+func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
 	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, false, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, false, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	posts, hasInaccessiblePosts, firstInaccessiblePostTime, appErr := a.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	posts, firstInaccessiblePostTime, appErr := a.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
 	if appErr != nil {
-		return nil, false, 0, appErr
+		return nil, 0, appErr
 	}
 
-	return posts, hasInaccessiblePosts, firstInaccessiblePostTime, nil
+	return posts, firstInaccessiblePostTime, nil
 }
 
 func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError) {

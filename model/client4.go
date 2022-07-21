@@ -35,7 +35,6 @@ const (
 	HeaderRemoteclusterId           = "X-RemoteCluster-Id"
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
-	HeaderHasInaccessiblePosts      = "Has-Inaccessible-Posts"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
 	HeaderRange                     = "Range"
 	STATUS                          = "status"

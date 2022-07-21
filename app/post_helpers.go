@@ -99,8 +99,6 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 			order[n] = order[i]
 			n++
 		} else {
-			postList.HasInaccessiblePosts = true
-
 			if createAt > postList.FirstInaccessiblePostTime {
 				postList.FirstInaccessiblePostTime = createAt
 			}
@@ -114,7 +112,6 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 	// to Order
 	for postId := range posts {
 		if createAt := posts[postId].CreateAt; createAt < earliestAccessibleTime {
-			postList.HasInaccessiblePosts = true
 			if createAt > postList.FirstInaccessiblePostTime {
 				postList.FirstInaccessiblePostTime = createAt
 			}
@@ -126,8 +123,7 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 // linearFilterPostsSlice make no assumptions about ordering, go through posts one by one
 // this is the slower fallback that is still safe if we can not
 // assume posts are ordered by CreatedAt
-func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) ([]*model.Post, int64, bool) {
-	hasInaccessiblePosts := false
+func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) ([]*model.Post, int64) {
 	var firstInaccessiblePostTime int64 = 0
 	n := 0
 	for i := range posts {
@@ -138,10 +134,9 @@ func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) (
 			if createAt > firstInaccessiblePostTime {
 				firstInaccessiblePostTime = createAt
 			}
-			hasInaccessiblePosts = true
 		}
 	}
-	return posts[:n], firstInaccessiblePostTime, hasInaccessiblePosts
+	return posts[:n], firstInaccessiblePostTime
 }
 
 // filterInaccessiblePosts filters out the posts, past the cloud limit
@@ -170,7 +165,6 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 		}
 		if bounds.noAccessible() {
 			if lenPosts > 0 {
-				postList.HasInaccessiblePosts = true
 				firstPostCreatedAt := postList.Posts[postList.Order[0]].CreateAt
 				lastPostCreatedAt := postList.Posts[postList.Order[len(postList.Order)-1]].CreateAt
 				postList.FirstInaccessiblePostTime = max(firstPostCreatedAt, lastPostCreatedAt)
@@ -179,7 +173,6 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 			postList.Order = []string{}
 			return nil
 		}
-		postList.HasInaccessiblePosts = true
 		startInaccessibleIndex, endInaccessibleIndex := bounds.getInaccessibleRange(len(postList.Order))
 		startInaccessibleCreatedAt := postList.Posts[postList.Order[startInaccessibleIndex]].CreateAt
 		endInaccessibleCreatedAt := postList.Posts[postList.Order[endInaccessibleIndex]].CreateAt
@@ -214,9 +207,9 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 }
 
 // isInaccessiblePost indicates if the post is past the cloud plan's limit.
-func (a *App) isInaccessiblePost(post *model.Post) (bool, int64, *model.AppError) {
+func (a *App) isInaccessiblePost(post *model.Post) (int64, *model.AppError) {
 	if post == nil {
-		return false, 0, nil
+		return 0, nil
 	}
 
 	pl := &model.PostList{
@@ -224,22 +217,22 @@ func (a *App) isInaccessiblePost(post *model.Post) (bool, int64, *model.AppError
 		Posts: map[string]*model.Post{post.Id: post},
 	}
 
-	return pl.HasInaccessiblePosts, pl.FirstInaccessiblePostTime, a.filterInaccessiblePosts(pl, filterPostOptions{assumeSortedCreatedAt: true})
+	return pl.FirstInaccessiblePostTime, a.filterInaccessiblePosts(pl, filterPostOptions{assumeSortedCreatedAt: true})
 }
 
 // getFilteredAccessiblePosts returns accessible posts filtered as per the cloud plan's limit and also indicates if there were any inaccessible posts
-func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, bool, int64, *model.AppError) {
+func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, int64, *model.AppError) {
 	if len(posts) == 0 {
-		return posts, false, 0, nil
+		return posts, 0, nil
 	}
 
 	filteredPosts := []*model.Post{}
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
-		return filteredPosts, false, 0, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return filteredPosts, 0, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
-		return posts, false, 0, nil
+		return posts, 0, nil
 	}
 
 	if options.assumeSortedCreatedAt {
@@ -247,7 +240,7 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 		getCreateAt := func(i int) int64 { return posts[i].CreateAt }
 		bounds := getTimeSortedPostAccessibleBounds(lastAccessiblePostTime, lenPosts, getCreateAt)
 		if bounds.allAccessible(lenPosts) {
-			return posts, false, 0, nil
+			return posts, 0, nil
 		}
 		if bounds.noAccessible() {
 			var firstInaccessiblePostTime int64 = 0
@@ -256,7 +249,7 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 				lastPostCreatedAt := posts[len(posts)-1].CreateAt
 				firstInaccessiblePostTime = max(firstPostCreatedAt, lastPostCreatedAt)
 			}
-			return filteredPosts, lenPosts > 0, firstInaccessiblePostTime, nil
+			return filteredPosts, firstInaccessiblePostTime, nil
 		}
 
 		startInaccessibleIndex, endInaccessibleIndex := bounds.getInaccessibleRange(len(posts))
@@ -264,9 +257,9 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 		lastPostCreatedAt := posts[endInaccessibleIndex].CreateAt
 		firstInaccessiblePostTime := max(firstPostCreatedAt, lastPostCreatedAt)
 		filteredPosts = posts[bounds.start : bounds.end+1]
-		return filteredPosts, true, firstInaccessiblePostTime, nil
+		return filteredPosts, firstInaccessiblePostTime, nil
 	}
 
-	filteredPosts, firstInaccessiblePostTime, hasInaccessiblePosts := linearFilterPostsSlice(posts, lastAccessiblePostTime)
-	return filteredPosts, hasInaccessiblePosts, firstInaccessiblePostTime, nil
+	filteredPosts, firstInaccessiblePostTime := linearFilterPostsSlice(posts, lastAccessiblePostTime)
+	return filteredPosts, firstInaccessiblePostTime, nil
 }
