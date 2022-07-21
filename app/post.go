@@ -666,7 +666,6 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		}
 	}
 
-
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginOldPost := oldPost.ForPlugin()
 		pluginNewPost := newPost.ForPlugin()
