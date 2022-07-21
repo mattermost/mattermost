@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -3618,6 +3619,47 @@ func TestLoginCookies(t *testing.T) {
 
 		assert.Equal(t, "testchips", cloudSessionCookie)
 		assert.Equal(t, "mattermost.com", domain)
+	})
+
+	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
+		token := model.NewRandomString(64)
+		os.Setenv("CWS_CLOUD_TOKEN", token)
+
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		form := url.Values{}
+		form.Add("login_id", th.SystemAdminUser.Email)
+		form.Add("cws_token", token)
+
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		r, _ := th.Client.DoAPIRequestWithHeaders(
+			http.MethodPost,
+			th.Client.APIURL+"/users/login/cws",
+			form.Encode(),
+			map[string]string{
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+		)
+		defer closeBody(r)
+
+		cookies := r.Cookies()
+		found := false
+		for i := range cookies {
+			if cookies[i].Name == model.SessionCookieCloudUrl {
+				found = true
+				assert.Equal(t, "testchips", cookies[i].Value)
+			}
+		}
+		assert.True(t, found, "should have found cookie")
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
