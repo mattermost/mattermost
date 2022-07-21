@@ -516,7 +516,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 	// Returns all the groups
 	d1, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroups })
+	require.Condition(t, func() bool { return len(d1) >= numGroups }, len(d1), ">=", numGroups)
 	for _, expectedGroup := range groups {
 		present := false
 		for _, dbGroup := range d1 {
@@ -728,7 +728,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	d5, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
 	afterCount := len(d5)
-	require.Condition(t, func() bool { return beforeCount == afterCount+1 })
+	require.Condition(t, func() bool { return beforeCount == afterCount+1 }, beforeCount, "==", afterCount+1)
 
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
@@ -1473,7 +1473,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 	// Returns all the group teams
 	d1, err := ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
+	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables }, len(d1), ">=", numGroupSyncables)
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {
@@ -1602,7 +1602,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.SyncableId, groupTeam.SyncableId)
 	require.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	require.Equal(t, d1.CreateAt, groupTeam.CreateAt)
-	require.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })
+	require.Condition(t, func() bool { return d1.UpdateAt >= groupTeam.UpdateAt }, d1.UpdateAt, ">=", groupTeam.UpdateAt)
 
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
