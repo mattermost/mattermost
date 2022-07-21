@@ -3078,15 +3078,15 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	u3 := th.CreateUser()
 	u4 := th.CreateUser()
 	// user direct messages
-	chUser1, nErr := th.App.createDirectChannel(u1.Id, user.Id)
+	chUser1, nErr := th.App.createDirectChannel(th.Context, u1.Id, user.Id)
 	fmt.Println(chUser1, nErr)
 	require.Nil(t, nErr)
-	chUser2, nErr := th.App.createDirectChannel(u2.Id, user.Id)
+	chUser2, nErr := th.App.createDirectChannel(th.Context, u2.Id, user.Id)
 	require.Nil(t, nErr)
-	chUser3, nErr := th.App.createDirectChannel(u3.Id, user.Id)
+	chUser3, nErr := th.App.createDirectChannel(th.Context, u3.Id, user.Id)
 	require.Nil(t, nErr)
 	// other user direct message
-	chUser3User4, nErr := th.App.createDirectChannel(u3.Id, u4.Id)
+	chUser3User4, nErr := th.App.createDirectChannel(th.Context, u3.Id, u4.Id)
 	require.Nil(t, nErr)
 
 	// sample post data
