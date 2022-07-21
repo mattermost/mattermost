@@ -72,7 +72,7 @@ type FeatureFlags struct {
 	// Enable Boards as a product (multi-product architecture)
 	BoardsProduct bool
 
-	ServerUpgradeButtonText string
+	PlanUpgradeButtonText string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -99,7 +99,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.ServerUpgradeButtonText = "Upgrade"
+	f.PlanUpgradeButtonText = "Upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
