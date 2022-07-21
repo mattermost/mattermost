@@ -28,7 +28,7 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	license := s.License()
+	license := s.platformService.GetLicense()
 	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")

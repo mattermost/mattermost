@@ -4,8 +4,13 @@
 package platform
 
 import (
+	"sync"
+	"sync/atomic"
+
+	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // PlatformService is the service for the platform related tasks. It is
@@ -16,6 +21,13 @@ type PlatformService struct {
 	configStore   *config.Store
 
 	metrics *platformMetrics
+
+	featureFlagSynchronizerMutex sync.Mutex
+	featureFlagSynchronizer      *featureflag.Synchronizer
+	featureFlagStop              chan struct{}
+	featureFlagStopped           chan struct{}
+
+	licenseValue atomic.Value
 
 	cluster einterfaces.ClusterInterface
 }
@@ -40,5 +52,14 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 func (ps *PlatformService) ShutdownMetrics() {
 	if ps.metrics != nil {
 		ps.metrics.stopMetricsServer()
+	}
+}
+
+func (ps *PlatformService) ShutdownConfig() {
+	if ps.configStore != nil {
+		err := ps.configStore.Close()
+		if err != nil {
+			mlog.Warn("Failed to close config store", mlog.Err(err))
+		}
 	}
 }

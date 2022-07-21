@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -52,7 +53,17 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
 
-		s.configStore = &configWrapper{srv: s, Store: configStore}
+		ps, err := platform.New(platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Metrics:      s.Metrics,
+			Cluster:      s.Cluster,
+		})
+		if err != nil {
+			return err
+		}
+		s.platformService = ps
+
 		return nil
 	}
 }
@@ -60,7 +71,16 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		s.configStore = &configWrapper{srv: s, Store: configStore}
+		ps, err := platform.New(platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Metrics:      s.Metrics,
+			Cluster:      s.Cluster,
+		})
+		if err != nil {
+			return err
+		}
+		s.platformService = ps
 
 		return nil
 	}

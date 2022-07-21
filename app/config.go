@@ -12,7 +12,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -22,7 +21,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -32,85 +30,8 @@ const (
 	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
 
-// ensure the config wrapper implements `product.ConfigService`
-var _ product.ConfigService = (*configWrapper)(nil)
-
-// configWrapper is an adapter struct that only exposes the
-// config related functionality to be passed down to other products.
-type configWrapper struct {
-	srv *Server
-	*config.Store
-}
-
-func (w *configWrapper) Name() ServiceKey {
-	return ConfigKey
-}
-
-func (w *configWrapper) Config() *model.Config {
-	return w.Store.Get()
-}
-
-func (w *configWrapper) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return w.Store.AddListener(listener)
-}
-
-func (w *configWrapper) RemoveConfigListener(id string) {
-	w.Store.RemoveListener(id)
-}
-
-func (w *configWrapper) UpdateConfig(f func(*model.Config)) {
-	if w.Store.IsReadOnly() {
-		return
-	}
-	old := w.Config()
-	updated := old.Clone()
-	f(updated)
-	if _, _, err := w.Store.Set(updated); err != nil {
-		mlog.Error("Failed to update config", mlog.Err(err))
-	}
-}
-
-func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	oldCfg, newCfg, err := w.Store.Set(newCfg)
-	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
-	} else if err != nil {
-		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if w.srv.startMetrics && *w.Config().MetricsSettings.Enable {
-		if w.srv.Metrics != nil {
-			w.srv.Metrics.Register()
-		}
-		w.srv.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
-	} else {
-		w.srv.platformService.ShutdownMetrics() // TODO: remove when this moved to the platform service
-	}
-
-	if w.srv.Cluster != nil {
-		err := w.srv.Cluster.ConfigChanged(w.Store.RemoveEnvironmentOverrides(oldCfg),
-			w.Store.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return oldCfg, newCfg, nil
-}
-
-func (w *configWrapper) ReloadConfig() error {
-	if err := w.Store.Load(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Server) Config() *model.Config {
-	return s.configStore.Config()
-}
-
-func (s *Server) ConfigStore() *configWrapper {
-	return s.configStore
+	return s.platformService.Config()
 }
 
 func (a *App) Config() *model.Config {
@@ -118,7 +39,7 @@ func (a *App) Config() *model.Config {
 }
 
 func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
-	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
+	return s.platformService.GetEnvironmentOverridesWithFilter(filter)
 }
 
 func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
@@ -126,7 +47,7 @@ func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[strin
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
-	s.configStore.UpdateConfig(f)
+	s.platformService.UpdateConfig(f)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
@@ -134,7 +55,7 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (s *Server) ReloadConfig() error {
-	return s.configStore.ReloadConfig()
+	return s.pla.ReloadConfig()
 }
 
 func (a *App) ReloadConfig() error {
@@ -472,14 +393,8 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-// It returns both the previous and current configs.
-func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return s.configStore.SaveConfig(newCfg, sendConfigChangeClusterMessage)
-}
-
-// SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	return a.Srv().platformService.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {

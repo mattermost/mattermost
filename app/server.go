@@ -31,7 +31,6 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
-	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
@@ -149,7 +148,6 @@ type Server struct {
 	clusterLeaderListeners sync.Map
 	clusterWrapper         *clusterWrapper
 
-	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
 	licenseWrapper     *licenseWrapper
@@ -168,7 +166,6 @@ type Server struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	configStore             *configWrapper
 	filestore               filestore.FileBackend
 
 	platformService  *platform.PlatformService
@@ -202,11 +199,6 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	featureFlagSynchronizer      *featureflag.Synchronizer
-	featureFlagStop              chan struct{}
-	featureFlagStopped           chan struct{}
-	featureFlagSynchronizerMutex sync.Mutex
-
 	products map[string]Product
 }
 
@@ -238,7 +230,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// and has dependency requirements with the previous step.
 	//
 	// Step 1: Config.
-	if s.configStore == nil {
+	if s.platformService == nil {
 		innerStore, err := config.NewFileStore("config.json", true)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
@@ -248,19 +240,17 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
 
-		s.configStore = &configWrapper{srv: s, Store: configStore}
+		ps, sErr := platform.New(platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Metrics:      s.Metrics,
+			Cluster:      s.Cluster,
+		})
+		if sErr != nil {
+			return nil, errors.Wrap(sErr, "failed to initialize platform")
+		}
+		s.platformService = ps
 	}
-
-	ps, sErr := platform.New(platform.ServiceConfig{
-		ConfigStore:  s.configStore.Store,
-		StartMetrics: s.startMetrics,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-	})
-	if sErr != nil {
-		return nil, errors.Wrap(sErr, "failed to initialize platform")
-	}
-	s.platformService = ps
 
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
@@ -406,7 +396,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},
-		ConfigKey:        s.configStore,
+		ConfigKey:        s.platformService,
 		LicenseKey:       s.licenseWrapper,
 		FilestoreKey:     s.filestore,
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
@@ -600,7 +590,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
-	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+	mlog.Info("Loaded config", mlog.String("source", s.platformService.DescribeConfig()))
 
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
@@ -796,7 +786,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.configureLogger("logging", s.Log, &s.Config().LogSettings, s.configStore.Store, config.GetLogFileLocation); err != nil {
+	if err := s.platformService.ConfigureLogger("logging", s.Log, &s.Config().LogSettings, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -812,38 +802,11 @@ func (s *Server) initLogging() error {
 	mlog.InitGlobalLogger(s.Log)
 
 	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-	if err := s.configureLogger("notification logging", s.NotificationsLog, notificationLogSettings, s.configStore.Store, config.GetNotificationsLogFileLocation); err != nil {
+	if err := s.platformService.ConfigureLogger("notification logging", s.NotificationsLog, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
 			return err
 		}
-	}
-	return nil
-}
-
-// configureLogger applies the specified configuration to a logger.
-func (s *Server) configureLogger(name string, logger *mlog.Logger, logSettings *model.LogSettings, configStore *config.Store, getPath func(string) string) error {
-	// Advanced logging is E20 only, however logging must be initialized before the license
-	// file is loaded.  If no valid E20 license exists then advanced logging will be
-	// shutdown once license is loaded/checked.
-	var err error
-	dsn := *logSettings.AdvancedLoggingConfig
-	var logConfigSrc config.LogConfigSrc
-	if dsn != "" {
-		logConfigSrc, err = config.NewLogConfigSrc(dsn, configStore)
-		if err != nil {
-			return fmt.Errorf("invalid config source for %s, %w", name, err)
-		}
-		mlog.Info("Loaded configuration for "+name, mlog.String("source", dsn))
-	}
-
-	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
-	if err != nil {
-		return fmt.Errorf("invalid config source for %s, %w", name, err)
-	}
-
-	if err := logger.ConfigureTargets(cfg, nil); err != nil {
-		return fmt.Errorf("invalid config for %s, %w", name, err)
 	}
 	return nil
 }
@@ -1023,7 +986,7 @@ func (s *Server) Shutdown() {
 
 	s.stopFeatureFlagUpdateJob()
 
-	s.configStore.Close()
+	s.platformService.ShutdownConfig()
 
 	if s.Cluster != nil {
 		s.Cluster.StopInterNodeCommunication()
@@ -1436,7 +1399,7 @@ func (s *Server) startLocalModeServer() error {
 		Handler: s.LocalRouter,
 	}
 
-	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	socket := *s.platformService.Config().ServiceSettings.LocalModeSocketLocation
 	if err := os.RemoveAll(socket); err != nil {
 		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
@@ -1603,12 +1566,12 @@ func doJobsCleanup(s *Server) {
 }
 
 func doConfigCleanup(s *Server) {
-	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.ConfigStore().Store.String()) {
+	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.platformService.DescribeConfig()) {
 		return
 	}
 	mlog.Info("Cleaning up configuration store.")
 
-	if err := s.ConfigStore().Store.CleanUp(); err != nil {
+	if err := s.platformService.CleanUpConfig(); err != nil {
 		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
