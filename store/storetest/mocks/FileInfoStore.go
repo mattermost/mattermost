@@ -257,6 +257,27 @@ func (_m *FileInfoStore) GetStorageUsage(allowFromCache bool, includeDeleted boo
 	return r0, r1
 }
 
+// GetUptoNSizeFileTime provides a mock function with given fields: n
+func (_m *FileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
+	ret := _m.Called(n)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64) int64); ok {
+		r0 = rf(n)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(n)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetWithOptions provides a mock function with given fields: page, perPage, opt
 func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	ret := _m.Called(page, perPage, opt)

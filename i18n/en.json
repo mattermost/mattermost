@@ -5476,6 +5476,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Error fetching last accessible post"
   },
