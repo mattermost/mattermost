@@ -259,7 +259,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
+			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post.ForPlugin())
 			if rejectionReason != "" {
 				id := "Post rejected by plugin. " + rejectionReason
 				if rejectionReason == plugin.DismissPostError {
@@ -269,6 +269,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 				return false
 			}
 			if replacementPost != nil {
+				// the original post's metadata (if there ever was any) is lost, and will be rebuilt.
 				post = replacementPost
 			}
 
@@ -309,21 +310,14 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// might be duplicating requests.
 	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
-	// We make a copy of the post for the plugin hook to avoid a race condition.
-	rPostCopy := rpost.Clone()
-
-	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
-	// Mattermost—without the gob registration of the PreviewPost struct—won't crash.
-	if rPostCopy.Metadata != nil {
-		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
-	}
-	rPostCopy.RemovePreviewPost()
-
+	// We make a copy of the post for the plugin hook to avoid a race condition,
+	// and to remove the non-GOB-encodable Metadata from it.
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginPost := rpost.ForPlugin()
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
+				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
 				return true
 			}, plugin.MessageHasBeenPostedID)
 		})
@@ -650,12 +644,15 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		var rejectionReason string
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
+			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost.ForPlugin(), oldPost.ForPlugin())
 			return post != nil
 		}, plugin.MessageWillBeUpdatedID)
 		if newPost == nil {
 			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
+		// Restore the post metadata that was stripped by the plugin. Set it to
+		// the last known good.
+		newPost.Metadata = oldPost.Metadata
 	}
 
 	rpost, nErr := a.Srv().Store.Post().Update(newPost, oldPost)
@@ -670,10 +667,12 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginOldPost := oldPost.ForPlugin()
+		pluginNewPost := newPost.ForPlugin()
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
+				hooks.MessageHasBeenUpdated(pluginContext, pluginNewPost, pluginOldPost)
 				return true
 			}, plugin.MessageHasBeenUpdatedID)
 		})
