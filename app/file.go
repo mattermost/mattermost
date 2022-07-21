@@ -751,7 +751,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		}
 	}
 
-	if *a.Config().FileSettings.ExtractContent {
+	if *a.Config().FileSettings.ExtractContent && !t.fileinfo.IsImage() {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
