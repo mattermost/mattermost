@@ -32,6 +32,7 @@ type apiImplCreatorFunc func(*model.Manifest) API
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
+	Error      string
 
 	supervisor *supervisor
 }
@@ -137,6 +138,22 @@ func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
 }
 
+func (env *Environment) setPluginError(id string, err string) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.Error = err
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
+func (env *Environment) getPluginError(id string) string {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		return rp.(registeredPlugin).Error
+	}
+
+	return ""
+}
+
 // GetPluginState returns the current state of a plugin (disabled, running, or error)
 func (env *Environment) GetPluginState(id string) int {
 	rp, ok := env.registeredPlugins.Load(id)
@@ -185,6 +202,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			PluginId:    plugin.Manifest.Id,
 			PluginPath:  filepath.Dir(plugin.ManifestPath),
 			State:       pluginState,
+			Error:       env.getPluginError(plugin.Manifest.Id),
 			Name:        plugin.Manifest.Name,
 			Description: plugin.Manifest.Description,
 			Version:     plugin.Manifest.Version,
@@ -214,6 +232,14 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+	defer func() {
+		if reterr != nil {
+			env.setPluginError(id, reterr.Error())
+		} else {
+			env.setPluginError(id, "")
+		}
+	}()
+
 	// Check if we are already active
 	if env.IsActive(id) {
 		return nil, false, nil
