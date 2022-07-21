@@ -833,14 +833,14 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	th.LoginBasic2()
 	client := th.Client
 	channelBu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	th.LoginBasic()
 	client = th.Client
 	channelBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channelBu12, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
 	postsGenConfig := []map[string]interface{}{
@@ -867,14 +867,14 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 				userId := basicUser1.Id
 				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
 				_, _, err = client.CreatePost(post)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			} else {
 				th.LoginBasic()
 				client = th.Client
 				userId := basicUser.Id
 				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
 				_, _, err = client.CreatePost(post)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 		}
 	}
@@ -884,7 +884,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		th.LoginBasic()
 		client = th.Client
 		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
@@ -895,7 +895,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		th.LoginBasic2()
 		client = th.Client
 		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(1))
 	})
