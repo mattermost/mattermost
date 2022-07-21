@@ -16,7 +16,7 @@ func WithMaster(ctx context.Context) context.Context {
 	return sqlstore.WithMaster(ctx)
 }
 
-func pluginContext(c *request.Context) *plugin.Context {
+func pluginContext(c request.CTX) *plugin.Context {
 	context := &plugin.Context{
 		RequestId:      c.RequestId(),
 		SessionId:      c.Session().Id,

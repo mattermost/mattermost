@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -28,6 +29,9 @@ const (
 )
 
 var RequestTrialURL = "https://customers.mattermost.com/api/v1/trials"
+
+// ensure the license service wrapper implements `product.LicenseService`
+var _ product.LicenseService = (*licenseWrapper)(nil)
 
 // licenseWrapper is an adapter struct that only exposes the
 // config related functionality to be passed down to other products.
@@ -170,7 +174,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	}
 
 	if uniqueUserCount > int64(*license.Features.Users) {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
 	}
 
 	if license.IsExpired() {

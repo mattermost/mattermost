@@ -54,6 +54,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
 	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
 	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss, s) })
+	t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, ss, s) })
 	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
 	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
 	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
@@ -978,6 +979,85 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+	})
+}
+
+func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
+
+	cleanupStatusStore(t, s)
+
+	teamId := model.NewId()
+
+	user1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "aaa" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user1.Id}, -1)
+	require.NoError(t, nErr)
+
+	user2Admin, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "bbb" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
+	require.NoError(t, nErr)
+
+	user3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "ccc" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user3.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user3.Id}, -1)
+	require.NoError(t, nErr)
+
+	ch1 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in channel by admin",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      user1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        user2Admin.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		ExplicitRoles: "channel_admin",
+	})
+	require.NoError(t, nErr)
+	ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      user3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, nErr)
+
+	t.Run("get users in admin, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannelByAdmin(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		require.Len(t, users, 3)
+		require.Equal(t, user2Admin.Username, users[0].Username)
+		require.Equal(t, user1.Username, users[1].Username)
+		require.Equal(t, user3.Username, users[2].Username)
 	})
 }
 

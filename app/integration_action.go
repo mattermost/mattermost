@@ -51,7 +51,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	// IsPinned and HasReaction attributes, and preserve its entire
 	// original Props set unless the plugin returns a replacement value.
 	// originalXxx variables are used to preserve these values.
-	var originalProps map[string]interface{}
+	var originalProps map[string]any
 	originalIsPinned := false
 	originalHasReactions := false
 
@@ -59,7 +59,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	// need to preserve some original values, as listed in
 	// model.PostActionRetainPropKeys. remove and retain track these.
 	remove := []string{}
-	retain := map[string]interface{}{}
+	retain := map[string]any{}
 
 	datasource := ""
 	upstreamURL := ""
@@ -222,7 +222,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	if upstreamRequest.Type == model.PostActionTypeSelect {
 		if selectedOption != "" {
 			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]interface{}{}
+				upstreamRequest.Context = map[string]any{}
 			}
 			upstreamRequest.DataSource = datasource
 			upstreamRequest.Context["selected_option"] = selectedOption
@@ -301,7 +301,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
-		a.SendEphemeralPost(userID, ephemeralPost)
+		a.SendEphemeralPost(c, userID, ephemeralPost)
 	}
 
 	return clientTriggerId, nil
@@ -548,23 +548,23 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
-	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})
 	mailBody += "\r\n"
-	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]any{"Email": user.Email})
 	mailBody += "\r\n"
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
-		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
+		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
 	}
 
-	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]any{"SiteUrl": a.GetSiteURL()})
 	mailBody += "\r\n"
 
-	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.TelemetryId()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]any{"DiagnosticId": a.TelemetryId()})
 	mailBody += "\r\n"
 
 	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")

@@ -57,6 +57,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
 	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
+	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -3764,4 +3765,99 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 		ids = append(ids, p.Id)
 	}
 	return ids
+}
+
+func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
+	_, err := ss.Post().GetNthRecentPostTime(0)
+	assert.Error(t, err)
+	_, err = ss.Post().GetNthRecentPostTime(-1)
+	assert.Error(t, err)
+
+	diff := int64(10000)
+	now := utils.MillisFromTime(time.Now()) + diff
+
+	p1 := &model.Post{}
+	p1.ChannelId = model.NewId()
+	p1.UserId = model.NewId()
+	p1.Message = "test"
+	p1.CreateAt = now
+	p1, err = ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	p2 := &model.Post{}
+	p2.ChannelId = p1.ChannelId
+	p2.UserId = p1.UserId
+	p2.Message = p1.Message
+	now = now + diff
+	p2.CreateAt = now
+	p2, err = ss.Post().Save(p2)
+	require.NoError(t, err)
+
+	bot1 := &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     model.NewId(),
+		UserId:      model.NewId(),
+	}
+	_, err = ss.Bot().Save(bot1)
+	require.NoError(t, err)
+
+	b1 := &model.Post{}
+	b1.Message = "bot test"
+	b1.ChannelId = p1.ChannelId
+	b1.UserId = bot1.UserId
+	now = now + diff
+	b1.CreateAt = now
+	_, err = ss.Post().Save(b1)
+	require.NoError(t, err)
+
+	p3 := &model.Post{}
+	p3.ChannelId = p1.ChannelId
+	p3.UserId = p1.UserId
+	p3.Message = p1.Message
+	now = now + diff
+	p3.CreateAt = now
+	p3, err = ss.Post().Save(p3)
+	require.NoError(t, err)
+
+	s1 := &model.Post{}
+	s1.Type = model.PostTypeJoinChannel
+	s1.ChannelId = p1.ChannelId
+	s1.UserId = model.NewId()
+	s1.Message = "system_join_channel message"
+	now = now + diff
+	s1.CreateAt = now
+	_, err = ss.Post().Save(s1)
+	require.NoError(t, err)
+
+	p4 := &model.Post{}
+	p4.ChannelId = p1.ChannelId
+	p4.UserId = p1.UserId
+	p4.Message = p1.Message
+	now = now + diff
+	p4.CreateAt = now
+	p4, err = ss.Post().Save(p4)
+	require.NoError(t, err)
+
+	r, err := ss.Post().GetNthRecentPostTime(1)
+	assert.NoError(t, err)
+	assert.Equal(t, p4.CreateAt, r)
+
+	// Skip system post
+	r, err = ss.Post().GetNthRecentPostTime(2)
+	assert.NoError(t, err)
+	assert.Equal(t, p3.CreateAt, r)
+
+	// Skip system & bot post
+	r, err = ss.Post().GetNthRecentPostTime(3)
+	assert.NoError(t, err)
+	assert.Equal(t, p2.CreateAt, r)
+
+	r, err = ss.Post().GetNthRecentPostTime(4)
+	assert.NoError(t, err)
+	assert.Equal(t, p1.CreateAt, r)
+
+	_, err = ss.Post().GetNthRecentPostTime(10000)
+	assert.Error(t, err)
+	assert.IsType(t, &store.ErrNotFound{}, err)
 }
