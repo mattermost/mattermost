@@ -99,7 +99,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.ServerUpgradeButtonText = "A"
+	f.ServerUpgradeButtonText = "Upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
