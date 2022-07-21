@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -241,7 +242,9 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 func (ch *Channels) Start() error {
 	// Start plugins
 	ctx := request.EmptyContext(ch.srv.GetLogger())
+	now := time.Now()
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
+	mlog.Info("Total Time taken===========", mlog.String("diff", time.Since(now).String()))
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs

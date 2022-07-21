@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/gorilla/mux"
@@ -327,6 +328,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
 			defer wg.Done()
+			now := time.Now()
 			reader, appErr := ch.srv.fileReader(plugin.path)
 			if appErr != nil {
 				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
@@ -348,6 +350,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			if _, err := ch.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
+			mlog.Info("Taken:==============", mlog.String("duration", time.Since(now).String()), mlog.String("plugin", plugin.path))
 		}(plugin)
 	}
 
