@@ -3930,8 +3930,8 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	})
 	require.NoError(t, err)
 	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
-		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
-		require.NoError(t, err)
+		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
+		require.NoError(t, storeErr)
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 3)
 		// check order, magnitude of items
@@ -3946,8 +3946,8 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	})
 	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
 		// u4 only takes part in one conversation
-		topDMs, err := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
-		require.NoError(t, err)
+		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, storeErr)
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 1)
 		// check order, magnitude of items
