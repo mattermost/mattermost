@@ -144,6 +144,9 @@ func (a *App) RevokeAllSessions(userID string) *model.AppError {
 		}
 	}
 
+	message := model.NewWebSocketEvent(model.WebsocketEventSessionRevoked, "", "", userID, nil)
+	a.Publish(message)
+
 	return nil
 }
 
@@ -162,6 +165,9 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventSessionRevoked, "", "", "", nil)
+	a.Publish(message)
 
 	return nil
 }
