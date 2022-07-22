@@ -59,7 +59,6 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 		NextPostId:                originalList.NextPostId,
 		PrevPostId:                originalList.PrevPostId,
 		HasNext:                   originalList.HasNext,
-		HasInaccessiblePosts:      originalList.HasInaccessiblePosts,
 		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
