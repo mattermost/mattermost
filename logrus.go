@@ -12,7 +12,7 @@ import (
 //
 // To configure the default Logrus logger for use with plugin logging, simply invoke:
 //
-//   pluginapi.ConfigureLogrus(logrus.StandardLogger)
+//   pluginapi.ConfigureLogrus(logrus.StandardLogger(), pluginAPIClient)
 //
 // Alternatively, construct your own logger to pass to pluginapi.ConfigureLogrus.
 type LogrusHook struct {
@@ -38,6 +38,10 @@ func (lh *LogrusHook) Fire(entry *logrus.Entry) error {
 		fields = append(fields, key, fmt.Sprintf("%+v", value))
 	}
 
+	if entry.Caller != nil {
+		fields = append(fields, "plugin_caller", fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line))
+	}
+
 	switch entry.Level {
 	case logrus.PanicLevel, logrus.FatalLevel, logrus.ErrorLevel:
 		lh.log.Error(entry.Message, fields...)
@@ -58,4 +62,8 @@ func ConfigureLogrus(logger *logrus.Logger, client *Client) {
 	hook := NewLogrusHook(client.Log)
 	logger.Hooks.Add(hook)
 	logger.SetOutput(io.Discard)
+	logrus.SetReportCaller(true)
+
+	// By default, log everything to the server, and let it decide what gets through.
+	logrus.SetLevel(logrus.TraceLevel)
 }

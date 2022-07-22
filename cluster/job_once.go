@@ -3,14 +3,11 @@ package cluster
 import (
 	"encoding/json"
 	"math/rand"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
-
-	apierrors "github.com/mattermost/mattermost-plugin-api/errors"
 )
 
 const (
@@ -214,10 +211,6 @@ func addJitter() time.Duration {
 func normalizeAppErr(appErr *model.AppError) error {
 	if appErr == nil {
 		return nil
-	}
-
-	if appErr.StatusCode == http.StatusNotFound {
-		return apierrors.ErrNotFound
 	}
 
 	return appErr
