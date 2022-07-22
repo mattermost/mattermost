@@ -521,14 +521,11 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getPostThread", audit.Fail)
-
 	rPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("post", rPost)
 	hasPermission := false
 	becauseCompliance := false
 	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
@@ -632,7 +629,6 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
-	auditRec.Success()
 }
 
 func searchPostsInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
