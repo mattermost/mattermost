@@ -3611,14 +3611,20 @@ func TestLoginCookies(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
+		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
-		val := strings.Split(resp.Header["Set-Cookie"][0], ";")
-		cloudSessionCookie := strings.Split(val[0], "=")[1]
-		domain := strings.Split(val[2], "=")[1]
-
-		assert.Equal(t, "testchips", cloudSessionCookie)
-		assert.Equal(t, "mattermost.com", domain)
+		found := false
+		cookies := resp.Header.Values("Set-Cookie")
+		for i := range cookies {
+			if strings.Contains(cookies[i], "MMCLOUDURL") {
+				found = true
+				assert.Contains(t, cookies[i], "MMCLOUDURL=testchips;", "should contain MMCLOUDURL")
+				assert.Contains(t, cookies[i], "Domain=mattermost.com;", "should contain Domain=mattermost.com")
+				break
+			}
+		}
+		assert.True(t, found, "Did not find MMCLOUDURL cookie")
 	})
 
 	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
