@@ -5872,6 +5872,10 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Unable to get top DMs for user."
+  },
+  {
     "id": "app.post.get_top_threads_for_team_since.app_error",
     "translation": "Unable to get top threads for team."
   },
