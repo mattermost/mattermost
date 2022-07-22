@@ -5820,6 +5820,10 @@
     "translation": "Unable to get user counts with posts."
   },
   {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Can not fetch the file as it is past the cloud's plan limit."
+  },
+  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Can not fetch the post as it is past the cloud's plan limit."
   },

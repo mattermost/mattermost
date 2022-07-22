@@ -1161,24 +1161,31 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return fileInfo, err
 }
 
-func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, int64, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var ltErr *store.ErrLimitExceeded
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &ltErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
 		default:
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	fileInfos, firstInaccessibleFileTime, appErr := a.getFilteredAccessibleFiles(fileInfos, filterPostOptions{
+		assumeSortedCreatedAt: opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated,
+	})
+	if appErr != nil {
+		return nil, 0, appErr
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
 
-	return fileInfos, nil
+	return fileInfos, firstInaccessibleFileTime, nil
 }
 
 func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
@@ -1324,7 +1331,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		}
 	}
 
-	return fileInfoSearchResults, nil
+	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterPostOptions{assumeSortedCreatedAt: true})
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
