@@ -401,7 +401,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
-			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "0")
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
 		return
