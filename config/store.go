@@ -155,6 +155,11 @@ func (s *Store) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	return removeEnvOverrides(cfg, s.configNoEnv, s.GetEnvironmentOverrides())
 }
 
+// ApplyEnvironmentOverrides applies environment overrides to the passed config.
+func (s *Store) ApplyEnvironmentOverrides(cfg *model.Config) *model.Config {
+	return applyEnvironmentMap(cfg, GetEnvironment())
+}
+
 // SetReadOnlyFF sets whether feature flags should be written out to
 // config or treated as read-only.
 func (s *Store) SetReadOnlyFF(readOnly bool) {

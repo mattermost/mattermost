@@ -121,6 +121,10 @@ func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[st
 	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
+func (s *Server) ApplyEnvironmentOverrides(cfg *model.Config) *model.Config {
+	return s.configStore.ApplyEnvironmentOverrides(cfg)
+}
+
 func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return a.Srv().EnvironmentConfig(filter)
 }
