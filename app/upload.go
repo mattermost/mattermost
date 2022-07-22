@@ -24,10 +24,19 @@ const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 
 func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
 	ext := strings.ToLower(filepath.Ext(name))
+
 	info := &model.FileInfo{
-		Name:     name,
-		MimeType: mime.TypeByExtension(ext),
+		Name:      name,
+		MimeType:  mime.TypeByExtension(ext),
+		Size:      size,
+		Extension: ext,
 	}
+
+	if ext != "" {
+		// The client expects a file extension without the leading period
+		info.Extension = ext[1:]
+	}
+
 	if info.IsImage() {
 		config, _, err := a.ch.imgDecoder.DecodeConfig(file)
 		if err != nil {
