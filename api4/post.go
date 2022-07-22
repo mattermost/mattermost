@@ -530,19 +530,26 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("post", rPost)
 	hasPermission := false
+	becauseCompliance := false
 	if c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
 		hasPermission = true
-	} else if !*c.App.Config().MessageExportSettings.EnableExport {
-		if channel, cErr := c.App.GetChannel(rPost.ChannelId); cErr == nil {
-			if channel.Type == model.ChannelTypeOpen &&
-				c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-				hasPermission = true
+	} else if channel, cErr := c.App.GetChannel(rPost.ChannelId); cErr == nil {
+		if channel.Type == model.ChannelTypeOpen &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+			hasPermission = true
+			if *c.App.Config().MessageExportSettings.EnableExport {
+				hasPermission = false
+				becauseCompliance = true
 			}
 		}
 	}
 
 	if !hasPermission {
-		c.SetPermissionError(model.PermissionReadChannel)
+		if becauseCompliance {
+			c.Err = model.NewAppError("getPostThread", "api.post.compliance_enabled.join_channel_to_view_post", nil, "", http.StatusForbidden)
+		} else {
+			c.SetPermissionError(model.PermissionReadChannel)
+		}
 		return
 	}
 
