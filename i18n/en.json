@@ -1918,10 +1918,6 @@
     "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Your license doesn't support Insights feature."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
