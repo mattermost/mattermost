@@ -33,3 +33,9 @@ func (o *PostSearchResults) EncodeJSON(w io.Writer) error {
 	o.PostList.StripActionIntegrations()
 	return json.NewEncoder(w).Encode(o)
 }
+
+func (o *PostSearchResults) ForPlugin() *PostSearchResults {
+	copy := *o
+	copy.PostList = copy.PostList.ForPlugin()
+	return &copy
+}
