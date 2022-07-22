@@ -207,7 +207,7 @@ func TestUploadData(t *testing.T) {
 		CreateAt:  model.GetMillis(),
 		UserId:    th.BasicUser2.Id,
 		ChannelId: th.BasicChannel.Id,
-		Filename:  "upload",
+		Filename:  "upload.zip",
 		FileSize:  8 * 1024 * 1024,
 	}
 	us, err := th.App.CreateUploadSession(th.Context, us)
@@ -281,6 +281,9 @@ func TestUploadData(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.Equal(t, u.Filename, info.Name)
+		require.Equal(t, u.FileSize, info.Size)
+		require.Equal(t, "zip", info.Extension)
+		require.Equal(t, "application/zip", info.MimeType)
 
 		file, _, err := th.Client.GetFile(info.Id)
 		require.NoError(t, err)
