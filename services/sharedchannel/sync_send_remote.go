@@ -296,11 +296,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		}
 
 		if sync {
-			sd.users[user.Id] = sanitizeUserForSync(user)
+			sd.users[user.Id] = user
 		}
 
 		if syncImage {
-			sd.profileImages[user.Id] = sanitizeUserForSync(user)
+			sd.profileImages[user.Id] = user
 		}
 
 		// if this was a mention then put the real username in place of the username+remotename, but only
@@ -368,6 +368,8 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 // The order of items sent is important: users -> attachments -> posts -> reactions -> profile images
 func (scs *Service) sendSyncData(sd *syncData) error {
 	merr := merror.New()
+
+	sanitizeSyncData(sd)
 
 	// send users
 	if len(sd.users) != 0 {
@@ -530,4 +532,13 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 
 	wg.Wait()
 	return err
+}
+
+func sanitizeSyncData(sd *syncData) {
+	for id, user := range sd.users {
+		sd.users[id] = sanitizeUserForSync(user)
+	}
+	for id, user := range sd.profileImages {
+		sd.profileImages[id] = sanitizeUserForSync(user)
+	}
 }
