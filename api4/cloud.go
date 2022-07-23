@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCloud() {
@@ -236,13 +237,15 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if emailErr != nil {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, emailErr.Error(), http.StatusForbidden)
 		emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
-		json, _ := json.Marshal(emailResp)
-		w.Write(json)
+		if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 	emailResp := model.ValidateBusinessEmailResponse{IsValid: "paputisima"}
-	json, _ := json.Marshal(emailResp)
-	w.Write(json)
+	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -277,16 +280,18 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		if errValidatingAdminEmail != nil {
 			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
 			emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
-			json, _ := json.Marshal(emailResp)
-			w.Write(json)
+			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err))
+			}
 			return
 		}
 	}
 
 	// if any of the emails is valid, return ok
 	emailResp := model.ValidateBusinessEmailResponse{IsValid: "true"}
-	json, _ := json.Marshal(emailResp)
-	w.Write(json)
+	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
