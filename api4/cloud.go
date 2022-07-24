@@ -242,7 +242,7 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	emailResp := model.ValidateBusinessEmailResponse{IsValid: "paputisima"}
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: "true"}
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
