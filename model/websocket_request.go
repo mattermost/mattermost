@@ -12,9 +12,9 @@ import (
 // WebSocketRequest represents a request made to the server through a websocket.
 type WebSocketRequest struct {
 	// Client-provided fields
-	Seq    int64                  `json:"seq" msgpack:"seq"`       // A counter which is incremented for every request made.
-	Action string                 `json:"action" msgpack:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
-	Data   map[string]interface{} `json:"data" msgpack:"data"`     // The metadata for an action.
+	Seq    int64          `json:"seq" msgpack:"seq"`       // A counter which is incremented for every request made.
+	Action string         `json:"action" msgpack:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
+	Data   map[string]any `json:"data" msgpack:"data"`     // The metadata for an action.
 
 	// Server-provided fields
 	Session Session            `json:"-" msgpack:"-"`

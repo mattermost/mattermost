@@ -58,7 +58,7 @@ func TestInviteProvider(t *testing.T) {
 
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,
@@ -76,7 +76,7 @@ func TestInviteProvider(t *testing.T) {
 	_, err = th.App.AddChannelMember(th.Context, th.BasicUser.Id, groupChannel, app.ChannelMemberOpts{})
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
-	groupChannel, _ = th.App.UpdateChannel(groupChannel)
+	groupChannel, _ = th.App.UpdateChannel(th.Context, groupChannel)
 
 	groupChannelNonUser := "@" + th.BasicUser2.Username + " ~" + groupChannel.Name
 
@@ -195,7 +195,7 @@ func TestInviteGroup(t *testing.T) {
 
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
 		UserId:    th.BasicUser.Id,

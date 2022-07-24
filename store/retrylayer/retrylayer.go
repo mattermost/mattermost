@@ -6428,6 +6428,27 @@ func (s *RetryLayerPostStore) GetMaxPostSize() int {
 
 }
 
+func (s *RetryLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetNthRecentPostTime(n)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetOldest() (*model.Post, error) {
 
 	tries := 0
@@ -12235,6 +12256,27 @@ func (s *RetryLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions
 	tries := 0
 	for {
 		result, err := s.UserStore.GetProfilesInChannel(options)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetProfilesInChannelByAdmin(options)
 		if err == nil {
 			return result, nil
 		}

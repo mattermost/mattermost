@@ -30,6 +30,23 @@ type IncomingWebhook struct {
 	ChannelLocked bool   `json:"channel_locked"`
 }
 
+func (o *IncomingWebhook) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":             o.Id,
+		"create_at":      o.CreateAt,
+		"update_at":      o.UpdateAt,
+		"delete_at":      o.DeleteAt,
+		"user_id":        o.UserId,
+		"channel_id":     o.ChannelId,
+		"team_id":        o.TeamId,
+		"display_name":   o.DisplayName,
+		"description":    o.Description,
+		"username":       o.Username,
+		"icon_url:":      o.IconURL,
+		"channel_locked": o.ChannelLocked,
+	}
+}
+
 type IncomingWebhookRequest struct {
 	Text        string             `json:"text"`
 	Username    string             `json:"username"`

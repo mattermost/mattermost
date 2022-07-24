@@ -68,7 +68,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,
-		Text: args.T("api.command_custom_status.success", map[string]interface{}{
+		Text: args.T("api.command_custom_status.success", map[string]any{
 			"EmojiName":     ":" + customStatus.Emoji + ":",
 			"StatusMessage": customStatus.Text,
 		}),

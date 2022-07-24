@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -47,6 +48,10 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
+var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
+
+// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
 type fileInfoWrapper struct {
 	srv *Server
 }
@@ -456,7 +461,7 @@ func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID 
 		file, fileErr := fileHeader.Open()
 		if fileErr != nil {
 			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
-				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
+				map[string]any{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
 		}
 
 		// Will be closed after UploadFiles returns
@@ -520,10 +525,10 @@ func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, u
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 func (a *App) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	_, err := a.GetChannel(channelID)
+	_, err := a.GetChannel(c, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
-			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
+			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
 	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
@@ -898,8 +903,8 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
-	params := map[string]interface{}{
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *model.AppError {
+	params := map[string]any{
 		"Name":          t.Name,
 		"Filename":      t.Name,
 		"ChannelId":     t.ChannelId,
@@ -948,7 +953,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 
 	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
 

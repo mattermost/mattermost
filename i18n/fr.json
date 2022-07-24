@@ -7972,38 +7972,6 @@
     "translation": "Ajouter des applications à votre espace de travail"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Votre essai gratuit de 14 jours de Mattermost se termine bientôt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, votre essai de 14 jours de Mattermost se termine dans 3 jours, le {{.TrialEnd}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Fin de la version d'essai de Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Ajouter une méthode de paiement"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Votre essai gratuit de 14 jours de Mattermost a pris fin aujourd'hui"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, votre essai gratuit de 14 jours de Mattermost Cloud Enterprise a pris fin aujourd'hui, {{.TodayDate}}. Veuillez ajouter vos informations de paiement pour que votre équipe puisse continuer à profiter des avantages de la version Cloud Enterprise. Si vous n'ajoutez pas vos informations de paiement dans les 30 jours, votre espace de travail Cloud sera supprimé définitivement et vous perdrez toutes les données associées."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "La version d'essai de Mattermost Cloud est terminée"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Démarrer l'abonnement"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "La vérification des limites de l'image a échoué. La résolution est trop élevée."
   },
@@ -8969,5 +8937,433 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Aperçus est derrière un drapeau de fonctionnalité qui n'est pas activé."
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": " "
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": " "
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": " "
+  },
+  {
+    "id": "error",
+    "translation": " "
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": " "
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": " "
+  },
+  {
+    "id": "model.session.is_valid.roles_limit.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.valid_password_generic.app_error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.getAllTeamMembers.error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": " "
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": " "
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": " "
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": " "
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.getAllChannelMembers.error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": " "
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": " "
+  },
+  {
+    "id": "model.team_member.is_valid.roles_limit.app_error",
+    "translation": " "
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": " "
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": " "
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": " "
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.user.is_valid.roles_limit.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.session.is_valid.create_at.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": " "
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": " "
+  },
+  {
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": " "
+  },
+  {
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": " "
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": " "
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": " "
+  },
+  {
+    "id": "mfa.activate.app_error",
+    "translation": " "
+  },
+  {
+    "id": "mfa.deactivate.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": " "
+  },
+  {
+    "id": "model.session.is_valid.user_id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.session.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.channel_member.is_valid.roles_limit.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.user.is_valid.marshal.app_error",
+    "translation": " "
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": " "
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": " "
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": " "
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": " "
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": " "
   }
 ]

@@ -7736,10 +7736,6 @@
     "translation": "Dodaj aplikacje do swojego obszaru roboczego"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Twój darmowy 30-dniowy okres próbny Mattermost wkrótce się kończy"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Twoja subskrypcja Mattermost została przedłużona"
   },
@@ -7818,34 +7814,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
     "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak GitHub, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, Twój 30-dniowy okres próbny Mattermost Cloud Professional kończy się za 3 dni, w dniu {{.TrialEnd}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Zakończenie okresu próbnego chmury Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Dodaj metodę płatności"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Twój bezpłatny 30-dniowy okres próbny programu Mattermost dobiegł końca"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, twoja 30-dniowa bezpłatna wersja próbna Mattermost Cloud Enterprise zakończyła się w dniu {{.TodayDate}}. Mamy nadzieję, że spodobała Ci się nasza elastyczna i bezpieczna platforma współpracy. Prosimy o dodanie informacji o płatności, aby zespół mógł kontynuować współpracę z Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Zakończył się okres próbny chmury Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Rozpocznij Subskrypcję"
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9374,5 +9342,25 @@
   {
     "id": "api.insights.license_error",
     "translation": "Twoja licencja nie obsługuje funkcji Insights."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Administrator został już powiadomiony"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nie można przetworzyć wartości:{{.Value}} na int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Nie można pobrać postu, ponieważ przekroczony został limit planu chmury'y."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Błąd pobierania ostatniego dostępnego postu"
   }
 ]

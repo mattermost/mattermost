@@ -5146,6 +5146,22 @@ func (s *TimerLayerPostStore) GetMaxPostSize() int {
 	return result
 }
 
+func (s *TimerLayerPostStore) GetNthRecentPostTime(n int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetNthRecentPostTime(n)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetNthRecentPostTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetOldest() (*model.Post, error) {
 	start := time.Now()
 
@@ -9665,6 +9681,22 @@ func (s *TimerLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetProfilesInChannelByAdmin(options)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetProfilesInChannelByAdmin", success, elapsed)
 	}
 	return result, err
 }

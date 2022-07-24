@@ -21,7 +21,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
@@ -43,24 +42,24 @@ type hooksRPCClient struct {
 }
 
 type hooksRPCServer struct {
-	impl         interface{}
+	impl         any
 	muxBroker    *plugin.MuxBroker
 	apiRPCClient *apiRPCClient
 }
 
 // Implements hashicorp/go-plugin/plugin.Plugin interface to connect the hooks of a plugin
 type hooksPlugin struct {
-	hooks      interface{}
+	hooks      any
 	apiImpl    API
 	driverImpl Driver
 	log        *mlog.Logger
 }
 
-func (p *hooksPlugin) Server(b *plugin.MuxBroker) (interface{}, error) {
+func (p *hooksPlugin) Server(b *plugin.MuxBroker) (any, error) {
 	return &hooksRPCServer{impl: p.hooks, muxBroker: b}, nil
 }
 
-func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (interface{}, error) {
+func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, error) {
 	return &hooksRPCClient{client: client,
 		log:       p.log,
 		muxBroker: b,
@@ -158,13 +157,12 @@ func decodableError(err error) error {
 // Registering some types used by MM for encoding/gob used by rpc
 func init() {
 	gob.Register([]*model.SlackAttachment{})
-	gob.Register([]interface{}{})
-	gob.Register(map[string]interface{}{})
+	gob.Register([]any{})
+	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
 	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
-	gob.Register(&opengraph.OpenGraph{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
@@ -328,7 +326,7 @@ type Z_LoadPluginConfigurationArgsReturns struct {
 	A []byte
 }
 
-func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
+func (g *apiRPCClient) LoadPluginConfiguration(dest any) error {
 	_args := &Z_LoadPluginConfigurationArgsArgs{}
 	_returns := &Z_LoadPluginConfigurationArgsReturns{}
 	if err := g.client.Call("Plugin.LoadPluginConfiguration", _args, _returns); err != nil {
@@ -341,9 +339,9 @@ func (g *apiRPCClient) LoadPluginConfiguration(dest interface{}) error {
 }
 
 func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationArgsArgs, returns *Z_LoadPluginConfigurationArgsReturns) error {
-	var config interface{}
+	var config any
 	if hook, ok := s.impl.(interface {
-		LoadPluginConfiguration(dest interface{}) error
+		LoadPluginConfiguration(dest any) error
 	}); ok {
 		if err := hook.LoadPluginConfiguration(&config); err != nil {
 			return err
@@ -705,13 +703,13 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 
 type Z_LogDebugArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogDebugReturns struct {
 }
 
-func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
+func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
@@ -723,7 +721,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...interface{}) {
 
 func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogDebug(msg string, keyValuePairs ...interface{})
+		LogDebug(msg string, keyValuePairs ...any)
 	}); ok {
 		hook.LogDebug(args.A, args.B...)
 	} else {
@@ -734,13 +732,13 @@ func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns
 
 type Z_LogInfoArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogInfoReturns struct {
 }
 
-func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
+func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_LogInfoReturns{}
@@ -752,7 +750,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...interface{}) {
 
 func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogInfo(msg string, keyValuePairs ...interface{})
+		LogInfo(msg string, keyValuePairs ...any)
 	}); ok {
 		hook.LogInfo(args.A, args.B...)
 	} else {
@@ -763,13 +761,13 @@ func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) e
 
 type Z_LogWarnArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogWarnReturns struct {
 }
 
-func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
+func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_LogWarnReturns{}
@@ -781,7 +779,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...interface{}) {
 
 func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogWarn(msg string, keyValuePairs ...interface{})
+		LogWarn(msg string, keyValuePairs ...any)
 	}); ok {
 		hook.LogWarn(args.A, args.B...)
 	} else {
@@ -792,13 +790,13 @@ func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) e
 
 type Z_LogErrorArgs struct {
 	A string
-	B []interface{}
+	B []any
 }
 
 type Z_LogErrorReturns struct {
 }
 
-func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
+func (g *apiRPCClient) LogError(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_LogErrorArgs{msg, stringifiedPairs}
 	_returns := &Z_LogErrorReturns{}
@@ -809,7 +807,7 @@ func (g *apiRPCClient) LogError(msg string, keyValuePairs ...interface{}) {
 
 func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns) error {
 	if hook, ok := s.impl.(interface {
-		LogError(msg string, keyValuePairs ...interface{})
+		LogError(msg string, keyValuePairs ...any)
 	}); ok {
 		hook.LogError(args.A, args.B...)
 	} else {

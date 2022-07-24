@@ -42,7 +42,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		}
 	}
 	`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userId": "me",
 			"teamId": th.BasicTeam.Id,
 		},
@@ -83,7 +83,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		}
 	}
 	`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userId":      "me",
 			"teamId":      th.BasicTeam.Id,
 			"excludeTeam": true,
@@ -101,8 +101,8 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 	th.LinkUserToTeam(th.BasicUser, myTeam)
-	th.App.AddUserToChannel(th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 
 	input = graphQLInput{
 		OperationName: "sidebarCategories",
@@ -117,7 +117,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		}
 	}
 	`,
-		Variables: map[string]interface{}{
+		Variables: map[string]any{
 			"userId":      "me",
 			"teamId":      th.BasicTeam.Id,
 			"excludeTeam": true,

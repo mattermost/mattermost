@@ -4,7 +4,7 @@
 package product
 
 import (
-	"io"
+	"database/sql"
 
 	"github.com/gorilla/mux"
 
@@ -40,6 +40,7 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
@@ -48,7 +49,7 @@ type PermissionService interface {
 // The service shall be registered via app.ClusterKey key.
 type ClusterService interface {
 	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
-	PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+	PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by
@@ -60,6 +61,7 @@ type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
+	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -81,14 +83,15 @@ type UserService interface {
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
+	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 }
 
 // TeamService provides team related utilities.
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, error)
-	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, error)
+	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
+	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
 }
 
 // BotService is just a copy implementation of mattermost-plugin-api EnsureBot method.
@@ -132,12 +135,7 @@ type HooksService interface {
 //
 // The service shall be registered via app.FilestoreKey service key.
 type FilestoreService interface {
-	Reader(path string) (filestore.ReadCloseSeeker, error)
-	FileExists(path string) (bool, error)
-	CopyFile(oldPath, newPath string) error
-	MoveFile(oldPath, newPath string) error
-	WriteFile(fr io.Reader, path string) (int64, error)
-	RemoveFile(path string) error
+	filestore.FileBackend
 }
 
 // FileInfoStoreService is the API for accessing the file info store.
@@ -166,4 +164,18 @@ type KVStoreService interface {
 // The service shall be registered via app.LogKey service key.
 type LogService interface {
 	mlog.LoggerIFace
+}
+
+// StoreService is the API for accessing the Store service APIs.
+//
+// The service shall be registered via app.StoreKey service key.
+type StoreService interface {
+	GetMasterDB() *sql.DB
+}
+
+// SystemService is the API for accessing the System service APIs.
+//
+// The service shall be registered via app.SystemKey service key.
+type SystemService interface {
+	GetDiagnosticId() string
 }

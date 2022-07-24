@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -70,7 +71,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 
 		post := &model.Post{
-			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]interface{}{"TeamName": team.Name}),
+			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]any{"TeamName": team.Name}),
 			UserId:    systemBot.UserId,
 			ChannelId: channel.Id,
 			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
@@ -106,6 +107,10 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	return nil
 }
 
+// Ensure cloud service wrapper implements `product.CloudService`
+var _ product.CloudService = (*cloudWrapper)(nil)
+
+// cloudWrapper provides an implementation of `product.CloudService` for use by products.
 type cloudWrapper struct {
 	cloud einterfaces.CloudInterface
 }

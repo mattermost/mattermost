@@ -98,7 +98,7 @@ func (a *App) CreateUserWithToken(c *request.Context, user *model.User, token *m
 		return nil, err
 	}
 
-	a.AddDirectChannels(team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser)
 
 	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
@@ -137,7 +137,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 	}
 
 	if !users.CheckUserDomain(user, team.AllowedDomains) {
-		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
 	}
 
 	user.EmailVerified = false
@@ -151,7 +151,7 @@ func (a *App) CreateUserWithInviteId(c *request.Context, user *model.User, invit
 		return nil, err
 	}
 
-	a.AddDirectChannels(team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser)
 
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
@@ -319,7 +319,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	}
 	user, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]any{"Service": service}, err1.Error(), http.StatusInternalServerError)
 	}
 	if user.AuthService == "" {
 		user.AuthService = service
@@ -342,7 +342,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
 		if userByEmail.AuthService == "" {
-			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
+			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
 		if provider.IsSameUser(userByEmail, user) {
 			if _, err := a.Srv().Store.User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
@@ -351,7 +351,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 			}
 			return userByEmail, nil
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email+" authData="+*user.AuthData, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
@@ -367,7 +367,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 			return nil, err
 		}
 
-		err = a.AddDirectChannels(teamID, user)
+		err = a.AddDirectChannels(c, teamID, user)
 		if err != nil {
 			mlog.Warn("Failed to add direct channels", mlog.Err(err))
 		}
@@ -530,6 +530,15 @@ func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model
 	return users, nil
 }
 
+func (a *App) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetProfilesInChannelByAdmin(options)
+	if err != nil {
+		return nil, model.NewAppError("GetUsersInChannelByAdmin", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
 func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannel(options)
 	if err != nil {
@@ -556,6 +565,14 @@ func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool)
 
 func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	users, err := a.GetUsersInChannelByStatus(options)
+	if err != nil {
+		return nil, err
+	}
+	return a.sanitizeProfiles(users, asAdmin), nil
+}
+
+func (a *App) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannelByAdmin(options)
 	if err != nil {
 		return nil, err
 	}
@@ -888,14 +905,14 @@ func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError
 	return nil
 }
 
-func (a *App) invalidateUserChannelMembersCaches(userID string) *model.AppError {
+func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *model.AppError {
 	teamsForUser, err := a.GetTeamsForUser(userID)
 	if err != nil {
 		return err
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForTeamForUser(team.Id, userID, &model.ChannelSearchOpts{
+		channelsForUser, err := a.GetChannelsForTeamForUser(c, team.Id, userID, &model.ChannelSearchOpts{
 			IncludeDeleted: false,
 			LastDeleteAt:   0,
 		})
@@ -943,7 +960,7 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(user.Id)
+	a.invalidateUserChannelMembersCaches(c, user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
@@ -1575,7 +1592,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -1935,7 +1952,7 @@ func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model
 func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OAuthProvider, service string, tokenUser *model.User) *model.AppError {
 	oauthUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
-		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
 
 	userAttrsChanged := false
@@ -2168,7 +2185,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if err != nil {
 			mlog.Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
 		}
@@ -2192,7 +2209,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 
 // DemoteUserToGuest Convert user's roles and all his membership's roles from
 // regular user roles to guest roles.
-func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
+func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError {
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
@@ -2212,7 +2229,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
+		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if err != nil {
 			mlog.Warn("Failed to get channel members for users on demote user to guest", mlog.Err(err))
 			continue
@@ -2451,7 +2468,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	return nil
 }
 
-func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID string) *model.AppError {
+func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             true,
 		IncrementMentions:     false,
@@ -2472,7 +2489,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 	if appErr != nil {
 		return appErr
 	}
-	tm.UnreadMentions, appErr = a.countThreadMentions(user, post, teamID, post.CreateAt-1)
+	tm.UnreadMentions, appErr = a.countThreadMentions(c, user, post, teamID, post.CreateAt-1)
 	if appErr != nil {
 		return appErr
 	}
@@ -2493,7 +2510,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 	}
 	a.sanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
-	sanitizedPost, appErr := a.SanitizePostMetadataForUser(userThread.Post, userID)
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
 	if appErr != nil {
 		return appErr
 	}
@@ -2511,7 +2528,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(userID, teamID, threadID s
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
+func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -2542,10 +2559,10 @@ func (a *App) UpdateThreadReadForUserByPost(currentSessionId, userID, teamID, th
 		}
 	}
 
-	return a.UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID, lastViewed)
+	return a.UpdateThreadReadForUser(c, currentSessionId, userID, teamID, threadID, lastViewed)
 }
 
-func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
@@ -2570,7 +2587,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	if err != nil {
 		return nil, err
 	}
-	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamID, timestamp)
+	membership.UnreadMentions, err = a.countThreadMentions(c, user, post, teamID, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -2591,7 +2608,7 @@ func (a *App) UpdateThreadReadForUser(currentSessionId, userID, teamID, threadID
 	}
 
 	// Clear if user has read the messages
-	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(userID) {
+	if thread.UnreadReplies == 0 && a.IsCRTEnabledForUser(c, userID) {
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 

@@ -49,11 +49,13 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
@@ -102,6 +104,8 @@ const (
 	LogKey           ServiceKey = "log"
 	HooksKey         ServiceKey = "hooks"
 	KVStoreKey       ServiceKey = "kvstore"
+	StoreKey         ServiceKey = "storekey"
+	SystemKey        ServiceKey = "systemkey"
 )
 
 type Server struct {
@@ -391,7 +395,10 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	serviceMap := map[ServiceKey]interface{}{
+	// ensure app implements `product.UserService`
+	var _ product.UserService = (*App)(nil)
+
+	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.configStore,
 		LicenseKey:       s.licenseWrapper,
@@ -402,6 +409,8 @@ func NewServer(options ...Option) (*Server, error) {
 		LogKey:           s.GetLogger(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       &kvStoreWrapper{srv: s},
+		StoreKey:         store.NewStoreServiceAdapter(s.Store),
+		SystemKey:        &systemServiceAdapter{server: s},
 	}
 
 	// Step 8: Initialize products.
@@ -475,7 +484,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
-	s.createPushNotificationsHub()
+	s.createPushNotificationsHub(request.EmptyContext(s.GetLogger()))
 
 	if err2 := i18n.InitTranslations(*s.Config().LocalizationSettings.DefaultServerLocale, *s.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -648,7 +657,8 @@ func NewServer(options ...Option) (*Server, error) {
 	s.AddConfigListener(func(old, new *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
 		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
-			if appErr := appInstance.DeactivateGuests(request.EmptyContext()); appErr != nil {
+			c := request.EmptyContext(s.GetLogger())
+			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
@@ -657,7 +667,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.Config().GuestAccountsSettings.Enable {
 		appInstance := New(ServerConnector(s.Channels()))
-		if appErr := appInstance.DeactivateGuests(request.EmptyContext()); appErr != nil {
+		c := request.EmptyContext(s.GetLogger())
+		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
@@ -2041,6 +2052,12 @@ func (s *Server) initJobs() {
 		model.JobTypeExtractContent,
 		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
 		nil,
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeLastAccessiblePost,
+		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
 	)
 }
 

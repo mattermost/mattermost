@@ -7703,14 +7703,6 @@
     "translation": "Dein Enterprise Test ist jetzt aktiv. Erstelle einen Kanal und gehe zu **Systemkonsole > Benutzerverwaltung > Kanäle** um das Schreiben von Nachrichten auf Kanaladministratoren zu beschränken."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloud Test ist beendet"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Starte Abonnement"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Prüfung der Bildbeschränkungen ist fehlgeschlagen. Auflösung ist zu hoch."
   },
@@ -7921,30 +7913,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Apps zu deinem Arbeitsbereich hinzufügen"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Dein 30-tägiger Test von Mattermost endet bald"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, dein 30-tägiger freier Test von Mattermost endet in 3 Tagen, am {{.TrialEnd}}. Bitte füge deine Bezahlinformationen hinzu, um sicherzustellen, dass dein Team weiterhin die Vorteile von Mattermost Cloud genießen kann."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloud Test endet"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Bezahlmethode hinzufügen"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Dein 30-tägiger Test von Mattermost ist beendet"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, dein 30-tägiger kostenloser Test von Mattermost Cloud Enterprise endet am {{.TodayDate}}. Wir hoffen, dass dir unsere sichere und flexible Kollaborationsplattform gefallen hat. Bitte füge deine Zahlungsinformationen hinzu, damit dein Team weiter mit Mattermost zusammenarbeiten kann."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
@@ -9276,7 +9244,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": "Hinter Insights verbirgt sich ein Feature-Flag, das nicht aktiviert ist."
+    "translation": "Insights wird durch ein Feature-Flag verborgen, das nicht aktiviert ist."
   },
   {
     "id": "app.channel.get_top_for_user_since.app_error",
@@ -9373,5 +9341,29 @@
   {
     "id": "api.insights.license_error",
     "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Ein Mitglied von {{.TeamName}} hat dich benachrichtigt den Arbeitsbereich upzugraden."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Administrator schon benachrichtigt"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Der Wert konnte nicht geparst werden: {{.Value}} nach int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Der Beitrag kann nicht abgerufen werden, da er das Limit des Cloud-Plans überschreitet."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fehler beim Abrufen des letzten zugänglichen Beitrags"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Fehlschlag bei Erstellen von Dateiinformationen aus hochgeladenen Daten."
   }
 ]

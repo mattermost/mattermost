@@ -185,7 +185,7 @@ func TestAddUserToTeam(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategoriesForTeamForUser(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -270,7 +270,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
 		assert.Len(t, members, 2)
 	})
@@ -370,7 +370,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
@@ -429,7 +429,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, user.Id, token.Token)
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategoriesForTeamForUser(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -670,7 +670,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.Nil(t, err, "Should create a team")
 
 	defer func() {
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 
 	command, err := th.App.CreateCommand(&model.Command{
@@ -687,7 +687,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.NotNil(t, command, "command should not be nil")
 	require.Nil(t, err, "unable to get new command")
 
-	err = th.App.PermanentDeleteTeam(team)
+	err = th.App.PermanentDeleteTeam(th.Context, team)
 	require.Nil(t, err)
 
 	command, err = th.App.GetCommand(command.Id)
@@ -697,18 +697,18 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	// Test deleting a team with no channels.
 	team = th.CreateTeam()
 	defer func() {
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 
-	channels, err := th.App.GetPublicChannelsForTeam(team.Id, 0, 1000)
+	channels, err := th.App.GetPublicChannelsForTeam(th.Context, team.Id, 0, 1000)
 	require.Nil(t, err)
 
 	for _, channel := range channels {
-		err2 := th.App.PermanentDeleteChannel(channel)
+		err2 := th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, err2)
 	}
 
-	err = th.App.PermanentDeleteTeam(team)
+	err = th.App.PermanentDeleteTeam(th.Context, team)
 	require.Nil(t, err)
 }
 
@@ -929,7 +929,7 @@ func TestJoinUserToTeam(t *testing.T) {
 	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = maxUsersPerTeam })
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 	one := 1
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = &one })
@@ -1250,7 +1250,7 @@ func TestGetTeamStats(t *testing.T) {
 		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
 		require.Nil(t, err)
 		require.NotNil(t, teamStats)
-		members, err := th.App.GetChannelMembersPage(th.BasicChannel.Id, 0, 5)
+		members, err := th.App.GetChannelMembersPage(th.Context, th.BasicChannel.Id, 0, 5)
 		require.Nil(t, err)
 		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
 		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)

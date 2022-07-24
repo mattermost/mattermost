@@ -8668,22 +8668,6 @@
     "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigt binnenkort"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 30-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud proefperiode eindigt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Betalingsmethode toevoegen"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Een weergavenaam voor de beveiligde verbinding"
   },
@@ -8694,22 +8678,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kan geen automatisch antwoord van gebruiker sturen."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigde"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, jouw 30-daagse gratis proefperiode van Mattermost Cloud Enterprise is beëindigd op {{.TodayDate}}. We hopen dat je genoot van ons flexibel en veilig samenwerkingsplatform. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven samenwerken met Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud proefperiode is afgelopen"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start abonnement"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9365,5 +9333,37 @@
   {
     "id": "api.insights.license_error",
     "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Kan het bericht niet ophalen omdat het de limiet van het cloud plan overschreden is."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Reeds verwittigde admin"
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
   }
 ]

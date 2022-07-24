@@ -408,7 +408,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		_, _, errr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, errr)
 
-		_, errr = th.App.AddUserToChannel(guest, th.BasicChannel, false)
+		_, errr = th.App.AddUserToChannel(th.Context, guest, th.BasicChannel, false)
 		require.Nil(t, errr)
 
 		guestClient := th.CreateClient()
@@ -1603,7 +1603,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	gc1, appErr := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
+	gc1, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	usersByChannelId, _, err := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
@@ -2124,7 +2124,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, rTeam)
 
-		rChannel, appErr := th.App.GetChannel(channel.Id)
+		rChannel, appErr := th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, rChannel)
 	})
@@ -2627,9 +2627,9 @@ func TestGetUsersInChannel(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		})
 		require.NoError(t, appErr)
-		_, aErr := th.App.AddUserToChannel(th.BasicUser, channel, false)
+		_, aErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 		require.Nil(t, aErr)
-		_, aErr = th.App.AddUserToChannel(th.BasicUser2, channel, false)
+		_, aErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
 		require.Nil(t, aErr)
 		th.SystemAdminClient.DeleteChannel(channel.Id)
 
@@ -5228,7 +5228,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		_, err = c.PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
 
-		defer require.Nil(t, th.App.DemoteUserToGuest(user))
+		defer require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
 	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
@@ -5371,11 +5371,11 @@ func TestGetKnownUsers(t *testing.T) {
 	th.LinkUserToTeam(u3, t2)
 	th.LinkUserToTeam(u4, t3)
 
-	th.App.AddUserToChannel(u1, c1, false)
-	th.App.AddUserToChannel(u1, c2, false)
-	th.App.AddUserToChannel(u2, c1, false)
-	th.App.AddUserToChannel(u3, c2, false)
-	th.App.AddUserToChannel(u4, c3, false)
+	th.App.AddUserToChannel(th.Context, u1, c1, false)
+	th.App.AddUserToChannel(th.Context, u1, c2, false)
+	th.App.AddUserToChannel(th.Context, u2, c1, false)
+	th.App.AddUserToChannel(th.Context, u3, c2, false)
+	th.App.AddUserToChannel(th.Context, u4, c3, false)
 
 	t.Run("get know users sharing no channels", func(t *testing.T) {
 		_, _, _ = th.Client.Login(u4.Email, u4.Password)
@@ -6214,7 +6214,7 @@ func TestFollowThreads(t *testing.T) {
 
 	t.Run("No permission to channel", func(t *testing.T) {
 		// Add user1 to private channel
-		_, appErr := th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel2, false)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel2, false)
 		require.Nil(t, appErr)
 		defer th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", th.BasicPrivateChannel2)
 

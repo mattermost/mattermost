@@ -54,7 +54,7 @@ func TestExportPermissions(t *testing.T) {
 
 	firstResult := results[0]
 
-	var row map[string]interface{}
+	var row map[string]any
 	err = json.Unmarshal(firstResult, &row)
 	if err != nil {
 		t.Error(err)

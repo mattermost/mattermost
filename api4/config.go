@@ -115,6 +115,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
+
+	// auditRec.AddEventParameter("config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -164,7 +166,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -187,7 +189,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs.Sanitize())
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 
@@ -201,6 +203,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	auditRec.AddEventObjectType("config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
@@ -281,7 +285,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
 		return
 	}
 
@@ -289,7 +293,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if cfg.PluginSettings.MarketplaceURL != nil && cfg.PluginSettings.EnableUploads != nil {
 		// Breaking it down to 2 conditions to make it simple.
 		if *cfg.PluginSettings.MarketplaceURL != *appCfg.PluginSettings.MarketplaceURL && !*cfg.PluginSettings.EnableUploads {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -302,7 +306,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -337,7 +341,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs.Sanitize())
+
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 

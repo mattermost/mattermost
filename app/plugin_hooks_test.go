@@ -885,7 +885,7 @@ func TestErrorString(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				return model.NewAppError("where", "id", map[string]interface{}{"param": 1}, "details", 42)
+				return model.NewAppError("where", "id", map[string]any{"param": 1}, "details", 42)
 			}
 
 			func main() {
@@ -912,6 +912,7 @@ func TestHookContext(t *testing.T) {
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API
