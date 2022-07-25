@@ -9362,5 +9362,13 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Błąd pobierania ostatniego dostępnego postu"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu {{.Value}}. Powinna być liczbą dodatnią."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nie udało się wygenerować informacji o pliku z przesłanych danych."
   }
 ]
