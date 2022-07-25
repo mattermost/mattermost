@@ -1444,5 +1444,5 @@ func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 		return 0, nil
 	}
 
-	return int64(*limits.Files.TotalStorage), nil
+	return *limits.Files.TotalStorage, nil
 }
