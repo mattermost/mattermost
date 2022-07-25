@@ -2182,6 +2182,13 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 	})
 }
 
+func assertWebsocketEventUserSessionRevoked(t *testing.T, client *model.WebSocketClient, userId string) {
+	assertExpectedWebsocketEvent(t, client, model.WebsocketEventSessionRevoked, func(event *model.WebSocketEvent) {
+		ws := event.GetBroadcast()
+		assert.Equal(t, userId, ws.UserId)
+	})
+}
+
 func TestUpdateUserActive(t *testing.T) {
 	t.Run("basic tests", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -3169,8 +3176,22 @@ func TestRevokeAllSessions(t *testing.T) {
 	sessions, _, _ := th.Client.GetSessions(user.Id, "")
 	require.NotEmpty(t, sessions, "session should exist")
 
+	// Start a WebSocket listner
+	webSocketClient, err := th.CreateWebSocketClient()
+	assert.NoError(t, err)
+	defer webSocketClient.Close()
+
+	webSocketClient.Listen()
+
+	time.Sleep(300 * time.Millisecond)
+	wsResp := <-webSocketClient.ResponseChannel
+	require.Equal(t, model.StatusOk, wsResp.Status)
+
 	_, err = th.Client.RevokeAllSessions(user.Id)
 	require.NoError(t, err)
+
+	// Check if WS Event came through
+	assertWebsocketEventUserSessionRevoked(t, webSocketClient, user.Id)
 
 	sessions, _, _ = th.SystemAdminClient.GetSessions(user.Id, "")
 	require.Empty(t, sessions, "no sessions should exist for user")
@@ -3204,8 +3225,22 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
+
+	// Start a WebSocket listner
+	webSocketClient, err := th.CreateWebSocketClient()
+	assert.NoError(t, err)
+	defer webSocketClient.Close()
+
+	webSocketClient.Listen()
+
+	time.Sleep(300 * time.Millisecond)
+	wsResp := <-webSocketClient.ResponseChannel
+	require.Equal(t, model.StatusOk, wsResp.Status)
+
 	_, err = th.Client.RevokeSessionsFromAllUsers()
 	require.NoError(t, err)
+
+	assertWebsocketEventUserSessionRevoked(t, webSocketClient, "")
 
 	// All sessions were revoked, so making the same call
 	// again will fail due to lack of a session.
