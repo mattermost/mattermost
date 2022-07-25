@@ -90,9 +90,25 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type NewTeamMembersList struct {
+	InsightsListData
+	Items      []*NewTeamMember `json:"items"`
+	TotalCount int64            `json:"total_count"`
+}
+
+type NewTeamMember struct {
+	Id        string
+	Username  string
+	FirstName string
+	LastName  string
+	Nickname  string
+	Position  string
+	CreateAt  int64
+}
+
 type DurationPostCount struct {
 	ChannelID string `db:"channelid"`
-	// Duration is an ISO8601 date string representing either a day or a day and hour (ex. "2022-05-26" or "2022-05-26T14").
+	// Duration is an ISO8601 date string.
 	Duration  string `db:"duration"`
 	PostCount int    `db:"postcount"`
 }
@@ -242,4 +258,14 @@ func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadL
 	}
 
 	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
+}
+
+func GetNewTeamMembersListWithPagination(teamMembers []*NewTeamMember, limit int) *NewTeamMembersList {
+	var hasNext bool
+	if (limit != 0) && (len(teamMembers) == limit+1) {
+		hasNext = true
+		teamMembers = teamMembers[:len(teamMembers)-1]
+	}
+
+	return &NewTeamMembersList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: teamMembers}
 }

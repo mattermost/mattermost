@@ -2103,3 +2103,16 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 		page++
 	}
 }
+
+func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.InsightsOpts) (*model.NewTeamMembersList, int64, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	ntms, count, err := a.Srv().Store.Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.post.get_new_team_members_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return ntms, count, nil
+}
