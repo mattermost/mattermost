@@ -823,7 +823,9 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.TeamSettings.EnableUserDeactivation = true
+	})
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -920,5 +922,18 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(1))
+	})
+	// deactivate basicuser1
+	_, err = th.Client.DeleteUser(basicUser1.Id)
+	require.NoError(t, err)
+	// deactivated users DMs should show in topDMs
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, err)
+		require.Len(t, topDMs.Items, 2)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 	})
 }
