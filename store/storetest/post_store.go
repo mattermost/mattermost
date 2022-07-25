@@ -3871,9 +3871,13 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	_, err := ss.User().Save(&user)
+	require.NoError(t, err)
 	_, err = ss.User().Save(&u1)
+	require.NoError(t, err)
 	_, err = ss.User().Save(&u2)
+	require.NoError(t, err)
 	_, err = ss.User().Save(&u3)
+	require.NoError(t, err)
 	_, err = ss.User().Save(&u4)
 	require.NoError(t, err)
 	// user direct messages
