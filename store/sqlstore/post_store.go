@@ -3003,26 +3003,41 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	}
 
 	// fill SecondParticipant column
-	topDMs = postProcessTopDMs(userID, topDMs)
+	topDMs, err = postProcessTopDMs(s, userID, topDMs)
+	if err != nil {
+		return nil, err
+	}
 	return model.GetTopDMListWithPagination(topDMs, limit), nil
 }
 
-func postProcessTopDMs(userID string, topDMs []*model.TopDM) []*model.TopDM {
+func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([]*model.TopDM, error) {
+	var topDMsFiltered = []*model.TopDM{}
 	for _, topDM := range topDMs {
 		participants := strings.Split(topDM.Participants, ",")
 		if len(participants) == 1 {
 			// chatting to self
 			topDM.SecondParticipant = userID
-			continue
 		} else {
 			// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
 			topDM.MessageCount = topDM.MessageCount / 2
+
+			if participants[0] == userID {
+				topDM.SecondParticipant = participants[1]
+			} else {
+				topDM.SecondParticipant = participants[0]
+			}
+
+			// filter topDM out if second user is bot
+			users, err := s.User().GetProfileByIds(context.Background(), []string{topDM.SecondParticipant}, &store.UserGetByIdsOpts{}, true)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant)
+			}
+			if users[0].IsBot {
+				continue
+			}
 		}
-		if participants[0] == userID {
-			topDM.SecondParticipant = participants[1]
-		} else {
-			topDM.SecondParticipant = participants[0]
-		}
+
+		topDMsFiltered = append(topDMsFiltered, topDM)
 	}
-	return topDMs
+	return topDMsFiltered, nil
 }

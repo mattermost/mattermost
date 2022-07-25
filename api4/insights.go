@@ -339,7 +339,7 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 
-	topDMs, err := c.App.GetTopDMsForUserSince(c.AppContext.Session().UserId, &model.InsightsOpts{
+	topDMs, err := c.App.GetTopDMsForUserSince(user.Id, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
