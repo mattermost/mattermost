@@ -155,11 +155,6 @@ func (s *Store) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	return removeEnvOverrides(cfg, s.configNoEnv, s.GetEnvironmentOverrides())
 }
 
-// ApplyEnvironmentOverrides applies environment overrides to the passed config.
-func (s *Store) ApplyEnvironmentOverrides(cfg *model.Config) *model.Config {
-	return applyEnvironmentMap(cfg, GetEnvironment())
-}
-
 // SetReadOnlyFF sets whether feature flags should be written out to
 // config or treated as read-only.
 func (s *Store) SetReadOnlyFF(readOnly bool) {
@@ -189,6 +184,10 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 	// data from the existing config as necessary.
 	desanitize(oldCfg, newCfg)
 
+	// We apply back environment overrides since the input config may or
+	// may not have them applied.
+	newCfg = applyEnvironmentMap(newCfg, GetEnvironment())
+
 	if err := newCfg.IsValid(); err != nil {
 		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
@@ -214,13 +213,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 		return nil, nil, errors.Wrap(err, "failed to persist")
 	}
 
-	// We apply back environment overrides since the input config may or
-	// may not have them applied.
-	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
 	fixConfig(newCfg)
-	if err := newCfg.IsValid(); err != nil {
-		return nil, nil, errors.Wrap(err, "new configuration is invalid")
-	}
 
 	hasChanged, err := equal(oldCfg, newCfg)
 	if err != nil {

@@ -165,11 +165,6 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 
 		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)
 	})
-
-	t.Run("check environment override", func(t *testing.T) {
-		new := base.ApplyEnvironmentOverrides(originalConfig)
-		assert.Equal(t, "http://overridden.ca", *new.ServiceSettings.SiteURL)
-	})
 }
 
 func TestRemoveEnvironmentOverrides(t *testing.T) {
