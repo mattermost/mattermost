@@ -511,7 +511,7 @@ func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset 
 		return nil, err
 	}
 
-	var posts []*model.PostWithExtra
+	var posts []*model.PostWithCRTMetadata
 	if err := s.GetReplicaX().Select(&posts, query, queryArgs...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
@@ -553,7 +553,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var post model.PostWithExtra
+	var post model.PostWithCRTMetadata
 
 	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
@@ -651,7 +651,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.PrepareThreadedResponse([]*model.PostWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
+	list, err := s.PrepareThreadedResponse([]*model.PostWithCRTMetadata{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1050,7 +1050,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	return nil
 }
 
-func (s *SqlPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *SqlPostStore) PrepareThreadedResponse(posts []*model.PostWithCRTMetadata, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1079,7 +1079,7 @@ func (s *SqlPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, ext
 		}
 	}
 
-	processPost := func(p *model.PostWithExtra) error {
+	processPost := func(p *model.PostWithCRTMetadata) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
 		if p.IsFollowing != nil {
 			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
@@ -1124,7 +1124,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var posts []*model.PostWithExtra
+	var posts []*model.PostWithCRTMetadata
 	offset := options.PerPage * options.Page
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
@@ -1209,7 +1209,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
 		"ThreadMemberships.Following as IsFollowing",
 	)
-	var posts []*model.PostWithExtra
+	var posts []*model.PostWithCRTMetadata
 
 	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
@@ -1417,7 +1417,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	offset := options.Page * options.PerPage
-	posts := []*model.PostWithExtra{}
+	posts := []*model.PostWithCRTMetadata{}
 	parents := []*model.Post{}
 
 	var direction string
@@ -2075,7 +2075,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		return nil, err
 	}
 
-	var posts []*model.PostWithExtra
+	var posts []*model.PostWithCRTMetadata
 
 	if err := s.GetSearchReplicaX().Select(&posts, searchQuery, searchQueryArgs...); err != nil {
 		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))

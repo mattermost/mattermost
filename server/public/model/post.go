@@ -148,7 +148,7 @@ type PostEphemeral struct {
 	Post   *Post  `json:"post"`
 }
 
-type PostWithExtra struct {
+type PostWithCRTMetadata struct {
 	ThreadReplyCount   int64
 	IsFollowing        *bool
 	ThreadParticipants StringArray

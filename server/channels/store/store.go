@@ -404,12 +404,12 @@ type PostStore interface {
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
+	PrepareThreadedResponse(posts []*model.PostWithCRTMetadata, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
 
 	// Insights - top DMs
 	GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error)
-	PrepareThreadedResponse(posts []*model.PostWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 }
 
 type UserStore interface {

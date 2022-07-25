@@ -7529,7 +7529,7 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(userID string) error {
 
 }
 
-func (s *RetryLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithCRTMetadata, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
 	for {

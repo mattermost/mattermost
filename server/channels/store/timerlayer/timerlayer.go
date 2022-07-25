@@ -6020,7 +6020,7 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userID string) error {
 	return err
 }
 
-func (s *TimerLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) PrepareThreadedResponse(posts []*model.PostWithCRTMetadata, extended bool, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
 	result, err := s.PostStore.PrepareThreadedResponse(posts, extended, reversed, sanitizeOptions)

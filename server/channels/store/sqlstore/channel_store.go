@@ -854,7 +854,7 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string, userID string) (*model
 		return nil, err
 	}
 
-	posts := []*model.PostWithExtra{}
+	posts := []*model.PostWithCRTMetadata{}
 	if err := s.GetReplicaX().Select(&posts, query, queryArgs...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
