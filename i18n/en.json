@@ -4812,6 +4812,10 @@
     "translation": "Failed to add file to zip archive during export."
   },
   {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Can not fetch the file as it is past the cloud's plan limit."
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
@@ -5818,10 +5822,6 @@
   {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "app.file.cloud.get.app_error",
-    "translation": "Can not fetch the file as it is past the cloud's plan limit."
   },
   {
     "id": "app.post.cloud.get.app_error",
