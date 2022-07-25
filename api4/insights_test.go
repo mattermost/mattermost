@@ -907,8 +907,8 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	t.Run("get top dms for basic user 1", func(t *testing.T) {
 		th.LoginBasic()
 		client = th.Client
-		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
-		require.NoError(t, err)
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
@@ -918,8 +918,8 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	t.Run("get top dms for basic user 2", func(t *testing.T) {
 		th.LoginBasic2()
 		client = th.Client
-		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
-		require.NoError(t, err)
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(1))
 	})
@@ -930,8 +930,8 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	t.Run("get top dms for basic user 1", func(t *testing.T) {
 		th.LoginBasic()
 		client = th.Client
-		topDMs, _, err := client.GetTopDMsForUserSince("today", 0, 100)
-		require.NoError(t, err)
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
