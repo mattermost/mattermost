@@ -1154,38 +1154,48 @@ func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 }
 
 func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().getFileInfo(fileID)
-	if err == nil {
-		a.generateMiniPreview(fileInfo)
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr != nil {
+		return nil, appErr
 	}
-	return fileInfo, err
+
+	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(fileInfo)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if firstInaccessibleFileTime > 0 {
+		return nil, model.NewAppError("GetFileInfo", "app.file.cloud.get.app_error", nil, "", http.StatusForbidden)
+	}
+
+	a.generateMiniPreview(fileInfo)
+	return fileInfo, appErr
 }
 
-func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var ltErr *store.ErrLimitExceeded
 		switch {
 		case errors.As(err, &invErr):
-			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &ltErr):
-			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
 		default:
-			return nil, 0, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	fileInfos, firstInaccessibleFileTime, appErr := a.getFilteredAccessibleFiles(fileInfos, filterPostOptions{
+	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterPostOptions{
 		assumeSortedCreatedAt: opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated,
 	})
 	if appErr != nil {
-		return nil, 0, appErr
+		return nil, appErr
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
 
-	return fileInfos, firstInaccessibleFileTime, nil
+	return fileInfos, nil
 }
 
 func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
