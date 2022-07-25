@@ -185,6 +185,6 @@ require (
 exclude (
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
-	github.com/willf/bitset v1.2.0
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
+	github.com/willf/bitset v1.2.0
 )
