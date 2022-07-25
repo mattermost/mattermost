@@ -824,36 +824,58 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	// basicuser1 - bu1, basicuser - bu
-	// create dm channels for  bu-bu, bu1-bu1, bu-bu1
+	// create dm channels for  bu-bu, bu1-bu1, bu-bu1, bot-bu
 	basicUser := th.BasicUser
 	basicUser1 := th.BasicUser2
 
 	th.LoginBasic2()
 	client := th.Client
-	channelBu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
+	channelBu1Bu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
 	require.NoError(t, err)
 
 	th.LoginBasic()
 	client = th.Client
-	channelBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
+	channelBuBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
 	require.NoError(t, err)
-	channelBu12, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
+	channelBuBu1, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
+	require.NoError(t, err)
+
+	// bot creation with permission
+	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserRoleId, false)
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	createdBot, resp, err := th.Client.CreateBot(bot)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(createdBot.UserId)
+	channelBuBot, _, err := client.CreateDirectChannel(basicUser.Id, createdBot.UserId)
 	require.NoError(t, err)
 
 	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
 	postsGenConfig := []map[string]interface{}{
 		{
-			"chId":      channelBu.Id,
+			"chId":      channelBuBu.Id,
 			"postCount": 2,
 		},
 		{
-			"chId":      channelBu1.Id,
+			"chId":      channelBu1Bu1.Id,
 			"postCount": 1,
 		},
 		{
-			"chId":      channelBu12.Id,
+			"chId":      channelBuBu1.Id,
+			"postCount": 3,
+		},
+		{
+			"chId":      channelBuBot.Id,
 			"postCount": 3,
 		},
 	}
@@ -861,7 +883,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	for _, postGen := range postsGenConfig {
 		postCount := postGen["postCount"].(int)
 		for i := 0; i < postCount; i++ {
-			if postGen["chId"] == channelBu1.Id {
+			if postGen["chId"] == channelBu1Bu1.Id {
 				th.LoginBasic2()
 				client = th.Client
 				userId := basicUser1.Id
