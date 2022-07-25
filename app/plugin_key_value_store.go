@@ -10,10 +10,15 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
+// Ensure KV store wrapper implements `product.KVStoreService`
+var _ product.KVStoreService = (*kvStoreWrapper)(nil)
+
+// kvStoreWrapper provides an implementation of `product.KVStoreService` for use by products.
 type kvStoreWrapper struct {
 	srv *Server
 }

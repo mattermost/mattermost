@@ -216,7 +216,7 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster)
+	return a.GetFileInfosForPost(post.Id, fromMaster, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {

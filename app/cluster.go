@@ -7,8 +7,13 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
+// ensure cluster service wrapper implements `product.ClusterService`
+var _ product.ClusterService = (*clusterWrapper)(nil)
+
+// clusterWrapper provides an implementation of `product.ClusterService` for use by products.
 type clusterWrapper struct {
 	srv *Server
 }

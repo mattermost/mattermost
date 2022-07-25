@@ -770,6 +770,44 @@ func TestPluginPanicLogs(t *testing.T) {
 	})
 }
 
+func TestPluginStatusActivateError(t *testing.T) {
+	t.Run("should return error from OnActivate in plugin statuses", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		pluginSource := `
+		package main
+
+		import (
+			"errors"
+
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			return errors.New("sample error")
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{pluginSource}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		env := th.App.GetPluginsEnvironment()
+		pluginStatus, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, pluginStatus, 1)
+		require.Equal(t, "sample error", pluginStatus[0].Error)
+	})
+}
+
 func TestProcessPrepackagedPlugins(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

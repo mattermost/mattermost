@@ -73,15 +73,16 @@ func runBackendTest(t *testing.T, encrypt bool) {
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
-			DriverName:              driverS3,
-			AmazonS3AccessKeyId:     "minioaccesskey",
-			AmazonS3SecretAccessKey: "miniosecretkey",
-			AmazonS3Bucket:          "mattermost-test",
-			AmazonS3Region:          "",
-			AmazonS3Endpoint:        s3Endpoint,
-			AmazonS3PathPrefix:      "",
-			AmazonS3SSL:             false,
-			AmazonS3SSE:             encrypt,
+			DriverName:                         driverS3,
+			AmazonS3AccessKeyId:                "minioaccesskey",
+			AmazonS3SecretAccessKey:            "miniosecretkey",
+			AmazonS3Bucket:                     "mattermost-test",
+			AmazonS3Region:                     "",
+			AmazonS3Endpoint:                   s3Endpoint,
+			AmazonS3PathPrefix:                 "",
+			AmazonS3SSL:                        false,
+			AmazonS3SSE:                        encrypt,
+			AmazonS3RequestTimeoutMilliseconds: 5000,
 		},
 	})
 }

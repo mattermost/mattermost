@@ -9353,10 +9353,10 @@
   },
   {
     "id": "app.upload.upload_data.gen_info.app_error",
-    "translation": " "
+    "translation": "アップロードされたデータからファイル情報を生成できませんでした。"
   },
   {
     "id": "app.post.cloud.get.app_error",
-    "translation": " "
+    "translation": "クラウドプランの制限を超えているため投稿を取得できません。"
   }
 ]
