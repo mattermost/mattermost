@@ -9365,5 +9365,9 @@
   {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Fehlschlag bei Erstellen von Dateiinformationen aus hochgeladenen Daten."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Ungültiger Timeoutwert {{.Value}}. Muss eine positive Zahl sein."
   }
 ]
