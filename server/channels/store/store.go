@@ -237,7 +237,7 @@ type ChannelStore interface {
 	GetPinnedPostCount(channelID string, allowFromCache bool) (int64, error)
 	InvalidateGuestCount(channelID string)
 	GetGuestCount(channelID string, allowFromCache bool) (int64, error)
-	GetPinnedPosts(channelID string) (*model.PostList, error)
+	GetPinnedPosts(channelID string, userID string) (*model.PostList, error)
 	RemoveMember(channelID string, userID string) error
 	RemoveMembers(channelID string, userIds []string) error
 	PermanentDeleteMembersByUser(userID string) error

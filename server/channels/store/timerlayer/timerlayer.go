@@ -1552,10 +1552,10 @@ func (s *TimerLayerChannelStore) GetPinnedPostCount(channelID string, allowFromC
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetPinnedPosts(channelID string) (*model.PostList, error) {
+func (s *TimerLayerChannelStore) GetPinnedPosts(channelID string, userID string) (*model.PostList, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetPinnedPosts(channelID)
+	result, err := s.ChannelStore.GetPinnedPosts(channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

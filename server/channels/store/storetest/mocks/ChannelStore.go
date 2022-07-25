@@ -1495,25 +1495,25 @@ func (_m *ChannelStore) GetPinnedPostCount(channelID string, allowFromCache bool
 	return r0, r1
 }
 
-// GetPinnedPosts provides a mock function with given fields: channelID
-func (_m *ChannelStore) GetPinnedPosts(channelID string) (*model.PostList, error) {
-	ret := _m.Called(channelID)
+// GetPinnedPosts provides a mock function with given fields: channelID, userID
+func (_m *ChannelStore) GetPinnedPosts(channelID string, userID string) (*model.PostList, error) {
+	ret := _m.Called(channelID, userID)
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.PostList, error)); ok {
-		return rf(channelID)
+	if rf, ok := ret.Get(0).(func(string, string) (*model.PostList, error)); ok {
+		return rf(channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.PostList); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(string, string) *model.PostList); ok {
+		r0 = rf(channelID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

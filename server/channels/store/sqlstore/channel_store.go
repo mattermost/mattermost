@@ -832,14 +832,16 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
+func (s SqlChannelStore) GetPinnedPosts(channelId string, userID string) (*model.PostList, error) {
 	builder := s.getQueryBuilder().Select(
 		"p.*",
 		"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
 		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 		"COALESCE(Threads.Participants, '[]') as ThreadParticipants",
+		"ThreadMemberships.Following as IsFollowing",
 	).From("Posts p").
 		LeftJoin("Threads ON Threads.PostId = p.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{
 			"p.IsPinned":  true,
 			"p.ChannelId": channelId,

@@ -1874,11 +1874,11 @@ func (s *RetryLayerChannelStore) GetPinnedPostCount(channelID string, allowFromC
 
 }
 
-func (s *RetryLayerChannelStore) GetPinnedPosts(channelID string) (*model.PostList, error) {
+func (s *RetryLayerChannelStore) GetPinnedPosts(channelID string, userID string) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetPinnedPosts(channelID)
+		result, err := s.ChannelStore.GetPinnedPosts(channelID, userID)
 		if err == nil {
 			return result, nil
 		}

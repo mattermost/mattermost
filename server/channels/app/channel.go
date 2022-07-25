@@ -3299,7 +3299,7 @@ func (a *App) RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *mode
 }
 
 func (a *App) GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store().Channel().GetPinnedPosts(channelID)
+	posts, err := a.Srv().Store().Channel().GetPinnedPosts(channelID, c.Session().UserId)
 	if err != nil {
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

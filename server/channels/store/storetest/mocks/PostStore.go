@@ -1082,6 +1082,10 @@ func (_m *PostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, exten
 	ret := _m.Called(posts, extended, reversed, sanitizeOptions)
 
 	var r0 *model.PostList
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.PostWithExtra, bool, bool, map[string]bool) (*model.PostList, error)); ok {
+		return rf(posts, extended, reversed, sanitizeOptions)
+	}
 	if rf, ok := ret.Get(0).(func([]*model.PostWithExtra, bool, bool, map[string]bool) *model.PostList); ok {
 		r0 = rf(posts, extended, reversed, sanitizeOptions)
 	} else {
@@ -1090,7 +1094,6 @@ func (_m *PostStore) PrepareThreadedResponse(posts []*model.PostWithExtra, exten
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func([]*model.PostWithExtra, bool, bool, map[string]bool) error); ok {
 		r1 = rf(posts, extended, reversed, sanitizeOptions)
 	} else {

@@ -6955,15 +6955,19 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	o1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
+	user, err := ss.User().Save(&model.User{Email: MakeEmail()})
+	require.NoError(t, err)
+	userID := user.Id
+
 	p1, err := ss.Post().Save(&model.Post{
-		UserId:    model.NewId(),
+		UserId:    userID,
 		ChannelId: o1.Id,
 		Message:   "test",
 		IsPinned:  true,
 	})
 	require.NoError(t, err)
 
-	pl, errGet := ss.Channel().GetPinnedPosts(o1.Id)
+	pl, errGet := ss.Channel().GetPinnedPosts(o1.Id, userID)
 	require.NoError(t, errGet, errGet)
 	require.NotNil(t, pl.Posts[p1.Id], "didn't return relevant pinned posts")
 
@@ -6984,7 +6988,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	pl, errGet = ss.Channel().GetPinnedPosts(o2.Id)
+	pl, errGet = ss.Channel().GetPinnedPosts(o2.Id, userID)
 	require.NoError(t, errGet, errGet)
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
@@ -7030,7 +7034,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		posts, err := ss.Channel().GetPinnedPosts(channel.Id)
+		posts, err := ss.Channel().GetPinnedPosts(channel.Id, userId)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 3)
 		assert.Equal(t, int64(1), posts.Posts[post1.Id].ReplyCount)
