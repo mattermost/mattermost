@@ -103,7 +103,7 @@ func (c *Client4) boolString(value bool) string {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }

@@ -6,7 +6,6 @@ package slashcommands
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"regexp"
@@ -507,7 +506,7 @@ func (*LoadTestProvider) URLCommand(a *app.App, c *request.Context, args *model.
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, r.Body)
+		io.Copy(io.Discard, r.Body)
 		r.Body.Close()
 	}()
 
@@ -565,7 +564,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("unexpected status code %d", r.StatusCode)
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, r.Body)
+		io.Copy(io.Discard, r.Body)
 		r.Body.Close()
 	}()
 

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -419,7 +418,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
