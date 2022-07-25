@@ -1186,9 +1186,12 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		}
 	}
 
-	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterPostOptions{
-		assumeSortedCreatedAt: opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated,
-	})
+	filterOptions := filterPostOptions{}
+	if opt != nil && (opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated) {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+
+	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
 	if appErr != nil {
 		return nil, appErr
 	}
