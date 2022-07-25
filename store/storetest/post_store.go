@@ -3865,11 +3865,17 @@ func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
 
 func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	// users
-	user := model.User{Id: model.NewId()}
-	u1 := model.User{Id: model.NewId()}
-	u2 := model.User{Id: model.NewId()}
-	u3 := model.User{Id: model.NewId()}
-	u4 := model.User{Id: model.NewId()}
+	user := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u1 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u2 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	_, err := ss.User().Save(&user)
+	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
+	_, err = ss.User().Save(&u3)
+	_, err = ss.User().Save(&u4)
+	require.NoError(t, err)
 	// user direct messages
 	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
 	require.NoError(t, nErr)
@@ -3883,7 +3889,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 
 	// sample post data
 	// for u1
-	_, err := ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(&model.Post{
 		ChannelId: chUser1.Id,
 		UserId:    u1.Id,
 	})
@@ -3935,7 +3941,6 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 3)
 		// check order, magnitude of items
-		// fmt.Println(topDMs.Items[0].MessageCount, topDMs.Items[1].MessageCount, topDMs.Items[2].MessageCount)
 		require.Equal(t, topDMs.Items[0].SecondParticipant, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 		require.Equal(t, topDMs.Items[1].SecondParticipant, u1.Id)

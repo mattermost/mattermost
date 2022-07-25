@@ -3032,7 +3032,7 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant)
 			}
-			if users[0].IsBot == true {
+			if users[0].IsBot {
 				continue
 			}
 		}
