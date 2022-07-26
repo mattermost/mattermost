@@ -3743,6 +3743,23 @@ func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSu
 	return BuildResponse(r), nil
 }
 
+// SetPostReminder creates a post reminder for a given post at a specified time.
+// The time needs to be in UTC epoch in seconds. It is always truncated to a
+// 5 minute resolution minimum.
+func (c *Client4) SetPostReminder(reminder *PostReminder) (*Response, error) {
+	b, err := json.Marshal(reminder)
+	if err != nil {
+		return nil, NewAppError("SetPostReminder", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	r, err := c.DoAPIPostBytes(c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", b)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 // PinPost pin a post based on provided post id string.
 func (c *Client4) PinPost(postId string) (*Response, error) {
 	r, err := c.DoAPIPost(c.postRoute(postId)+"/pin", "")
