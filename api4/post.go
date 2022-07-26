@@ -401,7 +401,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
-			w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
 		return
@@ -438,7 +438,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -471,7 +471,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
+	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -898,7 +898,13 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId)
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return
