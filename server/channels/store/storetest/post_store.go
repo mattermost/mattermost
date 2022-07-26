@@ -42,6 +42,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, ss, s) })
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
+	t.Run("GetFlaggedPostsWithCRTMetaData", func(t *testing.T) { testPostStoreGetFlaggedPostsWithCRTMetaData(t, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
 	t.Run("Overwrite", func(t *testing.T) { testPostStoreOverwrite(t, ss) })
 	t.Run("OverwriteMultiple", func(t *testing.T) { testPostStoreOverwriteMultiple(t, ss) })
@@ -3440,6 +3441,75 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o5.ChannelId, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, r.Order, 0, "should have 0 posts")
+}
+
+func testPostStoreGetFlaggedPostsWithCRTMetaData(t *testing.T, ss store.Store) {
+	c1 := &model.Channel{}
+	c1.TeamId = model.NewId()
+	c1.DisplayName = "Channel1"
+	c1.Name = NewTestId()
+	c1.Type = model.ChannelTypeOpen
+	c1, err := ss.Channel().Save(c1, -1)
+	require.NoError(t, err)
+	channelId := c1.Id
+
+	u1, err := ss.User().Save(&model.User{Email: MakeEmail()})
+	require.NoError(t, err)
+	u2, err := ss.User().Save(&model.User{Email: MakeEmail()})
+	require.NoError(t, err)
+
+	cm := &model.ChannelMember{}
+	cm.ChannelId = channelId
+	cm.UserId = u2.Id
+	cm.NotifyProps = model.GetDefaultChannelNotifyProps()
+	_, err = ss.Channel().SaveMember(cm)
+	require.NoError(t, err)
+
+	p1, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    u1.Id,
+		Message:   "message",
+	})
+	require.NoError(t, err)
+	time.Sleep(time.Millisecond)
+
+	p2, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    u2.Id,
+		RootId:    p1.Id,
+		Message:   "message",
+	})
+	require.NoError(t, err)
+	time.Sleep(time.Millisecond)
+
+	_, err = ss.Thread().MaintainMembership(p2.UserId, p1.Id, store.ThreadMembershipOpts{
+		Following:       true,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, err)
+
+	preferences := model.Preferences{
+		{
+			UserId:   p2.UserId,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     p1.Id,
+			Value:    "true",
+		},
+	}
+
+	err = ss.Preference().Save(preferences)
+	require.NoError(t, err)
+
+	posts, err := ss.Post().GetFlaggedPosts(p2.UserId, 0, 2)
+	require.NoError(t, err)
+	require.Len(t, posts.Order, 1)
+	post := posts.Posts[p1.Id]
+
+	assert.Equal(t, int64(1), post.ReplyCount)
+	assert.Equal(t, p2.CreateAt, post.LastReplyAt)
+	assert.True(t, *post.IsFollowing)
+	require.Len(t, post.Participants, 1)
+	assert.Equal(t, p2.UserId, post.Participants[0].Id)
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {

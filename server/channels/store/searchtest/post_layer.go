@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -273,6 +274,11 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should search across teams",
 		Fn:   testSearchAcrossTeams,
 		Tags: []string{EngineAll},
+	},
+	{
+		Name: "Should search with CRT MetaData",
+		Fn:   testSearchWithCRTMetaData,
+		Tags: []string{EngineMySql, EnginePostgres},
 	},
 }
 
@@ -1870,4 +1876,42 @@ func testSearchAcrossTeams(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 
 	require.Len(t, results.Posts, 2)
+}
+
+func testSearchWithCRTMetaData(t *testing.T, th *SearchTestHelper) {
+	u1, err := th.createUser("u1", "u1", "u1", "u1")
+	require.NoError(t, err)
+	u2, err := th.createUser("u2", "u2", "u2", "u2")
+	require.NoError(t, err)
+
+	c1, err := th.createChannel(model.NewId(), "c1", "c1", "c1", model.ChannelTypeOpen, u2, false)
+	require.NoError(t, err)
+
+	p1, err := th.createPost(u1.Id, c1.Id, "test msg", "", "", 10, false)
+	require.NoError(t, err)
+	p2, err := th.createReply(u2.Id, "test reply", "", p1, 20, false)
+	require.NoError(t, err)
+
+	_, err = th.Store.Thread().MaintainMembership(p2.UserId, p1.Id, store.ThreadMembershipOpts{
+		Following:       true,
+		UpdateFollowing: true,
+	})
+	require.NoError(t, err)
+
+	defer th.deleteUserPosts(u1.Id)
+	defer th.deleteUserPosts(u2.Id)
+
+	params := &model.SearchParams{Terms: "test"}
+	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, u2.Id, c1.TeamId, 0, 20)
+	require.NoError(t, err)
+	require.Len(t, results.Order, 2)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+
+	post := results.Posts[p1.Id]
+	assert.Equal(t, int64(1), post.ReplyCount)
+	assert.Equal(t, p2.CreateAt, post.LastReplyAt)
+	assert.True(t, *post.IsFollowing)
+	require.Len(t, post.Participants, 1)
+	assert.Equal(t, p2.UserId, post.Participants[0].Id)
 }
