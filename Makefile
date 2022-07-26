@@ -39,6 +39,10 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
 
+ifeq ($(BUILD_NUMBER),dev)
+	export MM_FEATUREFLAGS_GRAPHQL = true
+endif
+
 # Enterprise
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
@@ -150,13 +154,13 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.28.2
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.29.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.0.1
+PLUGIN_PACKAGES += focalboard-v7.1.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target

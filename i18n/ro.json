@@ -8652,22 +8652,6 @@
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud trial se încheie"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Adăugați metoda de plată"
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
   },
@@ -8698,22 +8682,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nu se poate trimite un răspuns automat de la utilizator."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Procesul Mattermost cloud s-a încheiat"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Începeți abonamentul"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",

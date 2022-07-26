@@ -75,7 +75,7 @@ func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID str
 	}
 
 	if (response.ResponseType == "" || response.ResponseType == model.CommandResponseTypeEphemeral) && (response.Text != "" || response.Attachments != nil) {
-		a.SendEphemeralPost(post.UserId, post)
+		a.SendEphemeralPost(c, post.UserId, post)
 	}
 
 	return post, nil
@@ -213,7 +213,7 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 	}
 
 	// Custom commands can override built ins
-	cmd, response, appErr = a.tryExecuteCustomCommand(args, trigger, message)
+	cmd, response, appErr = a.tryExecuteCustomCommand(c, args, trigger, message)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
@@ -307,7 +307,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 
 // MentionsToPublicChannels returns all the mentions to public channels,
 // linking them to their channels
-func (a *App) MentionsToPublicChannels(message, teamID string) model.ChannelMentionMap {
+func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) model.ChannelMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -321,7 +321,7 @@ func (a *App) MentionsToPublicChannels(message, teamID string) model.ChannelMent
 		wg.Add(1)
 		go func(channelName string) {
 			defer wg.Done()
-			channel, err := a.GetChannelByName(channelName, teamID, false)
+			channel, err := a.GetChannelByName(c, channelName, teamID, false)
 			if err != nil {
 				return
 			}
@@ -363,7 +363,7 @@ func (a *App) tryExecuteBuiltInCommand(c *request.Context, args *model.CommandAr
 
 // tryExecuteCustomCommand attempts to run a custom command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Handle custom commands
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -467,7 +467,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		p[key] = values
 	}
 
-	channelMentionMap := a.MentionsToPublicChannels(message, team.Id)
+	channelMentionMap := a.MentionsToPublicChannels(c, message, team.Id)
 	for key, values := range channelMentionMap.ToURLValues() {
 		p[key] = values
 	}
@@ -579,7 +579,7 @@ func (a *App) HandleCommandResponsePost(c *request.Context, command *model.Comma
 	post.SetProps(response.Props)
 
 	if response.ChannelId != "" {
-		_, err := a.GetChannelMember(context.Background(), response.ChannelId, args.UserId)
+		_, err := a.GetChannelMember(c, response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
 			return nil, err

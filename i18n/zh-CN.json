@@ -1853,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "查看消息"
+    "translation": "在 Mattermost 中回复"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -8157,7 +8157,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
+    "translation": "您工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8520,14 +8520,6 @@
     "translation": "无法邀请来自其他地方的共享频道到安全连接。"
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost 云试用已结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "开始订阅"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "图像限制检查失败。分辨率过高。"
   },
@@ -8708,22 +8700,6 @@
     "translation": "立刻续订"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "您的 Mattermost 14 天免费试用即将结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost 云试用结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "添加付款方式"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "您的 Mattermost 30 天免费试用已结束"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "这帖子包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
   },
@@ -8866,14 +8842,6 @@
   {
     "id": "api.templates.invite_body_footer.info",
     "translation": "Mattermost 是一个灵活的开源通讯平台，可实现安全的团队协作。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受 Mattermost 云的好处。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 企业云 30天免费试用已于{{.TodayDate}}结束。我们希望您喜欢我们灵活、安全的协作平台。 请添加您的付款信息，以确保您的团队可以继续使用 Mattermost 进行合作。"
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -9137,7 +9105,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}” 工作空间现在已经升级。您将收到{{.TrialEnd}}的账单通知"
+    "translation": "您的“ {{.WorkspaceName}}”工作空间现在已经升级。您将从{{.TrialEnd}}开始收到账单通知"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9282,5 +9250,9 @@
   {
     "id": "api.cloud.subscription.update_error",
     "translation": "从 webhook 更新订阅时出错。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理员"
   }
 ]

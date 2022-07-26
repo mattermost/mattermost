@@ -357,7 +357,7 @@ func (ts *TelemetryService) trackActivity() {
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
 			tmpStorage = usage
 		}
-		activity["storage_bytes"] = utils.RoundOffToZeroes(float64(tmpStorage))
+		activity["storage_bytes"] = utils.RoundOffToZeroesResolution(float64(tmpStorage), 8)
 	}
 
 	ts.SendTelemetry(TrackActivity, activity)
@@ -1038,24 +1038,38 @@ func (ts *TelemetryService) trackPermissions() {
 		systemReadOnlyAdminCount = 0
 	}
 
+	systemCustomGroupAdminPermissions := ""
+	systemCustomGroupAdminPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(context.Background(), model.SystemCustomGroupAdminRoleId); err == nil {
+		systemCustomGroupAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
+		systemCustomGroupAdminPermissions = strings.Join(role.Permissions, " ")
+	}
+	systemCustomGroupAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SystemCustomGroupAdminRoleId}})
+	if countErr != nil {
+		systemCustomGroupAdminCount = 0
+	}
+
 	ts.SendTelemetry(TrackPermissionsSystemScheme, map[string]any{
-		"system_admin_permissions":                    systemAdminPermissions,
-		"system_user_permissions":                     systemUserPermissions,
-		"system_manager_permissions":                  systemManagerPermissions,
-		"system_user_manager_permissions":             systemUserManagerPermissions,
-		"system_read_only_admin_permissions":          systemReadOnlyAdminPermissions,
-		"team_admin_permissions":                      teamAdminPermissions,
-		"team_user_permissions":                       teamUserPermissions,
-		"team_guest_permissions":                      teamGuestPermissions,
-		"channel_admin_permissions":                   channelAdminPermissions,
-		"channel_user_permissions":                    channelUserPermissions,
-		"channel_guest_permissions":                   channelGuestPermissions,
-		"system_manager_permissions_modified":         systemManagerPermissionsModified,
-		"system_manager_count":                        systemManagerCount,
-		"system_user_manager_permissions_modified":    systemUserManagerPermissionsModified,
-		"system_user_manager_count":                   systemUserManagerCount,
-		"system_read_only_admin_permissions_modified": systemReadOnlyAdminPermissionsModified,
-		"system_read_only_admin_count":                systemReadOnlyAdminCount,
+		"system_admin_permissions":                       systemAdminPermissions,
+		"system_user_permissions":                        systemUserPermissions,
+		"system_manager_permissions":                     systemManagerPermissions,
+		"system_user_manager_permissions":                systemUserManagerPermissions,
+		"system_read_only_admin_permissions":             systemReadOnlyAdminPermissions,
+		"team_admin_permissions":                         teamAdminPermissions,
+		"team_user_permissions":                          teamUserPermissions,
+		"team_guest_permissions":                         teamGuestPermissions,
+		"channel_admin_permissions":                      channelAdminPermissions,
+		"channel_user_permissions":                       channelUserPermissions,
+		"channel_guest_permissions":                      channelGuestPermissions,
+		"system_manager_permissions_modified":            systemManagerPermissionsModified,
+		"system_manager_count":                           systemManagerCount,
+		"system_user_manager_permissions_modified":       systemUserManagerPermissionsModified,
+		"system_user_manager_count":                      systemUserManagerCount,
+		"system_read_only_admin_permissions_modified":    systemReadOnlyAdminPermissionsModified,
+		"system_read_only_admin_count":                   systemReadOnlyAdminCount,
+		"system_custom_group_admin_permissions":          systemCustomGroupAdminPermissions,
+		"system_custom_group_admin_permissions_modified": systemCustomGroupAdminPermissionsModified,
+		"system_custom_group_admin_count":                systemCustomGroupAdminCount,
 	})
 
 	if schemes, err := ts.srv.GetSchemes(model.SchemeScopeTeam, 0, 100); err == nil {

@@ -181,12 +181,12 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
 			if err := ch.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+				s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
 	}
@@ -243,7 +243,7 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 
 func (ch *Channels) Start() error {
 	// Start plugins
-	ctx := request.EmptyContext()
+	ctx := request.EmptyContext(ch.srv.GetLogger())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
@@ -251,7 +251,7 @@ func (ch *Channels) Start() error {
 		// to ensure we don't re-init plugins unnecessarily.
 		diffs, err := config.Diff(prevCfg, cfg)
 		if err != nil {
-			mlog.Warn("Error in comparing configs", mlog.Err(err))
+			ch.srv.Log.Warn("Error in comparing configs", mlog.Err(err))
 			return
 		}
 
@@ -314,6 +314,9 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
 		receiveEmailsAccepted)
 }
+
+// Ensure hooksService implements `product.HooksService`
+var _ product.HooksService = (*hooksService)(nil)
 
 type hooksService struct {
 	ch *Channels

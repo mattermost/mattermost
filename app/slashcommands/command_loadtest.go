@@ -160,7 +160,7 @@ func (lt *LoadTestProvider) doCommand(a *app.App, c *request.Context, args *mode
 	}
 
 	if strings.HasPrefix(message, "post") {
-		return lt.PostCommand(a, args, message)
+		return lt.PostCommand(a, c, args, message)
 	}
 
 	if strings.HasPrefix(message, "threaded_post") {
@@ -444,7 +444,7 @@ func getMatch(re *regexp.Regexp, text string) string {
 	return ""
 }
 
-func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
+func (*LoadTestProvider) PostCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	textMessage := getMatch(messageRE, message)
 	if textMessage == "" {
 		return &model.CommandResponse{Text: "No message to post", ResponseType: model.CommandResponseTypeEphemeral}, nil
@@ -457,7 +457,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 	}
 
 	channelName := getMatch(channelRE, message)
-	channel, err := a.GetChannelByName(channelName, team.Id, true)
+	channel, err := a.GetChannelByName(c, channelName, team.Id, true)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to get a channel", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}

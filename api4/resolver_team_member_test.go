@@ -31,8 +31,14 @@ func TestGraphQLTeamMembers(t *testing.T) {
 				NickName  string `json:"nickname"`
 			} `json:"user"`
 			Team struct {
-				ID          string `json:"id"`
-				DisplayName string `json:"displayName"`
+				ID                  string  `json:"id"`
+				DisplayName         string  `json:"displayName"`
+				Name                string  `json:"name"`
+				CreateAt            float64 `json:"createAt"`
+				DeleteAt            float64 `json:"deleteAt"`
+				SchemeId            *string `json:"schemeId"`
+				PolicyId            *string `json:"policyId"`
+				CloudLimitsArchived bool    `json:"cloudLimitsArchived"`
 			} `json:"team"`
 			Roles []struct {
 				ID            string   `json:"id"`
@@ -113,6 +119,12 @@ func TestGraphQLTeamMembers(t *testing.T) {
 	  	team {
 	  		id
 	  		displayName
+			name
+			createAt
+			deleteAt
+			schemeId
+			policyId
+			cloudLimitsArchived
 	  	}
 	  	user {
 	  		id
@@ -143,6 +155,12 @@ func TestGraphQLTeamMembers(t *testing.T) {
 		tm := q.TeamMembers[0]
 		assert.Equal(t, th.BasicTeam.Id, tm.Team.ID)
 		assert.Equal(t, th.BasicTeam.DisplayName, tm.Team.DisplayName)
+		assert.Equal(t, th.BasicTeam.Name, tm.Team.Name)
+		assert.Equal(t, th.BasicTeam.CreateAt_(), tm.Team.CreateAt)
+		assert.Equal(t, th.BasicTeam.DeleteAt_(), tm.Team.DeleteAt)
+		assert.Equal(t, th.BasicTeam.SchemeId, tm.Team.SchemeId)
+		assert.Equal(t, th.BasicTeam.PolicyID, tm.Team.PolicyId)
+		assert.Equal(t, th.BasicTeam.CloudLimitsArchived, tm.Team.CloudLimitsArchived)
 
 		assert.Equal(t, th.BasicUser.Id, tm.User.ID)
 		assert.Equal(t, th.BasicUser.Username, tm.User.Username)
@@ -161,8 +179,8 @@ func TestGraphQLTeamMembers(t *testing.T) {
 		ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 		ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 		th.LinkUserToTeam(th.BasicUser, myTeam)
-		th.App.AddUserToChannel(th.BasicUser, ch1, false)
-		th.App.AddUserToChannel(th.BasicUser, ch2, false)
+		th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+		th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 
 		input := graphQLInput{
 			OperationName: "teamMembers",

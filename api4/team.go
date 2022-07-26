@@ -88,7 +88,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team", team)
+	auditRec.AddEventParameter("team", team)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateTeam) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
@@ -127,7 +127,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
 
 	auditRec.Success()
-	auditRec.AddMeta("team", team) // overwrite meta
+	auditRec.AddEventResultState(&team)
+	auditRec.AddEventObjectType("team")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
@@ -203,7 +204,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team", team)
+	auditRec.AddEventParameter("team", team)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -217,7 +218,8 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", updatedTeam)
+	auditRec.AddEventResultState(updatedTeam)
+	auditRec.AddEventObjectType("team")
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), updatedTeam)
 	if err := json.NewEncoder(w).Encode(updatedTeam); err != nil {
@@ -238,6 +240,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchTeam", audit.Fail)
+	auditRec.AddEventParameter("team_patch", team)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
@@ -246,7 +249,8 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldTeam, err := c.App.GetTeam(c.Params.TeamId); err == nil {
-		auditRec.AddMeta("team", oldTeam)
+		auditRec.AddEventPriorState(oldTeam)
+		auditRec.AddEventObjectType("team")
 	}
 
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
@@ -259,7 +263,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
 
 	auditRec.Success()
-	auditRec.AddMeta("patched", patchedTeam)
+	auditRec.AddEventResultState(patchedTeam)
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
@@ -275,7 +279,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("restoreTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -317,7 +321,8 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("team", team)
+	auditRec.AddEventResultState(team)
+	auditRec.AddEventObjectType("team")
 	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(team); err != nil {
@@ -350,11 +355,11 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateTeamPrivacy", audit.Fail)
+	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("privacy", privacy)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
-		auditRec.AddMeta("team_id", c.Params.TeamId)
+		auditRec.AddEventParameter("team_id", c.Params.TeamId)
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
@@ -371,7 +376,8 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("team", team)
+	auditRec.AddEventResultState(team)
+	auditRec.AddEventObjectType("team")
 	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(team); err != nil {
@@ -391,6 +397,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("regenerateTeamInviteId", audit.Fail)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	patchedTeam, err := c.App.RegenerateTeamInviteId(c.Params.TeamId)
@@ -402,7 +409,8 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
 
 	auditRec.Success()
-	auditRec.AddMeta("team", patchedTeam)
+	auditRec.AddEventResultState(patchedTeam)
+	auditRec.AddEventObjectType("team")
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
@@ -425,13 +433,13 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
-		auditRec.AddMeta("team", team)
+		auditRec.AddEventParameter("team", team)
 	}
 
 	var err *model.AppError
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
-			err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+			err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 		} else {
 			err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
 		}
@@ -694,8 +702,8 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("addTeamMember", audit.Fail)
+	auditRec.AddEventParameter("member", member)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("member", member)
 
 	if member.UserId == c.AppContext.Session().UserId {
 		var team *model.Team
@@ -750,6 +758,8 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventResultState(tm)
+	auditRec.AddEventObjectType("team_member") // TODO verify this is the final state. should it be the team instead?
 	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
@@ -767,7 +777,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("addUserToTeamFromInvite", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("invite_id", inviteId)
+	auditRec.AddEventParameter("invite_id", inviteId)
 
 	if tokenId != "" {
 		member, err = c.App.AddTeamMemberByToken(c.AppContext, c.AppContext.Session().UserId, tokenId)
@@ -824,6 +834,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("addTeamMembers", audit.Fail)
+	auditRec.AddEventParameter("members", members)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("count", len(members))
 
@@ -927,6 +938,9 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+
 	team, err := c.App.GetTeam(c.Params.TeamId)
 	if err != nil {
 		c.Err = err
@@ -1026,7 +1040,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateTeamMemberRoles", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("roles", newRoles)
+	auditRec.AddEventParameter("props", props)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
 		c.SetPermissionError(model.PermissionManageTeamRoles)
@@ -1040,7 +1054,8 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("member", teamMember)
+	auditRec.AddEventResultState(teamMember)
+	auditRec.AddEventObjectType("team_member")
 
 	ReturnStatusOK(w)
 }
@@ -1059,7 +1074,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 
 	auditRec := c.MakeAuditRecord("updateTeamMemberSchemeRoles", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("roles", schemeRoles)
+	auditRec.AddEventParameter("scheme_roles", schemeRoles)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
 		c.SetPermissionError(model.PermissionManageTeamRoles)
@@ -1073,7 +1088,8 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("member", teamMember)
+	auditRec.AddEventResultState(teamMember)
+	auditRec.AddEventObjectType("team_member")
 
 	ReturnStatusOK(w)
 }
@@ -1286,7 +1302,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("importTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	fileInfo := fileInfoArray[0]
 
@@ -1296,9 +1312,9 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer fileData.Close()
-	auditRec.AddMeta("filename", fileInfo.Filename)
-	auditRec.AddMeta("filesize", fileSize)
-	auditRec.AddMeta("from", importFrom)
+	auditRec.AddEventParameter("filename", fileInfo.Filename)
+	auditRec.AddEventParameter("filesize", fileSize)
+	auditRec.AddEventParameter("from", importFrom)
 
 	var log *bytes.Buffer
 	data := map[string]string{}
@@ -1364,7 +1380,8 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("inviteUsersToTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("member_invite", memberInvite)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -1451,7 +1468,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	auditRec := c.MakeAuditRecord("inviteGuestsToChannels", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest) {
 		c.SetPermissionError(model.PermissionInviteGuest)
@@ -1463,6 +1480,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
 		return
 	}
+	auditRec.AddEventParameter("guests_invite", guestsInvite)
 
 	for i, email := range guestsInvite.Emails {
 		guestsInvite.Emails[i] = strings.ToLower(email)
@@ -1601,7 +1619,7 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setTeamIcon", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -1652,7 +1670,7 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("removeTeamIcon", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
 		c.SetPermissionError(model.PermissionManageTeam)
@@ -1689,6 +1707,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
+	auditRec.AddEventParameter("scheme_id_patch", p)
 	defer c.LogAuditRec(auditRec)
 
 	if c.App.Channels().License() == nil {
@@ -1724,12 +1743,14 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.SchemeId = schemeID
 
-	_, err = c.App.UpdateTeamScheme(team)
+	team, err = c.App.UpdateTeamScheme(team)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.AddEventResultState(team)
+	auditRec.AddEventObjectType("team")
 	auditRec.Success()
 	ReturnStatusOK(w)
 }

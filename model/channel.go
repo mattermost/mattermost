@@ -61,6 +61,27 @@ type Channel struct {
 	LastRootPostAt    int64          `json:"last_root_post_at"`
 }
 
+func (o *Channel) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"create_at":            o.CreateAt,
+		"creator_id":           o.CreatorId,
+		"delete_at":            o.DeleteAt,
+		"extra_group_at":       o.ExtraUpdateAt,
+		"group_constrained":    o.GroupConstrained,
+		"id":                   o.Id,
+		"last_post_at":         o.LastPostAt,
+		"last_root_post_at":    o.LastRootPostAt,
+		"policy_id":            o.PolicyID,
+		"props":                o.Props,
+		"scheme_id":            o.SchemeId,
+		"shared":               o.Shared,
+		"team_id":              o.TeamId,
+		"total_msg_count_root": o.TotalMsgCountRoot,
+		"type":                 o.Type,
+		"update_at":            o.UpdateAt,
+	}
+}
+
 type ChannelWithTeamData struct {
 	Channel
 	TeamDisplayName string `json:"team_display_name"`
@@ -79,6 +100,14 @@ type ChannelPatch struct {
 	Header           *string `json:"header"`
 	Purpose          *string `json:"purpose"`
 	GroupConstrained *bool   `json:"group_constrained"`
+}
+
+func (c *ChannelPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"header":            c.Header,
+		"group_constrained": c.GroupConstrained,
+		"purpose":           c.Purpose,
+	}
 }
 
 type ChannelForExport struct {
@@ -186,6 +215,22 @@ func (o *Channel) LastPostAt_() float64 {
 
 func (o *Channel) TotalMsgCount_() float64 {
 	return float64(o.TotalMsgCount)
+}
+
+func (o *Channel) TotalMsgCountRoot_() float64 {
+	return float64(o.TotalMsgCountRoot)
+}
+
+func (o *Channel) LastRootPostAt_() float64 {
+	return float64(o.LastRootPostAt)
+}
+
+func (o *Channel) ExtraUpdateAt_() float64 {
+	return float64(o.ExtraUpdateAt)
+}
+
+func (o *Channel) Props_() StringInterface {
+	return StringInterface(o.Props)
 }
 
 func (o *Channel) DeepCopy() *Channel {
