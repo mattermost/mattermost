@@ -202,7 +202,7 @@ type AppIface interface {
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
 	// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
-	GetPostsByIds(postIDs []string) ([]*model.Post, bool, *model.AppError)
+	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
 	// GetPostsUsage returns the total posts count rounded down to the most
 	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
@@ -634,8 +634,8 @@ type AppIface interface {
 	GetFile(fileID string) ([]byte, *model.AppError)
 	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
 	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPost(postID string, fromMaster bool) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
