@@ -25,9 +25,6 @@ type FeatureFlags struct {
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
-	// AppBarEnabled toggles the App Bar component on client side
-	AppBarEnabled bool
-
 	// Feature flags to control plugin versions
 	PluginPlaybooks  string `plugin_id:"playbooks"`
 	PluginApps       string `plugin_id:"com.mattermost.apps"`
@@ -68,11 +65,16 @@ type FeatureFlags struct {
 
 	InsightsEnabled bool
 
-	CloudFree bool
-
 	CommandPalette bool
 
+	PostForwarding bool
+
 	AdvancedTextEditor bool
+
+	// Enable Boards as a product (multi-product architecture)
+	BoardsProduct bool
+
+	PlanUpgradeButtonText string
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -81,7 +83,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CollapsedThreads = true
 	f.EnableRemoteClusterService = false
 	f.AppsEnabled = true
-	f.AppBarEnabled = false
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
@@ -95,10 +96,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableInactivityCheckJob = true
 	f.UseCaseOnboarding = true
 	f.GraphQL = false
-	f.InsightsEnabled = false
-	f.CloudFree = false
+	f.InsightsEnabled = true
 	f.CommandPalette = false
-	f.AdvancedTextEditor = false
+	f.PostForwarding = false
+	f.AdvancedTextEditor = true
+	f.CallsEnabled = true
+	f.BoardsProduct = false
+	f.PlanUpgradeButtonText = "Upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

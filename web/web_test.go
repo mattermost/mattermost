@@ -119,7 +119,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
-	ctx := &request.Context{}
 	a := app.New(app.ServerConnector(s.Channels()))
 
 	web := New(s)
@@ -134,12 +133,13 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	th := &TestHelper{
 		App:               a,
-		Context:           ctx,
+		Context:           request.EmptyContext(testLogger),
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
 	}
+	th.Context.SetLogger(testLogger)
 
 	return th
 }

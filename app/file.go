@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -47,12 +48,24 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
+var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
+
+// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
+type fileInfoWrapper struct {
+	srv *Server
+}
+
+func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return f.srv.getFileInfo(fileID)
+}
+
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	fileBackendSettings := settings.ToFileBackendSettings(false)
+	fileBackendSettings := settings.ToFileBackendSettings(false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
@@ -81,7 +94,8 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 
 func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
 	license := a.Srv().License()
-	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance))
+	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -249,7 +263,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	info.UpdateAt = post.UpdateAt
 	info.Path = path
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
@@ -367,7 +381,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "")
+	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -447,7 +461,7 @@ func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID 
 		file, fileErr := fileHeader.Open()
 		if fileErr != nil {
 			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
-				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
+				map[string]any{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
 		}
 
 		// Will be closed after UploadFiles returns
@@ -511,10 +525,10 @@ func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, u
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 func (a *App) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	_, err := a.GetChannel(channelID)
+	_, err := a.GetChannel(c, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
-			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
+			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
 	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
@@ -752,7 +766,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		svgInfo, err := imaging.ParseSVG(t.teeInput)
 		if err != nil {
 			mlog.Warn("Failed to parse SVG", mlog.Err(err))
@@ -809,7 +823,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 
 func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// don't try to process SVG files
-	if t.fileinfo.MimeType == "image/svg+xml" {
+	if t.fileinfo.IsSvg() {
 		return
 	}
 
@@ -889,8 +903,8 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
-	params := map[string]interface{}{
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *model.AppError {
+	params := map[string]any{
 		"Name":          t.Name,
 		"Filename":      t.Name,
 		"ChannelId":     t.ChannelId,
@@ -937,9 +951,9 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelID + "/users/" + userID + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
 			return nil, data, err
 		}
 
@@ -1081,7 +1095,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 // generateMiniPreview updates mini preview if needed
 // will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
-	if fi.IsImage() && fi.MiniPreview == nil {
+	if fi.IsImage() && !fi.IsSvg() && fi.MiniPreview == nil {
 		file, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
 			mlog.Debug("error reading image file", mlog.Err(appErr))
@@ -1093,15 +1107,6 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-
-			// Since this file is not a valid image (for whatever reason), prevent this fileInfo
-			// from entering generateMiniPreview in the future
-			fi.UpdateAt = model.GetMillis()
-			fi.MimeType = "invalid-" + fi.MimeType
-			if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
-				mlog.Debug("Invalidating FileInfo failed", mlog.Err(err))
-			}
-
 			return
 		}
 		defer release()
@@ -1133,8 +1138,8 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg.Wait()
 }
 
-func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
+func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := s.Store.FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1144,9 +1149,15 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-
-	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
+}
+
+func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := a.Srv().getFileInfo(fileID)
+	if err == nil {
+		a.generateMiniPreview(fileInfo)
+	}
+	return fileInfo, err
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {

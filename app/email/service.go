@@ -129,8 +129,6 @@ type ServiceInterface interface {
 	SendVerifyEmail(userEmail, locale, siteURL, token, redirect string) error
 	SendSignInChangeEmail(email, method, locale, siteURL string) error
 	SendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) error
-	SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error
-	SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error
 	SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error
 	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
 	SendPasswordChangeEmail(email, method, locale, siteURL string) error
@@ -142,7 +140,7 @@ type ServiceInterface interface {
 	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
-	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error
+	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
 	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error)
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error

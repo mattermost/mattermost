@@ -18,6 +18,7 @@ type PluginStatus struct {
 	ClusterId   string `json:"cluster_id"`
 	PluginPath  string `json:"plugin_path"`
 	State       int    `json:"state"`
+	Error       string `json:"error"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`

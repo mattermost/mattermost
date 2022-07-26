@@ -2640,10 +2640,6 @@
     "translation": "缺少必要的互動屬性：使用者。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回應建立時間必須大於隸屬訊息的建立時間。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "缺少必要的回應屬性：建立日期。"
   },
@@ -3154,10 +3150,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch 已停止"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "連線至 Elasticsearch 伺服器失敗。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",

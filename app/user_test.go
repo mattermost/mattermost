@@ -254,16 +254,16 @@ func TestCreateUser(t *testing.T) {
 			[]string{
 				`
 			package main
-	
+
 			import (
 				"github.com/mattermost/mattermost-server/v6/plugin"
 				"github.com/mattermost/mattermost-server/v6/model"
 			)
-	
+
 			type MyPlugin struct {
 				plugin.MattermostPlugin
 			}
-	
+
 			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
 				user.Nickname = "sanitized"
 				if len(user.Password) > 0 {
@@ -271,7 +271,7 @@ func TestCreateUser(t *testing.T) {
 				}
 				p.API.UpdateUser(user)
 			}
-	
+
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
@@ -914,7 +914,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
 		assert.Len(t, members, 2)
 	})
@@ -936,7 +936,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
@@ -982,7 +982,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
 		require.Error(t, nErr)
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
@@ -1019,7 +1019,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr)
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
@@ -1149,24 +1149,24 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 
 	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
 
-	team1channel1 := th.CreateChannel(team1)
-	team1channel2 := th.CreateChannel(team1)
-	th.CreateChannel(team1) // Another channel
-	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
+	team1channel1 := th.CreateChannel(th.Context, team1)
+	team1channel2 := th.CreateChannel(th.Context, team1)
+	th.CreateChannel(th.Context, team1) // Another channel
+	team1offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team1.Id, false)
 	require.Nil(t, err)
-	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
-	require.Nil(t, err)
-
-	team2channel1 := th.CreateChannel(team2)
-	th.CreateChannel(team2) // Another channel
-	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
-	require.Nil(t, err)
-	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
+	team1townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team1.Id, false)
 	require.Nil(t, err)
 
-	th.App.AddUserToChannel(user1, team1channel1, false)
-	th.App.AddUserToChannel(user1, team1channel2, false)
-	th.App.AddUserToChannel(user1, team2channel1, false)
+	team2channel1 := th.CreateChannel(th.Context, team2)
+	th.CreateChannel(th.Context, team2) // Another channel
+	team2offtopic, err := th.App.GetChannelByName(th.Context, "off-topic", team2.Id, false)
+	require.Nil(t, err)
+	team2townsquare, err := th.App.GetChannelByName(th.Context, "town-square", team2.Id, false)
+	require.Nil(t, err)
+
+	th.App.AddUserToChannel(th.Context, user1, team1channel1, false)
+	th.App.AddUserToChannel(th.Context, user1, team1channel2, false)
+	th.App.AddUserToChannel(th.Context, user1, team2channel1, false)
 
 	addPermission := func(role *model.Role, permission string) *model.AppError {
 		newPermissions := append(role.Permissions, permission)
@@ -1317,7 +1317,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
@@ -1336,7 +1336,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
-		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
+		channelMembers, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		require.Len(t, channelMembers, 1)
 
@@ -1349,12 +1349,12 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
-		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, guest.Id)
+		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, guest.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
 
-		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
+		channelMembers, err = th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, guest.Id)
 		require.Nil(t, err)
 		assert.Len(t, channelMembers, 3)
 	})
@@ -1368,20 +1368,20 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
 
-		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ := th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 
 		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
-		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ = th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(1), guestCount)
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ = th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 	})
 }
@@ -1399,27 +1399,27 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
 
-		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ := th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 
 		channelMember := th.AddUserToChannel(user, th.BasicChannel)
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
-		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ = th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(0), guestCount)
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
-		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		guestCount, _ = th.App.GetChannelGuestCount(th.Context, th.BasicChannel.Id)
 		require.Equal(t, int64(1), guestCount)
 	})
 
 	t.Run("Must fail with guest user", func(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
-		err := th.App.DemoteUserToGuest(guest)
+		err := th.App.DemoteUserToGuest(th.Context, guest)
 		require.Nil(t, err)
 
 		user, err := th.App.GetUser(guest.Id)
@@ -1431,7 +1431,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 
-		err := th.App.DemoteUserToGuest(user)
+		err := th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
@@ -1447,7 +1447,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeUser)
 		require.False(t, teamMember.SchemeGuest)
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
@@ -1471,7 +1471,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
@@ -1480,7 +1480,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
+		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
@@ -1499,11 +1499,11 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, channelMember.SchemeUser)
 		require.False(t, channelMember.SchemeGuest)
 
-		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
+		channelMembers, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		require.Len(t, channelMembers, 3)
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 		user, err = th.App.GetUser(user.Id)
 		assert.Nil(t, err)
@@ -1512,12 +1512,12 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
-		_, err = th.App.GetChannelMember(context.Background(), th.BasicChannel.Id, user.Id)
+		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
 
-		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
+		channelMembers, err = th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, err)
 		assert.Len(t, channelMembers, 3)
 	})
@@ -1537,18 +1537,18 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.True(t, teamMember.SchemeAdmin)
 		require.False(t, teamMember.SchemeGuest)
 
-		channel := th.CreateChannel(team)
+		channel := th.CreateChannel(th.Context, team)
 
 		th.AddUserToChannel(user, channel)
-		th.App.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, false, true, true)
+		th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, user.Id, false, true, true)
 
-		channelMember, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+		channelMember, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.True(t, channelMember.SchemeUser)
 		assert.True(t, channelMember.SchemeAdmin)
 		assert.False(t, channelMember.SchemeGuest)
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
 		user, err = th.App.GetUser(user.Id)
@@ -1561,7 +1561,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, teamMember.SchemeAdmin)
 		assert.True(t, teamMember.SchemeGuest)
 
-		channelMember, err = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+		channelMember, err = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		assert.Nil(t, err)
 		assert.False(t, channelMember.SchemeUser)
 		assert.False(t, channelMember.SchemeAdmin)
@@ -1682,7 +1682,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 
-		_, appErr = th.App.UpdateThreadReadForUser("currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
+		_, appErr = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", th.BasicUser.Id, th.BasicChannel.TeamId, rootPost.Id, replyPost.CreateAt)
 		require.Nil(t, appErr)
 
 		threads, appErr = th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
@@ -1719,7 +1719,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Thread").Return(&mockThreadStore)
 
-		_, err = th.App.UpdateThreadReadForUser("currentSessionId", "user1", "team1", "postid", 100)
+		_, err = th.App.UpdateThreadReadForUser(th.Context, "currentSessionId", "user1", "team1", "postid", 100)
 		require.Error(t, err)
 	})
 }
@@ -1732,33 +1732,62 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
 		require.Nil(t, appErr)
+		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
+		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
 
-		tutorialStepPref := preferences[1]
-		recommendedNextStepsPref := preferences[0]
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		assert.Equal(t, tutorialStepPref.Name, testUser.Id)
-		assert.Equal(t, recommendedNextStepsPref.Category, model.PreferenceRecommendedNextSteps)
-		assert.Equal(t, recommendedNextStepsPref.Name, "hide")
-		assert.Equal(t, recommendedNextStepsPref.Value, "false")
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
+		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
+		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 	})
 
-	t.Run("successfully create a guest user with initial tutorial and recommended steps preferences", func(t *testing.T) {
+	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+		testUser := th.CreateUser()
+		defer th.App.PermanentDeleteUser(th.Context, testUser)
+
+		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
+		require.Nil(t, appErr)
+		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
+		assert.Equal(t, "{\"insights_modal_viewed\":false}", insightsPref.Value)
+
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
+		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
+		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+	})
+
+	t.Run("successfully create a guest user with initial tutorial, insights and recommended steps preferences", func(t *testing.T) {
+		th.Server.configStore.SetReadOnlyFF(false)
+		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		preferences, appErr := th.App.GetPreferencesForUser(testUser.Id)
+		insightsPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryInsights, model.PreferenceNameInsights)
 		require.Nil(t, appErr)
+		assert.Equal(t, "insights_tutorial_state", insightsPref.Name)
+		assert.Equal(t, "{\"insights_modal_viewed\":true}", insightsPref.Value)
 
-		assert.Equal(t, testUser.Id, preferences[0].UserId)
-		assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-		assert.Equal(t, "hide", preferences[0].Name)
-		assert.Equal(t, "false", preferences[0].Value)
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		assert.Equal(t, testUser.Id, preferences[1].UserId)
-		assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-		assert.Equal(t, testUser.Id, preferences[1].Name)
-		assert.Equal(t, "0", preferences[1].Value)
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
+		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
+		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 	})
 }

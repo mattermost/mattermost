@@ -22,25 +22,25 @@ type RelationalIntegrityCheckData struct {
 }
 
 type IntegrityCheckResult struct {
-	Data interface{} `json:"data"`
-	Err  error       `json:"err"`
+	Data any   `json:"data"`
+	Err  error `json:"err"`
 }
 
 func (r *IntegrityCheckResult) UnmarshalJSON(b []byte) error {
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.Unmarshal(b, &data); err != nil {
 		return err
 	}
 	if d, ok := data["data"]; ok && d != nil {
 		var rdata RelationalIntegrityCheckData
-		m := d.(map[string]interface{})
+		m := d.(map[string]any)
 		rdata.ParentName = m["parent_name"].(string)
 		rdata.ChildName = m["child_name"].(string)
 		rdata.ParentIdAttr = m["parent_id_attr"].(string)
 		rdata.ChildIdAttr = m["child_id_attr"].(string)
-		for _, recData := range m["records"].([]interface{}) {
+		for _, recData := range m["records"].([]any) {
 			var record OrphanedRecord
-			m := recData.(map[string]interface{})
+			m := recData.(map[string]any)
 			if val := m["parent_id"]; val != nil {
 				record.ParentId = NewString(val.(string))
 			}

@@ -7,9 +7,13 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
+// ensure cluster service wrapper implements `product.ClusterService`
+var _ product.ClusterService = (*clusterWrapper)(nil)
+
+// clusterWrapper provides an implementation of `product.ClusterService` for use by products.
 type clusterWrapper struct {
 	srv *Server
 }
@@ -43,7 +47,7 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 	return nil
 }
 
-func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil)
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	s.srv.Publish(ev)
@@ -51,10 +55,6 @@ func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, p
 
 func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
-}
-
-func (s *clusterWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
 
 func (s *clusterWrapper) KVGet(productID, key string) ([]byte, *model.AppError) {
@@ -90,7 +90,7 @@ func (s *Server) InvokeClusterLeaderChangedListeners() {
 	// Fixing this would require the changed event to pass the leader directly, but that
 	// requires a lot of work.
 	s.Go(func() {
-		s.clusterLeaderListeners.Range(func(_, listener interface{}) bool {
+		s.clusterLeaderListeners.Range(func(_, listener any) bool {
 			listener.(func())()
 			return true
 		})

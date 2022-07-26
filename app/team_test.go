@@ -185,7 +185,7 @@ func TestAddUserToTeam(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -270,7 +270,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
 		assert.Len(t, members, 2)
 	})
@@ -370,7 +370,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
@@ -429,7 +429,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, user.Id, token.Token)
 		require.Nil(t, err)
 
-		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		res, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, user.Id, team.Id)
 		require.Nil(t, err)
 		assert.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
@@ -466,6 +466,197 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 }
 
+func TestSoftDeleteAllTeamsExcept(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	teams := []*model.Team{
+		{
+			DisplayName: "team-1",
+			Name:        "team-1",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+	}
+	teamId := ""
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
+		require.Nil(t, err)
+		teamId = team.Id
+	}
+
+	err := th.App.SoftDeleteAllTeamsExcept(teamId)
+	assert.Nil(t, err)
+	allTeams, err := th.App.GetAllTeams()
+	require.Nil(t, err)
+	for _, team := range allTeams {
+		if team.Id == teamId {
+			require.Equal(t, int64(0), team.DeleteAt)
+			require.Equal(t, false, team.CloudLimitsArchived)
+		} else {
+			require.NotEqual(t, int64(0), team.DeleteAt)
+			require.Equal(t, true, team.CloudLimitsArchived)
+		}
+	}
+
+}
+
+func TestAdjustTeamsFromProductLimits(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	teams := []*model.Team{
+		{
+			DisplayName: "team-1",
+			Name:        "team-1",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+		{
+			DisplayName: "team-2",
+			Name:        "team-2",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+		{
+			DisplayName: "team-3",
+			Name:        "team-3",
+			Email:       "foo@foo.com",
+			Type:        model.TeamOpen,
+		},
+	}
+	teamIds := []string{}
+	for _, create := range teams {
+		team, err := th.App.CreateTeam(th.Context, create)
+		require.Nil(t, err)
+		teamIds = append(teamIds, team.Id)
+	}
+	t.Run("Should soft delete teams if there are more teams than the limit", func(t *testing.T) {
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		for i := range teamsList {
+			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
+			require.NotEqual(t, 0, teamsList[i].DeleteAt)
+			require.Equal(t, true, teamsList[i].CloudLimitsArchived)
+		}
+	})
+
+	t.Run("Should not do anything if the amount of teams is equal to the limit", func(t *testing.T) {
+
+		expectedTeamsList, err := th.App.GetAllTeams()
+
+		var expectedActiveTeams []*model.Team
+		var expectedCloudArchivedTeams []*model.Team
+		for _, team := range expectedTeamsList {
+			if team.DeleteAt == 0 {
+				expectedActiveTeams = append(expectedActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				expectedCloudArchivedTeams = append(expectedCloudArchivedTeams, team)
+			}
+		}
+
+		require.Nil(t, err)
+
+		activeLimit := len(expectedActiveTeams)
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		actualTeamsList, err := th.App.GetAllTeams()
+
+		require.Nil(t, err)
+		var actualActiveTeams []*model.Team
+		var actualCloudArchivedTeams []*model.Team
+		for _, team := range actualTeamsList {
+			if team.DeleteAt == 0 {
+				actualActiveTeams = append(actualActiveTeams, team)
+			}
+			if team.DeleteAt > 0 && team.CloudLimitsArchived {
+				actualCloudArchivedTeams = append(actualCloudArchivedTeams, team)
+			}
+		}
+
+		require.Equal(t, len(expectedActiveTeams), len(actualActiveTeams))
+		require.Equal(t, len(expectedCloudArchivedTeams), len(actualCloudArchivedTeams))
+	})
+
+	t.Run("Should restore archived teams if limit increases", func(t *testing.T) {
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
+		teamLimits = &model.TeamsLimits{Active: &activeLimit}
+
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		for i := range teamsList {
+			require.Equal(t, teamsList[i].DisplayName, teams[i].DisplayName)
+			require.Equal(t, int64(0), teamsList[i].DeleteAt)
+			require.Equal(t, false, teamsList[i].CloudLimitsArchived)
+		}
+	})
+
+	t.Run("Should only restore teams that were archived by cloud limits", func(t *testing.T) {
+
+		activeLimit := 1
+		teamLimits := &model.TeamsLimits{Active: &activeLimit}
+
+		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		cloudLimitsArchived := false
+		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
+		team, err := th.App.PatchTeam(teamIds[0], patch)
+		require.Nil(t, err)
+		require.Equal(t, false, team.CloudLimitsArchived)
+
+		activeLimit = 10000 // make the limit extremely high so all teams are enabled
+		teamLimits = &model.TeamsLimits{Active: &activeLimit}
+
+		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		require.Nil(t, err)
+
+		teamsList, err := th.App.GetTeams(teamIds)
+
+		require.Nil(t, err)
+
+		// Sort the list of teams based on their creation date
+		sort.Slice(teamsList, func(i, j int) bool {
+			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		})
+
+		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
+		require.Equal(t, int64(0), teamsList[1].DeleteAt)
+		require.Equal(t, int64(0), teamsList[2].DeleteAt)
+	})
+
+}
+
 func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -479,7 +670,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.Nil(t, err, "Should create a team")
 
 	defer func() {
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 
 	command, err := th.App.CreateCommand(&model.Command{
@@ -496,7 +687,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.NotNil(t, command, "command should not be nil")
 	require.Nil(t, err, "unable to get new command")
 
-	err = th.App.PermanentDeleteTeam(team)
+	err = th.App.PermanentDeleteTeam(th.Context, team)
 	require.Nil(t, err)
 
 	command, err = th.App.GetCommand(command.Id)
@@ -506,18 +697,18 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	// Test deleting a team with no channels.
 	team = th.CreateTeam()
 	defer func() {
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 
-	channels, err := th.App.GetPublicChannelsForTeam(team.Id, 0, 1000)
+	channels, err := th.App.GetPublicChannelsForTeam(th.Context, team.Id, 0, 1000)
 	require.Nil(t, err)
 
 	for _, channel := range channels {
-		err2 := th.App.PermanentDeleteChannel(channel)
+		err2 := th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, err2)
 	}
 
-	err = th.App.PermanentDeleteTeam(team)
+	err = th.App.PermanentDeleteTeam(th.Context, team)
 	require.Nil(t, err)
 }
 
@@ -738,7 +929,7 @@ func TestJoinUserToTeam(t *testing.T) {
 	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = maxUsersPerTeam })
-		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(th.Context, team)
 	}()
 	one := 1
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = &one })
@@ -1059,7 +1250,7 @@ func TestGetTeamStats(t *testing.T) {
 		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, restrictions)
 		require.Nil(t, err)
 		require.NotNil(t, teamStats)
-		members, err := th.App.GetChannelMembersPage(th.BasicChannel.Id, 0, 5)
+		members, err := th.App.GetChannelMembersPage(th.Context, th.BasicChannel.Id, 0, 5)
 		require.Nil(t, err)
 		assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
 		assert.Equal(t, int64(len(members)), teamStats.ActiveMemberCount)

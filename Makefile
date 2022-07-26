@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check migrations-bindata new-migration
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race migrations-bindata new-migration migrations-extract
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -17,6 +17,11 @@ else
 	export IS_LINUX =
 endif
 
+# Detect M1/M2 Macs and set a flag.
+ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
+  M1_MAC = true
+endif
+
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
@@ -33,36 +38,59 @@ ifeq ($(BUILD_NUMBER),)
 	BUILD_DATE := n/a
 	BUILD_NUMBER := dev
 endif
+
+ifeq ($(BUILD_NUMBER),dev)
+	export MM_FEATUREFLAGS_GRAPHQL = true
+endif
+
+# Enterprise
 BUILD_ENTERPRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	ifeq ($(BUILD_ENTERPRISE),true)
-		BUILD_ENTERPRISE_READY = true
-		BUILD_TYPE_NAME = enterprise
-		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
-	else
-		BUILD_ENTERPRISE_READY = false
-		BUILD_TYPE_NAME = team
-	endif
+  ifeq ($(BUILD_ENTERPRISE),true)
+	BUILD_ENTERPRISE_READY = true
+	BUILD_TYPE_NAME = enterprise
+	BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
+  else
+	BUILD_ENTERPRISE_READY = false
+	BUILD_TYPE_NAME = team
+  endif
 else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
+
+# Webapp
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independent
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-	ifeq ($(BUILD_CLIENT),true)
-		BUILD_CLIENT = true
-		BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-	else
-		BUILD_CLIENT = false
-	endif
+  ifeq ($(BUILD_CLIENT),true)
+    BUILD_CLIENT = true
+    BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
+  else
+    BUILD_CLIENT = false
+  endif
 else
-	BUILD_CLIENT = false
+    BUILD_CLIENT = false
+endif
+
+# Boards
+BUILD_BOARDS_DIR ?= ../focalboard
+BUILD_BOARDS ?= true
+BUILD_HASH_BOARDS = none
+ifneq ($(wildcard $(BUILD_BOARDS_DIR)/.),)
+  ifeq ($(BUILD_BOARDS),true)
+    BUILD_BOARDS = true
+    BUILD_HASH_BOARDS = $(shell cd $(BUILD_BOARDS_DIR) && git rev-parse HEAD)
+  else
+    BUILD_BOARDS = false
+  endif
+else
+    BUILD_BOARDS = false
 endif
 
 # We need current user's UID for `run-haserver` so docker compose does not run server
@@ -86,6 +114,8 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildHashBoards=$(BUILD_HASH_BOARDS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v6/model.BuildBoards=$(BUILD_BOARDS)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -119,19 +149,19 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.5.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.27.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.29.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
-PLUGIN_PACKAGES += focalboard-v0.15.0
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
+PLUGIN_PACKAGES += focalboard-v7.1.0
+PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -146,14 +176,33 @@ endif
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
-ALL_PACKAGES=$(TE_PACKAGES)
+  ALL_PACKAGES=$(TE_PACKAGES)
+endif
+
+# Prepare optional Boards build.
+BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
+ifeq ($(BUILD_BOARDS),true)
+    ALL_PACKAGES += $(BOARDS_PACKAGES)
+	IGNORE:=$(shell echo Boards build selected, preparing)
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
+	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/boards_imports.go)
 endif
 
 all: run ## Alias for 'run'.
 
 -include config.override.mk
+
+# Make sure not to modify an overridden ENABLED_DOCKER_SERVICES variable
+DOCKER_SERVICES_OVERRIDE=false
+ifneq (,$(ENABLED_DOCKER_SERVICES))
+  $(info ENABLED_DOCKER_SERVICES has been overridden)
+  DOCKER_SERVICES_OVERRIDE=true
+endif
+
 include config.mk
 include build/*.mk
 
@@ -166,22 +215,28 @@ endif
 
 DOCKER_COMPOSE_OVERRIDE=
 ifneq ("$(wildcard ./docker-compose.override.yaml)","")
-    DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
+  DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-start-docker-check:
-ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
-  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
+ifeq ($(M1_MAC),true)
+  $(info M1 detected, applying elasticsearch override)
+  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+
+ifneq ($(DOCKER_SERVICES_OVERRIDE),true)
+  ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
   endif
-  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
-    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  ifeq ($(BUILD_ENTERPRISE_READY),true)
+    ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+    endif
+    ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+      TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+	endif
   endif
+  ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 endif
-ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
@@ -191,13 +246,14 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
+	docker-compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
-ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+  ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
-endif
-ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+  endif
+  ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
 	./scripts/replica-mysql-config.sh
-endif
+  endif
 endif
 
 run-haserver:
@@ -250,14 +306,19 @@ endif
 
 golangci-lint: ## Run golangci-lint on codebase
 	@# Keep the version in sync with the command in .circleci/config.yml
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 
 	@echo Running golangci-lint
 	$(GOBIN)/golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GOBIN)/golangci-lint run ../enterprise/...
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+		$(GOBIN)/golangci-lint run ../enterprise/...
+  endif
 endif
+ifeq ($(BUILD_BOARDS),true)
+  ifneq ($(MM_NO_BOARDS_LINT),true)
+		$(GOBIN)/golangci-lint run $(BUILD_BOARDS_DIR)/server/...
+  endif
 endif
 
 app-layers: ## Extract interface from App struct
@@ -333,6 +394,12 @@ email-mocks: ## Creates mocks for misc interfaces.
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks
+
+layers: app-layers store-layers pluginapi
+
+generated: mocks layers
+
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
@@ -341,10 +408,10 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
 endif
 
+setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
+setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/setup_go_work.sh
-endif
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
@@ -373,15 +440,42 @@ test-db-migration-v5: start-docker ## Gets diff of upgrade vs new instance schem
 gomodtidy:
 	@cp go.mod go.mod.orig
 	@cp go.sum go.sum.orig
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	fi;
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
 		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
 		rm go.*.orig; \
 		exit 1; \
 	fi;
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
 	@rm go.*.orig;
 
-test-server-pre: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs tests.
+modules-tidy:
+	@if [ -f "imports/imports.go" ]; then \
+		mv imports/imports.go imports/imports.go.orig; \
+	fi;
+	@if [ -f "imports/boards_imports.go" ]; then \
+		mv imports/boards_imports.go imports/boards_imports.go.orig; \
+	fi;
+	-$(GO) mod tidy
+	@if [ -f "imports/imports.go.orig" ]; then \
+		mv imports/imports.go.orig imports/imports.go; \
+	fi;
+	@if [ -f "imports/boards_imports.go.orig" ]; then \
+		mv imports/boards_imports.go.orig imports/boards_imports.go; \
+	fi;
+
+test-server-pre: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -390,27 +484,27 @@ endif
 
 test-server-race: test-server-pre
 	./scripts/test.sh "$(GO)" "-race $(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "90m" "atomic"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
 test-server: test-server-pre
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "45m" "count"
-  ifneq ($(IS_CI),true)
-    ifneq ($(MM_NO_DOCKER),true)
-      ifneq ($(TEMP_DOCKER_SERVICES),)
-	      @echo Stopping temporary docker services
-	      docker-compose stop $(TEMP_DOCKER_SERVICES)
-      endif
+ifneq ($(IS_CI),true)
+  ifneq ($(MM_NO_DOCKER),true)
+    ifneq ($(TEMP_DOCKER_SERVICES),)
+	  @echo Stopping temporary docker services
+	  docker-compose stop $(TEMP_DOCKER_SERVICES)
     endif
   endif
+endif
 
-test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)" "20m" "count"
 
@@ -613,6 +707,7 @@ nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
+	rm -f go.work go.work.sum
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
@@ -645,9 +740,9 @@ vet: ## Run mattermost go vet specific checks
 	fi; \
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ../enterprise/...
-endif
+  endif
 endif
 
 gen-serialized:	export LICENSE_HEADER:=$(LICENSE_HEADER)
@@ -685,3 +780,8 @@ help:
 	@echo
 	@echo You can modify the default settings for this Makefile creating a file config.mk based on the default-config.mk
 	@echo
+
+migrations-extract:
+	@echo Listing migration files
+	@echo "# Autogenerated file to synchronize migrations sequence in the PR workflow, please do not edit.\n#" > db/migrations/migrations.list
+	find db/migrations -maxdepth 2 -mindepth 2 | sort >> db/migrations/migrations.list

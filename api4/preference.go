@@ -110,13 +110,13 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, pref := range preferences {
 		if pref.Category == model.PreferenceCategoryFlaggedPost {
-			post, err := c.App.GetSinglePost(pref.Name)
+			post, err := c.App.GetSinglePost(pref.Name, false)
 			if err != nil {
 				c.SetInvalidParam("preference.name")
 				return
 			}
 
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
 				c.SetPermissionError(model.PermissionReadChannel)
 				return
 			}

@@ -29,6 +29,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoPermanentDeleteByUser", func(t *testing.T) { testFileInfoPermanentDeleteByUser(t, ss) })
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
+	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -724,4 +725,50 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 	count, err = ss.FileInfo().CountAll()
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
+}
+
+func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
+	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	require.NoError(t, err)
+
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), usage)
+
+	f1, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+	})
+	require.NoError(t, err)
+
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file2.txt",
+	})
+	require.NoError(t, err)
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file3.txt",
+	})
+	require.NoError(t, err)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
+
+	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.NoError(t, err)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(20), usage)
+
+	usage, err = ss.FileInfo().GetStorageUsage(false, true)
+	require.NoError(t, err)
+	require.Equal(t, int64(30), usage)
 }

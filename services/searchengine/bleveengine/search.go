@@ -314,7 +314,7 @@ func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs, teamMemberID
 	return nil
 }
 
-func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *model.AppError) {
+func (b *BleveEngine) SearchChannels(teamId, userID, term string, isGuest bool) ([]string, *model.AppError) {
 	// This query essentially boils down to (if teamID is passed):
 	// match teamID == <>
 	// AND
@@ -329,6 +329,13 @@ func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *mo
 	// AND
 	// match (channelType != 'P' || (<> in userIDs && channelType == 'P'))
 
+	// (or if isGuest is true)
+	// <> in teamMemberIds
+	// AND
+	// match term == <>
+	// AND
+	// match (<> in userIDs)
+
 	queries := []query.Query{}
 	if teamId != "" {
 		teamIdQ := bleve.NewTermQuery(teamId)
@@ -340,22 +347,29 @@ func (b *BleveEngine) SearchChannels(teamId, userID, term string) ([]string, *mo
 		queries = append(queries, teamMemberQ)
 	}
 
-	boolNotPrivate := bleve.NewBooleanQuery()
-	privateQ := bleve.NewTermQuery(string(model.ChannelTypePrivate))
-	privateQ.SetField("Type")
-	boolNotPrivate.AddMustNot(privateQ)
+	if isGuest {
+		userQ := bleve.NewBooleanQuery()
+		userIDQ := bleve.NewTermQuery(userID)
+		userIDQ.SetField("UserIDs")
+		userQ.AddMust(userIDQ)
+		queries = append(queries, userIDQ)
+	} else {
+		boolNotPrivate := bleve.NewBooleanQuery()
+		privateQ := bleve.NewTermQuery(string(model.ChannelTypePrivate))
+		privateQ.SetField("Type")
+		boolNotPrivate.AddMustNot(privateQ)
 
-	userQ := bleve.NewBooleanQuery()
-	userIDQ := bleve.NewTermQuery(userID)
-	userIDQ.SetField("UserIDs")
-	userQ.AddMust(userIDQ)
-	userQ.AddMust(privateQ)
+		userQ := bleve.NewBooleanQuery()
+		userIDQ := bleve.NewTermQuery(userID)
+		userIDQ.SetField("UserIDs")
+		userQ.AddMust(userIDQ)
+		userQ.AddMust(privateQ)
 
-	channelTypeQ := bleve.NewDisjunctionQuery()
-	channelTypeQ.AddQuery(boolNotPrivate)
-	channelTypeQ.AddQuery(userQ) // userID && 'p'
-
-	queries = append(queries, channelTypeQ)
+		channelTypeQ := bleve.NewDisjunctionQuery()
+		channelTypeQ.AddQuery(boolNotPrivate)
+		channelTypeQ.AddQuery(userQ) // userID && 'p'
+		queries = append(queries, channelTypeQ)
+	}
 
 	if term != "" {
 		nameSuggestQ := bleve.NewPrefixQuery(strings.ToLower(term))

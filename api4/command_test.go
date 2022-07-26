@@ -717,7 +717,7 @@ func TestExecuteGetCommand(t *testing.T) {
 		Text:         "test get command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -779,7 +779,7 @@ func TestExecutePostCommand(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -840,7 +840,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -892,7 +892,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -951,7 +951,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1015,7 +1015,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

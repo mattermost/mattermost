@@ -44,15 +44,17 @@ func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("localDeleteTeam", audit.Fail)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 	defer c.LogAuditRec(auditRec)
 
 	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
-		auditRec.AddMeta("team", team)
+		auditRec.AddEventPriorState(team)
+		auditRec.AddEventObjectType("team")
 	}
 
 	var err *model.AppError
 	if c.Params.Permanent {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
@@ -97,15 +99,16 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	for i := range emailList {
 		email := strings.ToLower(emailList[i])
 		if !model.IsValidEmail(email) {
-			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Address": email}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Address": email}, "", http.StatusBadRequest)
 			return
 		}
 		emailList[i] = email
 	}
 
 	auditRec := c.MakeAuditRecord("localInviteUsersToTeam", audit.Fail)
+	auditRec.AddEventParameter("member_invite", memberInvite)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
@@ -145,7 +148,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 				Error: nil,
 			}
 			if !isEmailAddressAllowed(email, allowedDomains) {
-				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+				invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 				errList = append(errList, model.EmailInviteWithErrorToString(invite))
 			} else {
 				goodEmails = append(goodEmails, email)
@@ -192,7 +195,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		if len(invalidEmailList) > 0 {
 			s := strings.Join(invalidEmailList, ", ")
-			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
 		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false)
@@ -249,7 +252,7 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("team", team)
+	auditRec.AddEventParameter("team", team)
 
 	rteam, err := c.App.CreateTeam(c.AppContext, &team)
 	if err != nil {
@@ -258,6 +261,8 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
 
+	auditRec.AddEventResultState(rteam)
+	auditRec.AddEventObjectType("type")
 	auditRec.Success()
 	auditRec.AddMeta("team", team) // overwrite meta
 

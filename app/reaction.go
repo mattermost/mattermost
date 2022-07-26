@@ -15,12 +15,12 @@ import (
 )
 
 func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(reaction.PostId)
+	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return nil, err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -121,12 +121,12 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 }
 
 func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(reaction.PostId)
+	post, err := a.GetSinglePost(reaction.PostId, false)
 	if err != nil {
 		return err
 	}
 
-	channel, err := a.GetChannel(post.ChannelId)
+	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
 		return err
 	}

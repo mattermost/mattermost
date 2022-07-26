@@ -268,8 +268,8 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -342,8 +342,8 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJSON(lines)))
 }
@@ -569,7 +569,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
+			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -620,7 +620,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("seconds", i)
+	auditRec.AddEventParameter("seconds", i)
 
 	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
@@ -693,7 +693,7 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 		var iaErr *upgrader.InvalidArch
 		switch {
 		case errors.As(err, &ipErr):
-			params := map[string]interface{}{
+			params := map[string]any{
 				"MattermostUsername": ipErr.MattermostUsername,
 				"FileUsername":       ipErr.FileUsername,
 				"Path":               ipErr.Path,
@@ -729,19 +729,19 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	percentage, err := c.App.Srv().UpgradeToE0Status()
-	var s map[string]interface{}
+	var s map[string]any
 	if err != nil {
 		var isErr *upgrader.InvalidSignature
 		switch {
 		case errors.As(err, &isErr):
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		default:
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		}
 	} else {
-		s = map[string]interface{}{"percentage": percentage, "error": nil}
+		s = map[string]any{"percentage": percentage, "error": nil}
 	}
 
 	w.Write([]byte(model.StringInterfaceToJSON(s)))
@@ -935,7 +935,8 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
-	auditRec.AddMeta("install_plugin", onboardingRequest.InstallPlugins)
+	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
+	auditRec.AddEventParameter("onboarding_request", onboardingRequest)
 
 	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
 	if appErr != nil {
@@ -974,7 +975,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 
 // returns true if the data has nil fields
 // this is being used for testS3 and testEmail methods
-func checkHasNilFields(value interface{}) bool {
+func checkHasNilFields(value any) bool {
 	v := reflect.Indirect(reflect.ValueOf(value))
 	if v.Kind() != reflect.Struct {
 		return false

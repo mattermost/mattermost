@@ -101,7 +101,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				Roles: &updateMap,
 			},
 		}
-		mockApp.On("PatchChannelModerationsForChannel", channel, readonlyChannelModerations).Return(nil, nil)
+		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, readonlyChannelModerations).Return(nil, nil)
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
@@ -142,7 +142,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockServer.On("GetStore").Return(mockStore)
 		appErr := model.NewAppError("foo", "bar", nil, "boom", http.StatusBadRequest)
 
-		mockApp.On("PatchChannelModerationsForChannel", channel, mock.Anything).Return(nil, appErr)
+		mockApp.On("PatchChannelModerationsForChannel", mock.Anything, channel, mock.Anything).Return(nil, appErr)
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)

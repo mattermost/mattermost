@@ -32,6 +32,7 @@ type apiImplCreatorFunc func(*model.Manifest) API
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
+	Error      string
 
 	supervisor *supervisor
 }
@@ -50,6 +51,7 @@ type PrepackagedPlugin struct {
 // of active plugins.
 type Environment struct {
 	registeredPlugins      sync.Map
+	registeredProducts     sync.Map
 	pluginHealthCheckJob   *PluginHealthCheckJob
 	logger                 *mlog.Logger
 	metrics                einterfaces.MetricsInterface
@@ -119,7 +121,7 @@ func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 // The returned list should not be modified.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		plugin := value.(registeredPlugin)
 		if env.IsActive(plugin.BundleInfo.Manifest.Id) {
 			activePlugins = append(activePlugins, plugin.BundleInfo)
@@ -134,6 +136,22 @@ func (env *Environment) Active() []*model.BundleInfo {
 // IsActive returns true if the plugin with the given id is active.
 func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
+}
+
+func (env *Environment) setPluginError(id string, err string) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		p := rp.(registeredPlugin)
+		p.Error = err
+		env.registeredPlugins.Store(id, p)
+	}
+}
+
+func (env *Environment) getPluginError(id string) string {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		return rp.(registeredPlugin).Error
+	}
+
+	return ""
 }
 
 // GetPluginState returns the current state of a plugin (disabled, running, or error)
@@ -184,6 +202,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			PluginId:    plugin.Manifest.Id,
 			PluginPath:  filepath.Dir(plugin.ManifestPath),
 			State:       pluginState,
+			Error:       env.getPluginError(plugin.Manifest.Id),
 			Name:        plugin.Manifest.Name,
 			Description: plugin.Manifest.Description,
 			Version:     plugin.Manifest.Version,
@@ -213,6 +232,14 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 }
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+	defer func() {
+		if reterr != nil {
+			env.setPluginError(id, reterr.Error())
+		} else {
+			env.setPluginError(id, "")
+		}
+	}()
+
 	// Check if we are already active
 	if env.IsActive(id) {
 		return nil, false, nil
@@ -300,6 +327,26 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	return pluginInfo.Manifest, true, nil
 }
 
+func (env *Environment) AddProduct(productID string, hooks any) error {
+	prod, err := newAdapter(hooks)
+	if err != nil {
+		return err
+	}
+
+	rp := &registeredProduct{
+		productID: productID,
+		adapter:   prod,
+	}
+
+	env.registeredProducts.Store(productID, rp)
+
+	return nil
+}
+
+func (env *Environment) RemoveProduct(productID string) {
+	env.registeredProducts.Delete(productID)
+}
+
 func (env *Environment) RemovePlugin(id string) {
 	if _, ok := env.registeredPlugins.Load(id); ok {
 		env.registeredPlugins.Delete(id)
@@ -344,7 +391,7 @@ func (env *Environment) Shutdown() {
 	env.TogglePluginHealthCheckJob(false)
 
 	var wg sync.WaitGroup
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -378,7 +425,7 @@ func (env *Environment) Shutdown() {
 
 	wg.Wait()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		env.registeredPlugins.Delete(key)
 
 		return true
@@ -463,7 +510,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
 
-	env.registeredPlugins.Range(func(key, value interface{}) bool {
+	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
@@ -476,6 +523,24 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
 			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
+		}
+
+		return result
+	})
+
+	env.registeredProducts.Range(func(key, value any) bool {
+		rp := value.(*registeredProduct)
+
+		if !rp.Implements(hookId) {
+			return true
+		}
+
+		hookStartTime := time.Now()
+		result := hookRunnerFunc(rp.adapter)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(rp.productID, elapsedTime)
 		}
 
 		return result

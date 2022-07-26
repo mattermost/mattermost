@@ -1050,7 +1050,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
 	assert.NotNil(t, v.PostProps)
 
-	props := map[string]interface{}{}
+	props := map[string]any{}
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 
@@ -1153,7 +1153,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
 	assert.NotNil(t, v.PostProps)
 
-	props := map[string]interface{}{}
+	props := map[string]any{}
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 

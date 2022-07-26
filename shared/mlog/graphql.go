@@ -18,6 +18,6 @@ func NewGraphQLLogger(logger *Logger) *GraphQLLogger {
 
 // LogPanic satisfies the graphql/log.Logger interface.
 // It converts the panic into an error.
-func (l *GraphQLLogger) LogPanic(_ context.Context, value interface{}) {
+func (l *GraphQLLogger) LogPanic(_ context.Context, value any) {
 	l.logger.Error("Error while executing GraphQL query", Any("error", value))
 }

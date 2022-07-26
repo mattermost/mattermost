@@ -69,7 +69,7 @@ func New(c ServiceConfig) (*UserService, error) {
 		cluster:      c.Cluster,
 		sessionCache: sessionCache,
 		sessionPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				return &model.Session{}
 			},
 		},

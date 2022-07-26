@@ -15,9 +15,11 @@ import (
 const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
+const CustomGroupAdminRoleCreationMigrationKey = "CustomGroupAdminRoleCreationMigrationComplete"
 const ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 const PlaybookRolesCreationMigrationKey = "PlaybookRolesCreationMigrationComplete"
 const FirstAdminSetupCompleteKey = model.SystemFirstAdminSetupComplete
+const remainingSchemaMigrationsKey = "RemainingSchemaMigrations"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -289,6 +291,36 @@ func (s *Server) doSystemConsoleRolesCreationMigration() {
 	}
 }
 
+func (s *Server) doCustomGroupAdminRoleCreationMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(CustomGroupAdminRoleCreationMigrationKey); err == nil {
+		return
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	allSucceeded := true
+	if _, err := s.Store.Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
+		if _, err := s.Store.Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SystemCustomGroupAdminRoleId))
+			allSucceeded = false
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  CustomGroupAdminRoleCreationMigrationKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark custom group admin role creation migration as completed.", mlog.Err(err))
+	}
+}
+
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := s.Store.System().GetByName(ContentExtractionConfigDefaultTrueMigrationKey); err == nil {
@@ -479,6 +511,33 @@ func (s *Server) doFirstAdminSetupCompleteMigration() {
 	}
 }
 
+func (s *Server) doRemainingSchemaMigrations() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store.System().GetByName(remainingSchemaMigrationsKey); err == nil {
+		return
+	}
+
+	if teams, err := s.Store.Team().GetByEmptyInviteID(); err != nil {
+		mlog.Error("Error fetching Teams without InviteID", mlog.Err(err))
+	} else {
+		for _, team := range teams {
+			team.InviteId = model.NewId()
+			if _, err := s.Store.Team().Update(team); err != nil {
+				mlog.Error("Error updating Team InviteIDs", mlog.String("team_id", team.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  remainingSchemaMigrationsKey,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark the remaining schema migrations as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -488,6 +547,7 @@ func (s *Server) doAppMigrations() {
 	s.doEmojisPermissionsMigration()
 	s.doGuestRolesCreationMigration()
 	s.doSystemConsoleRolesCreationMigration()
+	s.doCustomGroupAdminRoleCreationMigration()
 	// This migration always must be the last, because can be based on previous
 	// migrations. For example, it needs the guest roles migration.
 	err := s.doPermissionsMigrations()
@@ -497,4 +557,5 @@ func (s *Server) doAppMigrations() {
 	s.doContentExtractionConfigDefaultTrueMigration()
 	s.doPlaybooksRolesCreationMigration()
 	s.doFirstAdminSetupCompleteMigration()
+	s.doRemainingSchemaMigrations()
 }

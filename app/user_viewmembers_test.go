@@ -44,9 +44,9 @@ func TestRestrictedViewMembers(t *testing.T) {
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
 
-	channel1 := th.CreateChannel(team1)
-	channel2 := th.CreateChannel(team1)
-	channel3 := th.CreateChannel(team2)
+	channel1 := th.CreateChannel(th.Context, team1)
+	channel2 := th.CreateChannel(th.Context, team1)
+	channel3 := th.CreateChannel(th.Context, team2)
 
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)

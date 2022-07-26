@@ -22,6 +22,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -30,6 +31,9 @@ import (
 const (
 	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
+
+// ensure the config wrapper implements `product.ConfigService`
+var _ product.ConfigService = (*configWrapper)(nil)
 
 // configWrapper is an adapter struct that only exposes the
 // config related functionality to be passed down to other products.
@@ -78,9 +82,9 @@ func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeCluster
 		if w.srv.Metrics != nil {
 			w.srv.Metrics.Register()
 		}
-		w.srv.SetupMetricsServer()
+		w.srv.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
 	} else {
-		w.srv.StopMetricsServer()
+		w.srv.platformService.ShutdownMetrics() // TODO: remove when this moved to the platform service
 	}
 
 	if w.srv.Cluster != nil {
@@ -113,11 +117,11 @@ func (a *App) Config() *model.Config {
 	return a.ch.cfgSvc.Config()
 }
 
-func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return a.Srv().EnvironmentConfig(filter)
 }
 
@@ -463,7 +467,7 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
-func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return a.EnvironmentConfig(filter)
 }
 
