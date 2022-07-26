@@ -13,12 +13,18 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
 const permissionsExportBatchSize = 100
 const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents collisions with user-created schemes.
 
+// Ensure permissions service wrapper implements `product.PermissionService`
+var _ product.PermissionService = (*permissionsServiceWrapper)(nil)
+
+// permissionsServiceWrapper provides an implementation of `product.PermissionService` for use by products.
 type permissionsServiceWrapper struct {
 	app AppIface
 }
@@ -28,7 +34,7 @@ func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID st
 }
 
 func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToChannel(askingUserID, channelID, permission)
+	return s.app.HasPermissionToChannel(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
 }
 
 func (a *App) ResetPermissionsSystem() *model.AppError {

@@ -24,8 +24,8 @@ func TestGraphQLChannels(t *testing.T) {
 	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 	th.LinkUserToTeam(th.BasicUser, myTeam)
-	th.App.AddUserToChannel(th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 	th.CreateDmChannel(th.BasicUser2)
 
 	var q struct {
@@ -413,7 +413,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.Len(t, q.Channels, 3)
 		for _, ch := range q.Channels {
 			require.Equal(t, ch.ID, ch.Stats.ChannelId)
-			count, appErr := th.App.GetChannelMemberCount(ch.Stats.ChannelId)
+			count, appErr := th.App.GetChannelMemberCount(th.Context, ch.Stats.ChannelId)
 			require.Nil(t, appErr)
 			require.Equal(t, float64(count), ch.Stats.MemberCount)
 		}

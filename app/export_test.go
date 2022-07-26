@@ -97,7 +97,7 @@ func TestExportUserChannels(t *testing.T) {
 	err := th.App.Srv().Store.Preference().Save(preferences)
 	require.NoError(t, err)
 
-	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
+	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
 	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
@@ -327,7 +327,7 @@ func TestExportGMChannel(t *testing.T) {
 	th1.LinkUserToTeam(user2, th1.BasicTeam)
 
 	// GM Channel
-	th1.CreateGroupChannel(user1, user2)
+	th1.CreateGroupChannel(th1.Context, user1, user2)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
@@ -359,7 +359,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th1.LinkUserToTeam(user2, th1.BasicTeam)
 
 	// GM Channel
-	th1.CreateGroupChannel(user1, user2)
+	th1.CreateGroupChannel(th1.Context, user1, user2)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(&b, "somePath", model.BulkExportOpts{})
@@ -407,7 +407,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	th1.LinkUserToTeam(user2, th1.BasicTeam)
 
 	// GM Channel
-	gmChannel := th1.CreateGroupChannel(user1, user2)
+	gmChannel := th1.CreateGroupChannel(th1.Context, user1, user2)
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
@@ -489,7 +489,7 @@ func TestExportPostWithProps(t *testing.T) {
 	th1.LinkUserToTeam(user2, th1.BasicTeam)
 
 	// GM Channel
-	gmChannel := th1.CreateGroupChannel(user1, user2)
+	gmChannel := th1.CreateGroupChannel(th1.Context, user1, user2)
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
@@ -709,7 +709,7 @@ func TestExportDeletedTeams(t *testing.T) {
 	defer th1.TearDown()
 
 	team1 := th1.CreateTeam()
-	channel1 := th1.CreateChannel(team1)
+	channel1 := th1.CreateChannel(th1.Context, team1)
 	th1.CreatePost(channel1)
 
 	// Delete the team to check that this is handled correctly on import.
@@ -733,9 +733,9 @@ func TestExportDeletedTeams(t *testing.T) {
 	assert.Equal(t, len(teams1), len(teams2))
 	assert.ElementsMatch(t, teams1, teams2)
 
-	channels1, err := th1.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	channels1, err := th1.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
 	assert.Nil(t, err)
-	channels2, err := th2.App.GetAllChannels(0, 10, model.ChannelSearchOpts{})
+	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{})
 	assert.Nil(t, err)
 	assert.Equal(t, len(channels1), len(channels2))
 	assert.ElementsMatch(t, channels1, channels2)

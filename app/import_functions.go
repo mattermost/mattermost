@@ -284,7 +284,7 @@ func (a *App) importChannel(c *request.Context, data *ChannelImportData, dryRun 
 			return err
 		}
 	} else {
-		if _, err := a.UpdateChannel(channel); err != nil {
+		if _, err := a.UpdateChannel(c, channel); err != nil {
 			return err
 		}
 	}
@@ -292,7 +292,7 @@ func (a *App) importChannel(c *request.Context, data *ChannelImportData, dryRun 
 	return nil
 }
 
-func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
+func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *model.AppError {
 	if err := validateUserImportData(data); err != nil {
 		return err
 	}
@@ -728,10 +728,10 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
-	return a.importUserTeams(savedUser, data.Teams)
+	return a.importUserTeams(c, savedUser, data.Teams)
 }
 
-func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError {
+func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -882,7 +882,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(user, team, &channelsToImport); err != nil {
+		if err := a.importUserChannels(c, user, team, &channelsToImport); err != nil {
 			return err
 		}
 	}
@@ -890,7 +890,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	return nil
 }
 
-func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1040,12 +1040,12 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]Use
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			if _, err = a.UpdateChannelMemberRoles(member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
+			if _, err = a.UpdateChannelMemberRoles(c, member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateChannelMemberSchemeRoles(member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
+		a.UpdateChannelMemberSchemeRoles(c, member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
 	}
 
 	for _, channel := range allChannels {
@@ -1224,7 +1224,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.GetFileInfosForPost(post.Id, true)
+		oldFiles, err := a.GetFileInfosForPost(post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
@@ -1564,7 +1564,7 @@ func (a *App) updateFileInfoWithPostId(post *model.Post) {
 		}
 	}
 }
-func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectChannel(c request.CTX, data *DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = validateDirectChannelImportData(data); err != nil {
 		return err
@@ -1587,13 +1587,13 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	var channel *model.Channel
 
 	if len(userIDs) == 2 {
-		ch, err := a.createDirectChannel(userIDs[0], userIDs[1])
+		ch, err := a.createDirectChannel(c, userIDs[0], userIDs[1])
 		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIDs)
+		ch, err := a.createGroupChannel(c, userIDs)
 		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -1698,7 +1698,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			}
 			channel = ch
 		} else {
-			ch, err = a.createGroupChannel(userIDs)
+			ch, err = a.createGroupChannel(c, userIDs)
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}

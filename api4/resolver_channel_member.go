@@ -68,7 +68,7 @@ func graphQLChannelsLoader(ctx context.Context, keys dataloader.Keys) []*dataloa
 }
 
 func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error) {
-	channels, appErr := c.App.GetChannels(channelIDs)
+	channels, appErr := c.App.GetChannels(c.AppContext, channelIDs)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -92,18 +92,18 @@ func getGraphQLChannels(c *web.Context, channelIDs []string) ([]*channel, error)
 		teamsForOpenChannels = append(teamsForOpenChannels, teamID)
 	}
 
-	if len(openChannels) > 0 && !c.App.SessionHasPermissionToChannels(*c.AppContext.Session(), openChannels, model.PermissionReadChannel) &&
-		!c.App.SessionHasPermissionToTeams(*c.AppContext.Session(), teamsForOpenChannels, model.PermissionReadPublicChannel) {
+	if len(openChannels) > 0 && !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), openChannels, model.PermissionReadChannel) &&
+		!c.App.SessionHasPermissionToTeams(c.AppContext, *c.AppContext.Session(), teamsForOpenChannels, model.PermissionReadPublicChannel) {
 		c.SetPermissionError(model.PermissionReadPublicChannel)
 		return nil, c.Err
 	}
 
-	if len(nonOpenChannels) > 0 && !c.App.SessionHasPermissionToChannels(*c.AppContext.Session(), nonOpenChannels, model.PermissionReadChannel) {
+	if len(nonOpenChannels) > 0 && !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), nonOpenChannels, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return nil, c.Err
 	}
 
-	appErr = c.App.FillInChannelsProps(model.ChannelList(channels))
+	appErr = c.App.FillInChannelsProps(c.AppContext, model.ChannelList(channels))
 	if appErr != nil {
 		return nil, appErr
 	}

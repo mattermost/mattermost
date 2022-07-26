@@ -112,6 +112,30 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
+func (o *Post) Auditable() map[string]interface{} {
+	return map[string]interface{}{ // TODO check this
+		"id":              o.Id,
+		"create_at":       o.CreateAt,
+		"update_at":       o.UpdateAt,
+		"edit_at":         o.EditAt,
+		"delete_at":       o.DeleteAt,
+		"is_pinned":       o.IsPinned,
+		"user_id":         o.UserId,
+		"channel_id":      o.ChannelId,
+		"root_id":         o.RootId,
+		"original_id":     o.OriginalId,
+		"type":            o.Type,
+		"props":           o.GetProps(),
+		"file_ids":        o.FileIds,
+		"pending_post_id": o.PendingPostId,
+		"remote_id":       o.RemoteId,
+		"reply_count":     o.ReplyCount,
+		"last_reply_at":   o.LastReplyAt,
+		"is_following":    o.IsFollowing,
+		"metadata":        o.Metadata,
+	}
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -712,18 +736,10 @@ func (o *Post) ToNilIfInvalid() *Post {
 	return o
 }
 
-func (o *Post) RemovePreviewPost() {
-	if o.Metadata == nil || o.Metadata.Embeds == nil {
-		return
-	}
-	n := 0
-	for _, embed := range o.Metadata.Embeds {
-		if embed.Type != PostEmbedPermalink {
-			o.Metadata.Embeds[n] = embed
-			n++
-		}
-	}
-	o.Metadata.Embeds = o.Metadata.Embeds[:n]
+func (o *Post) ForPlugin() *Post {
+	p := o.Clone()
+	p.Metadata = nil
+	return p
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {

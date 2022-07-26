@@ -24,10 +24,19 @@ const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 
 func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
 	ext := strings.ToLower(filepath.Ext(name))
+
 	info := &model.FileInfo{
-		Name:     name,
-		MimeType: mime.TypeByExtension(ext),
+		Name:      name,
+		MimeType:  mime.TypeByExtension(ext),
+		Size:      size,
+		Extension: ext,
 	}
+
+	if ext != "" {
+		// The client expects a file extension without the leading period
+		info.Extension = ext[1:]
+	}
+
 	if info.IsImage() {
 		config, _, err := a.ch.imgDecoder.DecodeConfig(file)
 		if err != nil {
@@ -117,7 +126,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 	return nil
 }
 
-func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
 			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
@@ -136,7 +145,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	}
 
 	if us.Type == model.UploadTypeAttachment {
-		channel, err := a.GetChannel(us.ChannelId)
+		channel, err := a.GetChannel(c, us.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
 				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)

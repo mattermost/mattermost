@@ -18,30 +18,30 @@ import (
 )
 
 const (
-	HeaderRequestId            = "X-Request-ID"
-	HeaderVersionId            = "X-Version-ID"
-	HeaderClusterId            = "X-Cluster-ID"
-	HeaderEtagServer           = "ETag"
-	HeaderEtagClient           = "If-None-Match"
-	HeaderForwarded            = "X-Forwarded-For"
-	HeaderRealIP               = "X-Real-IP"
-	HeaderForwardedProto       = "X-Forwarded-Proto"
-	HeaderToken                = "token"
-	HeaderCsrfToken            = "X-CSRF-Token"
-	HeaderBearer               = "BEARER"
-	HeaderAuth                 = "Authorization"
-	HeaderCloudToken           = "X-Cloud-Token"
-	HeaderRemoteclusterToken   = "X-RemoteCluster-Token"
-	HeaderRemoteclusterId      = "X-RemoteCluster-Id"
-	HeaderRequestedWith        = "X-Requested-With"
-	HeaderRequestedWithXML     = "XMLHttpRequest"
-	HeaderHasInaccessiblePosts = "Has-Inaccessible-Posts"
-	HeaderRange                = "Range"
-	STATUS                     = "status"
-	StatusOk                   = "OK"
-	StatusFail                 = "FAIL"
-	StatusUnhealthy            = "UNHEALTHY"
-	StatusRemove               = "REMOVE"
+	HeaderRequestId                 = "X-Request-ID"
+	HeaderVersionId                 = "X-Version-ID"
+	HeaderClusterId                 = "X-Cluster-ID"
+	HeaderEtagServer                = "ETag"
+	HeaderEtagClient                = "If-None-Match"
+	HeaderForwarded                 = "X-Forwarded-For"
+	HeaderRealIP                    = "X-Real-IP"
+	HeaderForwardedProto            = "X-Forwarded-Proto"
+	HeaderToken                     = "token"
+	HeaderCsrfToken                 = "X-CSRF-Token"
+	HeaderBearer                    = "BEARER"
+	HeaderAuth                      = "Authorization"
+	HeaderCloudToken                = "X-Cloud-Token"
+	HeaderRemoteclusterToken        = "X-RemoteCluster-Token"
+	HeaderRemoteclusterId           = "X-RemoteCluster-Id"
+	HeaderRequestedWith             = "X-Requested-With"
+	HeaderRequestedWithXML          = "XMLHttpRequest"
+	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	HeaderRange                     = "Range"
+	STATUS                          = "status"
+	StatusOk                        = "OK"
+	StatusFail                      = "FAIL"
+	StatusUnhealthy                 = "UNHEALTHY"
+	StatusRemove                    = "REMOVE"
 
 	ClientDir = "client"
 
@@ -4415,6 +4415,24 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 	}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
 		return nil, nil, NewAppError("GetFileInfosForPost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return list, BuildResponse(r), nil
+}
+
+// GetFileInfosForPost gets all the file info objects attached to a post, including deleted
+func (c *Client4) GetFileInfosForPostIncludeDeleted(postId string, etag string) ([]*FileInfo, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/files/info"+"?include_deleted="+c.boolString(true), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*FileInfo
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&list); jsonErr != nil {
+		return nil, nil, NewAppError("GetFileInfosForPostIncludeDeleted", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 	}
 	return list, BuildResponse(r), nil
 }

@@ -302,12 +302,12 @@ func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(line.User, dryRun)
+		return a.importUser(c, line.User, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importDirectChannel(line.DirectChannel, dryRun)
+		return a.importDirectChannel(c, line.DirectChannel, dryRun)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)

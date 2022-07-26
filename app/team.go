@@ -24,12 +24,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
+// teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
 type teamServiceWrapper struct {
 	app AppIface
 }
@@ -41,6 +43,9 @@ func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember
 func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
+
+// Ensure the wrapper implements the product service.
+var _ product.TeamService = (*teamServiceWrapper)(nil)
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
@@ -697,7 +702,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		}
 
 		for _, channel := range channels {
-			_, err := a.AddUserToChannel(user, channel, false)
+			_, err := a.AddUserToChannel(c, user, channel, false)
 			if err != nil {
 				mlog.Warn("Error adding user to channel", mlog.Err(err))
 			}
@@ -1193,7 +1198,7 @@ func (a *App) RemoveUserFromTeam(c *request.Context, teamID string, userID strin
 	return nil
 }
 
-func (a *App) postProcessTeamMemberLeave(c *request.Context, teamMember *model.TeamMember, requestorId string) *model.AppError {
+func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if requestorId != "" {
@@ -1745,16 +1750,16 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	return members, nil
 }
 
-func (a *App) PermanentDeleteTeamId(teamID string) *model.AppError {
+func (a *App) PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
 	}
 
-	return a.PermanentDeleteTeam(team)
+	return a.PermanentDeleteTeam(c, team)
 }
 
-func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
+func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
 	if _, err := a.Srv().Store.Team().Update(team); err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1775,8 +1780,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		for _, c := range channels {
-			a.PermanentDeleteChannel(c)
+		for _, ch := range channels {
+			a.PermanentDeleteChannel(c, ch)
 		}
 	}
 

@@ -912,6 +912,7 @@ func TestHookContext(t *testing.T) {
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API

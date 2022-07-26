@@ -9293,5 +9293,13 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "An error occurred while fetching the last accessible post"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   }
 ]
