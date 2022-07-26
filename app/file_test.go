@@ -551,5 +551,5 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 	}
 
 	// Test that we don't process images.
-	require.Nil(t, app.ExtractContentFromFileInfo(fi))
+	require.NoError(t, app.ExtractContentFromFileInfo(fi))
 }
