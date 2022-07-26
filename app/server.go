@@ -252,6 +252,17 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platformService = ps
 	}
 
+	ps, sErr := platform.New(platform.ServiceConfig{
+		ConfigStore:  s.configStore.Store,
+		StartMetrics: s.startMetrics,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to initialize platform")
+	}
+	s.platformService = ps
+
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
