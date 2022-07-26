@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Afficher le message"
+    "translation": "Répondre dans Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -4745,7 +4745,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 78+"
+    "translation": "Version 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4765,7 +4765,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6933,7 +6933,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "La session a expiré : Veuillez vous connecter pour continuer à recevoir des notifications. Les sessions pour {{.siteName}} sont configurées par votre administrateur système pour expirer tous les {{.daysCount}} jours."
+    "translation": "La session a expiré : Veuillez vous connecter pour continuer à recevoir des notifications. Les sessions pour {{.siteName}} sont configurées par votre administrateur système pour expirer toutes les {{.hoursCount}} heures."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -7157,7 +7157,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Votre essai de 14 jours de l'espace de travail {{.WorkSpace}} est prêt à démarrer !"
+    "translation": "Votre espace de travail est prêt à fonctionner !"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7921,7 +7921,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Envoyez-nous un e-mail à tout moment à "
+    "translation": "Vous avez besoin d'aide ou vous avez des questions ? Envoyez-nous un courriel à "
   },
   {
     "id": "api.templates.payment_failed_no_card.info3",
@@ -9365,5 +9365,9 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Valeur de délai d'attente non valide {{.Value}}. Doit être un nombre positif."
   }
 ]

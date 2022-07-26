@@ -9318,5 +9318,9 @@
   {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Nem sikerült legenerálni a fájl információt a feltöltött adatból."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Érvénytelen az időtúllépés értéke {{.Value}}. Pozitív számnak kell lennie."
   }
 ]
