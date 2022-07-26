@@ -42,7 +42,7 @@ var linkCache = cache.NewLRU(cache.LRUOptions{
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
-	s.AddConfigListener(func(before, after *model.Config) {
+	s.platformService.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||

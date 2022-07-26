@@ -1044,7 +1044,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mocks.SessionStore{},
 		OAuthStore:   &mocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platformService.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
@@ -1088,7 +1088,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		GroupStore:   &mocks.GroupStore{},
 		Users:        th.App.ch.srv.userService,
 		WebHub:       th.App.ch.srv,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platformService.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)

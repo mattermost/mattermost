@@ -28,8 +28,8 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	license := s.platformService.GetLicense()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platformService.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -48,7 +48,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.platformService.Config().ClusterSettings.Enable {
 		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -67,9 +67,9 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *s.Config().LogSettings.EnableFile {
+	if *s.platformService.Config().LogSettings.EnableFile {
 		s.Log.Flush()
-		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+		logFile := config.GetLogFileLocation(*s.platformService.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)

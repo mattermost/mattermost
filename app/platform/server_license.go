@@ -11,3 +11,7 @@ func (ps *PlatformService) License() *model.License {
 	license, _ := ps.licenseValue.Load().(*model.License)
 	return license
 }
+
+func (ps *PlatformService) SetLicense(license *model.License) {
+	ps.licenseValue.Store(license)
+}

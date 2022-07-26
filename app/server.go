@@ -148,6 +148,7 @@ type Server struct {
 	clusterLeaderListeners sync.Map
 	clusterWrapper         *clusterWrapper
 
+	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
 	licenseWrapper     *licenseWrapper
@@ -249,26 +250,18 @@ func NewServer(options ...Option) (*Server, error) {
 		if sErr != nil {
 			return nil, errors.Wrap(sErr, "failed to initialize platform")
 		}
+		if s.licenseValue.Load() != nil {
+			ps.SetLicense(s.licenseValue.Load().(*model.License)) // in case license is set in server options
+		}
 		s.platformService = ps
 	}
-
-	ps, sErr := platform.New(platform.ServiceConfig{
-		ConfigStore:  s.configStore.Store,
-		StartMetrics: s.startMetrics,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-	})
-	if sErr != nil {
-		return nil, errors.Wrap(sErr, "failed to initialize platform")
-	}
-	s.platformService = ps
 
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
-	subpath, err := utils.GetSubpathFromConfig(s.Config())
+	subpath, err := utils.GetSubpathFromConfig(s.platformService.Config())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
@@ -277,12 +270,12 @@ func NewServer(options ...Option) (*Server, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
-	s.httpService = httpservice.MakeHTTPService(s)
+	s.httpService = httpservice.MakeHTTPService(s.platformService)
 
 	// Step 3: Search Engine
 	// Depends on Step 1 (config).
-	searchEngine := searchengine.NewBroker(s.Config())
-	bleveEngine := bleveengine.NewBleveEngine(s.Config())
+	searchEngine := searchengine.NewBroker(s.platformService.Config())
+	bleveEngine := bleveengine.NewBleveEngine(s.platformService.Config())
 	if err := bleveEngine.Start(); err != nil {
 		return nil, err
 	}
@@ -305,7 +298,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.New(s.platformService.Config().SqlSettings, s.Metrics)
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -320,10 +313,10 @@ func NewServer(options ...Option) (*Server, error) {
 			searchStore := searchlayer.NewSearchLayer(
 				lcl,
 				s.SearchEngine,
-				s.Config(),
+				s.platformService.Config(),
 			)
 
-			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+			s.platformService.AddConfigListener(func(prevCfg, cfg *model.Config) {
 				searchStore.UpdateConfig(cfg)
 			})
 
@@ -349,7 +342,7 @@ func NewServer(options ...Option) (*Server, error) {
 		UserStore:    s.Store.User(),
 		SessionStore: s.Store.Session(),
 		OAuthStore:   s.Store.OAuth(),
-		ConfigFn:     s.Config,
+		ConfigFn:     s.platformService.Config,
 		Metrics:      s.Metrics,
 		Cluster:      s.Cluster,
 		LicenseFn:    s.License,
@@ -373,9 +366,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	license := s.License()
-	insecure := s.Config().ServiceSettings.EnableInsecureOutgoingConnections
+	insecure := s.platformService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 7: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	backend, err := filestore.NewFileBackend(s.platformService.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filebackend")
 	}
@@ -395,7 +388,7 @@ func NewServer(options ...Option) (*Server, error) {
 		GroupStore:   s.Store.Group(),
 		Users:        s.userService,
 		WebHub:       s,
-		ConfigFn:     s.Config,
+		ConfigFn:     s.platformService.Config,
 		LicenseFn:    s.License,
 	})
 	if err != nil {
@@ -438,7 +431,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// below this. Otherwise, please add it to Channels struct in app/channels.go.
 	// -------------------------------------------------------------------------
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
+	if *s.platformService.Config().LogSettings.EnableDiagnostics && *s.platformService.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
@@ -465,7 +458,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if *s.Config().ServiceSettings.EnableOpenTracing {
+	if *s.platformService.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err2 := tracing.New()
 		if err2 != nil {
 			return nil, err2
@@ -493,7 +486,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub(request.EmptyContext(s.GetLogger()))
 
-	if err2 := i18n.InitTranslations(*s.Config().LocalizationSettings.DefaultServerLocale, *s.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
+	if err2 := i18n.InitTranslations(*s.platformService.Config().LocalizationSettings.DefaultServerLocale, *s.platformService.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
@@ -512,7 +505,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
+	s.configListenerId = s.platformService.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
 		ch.regenerateClientConfig()
 
@@ -543,7 +536,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log)
 
 	emailService, err := email.NewService(email.ServiceConfig{
-		ConfigFn:           s.Config,
+		ConfigFn:           s.platformService.Config,
 		LicenseFn:          s.License,
 		GoFn:               s.Go,
 		TemplatesContainer: s.TemplatesContainer(),
@@ -555,7 +548,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.EmailService = emailService
 
-	s.setupFeatureFlags()
+	s.platformService.SetupFeatureFlags()
 
 	s.initJobs()
 
@@ -564,7 +557,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if s.Jobs != nil {
 			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
-		s.setupFeatureFlags()
+		s.platformService.SetupFeatureFlags()
 	})
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
@@ -575,12 +568,12 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 	}
 
-	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
+	if _, err = url.ParseRequestURI(*s.platformService.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
-	s.AddConfigListener(func(_, _ *model.Config) {
+	s.platformService.AddConfigListener(func(_, _ *model.Config) {
 		s.EmailService.InitEmailBatching()
 	})
 
@@ -623,7 +616,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+		s.platformService.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -638,13 +631,13 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
 	})
 
-	s.SearchEngine.UpdateConfig(s.Config())
+	s.SearchEngine.UpdateConfig(s.platformService.Config())
 	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
 	// if enabled - perform initial product notices fetch
-	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
+	if *s.platformService.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platformService.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			if err := appInstance.UpdateProductNotices(); err != nil {
@@ -657,7 +650,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return s, nil
 	}
 
-	s.AddConfigListener(func(old, new *model.Config) {
+	s.platformService.AddConfigListener(func(old, new *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
 		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
 			c := request.EmptyContext(s.GetLogger())
@@ -668,7 +661,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	// Disable active guest accounts on first run if guest accounts are disabled
-	if !*s.Config().GuestAccountsSettings.Enable {
+	if !*s.platformService.Config().GuestAccountsSettings.Enable {
 		appInstance := New(ServerConnector(s.Channels()))
 		c := request.EmptyContext(s.GetLogger())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
@@ -691,7 +684,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.initPostMetadata()
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
-	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+	s.platformService.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
 			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
 			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
@@ -743,18 +736,18 @@ func (s *Server) runJobs() {
 		complianceI.StartComplianceDailyJob()
 	}
 
-	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+	if *s.platformService.Config().JobSettings.RunJobs && s.Jobs != nil {
 		if err := s.Jobs.StartWorkers(); err != nil {
 			mlog.Error("Failed to start job server workers", mlog.Err(err))
 		}
 	}
-	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+	if *s.platformService.Config().JobSettings.RunScheduler && s.Jobs != nil {
 		if err := s.Jobs.StartSchedulers(); err != nil {
 			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
 		}
 	}
 
-	if *s.Config().ServiceSettings.EnableAWSMetering {
+	if *s.platformService.Config().ServiceSettings.EnableAWSMetering {
 		runReportToAWSMeterJob(s)
 	}
 }
@@ -774,7 +767,7 @@ func (s *Server) Channels() *Channels {
 // Return Database type (postgres or mysql) and current version of the schema
 func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
 	schemaVersion, _ := s.Store.GetDBSchemaVersion()
-	return *s.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
+	return *s.platformService.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
@@ -797,7 +790,7 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
 	}
 
-	if err := s.platformService.ConfigureLogger("logging", s.Log, &s.Config().LogSettings, config.GetLogFileLocation); err != nil {
+	if err := s.platformService.ConfigureLogger("logging", s.Log, &s.platformService.Config().LogSettings, config.GetLogFileLocation); err != nil {
 		// if the config is locked then a unit test has already configured and locked the logger; not an error.
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			// revert to default logger if the config is invalid
@@ -812,7 +805,7 @@ func (s *Server) initLogging() error {
 	// Use the app logger as the global logger (eventually remove all instances of global logging).
 	mlog.InitGlobalLogger(s.Log)
 
-	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.platformService.Config().NotificationLogSettings)
 	if err := s.platformService.ConfigureLogger("notification logging", s.NotificationsLog, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
 		if !errors.Is(err, mlog.ErrConfigurationLock) {
 			mlog.Error("Error configuring notification logger", mlog.Err(err))
@@ -856,7 +849,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if !*s.platformService.Config().ExperimentalSettings.EnableRemoteClusterService {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
@@ -885,7 +878,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	// Config check
-	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+	if !*s.platformService.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channels Service disabled via config")
 		return nil
 	}
@@ -990,12 +983,12 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	s.RemoveConfigListener(s.configListenerId)
+	s.platformService.RemoveConfigListener(s.configListenerId)
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()
 
-	s.stopFeatureFlagUpdateJob()
+	s.platformService.StopFeatureFlagUpdateJob()
 
 	s.platformService.ShutdownConfig()
 
@@ -1198,23 +1191,23 @@ func (s *Server) Start() error {
 
 	s.checkPushNotificationServerURL()
 
-	s.ReloadConfig()
+	s.platformService.ReloadConfig()
 
 	mlog.Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
+	if *s.platformService.Config().LogSettings.EnableDiagnostics && *s.platformService.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
 		handler = sentryHandler.Handle(handler)
 	}
 
-	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
-		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
-		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
-		debug := *s.Config().ServiceSettings.CorsDebug
+	if allowedOrigins := *s.platformService.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+		exposedCorsHeaders := *s.platformService.Config().ServiceSettings.CorsExposedHeaders
+		allowCredentials := *s.platformService.Config().ServiceSettings.CorsAllowCredentials
+		debug := *s.platformService.Config().ServiceSettings.CorsDebug
 		corsWrapper := cors.New(cors.Options{
 			AllowedOrigins:   strings.Fields(allowedOrigins),
 			AllowedMethods:   corsAllowedMethods,
@@ -1233,10 +1226,10 @@ func (s *Server) Start() error {
 		handler = corsWrapper.Handler(handler)
 	}
 
-	if *s.Config().RateLimitSettings.Enable {
+	if *s.platformService.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err2 := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
+		rateLimiter, err2 := NewRateLimiter(&s.platformService.Config().RateLimitSettings, s.platformService.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err2 != nil {
 			return err2
 		}
@@ -1251,15 +1244,15 @@ func (s *Server) Start() error {
 
 	s.Server = &http.Server{
 		Handler:      handler,
-		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(*s.Config().ServiceSettings.IdleTimeout) * time.Second,
+		ReadTimeout:  time.Duration(*s.platformService.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*s.platformService.Config().ServiceSettings.WriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(*s.platformService.Config().ServiceSettings.IdleTimeout) * time.Second,
 		ErrorLog:     errStdLog,
 	}
 
-	addr := *s.Config().ServiceSettings.ListenAddress
+	addr := *s.platformService.Config().ServiceSettings.ListenAddress
 	if addr == "" {
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
+		if *s.platformService.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
 			addr = ":https"
 		} else {
 			addr = ":http"
@@ -1276,11 +1269,11 @@ func (s *Server) Start() error {
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
 	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Cache:  autocert.DirCache(*s.platformService.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
 		Prompt: autocert.AcceptTOS,
 	}
 
-	if *s.Config().ServiceSettings.Forward80To443 {
+	if *s.platformService.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
 			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
@@ -1288,7 +1281,7 @@ func (s *Server) Start() error {
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
-			if *s.Config().ServiceSettings.UseLetsEncrypt {
+			if *s.platformService.Config().ServiceSettings.UseLetsEncrypt {
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
@@ -1312,21 +1305,21 @@ func (s *Server) Start() error {
 				}()
 			}
 		}
-	} else if *s.Config().ServiceSettings.UseLetsEncrypt {
+	} else if *s.platformService.Config().ServiceSettings.UseLetsEncrypt {
 		return errors.New(i18n.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	s.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *s.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
+		if *s.platformService.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
 
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 			}
 
-			switch *s.Config().ServiceSettings.TLSMinVer {
+			switch *s.platformService.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
@@ -1344,11 +1337,11 @@ func (s *Server) Start() error {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 			}
 
-			if len(s.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
+			if len(s.platformService.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
 				tlsConfig.CipherSuites = defaultCiphers
 			} else {
 				var cipherSuites []uint16
-				for _, cipher := range s.Config().ServiceSettings.TLSOverwriteCiphers {
+				for _, cipher := range s.platformService.Config().ServiceSettings.TLSOverwriteCiphers {
 					value, ok := model.ServerTLSSupportedCiphers[cipher]
 
 					if !ok {
@@ -1370,12 +1363,12 @@ func (s *Server) Start() error {
 			certFile := ""
 			keyFile := ""
 
-			if *s.Config().ServiceSettings.UseLetsEncrypt {
+			if *s.platformService.Config().ServiceSettings.UseLetsEncrypt {
 				tlsConfig.GetCertificate = m.GetCertificate
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
-				certFile = *s.Config().ServiceSettings.TLSCertFile
-				keyFile = *s.Config().ServiceSettings.TLSKeyFile
+				certFile = *s.platformService.Config().ServiceSettings.TLSCertFile
+				keyFile = *s.platformService.Config().ServiceSettings.TLSKeyFile
 			}
 
 			s.Server.TLSConfig = tlsConfig
@@ -1392,7 +1385,7 @@ func (s *Server) Start() error {
 		close(s.didFinishListen)
 	}()
 
-	if *s.Config().ServiceSettings.EnableLocalMode {
+	if *s.platformService.Config().ServiceSettings.EnableLocalMode {
 		if err := s.startLocalModeServer(); err != nil {
 			mlog.Critical(err.Error())
 		}
@@ -1454,7 +1447,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 }
 
 func (s *Server) checkPushNotificationServerURL() {
-	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	notificationServer := *s.platformService.Config().EmailSettings.PushNotificationServer
 	if strings.HasPrefix(notificationServer, "http://") {
 		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
@@ -1522,7 +1515,7 @@ func runReportToAWSMeterJob(s *Server) {
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
-	awsMeter := awsmeter.New(s.Store, s.Config())
+	awsMeter := awsmeter.New(s.Store, s.platformService.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
@@ -1563,12 +1556,12 @@ func doSessionCleanup(s *Server) {
 }
 
 func doJobsCleanup(s *Server) {
-	if *s.Config().JobSettings.CleanupJobsThresholdDays < 0 {
+	if *s.platformService.Config().JobSettings.CleanupJobsThresholdDays < 0 {
 		return
 	}
 	mlog.Debug("Cleaning up jobs store.")
 
-	dur := time.Duration(*s.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
+	dur := time.Duration(*s.platformService.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
@@ -1577,7 +1570,7 @@ func doJobsCleanup(s *Server) {
 }
 
 func doConfigCleanup(s *Server) {
-	if *s.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.platformService.DescribeConfig()) {
+	if *s.platformService.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.platformService.DescribeConfig()) {
 		return
 	}
 	mlog.Info("Cleaning up configuration store.")
@@ -1614,7 +1607,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		if name == "" {
 			name = user.Username
 		}
-		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platformService.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
 			countNotOks++
 		}
@@ -1695,7 +1688,7 @@ func (s *Server) doLicenseExpirationCheck() {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.Config().ServiceSettings.SiteURL); err != nil {
+			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.platformService.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1725,7 +1718,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 		})
 	}
 
-	configListenerId := s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+	configListenerId := s.platformService.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		if s.SearchEngine == nil {
 			return
 		}
@@ -1784,7 +1777,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 }
 
 func (s *Server) stopSearchEngine() {
-	s.RemoveConfigListener(s.searchConfigListenerId)
+	s.platformService.RemoveConfigListener(s.searchConfigListenerId)
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
 	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
@@ -1818,7 +1811,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs = jobs.NewJobServer(s.platformService, s.Store, s.Metrics)
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1988,7 +1981,7 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 }
 
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	if *s.Config().FileSettings.DriverName == "" {
+	if *s.platformService.Config().FileSettings.DriverName == "" {
 		img, appErr := s.GetDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr

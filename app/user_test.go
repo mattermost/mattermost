@@ -1712,7 +1712,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			UserStore:    &mockUserStore,
 			SessionStore: &storemocks.SessionStore{},
 			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.ch.srv.Config,
+			ConfigFn:     th.App.ch.srv.platformService.Config,
 			LicenseFn:    th.App.ch.srv.License,
 		})
 		require.NoError(t, err)
@@ -1749,8 +1749,8 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	})
 
 	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.Server.platformService.SetConfigReadOnlyFF(false)
+		defer th.Server.platformService.SetConfigReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
@@ -1769,8 +1769,8 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	})
 
 	t.Run("successfully create a guest user with initial tutorial, insights and recommended steps preferences", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.Server.platformService.SetConfigReadOnlyFF(false)
+		defer th.Server.platformService.SetConfigReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)

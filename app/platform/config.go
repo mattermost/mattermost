@@ -43,6 +43,9 @@ func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()
 }
 
+// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
+// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
+// for the listener that can later be used to remove it.
 func (ps *PlatformService) AddConfigListener(listener func(*model.Config, *model.Config)) string {
 	return ps.configStore.AddListener(listener)
 }
@@ -145,4 +148,24 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 
 func (ps *PlatformService) GetConfigStore() *config.Store {
 	return ps.configStore
+}
+
+func (ps *PlatformService) GetConfigFile(name string) ([]byte, error) {
+	return ps.configStore.GetFile(name)
+}
+
+func (ps *PlatformService) SetConfigFile(name string, data []byte) error {
+	return ps.configStore.SetFile(name, data)
+}
+
+func (ps *PlatformService) RemoveConfigFile(name string) error {
+	return ps.configStore.RemoveFile(name)
+}
+
+func (ps *PlatformService) HasConfigFile(name string) (bool, error) {
+	return ps.configStore.HasFile(name)
+}
+
+func (ps *PlatformService) SetConfigReadOnlyFF(readOnly bool) {
+	ps.configStore.SetReadOnlyFF(readOnly)
 }

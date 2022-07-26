@@ -283,6 +283,8 @@ type AppIface interface {
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
 	PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError
+	// Removes a listener function by the unique ID returned when AddConfigListener was called
+	RemoveConfigListener(id string)
 	// RenameChannel is used to rename the channel Name and the DisplayName fields
 	RenameChannel(c request.CTX, channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
@@ -944,7 +946,6 @@ type AppIface interface {
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError
 	RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError
-	RemoveConfigListener(id string)
 	RemoveCustomStatus(userID string) *model.AppError
 	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError

@@ -90,8 +90,8 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.Server.platformService.SetConfigReadOnlyFF(false)
+	defer th.Server.platformService.SetConfigReadOnlyFF(true)
 
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -261,8 +261,8 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.Server.platformService.SetConfigReadOnlyFF(false)
+	defer th.Server.platformService.SetConfigReadOnlyFF(true)
 
 	userId := th.BasicUser.Id
 

@@ -102,16 +102,17 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 		}
 	}
 
+	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
-	s.UpdateConfig(func(cfg *model.Config) {
+	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
@@ -119,15 +120,13 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
-	a := app.New(app.ServerConnector(s.Channels()))
-
 	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 
 	s.Store.MarkSystemRanUnitTests()
 
-	s.UpdateConfig(func(cfg *model.Config) {
+	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 

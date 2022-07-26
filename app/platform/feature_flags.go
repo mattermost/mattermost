@@ -12,9 +12,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-// setupFeatureFlags called on startup and when the cluster leader changes.
+// SetupFeatureFlags called on startup and when the cluster leader changes.
 // Starts or stops the synchronization of feature flags from upstream management.
-func (ps *PlatformService) setupFeatureFlags() {
+func (ps *PlatformService) SetupFeatureFlags() {
 	ps.featureFlagSynchronizerMutex.Lock()
 	defer ps.featureFlagSynchronizerMutex.Unlock()
 	splitKey := *ps.Config().ServiceSettings.SplitKey
@@ -28,7 +28,7 @@ func (ps *PlatformService) setupFeatureFlags() {
 			mlog.Warn("Unable to setup synchronization with feature flag management. Will fallback to cache.", mlog.Err(err))
 		}
 	} else {
-		ps.stopFeatureFlagUpdateJob()
+		ps.StopFeatureFlagUpdateJob()
 	}
 
 	if err := ps.configStore.Load(); err != nil {
@@ -77,7 +77,7 @@ func (ps *PlatformService) startFeatureFlagUpdateJob() error {
 	}
 
 	synchronizer, err := featureflag.NewSynchronizer(featureflag.SyncParams{
-		ServerID:   ps.TelemetryId(),
+		ServerID:   "", // TODO: change to use the ps.TelemetryId()
 		SplitKey:   *ps.Config().ServiceSettings.SplitKey,
 		Log:        log,
 		Attributes: attributes,
@@ -113,11 +113,11 @@ func (ps *PlatformService) startFeatureFlagUpdateJob() error {
 	return nil
 }
 
-func (s *PlatformService) stopFeatureFlagUpdateJob() {
-	if s.featureFlagSynchronizer != nil {
-		close(s.featureFlagStop)
-		<-s.featureFlagStopped
-		s.featureFlagSynchronizer.Close()
-		s.featureFlagSynchronizer = nil
+func (ps *PlatformService) StopFeatureFlagUpdateJob() {
+	if ps.featureFlagSynchronizer != nil {
+		close(ps.featureFlagStop)
+		<-ps.featureFlagStopped
+		ps.featureFlagSynchronizer.Close()
+		ps.featureFlagSynchronizer = nil
 	}
 }

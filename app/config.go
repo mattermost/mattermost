@@ -38,28 +38,16 @@ func (a *App) Config() *model.Config {
 	return a.ch.cfgSvc.Config()
 }
 
-func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
-	return s.platformService.GetEnvironmentOverridesWithFilter(filter)
-}
-
 func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
-	return a.Srv().EnvironmentConfig(filter)
-}
-
-func (s *Server) UpdateConfig(f func(*model.Config)) {
-	s.platformService.UpdateConfig(f)
+	return a.Srv().platformService.GetEnvironmentOverridesWithFilter(filter)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
-	a.Srv().UpdateConfig(f)
-}
-
-func (s *Server) ReloadConfig() error {
-	return s.pla.ReloadConfig()
+	a.Srv().platformService.UpdateConfig(f)
 }
 
 func (a *App) ReloadConfig() error {
-	return a.Srv().ReloadConfig()
+	return a.Srv().platformService.ReloadConfig()
 }
 
 func (a *App) ClientConfig() map[string]string {
@@ -74,24 +62,13 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.ch.limitedClientConfig.Load().(map[string]string)
 }
 
-// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
-// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
-// for the listener that can later be used to remove it.
-func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return s.configStore.AddConfigListener(listener)
-}
-
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return a.Srv().AddConfigListener(listener)
+	return a.Srv().platformService.AddConfigListener(listener)
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
-func (s *Server) RemoveConfigListener(id string) {
-	s.configStore.RemoveConfigListener(id)
-}
-
 func (a *App) RemoveConfigListener(id string) {
-	a.Srv().RemoveConfigListener(id)
+	a.Srv().platformService.RemoveConfigListener(id)
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
@@ -370,7 +347,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.
 func (a *App) GetConfigFile(name string) ([]byte, error) {
-	data, err := a.Srv().configStore.GetFile(name)
+	data, err := a.Srv().platformService.GetConfigFile(name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get config file %s", name)
 	}
@@ -414,8 +391,8 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 }
 
 func (s *Server) MailServiceConfig() *mail.SMTPConfig {
-	emailSettings := s.Config().EmailSettings
-	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	emailSettings := s.platformService.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.platformService.Config().ServiceSettings.SiteURL)
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
