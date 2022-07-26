@@ -1327,6 +1327,11 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	// We don't process images.
+	if fileInfo.IsImage() {
+		return nil
+	}
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
