@@ -766,7 +766,7 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 		Select("fi2.CreateAt").
 		FromSelect(sizeSubQuery, "fi2").
 		Where(sq.LtOrEq{"fi2.RunningTotal": n}).
-		OrderBy("fi2.CreateAt DESC").
+		OrderBy("fi2.CreateAt").
 		Limit(1)
 
 	query, queryArgs, err := builder.ToSql()

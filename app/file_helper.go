@@ -9,19 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-// assumes checking was already performed that at least one post is inaccessible
-func (b accessibleBounds) getInaccessibleRange(listLength int) (int, int) {
-	var start, end int
-	if b.start == 0 {
-		start = b.end + 1
-		end = listLength - 1
-	} else {
-		start = 0
-		end = b.start - 1
-	}
-	return start, end
-}
-
 // linearFilterFileList make no assumptions about ordering, go through files one by one
 // this is the slower fallback that is still safe
 // if we can not assume files are ordered by CreatedAt
