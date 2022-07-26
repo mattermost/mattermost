@@ -71,7 +71,7 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 		}
 	}
 
-	if !c.App.SessionHasPermissionToTeams(c.AppContext, *c.AppContext.Session(), teamsToCheck, model.PermissionViewMembers) {
+	if !c.App.SessionHasPermissionToTeams(c.AppContext, *c.AppContext.Session(), teamsToCheck, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return nil, c.Err
 	}
