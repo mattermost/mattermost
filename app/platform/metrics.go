@@ -160,3 +160,10 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 func (ps *PlatformService) RestartMetrics() {
 	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
 }
+
+func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
+	if ps.metrics == nil {
+		return nil
+	}
+	return ps.metrics.metricsImpl
+}

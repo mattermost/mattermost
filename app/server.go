@@ -195,7 +195,6 @@ type Server struct {
 
 	Cluster        einterfaces.ClusterInterface
 	Cloud          einterfaces.CloudInterface
-	Metrics        einterfaces.MetricsInterface
 	LicenseManager einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
@@ -251,17 +250,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
 
-	ps, sErr := platform.New(platform.ServiceConfig{
-		ConfigStore:  s.configStore.Store,
-		StartMetrics: s.startMetrics,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-	})
-	if sErr != nil {
-		return nil, errors.Wrap(sErr, "failed to initialize platform")
-	}
-	s.platformService = ps
-
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
@@ -292,6 +280,17 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
+	ps, sErr := platform.New(platform.ServiceConfig{
+		ConfigStore:  s.configStore.Store,
+		StartMetrics: s.startMetrics,
+		Metrics:      metricsInterface(s),
+		Cluster:      s.Cluster,
+	})
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to initialize platform")
+	}
+	s.platformService = ps
+
 	// Step 5: Cache provider.
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -304,11 +303,11 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.GetMetrics())
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
-				s.Metrics,
+				s.GetMetrics(),
 				s.Cluster,
 				s.CacheProvider,
 			)
@@ -333,7 +332,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 			return timerlayer.New(
 				searchStore,
-				s.Metrics,
+				s.GetMetrics(),
 			), nil
 		}
 	}
@@ -349,7 +348,7 @@ func NewServer(options ...Option) (*Server, error) {
 		SessionStore: s.Store.Session(),
 		OAuthStore:   s.Store.OAuth(),
 		ConfigFn:     s.Config,
-		Metrics:      s.Metrics,
+		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
 		LicenseFn:    s.License,
 	})
@@ -935,11 +934,11 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 }
 
 func (s *Server) enableLoggingMetrics() {
-	if s.Metrics == nil {
+	if s.GetMetrics() == nil {
 		return
 	}
 
-	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	s.Log.SetMetricsCollector(s.GetMetrics().GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := s.initLogging(); err != nil {
@@ -1845,7 +1844,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1928,7 +1927,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeActiveUsers,
-		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
 	)
 
@@ -1995,7 +1994,7 @@ func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 // GetMetrics returns the server's Metrics interface. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
-	return s.Metrics
+	return s.platformService.Metrics()
 }
 
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
