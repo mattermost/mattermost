@@ -28,6 +28,7 @@ type PlatformService struct {
 	featureFlagStopped           chan struct{}
 
 	licenseValue atomic.Value
+	telemetryId  string
 
 	cluster einterfaces.ClusterInterface
 }
@@ -62,4 +63,8 @@ func (ps *PlatformService) ShutdownConfig() {
 			mlog.Warn("Failed to close config store", mlog.Err(err))
 		}
 	}
+}
+
+func (ps *PlatformService) SetTelemetryId(id string) {
+	ps.telemetryId = id
 }

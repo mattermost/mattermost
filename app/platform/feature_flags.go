@@ -77,7 +77,7 @@ func (ps *PlatformService) startFeatureFlagUpdateJob() error {
 	}
 
 	synchronizer, err := featureflag.NewSynchronizer(featureflag.SyncParams{
-		ServerID:   "", // TODO: change to use the ps.TelemetryId()
+		ServerID:   ps.telemetryId,
 		SplitKey:   *ps.Config().ServiceSettings.SplitKey,
 		Log:        log,
 		Attributes: attributes,

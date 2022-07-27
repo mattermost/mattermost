@@ -534,6 +534,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log)
+	s.platformService.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platformService.Config,
