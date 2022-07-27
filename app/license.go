@@ -275,7 +275,9 @@ func (s *Server) SetLicense(license *model.License) bool {
 
 	s.licenseValue.Store((*model.License)(nil))
 	s.clientLicenseValue.Store(map[string]string(nil))
-	s.platformService.SetLicense((*model.License)(nil))
+	if s.platformService != nil {
+		s.platformService.SetLicense((*model.License)(nil))
+	}
 
 	return false
 }
