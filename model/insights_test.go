@@ -123,13 +123,13 @@ func TestGetTopThreadListWithPagination(t *testing.T) {
 
 func TestGetTopDMsListWithPagination(t *testing.T) {
 	dms := []*TopDM{
-		{SecondParticipant: NewId(), MessageCount: 100},
-		{SecondParticipant: NewId(), MessageCount: 80},
-		{SecondParticipant: NewId(), MessageCount: 90},
-		{SecondParticipant: NewId(), MessageCount: 76},
-		{SecondParticipant: NewId(), MessageCount: 43},
-		{SecondParticipant: NewId(), MessageCount: 2},
-		{SecondParticipant: NewId(), MessageCount: 1},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 100},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 80},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 90},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 76},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 43},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 2},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 1},
 	}
 	hasNextTT := []struct {
 		Description string

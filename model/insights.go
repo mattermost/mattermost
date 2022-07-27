@@ -90,6 +90,11 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type TopDMInsightUserInformation struct {
+	InsightUserInformation
+	Position string `json:"position"`
+}
+
 type DurationPostCount struct {
 	ChannelID string `db:"channelid"`
 	// Duration is an ISO8601 date string representing either a day or a day and hour (ex. "2022-05-26" or "2022-05-26T14").
@@ -99,9 +104,9 @@ type DurationPostCount struct {
 
 // Top DMs
 type TopDM struct {
-	MessageCount      int64  `json:"post_count"`
-	Participants      string `json:"-"`
-	SecondParticipant string `json:"second_participant"`
+	MessageCount      int64                        `json:"post_count"`
+	Participants      string                       `json:"-"`
+	SecondParticipant *TopDMInsightUserInformation `json:"second_participant"`
 }
 
 type TopDMList struct {
