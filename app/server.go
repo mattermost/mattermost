@@ -280,12 +280,16 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
-	ps, sErr := platform.New(platform.ServiceConfig{
+	platformCfg := platform.ServiceConfig{
 		ConfigStore:  s.configStore.Store,
 		StartMetrics: s.startMetrics,
-		Metrics:      metricsInterface(s),
 		Cluster:      s.Cluster,
-	})
+	}
+	if metricsInterface != nil {
+		platformCfg.Metrics = metricsInterface(s)
+	}
+
+	ps, sErr := platform.New(platformCfg)
 	if sErr != nil {
 		return nil, errors.Wrap(sErr, "failed to initialize platform")
 	}
