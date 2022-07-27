@@ -543,3 +543,13 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.AssertExpectations(t)
 	})
 }
+
+func TestExtractContentFromFileInfo(t *testing.T) {
+	app := &App{}
+	fi := &model.FileInfo{
+		MimeType: "image/jpeg",
+	}
+
+	// Test that we don't process images.
+	require.NoError(t, app.ExtractContentFromFileInfo(fi))
+}

@@ -1880,11 +1880,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
-	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
-	}
-
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err

@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -57,6 +58,9 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
 	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
+	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, ss, s) })
+	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, ss, s) })
+	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
 }
 
@@ -3754,6 +3758,130 @@ func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
 
 		require.ElementsMatch(t, getPostIds(data[0:8]), getPostIds(posts1, posts2...))
 	})
+}
+
+func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
+	// Basic
+	userID := NewTestId()
+
+	p1 := &model.Post{
+		UserId:    userID,
+		ChannelId: NewTestId(),
+		Message:   "hi there",
+		Type:      model.PostTypeDefault,
+	}
+	p1, err := ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	reminder := &model.PostReminder{
+		TargetTime: 1234,
+		PostId:     p1.Id,
+		UserId:     userID,
+	}
+
+	require.NoError(t, ss.Post().SetPostReminder(reminder))
+
+	out := model.PostReminder{}
+	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	assert.Equal(t, reminder, &out)
+
+	reminder.PostId = "notfound"
+	err = ss.Post().SetPostReminder(reminder)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
+	// Upsert
+	reminder = &model.PostReminder{
+		TargetTime: 12345,
+		PostId:     p1.Id,
+		UserId:     userID,
+	}
+
+	require.NoError(t, ss.Post().SetPostReminder(reminder))
+	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	assert.Equal(t, reminder, &out)
+}
+
+func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
+	times := []int64{100, 101, 102}
+	for _, tt := range times {
+		userID := NewTestId()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestId(),
+			Message:   "hi there",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(p1)
+		require.NoError(t, err)
+
+		reminder := &model.PostReminder{
+			TargetTime: tt,
+			PostId:     p1.Id,
+			UserId:     userID,
+		}
+
+		require.NoError(t, ss.Post().SetPostReminder(reminder))
+	}
+
+	reminders, err := ss.Post().GetPostReminders(102)
+	require.NoError(t, err)
+	require.Len(t, reminders, 2)
+
+	// assert one reminder is left
+	reminders, err = ss.Post().GetPostReminders(103)
+	require.NoError(t, err)
+	require.Len(t, reminders, 1)
+
+	// assert everything is deleted.
+	reminders, err = ss.Post().GetPostReminders(103)
+	require.NoError(t, err)
+	require.Len(t, reminders, 0)
+}
+
+func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		Name:        "teamname",
+		DisplayName: "display",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	ch := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "channeldisplay",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	ch, err = ss.Channel().Save(ch, -1)
+	require.NoError(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+		Locale:   "es",
+	}
+
+	u1, err = ss.User().Save(u1)
+	require.NoError(t, err)
+
+	p1 := &model.Post{
+		UserId:    u1.Id,
+		ChannelId: ch.Id,
+		Message:   "hi there",
+		Type:      model.PostTypeDefault,
+	}
+	p1, err = ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	meta, err := ss.Post().GetPostReminderMetadata(p1.Id)
+	require.NoError(t, err)
+	assert.Equal(t, meta.ChannelId, ch.Id)
+	assert.Equal(t, meta.TeamName, team.Name)
+	assert.Equal(t, meta.Username, u1.Username)
+	assert.Equal(t, meta.UserLocale, u1.Locale)
 }
 
 func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
