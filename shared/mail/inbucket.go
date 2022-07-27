@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -65,7 +64,7 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	}
 
 	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
+		io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 	}()
 
@@ -96,7 +95,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 		return record, err
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, emailResponse.Body)
+		io.Copy(io.Discard, emailResponse.Body)
 		emailResponse.Body.Close()
 	}()
 

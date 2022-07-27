@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"reflect"
@@ -527,7 +526,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
+		io.Copy(io.Discard, res.Body)
 		res.Body.Close()
 	}()
 

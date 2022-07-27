@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -32,7 +31,7 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
