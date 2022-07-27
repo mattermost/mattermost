@@ -288,9 +288,7 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		NumAffected: numAffected,
 	}
 
-	b, _ := json.Marshal(n)
-	_, err := w.Write(b)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(n); err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
