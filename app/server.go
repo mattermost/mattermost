@@ -1998,6 +1998,9 @@ func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 // GetMetrics returns the server's Metrics interface. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	if s.platformService == nil {
+		return nil
+	}
 	return s.platformService.Metrics()
 }
 
