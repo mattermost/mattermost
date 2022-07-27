@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -419,7 +418,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -1879,11 +1878,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if r.Header.Get(model.HeaderRequestedWith) == model.HeaderRequestedWithXML {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
-	}
-
-	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)

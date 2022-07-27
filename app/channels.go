@@ -86,6 +86,9 @@ type Channels struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	postReminderMut  sync.Mutex
+	postReminderTask *model.ScheduledTask
 }
 
 func init() {
@@ -311,6 +314,9 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
 		receiveEmailsAccepted)
 }
+
+// Ensure hooksService implements `product.HooksService`
+var _ product.HooksService = (*hooksService)(nil)
 
 type hooksService struct {
 	ch *Channels

@@ -79,7 +79,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	importErr, log := a.SlackImport(&request.Context{}, fileReader, fileInfo.Size(), team.Id)
+	importErr, log := a.SlackImport(request.EmptyContext(nil), fileReader, fileInfo.Size(), team.Id)
 
 	if importErr != nil {
 		return err
@@ -152,7 +152,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImportWithPath(&request.Context{}, fileReader, nil, !apply, workers, importPath); err != nil {
+	if err, lineNumber := a.BulkImportWithPath(request.EmptyContext(nil), fileReader, nil, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))

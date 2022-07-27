@@ -9353,10 +9353,14 @@
   },
   {
     "id": "app.upload.upload_data.gen_info.app_error",
-    "translation": " "
+    "translation": "アップロードされたデータからファイル情報を生成できませんでした。"
   },
   {
     "id": "app.post.cloud.get.app_error",
-    "translation": " "
+    "translation": "クラウドプランの制限を超えているため投稿を取得できません。"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "不正なタイムアウト値 {{.Value}} 。正の数にする必要があります。"
   }
 ]

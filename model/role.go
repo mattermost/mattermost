@@ -444,6 +444,18 @@ func (r *Role) Patch(patch *RolePatch) {
 	}
 }
 
+func (r *Role) CreateAt_() float64 {
+	return float64(r.CreateAt)
+}
+
+func (r *Role) UpdateAt_() float64 {
+	return float64(r.UpdateAt)
+}
+
+func (r *Role) DeleteAt_() float64 {
+	return float64(r.DeleteAt)
+}
+
 // MergeChannelHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
 // channel role's permissions.
 func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *RolePermissions) {

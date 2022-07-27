@@ -225,6 +225,14 @@ func (o *Channel) LastRootPostAt_() float64 {
 	return float64(o.LastRootPostAt)
 }
 
+func (o *Channel) ExtraUpdateAt_() float64 {
+	return float64(o.ExtraUpdateAt)
+}
+
+func (o *Channel) Props_() StringInterface {
+	return StringInterface(o.Props)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
