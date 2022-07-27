@@ -751,7 +751,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// if the connection is omitted don't send the message
 	if msg.GetBroadcast().OmitConnectionId != "" {
-		if wc.GetConnectionID() != msg.GetBroadcast().OmitConnectionId {
+		if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
 			return false
 		}
 	}
