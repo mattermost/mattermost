@@ -322,8 +322,8 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
-func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, nil)
+func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
