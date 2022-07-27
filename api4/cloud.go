@@ -57,7 +57,7 @@ func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Reque
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {
-		c.SetInvalidParam("notifyAdminRequest")
+		c.SetInvalidJSONParam("notifyAdminRequest", err)
 		return
 	}
 

@@ -99,7 +99,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(newEmoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -122,7 +122,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(listEmoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -212,7 +212,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -229,7 +229,7 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -258,7 +258,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	var emojiSearch model.EmojiSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&emojiSearch); jsonErr != nil {
-		c.SetInvalidParam("term")
+		c.SetInvalidJSONParam("term", jsonErr)
 		return
 	}
 
@@ -274,7 +274,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emojis); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -293,6 +293,6 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emojis); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

@@ -81,7 +81,7 @@ func (api *API) InitTeam() {
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var team model.Team
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidParam("team")
+		c.SetInvalidJSONParam("team", jsonErr)
 		return
 	}
 	team.Email = strings.ToLower(team.Email)
@@ -132,7 +132,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -155,7 +155,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
 	if err := json.NewEncoder(w).Encode(team); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -178,7 +178,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
 	if err := json.NewEncoder(w).Encode(team); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -190,7 +190,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var team model.Team
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidParam("team")
+		c.SetInvalidJSONParam("team", jsonErr)
 		return
 	}
 
@@ -223,7 +223,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), updatedTeam)
 	if err := json.NewEncoder(w).Encode(updatedTeam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -235,7 +235,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var team model.TeamPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidParam("team")
+		c.SetInvalidJSONParam("team", jsonErr)
 		return
 	}
 
@@ -267,7 +267,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -326,7 +326,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(team); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -381,7 +381,7 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	if err := json.NewEncoder(w).Encode(team); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -414,7 +414,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(patchedTeam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -560,7 +560,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(team); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -688,7 +688,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var member model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&member); jsonErr != nil {
-		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest)
+		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJSON()", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 	if member.TeamId != c.Params.TeamId {
@@ -764,7 +764,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(tm); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -804,7 +804,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(member); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -819,7 +819,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var members []*model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil {
-		c.SetInvalidParam("members")
+		c.SetInvalidJSONParam("members", jsonErr)
 		return
 	}
 
@@ -992,7 +992,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(unreadTeam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1020,7 +1020,7 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1068,7 +1068,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
-		c.SetInvalidParam("scheme_roles")
+		c.SetInvalidJSONParam("scheme_roles", jsonErr)
 		return
 	}
 
@@ -1156,7 +1156,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.TeamSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("team_search")
+		c.SetInvalidJSONParam("team_search", jsonErr)
 		return
 	}
 	// Only system managers may use the ExcludePolicyConstrained field
@@ -1477,7 +1477,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var guestsInvite model.GuestsInvite
 	if jsonErr := json.NewDecoder(r.Body).Decode(&guestsInvite); jsonErr != nil {
-		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.inviteGuestsToChannels", "api.team.invite_guests_to_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 	auditRec.AddEventParameter("guests_invite", guestsInvite)
@@ -1696,7 +1696,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var p model.SchemeIDPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		c.SetInvalidParam("scheme_id")
+		c.SetInvalidJSONParam("scheme_id", jsonErr)
 		return
 	}
 

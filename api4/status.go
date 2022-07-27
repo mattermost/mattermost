@@ -44,7 +44,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(statusMap[0]); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -86,7 +86,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var status model.Status
 	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
-		c.SetInvalidParam("status")
+		c.SetInvalidJSONParam("status", jsonErr)
 		return
 	}
 
@@ -137,7 +137,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	var customStatus model.CustomStatus
 	jsonErr := json.NewDecoder(r.Body).Decode(&customStatus)
 	if jsonErr != nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
-		c.SetInvalidParam("custom_status")
+		c.SetInvalidJSONParam("custom_status", jsonErr)
 		return
 	}
 
@@ -193,7 +193,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 
 	var recentCustomStatus model.CustomStatus
 	if jsonErr := json.NewDecoder(r.Body).Decode(&recentCustomStatus); jsonErr != nil {
-		c.SetInvalidParam("recent_custom_status")
+		c.SetInvalidJSONParam("recent_custom_status", jsonErr)
 		return
 	}
 

@@ -167,7 +167,7 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(manifest); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -189,7 +189,7 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -211,7 +211,7 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -402,7 +402,7 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 	}
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(manifest); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -462,6 +462,6 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(firstAdminVisitMarketplaceObj); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

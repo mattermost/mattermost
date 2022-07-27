@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -306,7 +307,10 @@ func testCreatePostWithOutgoingHook(
 		if requestContentType == "application/json" {
 			decoder := json.NewDecoder(r.Body)
 			o := &model.OutgoingWebhookPayload{}
-			decoder.Decode(&o)
+			err := decoder.Decode(&o)
+			if err != nil {
+				th.TestLogger.Warn("Error decoding body", mlog.Err(err))
+			}
 
 			if !reflect.DeepEqual(expectedPayload, o) {
 				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
