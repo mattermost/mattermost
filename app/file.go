@@ -1186,7 +1186,7 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		}
 	}
 
-	filterOptions := filterPostOptions{}
+	filterOptions := filterFileOptions{}
 	if opt != nil && (opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated) {
 		filterOptions.assumeSortedCreatedAt = true
 	}
@@ -1344,7 +1344,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterPostOptions{assumeSortedCreatedAt: true})
+	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {

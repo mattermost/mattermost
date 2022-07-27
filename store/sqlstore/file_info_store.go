@@ -760,7 +760,10 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 		return 0, errors.New("n can't be less than 1")
 	}
 
-	sizeSubQuery := sq.Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").From("FileInfo fi")
+	sizeSubQuery := sq.
+		Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
+		From("FileInfo fi").
+		Where(sq.Eq{"fi.DeleteAt": 0})
 
 	builder := fs.getQueryBuilder().
 		Select("fi2.CreateAt").
