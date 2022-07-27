@@ -86,12 +86,12 @@ type WebSocketMessage interface {
 }
 
 type WebsocketBroadcast struct {
-	OmitUsers             map[string]bool `json:"omit_users"`      // broadcast is omitted for users listed here
-	UserId                string          `json:"user_id"`         // broadcast only occurs for this user
-	ChannelId             string          `json:"channel_id"`      // broadcast only occurs for users in this channel
-	TeamId                string          `json:"team_id"`         // broadcast only occurs for users in this team
-	ConnectionId          string          `json:"connection_id"`   // broadcast only occurs for this connection
-	OmitConnection        string          `json:"omit_connection"` // broadcast is omitted for this connection
+	OmitUsers             map[string]bool `json:"omit_users"`         // broadcast is omitted for users listed here
+	UserId                string          `json:"user_id"`            // broadcast only occurs for this user
+	ChannelId             string          `json:"channel_id"`         // broadcast only occurs for users in this channel
+	TeamId                string          `json:"team_id"`            // broadcast only occurs for users in this team
+	ConnectionId          string          `json:"connection_id"`      // broadcast only occurs for this connection
+	OmitConnectionId      string          `json:"omit_connection_id"` // broadcast is omitted for this connection
 	ContainsSanitizedData bool            `json:"-"`
 	ContainsSensitiveData bool            `json:"-"`
 	// ReliableClusterSend indicates whether or not the message should
@@ -114,7 +114,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.UserId = wb.UserId
 	c.ChannelId = wb.ChannelId
 	c.TeamId = wb.TeamId
-	c.OmitConnection = wb.OmitConnection
+	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
 
@@ -187,16 +187,16 @@ func (ev *WebSocketEvent) Add(key string, value any) {
 	ev.data[key] = value
 }
 
-func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool, omitConnection string) *WebSocketEvent {
+func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[string]bool, omitConnectionId string) *WebSocketEvent {
 	return &WebSocketEvent{
 		event: event,
 		data:  make(map[string]any),
 		broadcast: &WebsocketBroadcast{
-			TeamId:         teamId,
-			ChannelId:      channelId,
-			UserId:         userId,
-			OmitUsers:      omitUsers,
-			OmitConnection: omitConnection},
+			TeamId:           teamId,
+			ChannelId:        channelId,
+			UserId:           userId,
+			OmitUsers:        omitUsers,
+			OmitConnectionId: omitConnectionId},
 	}
 }
 
