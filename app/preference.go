@@ -62,11 +62,11 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil, "")
 	// TODO this needs to be updated to include information on which categories changed
 	a.Publish(message)
 
-	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil)
+	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil, "")
 	prefsJSON, jsonErr := json.Marshal(preferences)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
@@ -96,11 +96,11 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil, "")
 	// TODO this needs to be updated to include information on which categories changed
 	a.Publish(message)
 
-	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil)
+	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil, "")
 	prefsJSON, jsonErr := json.Marshal(preferences)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))

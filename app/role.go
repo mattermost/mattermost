@@ -255,7 +255,7 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) {
-	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode role to JSON", mlog.Err(jsonErr))

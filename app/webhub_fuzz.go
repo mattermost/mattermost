@@ -230,7 +230,7 @@ func Fuzz(data []byte) int {
 					msg := model.NewWebSocketEvent(input.event,
 						input.selectTeamID,
 						input.selectChannelID,
-						input.createUserID, nil)
+						input.createUserID, nil, "")
 					for k, v := range input.attachment {
 						msg.Add(k, v)
 					}

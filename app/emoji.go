@@ -79,7 +79,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil, "")
 	emojiJSON, jsonErr := json.Marshal(emoji)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode emoji to JSON", mlog.Err(jsonErr))

@@ -145,7 +145,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		}
 	}
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 	count, err := a.Srv().Store.Group().GetMemberCount(newGroup.Id)
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -175,7 +175,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, countErr.Error(), http.StatusBadRequest)
 		}
 		updatedGroup.MemberCount = model.NewInt(int(count))
-		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
+		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 		groupJSON, jsonErr := json.Marshal(updatedGroup)
 		if jsonErr != nil {
 			mlog.Warn("Failed to encode group to JSON", mlog.Err(jsonErr))
@@ -378,9 +378,9 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToTeam, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToTeam, gs.SyncableId, "", "", nil, "")
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToChannel, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToChannel, "", gs.SyncableId, "", nil, "")
 	}
 	messageWs.Add("group_id", gs.GroupId)
 	a.Publish(messageWs)
@@ -479,9 +479,9 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 
 	var messageWs *model.WebSocketEvent
 	if gs.Type == model.GroupSyncableTypeTeam {
-		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToTeam, gs.SyncableId, "", "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToTeam, gs.SyncableId, "", "", nil, "")
 	} else {
-		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToChannel, "", gs.SyncableId, "", nil)
+		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupNotAssociatedToChannel, "", gs.SyncableId, "", nil, "")
 	}
 
 	messageWs.Add("group_id", gs.GroupId)
@@ -772,7 +772,7 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 }
 
 func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) {
-	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil)
+	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil, "")
 	groupMemberJSON, jsonErr := json.Marshal(groupMember)
 	if jsonErr != nil {
 		mlog.Warn("failed to encode group member to JSON", mlog.Err(jsonErr))

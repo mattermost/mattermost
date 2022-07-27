@@ -404,7 +404,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 		// in case of update_team event - we send the message only to members of that team
 		teamID = team.Id
 	}
-	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
+	message := model.NewWebSocketEvent(event, teamID, "", "", nil, "")
 	teamJSON, jsonErr := json.Marshal(team)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
@@ -550,7 +550,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 }
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
@@ -840,7 +840,7 @@ func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.U
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil, "")
 	message.Add("team_id", team.Id)
 	message.Add("user_id", user.Id)
 	a.Publish(message)
@@ -1065,7 +1065,7 @@ func (a *App) AddTeamMember(c *request.Context, teamID, userID string) (*model.T
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 	message.Add("team_id", teamID)
 	message.Add("user_id", userID)
 	a.Publish(message)
@@ -1094,7 +1094,7 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 			Member: teamMember,
 		})
 
-		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 		message.Add("team_id", teamID)
 		message.Add("user_id", userID)
 		a.Publish(message)
@@ -2086,7 +2086,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 		for _, teamMember := range teamMembers {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
-			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil, "")
 			tmJSON, jsonErr := json.Marshal(teamMember)
 			if jsonErr != nil {
 				mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))

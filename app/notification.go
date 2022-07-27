@@ -525,7 +525,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
 
 	// Note that PreparePostForClient should've already been called by this point
 	postJSON, jsonErr := post.ToJSON()
@@ -584,7 +584,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 			if a.IsCRTEnabledForUser(c, uid) {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
+				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
 					tm, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)

@@ -594,7 +594,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 
 	jsonRequest, _ := json.Marshal(request)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 

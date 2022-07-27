@@ -515,7 +515,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ch := s.Channels()
 		ch.regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		appInstance := New(ServerConnector(ch))
 		message.Add("config", appInstance.ClientConfigWithComputed())
@@ -531,7 +531,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.Channels().regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
 			s.Publish(message)
