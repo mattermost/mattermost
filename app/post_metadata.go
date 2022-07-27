@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -606,7 +605,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 		if body != nil {
 			defer func() {
-				io.Copy(ioutil.Discard, body)
+				io.Copy(io.Discard, body)
 				body.Close()
 			}()
 		}
