@@ -48,6 +48,7 @@ const (
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
+	PostTypeReminder               = "reminder"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -147,6 +148,13 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+type PostReminder struct {
+	TargetTime int64 `json:"target_time"`
+	// These fields are only used internally for interacting with DB.
+	PostId string `json:",omitempty"`
+	UserId string `json:",omitempty"`
 }
 
 type SearchParameter struct {

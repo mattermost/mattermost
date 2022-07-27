@@ -86,6 +86,9 @@ type Channels struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	postReminderMut  sync.Mutex
+	postReminderTask *model.ScheduledTask
 }
 
 func init() {
