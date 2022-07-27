@@ -9,7 +9,6 @@ import (
 	"image/color"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -35,7 +34,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 	shouldError := &flag{}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer io.Copy(ioutil.Discard, r.Body)
+		defer io.Copy(io.Discard, r.Body)
 
 		if shouldError.get() {
 			w.WriteHeader(http.StatusInternalServerError)
