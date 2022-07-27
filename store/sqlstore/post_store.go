@@ -3014,26 +3014,39 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 	var topDMsFiltered = []*model.TopDM{}
 	for _, topDM := range topDMs {
 		participants := strings.Split(topDM.Participants, ",")
+		var secondParticipantId string
 		if len(participants) == 1 {
 			// chatting to self
-			topDM.SecondParticipant = userID
+			secondParticipantId = userID
 		} else {
 			// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
 			topDM.MessageCount = topDM.MessageCount / 2
 
 			if participants[0] == userID {
-				topDM.SecondParticipant = participants[1]
+				secondParticipantId = participants[1]
 			} else {
-				topDM.SecondParticipant = participants[0]
+				secondParticipantId = participants[0]
 			}
 
 			// filter topDM out if second user is bot
-			users, err := s.User().GetProfileByIds(context.Background(), []string{topDM.SecondParticipant}, &store.UserGetByIdsOpts{}, true)
+			users, err := s.User().GetProfileByIds(context.Background(), []string{secondParticipantId}, &store.UserGetByIdsOpts{}, true)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant)
 			}
 			if users[0].IsBot {
 				continue
+			}
+			user := users[0]
+			topDM.SecondParticipant = &model.TopDMInsightUserInformation{
+				InsightUserInformation: model.InsightUserInformation{
+					Id:                user.Id,
+					LastPictureUpdate: user.LastPictureUpdate,
+					FirstName:         user.FirstName,
+					LastName:          user.LastName,
+					Username:          user.Username,
+					NickName:          user.Nickname,
+				},
+				Position: user.Position,
 			}
 		}
 

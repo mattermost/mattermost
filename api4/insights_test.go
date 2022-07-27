@@ -912,6 +912,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.Len(t, topDMs.Items, 2)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, basicUser1.Id)
 	})
 
 	// get top dms for bu1

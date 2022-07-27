@@ -4073,11 +4073,11 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 3)
 		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[0].SecondParticipant, u3.Id)
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
-		require.Equal(t, topDMs.Items[1].SecondParticipant, u1.Id)
+		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
-		require.Equal(t, topDMs.Items[2].SecondParticipant, u2.Id)
+		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
 		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
 		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
 	})
@@ -4088,7 +4088,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 1)
 		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[0].SecondParticipant, u3.Id)
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
 	})
 	t.Run("topDMs will consider self dms", func(t *testing.T) {
@@ -4107,7 +4107,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// len of topDMs.Items should be 3
 		require.Len(t, topDMs.Items, 3)
 		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[2].SecondParticipant, user.Id)
+		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, user.Id)
 		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
 	})
 }
