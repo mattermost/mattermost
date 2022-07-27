@@ -1224,7 +1224,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.GetFileInfosForPost(post.Id, true)
+		oldFiles, err := a.GetFileInfosForPost(post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}

@@ -184,6 +184,11 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 	// data from the existing config as necessary.
 	desanitize(oldCfg, newCfg)
 
+	// We apply back environment overrides since the input config may or
+	// may not have them applied.
+	newCfg = applyEnvironmentMap(newCfg, GetEnvironment())
+	fixConfig(newCfg)
+
 	if err := newCfg.IsValid(); err != nil {
 		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
@@ -207,14 +212,6 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 
 	if err := s.backingStore.Set(newCfgNoEnv); err != nil {
 		return nil, nil, errors.Wrap(err, "failed to persist")
-	}
-
-	// We apply back environment overrides since the input config may or
-	// may not have them applied.
-	newCfg = applyEnvironmentMap(newCfgNoEnv, GetEnvironment())
-	fixConfig(newCfg)
-	if err := newCfg.IsValid(); err != nil {
-		return nil, nil, errors.Wrap(err, "new configuration is invalid")
 	}
 
 	hasChanged, err := equal(oldCfg, newCfg)

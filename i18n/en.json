@@ -5912,6 +5912,14 @@
     "translation": "Unable to update the Post."
   },
   {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hi there, you asked me to remind you about {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} by @{{.Username}}"
+  },
+  {
     "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },

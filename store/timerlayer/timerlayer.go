@@ -5258,6 +5258,38 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp in
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostReminderMetadata(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminderMetadata", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostReminders(now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminders", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -5655,6 +5687,22 @@ func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParam
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SearchPostsForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	start := time.Now()
+
+	err := s.PostStore.SetPostReminder(reminder)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SetPostReminder", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {

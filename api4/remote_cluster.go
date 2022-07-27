@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -222,7 +221,7 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
