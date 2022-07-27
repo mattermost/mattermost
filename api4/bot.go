@@ -28,7 +28,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
 	if err != nil {
-		c.SetInvalidJSONParam("bot", err)
+		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
 
@@ -84,7 +84,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
 	if err != nil {
-		c.SetInvalidJSONParam("bot", err)
+		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
 
@@ -287,7 +287,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var userPatch model.UserPatch
 	jsonErr := json.NewDecoder(r.Body).Decode(&userPatch)
 	if jsonErr != nil || userPatch.Password == nil || *userPatch.Password == "" {
-		c.SetInvalidJSONParam("userPatch", jsonErr)
+		c.SetInvalidParamWithErr("userPatch", jsonErr)
 		return
 	}
 

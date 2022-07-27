@@ -25,7 +25,7 @@ func (api *API) InitCommandLocal() {
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
-		c.SetInvalidJSONParam("command", jsonErr)
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 

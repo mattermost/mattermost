@@ -257,7 +257,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	var emojiSearch model.EmojiSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&emojiSearch); jsonErr != nil {
-		c.SetInvalidJSONParam("term", jsonErr)
+		c.SetInvalidParamWithErr("term", jsonErr)
 		return
 	}
 

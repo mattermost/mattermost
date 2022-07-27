@@ -72,7 +72,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var dialog model.OpenDialogRequest
 	err := json.NewDecoder(r.Body).Decode(&dialog)
 	if err != nil {
-		c.SetInvalidJSONParam("dialog", err)
+		c.SetInvalidParamWithErr("dialog", err)
 		return
 	}
 
@@ -94,7 +94,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
 	if jsonErr != nil {
-		c.SetInvalidJSONParam("dialog", jsonErr)
+		c.SetInvalidParamWithErr("dialog", jsonErr)
 		return
 	}
 

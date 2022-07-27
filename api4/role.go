@@ -117,7 +117,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.RolePatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidJSONParam("role", jsonErr)
+		c.SetInvalidParamWithErr("role", jsonErr)
 		return
 	}
 

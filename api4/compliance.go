@@ -25,7 +25,7 @@ func (api *API) InitCompliance() {
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Compliance
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidJSONParam("compliance", jsonErr)
+		c.SetInvalidParamWithErr("compliance", jsonErr)
 		return
 	}
 

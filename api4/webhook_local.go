@@ -29,7 +29,7 @@ func (api *API) InitWebhookLocal() {
 func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidJSONParam("incoming_webhook", jsonErr)
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -75,7 +75,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidJSONParam("outgoing_webhook", jsonErr)
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 

@@ -80,7 +80,7 @@ func (api *API) InitTeam() {
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var team model.Team
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidJSONParam("team", jsonErr)
+		c.SetInvalidParamWithErr("team", jsonErr)
 		return
 	}
 	team.Email = strings.ToLower(team.Email)
@@ -189,7 +189,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var team model.Team
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidJSONParam("team", jsonErr)
+		c.SetInvalidParamWithErr("team", jsonErr)
 		return
 	}
 
@@ -234,7 +234,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var team model.TeamPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidJSONParam("team", jsonErr)
+		c.SetInvalidParamWithErr("team", jsonErr)
 		return
 	}
 
@@ -818,7 +818,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	var members []*model.TeamMember
 	if jsonErr := json.NewDecoder(r.Body).Decode(&members); jsonErr != nil {
-		c.SetInvalidJSONParam("members", jsonErr)
+		c.SetInvalidParamWithErr("members", jsonErr)
 		return
 	}
 
@@ -1067,7 +1067,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
-		c.SetInvalidJSONParam("scheme_roles", jsonErr)
+		c.SetInvalidParamWithErr("scheme_roles", jsonErr)
 		return
 	}
 
@@ -1155,7 +1155,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.TeamSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidJSONParam("team_search", jsonErr)
+		c.SetInvalidParamWithErr("team_search", jsonErr)
 		return
 	}
 	// Only system managers may use the ExcludePolicyConstrained field
@@ -1695,7 +1695,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var p model.SchemeIDPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
-		c.SetInvalidJSONParam("scheme_id", jsonErr)
+		c.SetInvalidParamWithErr("scheme_id", jsonErr)
 		return
 	}
 

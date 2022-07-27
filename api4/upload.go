@@ -31,7 +31,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var us model.UploadSession
 	if jsonErr := json.NewDecoder(r.Body).Decode(&us); jsonErr != nil {
-		c.SetInvalidJSONParam("upload", jsonErr)
+		c.SetInvalidParamWithErr("upload", jsonErr)
 		return
 	}
 

@@ -25,7 +25,7 @@ func (api *API) InitScheme() {
 func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	var scheme model.Scheme
 	if jsonErr := json.NewDecoder(r.Body).Decode(&scheme); jsonErr != nil {
-		c.SetInvalidJSONParam("scheme", jsonErr)
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 
@@ -184,7 +184,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.SchemePatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidJSONParam("scheme", jsonErr)
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 

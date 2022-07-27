@@ -43,7 +43,7 @@ func (api *API) InitPost() {
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidJSONParam("post", jsonErr)
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -115,7 +115,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&ephRequest)
 	if jsonErr != nil {
-		c.SetInvalidJSONParam("body", jsonErr)
+		c.SetInvalidParamWithErr("body", jsonErr)
 		return
 	}
 
@@ -715,7 +715,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidJSONParam("post", jsonErr)
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -776,7 +776,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.PostPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidJSONParam("post", jsonErr)
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -866,7 +866,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var reminder model.PostReminder
 	if jsonErr := json.NewDecoder(r.Body).Decode(&reminder); jsonErr != nil {
-		c.SetInvalidJSONParam("target_time", jsonErr)
+		c.SetInvalidParamWithErr("target_time", jsonErr)
 		return
 	}
 

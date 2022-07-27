@@ -27,7 +27,7 @@ func (api *API) InitOAuth() {
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	var oauthApp model.OAuthApp
 	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
-		c.SetInvalidJSONParam("oauth_app", jsonErr)
+		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
 
@@ -82,7 +82,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var oauthApp model.OAuthApp
 	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
-		c.SetInvalidJSONParam("oauth_app", jsonErr)
+		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
 	auditRec.AddEventParameter("oauth_app", oauthApp)

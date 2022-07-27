@@ -32,7 +32,7 @@ func (api *API) InitCommand() {
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
-		c.SetInvalidJSONParam("command", jsonErr)
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
@@ -74,7 +74,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil || cmd.Id != c.Params.CommandId {
-		c.SetInvalidJSONParam("command", jsonErr)
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
@@ -134,7 +134,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var cmr model.CommandMoveRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmr); jsonErr != nil {
-		c.SetInvalidJSONParam("team_id", jsonErr)
+		c.SetInvalidParamWithErr("team_id", jsonErr)
 		return
 	}
 
@@ -312,7 +312,7 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var commandArgs model.CommandArgs
 	if jsonErr := json.NewDecoder(r.Body).Decode(&commandArgs); jsonErr != nil {
-		c.SetInvalidJSONParam("command_args", jsonErr)
+		c.SetInvalidParamWithErr("command_args", jsonErr)
 		return
 	}
 

@@ -814,7 +814,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var ack model.SendWarnMetricAck
 	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		c.SetInvalidJSONParam("ack", jsonErr)
+		c.SetInvalidParamWithErr("ack", jsonErr)
 		return
 	}
 

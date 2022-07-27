@@ -82,7 +82,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
 	if err != nil {
-		c.SetInvalidJSONParam("channel", err)
+		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
 
@@ -126,7 +126,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
 	if err != nil {
-		c.SetInvalidJSONParam("channel", err)
+		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
 
@@ -303,7 +303,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
 	if err != nil {
-		c.SetInvalidJSONParam("channel", err)
+		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
 
@@ -482,7 +482,7 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil {
-		c.SetInvalidJSONParam("channel_search", err)
+		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
 
@@ -1057,7 +1057,7 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil {
-		c.SetInvalidJSONParam("channel_search", err)
+		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
 
@@ -1096,7 +1096,7 @@ func searchArchivedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil {
-		c.SetInvalidJSONParam("channel_search", err)
+		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
 
@@ -1130,7 +1130,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil {
-		c.SetInvalidJSONParam("channel_search", err)
+		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
 
@@ -1470,7 +1470,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var view model.ChannelView
 	if jsonErr := json.NewDecoder(r.Body).Decode(&view); jsonErr != nil {
-		c.SetInvalidJSONParam("channel_view", jsonErr)
+		c.SetInvalidParamWithErr("channel_view", jsonErr)
 		return
 	}
 
@@ -1547,7 +1547,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 
 	var schemeRoles model.SchemeRoles
 	if jsonErr := json.NewDecoder(r.Body).Decode(&schemeRoles); jsonErr != nil {
-		c.SetInvalidJSONParam("scheme_roles", jsonErr)
+		c.SetInvalidParamWithErr("scheme_roles", jsonErr)
 		return
 	}
 
@@ -1810,7 +1810,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var p model.SchemeIDPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil || p.SchemeID == nil || !model.IsValidId(*p.SchemeID) {
-		c.SetInvalidJSONParam("scheme_id", jsonErr)
+		c.SetInvalidParamWithErr("scheme_id", jsonErr)
 		return
 	}
 	schemeID := p.SchemeID

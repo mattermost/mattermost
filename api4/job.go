@@ -106,7 +106,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Job
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidJSONParam("job", jsonErr)
+		c.SetInvalidParamWithErr("job", jsonErr)
 		return
 	}
 

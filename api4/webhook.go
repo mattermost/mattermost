@@ -30,7 +30,7 @@ func (api *API) InitWebhook() {
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidJSONParam("incoming_webhook", jsonErr)
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -98,7 +98,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidJSONParam("incoming_webhook", jsonErr)
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -342,7 +342,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidJSONParam("outgoing_webhook", jsonErr)
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -402,7 +402,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidJSONParam("outgoing_webhook", jsonErr)
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 

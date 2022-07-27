@@ -221,7 +221,7 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
-func (c *Context) SetInvalidJSONParam(parameter string, err error) {
+func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
 	c.Err = NewInvalidParamError(parameter).Wrap(err)
 }
 

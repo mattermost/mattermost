@@ -108,7 +108,7 @@ func (api *API) InitUser() {
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidJSONParam("user", jsonErr)
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -970,7 +970,7 @@ func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.UserSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidJSONParam("props", jsonErr)
+		c.SetInvalidParamWithErr("props", jsonErr)
 		return
 	}
 
@@ -1168,7 +1168,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidJSONParam("user", jsonErr)
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1250,7 +1250,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.UserPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidJSONParam("user", jsonErr)
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1515,7 +1515,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
-		c.SetInvalidJSONParam("user", jsonErr)
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -2235,7 +2235,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var switchRequest model.SwitchRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
-		c.SetInvalidJSONParam("switch_request", jsonErr)
+		c.SetInvalidParamWithErr("switch_request", jsonErr)
 		return
 	}
 
@@ -2297,7 +2297,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var accessToken model.UserAccessToken
 	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
-		c.SetInvalidJSONParam("user_access_token", jsonErr)
+		c.SetInvalidParamWithErr("user_access_token", jsonErr)
 		return
 	}
 
@@ -2344,7 +2344,7 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var props model.UserAccessTokenSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidJSONParam("user_access_token_search", jsonErr)
+		c.SetInvalidParamWithErr("user_access_token_search", jsonErr)
 		return
 	}
 
@@ -2728,7 +2728,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var typingRequest model.TypingRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
-		c.SetInvalidJSONParam("typing_request", jsonErr)
+		c.SetInvalidParamWithErr("typing_request", jsonErr)
 		return
 	}
 
