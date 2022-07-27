@@ -9,10 +9,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
-	"html/template"
 	"net"
 	"net/http"
-	"net/http/pprof"
 	"net/url"
 	"os"
 	"os/exec"
@@ -27,7 +25,6 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -35,6 +32,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -131,10 +129,6 @@ type Server struct {
 
 	localModeServer *http.Server
 
-	metricsServer *http.Server
-	metricsRouter *mux.Router
-	metricsLock   sync.Mutex
-
 	didFinishListen chan struct{}
 
 	goroutineCount      int32
@@ -177,6 +171,7 @@ type Server struct {
 	configStore             *configWrapper
 	filestore               filestore.FileBackend
 
+	platformService  *platform.PlatformService
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
@@ -255,6 +250,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
+
+	ps, sErr := platform.New(platform.ServiceConfig{
+		ConfigStore:  s.configStore.Store,
+		StartMetrics: s.startMetrics,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to initialize platform")
+	}
+	s.platformService = ps
 
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
@@ -619,10 +625,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if s.startMetrics {
-		s.SetupMetricsServer()
-	}
-
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
 			return
@@ -632,7 +634,7 @@ func NewServer(options ...Option) (*Server, error) {
 			return
 		}
 
-		s.SetupMetricsServer()
+		s.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
 	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
@@ -679,6 +681,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
+			runPostReminderJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -698,24 +701,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	return s, nil
-}
-
-func (s *Server) SetupMetricsServer() {
-	if !*s.Config().MetricsSettings.Enable {
-		return
-	}
-
-	s.StopMetricsServer()
-
-	if err := s.InitMetricsRouter(); err != nil {
-		mlog.Error("Error initiating metrics router.", mlog.Err(err))
-	}
-
-	if s.Metrics != nil {
-		s.Metrics.Register()
-	}
-
-	s.startMetricsServer()
 }
 
 func maxInt(a, b int) int {
@@ -1045,7 +1030,7 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	s.StopMetricsServer()
+	s.platformService.ShutdownMetrics()
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
@@ -1629,104 +1614,9 @@ func doConfigCleanup(s *Server) {
 	}
 }
 
-func (s *Server) StopMetricsServer() {
-	s.metricsLock.Lock()
-	defer s.metricsLock.Unlock()
-
-	if s.metricsServer != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
-		defer cancel()
-
-		s.metricsServer.Shutdown(ctx)
-		s.Log.Info("Metrics and profiling server is stopping")
-	}
-}
-
+// TODO: remove this method when we switch to using platform service.
 func (s *Server) HandleMetrics(route string, h http.Handler) {
-	if s.metricsRouter != nil {
-		s.metricsRouter.Handle(route, h)
-	}
-}
-
-func (s *Server) InitMetricsRouter() error {
-	s.metricsRouter = mux.NewRouter()
-	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
-
-	metricsPage := `
-			<html>
-				<body>{{if .}}
-					<div><a href="/metrics">Metrics</a></div>{{end}}
-					<div><a href="/debug/pprof/">Profiling Root</a></div>
-					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
-					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
-					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
-					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
-					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
-					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
-					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
-					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
-				</body>
-			</html>
-		`
-	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
-	if err != nil {
-		return errors.Wrap(err, "failed to create template")
-	}
-
-	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, s.Metrics != nil)
-	}
-
-	s.metricsRouter.HandleFunc("/", rootHandler)
-	s.metricsRouter.StrictSlash(true)
-
-	s.metricsRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
-	s.metricsRouter.HandleFunc("/debug/pprof/", pprof.Index)
-	s.metricsRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	s.metricsRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	s.metricsRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	s.metricsRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
-	// Manually add support for paths linked to by index page at /debug/pprof/
-	s.metricsRouter.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
-	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
-	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
-	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
-
-	return nil
-}
-
-func (s *Server) startMetricsServer() {
-	var notify chan struct{}
-	s.metricsLock.Lock()
-	defer func() {
-		if notify != nil {
-			<-notify
-		}
-		s.metricsLock.Unlock()
-	}()
-
-	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
-	if err != nil {
-		mlog.Error(err.Error())
-		return
-	}
-
-	notify = make(chan struct{})
-	s.metricsServer = &http.Server{
-		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
-		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-	}
-
-	go func() {
-		close(notify)
-		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
-			mlog.Critical(err.Error())
-		}
-	}()
-
-	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+	s.platformService.HandleMetrics(route, h)
 }
 
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
@@ -2177,31 +2067,53 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func createDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.ch.dndTaskMut.Unlock()
+func withMut(mut *sync.Mutex, f func()) {
+	mut.Lock()
+	defer mut.Unlock()
+	f()
 }
 
-func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	if a.ch.dndTask != nil {
-		a.ch.dndTask.Cancel()
-		a.ch.dndTask = nil
+func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
+	mut.Lock()
+	defer mut.Unlock()
+	if task != nil {
+		task.Cancel()
+		task = nil
 	}
-	a.ch.dndTaskMut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		createDNDStatusExpirationRecurringTask(a)
+		withMut(&a.ch.dndTaskMut, func() {
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			createDNDStatusExpirationRecurringTask(a)
+			withMut(&a.ch.dndTaskMut, func() {
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			})
 		} else {
-			cancelDNDStatusExpirationRecurringTask(a)
+			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
+		}
+	})
+}
+
+func runPostReminderJob(a *App) {
+	if a.IsLeader() {
+		withMut(&a.ch.postReminderMut, func() {
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+		})
+	}
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			withMut(&a.ch.postReminderMut, func() {
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			})
+		} else {
+			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
 		}
 	})
 }

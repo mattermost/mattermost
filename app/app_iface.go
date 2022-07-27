@@ -202,7 +202,7 @@ type AppIface interface {
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
 	// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
-	GetPostsByIds(postIDs []string) ([]*model.Post, bool, *model.AppError)
+	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
 	// GetPostsUsage returns the total posts count rounded down to the most
 	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
@@ -446,6 +446,7 @@ type AppIface interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
+	CheckPostReminders()
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
 	CheckUserMfa(user *model.User, token string) *model.AppError
@@ -1041,6 +1042,7 @@ type AppIface interface {
 	SetPluginKey(pluginID string, key string, value []byte) *model.AppError
 	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	SetPostReminder(postID, userID string, targetTime int64) *model.AppError
 	SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userID string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(userID string, file multipart.File) *model.AppError

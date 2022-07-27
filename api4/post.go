@@ -34,6 +34,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
+	api.BaseRoutes.PostForUser.Handle("/reminder", api.APISessionRequired(setPostReminder)).Methods("POST")
+
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
 }
@@ -401,7 +403,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
-			w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
 		return
@@ -438,7 +440,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -471,7 +473,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
+	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
@@ -840,6 +842,36 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(state); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	var reminder model.PostReminder
+	if jsonErr := json.NewDecoder(r.Body).Decode(&reminder); jsonErr != nil {
+		c.SetInvalidParam("target_time")
+		return
+	}
+
+	appErr := c.App.SetPostReminder(c.Params.PostId, c.Params.UserId, reminder.TargetTime)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {

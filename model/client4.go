@@ -18,30 +18,30 @@ import (
 )
 
 const (
-	HeaderRequestId            = "X-Request-ID"
-	HeaderVersionId            = "X-Version-ID"
-	HeaderClusterId            = "X-Cluster-ID"
-	HeaderEtagServer           = "ETag"
-	HeaderEtagClient           = "If-None-Match"
-	HeaderForwarded            = "X-Forwarded-For"
-	HeaderRealIP               = "X-Real-IP"
-	HeaderForwardedProto       = "X-Forwarded-Proto"
-	HeaderToken                = "token"
-	HeaderCsrfToken            = "X-CSRF-Token"
-	HeaderBearer               = "BEARER"
-	HeaderAuth                 = "Authorization"
-	HeaderCloudToken           = "X-Cloud-Token"
-	HeaderRemoteclusterToken   = "X-RemoteCluster-Token"
-	HeaderRemoteclusterId      = "X-RemoteCluster-Id"
-	HeaderRequestedWith        = "X-Requested-With"
-	HeaderRequestedWithXML     = "XMLHttpRequest"
-	HeaderHasInaccessiblePosts = "Has-Inaccessible-Posts"
-	HeaderRange                = "Range"
-	STATUS                     = "status"
-	StatusOk                   = "OK"
-	StatusFail                 = "FAIL"
-	StatusUnhealthy            = "UNHEALTHY"
-	StatusRemove               = "REMOVE"
+	HeaderRequestId                 = "X-Request-ID"
+	HeaderVersionId                 = "X-Version-ID"
+	HeaderClusterId                 = "X-Cluster-ID"
+	HeaderEtagServer                = "ETag"
+	HeaderEtagClient                = "If-None-Match"
+	HeaderForwarded                 = "X-Forwarded-For"
+	HeaderRealIP                    = "X-Real-IP"
+	HeaderForwardedProto            = "X-Forwarded-Proto"
+	HeaderToken                     = "token"
+	HeaderCsrfToken                 = "X-CSRF-Token"
+	HeaderBearer                    = "BEARER"
+	HeaderAuth                      = "Authorization"
+	HeaderCloudToken                = "X-Cloud-Token"
+	HeaderRemoteclusterToken        = "X-RemoteCluster-Token"
+	HeaderRemoteclusterId           = "X-RemoteCluster-Id"
+	HeaderRequestedWith             = "X-Requested-With"
+	HeaderRequestedWithXML          = "XMLHttpRequest"
+	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	HeaderRange                     = "Range"
+	STATUS                          = "status"
+	StatusOk                        = "OK"
+	StatusFail                      = "FAIL"
+	StatusUnhealthy                 = "UNHEALTHY"
+	StatusRemove                    = "REMOVE"
 
 	ClientDir = "client"
 
@@ -3736,6 +3736,23 @@ func (c *Client4) SetPostUnread(userId string, postId string, collapsedThreadsSu
 		return nil, NewAppError("SetPostUnread", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	r, err := c.DoAPIPostBytes(c.userRoute(userId)+c.postRoute(postId)+"/set_unread", b)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// SetPostReminder creates a post reminder for a given post at a specified time.
+// The time needs to be in UTC epoch in seconds. It is always truncated to a
+// 5 minute resolution minimum.
+func (c *Client4) SetPostReminder(reminder *PostReminder) (*Response, error) {
+	b, err := json.Marshal(reminder)
+	if err != nil {
+		return nil, NewAppError("SetPostReminder", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	r, err := c.DoAPIPostBytes(c.userRoute(reminder.UserId)+c.postRoute(reminder.PostId)+"/reminder", b)
 	if err != nil {
 		return BuildResponse(r), err
 	}
