@@ -75,11 +75,8 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 
 	var record JSONMessageHeaderInbucket
 	err = json.NewDecoder(resp.Body).Decode(&record)
-	switch {
-	case err == io.EOF:
-		return nil, fmt.Errorf("error: %s", err)
-	case err != nil:
-		return nil, fmt.Errorf("error: %s", err)
+	if err != nil {
+		return nil, fmt.Errorf("error: %w", err)
 	}
 	if len(record) == 0 {
 		return nil, fmt.Errorf("no mailbox")
