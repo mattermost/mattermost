@@ -2069,3 +2069,8 @@ func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.App
 	}
 	return table, nil
 }
+
+// Expose platform service from server, this should be replaced with server itself in time.
+func (s *Server) Platform() *platform.PlatformService {
+	return s.platformService
+}
