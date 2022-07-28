@@ -175,7 +175,7 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 		if jsonErr == io.EOF {
 			return nil, nil
 		}
-		return nil, model.NewAppError("doOutgoingWebhookRequest", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("doOutgoingWebhookRequest", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	return &hookResp, nil

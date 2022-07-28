@@ -608,7 +608,7 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 
 	b, jsonErr := json.Marshal(request)
 	if jsonErr != nil {
-		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 	}
 
 	resp, err := a.DoActionRequest(c, url, b)
@@ -621,6 +621,7 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 	var response model.SubmitDialogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		// Don't fail, an empty response is acceptable
+		c.Logger().Warn("Error decoding action request", mlog.Err(err))
 		return &response, nil
 	}
 

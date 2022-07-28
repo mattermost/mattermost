@@ -570,7 +570,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c *request.Context, args *model
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("could not decode post from json")
+		return &model.CommandResponse{Text: "Unable to decode post", ResponseType: model.CommandResponseTypeEphemeral}, errors.Errorf("could not decode post from json: %s", jsonErr)
 	}
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId

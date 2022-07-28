@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type AdvancedPermissionsPhase2Progress struct {
@@ -26,7 +27,10 @@ func (p *AdvancedPermissionsPhase2Progress) ToJSON() string {
 
 func AdvancedPermissionsPhase2ProgressFromJSON(data io.Reader) *AdvancedPermissionsPhase2Progress {
 	var o *AdvancedPermissionsPhase2Progress
-	json.NewDecoder(data).Decode(&o)
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		mlog.Warn("Error decoding advanced permissions phase 2 progress", mlog.Err(err))
+	}
 	return o
 }
 

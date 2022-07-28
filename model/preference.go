@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -91,7 +93,7 @@ func (o *Preference) IsValid() *AppError {
 	if o.Category == PreferenceCategoryTheme {
 		var unused map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&unused); err != nil {
-			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest)
+			return NewAppError("Preference.IsValid", "model.preference.is_valid.theme.app_error", nil, "value="+o.Value, http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -104,6 +106,7 @@ func (o *Preference) PreUpdate() {
 		var props map[string]string
 		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
 			// just continue, the invalid preference value should get caught by IsValid before saving
+			mlog.Warn("PreUpdate: Decoding the preference value failed", mlog.Err(err))
 			return
 		}
 

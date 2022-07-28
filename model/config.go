@@ -3182,7 +3182,10 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 
 func ConfigFromJSON(data io.Reader) *Config {
 	var o *Config
-	json.NewDecoder(data).Decode(&o)
+	err := json.NewDecoder(data).Decode(&o)
+	if err != nil {
+		mlog.Warn("Error decoding config", mlog.Err(err))
+	}
 	return o
 }
 
