@@ -317,7 +317,8 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 ifeq ($(BUILD_BOARDS),true)
   ifneq ($(MM_NO_BOARDS_LINT),true)
-		cd $(BUILD_BOARDS_DIR); make server-lint USE_LOCAL_MATTERMOST-SERVER_REPO=true
+		export USE_LOCAL_MATTERMOST-SERVER_REPO=true
+		cd $(BUILD_BOARDS_DIR); make server-lint
   endif
 endif
 
