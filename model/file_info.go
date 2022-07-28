@@ -57,6 +57,8 @@ type FileInfo struct {
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`
+	// Indicates file's content is inaccessible because the file is beyond the cloud limit's plan
+	InaccessibleContent bool `db:"-" json:"inaccessible"`
 }
 
 func (fi *FileInfo) PreSave() {
@@ -189,11 +191,12 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 	return Etag(infos[0].PostId, maxUpdateAt)
 }
 
-func (fi *FileInfo) ArchiveAndRemoveContent() {
+func (fi *FileInfo) MakeContentInaccessible() {
 	if fi == nil {
 		return
 	}
 
+	fi.InaccessibleContent = true
 	fi.Archived = true
 	fi.Content = ""
 	fi.HasPreviewImage = false

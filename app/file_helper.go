@@ -9,35 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-// removeInaccessibleContentFromFileList removes content from the files beyond the cloud plan's limit
-// and also sets the firstInaccessibleFileTime
-func (a *App) removeInaccessibleContentFromFileList(fileList *model.FileInfoList) *model.AppError {
-	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
-		return nil
-	}
-
-	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
-	if appErr != nil {
-		return model.NewAppError("removeInaccessibleFileListContent", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-	if lastAccessibleFileTime == 0 {
-		// No need to remove content, all files are accessible
-		return nil
-	}
-
-	files := fileList.FileInfos
-	for _, file := range files {
-		if createAt := file.CreateAt; createAt < lastAccessibleFileTime {
-			file.ArchiveAndRemoveContent()
-			if createAt > fileList.FirstInaccessibleFileTime {
-				fileList.FirstInaccessibleFileTime = createAt
-			}
-		}
-	}
-
-	return nil
-}
-
 // removeInaccessibleContentFromFilesSlice removes content from the files beyond the cloud plan's limit
 // and also returns the firstInaccessibleFileTime
 func (a *App) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
@@ -57,7 +28,7 @@ func (a *App) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (
 	var firstInaccessibleFileTime int64 = 0
 	for _, file := range files {
 		if createAt := file.CreateAt; createAt < lastAccessibleFileTime {
-			file.ArchiveAndRemoveContent()
+			file.MakeContentInaccessible()
 			if createAt > firstInaccessibleFileTime {
 				firstInaccessibleFileTime = createAt
 			}
@@ -65,17 +36,6 @@ func (a *App) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (
 	}
 
 	return firstInaccessibleFileTime, nil
-}
-
-// removeInaccessibleContent removes content from the file if it is beyond the cloud plan's limit
-// and also returns the firstInaccessibleFileTime
-func (a *App) removeInaccessibleContent(file *model.FileInfo) (int64, *model.AppError) {
-	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(file)
-	if appErr == nil && firstInaccessibleFileTime > 0 {
-		file.ArchiveAndRemoveContent()
-	}
-
-	return firstInaccessibleFileTime, appErr
 }
 
 // filterInaccessibleFiles filters out the files, past the cloud limit
