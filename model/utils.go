@@ -271,6 +271,10 @@ func (er *AppError) ToJSON() string {
 }
 
 func (er *AppError) Unwrap() error {
+	if er == nil {
+		return nil
+	}
+
 	return er.wrapped
 }
 

@@ -85,6 +85,11 @@ func TestAppErrorJunk(t *testing.T) {
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
+func TestAppErrorNilUnwrap(t *testing.T) {
+	var err *AppError
+	require.Nil(t, err.Unwrap())
+}
+
 func TestAppErrorRender(t *testing.T) {
 	t.Run("Minimal", func(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot)
