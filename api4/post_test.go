@@ -448,7 +448,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -461,7 +461,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -498,7 +498,7 @@ func TestCreatePostAll(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -514,7 +514,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, _, err = client.CreatePost(post)
 	require.NoError(t, err)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
