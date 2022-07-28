@@ -103,7 +103,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
 	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
-		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
+		c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 	}
 
 	switch status.Status {
@@ -147,7 +147,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	customStatus.PreSave()
-	err := c.App.SetCustomStatus(c.Params.UserId, &customStatus)
+	err := c.App.SetCustomStatus(c.AppContext, c.Params.UserId, &customStatus)
 	if err != nil {
 		c.Err = err
 		return
@@ -172,7 +172,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := c.App.RemoveCustomStatus(c.Params.UserId); err != nil {
+	if err := c.App.RemoveCustomStatus(c.AppContext, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
