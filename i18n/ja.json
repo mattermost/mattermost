@@ -9358,5 +9358,9 @@
   {
     "id": "app.post.cloud.get.app_error",
     "translation": "クラウドプランの制限を超えているため投稿を取得できません。"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "不正なタイムアウト値 {{.Value}} 。正の数にする必要があります。"
   }
 ]
