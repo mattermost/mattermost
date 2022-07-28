@@ -75,7 +75,7 @@ func (cfg *AutoChannelCreator) CreateTestChannels(c request.CTX, num utils.Range
 	return channels, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestDMs(c *request.Context, num utils.Range) ([]*model.Channel, error) {
+func (cfg *AutoChannelCreator) CreateTestDMs(c request.CTX, num utils.Range) ([]*model.Channel, error) {
 	numDMs := utils.RandIntFromRange(num)
 	dms := make([]*model.Channel, numDMs)
 

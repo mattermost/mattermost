@@ -65,7 +65,7 @@ func (*KickProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 	return doCommand(a, c, args, message)
 }
 
-func doCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
