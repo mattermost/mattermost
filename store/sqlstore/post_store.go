@@ -3027,29 +3027,27 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 			} else {
 				secondParticipantId = participants[0]
 			}
-
-			// filter topDM out if second user is bot
-			users, err := s.User().GetProfileByIds(context.Background(), []string{secondParticipantId}, &store.UserGetByIdsOpts{}, true)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant)
-			}
-			if users[0].IsBot {
-				continue
-			}
-			user := users[0]
-			topDM.SecondParticipant = &model.TopDMInsightUserInformation{
-				InsightUserInformation: model.InsightUserInformation{
-					Id:                user.Id,
-					LastPictureUpdate: user.LastPictureUpdate,
-					FirstName:         user.FirstName,
-					LastName:          user.LastName,
-					Username:          user.Username,
-					NickName:          user.Nickname,
-				},
-				Position: user.Position,
-			}
 		}
-
+		// filter topDM out if second user is bot
+		users, err := s.User().GetProfileByIds(context.Background(), []string{secondParticipantId}, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant.Id)
+		}
+		if users[0].IsBot {
+			continue
+		}
+		user := users[0]
+		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
+			InsightUserInformation: model.InsightUserInformation{
+				Id:                user.Id,
+				LastPictureUpdate: user.LastPictureUpdate,
+				FirstName:         user.FirstName,
+				LastName:          user.LastName,
+				Username:          user.Username,
+				NickName:          user.Nickname,
+			},
+			Position: user.Position,
+		}
 		topDMsFiltered = append(topDMsFiltered, topDM)
 	}
 	return topDMsFiltered, nil
