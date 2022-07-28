@@ -82,9 +82,9 @@ func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeCluster
 		if w.srv.GetMetrics() != nil {
 			w.srv.GetMetrics().Register()
 		}
-		w.srv.SetupMetricsServer()
+		w.srv.platform.RestartMetrics() // TODO: remove when this moved to the platform service
 	} else {
-		w.srv.StopMetricsServer()
+		w.srv.platform.ShutdownMetrics() // TODO: remove when this moved to the platform service
 	}
 
 	if w.srv.Cluster != nil {
