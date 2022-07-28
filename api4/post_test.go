@@ -448,7 +448,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -461,7 +461,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -498,7 +498,7 @@ func TestCreatePostAll(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -514,7 +514,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, _, err = client.CreatePost(post)
 	require.NoError(t, err)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -3179,4 +3179,64 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	require.NotNil(t, action)
 	// integration must be omitted
 	require.Nil(t, action["integration"])
+}
+
+func TestPostReminder(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+	userWSClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer userWSClient.Close()
+	userWSClient.Listen()
+
+	targetTime := time.Now().UTC().Unix()
+	resp, err := client.SetPostReminder(&model.PostReminder{
+		TargetTime: targetTime,
+		PostId:     th.BasicPost.Id,
+		UserId:     th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	post, _, err := client.GetPost(th.BasicPost.Id, "")
+	require.NoError(t, err)
+
+	user, _, err := client.GetUser(post.UserId, "")
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventEphemeralMessage {
+					caught = true
+					data := ev.GetData()
+
+					post, ok := data["post"].(string)
+					require.True(t, ok)
+
+					var parsedPost model.Post
+					err := json.Unmarshal([]byte(post), &parsedPost)
+					require.NoError(t, err)
+
+					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+					assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
+					assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
+
+					require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+					require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
+					require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
+					return
+				}
+			case <-time.After(1 * time.Second):
+				return
+			}
+		}
+	}()
+
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
 }

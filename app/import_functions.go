@@ -527,12 +527,12 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
-			if savedUser, appErr = a.UpdateUser(user, false); appErr != nil {
+			if savedUser, appErr = a.UpdateUser(c, user, false); appErr != nil {
 				return appErr
 			}
 		}
 		if hasUserRolesChanged {
-			if savedUser, appErr = a.UpdateUserRoles(user.Id, roles, false); appErr != nil {
+			if savedUser, appErr = a.UpdateUserRoles(c, user.Id, roles, false); appErr != nil {
 				return appErr
 			}
 		}
@@ -590,7 +590,7 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
-			if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
+			if err := a.SetProfileImageFromFile(c, savedUser.Id, file); err != nil {
 				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}

@@ -51,7 +51,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		}
 
 		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Errorf("failed to fetch from %s", downloadURL)
 		}
