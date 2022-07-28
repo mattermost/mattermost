@@ -2238,6 +2238,10 @@
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "Due to compliance rules configured on this instance the channel must be joined before its posts can be read."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
