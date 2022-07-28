@@ -70,7 +70,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(createdBot); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -109,7 +109,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(updatedBot); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -150,7 +150,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -268,7 +268,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -315,6 +315,6 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventObjectType("user")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
