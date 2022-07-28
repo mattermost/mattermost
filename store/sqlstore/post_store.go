@@ -3017,7 +3017,7 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 		var secondParticipantId string
 		if len(participants) == 1 {
 			// chatting to self
-			secondParticipantId = userID
+			continue
 		} else {
 			// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
 			topDM.MessageCount = topDM.MessageCount / 2

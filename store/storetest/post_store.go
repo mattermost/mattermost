@@ -4091,7 +4091,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
 	})
-	t.Run("topDMs will consider self dms", func(t *testing.T) {
+	t.Run("topDMs will not consider self dms", func(t *testing.T) {
 		chUser, nErr := ss.Channel().CreateDirectChannel(&user, &user)
 		require.NoError(t, nErr)
 		_, err = ss.Post().Save(&model.Post{
@@ -4105,9 +4105,6 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
 		require.NoError(t, err)
 		// len of topDMs.Items should be 3
-		require.Len(t, topDMs.Items, 3)
-		// check order, magnitude of items
-		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, user.Id)
-		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+		require.Len(t, topDMs.Items, 2)
 	})
 }
