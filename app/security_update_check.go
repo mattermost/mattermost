@@ -91,7 +91,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		var bulletins model.SecurityBulletins
 		if jsonErr := json.NewDecoder(res.Body).Decode(&bulletins); jsonErr != nil {
-			mlog.Error("Failed to decode JSON", mlog.Err(jsonErr))
+			s.Log.Error("Failed to decode JSON", mlog.Err(jsonErr))
 			return
 		}
 
