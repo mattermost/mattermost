@@ -42,3 +42,7 @@ func (ps *PlatformService) ShutdownMetrics() {
 		ps.metrics.stopMetricsServer()
 	}
 }
+
+func (ps *PlatformService) StartMetrics() {
+	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
+}

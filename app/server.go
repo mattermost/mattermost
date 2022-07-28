@@ -625,6 +625,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
+	if s.startMetrics {
+		s.platformService.StartMetrics()
+	}
+
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
 			return
