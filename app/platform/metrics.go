@@ -39,7 +39,8 @@ func newPlatformMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *
 	}
 
 	pm := &platformMetrics{
-		cfgFn: cfgFn,
+		cfgFn:       cfgFn,
+		metricsImpl: metricsImpl,
 	}
 
 	pm.stopMetricsServer()
@@ -152,7 +153,7 @@ func (pm *platformMetrics) initMetricsRouter() error {
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
-	if ps.metrics.router != nil {
+	if ps.metrics != nil {
 		ps.metrics.router.Handle(route, h)
 	}
 }

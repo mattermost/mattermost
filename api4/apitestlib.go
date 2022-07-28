@@ -218,7 +218,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	return th
 }
 
-func SetupEnterprise(tb testing.TB) *TestHelper {
+func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
@@ -232,7 +232,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
