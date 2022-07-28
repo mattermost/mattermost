@@ -21,3 +21,7 @@ func New(c ServiceConfig) (*PlatformService, error) {
 func (ps *PlatformService) StartMetrics() {
 	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
 }
+
+func (ps *PlatformService) StartMetrics() {
+	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
+}
