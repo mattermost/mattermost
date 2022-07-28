@@ -951,7 +951,7 @@ func (a *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
 	a.app.BroadcastStatus(status)
 }
 
-func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.ReactionImportData, *model.AppError) {
+func (a *OpenTracingAppLayer) BuildPostReactions(ctx request.CTX, postID string) (*[]app.ReactionImportData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPostReactions")
 
@@ -963,7 +963,7 @@ func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.Reaction
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BuildPostReactions(postID)
+	resultVar0, resultVar1 := a.app.BuildPostReactions(ctx, postID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1017,7 +1017,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -1029,7 +1029,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(writer, outPath, opts)
+	resultVar0 := a.app.BulkExport(ctx, writer, outPath, opts)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
