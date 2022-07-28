@@ -236,13 +236,13 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
 	if emailErr != nil {
 		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, emailErr.Error(), http.StatusForbidden)
-		emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
+		emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
 		if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 			mlog.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
-	emailResp := model.ValidateBusinessEmailResponse{IsValid: "true"}
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -279,7 +279,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
 		if errValidatingAdminEmail != nil {
 			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
-			emailResp := model.ValidateBusinessEmailResponse{IsValid: "false"}
+			emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
 			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 				mlog.Warn("Error while writing response", mlog.Err(err))
 			}
@@ -288,7 +288,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	// if any of the emails is valid, return ok
-	emailResp := model.ValidateBusinessEmailResponse{IsValid: "true"}
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}

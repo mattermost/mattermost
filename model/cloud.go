@@ -106,7 +106,7 @@ type ValidateBusinessEmailRequest struct {
 }
 
 type ValidateBusinessEmailResponse struct {
-	IsValid string `json:"is_valid"`
+	IsValid bool `json:"is_valid"`
 }
 
 // CloudCustomerInfo represents editable info of a customer.
