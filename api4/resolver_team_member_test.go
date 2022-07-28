@@ -297,7 +297,7 @@ func TestGraphQLTeamMembersAsGuest(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.DemoteUserToGuest(th.Context, th.BasicUser)
-	th.BasicUser, _ = th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemGuestRoleId, false)
+	th.BasicUser, _ = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemGuestRoleId, false)
 
 	var q struct {
 		TeamMembers []struct {
