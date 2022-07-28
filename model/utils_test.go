@@ -87,7 +87,7 @@ func TestAppErrorJunk(t *testing.T) {
 
 func TestAppErrorNilUnwrap(t *testing.T) {
 	var err *AppError
-	require.Nil(t, err.Unwrap())
+	require.NoError(t, err.Unwrap())
 }
 
 func TestAppErrorRender(t *testing.T) {
