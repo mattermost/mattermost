@@ -909,8 +909,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		client = th.Client
 		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
 		require.NoError(t, topDmsErr)
-		require.Len(t, topDMs.Items, 2)
-		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Len(t, topDMs.Items, 1)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, basicUser1.Id)
 	})
@@ -921,8 +920,8 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		client = th.Client
 		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
 		require.NoError(t, topDmsErr)
-		require.Len(t, topDMs.Items, 2)
-		require.Equal(t, topDMs.Items[1].MessageCount, int64(1))
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 	})
 	// deactivate basicuser1
 	_, err = th.Client.DeleteUser(basicUser1.Id)
@@ -933,8 +932,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		client = th.Client
 		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
 		require.NoError(t, topDmsErr)
-		require.Len(t, topDMs.Items, 2)
-		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Len(t, topDMs.Items, 1)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 	})
 }
