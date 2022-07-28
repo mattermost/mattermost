@@ -85,6 +85,33 @@ func TestAppErrorJunk(t *testing.T) {
 	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
 }
 
+func TestAppErrorRender(t *testing.T) {
+	t.Run("Minimal", func(t *testing.T) {
+		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot)
+		assert.EqualError(t, aerr, "here: message")
+	})
+
+	t.Run("Detailed", func(t *testing.T) {
+		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot)
+		assert.EqualError(t, aerr, "here: message, details")
+	})
+
+	t.Run("Wrapped", func(t *testing.T) {
+		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error"))
+		assert.EqualError(t, aerr, "here: message, my error")
+	})
+
+	t.Run("WrappedMultiple", func(t *testing.T) {
+		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
+		assert.EqualError(t, aerr, "here: message, my error (inner error), inner error")
+	})
+
+	t.Run("DetailedWrappedMultiple", func(t *testing.T) {
+		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
+		assert.EqualError(t, aerr, "here: message, details, my error (inner error), inner error")
+	})
+}
+
 func TestCopyStringMap(t *testing.T) {
 	itemKey := "item1"
 	originalMap := make(map[string]string)

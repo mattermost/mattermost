@@ -31,7 +31,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var us model.UploadSession
 	if jsonErr := json.NewDecoder(r.Body).Decode(&us); jsonErr != nil {
-		c.SetInvalidParam("upload")
+		c.SetInvalidParamWithErr("upload", jsonErr)
 		return
 	}
 
@@ -74,7 +74,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rus); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -96,7 +96,7 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(us); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -152,7 +152,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
