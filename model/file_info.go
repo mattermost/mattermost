@@ -58,7 +58,7 @@ type FileInfo struct {
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`
 	// Indicates file's content is inaccessible because the file is beyond the cloud limit's plan
-	InaccessibleContent bool `db:"-" json:"inaccessible"`
+	InaccessibleContent bool `db:"-" json:"inaccessible_content"`
 }
 
 func (fi *FileInfo) PreSave() {
