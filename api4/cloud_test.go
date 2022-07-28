@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -401,21 +400,19 @@ func TestNotifyAdminToUpgrade(t *testing.T) {
 	})
 }
 func Test_validateBusinessEmail(t *testing.T) {
-	t.Run("Initial request has invalid email", func(t *testing.T) {
+	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
-		validateBusinessEmail := model.ValidateBusinessEmailRequest{Email: ""}
+		invalidEmail := model.ValidateBusinessEmailRequest{Email: "invalid@gmail.com"}
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := mocks.CloudInterface{}
 
-		resp := httptest.NewRecorder()
-
-		cloud.Mock.On("ValidateBusinessEmail", mock.Anything).Return(resp, nil)
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, invalidEmail.Email).Return(errors.New("invalid email"))
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -423,8 +420,59 @@ func Test_validateBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		_, err := th.Client.ValidateBusinessEmail(&validateBusinessEmail)
+		res, err := th.Client.ValidateBusinessEmail(&invalidEmail)
 		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, res.StatusCode, "403")
+	})
+
+	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		validBusinessEmail := model.ValidateBusinessEmailRequest{Email: "invalid@slacker.com"}
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, validBusinessEmail.Email).Return(errors.New("invalid email"))
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		res, err := th.SystemAdminClient.ValidateBusinessEmail(&validBusinessEmail)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, res.StatusCode, "403")
+	})
+
+	t.Run("Validate business email for admin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		validBusinessEmail := model.ValidateBusinessEmailRequest{Email: "valid@mattermost.com"}
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, validBusinessEmail.Email).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		res, err := th.SystemAdminClient.ValidateBusinessEmail(&validBusinessEmail)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, res.StatusCode, "200")
 	})
 }
 

@@ -337,7 +337,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
 		restrictedUser := th.CreateUser()
 		restrictedUser.Email = "restricted@mattermost.org"
-		_, err = th.App.UpdateUser(restrictedUser, false)
+		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, restrictedUser.Id)
 		require.Nil(t, err)
