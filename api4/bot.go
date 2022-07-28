@@ -304,7 +304,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.ConvertBotToUser(bot, &userPatch, systemAdmin)
+	user, err := c.App.ConvertBotToUser(c.AppContext, bot, &userPatch, systemAdmin)
 	if err != nil {
 		c.Err = err
 		return
