@@ -5917,7 +5917,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hi there, you asked me to remind you about {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} by @{{.Username}}"
+    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.preference.delete.app_error",
