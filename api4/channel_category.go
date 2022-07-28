@@ -55,7 +55,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
@@ -177,7 +177,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
 	if err != nil {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
@@ -278,7 +278,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 

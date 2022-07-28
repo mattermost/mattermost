@@ -47,7 +47,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -106,7 +106,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Job
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidParam("job")
+		c.SetInvalidParamWithErr("job", jsonErr)
 		return
 	}
 
@@ -137,7 +137,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rjob); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

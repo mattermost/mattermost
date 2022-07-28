@@ -43,7 +43,7 @@ func (api *API) InitPost() {
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -106,14 +106,19 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
 	if err := rp.EncodeJSON(w); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ephRequest := model.PostEphemeral{}
 
-	json.NewDecoder(r.Body).Decode(&ephRequest)
+	jsonErr := json.NewDecoder(r.Body).Decode(&ephRequest)
+	if jsonErr != nil {
+		c.SetInvalidParamWithErr("body", jsonErr)
+		return
+	}
+
 	if ephRequest.UserID == "" {
 		c.SetInvalidParam("user_id")
 		return
@@ -476,7 +481,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -656,7 +661,7 @@ func searchPostsInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId string) {
 	var params model.SearchParameter
 	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
-		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -739,7 +744,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -800,7 +805,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.PostPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -869,7 +874,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(state); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -890,7 +895,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var reminder model.PostReminder
 	if jsonErr := json.NewDecoder(r.Body).Decode(&reminder); jsonErr != nil {
-		c.SetInvalidParam("target_time")
+		c.SetInvalidParamWithErr("target_time", jsonErr)
 		return
 	}
 
