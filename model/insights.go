@@ -104,9 +104,16 @@ type DurationPostCount struct {
 
 // Top DMs
 type TopDM struct {
-	MessageCount      int64                        `json:"post_count"`
-	Participants      string                       `json:"-"`
-	SecondParticipant *TopDMInsightUserInformation `json:"second_participant"`
+	MessageCount         int64                        `json:"post_count"`
+	OutgoingMessageCount int64                        `json:"outgoing_message_count"`
+	Participants         string                       `json:"-"`
+	ChannelId            string                       `json:"-"`
+	SecondParticipant    *TopDMInsightUserInformation `json:"second_participant"`
+}
+
+type OutgoingMessageQueryResult struct {
+	ChannelId    string
+	MessageCount int
 }
 
 type TopDMList struct {

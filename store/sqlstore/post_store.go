@@ -2978,7 +2978,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 		aggregator = "string_agg(distinct cm.UserId, ',') as Participants"
 	}
 
-	topDMsBuilder := s.getQueryBuilder().Select("count(p.id) as MessageCount", aggregator).FromSelect(channelSelector, "vch").
+	topDMsBuilder := s.getQueryBuilder().Select("count(p.id) as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
 		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
 		Join("Posts as p on p.ChannelId = vch.Id").
 		Where(sq.And{
@@ -3012,12 +3012,16 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 
 func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([]*model.TopDM, error) {
 	var topDMsFiltered = []*model.TopDM{}
+	var secondParticipantIds []string
+	var channelIds []string
+
+	// identify second participant in a list of participants
 	for _, topDM := range topDMs {
 		participants := strings.Split(topDM.Participants, ",")
 		var secondParticipantId string
 		if len(participants) == 1 {
-			// chatting to self
-			continue
+			// channel with self
+			secondParticipantId = "-1"
 		} else {
 			// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
 			topDM.MessageCount = topDM.MessageCount / 2
@@ -3028,15 +3032,53 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 				secondParticipantId = participants[0]
 			}
 		}
-		// filter topDM out if second user is bot
-		users, err := s.User().GetProfileByIds(context.Background(), []string{secondParticipantId}, &store.UserGetByIdsOpts{}, true)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get second participant information for user-id: %s", topDM.SecondParticipant.Id)
-		}
-		if users[0].IsBot {
+		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
+		channelIds = append(channelIds, topDM.ChannelId)
+	}
+
+	// get user profiles
+	users, err := s.User().GetProfileByIds(context.Background(), secondParticipantIds, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get second participants' information")
+	}
+
+	// get outgoing message count for userId
+	outgoingMessagesQuery := s.getQueryBuilder().Select("ch.Id as ChannelId, count(p.Id) as MessageCount").From("Channels as ch").
+		Join("Posts as p on p.ChannelId=ch.Id").Where(sq.Eq{
+		"ch.Id":    channelIds,
+		"p.UserId": userID,
+	}).GroupBy("ch.Id")
+
+	outgoingMessages := make([]*model.OutgoingMessageQueryResult, 0)
+	sql, args, err := outgoingMessagesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetTopDMsForUserSince_outgoingMessagesQuery_ToSql")
+	}
+	err = s.GetReplicaX().Select(&outgoingMessages, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
+	}
+
+	// create map of channelId -> MessageCount
+	outgoingMessagesMap := make(map[string]int)
+	for _, outgoingMessage := range outgoingMessages {
+		outgoingMessagesMap[outgoingMessage.ChannelId] = outgoingMessage.MessageCount
+	}
+
+	// create map of userId -> User
+	usersMap := make(map[string]*model.User)
+	for _, user := range users {
+		usersMap[user.Id] = user
+	}
+
+	for index, topDM := range topDMs {
+		if secondParticipantIds[index] == "-1" {
 			continue
 		}
-		user := users[0]
+		user := usersMap[secondParticipantIds[index]]
+		if user.IsBot {
+			continue
+		}
 		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
 			InsightUserInformation: model.InsightUserInformation{
 				Id:                user.Id,
@@ -3048,8 +3090,11 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 			},
 			Position: user.Position,
 		}
+
+		topDM.OutgoingMessageCount = int64(outgoingMessagesMap[topDM.ChannelId])
 		topDMsFiltered = append(topDMsFiltered, topDM)
 	}
+
 	return topDMsFiltered, nil
 }
 
