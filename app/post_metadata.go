@@ -54,12 +54,12 @@ func (s *Server) initPostMetadata() {
 
 func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts:                make(map[string]*model.Post, len(originalList.Posts)),
-		Order:                originalList.Order,
-		NextPostId:           originalList.NextPostId,
-		PrevPostId:           originalList.PrevPostId,
-		HasNext:              originalList.HasNext,
-		HasInaccessiblePosts: originalList.HasInaccessiblePosts,
+		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
+		Order:                     originalList.Order,
+		NextPostId:                originalList.NextPostId,
+		PrevPostId:                originalList.PrevPostId,
+		HasNext:                   originalList.HasNext,
+		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -216,7 +216,7 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster)
+	return a.GetFileInfosForPost(post.Id, fromMaster, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {

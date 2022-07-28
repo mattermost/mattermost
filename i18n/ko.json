@@ -7886,5 +7886,69 @@
   {
     "id": "bleveengine.delete_post_files.error",
     "translation": "게시 된 파일을 삭제하지 못했습니다."
+  },
+  {
+    "id": "Boards",
+    "translation": "게시판"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch 설정에 설정되지 않은 값이 있습니다."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.update.app_error",
+    "translation": "커스텀 상태를 갱신하지 못했습니다. 이모티콘이나 사용자 지정 텍스트 상태 또는 둘 다 추가하십시오."
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "커스텀 그룹의 경우 remote_id는 공백이어야 합니다"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "커스텀 그룹의 경우 allow_reference는 'true'이어야 합니다"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "커스텀 그룹을 위한 라이센스가 없습니다"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "{{.TeamName}} 멤버로부터 이 작업 영역을 업그레이드하라는 통지가 있었습니다."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "웹 훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "관리자에게 통지됨"
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "Playbooks",
+    "translation": "플레이북"
+  },
+  {
+    "id": "Channels",
+    "translation": "채널"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "커스텀 그룹 기능은 비활성화되어 있습니다"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "그룹 카운트 중 오류가 발생했습니다"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "팀 제한에 도달했기 때문에 팀을 복원할 수 없습니다"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "팀 제한에 도달했기 때문에 팀을 만들 수 없습니다"
   }
 ]

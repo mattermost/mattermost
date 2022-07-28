@@ -195,7 +195,6 @@ type Server struct {
 
 	Cluster        einterfaces.ClusterInterface
 	Cloud          einterfaces.CloudInterface
-	Metrics        einterfaces.MetricsInterface
 	LicenseManager einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
@@ -251,17 +250,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configStore = &configWrapper{srv: s, Store: configStore}
 	}
 
-	ps, sErr := platform.New(platform.ServiceConfig{
-		ConfigStore:  s.configStore.Store,
-		StartMetrics: s.startMetrics,
-		Metrics:      s.Metrics,
-		Cluster:      s.Cluster,
-	})
-	if sErr != nil {
-		return nil, errors.Wrap(sErr, "failed to initialize platform")
-	}
-	s.platformService = ps
-
 	// Step 2: Logging
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
@@ -292,6 +280,21 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
+	platformCfg := platform.ServiceConfig{
+		ConfigStore:  s.configStore.Store,
+		StartMetrics: s.startMetrics,
+		Cluster:      s.Cluster,
+	}
+	if metricsInterface != nil {
+		platformCfg.Metrics = metricsInterface(s)
+	}
+
+	ps, sErr := platform.New(platformCfg)
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to initialize platform")
+	}
+	s.platformService = ps
+
 	// Step 5: Cache provider.
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -304,11 +307,11 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.GetMetrics())
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
-				s.Metrics,
+				s.GetMetrics(),
 				s.Cluster,
 				s.CacheProvider,
 			)
@@ -333,7 +336,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 			return timerlayer.New(
 				searchStore,
-				s.Metrics,
+				s.GetMetrics(),
 			), nil
 		}
 	}
@@ -349,7 +352,7 @@ func NewServer(options ...Option) (*Server, error) {
 		SessionStore: s.Store.Session(),
 		OAuthStore:   s.Store.OAuth(),
 		ConfigFn:     s.Config,
-		Metrics:      s.Metrics,
+		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
 		LicenseFn:    s.License,
 	})
@@ -685,6 +688,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
 			runDNDStatusExpireJob(appInstance)
+			runPostReminderJob(appInstance)
 		})
 		s.runJobs()
 	}
@@ -938,11 +942,11 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 }
 
 func (s *Server) enableLoggingMetrics() {
-	if s.Metrics == nil {
+	if s.GetMetrics() == nil {
 		return
 	}
 
-	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	s.Log.SetMetricsCollector(s.GetMetrics().GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := s.initLogging(); err != nil {
@@ -1848,7 +1852,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1931,7 +1935,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeActiveUsers,
-		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
 	)
 
@@ -1998,7 +2002,10 @@ func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 // GetMetrics returns the server's Metrics interface. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
-	return s.Metrics
+	if s.platformService == nil {
+		return nil
+	}
+	return s.platformService.Metrics()
 }
 
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
@@ -2070,31 +2077,53 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func createDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
-	a.ch.dndTaskMut.Unlock()
+func withMut(mut *sync.Mutex, f func()) {
+	mut.Lock()
+	defer mut.Unlock()
+	f()
 }
 
-func cancelDNDStatusExpirationRecurringTask(a *App) {
-	a.ch.dndTaskMut.Lock()
-	if a.ch.dndTask != nil {
-		a.ch.dndTask.Cancel()
-		a.ch.dndTask = nil
+func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
+	mut.Lock()
+	defer mut.Unlock()
+	if task != nil {
+		task.Cancel()
+		task = nil
 	}
-	a.ch.dndTaskMut.Unlock()
 }
 
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		createDNDStatusExpirationRecurringTask(a)
+		withMut(&a.ch.dndTaskMut, func() {
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
-			createDNDStatusExpirationRecurringTask(a)
+			withMut(&a.ch.dndTaskMut, func() {
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			})
 		} else {
-			cancelDNDStatusExpirationRecurringTask(a)
+			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
+		}
+	})
+}
+
+func runPostReminderJob(a *App) {
+	if a.IsLeader() {
+		withMut(&a.ch.postReminderMut, func() {
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+		})
+	}
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			withMut(&a.ch.postReminderMut, func() {
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			})
+		} else {
+			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
 		}
 	})
 }

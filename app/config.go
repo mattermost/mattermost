@@ -79,8 +79,8 @@ func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeCluster
 	}
 
 	if w.srv.startMetrics && *w.Config().MetricsSettings.Enable {
-		if w.srv.Metrics != nil {
-			w.srv.Metrics.Register()
+		if w.srv.GetMetrics() != nil {
+			w.srv.GetMetrics().Register()
 		}
 		w.srv.platformService.RestartMetrics() // TODO: remove when this moved to the platform service
 	} else {

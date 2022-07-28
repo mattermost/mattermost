@@ -141,7 +141,7 @@ func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *App
 	extension := strings.ToLower(filepath.Ext(name))
 	info.MimeType = mime.TypeByExtension(extension)
 
-	if extension != "" && extension[0] == '.' {
+	if extension != "" {
 		// The client expects a file extension without the leading period
 		info.Extension = extension[1:]
 	} else {

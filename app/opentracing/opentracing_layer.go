@@ -1310,6 +1310,21 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, pass
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CheckPostReminders() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPostReminders")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.CheckPostReminders()
+}
+
 func (a *OpenTracingAppLayer) CheckProviderAttributes(user *model.User, patch *model.UserPatch) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckProviderAttributes")
@@ -5970,7 +5985,7 @@ func (a *OpenTracingAppLayer) GetFileInfos(page int, perPage int, opt *model.Get
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPost")
 
@@ -5982,7 +5997,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfosForPost(postID, fromMaster)
+	resultVar0, resultVar1 := a.app.GetFileInfosForPost(postID, fromMaster, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5992,7 +6007,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPostWithMigration")
 
@@ -6004,7 +6019,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postID string) ([
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfosForPostWithMigration(postID)
+	resultVar0, resultVar1 := a.app.GetFileInfosForPostWithMigration(postID, includeDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7881,7 +7896,7 @@ func (a *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, bool, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsByIds")
 
@@ -15590,6 +15605,28 @@ func (a *OpenTracingAppLayer) SetPluginKeyWithOptions(pluginID string, key strin
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SetPostReminder(postID string, userID string, targetTime int64) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPostReminder")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SetPostReminder(postID, userID, targetTime)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError {
