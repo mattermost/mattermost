@@ -763,7 +763,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 	return team, teamMember, nil
 }
 
-func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(team, user)
 	if err != nil {
 		var appErr *model.AppError

@@ -21,7 +21,7 @@ func (api *API) InitReaction() {
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var reaction model.Reaction
 	if jsonErr := json.NewDecoder(r.Body).Decode(&reaction); jsonErr != nil {
-		c.SetInvalidParam("reaction")
+		c.SetInvalidParamWithErr("reaction", jsonErr)
 		return
 	}
 
@@ -47,7 +47,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(re); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

@@ -73,7 +73,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(license); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
