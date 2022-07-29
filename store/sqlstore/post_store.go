@@ -2988,7 +2988,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			sq.Eq{
 				"p.DeleteAt": 0,
 			},
-		}).GroupBy("vch.id")
+		}).GroupBy("vch.id", "vch.TotalMsgCount")
 
 	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit)).Offset(uint64(offset))
 
