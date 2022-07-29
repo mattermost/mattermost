@@ -180,13 +180,10 @@ db/migrations/mysql/000089_add-channelid-to-reaction.down.sql
 db/migrations/mysql/000089_add-channelid-to-reaction.up.sql
 db/migrations/mysql/000090_create_enums.down.sql
 db/migrations/mysql/000090_create_enums.up.sql
-<<<<<<< HEAD
-db/migrations/mysql/000091_create_drafts.down.sql
-db/migrations/mysql/000091_create_drafts.up.sql
-=======
 db/migrations/mysql/000091_create_post_reminder.down.sql
 db/migrations/mysql/000091_create_post_reminder.up.sql
->>>>>>> upstream/master
+db/migrations/mysql/000092_create_drafts.down.sql
+db/migrations/mysql/000092_create_drafts.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -369,3 +366,5 @@ db/migrations/postgres/000090_create_enums.down.sql
 db/migrations/postgres/000090_create_enums.up.sql
 db/migrations/postgres/000091_create_post_reminder.down.sql
 db/migrations/postgres/000091_create_post_reminder.up.sql
+db/migrations/postgres/000092_create_drafts.down.sql
+db/migrations/postgres/000092_create_drafts.up.sql
