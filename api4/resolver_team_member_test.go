@@ -293,11 +293,31 @@ func TestGraphQLTeamMembers(t *testing.T) {
 func TestGraphQLTeamMembersAsGuest(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
-	th := Setup(t).InitBasic()
+
+	th := Setup(t)
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName:     "dn_" + id,
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	}
+
+	var err error
+	team, _, err = th.Client.CreateTeam(team)
+	require.NoError(t, err)
+	th.BasicTeam = team
+
+	th.BasicChannel = th.CreatePublicChannel()
+	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	th.LoginBasic()
+
 	defer th.TearDown()
 
-	th.App.DemoteUserToGuest(th.Context, th.BasicUser)
-	th.BasicUser, _ = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemGuestRoleId, false)
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, th.BasicUser))
 
 	var q struct {
 		TeamMembers []struct {
