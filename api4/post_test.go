@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -306,7 +307,10 @@ func testCreatePostWithOutgoingHook(
 		if requestContentType == "application/json" {
 			decoder := json.NewDecoder(r.Body)
 			o := &model.OutgoingWebhookPayload{}
-			decoder.Decode(&o)
+			err := decoder.Decode(&o)
+			if err != nil {
+				th.TestLogger.Warn("Error decoding body", mlog.Err(err))
+			}
 
 			if !reflect.DeepEqual(expectedPayload, o) {
 				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
@@ -448,7 +452,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -461,7 +465,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -498,7 +502,7 @@ func TestCreatePostAll(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -514,7 +518,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, _, err = client.CreatePost(post)
 	require.NoError(t, err)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -924,7 +928,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := client.DoAPIPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body., ")
+		require.EqualError(t, err, ": Invalid or missing post in request body.")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
@@ -2191,9 +2195,25 @@ func TestGetPostThread(t *testing.T) {
 
 	client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	// Channel is public, should be able to read post
+	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
+	// Channel is public, and compliance export is OFF, should be able to read post
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+	})
 	_, _, err = client.GetPostThread(th.BasicPost.Id, "", false)
 	require.NoError(t, err)
+
+	// channel is public, and compliance export is ON, should NOT be able to read post
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = true
+	})
+	_, resp, err = client.GetPostThread(th.BasicPost.Id, "", false)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = messageExportEnabled
+	})
 
 	privatePost := th.CreatePostWithClient(client, th.BasicPrivateChannel)
 
