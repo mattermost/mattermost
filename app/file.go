@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -47,6 +48,10 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
+var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
+
+// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
 type fileInfoWrapper struct {
 	srv *Server
 }
@@ -1322,6 +1327,11 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	// We don't process images.
+	if fileInfo.IsImage() {
+		return nil
+	}
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")

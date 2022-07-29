@@ -84,6 +84,11 @@ type PluginSetting struct {
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
 	Options []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// The intended hosting environment for this plugin setting. Can be "cloud" or "on-prem".  When this field is set,
+	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
+	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
+	Hosting string `json:"hosting"`
 }
 
 type PluginSettingsSchema struct {

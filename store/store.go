@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
 type StoreResult struct {
@@ -385,6 +386,9 @@ type PostStore interface {
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
+	SetPostReminder(reminder *model.PostReminder) error
+	GetPostReminders(now int64) ([]*model.PostReminder, error)
+	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
 }
@@ -1018,12 +1022,24 @@ type ChannelMemberGraphQLSearchOpts struct {
 	ExcludeTeam  bool
 }
 
+// PostReminderMetadata contains some info needed to send
+// the reminder message to the user.
+type PostReminderMetadata struct {
+	ChannelId  string
+	TeamName   string
+	UserLocale string
+	Username   string
+}
+
 // SidebarCategorySearchOpts contains the options for a graphQL query
 // to get the sidebar categories.
 type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
 }
+
+// Ensure store service adapter implements `product.StoreService`
+var _ product.StoreService = (*StoreServiceAdapter)(nil)
 
 // StoreServiceAdapter provides a simple Store wrapper for use with products.
 type StoreServiceAdapter struct {

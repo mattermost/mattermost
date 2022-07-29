@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -33,7 +32,7 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var frame model.RemoteClusterFrame
 	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -79,7 +78,7 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 
 	var frame model.RemoteClusterFrame
 	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -125,7 +124,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 
 	var frame model.RemoteClusterFrame
 	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -217,12 +216,12 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -270,7 +269,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	imageData := imageArray[0]
-	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}

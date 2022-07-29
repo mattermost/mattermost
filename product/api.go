@@ -5,7 +5,6 @@ package product
 
 import (
 	"database/sql"
-	"io"
 
 	"github.com/gorilla/mux"
 
@@ -81,7 +80,7 @@ type LicenseService interface {
 // The service shall be registered via app.UserKey service key.
 type UserService interface {
 	GetUser(userID string) (*model.User, *model.AppError)
-	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
+	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -136,12 +135,7 @@ type HooksService interface {
 //
 // The service shall be registered via app.FilestoreKey service key.
 type FilestoreService interface {
-	Reader(path string) (filestore.ReadCloseSeeker, error)
-	FileExists(path string) (bool, error)
-	CopyFile(oldPath, newPath string) error
-	MoveFile(oldPath, newPath string) error
-	WriteFile(fr io.Reader, path string) (int64, error)
-	RemoveFile(path string) error
+	filestore.FileBackend
 }
 
 // FileInfoStoreService is the API for accessing the file info store.

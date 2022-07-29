@@ -31,7 +31,7 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := &request.Context{}
+	appContext := request.EmptyContext(nil)
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}

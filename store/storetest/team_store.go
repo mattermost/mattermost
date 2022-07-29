@@ -1385,7 +1385,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
@@ -1726,7 +1726,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members in one team", func(t *testing.T) {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -21,6 +22,10 @@ const (
 	botUserKey        = internalKeyPrefix + "botid"
 )
 
+// Ensure bot service wrapper implements `product.BotService`
+var _ product.BotService = (*botServiceWrapper)(nil)
+
+// botServiceWrapper provides an implementation of `product.BotService` for use by products.
 type botServiceWrapper struct {
 	app AppIface
 }

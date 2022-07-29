@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -368,7 +367,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	defer th.TearDown()
 	c := &Context{
 		App:        th.App,
-		AppContext: &request.Context{},
+		AppContext: th.Context,
 		Params: &Params{
 			Service: "gitlab",
 		},
@@ -573,7 +572,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	defer th.TearDown()
 	c := &Context{
 		App:        th.App,
-		AppContext: &request.Context{},
+		AppContext: th.Context,
 		Params: &Params{
 			Service: "gitlab",
 		},

@@ -2840,8 +2840,23 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			}
 		}
 
+		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
+			From("Posts").
+			Where(sq.Eq{
+				"RootId":   rootId,
+				"DeleteAt": 0,
+			})
+
+		lastReplyCountSubquery := sq.Select("Count(*)").
+			From("Posts").
+			Where(sq.Eq{
+				"RootId":   rootId,
+				"DeleteAt": 0,
+			})
+
 		updateQueryString, updateArgs, err := updateQuery.
-			Set("ReplyCount", sq.Expr("ReplyCount - 1")).
+			Set("LastReplyAt", lastReplyAtSubquery).
+			Set("ReplyCount", lastReplyCountSubquery).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
@@ -2962,4 +2977,98 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		}
 	}
 	return nil
+}
+
+func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	sql := `SELECT EXISTS (SELECT 1 FROM Posts	WHERE Id=?)`
+	var exist bool
+	err = transaction.Get(&exist, sql, reminder.PostId)
+	if err != nil {
+		return errors.Wrap(err, "failed to check for post")
+	}
+	if !exist {
+		return store.NewErrNotFound("Post", reminder.PostId)
+	}
+
+	query := s.getQueryBuilder().
+		Insert("PostReminders").
+		Columns("PostId", "UserId", "TargetTime").
+		Values(reminder.PostId, reminder.UserId, reminder.TargetTime)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE TargetTime = ?", reminder.TargetTime))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET TargetTime = ?", reminder.TargetTime))
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "setPostReminder_tosql")
+	}
+	if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+		return errors.Wrap(err2, "failed to insert post reminder")
+	}
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	err = transaction.Select(&reminders, `SELECT PostId, UserId
+		FROM PostReminders
+		WHERE TargetTime < ?`, now)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
+	if err == sql.ErrNoRows {
+		// No need to execute delete statement if there's nothing to delete.
+		return reminders, nil
+	}
+
+	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
+	// So we are stuck with 2 queries. Not taking separate paths for Postgres
+	// and MySQL for simplicity.
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to delete post reminders")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return reminders, nil
+}
+
+func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	meta := &store.PostReminderMetadata{}
+	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
+			t.name as TeamName,
+			u.locale as UserLocale, u.username as Username
+		FROM Posts p, Channels c, Teams t, Users u
+		WHERE p.ChannelId=c.Id
+		AND c.TeamId=t.Id
+		AND p.UserId=u.Id
+		AND p.Id=?`, postID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+	}
+
+	return meta, nil
 }

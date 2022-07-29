@@ -111,7 +111,7 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var policy model.RetentionPolicyWithTeamAndChannelIDs
 	if jsonErr := json.NewDecoder(r.Body).Decode(&policy); jsonErr != nil {
-		c.SetInvalidParam("policy")
+		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
 	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
@@ -144,7 +144,7 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var patch model.RetentionPolicyWithTeamAndChannelIDs
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("policy")
+		c.SetInvalidParamWithErr("policy", jsonErr)
 		return
 	}
 	c.RequirePolicyId()
@@ -233,7 +233,7 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var props model.TeamSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("team_search")
+		c.SetInvalidParamWithErr("team_search", jsonErr)
 		return
 	}
 
@@ -261,7 +261,7 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teamIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
 	if jsonErr != nil {
-		c.SetInvalidParam("team_ids")
+		c.SetInvalidParamWithErr("team_ids", jsonErr)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
@@ -289,7 +289,7 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teamIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
 	if jsonErr != nil {
-		c.SetInvalidParam("team_ids")
+		c.SetInvalidParamWithErr("team_ids", jsonErr)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
@@ -342,7 +342,7 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil {
-		c.SetInvalidParam("channel_search")
+		c.SetInvalidParamWithErr("channel_search", err)
 		return
 	}
 
@@ -382,7 +382,7 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channelIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
 	if jsonErr != nil {
-		c.SetInvalidParam("channel_ids")
+		c.SetInvalidParamWithErr("channel_ids", jsonErr)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
@@ -411,7 +411,7 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	var channelIDs []string
 	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
 	if jsonErr != nil {
-		c.SetInvalidParam("channel_ids")
+		c.SetInvalidParamWithErr("channel_ids", jsonErr)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
