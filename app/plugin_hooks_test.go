@@ -462,12 +462,15 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
-			[]byte("inputfile"),
+		_, err := th.App.UploadFiles(th.Context,
+			"noteam",
 			th.BasicChannel.Id,
-			"testhook.txt",
+			th.BasicUser.Id,
+			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
+			[]string{"testhook.txt"},
+			[]string{},
+			time.Now(),
 		)
-
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
 		}
@@ -512,12 +515,15 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFile(th.Context,
-			[]byte("inputfile"),
+		_, err := th.App.UploadFiles(th.Context,
+			"noteam",
 			th.BasicChannel.Id,
-			"testhook.txt",
+			th.BasicUser.Id,
+			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
+			[]string{"testhook.txt"},
+			[]string{},
+			time.Now(),
 		)
-
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
 		}
@@ -556,16 +562,20 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
-			[]byte("inputfile"),
+		response, err := th.App.UploadFiles(th.Context,
+			"noteam",
 			th.BasicChannel.Id,
-			"testhook.txt",
+			th.BasicUser.Id,
+			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
+			[]string{"testhook.txt"},
+			[]string{},
+			time.Now(),
 		)
-
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
+		assert.Equal(t, 1, len(response.FileInfos))
 
-		fileID := response.Id
+		fileID := response.FileInfos[0].Id
 		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
@@ -628,14 +638,19 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFile(th.Context,
-			[]byte("inputfile"),
+		response, err := th.App.UploadFiles(th.Context,
+			"noteam",
 			th.BasicChannel.Id,
-			"testhook.txt",
+			th.BasicUser.Id,
+			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
+			[]string{"testhook.txt"},
+			[]string{},
+			time.Now(),
 		)
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
-		fileID := response.Id
+		assert.Equal(t, 1, len(response.FileInfos))
+		fileID := response.FileInfos[0].Id
 
 		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
