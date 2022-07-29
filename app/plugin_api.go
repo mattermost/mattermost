@@ -318,7 +318,7 @@ func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
-	return api.app.UpdateUser(user, true)
+	return api.app.UpdateUser(api.ctx, user, true)
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
@@ -359,11 +359,11 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 }
 
 func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
-	return api.app.SetCustomStatus(userID, customStatus)
+	return api.app.SetCustomStatus(api.ctx, userID, customStatus)
 }
 
 func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
-	return api.app.RemoveCustomStatus(userID)
+	return api.app.RemoveCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
@@ -738,7 +738,7 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 		return err
 	}
 
-	return api.app.SetProfileImageFromFile(userID, bytes.NewReader(data))
+	return api.app.SetProfileImageFromFile(api.ctx, userID, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {

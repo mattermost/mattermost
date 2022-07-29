@@ -967,7 +967,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	})
 
 	t.Run("as a system manager role", func(t *testing.T) {
-		_, appErr := th.App.UpdateUserRoles(th.BasicUser2.Id, model.SystemManagerRoleId, false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
 		require.Nil(t, appErr)
 		th.LoginBasic2()
 

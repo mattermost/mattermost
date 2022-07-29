@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitAction() {
@@ -24,7 +25,10 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var actionRequest model.DoPostActionRequest
-	json.NewDecoder(r.Body).Decode(&actionRequest)
+	err := json.NewDecoder(r.Body).Decode(&actionRequest)
+	if err != nil {
+		c.Logger.Warn("Error decoding the action request", mlog.Err(err))
+	}
 
 	var cookie *model.PostActionCookie
 	if actionRequest.Cookie != "" {
@@ -68,7 +72,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	var dialog model.OpenDialogRequest
 	err := json.NewDecoder(r.Body).Decode(&dialog)
 	if err != nil {
-		c.SetInvalidParam("dialog")
+		c.SetInvalidParamWithErr("dialog", err)
 		return
 	}
 
@@ -90,7 +94,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
 	if jsonErr != nil {
-		c.SetInvalidParam("dialog")
+		c.SetInvalidParamWithErr("dialog", jsonErr)
 		return
 	}
 

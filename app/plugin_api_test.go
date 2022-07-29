@@ -547,7 +547,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	custom.Text = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both., ")
+	assert.Equal(t, err.Error(), "SetCustomStatus: Failed to update the custom status. Please add either emoji or custom text status or both.")
 
 	// Remove custom status
 	err = api.RemoveUserCustomStatus(user1.Id)
@@ -889,7 +889,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 
 	_, appErr := api.InstallPlugin(bytes.NewReader(tarData), true)
 	assert.NotNil(t, appErr, "should not allow upload if upload disabled")
-	assert.Equal(t, appErr.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled., ")
+	assert.Equal(t, appErr.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled.")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
