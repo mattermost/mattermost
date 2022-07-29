@@ -1622,9 +1622,7 @@ func doConfigCleanup(s *Server) {
 }
 
 func (s *Server) HandleMetrics(route string, h http.Handler) {
-	if s.platform != nil {
-		s.platform.HandleMetrics(route, h)
-	}
+	s.platform.HandleMetrics(route, h)
 }
 
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {

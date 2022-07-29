@@ -33,19 +33,21 @@ type platformMetrics struct {
 	cfgFn func() *model.Config
 }
 
-func newPlatformMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) *platformMetrics {
+// resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
+func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) {
 	if !*cfgFn().MetricsSettings.Enable {
-		return nil
+		ps.metrics = nil
+		return
 	}
 
-	pm := &platformMetrics{
+	ps.metrics = &platformMetrics{
 		cfgFn:       cfgFn,
 		metricsImpl: metricsImpl,
 	}
 
-	pm.stopMetricsServer()
+	ps.metrics.stopMetricsServer()
 
-	if err := pm.initMetricsRouter(); err != nil {
+	if err := ps.metrics.initMetricsRouter(); err != nil {
 		mlog.Error("Error initiating metrics router.", mlog.Err(err))
 	}
 
@@ -53,9 +55,8 @@ func newPlatformMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *
 		metricsImpl.Register()
 	}
 
-	pm.startMetricsServer()
+	ps.metrics.startMetricsServer()
 
-	return pm
 }
 
 func (pm *platformMetrics) stopMetricsServer() {
@@ -159,7 +160,7 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 }
 
 func (ps *PlatformService) RestartMetrics() {
-	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
+	ps.resetMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
 }
 
 func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {

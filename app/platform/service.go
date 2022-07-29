@@ -32,7 +32,7 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 		cluster:       sc.Cluster,
 	}
 
-	ps.metrics = newPlatformMetrics(sc.Metrics, ps.configStore.Get)
+	ps.resetMetrics(sc.Metrics, ps.configStore.Get)
 
 	return ps, nil
 }
