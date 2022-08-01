@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -306,7 +307,10 @@ func testCreatePostWithOutgoingHook(
 		if requestContentType == "application/json" {
 			decoder := json.NewDecoder(r.Body)
 			o := &model.OutgoingWebhookPayload{}
-			decoder.Decode(&o)
+			err := decoder.Decode(&o)
+			if err != nil {
+				th.TestLogger.Warn("Error decoding body", mlog.Err(err))
+			}
 
 			if !reflect.DeepEqual(expectedPayload, o) {
 				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
@@ -924,7 +928,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := client.DoAPIPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body., ")
+		require.EqualError(t, err, ": Invalid or missing post in request body.")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
@@ -2191,9 +2195,25 @@ func TestGetPostThread(t *testing.T) {
 
 	client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	// Channel is public, should be able to read post
+	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
+	// Channel is public, and compliance export is OFF, should be able to read post
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+	})
 	_, _, err = client.GetPostThread(th.BasicPost.Id, "", false)
 	require.NoError(t, err)
+
+	// channel is public, and compliance export is ON, should NOT be able to read post
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = true
+	})
+	_, resp, err = client.GetPostThread(th.BasicPost.Id, "", false)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = messageExportEnabled
+	})
 
 	privatePost := th.CreatePostWithClient(client, th.BasicPrivateChannel)
 

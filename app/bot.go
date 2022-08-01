@@ -38,7 +38,7 @@ func (w *botServiceWrapper) EnsureBot(c *request.Context, productID string, bot 
 // any ensureBotOptions hence it is not required for now.
 // TODO: Once the focalboard migration completed, we should add this logic to the app and
 // let plugin-api use the same code
-func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
 	if bot == nil {
 		return "", errors.New("passed a nil bot")
 	}
@@ -77,7 +77,7 @@ func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (s
 				return "", fmt.Errorf("failed to set plugin key: %w", err)
 			}
 		} else {
-			a.Srv().Log.Error("Product attempted to use an account that already exists. Convert user to a bot "+
+			c.Logger().Error("Product attempted to use an account that already exists. Convert user to a bot "+
 				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
 				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
 				"after which the plugin will create a bot account with that name. For more information about bot "+
@@ -103,7 +103,7 @@ func (a *App) EnsureBot(c *request.Context, productID string, bot *model.Bot) (s
 }
 
 // CreateBot creates the given bot and corresponding user.
-func (a *App) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
 	vErr := bot.IsValidCreate()
 	if vErr != nil {
 		return nil, vErr
@@ -516,7 +516,7 @@ func (a *App) disableUserBots(c request.CTX, userID string) *model.AppError {
 		for _, bot := range userBots {
 			_, err := a.UpdateBotActive(c, bot.UserId, false)
 			if err != nil {
-				mlog.Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
+				c.Logger().Warn("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
 			}
 		}
 

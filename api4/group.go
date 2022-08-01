@@ -132,7 +132,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	var group *model.GroupWithUserIds
 	if jsonErr := json.NewDecoder(r.Body).Decode(&group); jsonErr != nil {
-		c.SetInvalidParam("group")
+		c.SetInvalidParamWithErr("group", jsonErr)
 		return
 	}
 
@@ -215,7 +215,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var groupPatch model.GroupPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&groupPatch); jsonErr != nil {
-		c.SetInvalidParam("group")
+		c.SetInvalidParamWithErr("group", jsonErr)
 		return
 	}
 
@@ -1030,7 +1030,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var newMembers *model.GroupModifyMembers
 	if jsonErr := json.NewDecoder(r.Body).Decode(&newMembers); jsonErr != nil {
-		c.SetInvalidParam("addGroupMembers")
+		c.SetInvalidParamWithErr("addGroupMembers", jsonErr)
 		return
 	}
 
@@ -1083,7 +1083,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var deleteBody *model.GroupModifyMembers
 	if jsonErr := json.NewDecoder(r.Body).Decode(&deleteBody); jsonErr != nil {
-		c.SetInvalidParam("deleteGroupMembers")
+		c.SetInvalidParamWithErr("deleteGroupMembers", jsonErr)
 		return
 	}
 

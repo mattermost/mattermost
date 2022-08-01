@@ -979,6 +979,74 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Get(context.Background(), rootPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 	})
+
+	t.Run("thread with multiple replies, update thread last reply at", func(t *testing.T) {
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a second time
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a third time
+		replyPost3, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		thread, err := ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+
+		// Delete the reply previous to last
+		err = ss.Post().Delete(replyPost2.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should be unchanged
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+
+		// Delete the last reply
+		err = ss.Post().Delete(replyPost3.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should have changed
+		require.Equal(t, replyPost1.CreateAt, thread.LastReplyAt)
+
+		// Delete the last reply
+		err = ss.Post().Delete(replyPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should be 0
+		require.Equal(t, int64(0), thread.LastReplyAt)
+	})
 }
 
 func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
