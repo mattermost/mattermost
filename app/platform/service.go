@@ -6,6 +6,7 @@ package platform
 import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // PlatformService is the service for the platform related tasks. It is
@@ -14,6 +15,7 @@ import (
 type PlatformService struct {
 	serviceConfig ServiceConfig
 	configStore   *config.Store
+	logger        *mlog.Logger
 
 	metrics *platformMetrics
 
@@ -29,16 +31,21 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 	ps := &PlatformService{
 		serviceConfig: sc,
 		configStore:   sc.ConfigStore,
+		logger:        sc.Logger,
 		cluster:       sc.Cluster,
 	}
 
-	ps.resetMetrics(sc.Metrics, ps.configStore.Get)
+	if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
+		return nil, err
+	}
 
 	return ps, nil
 }
 
-func (ps *PlatformService) ShutdownMetrics() {
+func (ps *PlatformService) ShutdownMetrics() error {
 	if ps.metrics != nil {
-		ps.metrics.stopMetricsServer()
+		return ps.metrics.stopMetricsServer()
 	}
+
+	return nil
 }

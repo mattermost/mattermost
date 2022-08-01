@@ -282,6 +282,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	platformCfg := platform.ServiceConfig{
 		ConfigStore:  s.configStore.Store,
+		Logger:       s.Log,
 		StartMetrics: s.startMetrics,
 		Cluster:      s.Cluster,
 	}
@@ -629,7 +630,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.startMetrics {
-		s.platform.RestartMetrics()
+		if err := s.platform.RestartMetrics(); err != nil {
+			return nil, errors.Wrap(err, "failed to start metrics")
+		}
 	}
 
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -641,7 +644,9 @@ func NewServer(options ...Option) (*Server, error) {
 			return
 		}
 
-		s.platform.RestartMetrics()
+		if err := s.platform.RestartMetrics(); err != nil {
+			s.Log.Error("Failed to reset metrics server", mlog.Err(err))
+		}
 	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
@@ -1037,7 +1042,9 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	s.platform.ShutdownMetrics()
+	if err = s.platform.ShutdownMetrics(); err != nil {
+		mlog.Warn("Failed to stop metrics server", mlog.Err(err))
+	}
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
