@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitCloud() {
@@ -57,7 +58,7 @@ func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Reque
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {
-		c.SetInvalidParam("notifyAdminRequest")
+		c.SetInvalidParamWithErr("notifyAdminRequest", err)
 		return
 	}
 
@@ -232,12 +233,19 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errValidatingEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
-	if errValidatingEmail != nil {
-		c.Err = model.NewAppError("Api4.valiateBusinessEmail", "api.cloud.request_error", nil, errValidatingEmail.Error(), http.StatusInternalServerError)
+	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, emailToValidate.Email)
+	if emailErr != nil {
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, emailErr.Error(), http.StatusForbidden)
+		emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
+		if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+			mlog.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
-	ReturnStatusOK(w)
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
+	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -263,20 +271,27 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	errValidatingSystemEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
+	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
 
 	// if the current workspace email is not a valid business email
-	if errValidatingSystemEmail != nil {
+	if emailErr != nil {
 		// grab the current admin email and validate it
 		errValidatingAdminEmail := c.App.Cloud().ValidateBusinessEmail(user.Id, user.Email)
 		if errValidatingAdminEmail != nil {
-			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
+			emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
+			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+				mlog.Warn("Error while writing response", mlog.Err(err))
+			}
 			return
 		}
 	}
 
 	// if any of the emails is valid, return ok
-	ReturnStatusOK(w)
+	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
+	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
+		mlog.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {

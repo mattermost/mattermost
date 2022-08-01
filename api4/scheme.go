@@ -25,7 +25,7 @@ func (api *API) InitScheme() {
 func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	var scheme model.Scheme
 	if jsonErr := json.NewDecoder(r.Body).Decode(&scheme); jsonErr != nil {
-		c.SetInvalidParam("scheme")
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 
@@ -55,7 +55,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(returnedScheme); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -77,7 +77,7 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(scheme); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -172,7 +172,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(channels); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -184,7 +184,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.SchemePatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("scheme")
+		c.SetInvalidParamWithErr("scheme", jsonErr)
 		return
 	}
 
@@ -223,7 +223,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(scheme); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

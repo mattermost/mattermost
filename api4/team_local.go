@@ -244,7 +244,7 @@ func normalizeDomains(domains string) []string {
 func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var team model.Team
 	if jsonErr := json.NewDecoder(r.Body).Decode(&team); jsonErr != nil {
-		c.SetInvalidParam("team")
+		c.SetInvalidParamWithErr("team", jsonErr)
 		return
 	}
 
@@ -268,6 +268,6 @@ func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

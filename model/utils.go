@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/mail"
@@ -218,10 +217,32 @@ type AppError struct {
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	params        map[string]any
+	wrapped       error
 }
 
 func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
+	var sb strings.Builder
+
+	// render the error information
+	sb.WriteString(er.Where)
+	sb.WriteString(": ")
+	sb.WriteString(er.Message)
+
+	// only render the detailed error when it's present
+	if er.DetailedError != "" {
+		sb.WriteString(", ")
+		sb.WriteString(er.DetailedError)
+	}
+
+	// render all wrapped errors
+	err := er.wrapped
+	for err != nil {
+		sb.WriteString(", ")
+		sb.WriteString(err.Error())
+		err = errors.Unwrap(err)
+	}
+
+	return sb.String()
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
@@ -249,10 +270,19 @@ func (er *AppError) ToJSON() string {
 	return string(b)
 }
 
+func (er *AppError) Unwrap() error {
+	return er.wrapped
+}
+
+func (er *AppError) Wrap(err error) *AppError {
+	er.wrapped = err
+	return er
+}
+
 // AppErrorFromJSON will decode the input and return an AppError
 func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""
-	bytes, rerr := ioutil.ReadAll(data)
+	bytes, rerr := io.ReadAll(data)
 	if rerr != nil {
 		str = rerr.Error()
 	} else {
@@ -269,14 +299,15 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 }
 
 func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = status
-	ap.IsOAuth = false
+	ap := &AppError{
+		Id:            id,
+		params:        params,
+		Message:       id,
+		Where:         where,
+		DetailedError: details,
+		StatusCode:    status,
+		IsOAuth:       false,
+	}
 	ap.Translate(translateFunc)
 	return ap
 }

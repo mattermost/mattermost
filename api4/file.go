@@ -150,7 +150,7 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Write the response values to the output upon return
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(fileUploadResponse); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -632,7 +632,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -759,7 +759,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	var params model.SearchParameter
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -821,6 +821,6 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(results); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
