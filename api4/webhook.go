@@ -30,7 +30,7 @@ func (api *API) InitWebhook() {
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidParam("incoming_webhook")
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -86,7 +86,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -98,7 +98,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidParam("incoming_webhook")
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -173,7 +173,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -273,7 +273,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(hook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -342,7 +342,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidParam("outgoing_webhook")
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -395,14 +395,14 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidParam("outgoing_webhook")
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -446,7 +446,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -545,7 +545,7 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(hook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -592,7 +592,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

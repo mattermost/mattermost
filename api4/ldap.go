@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type mixedUnlinkedGroup struct {
@@ -51,7 +52,10 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeRemovedMembers bool `json:"include_removed_members"`
 	}
 	var opts LdapSyncOptions
-	json.NewDecoder(r.Body).Decode(&opts)
+	err := json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		c.Logger.Warn("Error decoding LDAP sync options", mlog.Err(err))
+	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)

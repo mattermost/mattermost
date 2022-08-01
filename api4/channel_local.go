@@ -41,7 +41,7 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var channel *model.Channel
 	err := json.NewDecoder(r.Body).Decode(&channel)
 	if err != nil {
-		c.SetInvalidParam("channel")
+		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
 
@@ -284,7 +284,7 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var patch *model.ChannelPatch
 	err := json.NewDecoder(r.Body).Decode(&patch)
 	if err != nil {
-		c.SetInvalidParam("channel")
+		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
 

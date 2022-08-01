@@ -271,7 +271,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -410,7 +410,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(rows); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -543,9 +543,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("pushNotificationAck",
 			"api.push_notifications_ack.message.parse.app_error",
 			nil,
-			jsonErr.Error(),
+			"",
 			http.StatusBadRequest,
-		)
+		).Wrap(jsonErr)
 		return
 	}
 
@@ -586,7 +586,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err2))
+				c.Logger.Warn("Error while writing response", mlog.Err(err2))
 			}
 		}
 
@@ -814,7 +814,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var ack model.SendWarnMetricAck
 	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		c.SetInvalidParam("ack")
+		c.SetInvalidParamWithErr("ack", jsonErr)
 		return
 	}
 
@@ -916,7 +916,7 @@ func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
