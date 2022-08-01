@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -1365,12 +1366,14 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 	return nil
 }
 
+// getCloudFilesSizeLimit returns size in bytes
 func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 
+	// limits is in bits
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
 		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1381,5 +1384,5 @@ func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 		return 0, nil
 	}
 
-	return *limits.Files.TotalStorage, nil
+	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
 }

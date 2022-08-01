@@ -57,7 +57,7 @@ type FileInfo struct {
 	Content         string  `json:"-"`
 	RemoteId        *string `json:"remote_id"`
 	Archived        bool    `json:"archived"`
-	// Indicates file's content is inaccessible because the file is beyond the cloud limit's plan
+	// Indicates file's content is inaccessible because the file is beyond the cloud plan's limit
 	InaccessibleContent bool `db:"-" json:"inaccessible_content"`
 }
 
