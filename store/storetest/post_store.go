@@ -4075,10 +4075,13 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		// check order, magnitude of items
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[0].OutgoingMessageCount, int64(3))
 		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
 		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[1].OutgoingMessageCount, int64(1))
 		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
 		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+		require.Equal(t, topDMs.Items[2].OutgoingMessageCount, int64(0))
 		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
 	})
 	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
