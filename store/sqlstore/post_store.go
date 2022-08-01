@@ -3003,14 +3003,14 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	}
 
 	// fill SecondParticipant column
-	topDMs, err = postProcessTopDMs(s, userID, topDMs)
+	topDMs, err = postProcessTopDMs(s, userID, topDMs, since)
 	if err != nil {
 		return nil, err
 	}
 	return model.GetTopDMListWithPagination(topDMs, limit), nil
 }
 
-func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([]*model.TopDM, error) {
+func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, since int64) ([]*model.TopDM, error) {
 	var topDMsFiltered = []*model.TopDM{}
 	var secondParticipantIds []string
 	var channelIds []string
@@ -3041,10 +3041,21 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM) ([
 
 	// get outgoing message count for userId
 	outgoingMessagesQuery := s.getQueryBuilder().Select("ch.Id as ChannelId, count(p.Id) as MessageCount").From("Channels as ch").
-		Join("Posts as p on p.ChannelId=ch.Id").Where(sq.Eq{
-		"ch.Id":    channelIds,
-		"p.UserId": userID,
-	}).GroupBy("ch.Id")
+		Join("Posts as p on p.ChannelId=ch.Id").Where(
+		sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
+			sq.Eq{
+				"ch.Id": channelIds,
+			},
+			sq.Eq{
+				"p.UserId": userID,
+			},
+		}).GroupBy("ch.Id")
 
 	outgoingMessages := make([]*model.OutgoingMessageQueryResult, 0)
 	sql, args, err := outgoingMessagesQuery.ToSql()
