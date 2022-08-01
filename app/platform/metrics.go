@@ -36,16 +36,20 @@ type platformMetrics struct {
 // resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
 func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) {
 	if !*cfgFn().MetricsSettings.Enable {
-		ps.metrics = nil
+		if ps.metrics != nil {
+			ps.metrics.stopMetricsServer()
+		}
 		return
+	}
+
+	if ps.metrics != nil {
+		ps.metrics.stopMetricsServer()
 	}
 
 	ps.metrics = &platformMetrics{
 		cfgFn:       cfgFn,
 		metricsImpl: metricsImpl,
 	}
-
-	ps.metrics.stopMetricsServer()
 
 	if err := ps.metrics.initMetricsRouter(); err != nil {
 		mlog.Error("Error initiating metrics router.", mlog.Err(err))
@@ -67,8 +71,11 @@ func (pm *platformMetrics) stopMetricsServer() {
 		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 
-		pm.server.Shutdown(ctx)
-		mlog.Info("Metrics and profiling server is stopping")
+		if err := pm.server.Shutdown(ctx); err != nil {
+			mlog.Error("Error shutting down metrics server.", mlog.Err(err))
+			return
+		}
+		mlog.Info("Metrics and profiling server is stopped")
 	}
 }
 
