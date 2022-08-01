@@ -27,7 +27,7 @@ func (api *API) InitOAuth() {
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	var oauthApp model.OAuthApp
 	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
-		c.SetInvalidParam("oauth_app")
+		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
 
@@ -60,7 +60,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rapp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -82,7 +82,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var oauthApp model.OAuthApp
 	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
-		c.SetInvalidParam("oauth_app")
+		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
 	}
 	auditRec.AddEventParameter("oauth_app", oauthApp)
@@ -121,7 +121,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(updatedOAuthApp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -178,7 +178,7 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -196,7 +196,7 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.Sanitize()
 	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -280,7 +280,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(oauthApp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

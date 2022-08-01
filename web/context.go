@@ -221,6 +221,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
+	c.Err = NewInvalidParamError(parameter).Wrap(err)
+}
+
 func (c *Context) SetInvalidURLParam(parameter string) {
 	c.Err = NewInvalidURLParamError(parameter)
 }
@@ -269,10 +273,12 @@ func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewInvalidURLParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewServerBusyError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 	return err

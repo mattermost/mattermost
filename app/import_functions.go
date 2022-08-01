@@ -521,18 +521,18 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
 		if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
-			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
 	} else {
 		var appErr *model.AppError
 		if hasUserChanged {
-			if savedUser, appErr = a.UpdateUser(user, false); appErr != nil {
+			if savedUser, appErr = a.UpdateUser(c, user, false); appErr != nil {
 				return appErr
 			}
 		}
 		if hasUserRolesChanged {
-			if savedUser, appErr = a.UpdateUserRoles(user.Id, roles, false); appErr != nil {
+			if savedUser, appErr = a.UpdateUserRoles(c, user.Id, roles, false); appErr != nil {
 				return appErr
 			}
 		}
@@ -584,14 +584,14 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 		}
 
 		if err != nil {
-			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
+			c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {
 			defer file.Close()
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
-			if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
+			if err := a.SetProfileImageFromFile(c, savedUser.Id, file); err != nil {
+				c.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}
 	}
@@ -1137,7 +1137,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 		if reply.CreateAt < post.CreateAt {
-			mlog.Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			c.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
 		if replyData.Type != nil {
