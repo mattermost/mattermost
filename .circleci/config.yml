@@ -8,7 +8,7 @@ orbs:
 executors:
   default:
     docker:
-      - image: circleci/golang:1.16
+      - image: cimg/go:1.18
 
 aliases:
 - &restore_cache
@@ -26,18 +26,22 @@ jobs:
       name: default
     steps:
       - checkout
-      - tools/install-golangci-lint:
-          version: "1.41.1"
       - *restore_cache
-      - run:
-          name: Checking code style
-          command: make check-style
       - run: go mod tidy -v
       - run:
           name: Check git diff
           command: |
             git --no-pager diff --exit-code go.mod go.sum
       - *save_cache
+
+  check-golangci-lint:
+    docker:
+      # Keep the version in sync with the command in Makefile
+      - image: golangci/golangci-lint:v1.46.2
+    steps:
+      - checkout
+      - run:
+          command: make check-style
 
   test:
     executor:
@@ -68,6 +72,7 @@ workflows:
   ci:
     jobs:
       - lint
+      - check-golangci-lint
       - test
       - coverage:
           requires:

@@ -41,31 +41,31 @@ func TestInitBundle(t *testing.T) {
 
 		// Create assets/i18n dir
 		i18nDir := filepath.Join(dir, "assets", "i18n")
-		err = os.MkdirAll(i18nDir, 0700)
+		err = os.MkdirAll(i18nDir, 0o700)
 		require.NoError(t, err)
 
 		file := filepath.Join(i18nDir, "active.de.json")
 		content := []byte("{}")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		// Add en translation file.
 		// InitBundle should ignore it.
 		file = filepath.Join(i18nDir, "active.en.json")
 		content = []byte("")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		// Add json junk file
 		file = filepath.Join(i18nDir, "foo.json")
 		content = []byte("")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		// Add active. junk file
 		file = filepath.Join(i18nDir, "active.foo")
 		content = []byte("")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}
@@ -87,18 +87,18 @@ func TestInitBundle(t *testing.T) {
 
 		// Create assets/i18n dir
 		i18nDir := filepath.Join(dir, "assets", "i18n")
-		err = os.MkdirAll(i18nDir, 0700)
+		err = os.MkdirAll(i18nDir, 0o700)
 		require.NoError(t, err)
 
 		file := filepath.Join(i18nDir, "active.de.json")
 		content := []byte("{}")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		// Add translation file with invalid content
 		file = filepath.Join(i18nDir, "active.es.json")
 		content = []byte("foo bar")
-		err = os.WriteFile(file, content, 0600)
+		err = os.WriteFile(file, content, 0o600)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}

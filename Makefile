@@ -1,6 +1,10 @@
 GO ?= go
 GO_TEST_FLAGS ?= -race
 
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
+
 all: test
 
 test:
@@ -11,13 +15,11 @@ coverage:
 	$(GO) tool cover -html=coverage.txt
 
 check-style:
-	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-		exit 1; \
-	fi; \
+	@# Keep the version in sync with the command in .circleci/config.yml
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 
 	@echo Running golangci-lint
-	golangci-lint run ./...
+	$(GOBIN)/golangci-lint run ./...
 
 ## Generates mock golang interfaces for testing
 mock:

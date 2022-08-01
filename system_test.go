@@ -32,7 +32,7 @@ func TestGetManifest(t *testing.T) {
 
 		tmpfn := filepath.Join(dir, "plugin.json")
 		//nolint:gosec //only used in tests
-		err = os.WriteFile(tmpfn, content, 0666)
+		err = os.WriteFile(tmpfn, content, 0o666)
 		require.NoError(t, err)
 
 		api := &plugintest.API{}

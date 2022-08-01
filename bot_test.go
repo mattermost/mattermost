@@ -272,7 +272,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0o600)
 			require.NoError(t, err)
 
 			api.On("GetBundlePath").Return("", nil)
@@ -299,14 +299,14 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0o600)
 			require.NoError(t, err)
 
 			iconImageFile, err := os.CreateTemp("", "profile_image")
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = os.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
+			err = os.WriteFile(iconImageFile.Name(), iconImageBytes, 0o600)
 			require.NoError(t, err)
 
 			updatedTestBot := &model.Bot{
@@ -340,7 +340,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
+			err = os.WriteFile(profileImageFile.Name(), profileImageBytes, 0o600)
 			require.NoError(t, err)
 
 			api.On("EnsureBotUser", testbot).Return(expectedBotID, nil)
