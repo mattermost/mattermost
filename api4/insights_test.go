@@ -848,7 +848,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 
 	// bot creation with permission
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserRoleId, false)
 	bot := &model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
