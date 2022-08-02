@@ -112,10 +112,6 @@ func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
 }
 
 func (s *Server) initEnterprise() {
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s)
-	}
-
 	if clusterInterface != nil && s.Cluster == nil {
 		s.Cluster = clusterInterface(s)
 	}
