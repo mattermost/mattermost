@@ -1220,7 +1220,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return userUpdate.New, nil
 }
 
-func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
