@@ -9,10 +9,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
-	"html/template"
 	"net"
 	"net/http"
-	"net/http/pprof"
 	"net/url"
 	"os"
 	"os/exec"
@@ -27,7 +25,6 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -35,6 +32,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -131,10 +129,6 @@ type Server struct {
 
 	localModeServer *http.Server
 
-	metricsServer *http.Server
-	metricsRouter *mux.Router
-	metricsLock   sync.Mutex
-
 	didFinishListen chan struct{}
 
 	goroutineCount      int32
@@ -177,6 +171,7 @@ type Server struct {
 	configStore             *configWrapper
 	filestore               filestore.FileBackend
 
+	platform         *platform.PlatformService
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
@@ -200,7 +195,6 @@ type Server struct {
 
 	Cluster        einterfaces.ClusterInterface
 	Cloud          einterfaces.CloudInterface
-	Metrics        einterfaces.MetricsInterface
 	LicenseManager einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
@@ -286,6 +280,22 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
+	platformCfg := platform.ServiceConfig{
+		ConfigStore:  s.configStore.Store,
+		Logger:       s.Log,
+		StartMetrics: s.startMetrics,
+		Cluster:      s.Cluster,
+	}
+	if metricsInterface != nil {
+		platformCfg.Metrics = metricsInterface(s)
+	}
+
+	ps, sErr := platform.New(platformCfg)
+	if sErr != nil {
+		return nil, errors.Wrap(sErr, "failed to initialize platform")
+	}
+	s.platform = ps
+
 	// Step 5: Cache provider.
 	// At the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -298,11 +308,11 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.GetMetrics())
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
-				s.Metrics,
+				s.GetMetrics(),
 				s.Cluster,
 				s.CacheProvider,
 			)
@@ -327,7 +337,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 			return timerlayer.New(
 				searchStore,
-				s.Metrics,
+				s.GetMetrics(),
 			), nil
 		}
 	}
@@ -343,7 +353,7 @@ func NewServer(options ...Option) (*Server, error) {
 		SessionStore: s.Store.Session(),
 		OAuthStore:   s.Store.OAuth(),
 		ConfigFn:     s.Config,
-		Metrics:      s.Metrics,
+		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
 		LicenseFn:    s.License,
 	})
@@ -620,7 +630,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.startMetrics {
-		s.SetupMetricsServer()
+		if err := s.platform.RestartMetrics(); err != nil {
+			return nil, errors.Wrap(err, "failed to start metrics")
+		}
 	}
 
 	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
@@ -632,7 +644,9 @@ func NewServer(options ...Option) (*Server, error) {
 			return
 		}
 
-		s.SetupMetricsServer()
+		if err := s.platform.RestartMetrics(); err != nil {
+			s.Log.Error("Failed to reset metrics server", mlog.Err(err))
+		}
 	})
 
 	s.SearchEngine.UpdateConfig(s.Config())
@@ -699,24 +713,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	return s, nil
-}
-
-func (s *Server) SetupMetricsServer() {
-	if !*s.Config().MetricsSettings.Enable {
-		return
-	}
-
-	s.StopMetricsServer()
-
-	if err := s.InitMetricsRouter(); err != nil {
-		mlog.Error("Error initiating metrics router.", mlog.Err(err))
-	}
-
-	if s.Metrics != nil {
-		s.Metrics.Register()
-	}
-
-	s.startMetricsServer()
 }
 
 func maxInt(a, b int) int {
@@ -951,11 +947,11 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 }
 
 func (s *Server) enableLoggingMetrics() {
-	if s.Metrics == nil {
+	if s.GetMetrics() == nil {
 		return
 	}
 
-	s.Log.SetMetricsCollector(s.Metrics.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	s.Log.SetMetricsCollector(s.GetMetrics().GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := s.initLogging(); err != nil {
@@ -991,7 +987,7 @@ func (s *Server) StopHTTPServer() {
 }
 
 func (s *Server) Shutdown() {
-	mlog.Info("Stopping Server...")
+	s.Log.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
 
@@ -1002,24 +998,24 @@ func (s *Server) Shutdown() {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			s.Log.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		s.Log.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
-			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+			s.Log.Error("Error shutting down shared channel services", mlog.Err(err))
 		}
 	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
-			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+			s.Log.Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
 	s.serviceMux.RUnlock()
@@ -1046,7 +1042,9 @@ func (s *Server) Shutdown() {
 		s.Cluster.StopInterNodeCommunication()
 	}
 
-	s.StopMetricsServer()
+	if err = s.platform.ShutdownMetrics(); err != nil {
+		s.Log.Warn("Failed to stop metrics server", mlog.Err(err))
+	}
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
@@ -1054,10 +1052,10 @@ func (s *Server) Shutdown() {
 		// before stopping them as both calls essentially become no-ops
 		// if nothing is running.
 		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
-			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+			s.Log.Warn("Failed to stop job server workers", mlog.Err(err))
 		}
 		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
-			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+			s.Log.Warn("Failed to stop job server schedulers", mlog.Err(err))
 		}
 	}
 
@@ -1066,7 +1064,7 @@ func (s *Server) Shutdown() {
 	// on parent services.
 	for name, product := range s.products {
 		if err2 := product.Stop(); err2 != nil {
-			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+			s.Log.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
 		}
 	}
 
@@ -1076,11 +1074,11 @@ func (s *Server) Shutdown() {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
+			s.Log.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
-	mlog.Info("Server stopped")
+	s.Log.Info("Server stopped")
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
@@ -1630,104 +1628,8 @@ func doConfigCleanup(s *Server) {
 	}
 }
 
-func (s *Server) StopMetricsServer() {
-	s.metricsLock.Lock()
-	defer s.metricsLock.Unlock()
-
-	if s.metricsServer != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
-		defer cancel()
-
-		s.metricsServer.Shutdown(ctx)
-		s.Log.Info("Metrics and profiling server is stopping")
-	}
-}
-
 func (s *Server) HandleMetrics(route string, h http.Handler) {
-	if s.metricsRouter != nil {
-		s.metricsRouter.Handle(route, h)
-	}
-}
-
-func (s *Server) InitMetricsRouter() error {
-	s.metricsRouter = mux.NewRouter()
-	runtime.SetBlockProfileRate(*s.Config().MetricsSettings.BlockProfileRate)
-
-	metricsPage := `
-			<html>
-				<body>{{if .}}
-					<div><a href="/metrics">Metrics</a></div>{{end}}
-					<div><a href="/debug/pprof/">Profiling Root</a></div>
-					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
-					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
-					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
-					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
-					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
-					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
-					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
-					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
-				</body>
-			</html>
-		`
-	metricsPageTmpl, err := template.New("page").Parse(metricsPage)
-	if err != nil {
-		return errors.Wrap(err, "failed to create template")
-	}
-
-	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, s.Metrics != nil)
-	}
-
-	s.metricsRouter.HandleFunc("/", rootHandler)
-	s.metricsRouter.StrictSlash(true)
-
-	s.metricsRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
-	s.metricsRouter.HandleFunc("/debug/pprof/", pprof.Index)
-	s.metricsRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	s.metricsRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	s.metricsRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	s.metricsRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
-	// Manually add support for paths linked to by index page at /debug/pprof/
-	s.metricsRouter.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
-	s.metricsRouter.Handle("/debug/pprof/heap", pprof.Handler("heap"))
-	s.metricsRouter.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
-	s.metricsRouter.Handle("/debug/pprof/block", pprof.Handler("block"))
-
-	return nil
-}
-
-func (s *Server) startMetricsServer() {
-	var notify chan struct{}
-	s.metricsLock.Lock()
-	defer func() {
-		if notify != nil {
-			<-notify
-		}
-		s.metricsLock.Unlock()
-	}()
-
-	l, err := net.Listen("tcp", *s.Config().MetricsSettings.ListenAddress)
-	if err != nil {
-		mlog.Error(err.Error())
-		return
-	}
-
-	notify = make(chan struct{})
-	s.metricsServer = &http.Server{
-		Handler:      handlers.RecoveryHandler(handlers.PrintRecoveryStack(true))(s.metricsRouter),
-		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-	}
-
-	go func() {
-		close(notify)
-		if err := s.metricsServer.Serve(l); err != nil && err != http.ErrServerClosed {
-			mlog.Critical(err.Error())
-		}
-	}()
-
-	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+	s.platform.HandleMetrics(route, h)
 }
 
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
@@ -1956,7 +1858,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -2039,7 +1941,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeActiveUsers,
-		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.Metrics }),
+		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
 	)
 
@@ -2106,7 +2008,10 @@ func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 // GetMetrics returns the server's Metrics interface. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
-	return s.Metrics
+	if s.platform == nil {
+		return nil
+	}
+	return s.platform.Metrics()
 }
 
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
