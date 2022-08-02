@@ -69,9 +69,9 @@ func (s *Server) doAdvancedPermissionsMigration() {
 		return
 	}
 
-	config := s.platformService.Config()
+	config := s.platform.Config()
 	*config.ServiceSettings.PostEditTimeLimit = -1
-	if _, _, err := s.platformService.SaveConfig(config, true); err != nil {
+	if _, _, err := s.platform.SaveConfig(config, true); err != nil {
 		mlog.Error("Failed to update config in Advanced Permissions Phase 1 Migration.", mlog.Err(err))
 	}
 
@@ -327,7 +327,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() {
 		return
 	}
 
-	s.platformService.UpdateConfig(func(config *model.Config) {
+	s.platform.UpdateConfig(func(config *model.Config) {
 		config.FileSettings.ExtractContent = model.NewBool(true)
 	})
 
@@ -474,7 +474,7 @@ const existingInstallationPostsThreshold = 10
 func (s *Server) doFirstAdminSetupCompleteMigration() {
 	// Don't run the migration until the flag is turned on.
 
-	if !s.platformService.Config().FeatureFlags.UseCaseOnboarding {
+	if !s.platform.Config().FeatureFlags.UseCaseOnboarding {
 		return
 	}
 

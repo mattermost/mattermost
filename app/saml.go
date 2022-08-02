@@ -47,7 +47,7 @@ func (a *App) writeSamlFile(filename string, fileData *multipart.FileHeader) *mo
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = a.Srv().platformService.SetConfigFile(filename, data)
+	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -107,7 +107,7 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
-	if err := a.Srv().platformService.RemoveConfigFile(filename); err != nil {
+	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -171,9 +171,9 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 	status := &model.SamlCertificateStatus{}
 
-	status.IdpCertificateFile, _ = a.Srv().platformService.HasConfigFile(*a.Config().SamlSettings.IdpCertificateFile)
-	status.PrivateKeyFile, _ = a.Srv().platformService.HasConfigFile(*a.Config().SamlSettings.PrivateKeyFile)
-	status.PublicCertificateFile, _ = a.Srv().platformService.HasConfigFile(*a.Config().SamlSettings.PublicCertificateFile)
+	status.IdpCertificateFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.IdpCertificateFile)
+	status.PrivateKeyFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.PrivateKeyFile)
+	status.PublicCertificateFile, _ = a.Srv().platform.HasConfigFile(*a.Config().SamlSettings.PublicCertificateFile)
 
 	return status
 }
@@ -267,7 +267,7 @@ func (a *App) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
 		Bytes: block.Bytes,
 	})
 
-	if err := a.Srv().platformService.SetConfigFile(SamlIdpCertificateName, data); err != nil {
+	if err := a.Srv().platform.SetConfigFile(SamlIdpCertificateName, data); err != nil {
 		return model.NewAppError("SetSamlIdpCertificateFromMetadata", "api.admin.saml.failure_save_idp_certificate_file.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strings"
@@ -291,7 +290,7 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 }
 
 func (s *Server) createPushNotificationsHub(c request.CTX) {
-	buffer := *s.platformService.Config().EmailSettings.PushNotificationBuffer
+	buffer := *s.platform.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               New(ServerConnector(s.Channels())),
@@ -469,7 +468,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	}
 	defer resp.Body.Close()
 	// Reading the body to completion.
-	_, err = io.Copy(ioutil.Discard, resp.Body)
+	_, err = io.Copy(io.Discard, resp.Body)
 	if err != nil {
 		return err
 	}

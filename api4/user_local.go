@@ -225,7 +225,7 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -308,7 +308,7 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -339,7 +339,7 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

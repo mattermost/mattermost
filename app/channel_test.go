@@ -1004,18 +1004,18 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	user := th.BasicUser
 	user.Timezone["useAutomaticTimezone"] = "false"
 	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	user2 := th.BasicUser2
 	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
-	th.App.UpdateUser(user2, false)
+	th.App.UpdateUser(th.Context, user2, false)
 
 	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user3)
 	th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 
 	ruser.Timezone["automaticTimezone"] = "NoWhere/Island"
-	th.App.UpdateUser(ruser, false)
+	th.App.UpdateUser(th.Context, ruser, false)
 
 	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ = th.App.CreateUser(th.Context, &user4)
@@ -2029,7 +2029,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.platformService.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)

@@ -33,7 +33,7 @@ const (
 )
 
 func (s *Server) DoSecurityUpdateCheck() {
-	if !*s.platformService.Config().ServiceSettings.EnableSecurityFixAlert {
+	if !*s.platform.Config().ServiceSettings.EnableSecurityFixAlert {
 		return
 	}
 
@@ -53,7 +53,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		v.Set(PropSecurityID, s.TelemetryId())
 		v.Set(PropSecurityBuild, model.CurrentVersion+"."+model.BuildNumber)
 		v.Set(PropSecurityEnterpriseReady, model.BuildEnterpriseReady)
-		v.Set(PropSecurityDatabase, *s.platformService.Config().SqlSettings.DriverName)
+		v.Set(PropSecurityDatabase, *s.platform.Config().SqlSettings.DriverName)
 		v.Set(PropSecurityOS, runtime.GOOS)
 
 		if props[model.SystemRanUnitTests] != "" {

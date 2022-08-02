@@ -65,7 +65,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
 		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.GetMetrics(), s.Cluster, s.CacheProvider)
 			if err2 != nil {
 				panic(err2)
 			}
@@ -165,7 +165,7 @@ func (th *TestHelper) initBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.createUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 

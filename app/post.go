@@ -46,7 +46,7 @@ func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) 
 	return s.app.CreatePostMissingChannel(ctx, post, true)
 }
 
-func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -83,7 +83,7 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
 	if !fromWebhook && !fromBot && !isCRTReply {
 		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
@@ -1931,6 +1931,126 @@ func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, op
 		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return topThreadsWithEmbedAndImage, nil
+}
+
+func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
+	// Store the reminder in the DB
+	reminder := &model.PostReminder{
+		PostId:     postID,
+		UserId:     userID,
+		TargetTime: targetTime,
+	}
+	err := a.Srv().Store.Post().SetPostReminder(reminder)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	// Send an ack message.
+	ephemeralPost := &model.Post{
+		Type:      model.PostTypeEphemeral,
+		Id:        model.NewId(),
+		CreateAt:  model.GetMillis(),
+		UserId:    userID,
+		RootId:    postID,
+		ChannelId: metadata.ChannelId,
+		// It's okay to keep this non-translated. This is just a fallback.
+		// The webapp will parse the timestamp and show that in user's local timezone.
+		Message: fmt.Sprintf("You will be reminded about %s/%s/pl/%s by @%s at %s", siteURL, metadata.TeamName, postID, metadata.Username, parsed),
+		Props: model.StringInterface{
+			"target_time": targetTime,
+			"team_name":   metadata.TeamName,
+			"post_id":     postID,
+			"username":    metadata.Username,
+			"type":        model.PostTypeReminder,
+		},
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil)
+	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(request.EmptyContext(a.Log()), ephemeralPost, true, false)
+	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
+
+	postJSON, jsonErr := ephemeralPost.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
+	a.Publish(message)
+
+	return nil
+}
+
+func (a *App) CheckPostReminders() {
+	systemBot, appErr := a.GetSystemBot()
+	if appErr != nil {
+		mlog.Error("Failed to get system bot", mlog.Err(appErr))
+		return
+	}
+
+	// This will return the reminders and also delete them from the DB.
+	// In case, any of the next steps fail, those reminders would be lost.
+	// Alternatively, if we delete those reminders _after_ it has been sent,
+	// then in case of any temporary failure, they would get sent in the next batch.
+	// MM-45595.
+	reminders, err := a.Srv().Store.Post().GetPostReminders(time.Now().UTC().Unix())
+	if err != nil {
+		mlog.Error("Failed to get post reminders", mlog.Err(err))
+		return
+	}
+
+	// We group multiple reminders for a single user.
+	groupedReminders := make(map[string][]string)
+	for _, r := range reminders {
+		if groupedReminders[r.UserId] == nil {
+			groupedReminders[r.UserId] = []string{r.PostId}
+		} else {
+			groupedReminders[r.UserId] = append(groupedReminders[r.UserId], r.PostId)
+		}
+	}
+
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	for userID, postIDs := range groupedReminders {
+		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
+		if appErr != nil {
+			mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+			return
+		}
+
+		for _, postID := range postIDs {
+			metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
+			if err != nil {
+				mlog.Error("Failed to get post reminder metadata", mlog.Err(err))
+				continue
+			}
+
+			T := i18n.GetUserTranslations(metadata.UserLocale)
+			dm := &model.Post{
+				ChannelId: ch.Id,
+				Message: T("app.post_reminder_dm", model.StringInterface{
+					"SiteURL":  siteURL,
+					"TeamName": metadata.TeamName,
+					"PostId":   postID,
+					"Username": metadata.Username,
+				}),
+				Type:   model.PostTypeDefault,
+				UserId: systemBot.UserId,
+				Props: model.StringInterface{
+					"username": systemBot.Username,
+				},
+			}
+
+			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
+				mlog.Error("Failed to post reminder message", mlog.Err(err))
+			}
+		}
+	}
+
 }
 
 func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {

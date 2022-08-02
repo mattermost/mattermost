@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -109,7 +108,7 @@ func (api *API) InitUser() {
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -168,7 +167,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -222,7 +221,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -284,7 +283,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -335,7 +334,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -419,7 +418,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -480,7 +479,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageData := imageArray[0]
-	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -518,7 +517,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	auditRec.AddMeta("user", user)
 
-	if err := c.App.SetDefaultProfileImage(user); err != nil {
+	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
 		return
 	}
@@ -547,7 +546,7 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -611,7 +610,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -971,7 +970,7 @@ func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.UserSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("")
+		c.SetInvalidParamWithErr("props", jsonErr)
 		return
 	}
 
@@ -1157,7 +1156,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1169,7 +1168,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1228,7 +1227,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.UpdateUserAsUser(&user, c.IsSystemAdmin())
+	ruser, err := c.App.UpdateUserAsUser(c.AppContext, &user, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1239,7 +1238,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1251,7 +1250,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.UserPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1307,7 +1306,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.PatchUser(c.Params.UserId, &patch, c.IsSystemAdmin())
+	ruser, err := c.App.PatchUser(c.AppContext, c.Params.UserId, &patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1320,7 +1319,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1414,7 +1413,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.UpdateUserRoles(c.Params.UserId, newRoles, true)
+	user, err := c.App.UpdateUserRoles(c.AppContext, c.Params.UserId, newRoles, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -1516,7 +1515,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1543,7 +1542,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1589,7 +1588,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if err := c.App.UpdateMfa(activate, c.Params.UserId, code); err != nil {
+	if err := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
 		c.Err = err
 		return
 	}
@@ -1628,7 +1627,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	if err := json.NewEncoder(w).Encode(secret); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1676,9 +1675,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+			err = c.App.UpdatePasswordAsUser(c.AppContext, c.Params.UserId, currentPassword, newPassword)
 		} else if canUpdatePassword {
-			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.AppContext, c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		}
@@ -1712,7 +1711,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("token", token)
 	c.LogAudit("attempt - token=" + token)
 
-	if err := c.App.ResetPasswordFromToken(token, newPassword); err != nil {
+	if err := c.App.ResetPasswordFromToken(c.AppContext, token, newPassword); err != nil {
 		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
@@ -1828,7 +1827,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
-		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
+		c.Logger.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
 		if certPem == "" || certEmail == "" {
 			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
@@ -1881,11 +1880,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
-	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
-	}
-
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
@@ -1901,7 +1895,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2176,7 +2170,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2192,7 +2186,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("verifyUserEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.VerifyEmailFromToken(token); err != nil {
+	if err := c.App.VerifyEmailFromToken(c.AppContext, token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -2241,7 +2235,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var switchRequest model.SwitchRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
-		c.SetInvalidParam("switch_request")
+		c.SetInvalidParamWithErr("switch_request", jsonErr)
 		return
 	}
 
@@ -2303,7 +2297,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var accessToken model.UserAccessToken
 	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
-		c.SetInvalidParam("user_access_token")
+		c.SetInvalidParamWithErr("user_access_token", jsonErr)
 		return
 	}
 
@@ -2338,7 +2332,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success - token_id=" + token.Id)
 
 	if err := json.NewEncoder(w).Encode(token); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2350,7 +2344,7 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var props model.UserAccessTokenSearch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("user_access_token_search")
+		c.SetInvalidParamWithErr("user_access_token_search", jsonErr)
 		return
 	}
 
@@ -2449,7 +2443,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2634,7 +2628,7 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(result); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2734,7 +2728,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var typingRequest model.TypingRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
-		c.SetInvalidParam("typing_request")
+		c.SetInvalidParamWithErr("typing_request", jsonErr)
 		return
 	}
 
@@ -2787,7 +2781,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2877,7 +2871,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3020,7 +3014,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3091,7 +3085,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3119,7 +3113,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3155,7 +3149,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3175,11 +3169,6 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3291,6 +3280,6 @@ func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

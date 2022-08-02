@@ -35,7 +35,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Errorf("failed to parse url %s", downloadURL)
 	}
-	if !*s.platformService.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
+	if !*s.platform.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
@@ -51,7 +51,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		}
 
 		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Errorf("failed to fetch from %s", downloadURL)
 		}

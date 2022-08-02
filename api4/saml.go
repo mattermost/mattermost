@@ -232,7 +232,7 @@ func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request
 
 	status := c.App.GetSamlCertificateStatus()
 	if err := json.NewEncoder(w).Encode(status); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -256,7 +256,7 @@ func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := json.NewEncoder(w).Encode(metadata); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -273,7 +273,7 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	var params *ResetAuthDataParams
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("resetAuthDataToEmail", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 	numAffected, appErr := c.App.ResetSamlAuthDataToEmail(params.IncludeDeleted, params.DryRun, params.SpecifiedUserIDs)
@@ -281,6 +281,14 @@ func resetAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	b, _ := json.Marshal(map[string]any{"num_affected": numAffected})
-	w.Write(b)
+
+	n := struct {
+		NumAffected int `json:"num_affected"`
+	}{
+		NumAffected: numAffected,
+	}
+
+	if err := json.NewEncoder(w).Encode(n); err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }

@@ -117,7 +117,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if includeCache {
 		// Adds the cache layer to the test store
 		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.GetMetrics(), s.Cluster, s.CacheProvider)
 			if err2 != nil {
 				panic(err2)
 			}
@@ -218,7 +218,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	return th
 }
 
-func SetupEnterprise(tb testing.TB) *TestHelper {
+func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
@@ -232,7 +232,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -381,7 +381,7 @@ func (th *TestHelper) TearDown() {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
@@ -401,17 +401,17 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
 		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
 		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
@@ -476,7 +476,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
 	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
 	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
 	th.LoginBasic()
 	th.Group = th.CreateGroup()

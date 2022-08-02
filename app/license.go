@@ -48,7 +48,7 @@ func (w *licenseWrapper) GetLicense() *model.License {
 }
 
 func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
-	if *w.srv.platformService.Config().ExperimentalSettings.RestrictSystemAdmin {
+	if *w.srv.platform.Config().ExperimentalSettings.RestrictSystemAdmin {
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
@@ -71,7 +71,7 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		}
 	}
 
-	if *w.srv.platformService.Config().ServiceSettings.SiteURL == "" {
+	if *w.srv.platform.Config().ServiceSettings.SiteURL == "" {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -79,8 +79,8 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		ServerID:              w.srv.TelemetryId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
 		Email:                 requester.Email,
-		SiteName:              *w.srv.platformService.Config().TeamSettings.SiteName,
-		SiteURL:               *w.srv.platformService.Config().ServiceSettings.SiteURL,
+		SiteName:              *w.srv.platform.Config().TeamSettings.SiteName,
+		SiteURL:               *w.srv.platform.Config().ServiceSettings.SiteURL,
 		Users:                 users,
 		TermsAccepted:         termsAccepted,
 		ReceiveEmailsAccepted: receiveEmailsAccepted,
@@ -140,7 +140,7 @@ func (s *Server) LoadLicense() {
 
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.platformService.Config().ServiceSettings.LicenseFileLocation)
+		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.platform.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
 			if _, err := s.SaveLicense(licenseBytes); err != nil {
@@ -186,13 +186,13 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", model.ExpiredLicenseError, nil, "", http.StatusBadRequest)
 	}
 
-	if *s.platformService.Config().JobSettings.RunJobs && s.Jobs != nil {
+	if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
 		if err := s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
 			mlog.Warn("Stopping job server workers failed", mlog.Err(err))
 		}
 	}
 
-	if *s.platformService.Config().JobSettings.RunScheduler && s.Jobs != nil {
+	if *s.platform.Config().JobSettings.RunScheduler && s.Jobs != nil {
 		if err := s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
 			mlog.Error("Stopping job server schedulers failed", mlog.Err(err))
 		}
@@ -202,12 +202,12 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
 		// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
 		// functioning as expected
-		if *s.platformService.Config().JobSettings.RunJobs && s.Jobs != nil {
+		if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
 			if err := s.Jobs.StartWorkers(); err != nil {
 				mlog.Error("Starting job server workers failed", mlog.Err(err))
 			}
 		}
-		if *s.platformService.Config().JobSettings.RunScheduler && s.Jobs != nil {
+		if *s.platform.Config().JobSettings.RunScheduler && s.Jobs != nil {
 			if err := s.Jobs.StartSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersRunning) {
 				mlog.Error("Starting job server schedulers failed", mlog.Err(err))
 			}
@@ -242,7 +242,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	s.platformService.ReloadConfig()
+	s.platform.ReloadConfig()
 	s.InvalidateAllCaches()
 
 	return &license, nil
@@ -265,8 +265,8 @@ func (s *Server) SetLicense(license *model.License) bool {
 		license.Features.SetDefaults()
 
 		s.licenseValue.Store(license)
-		if s.platformService != nil {
-			s.platformService.SetLicense(license)
+		if s.platform != nil {
+			s.platform.SetLicense(license)
 		}
 
 		s.clientLicenseValue.Store(utils.GetClientLicense(license))
@@ -275,8 +275,8 @@ func (s *Server) SetLicense(license *model.License) bool {
 
 	s.licenseValue.Store((*model.License)(nil))
 	s.clientLicenseValue.Store(map[string]string(nil))
-	if s.platformService != nil {
-		s.platformService.SetLicense((*model.License)(nil))
+	if s.platform != nil {
+		s.platform.SetLicense((*model.License)(nil))
 	}
 
 	return false
@@ -324,7 +324,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 	}
 
 	s.SetLicense(nil)
-	s.platformService.ReloadConfig()
+	s.platform.ReloadConfig()
 	s.InvalidateAllCaches()
 
 	return nil
@@ -377,7 +377,7 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 		return err
 	}
 
-	s.platformService.ReloadConfig()
+	s.platform.ReloadConfig()
 	s.InvalidateAllCaches()
 
 	return nil

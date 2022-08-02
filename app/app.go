@@ -117,7 +117,7 @@ func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.ch.srv.Metrics
+	return a.ch.srv.GetMetrics()
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification

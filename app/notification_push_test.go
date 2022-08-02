@@ -1445,12 +1445,12 @@ func TestPushNotificationRace(t *testing.T) {
 		filestore: &fmocks.FileBackend{},
 	}
 	var err error
-	s.platformService, err = platform.New(platform.ServiceConfig{
+	s.platform, err = platform.New(platform.ServiceConfig{
 		ConfigStore: memoryStore,
 	})
 	require.NoError(t, err)
 	serviceMap := map[ServiceKey]any{
-		ConfigKey:    s.platformService,
+		ConfigKey:    s.platform,
 		LicenseKey:   &licenseWrapper{s},
 		FilestoreKey: s.filestore,
 	}

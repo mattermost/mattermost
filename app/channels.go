@@ -80,6 +80,9 @@ type Channels struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	postReminderMut  sync.Mutex
+	postReminderTask *model.ScheduledTask
 }
 
 func init() {
@@ -98,7 +101,7 @@ func init() {
 func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
 		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platformService, s.httpService, s.Log),
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log),
 		uploadLockMap: map[string]bool{},
 	}
 

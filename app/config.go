@@ -31,7 +31,7 @@ const (
 )
 
 func (s *Server) Config() *model.Config {
-	return s.platformService.Config()
+	return s.platform.Config()
 }
 
 func (a *App) Config() *model.Config {
@@ -39,15 +39,15 @@ func (a *App) Config() *model.Config {
 }
 
 func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
-	return a.Srv().platformService.GetEnvironmentOverridesWithFilter(filter)
+	return a.Srv().platform.GetEnvironmentOverridesWithFilter(filter)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
-	a.Srv().platformService.UpdateConfig(f)
+	a.Srv().platform.UpdateConfig(f)
 }
 
 func (a *App) ReloadConfig() error {
-	return a.Srv().platformService.ReloadConfig()
+	return a.Srv().platform.ReloadConfig()
 }
 
 func (a *App) ClientConfig() map[string]string {
@@ -63,12 +63,12 @@ func (a *App) LimitedClientConfig() map[string]string {
 }
 
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return a.Srv().platformService.AddConfigListener(listener)
+	return a.Srv().platform.AddConfigListener(listener)
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
 func (a *App) RemoveConfigListener(id string) {
-	a.Srv().platformService.RemoveConfigListener(id)
+	a.Srv().platform.RemoveConfigListener(id)
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
@@ -347,7 +347,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.
 func (a *App) GetConfigFile(name string) ([]byte, error) {
-	data, err := a.Srv().platformService.GetConfigFile(name)
+	data, err := a.Srv().platform.GetConfigFile(name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get config file %s", name)
 	}
@@ -371,7 +371,7 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return a.Srv().platformService.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
@@ -391,8 +391,8 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 }
 
 func (s *Server) MailServiceConfig() *mail.SMTPConfig {
-	emailSettings := s.platformService.Config().EmailSettings
-	hostname := utils.GetHostnameFromSiteURL(*s.platformService.Config().ServiceSettings.SiteURL)
+	emailSettings := s.platform.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.platform.Config().ServiceSettings.SiteURL)
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,

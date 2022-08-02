@@ -84,7 +84,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 
 	var res model.FileUploadResponse
 	if jsonErr := json.NewDecoder(resp.Body).Decode(&res); jsonErr != nil {
-		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	return &res, model.BuildResponse(resp), nil
 }

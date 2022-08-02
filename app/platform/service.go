@@ -19,6 +19,7 @@ import (
 type PlatformService struct {
 	serviceConfig ServiceConfig
 	configStore   *config.Store
+	logger        *mlog.Logger
 
 	metrics *platformMetrics
 
@@ -42,18 +43,23 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 	ps := &PlatformService{
 		serviceConfig: sc,
 		configStore:   sc.ConfigStore,
+		logger:        sc.Logger,
 		cluster:       sc.Cluster,
 	}
 
-	ps.metrics = newPlatformMetrics(sc.Metrics, ps.configStore.Get)
+	if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
+		return nil, err
+	}
 
 	return ps, nil
 }
 
-func (ps *PlatformService) ShutdownMetrics() {
+func (ps *PlatformService) ShutdownMetrics() error {
 	if ps.metrics != nil {
-		ps.metrics.stopMetricsServer()
+		return ps.metrics.stopMetricsServer()
 	}
+
+	return nil
 }
 
 func (ps *PlatformService) ShutdownConfig() {
