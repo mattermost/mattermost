@@ -643,7 +643,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.True(t, r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
@@ -675,7 +675,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
