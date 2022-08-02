@@ -987,7 +987,7 @@ func (s *Server) StopHTTPServer() {
 }
 
 func (s *Server) Shutdown() {
-	mlog.Info("Stopping Server...")
+	s.Log.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
 
@@ -998,24 +998,24 @@ func (s *Server) Shutdown() {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			s.Log.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		s.Log.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
-			mlog.Error("Error shutting down shared channel services", mlog.Err(err))
+			s.Log.Error("Error shutting down shared channel services", mlog.Err(err))
 		}
 	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
-			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+			s.Log.Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
 	s.serviceMux.RUnlock()
@@ -1043,7 +1043,7 @@ func (s *Server) Shutdown() {
 	}
 
 	if err = s.platform.ShutdownMetrics(); err != nil {
-		mlog.Warn("Failed to stop metrics server", mlog.Err(err))
+		s.Log.Warn("Failed to stop metrics server", mlog.Err(err))
 	}
 
 	// This must be done after the cluster is stopped.
@@ -1052,10 +1052,10 @@ func (s *Server) Shutdown() {
 		// before stopping them as both calls essentially become no-ops
 		// if nothing is running.
 		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
-			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+			s.Log.Warn("Failed to stop job server workers", mlog.Err(err))
 		}
 		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
-			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+			s.Log.Warn("Failed to stop job server schedulers", mlog.Err(err))
 		}
 	}
 
@@ -1064,7 +1064,7 @@ func (s *Server) Shutdown() {
 	// on parent services.
 	for name, product := range s.products {
 		if err2 := product.Stop(); err2 != nil {
-			mlog.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+			s.Log.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
 		}
 	}
 
@@ -1074,11 +1074,11 @@ func (s *Server) Shutdown() {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
+			s.Log.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
-	mlog.Info("Server stopped")
+	s.Log.Info("Server stopped")
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
