@@ -860,6 +860,29 @@ func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userID
 	return r0, r1
 }
 
+// GetAllDeletedChannels provides a mock function with given fields: team_id, offset, limit, userID, isAdmin
+func (_m *ChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
+	ret := _m.Called(team_id, offset, limit, userID, isAdmin)
+
+	var r0 model.ChannelList
+	if rf, ok := ret.Get(0).(func(team_id string, offset int, limit int, userID string, isAdmin bool) model.ChannelList); ok {
+		r0 = rf(team_id, offset, limit, userID, isAdmin)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(team_id string, offset int, limit int, userID string, isAdmin bool) error); ok {
+		r1 = rf(team_id, offset, limit, userID, isAdmin)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDeletedByName provides a mock function with given fields: team_id, name
 func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 	ret := _m.Called(team_id, name)

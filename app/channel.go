@@ -1912,8 +1912,15 @@ func (a *App) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (
 	return count, nil
 }
 
-func (a *App) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetDeleted(teamID, offset, limit, userID)
+func (a *App) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, *model.AppError) {
+	var list model.ChannelList
+	var err error
+	if isAdmin {
+		list, err = a.Srv().Store.Channel().GetAllDeletedChannels(teamID, offset, limit, userID, isAdmin)
+	} else {
+		list, err = a.Srv().Store.Channel().GetDeleted(teamID, offset, limit, userID)
+	}
+
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

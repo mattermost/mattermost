@@ -623,7 +623,7 @@ type AppIface interface {
 	GetCookieDomain() string
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
-	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
+	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 	GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
