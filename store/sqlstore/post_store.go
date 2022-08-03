@@ -2990,7 +2990,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			},
 		}).GroupBy("vch.id", "vch.TotalMsgCount")
 
-	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit)).Offset(uint64(offset))
+	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
 
 	topDMs := make([]*model.TopDM, 0)
 	sql, args, err := topDMsBuilder.ToSql()
