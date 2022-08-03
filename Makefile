@@ -140,8 +140,7 @@ DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 # Tests
 TESTS=.
 
-# Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+
 
 TEMPLATES_DIR=templates
 
@@ -173,14 +172,6 @@ else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
-else
-  ALL_PACKAGES=$(TE_PACKAGES)
-endif
-
 # Prepare optional Boards build.
 BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
 ifeq ($(BUILD_BOARDS),true)
@@ -190,6 +181,22 @@ ifeq ($(BUILD_BOARDS),true)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
 else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
+endif
+
+# Packages lists
+#
+ifeq ($(BUILD_BOARDS),true)
+	TE_PACKAGES=$(shell $(GO) list ./... | grep -v "mattermost/focalboard")
+	EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
+else
+	TE_PACKAGES=$(shell $(GO) list ./...)
+	EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
+endif
+	
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
+else
+  ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 all: run ## Alias for 'run'.
