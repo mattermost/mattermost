@@ -885,6 +885,22 @@ func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetAllDeletedChannels(team_id, offset, limit, userID, isAdmin)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDeletedChannels", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
 	start := time.Now()
 
@@ -1137,22 +1153,6 @@ func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDeleted", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetAllDeletedChannels(team_id, offset, limit, userID, isAdmin)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDeletedChannels", success, elapsed)
 	}
 	return result, err
 }

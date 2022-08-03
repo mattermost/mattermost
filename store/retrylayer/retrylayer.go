@@ -1046,6 +1046,27 @@ func (s *RetryLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 
 }
 
+func (s *RetryLayerChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetAllDeletedChannels(team_id, offset, limit, userID, isAdmin)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
 
 	tries := 0
@@ -1366,27 +1387,6 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetDeleted(team_id, offset, limit, userID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelStore.GetAllDeletedChannels(team_id, offset, limit, userID, isAdmin)
 		if err == nil {
 			return result, nil
 		}

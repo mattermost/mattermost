@@ -492,6 +492,29 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterID string) 
 	return r0, r1
 }
 
+// GetAllDeletedChannels provides a mock function with given fields: team_id, offset, limit, userID, isAdmin
+func (_m *ChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
+	ret := _m.Called(team_id, offset, limit, userID, isAdmin)
+
+	var r0 model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, int, int, string, bool) model.ChannelList); ok {
+		r0 = rf(team_id, offset, limit, userID, isAdmin)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.ChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int, string, bool) error); ok {
+		r1 = rf(team_id, offset, limit, userID, isAdmin)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID
 func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
 	ret := _m.Called(limit, afterID)
@@ -853,29 +876,6 @@ func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userID
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int, int, string) error); ok {
 		r1 = rf(team_id, offset, limit, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllDeletedChannels provides a mock function with given fields: team_id, offset, limit, userID, isAdmin
-func (_m *ChannelStore) GetAllDeletedChannels(team_id string, offset int, limit int, userID string, isAdmin bool) (model.ChannelList, error) {
-	ret := _m.Called(team_id, offset, limit, userID, isAdmin)
-
-	var r0 model.ChannelList
-	if rf, ok := ret.Get(0).(func(team_id string, offset int, limit int, userID string, isAdmin bool) model.ChannelList); ok {
-		r0 = rf(team_id, offset, limit, userID, isAdmin)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(team_id string, offset int, limit int, userID string, isAdmin bool) error); ok {
-		r1 = rf(team_id, offset, limit, userID, isAdmin)
 	} else {
 		r1 = ret.Error(1)
 	}
