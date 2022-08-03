@@ -619,11 +619,7 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 	defer resp.Body.Close()
 
 	var response model.SubmitDialogResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		// Don't fail, an empty response is acceptable
-		c.Logger().Warn("Error decoding action request", mlog.Err(err))
-		return &response, nil
-	}
+	json.NewDecoder(resp.Body).Decode(&response) // Don't fail, an empty response is acceptable
 
 	return &response, nil
 }

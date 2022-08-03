@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -104,11 +102,8 @@ func (o *Preference) PreUpdate() {
 	if o.Category == PreferenceCategoryTheme {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
 		var props map[string]string
-		if err := json.NewDecoder(strings.NewReader(o.Value)).Decode(&props); err != nil {
-			// just continue, the invalid preference value should get caught by IsValid before saving
-			mlog.Warn("PreUpdate: Decoding the preference value failed", mlog.Err(err))
-			return
-		}
+		// just continue, the invalid preference value should get caught by IsValid before saving
+		json.NewDecoder(strings.NewReader(o.Value)).Decode(&props)
 
 		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
 

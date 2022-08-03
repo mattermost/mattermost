@@ -23,7 +23,6 @@ import (
 	"unicode"
 
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 )
@@ -335,10 +334,7 @@ func NewRandomTeamName() string {
 // The resulting entropy will be (5 * length) bits.
 func NewRandomString(length int) string {
 	data := make([]byte, 1+(length*5/8))
-	_, err := rand.Read(data)
-	if err != nil {
-		mlog.Error("Reading random bytes failed", mlog.Err(err))
-	}
+	rand.Read(data)
 	return encoding.EncodeToString(data)[:length]
 }
 
@@ -405,25 +401,25 @@ func MapBoolToJSON(objmap map[string]bool) string {
 
 // MapFromJSON will decode the key/value pair map
 func MapFromJSON(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
-		mlog.Warn("Decoding to a string map failed", mlog.Err(err))
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
 // MapFromJSON will decode the key/value pair map
 func MapBoolFromJSON(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
-		mlog.Warn("Decoding to a bool map failed", mlog.Err(err))
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
@@ -433,13 +429,13 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
-		mlog.Warn("Decoding to a string array failed", mlog.Err(err))
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
@@ -461,21 +457,18 @@ func ArrayFromInterface(data any) []string {
 }
 
 func StringInterfaceToJSON(objmap map[string]any) string {
-	b, err := json.Marshal(objmap)
-	if err != nil {
-		mlog.Warn("Encoding to an interface map failed", mlog.Err(err))
-	}
+	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
 func StringInterfaceFromJSON(data io.Reader) map[string]any {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]any
-	if err := decoder.Decode(&objmap); err != nil {
-		mlog.Warn("Decoding to an interface map failed", mlog.Err(err))
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]any)
 	}
+
 	return objmap
 }
 
