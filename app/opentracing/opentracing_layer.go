@@ -951,7 +951,7 @@ func (a *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
 	a.app.BroadcastStatus(status)
 }
 
-func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.ReactionImportData, *model.AppError) {
+func (a *OpenTracingAppLayer) BuildPostReactions(ctx request.CTX, postID string) (*[]app.ReactionImportData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPostReactions")
 
@@ -963,7 +963,7 @@ func (a *OpenTracingAppLayer) BuildPostReactions(postID string) (*[]app.Reaction
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.BuildPostReactions(postID)
+	resultVar0, resultVar1 := a.app.BuildPostReactions(ctx, postID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1017,7 +1017,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -1029,7 +1029,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(writer, outPath, opts)
+	resultVar0 := a.app.BulkExport(ctx, writer, outPath, opts)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1857,7 +1857,7 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBot")
 
@@ -1967,7 +1967,7 @@ func (a *OpenTracingAppLayer) CreateCommand(cmd *model.Command) (*model.Command,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateCommandPost(c *request.Context, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateCommandPost")
 
@@ -2323,7 +2323,7 @@ func (a *OpenTracingAppLayer) CreatePost(c request.CTX, post *model.Post, channe
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePostAsUser")
 
@@ -3838,7 +3838,7 @@ func (a *OpenTracingAppLayer) DoUploadFile(c *request.Context, now time.Time, ra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *OpenTracingAppLayer) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFileExpectModification")
 
@@ -3948,7 +3948,7 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(token *model.UserAccessToken
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error) {
+func (a *OpenTracingAppLayer) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureBot")
 
@@ -3987,7 +3987,7 @@ func (a *OpenTracingAppLayer) EnvironmentConfig(filter func(reflect.StructField)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExecuteCommand")
 
@@ -10975,7 +10975,7 @@ func (a *OpenTracingAppLayer) Handle404(w http.ResponseWriter, r *http.Request) 
 	a.app.Handle404(w, r)
 }
 
-func (a *OpenTracingAppLayer) HandleCommandResponse(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandResponse")
 
@@ -10997,7 +10997,7 @@ func (a *OpenTracingAppLayer) HandleCommandResponse(c *request.Context, command 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) HandleCommandResponsePost(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandResponsePost")
 
@@ -12151,7 +12151,7 @@ func (a *OpenTracingAppLayer) MentionsToPublicChannels(c request.CTX, message st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MentionsToTeamMembers(message string, teamID string) model.UserMentionMap {
+func (a *OpenTracingAppLayer) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MentionsToTeamMembers")
 
@@ -12163,7 +12163,7 @@ func (a *OpenTracingAppLayer) MentionsToTeamMembers(message string, teamID strin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MentionsToTeamMembers(message, teamID)
+	resultVar0 := a.app.MentionsToTeamMembers(c, message, teamID)
 
 	return resultVar0
 }
@@ -16474,7 +16474,7 @@ func (a *OpenTracingAppLayer) UnregisterPluginCommand(pluginID string, teamID st
 	a.app.UnregisterPluginCommand(pluginID, teamID, trigger)
 }
 
-func (a *OpenTracingAppLayer) UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateActive")
 
@@ -16496,7 +16496,7 @@ func (a *OpenTracingAppLayer) UpdateActive(c *request.Context, user *model.User,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateBotActive(c *request.Context, botUserId string, active bool) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotActive")
 
@@ -17563,7 +17563,7 @@ func (a *OpenTracingAppLayer) UpdateUser(c request.CTX, user *model.User, sendNo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserActive")
 
@@ -17769,7 +17769,7 @@ func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.F
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFile")
 
@@ -17804,6 +17804,50 @@ func (a *OpenTracingAppLayer) UploadFileX(c *request.Context, channelID string, 
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UploadFileX(c, channelID, name, input, opts...)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UploadFiles(c *request.Context, teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFiles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UploadFiles(c, teamID, channelID, userID, files, filenames, clientIds, now)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadMultipartFiles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UploadMultipartFiles(c, teamID, channelID, userID, fileHeaders, clientIds, now)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

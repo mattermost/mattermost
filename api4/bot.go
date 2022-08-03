@@ -187,7 +187,7 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(bots); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -227,7 +227,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.AddEventObjectType("bot")
 
 	if err := json.NewEncoder(w).Encode(bot); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

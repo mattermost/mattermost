@@ -37,12 +37,12 @@ import (
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
 	// @openTracingParams args
-	ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	// @openTracingParams teamID
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	// @openTracingParams teamID, skipSlackParsing
-	CreateCommandPost(c *request.Context, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
+	CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError)
 	// AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 	AddChannelMember(c request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError)
 	// AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
@@ -84,7 +84,7 @@ type AppIface interface {
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
 	// CreateBot creates the given bot and corresponding user.
-	CreateBot(c *request.Context, bot *model.Bot) (*model.Bot, *model.AppError)
+	CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
 	CreateChannelScheme(c request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
@@ -132,7 +132,7 @@ type AppIface interface {
 	// any ensureBotOptions hence it is not required for now.
 	// TODO: Once the focalboard migration completed, we should add this logic to the app and
 	// let plugin-api use the same code
-	EnsureBot(c *request.Context, productID string, bot *model.Bot) (string, error)
+	EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error)
 	// Expand announcements in incoming webhooks from Slack. Those announcements
 	// can be found in the text attribute, or in the pretext, text, title and value
 	// attributes of the attachment structure. The Slack attachment structure is
@@ -250,7 +250,7 @@ type AppIface interface {
 	MentionsToPublicChannels(c request.CTX, message, teamID string) model.ChannelMentionMap
 	// MentionsToTeamMembers returns all the @ mentions found in message that
 	// belong to users in the specified team, linking them to their users
-	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
+	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
@@ -354,7 +354,7 @@ type AppIface interface {
 	// This to be used for places we check the users password when they are already logged in
 	DoubleCheckPassword(user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-	UpdateBotActive(c *request.Context, botUserId string, active bool) (*model.Bot, *model.AppError)
+	UpdateBotActive(c request.CTX, botUserId string, active bool) (*model.Bot, *model.AppError)
 	// UpdateBotOwner changes a bot's owner to the given value.
 	UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError)
 	// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
@@ -374,13 +374,17 @@ type AppIface interface {
 	// UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
 	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	// UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-	UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError)
+	UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError)
 	// UploadFileX uploads a single file as specified in t. It applies the upload
 	// constraints, executes plugins and image processing logic as needed. It
 	// returns a filled-out FileInfo and an optional error. A plugin may reject the
 	// upload, returning a rejection error. In this case FileInfo would have
 	// contained the last "good" FileInfo before the execution of that plugin.
 	UploadFileX(c *request.Context, channelID, name string, input io.Reader, opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError)
+	// Uploads some files to the given team and channel as the given user. files and filenames should have
+	// the same length. clientIds should either not be provided or have the same length as files and filenames.
+	// The provided files should be closed by the caller so that they are not leaked.
+	UploadFiles(c *request.Context, teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
 	// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
@@ -428,10 +432,10 @@ type AppIface interface {
 	AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 	AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
 	BroadcastStatus(status *model.Status)
-	BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError)
+	BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
-	BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
 	BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int)
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	CancelJob(jobId string) *model.AppError
@@ -484,7 +488,7 @@ type AppIface interface {
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(userID, email string) (*model.Token, *model.AppError)
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	CreatePostAsUser(c *request.Context, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
+	CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)
 	CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
@@ -545,7 +549,7 @@ type AppIface interface {
 	DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoSystemConsoleRolesCreationMigration()
 	DoUploadFile(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
-	DoUploadFileExpectModification(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
+	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
@@ -836,8 +840,8 @@ type AppIface interface {
 	GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
-	HandleCommandResponse(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
-	HandleCommandResponsePost(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
+	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
+	HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
 	HandleCommandWebhook(c *request.Context, hookID string, response *model.CommandResponse) *model.AppError
 	HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte)
 	HandleIncomingWebhook(c *request.Context, hookID string, req *model.IncomingWebhookRequest) *model.AppError
@@ -1076,7 +1080,7 @@ type AppIface interface {
 	TotalWebsocketConnections() int
 	TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
-	UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError)
+	UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)
@@ -1121,13 +1125,14 @@ type AppIface interface {
 	UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
 	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
 	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
-	UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError
+	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
 	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
 	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
+	UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)

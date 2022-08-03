@@ -102,7 +102,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "Upgrade"
+	f.PlanUpgradeButtonText = "upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
