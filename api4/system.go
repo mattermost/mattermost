@@ -195,7 +195,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -215,9 +219,9 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
+	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
 	if err != nil {
-		c.Err = err
+		c.Err = appErr
 		return
 	}
 
@@ -361,7 +365,15 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m := model.MapFromJSON(r.Body)
+	var m map[string]string
+	err := json.NewDecoder(r.Body).Decode(&m)
+	if err != nil {
+		c.Logger.Warn("Error decoding request.", mlog.Err(err))
+	}
+	if m == nil {
+		m = map[string]string{}
+	}
+
 	lvl := m["level"]
 	msg := m["message"]
 
@@ -382,7 +394,10 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m["message"] = msg
-	w.Write([]byte(model.MapToJSON(m)))
+	err = json.NewEncoder(w).Encode(m)
+	if err != nil {
+		c.Logger.Warn("Error while writing response.", mlog.Err(err))
+	}
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -451,7 +466,11 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -471,9 +490,9 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
+	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
-		c.Err = err
+		c.Err = appErr
 		return
 	}
 
@@ -481,7 +500,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
+	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -35,9 +35,10 @@ func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
@@ -56,15 +57,15 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
-	err := cfg.IsValid()
-	if err != nil {
-		c.Err = err
+	appErr := cfg.IsValid()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
-	if err != nil {
-		c.Err = err
+	oldCfg, newCfg, appErr := c.App.SaveConfig(cfg, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -87,9 +88,10 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
@@ -114,21 +116,21 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := updatedCfg.IsValid()
-	if err != nil {
-		c.Err = err
+	appErr := updatedCfg.IsValid()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
-	if err != nil {
-		c.Err = err
+	oldCfg, newCfg, appErr := c.App.SaveConfig(updatedCfg, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	diffs, diffErr := config.Diff(oldCfg, newCfg)
-	if diffErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
+	diffs, err := config.Diff(oldCfg, newCfg)
+	if err != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	auditRec.AddEventPriorState(&diffs)

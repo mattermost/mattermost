@@ -4562,7 +4562,10 @@ func (c *Client4) GetConfig() (*Config, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ConfigFromJSON(r.Body), BuildResponse(r), nil
+
+	var cfg *Config
+	d := json.NewDecoder(r.Body)
+	return cfg, BuildResponse(r), d.Decode(&cfg)
 }
 
 // ReloadConfig will reload the server configuration.
@@ -4640,7 +4643,10 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ConfigFromJSON(r.Body), BuildResponse(r), nil
+
+	var cfg *Config
+	d := json.NewDecoder(r.Body)
+	return cfg, BuildResponse(r), d.Decode(&cfg)
 }
 
 // MigrateConfig will migrate existing config to the new one.
@@ -7529,7 +7535,10 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response, error) {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ConfigFromJSON(r.Body), BuildResponse(r), nil
+
+	var cfg *Config
+	d := json.NewDecoder(r.Body)
+	return cfg, BuildResponse(r), d.Decode(&cfg)
 }
 
 func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response, error) {
