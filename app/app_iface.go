@@ -328,7 +328,7 @@ type AppIface interface {
 	SyncPlugins() *model.AppError
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
-	SyncRolesAndMembership(c *request.Context, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
+	SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
@@ -406,12 +406,12 @@ type AppIface interface {
 	AddSessionToCache(session *model.Session)
 	AddStatusCache(status *model.Status)
 	AddStatusCacheSkipClusterSend(status *model.Status)
-	AddTeamMember(c *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
+	AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByInviteId(c *request.Context, inviteId, userID string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByToken(c *request.Context, userID, tokenID string) (*model.TeamMember, *model.AppError)
 	AddTeamMembers(c *request.Context, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError)
 	AddTeamsToRetentionPolicy(policyID string, teamIDs []string) *model.AppError
-	AddUserToTeam(c *request.Context, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
+	AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByInviteId(c *request.Context, inviteId string, userID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AddUserToTeamByTeamId(c *request.Context, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
@@ -453,13 +453,13 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
 	CheckWebConn(userID, connectionID string) *CheckConnResult
-	ClearChannelMembersCache(c request.CTX, channelID string)
+	ClearChannelMembersCache(c request.CTX, channelID string) error
 	ClearLatestVersionCache()
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
 	ClearSessionCacheForUser(userID string)
 	ClearSessionCacheForUserSkipClusterSend(userID string)
-	ClearTeamMembersCache(teamID string)
+	ClearTeamMembersCache(teamID string) error
 	ClientConfig() map[string]string
 	ClientConfigHash() string
 	Cloud() einterfaces.CloudInterface
@@ -877,7 +877,7 @@ type AppIface interface {
 	JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError)
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError
-	LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError
+	LeaveTeam(c request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError
 	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -958,7 +958,7 @@ type AppIface interface {
 	RemoveTeamIcon(teamID string) *model.AppError
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
-	RemoveUserFromTeam(c *request.Context, teamID string, userID string, requestorId string) *model.AppError
+	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError

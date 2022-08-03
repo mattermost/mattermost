@@ -1433,7 +1433,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	th.App.ClearTeamMembersCache("teamID")
+	require.NoError(t, th.App.ClearTeamMembersCache("teamID"))
 }
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
