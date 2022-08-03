@@ -82,6 +82,7 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	NotifyAdmin() NotifyAdminStore
 }
 
 type RetentionPolicyStore interface {
@@ -912,6 +913,10 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error)
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
+}
+
+type NotifyAdminStore interface {
+	Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error)
 }
 
 type SharedChannelStore interface {
