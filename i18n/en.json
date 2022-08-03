@@ -1858,6 +1858,10 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -5917,7 +5921,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hi there, you asked me to remind you about {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} by @{{.Username}}"
+    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.preference.delete.app_error",

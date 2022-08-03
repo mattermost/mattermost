@@ -883,7 +883,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 	return a.UpdatePasswordSendEmail(c, user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) userDeactivated(c *request.Context, userID string) *model.AppError {
+func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
 	a.SetStatusOffline(userID, false)
 
 	user, err := a.GetUser(userID)
@@ -928,7 +928,7 @@ func (a *App) invalidateUserChannelMembersCaches(c request.CTX, userID string) *
 	return nil
 }
 
-func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*model.User, *model.AppError) {
+func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
@@ -1220,7 +1220,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return userUpdate.New, nil
 }
 
-func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
