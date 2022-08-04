@@ -1005,7 +1005,9 @@ func (s *Server) Shutdown() {
 
 	s.platform.StopFeatureFlagUpdateJob()
 
-	s.platform.ShutdownConfig()
+	if err = s.platform.ShutdownConfig(); err != nil {
+		s.Log.Warn("Failed to shut down config store", mlog.Err(err))
+	}
 
 	if s.Cluster != nil {
 		s.Cluster.StopInterNodeCommunication()

@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -62,13 +63,15 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	return nil
 }
 
-func (ps *PlatformService) ShutdownConfig() {
+func (ps *PlatformService) ShutdownConfig() error {
 	if ps.configStore != nil {
 		err := ps.configStore.Close()
 		if err != nil {
-			mlog.Warn("Failed to close config store", mlog.Err(err))
+			return fmt.Errorf("failed to close config store: %w", err)
 		}
 	}
+
+	return nil
 }
 
 func (ps *PlatformService) SetTelemetryId(id string) {

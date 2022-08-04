@@ -25,14 +25,14 @@ func (ps *PlatformService) SetupFeatureFlags() {
 
 	if syncFeatureFlags {
 		if err := ps.startFeatureFlagUpdateJob(); err != nil {
-			mlog.Warn("Unable to setup synchronization with feature flag management. Will fallback to cache.", mlog.Err(err))
+			ps.logger.Warn("Unable to setup synchronization with feature flag management. Will fallback to cache.", mlog.Err(err))
 		}
 	} else {
 		ps.StopFeatureFlagUpdateJob()
 	}
 
 	if err := ps.configStore.Load(); err != nil {
-		mlog.Warn("Unable to load config store after feature flag setup.", mlog.Err(err))
+		ps.logger.Warn("Unable to load config store after feature flag setup.", mlog.Err(err))
 	}
 }
 
@@ -42,9 +42,9 @@ func (ps *PlatformService) updateFeatureFlagValuesFromManagement() {
 	newFlags := ps.featureFlagSynchronizer.UpdateFeatureFlagValues(oldFlags)
 	oldFlagsBytes, _ := json.Marshal(oldFlags)
 	newFlagsBytes, _ := json.Marshal(newFlags)
-	mlog.Debug("Checking feature flags from management service", mlog.String("old_flags", string(oldFlagsBytes)), mlog.String("new_flags", string(newFlagsBytes)))
+	ps.logger.Debug("Checking feature flags from management service", mlog.String("old_flags", string(oldFlagsBytes)), mlog.String("new_flags", string(newFlagsBytes)))
 	if oldFlags != newFlags {
-		mlog.Debug("Feature flag change detected, updating config")
+		ps.logger.Debug("Feature flag change detected, updating config")
 		*newCfg.FeatureFlags = newFlags
 		ps.SaveConfig(newCfg, true)
 	}
@@ -58,12 +58,7 @@ func (ps *PlatformService) startFeatureFlagUpdateJob() error {
 
 	var log *mlog.Logger
 	if *ps.Config().ServiceSettings.DebugSplit {
-		var err error
-		// TODO: Add split logging functionality back and probably use PlatformService.Logger once added.
-		log, err = mlog.NewLogger()
-		if err != nil {
-			return err
-		}
+		log = ps.logger
 	}
 
 	attributes := map[string]any{}
