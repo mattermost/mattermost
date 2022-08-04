@@ -103,7 +103,7 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
-			nil, "", http.StatusNotImplemented)
+			nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -545,7 +545,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().FileSettings.EnablePublicLink {
-		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -643,7 +643,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().FileSettings.EnablePublicLink {
-		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
