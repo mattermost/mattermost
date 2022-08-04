@@ -2699,9 +2699,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		thread.Post.SanitizeProps()
 
 		if a.IsCRTEnabledForUser(c, userID) {
-			payload, err := json.Marshal(thread)
-			if err != nil {
-				c.Logger().Warn("Failed to encode thread to JSON", mlog.Err(err))
+			payload, jErr := json.Marshal(thread)
+			if jErr != nil {
+				c.Logger().Warn("Failed to encode thread to JSON", mlog.Err(jErr))
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 			message.Add("thread", string(payload))
