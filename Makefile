@@ -317,7 +317,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 ifeq ($(BUILD_BOARDS),true)
   ifneq ($(MM_NO_BOARDS_LINT),true)
-		$(GOBIN)/golangci-lint run $(BUILD_BOARDS_DIR)/server/...
+		cd $(BUILD_BOARDS_DIR); make server-lint
   endif
 endif
 
