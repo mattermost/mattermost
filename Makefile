@@ -184,7 +184,6 @@ endif
 # Prepare optional Boards build.
 BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
 ifeq ($(BUILD_BOARDS),true)
-    ALL_PACKAGES += $(BOARDS_PACKAGES)
 	IGNORE:=$(shell echo Boards build selected, preparing)
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
