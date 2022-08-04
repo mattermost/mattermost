@@ -36,7 +36,7 @@ func (c *ServiceConfig) validate() error {
 
 	if c.Logger == nil {
 		var err error
-		// If Logger is not set, use a default logger temproarily.
+		// If Logger is not set, use a default logger temporarily.
 		// this should be removed once the logger is properly configured with the service config.
 		// MM-45841
 		c.Logger, err = mlog.NewLogger()
