@@ -247,7 +247,7 @@ func NewServer(options ...Option) (*Server, error) {
 			Cluster:      s.Cluster,
 		}
 		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s)
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
 		}
 
 		ps, sErr := platform.New(platformCfg)

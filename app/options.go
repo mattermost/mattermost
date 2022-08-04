@@ -60,7 +60,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 			Cluster:      s.Cluster,
 		}
 		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s)
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
 		}
 
 		ps, sErr := platform.New(platformCfg)
@@ -83,7 +83,7 @@ func ConfigStore(configStore *config.Store) Option {
 			Cluster:      s.Cluster,
 		}
 		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s)
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
 		}
 
 		ps, sErr := platform.New(platformCfg)
