@@ -98,11 +98,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GraphQL = false
 	f.InsightsEnabled = true
 	f.CommandPalette = false
-	f.PostForwarding = false
+	f.PostForwarding = true
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "Upgrade"
+	f.PlanUpgradeButtonText = "upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
