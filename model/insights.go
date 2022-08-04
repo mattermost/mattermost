@@ -97,13 +97,13 @@ type NewTeamMembersList struct {
 }
 
 type NewTeamMember struct {
-	Id        string
-	Username  string
-	FirstName string
-	LastName  string
-	Nickname  string
-	Position  string
-	CreateAt  int64
+	Id        string `json:"id"`
+	Username  string `json:"username"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Position  string `json:"position"`
+	Nickname  string `json:"nickname"`
+	CreateAt  int64  `json:"create_at"`
 }
 
 type DurationPostCount struct {
