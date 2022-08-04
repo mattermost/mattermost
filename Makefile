@@ -185,14 +185,9 @@ endif
 
 # Packages lists
 #
-ifeq ($(BUILD_BOARDS),true)
-	TE_PACKAGES=$(shell $(GO) list ./... | grep -v "mattermost/focalboard")
-	EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
-else
-	TE_PACKAGES=$(shell $(GO) list ./...)
-	EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
-endif
-	
+TE_PACKAGES=$(shell $(GO) list ./...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
