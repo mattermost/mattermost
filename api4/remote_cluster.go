@@ -84,7 +84,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if appErr := frame.IsValid(); appErr != nil {
+	appErr = frame.IsValid()
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}

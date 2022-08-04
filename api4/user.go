@@ -750,9 +750,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if inChannelId != "" {
 		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-			channel, appErr := c.App.GetChannel(c.AppContext, inChannelId)
-			if appErr != nil {
-				c.Err = appErr
+			channel, cErr := c.App.GetChannel(c.AppContext, inChannelId)
+			if cErr != nil {
+				c.Err = cErr
 				return
 			}
 			if channel.DeleteAt != 0 {
@@ -905,9 +905,9 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, err := strconv.ParseInt(sinceString, 10, 64)
-		if err != nil {
-			c.SetInvalidParamWithErr("since", err)
+		since, sErr := strconv.ParseInt(sinceString, 10, 64)
+		if sErr != nil {
+			c.SetInvalidParamWithErr("since", sErr)
 			return
 		}
 		options.Since = since

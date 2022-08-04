@@ -298,9 +298,9 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		team, appErr := c.App.GetTeam(c.Params.TeamId)
-		if appErr != nil {
-			c.Err = appErr
+		team, teamErr := c.App.GetTeam(c.Params.TeamId)
+		if teamErr != nil {
+			c.Err = teamErr
 			return
 		}
 

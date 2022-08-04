@@ -196,7 +196,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); appErr != nil {
+	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	if appErr != nil {
 		appErr.Where = "Api4.patchGroup"
 		c.Err = appErr
 		return
@@ -616,7 +617,8 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); appErr != nil {
+	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	if appErr != nil {
 		appErr.Where = "Api4.getGroupMembers"
 		c.Err = appErr
 		return
@@ -1018,7 +1020,8 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); appErr != nil {
+	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
+	if appErr != nil {
 		appErr.Where = "Api4.deleteGroup"
 		c.Err = appErr
 		return
@@ -1071,7 +1074,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); appErr != nil {
+	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
+	if appErr != nil {
 		appErr.Where = "Api4.deleteGroup"
 		c.Err = appErr
 		return

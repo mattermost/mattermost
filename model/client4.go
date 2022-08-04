@@ -6468,7 +6468,8 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 		return nil, nil, err
 	}
 
-	if _, err := io.Copy(part, bytes.NewBuffer(image)); err != nil {
+	_, err = io.Copy(part, bytes.NewBuffer(image))
+	if err != nil {
 		return nil, nil, err
 	}
 

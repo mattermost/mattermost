@@ -228,7 +228,8 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var emailToValidate *model.ValidateBusinessEmailRequest
-	if err := json.Unmarshal(bodyBytes, &emailToValidate); err != nil {
+	err = json.Unmarshal(bodyBytes, &emailToValidate)
+	if err != nil {
 		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
