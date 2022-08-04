@@ -35,12 +35,12 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		cookie = &model.PostActionCookie{}
 		cookieStr, err := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
 		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 		err = json.Unmarshal([]byte(cookieStr), &cookie)
 		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			return
 		}
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), cookie.ChannelId, model.PermissionReadChannel) {
@@ -64,8 +64,10 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, _ := json.Marshal(resp)
-	w.Write(b)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -81,8 +83,8 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.OpenInteractiveDialog(dialog); err != nil {
-		c.Err = err
+	if appErr := c.App.OpenInteractiveDialog(dialog); appErr != nil {
+		c.Err = appErr
 		return
 	}
 

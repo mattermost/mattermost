@@ -246,9 +246,9 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestSiteURL(siteURL)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.TestSiteURL(siteURL)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -264,9 +264,9 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -313,9 +313,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Srv().InvalidateAllCaches()
-	if err != nil {
-		c.Err = err
+	appErr := c.App.Srv().InvalidateAllCaches()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -339,9 +339,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
-	if err != nil {
-		c.Err = err
+	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -413,9 +413,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := c.App.GetAnalytics(name, teamId)
-	if err != nil {
-		c.Err = err
+	rows, appErr := c.App.GetAnalytics(name, teamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -435,15 +435,15 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
-	if err != nil {
-		c.Err = err
+	resp, appErr := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, jsonErr := json.Marshal(resp)
-	if jsonErr != nil {
-		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(jsonErr))
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -795,17 +795,18 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := c.App.GetWarnMetricsStatus()
-	if err != nil {
-		c.Err = err
+	status, appErr := c.App.GetWarnMetricsStatus()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(status)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(status)
+	if err != nil {
+		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -890,10 +891,9 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientVersion := r.URL.Query().Get("clientVersion")
 	locale := r.URL.Query().Get("locale")
 
-	notices, err := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
-
-	if err != nil {
-		c.Err = err
+	notices, appErr := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	result, _ := notices.Marshal()
@@ -906,9 +906,9 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	c.LogAudit("attempt")
 
 	ids := model.ArrayFromJSON(r.Body)
-	err := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -929,7 +929,7 @@ func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
 
 	if err != nil {
-		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -950,7 +950,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
@@ -981,9 +981,9 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, jsonErr := json.Marshal(migrations)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(migrations)
+	if err != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

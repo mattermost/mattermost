@@ -1241,7 +1241,7 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 		case errors.As(err, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1416,9 +1416,8 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 		email,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
-
 	if err != nil {
-		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
@@ -2185,18 +2184,18 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
-		if err != nil {
-			c.Logger().Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
+		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
+		if appErr != nil {
+			c.Logger().Warn("Failed to get channel members for user on promote guest to user", mlog.Err(appErr))
 		}
 
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			memberJSON, jsonErr := json.Marshal(member)
-			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			memberJSON, err := json.Marshal(member)
+			if err != nil {
+				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(err))
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2229,9 +2228,9 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
-		if err != nil {
-			c.Logger().Warn("Failed to get channel members for users on demote user to guest", mlog.Err(err))
+		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
+		if appErr != nil {
+			c.Logger().Warn("Failed to get channel members for users on demote user to guest", mlog.Err(appErr))
 			continue
 		}
 
@@ -2239,9 +2238,9 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			memberJSON, jsonErr := json.Marshal(member)
-			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			memberJSON, err := json.Marshal(member)
+			if err != nil {
+				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(err))
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2516,9 +2515,9 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 	userThread.Post = sanitizedPost
 
-	payload, jsonErr := json.Marshal(userThread)
-	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode thread to JSON")
+	payload, err := json.Marshal(userThread)
+	if err != nil {
+		c.Logger().Warn("Failed to encode thread to JSON", mlog.Err(err))
 	}
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))

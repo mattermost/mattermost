@@ -78,9 +78,9 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 
 	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil)
 
-	prefJSON, jsonErr := json.Marshal(pref)
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+	prefJSON, err := json.Marshal(pref)
+	if err != nil {
+		a.Log().Warn("Failed to encode to JSON", mlog.Err(err))
 	}
 	socketMessage.Add("preference", string(prefJSON))
 	a.Publish(socketMessage)

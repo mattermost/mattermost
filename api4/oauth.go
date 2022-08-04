@@ -132,26 +132,27 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var apps []*model.OAuthApp
-	var err *model.AppError
+	var appErr *model.AppError
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideOAuth) {
-		apps, err = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
+		apps, appErr = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
 	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		apps, err = c.App.GetOAuthAppsByCreator(c.AppContext.Session().UserId, c.Params.Page, c.Params.PerPage)
+		apps, appErr = c.App.GetOAuthAppsByCreator(c.AppContext.Session().UserId, c.Params.Page, c.Params.PerPage)
 	} else {
 		c.SetPermissionError(model.PermissionManageOAuth)
 		return
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(apps)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getOAuthApps", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(apps)
+	if err != nil {
+		c.Err = model.NewAppError("getOAuthApps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -295,16 +296,17 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	apps, err := c.App.GetAuthorizedAppsForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	apps, appErr := c.App.GetAuthorizedAppsForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(apps)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getAuthorizedOAuthApps", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(apps)
+	if err != nil {
+		c.Err = model.NewAppError("getAuthorizedOAuthApps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }

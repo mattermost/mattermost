@@ -31,8 +31,8 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+	if err := json.NewDecoder(r.Body).Decode(&frame); err != nil {
+		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -47,15 +47,15 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
-	if err != nil {
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 
 	var ping model.RemoteClusterPing
-	if jsonErr := json.Unmarshal(frame.Msg.Payload, &ping); jsonErr != nil {
-		c.SetInvalidParam("msg.payload")
+	if err := json.Unmarshal(frame.Msg.Payload, &ping); err != nil {
+		c.SetInvalidParamWithErr("msg.payload", err)
 		return
 	}
 	ping.RecvAt = model.GetMillis()
@@ -64,8 +64,10 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		metrics.IncrementRemoteClusterMsgReceivedCounter(rc.RemoteId)
 	}
 
-	resp, _ := json.Marshal(&ping)
-	w.Write(resp)
+	err := json.NewEncoder(w).Encode(ping)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -77,8 +79,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+	if err := json.NewDecoder(r.Body).Decode(&frame); err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -97,8 +99,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
-	if err != nil {
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
@@ -107,11 +109,12 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
 
-	b, errMarshall := json.Marshal(resp)
-	if errMarshall != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, errMarshall.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(b)
 }
 
