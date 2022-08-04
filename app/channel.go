@@ -2513,11 +2513,9 @@ func (a *App) RemoveUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 	} else {
-		a.Srv().Go(func() {
-			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
-				mlog.Error("Failed to post user removal message", mlog.Err(err))
-			}
-		})
+		if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+			c.Logger().Error("Failed to post user removal message", mlog.Err(err))
+		}
 	}
 
 	return nil
