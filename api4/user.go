@@ -832,7 +832,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if notInGroupId != "" {
-		if appErr := requireGroupAccess(c, notInGroupId); appErr != nil {
+		appErr = requireGroupAccess(c, notInGroupId)
+		if appErr != nil {
 			appErr.Where = "Api.getUsers"
 			c.Err = appErr
 			return

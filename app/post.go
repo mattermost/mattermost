@@ -1239,7 +1239,8 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		return nil, appErr
 	}
 
-	if err := a.Srv().Store.Post().Delete(postID, model.GetMillis(), deleteByID); err != nil {
+	err = a.Srv().Store.Post().Delete(postID, model.GetMillis(), deleteByID)
+	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
