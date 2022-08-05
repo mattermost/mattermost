@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -139,7 +138,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		case errors.As(err, &dupKey):
-			return nil, model.NewAppError("CreateGroup", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(dupKey)
+			return nil, model.NewAppError("CreateGroupWithUserIds", "app.custom_group.unique_name", nil, "", http.StatusBadRequest).Wrap(dupKey)
 		default:
 			return nil, model.NewAppError("CreateGroupWithUserIds", "app.insert_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -151,9 +150,9 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	group.MemberCount = model.NewInt(int(count))
-	groupJSON, err := json.Marshal(newGroup)
-	if err != nil {
-		a.ch.srv.GetLogger().Warn("Failed to encode group to JSON", mlog.Err(err))
+	groupJSON, jsonErr := json.Marshal(newGroup)
+	if jsonErr != nil {
+		return nil, model.NewAppError("CreateGroupWithUserIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("group", string(groupJSON))
 	a.Publish(messageWs)
@@ -186,7 +185,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
 	if err != nil {
-		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	updatedGroup.MemberCount = model.NewInt(int(count))
@@ -194,7 +193,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	groupJSON, err := json.Marshal(updatedGroup)
 	if err != nil {
-		a.Log().Warn("Failed to encode group to JSON", mlog.Err(err))
+    return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	messageWs.Add("group", string(groupJSON))
 	a.Publish(messageWs)
@@ -271,7 +270,9 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
-	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
+		return nil, appErr
+	}
 
 	return groupMember, nil
 }
@@ -288,7 +289,9 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
-	a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
+	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
+		return nil, appErr
+	}
 
 	return groupMember, nil
 }
@@ -742,7 +745,9 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	}
 
 	for _, groupMember := range members {
-		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember)
+		if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	return members, nil
@@ -764,18 +769,21 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	}
 
 	for _, groupMember := range members {
-		a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember)
+		if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	return members, nil
 }
 
-func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) {
+func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) *model.AppError {
 	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil)
-	groupMemberJSON, err := json.Marshal(groupMember)
-	if err != nil {
-		a.ch.srv.GetLogger().Warn("failed to encode group member to JSON", mlog.Err(err))
+	groupMemberJSON, jsonErr := json.Marshal(groupMember)
+	if jsonErr != nil {
+		return model.NewAppError("publishGroupMemberEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("group_member", string(groupMemberJSON))
 	a.Publish(messageWs)
+	return nil
 }

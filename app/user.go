@@ -2193,9 +2193,9 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			memberJSON, err := json.Marshal(member)
-			if err != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(err))
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2238,9 +2238,9 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
-			memberJSON, err := json.Marshal(member)
-			if err != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(err))
+			memberJSON, jsonErr := json.Marshal(member)
+			if jsonErr != nil {
+				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2515,9 +2515,9 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 	userThread.Post = sanitizedPost
 
-	payload, err := json.Marshal(userThread)
-	if err != nil {
-		c.Logger().Warn("Failed to encode thread to JSON", mlog.Err(err))
+	payload, jsonErr := json.Marshal(userThread)
+	if jsonErr != nil {
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))

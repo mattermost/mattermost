@@ -149,9 +149,9 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, teamID, "", userID, nil)
 
-	updatedCategoriesJSON, err := json.Marshal(updatedCategories)
-	if err != nil {
-		c.Logger().Warn("Failed to encode original categories to JSON", mlog.Err(err))
+	updatedCategoriesJSON, jsonErr := json.Marshal(updatedCategories)
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdateSidebarCategories", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	message.Add("updatedCategories", string(updatedCategoriesJSON))

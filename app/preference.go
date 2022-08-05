@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
@@ -67,9 +66,9 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 	a.Publish(message)
 
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil)
-	prefsJSON, err := json.Marshal(preferences)
-	if err != nil {
-		a.Log().Warn("Failed to encode to JSON", mlog.Err(err))
+	prefsJSON, jsonErr := json.Marshal(preferences)
+	if jsonErr != nil {
+		return model.NewAppError("UpdatePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
 	a.Publish(message)
@@ -101,9 +100,9 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 	a.Publish(message)
 
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil)
-	prefsJSON, err := json.Marshal(preferences)
-	if err != nil {
-		a.Log().Warn("Failed to encode to JSON", mlog.Err(err))
+	prefsJSON, jsonErr := json.Marshal(preferences)
+	if jsonErr != nil {
+		return model.NewAppError("DeletePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
 	a.Publish(message)

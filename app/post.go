@@ -1252,7 +1252,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 
 	postJSON, err := json.Marshal(post)
 	if err != nil {
-		a.Log().Warn("Failed to encode post to JSON", mlog.Err(err))
+		return nil, model.NewAppError("DeletePost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
