@@ -71,10 +71,6 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		}
 	}
 
-	if *w.srv.Config().ServiceSettings.SiteURL == "" {
-		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	trialLicenseRequest := &model.TrialLicenseRequest{
 		ServerID:              w.srv.TelemetryId(),
 		Name:                  requester.GetDisplayName(model.ShowFullName),
