@@ -91,7 +91,7 @@ func (ps *PlatformService) startFeatureFlagUpdateJob() error {
 		defer ticker.Stop()
 		defer close(ps.featureFlagStopped)
 		if err := synchronizer.EnsureReady(); err != nil {
-			mlog.Warn("Problem connecting to feature flag management. Will fallback to cloud cache.", mlog.Err(err))
+			ps.logger.Warn("Problem connecting to feature flag management. Will fallback to cloud cache.", mlog.Err(err))
 			return
 		}
 		ps.updateFeatureFlagValuesFromManagement()
