@@ -605,6 +605,10 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+func (o *Post) ChannelMentionsAcrossTeams() map[string][]string {
+	return ChannelMentionsAcrossTeams(o.Message)
+}
+
 // DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
 func (o *Post) DisableMentionHighlights() string {
 	mention, hasMentions := findAtChannelMention(o.Message)

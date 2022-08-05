@@ -1387,6 +1387,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
+    const channelMentionTeamAttribute = (e.target as any).getAttributeNode('data-channel-mention-team');
 
     if (hashtagAttribute) {
         e.preventDefault();
@@ -1480,7 +1481,11 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
         }
     } else if (channelMentionAttribute) {
         e.preventDefault();
-        getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
+        let teamUrl = currentRelativeTeamUrl;
+        if (channelMentionTeamAttribute.value) {
+            teamUrl = ('/' + channelMentionTeamAttribute.value);
+        }
+        getHistory().push(teamUrl + '/channels/' + channelMentionAttribute.value);
     }
 }
 

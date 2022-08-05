@@ -461,6 +461,7 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
 	channelMentions := post.ChannelMentions()
+	ChannelMentionsAcrossTeams := post.ChannelMentionsAcrossTeams()
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -487,6 +488,28 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 				channelMentionsProp[mentioned.Name] = map[string]any{
 					"display_name": mentioned.DisplayName,
 					"team_name":    team.Name,
+				}
+			}
+		}
+	}
+
+	if len(ChannelMentionsAcrossTeams) > 0 {
+		for mentionedTeam, mentionedTeamChannels := range ChannelMentionsAcrossTeams {
+			team, err := a.Srv().Store().Team().GetByName(mentionedTeam)
+			if err != nil {
+				mlog.Warn("Failed to get team of the channel mention", mlog.String("mentionedTeam", channel.TeamId))
+				continue
+			}
+			mentionedChannels, error := a.GetChannelsByNames(c, mentionedTeamChannels, team.Id)
+			if err != nil {
+				return error
+			}
+			for _, mentioned := range mentionedChannels {
+				if mentioned.Type == model.ChannelTypeOpen {
+					channelMentionsProp[mentioned.Name] = map[string]any{
+						"display_name": mentioned.DisplayName,
+						"team_name":    team.Name,
+					}
 				}
 			}
 		}

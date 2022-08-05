@@ -512,15 +512,16 @@ export function autolinkChannelMentions(
         if (teamName) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href = ((window as any).basename || '') + '/' + teamName + '/channels/' + channelName;
+            const teamTxt = teamName === team?.name ? '' : `(${teamName})`;
             tokens.set(alias, {
-                value: `<a class="mention-link" href="${href}" data-channel-mention-team="${teamName}" data-channel-mention="${channelName}">~${displayName}</a>`,
+                value: `<a class="mention-link" href="${href}" data-channel-mention-team="${teamName}" data-channel-mention="${channelName}">~${displayName}${teamTxt}</a>`,
                 originalText: mention,
             });
         } else if (team) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href = ((window as any).basename || '') + '/' + team.name + '/channels/' + channelName;
             tokens.set(alias, {
-                value: `<a class="mention-link" href="${href}" data-channel-mention="${channelName}">~${displayName}</a>`,
+                value: `<a class="mention-link" href="${href}" data-channel-mention="${channelName}" data-channel-mention-team="${team.name}">~${displayName}</a>`,
                 originalText: mention,
             });
         }
@@ -595,6 +596,11 @@ export function autolinkChannelMentions(
     }
 
     let output = text;
+    output = output.replace(
+        /\B(~([a-z0-9.\-_]*)\(([a-z0-9.\-_]*)\))/gi,
+        replaceChannelMentionWithToken,
+    );
+
     output = output.replace(
         /\B(~([a-z0-9.\-_]*))/gi,
         replaceChannelMentionWithToken,
