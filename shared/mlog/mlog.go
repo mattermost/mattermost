@@ -181,12 +181,14 @@ func NewLogger(options ...Option) (*Logger, error) {
 
 // Configure provides a new configuration for this logger.
 // Zero or more sources of config can be provided:
-//   cfgFile    - path to file containing JSON
-//   cfgEscaped - JSON string probably from ENV var
+//
+//	cfgFile    - path to file containing JSON
+//	cfgEscaped - JSON string probably from ENV var
 //
 // For each case JSON containing log targets is provided. Target name collisions are resolved
 // using the following precedence:
-//     cfgFile > cfgEscaped
+//
+//	cfgFile > cfgEscaped
 //
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.

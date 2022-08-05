@@ -193,7 +193,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 
 	groupJSON, err := json.Marshal(updatedGroup)
 	if err != nil {
-    return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	messageWs.Add("group", string(groupJSON))
 	a.Publish(messageWs)
