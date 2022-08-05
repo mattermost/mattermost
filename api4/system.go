@@ -220,7 +220,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
-	if err != nil {
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -491,7 +491,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if err != nil {
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
