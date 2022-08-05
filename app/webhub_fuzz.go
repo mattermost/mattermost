@@ -6,7 +6,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"

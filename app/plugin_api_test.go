@@ -1523,7 +1523,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			"github.com/mattermost/mattermost-server/v6/model"
 			"bytes"
 			"net/http"
-			"io/ioutil"
+			"io"
 		)
 
 		type MyPlugin struct {
