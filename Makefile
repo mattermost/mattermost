@@ -184,6 +184,10 @@ endif
 # Prepare optional Boards build.
 BOARDS_PACKAGES=$(shell $(GO) list $(BUILD_BOARDS_DIR)/server/...)
 ifeq ($(BUILD_BOARDS),true)
+# We removed `ALL_PACKAGES += $(BOARDS_PACKAGES)` since board tests needs `-tag 'json1'` in the tests.
+# Adding that flag to server breaks the build with unsupported flag error.
+# PR: https://github.com/mattermost/mattermost-server/pull/20772
+# Ticket: https://mattermost.atlassian.net/browse/CLD-3800
 	IGNORE:=$(shell echo Boards build selected, preparing)
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
 	IGNORE:=$(shell cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/)
