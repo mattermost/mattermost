@@ -347,6 +347,33 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	}
 }
 
+func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(th.Context, basicChannel2)
+	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, "thischanneldoesnotexist", basicChannel2.Name}
+	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
+
+	user := th.CreateUser()
+	require.Nil(t, th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, ""))
+
+	for _, channelName := range defaultChannelList {
+		if channelName == "thischanneldoesnotexist" {
+			continue // skip the non-existent channel
+		}
+
+		channel, err := th.App.GetChannelByName(th.Context, channelName, th.BasicTeam.Id, false)
+		require.Nil(t, err, "Expected nil, didn't receive nil")
+
+		member, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+
+		require.NotNil(t, member, "Expected member object, got nil")
+		require.Nil(t, err, "Expected nil object, didn't receive nil")
+	}
+}
+
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
