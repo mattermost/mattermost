@@ -54,19 +54,42 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
 }
 
-func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
+// func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
+// 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
+// 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
+// 	if err != nil {
+// 		c.SetInvalidParamWithErr("notifyAdminRequest", err)
+// 		return
+// 	}
 
-	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
+// 	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
+// 	if appErr != nil {
+// 		c.Err = appErr
+// 		return
+// 	}
+
+// 	ReturnStatusOK(w)
+// }
+
+func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
+	// var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
+	// err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
+	// if err != nil {
+	// 	c.SetInvalidParamWithErr("notifyAdminRequest", err)
+	// 	return
+	// }
+
+	// _, appErr := c.App.SaveAdminNotifyData(&model.NotifyAdminData{
+	// 	UserId:          c.AppContext.Session().Id,
+	// 	RequiredPlan:    "cloud-professional",
+	// 	RequiredFeature: "Guest Accounts",
+	// })
+	// if appErr != nil {
+	// 	c.Err = appErr
+	// 	return
+	// }
+
+	c.App.SendNotifyAdminPosts(c.AppContext)
 
 	ReturnStatusOK(w)
 }

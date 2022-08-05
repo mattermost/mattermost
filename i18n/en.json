@@ -5456,6 +5456,10 @@
     "translation": "Unable to get the job."
   },
   {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Unable to save notify data."
+  },
+  {
     "id": "app.job.get_all.app_error",
     "translation": "Unable to get the jobs."
   },

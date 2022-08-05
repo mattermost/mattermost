@@ -26,6 +26,10 @@ func (us SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, e
 }
 
 func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
+	if err := data.IsValid(); err != nil {
+		return nil, err
+	}
+
 	data.PreSave()
 
 	_, err := s.insert(data)
