@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -1010,7 +1009,7 @@ func (c *Client4) GetDefaultProfileImage(userId string) ([]byte, *Response, erro
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetDefaultProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -1026,7 +1025,7 @@ func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response, error
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -2774,7 +2773,7 @@ func (c *Client4) GetTeamIcon(teamId, etag string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetTeamIcon", "model.client.get_team_icon.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4311,7 +4310,7 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4326,7 +4325,7 @@ func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response,
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("DownloadFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4341,7 +4340,7 @@ func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4356,7 +4355,7 @@ func (c *Client4) DownloadFileThumbnail(fileId string, download bool) ([]byte, *
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("DownloadFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4381,7 +4380,7 @@ func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4396,7 +4395,7 @@ func (c *Client4) DownloadFilePreview(fileId string, download bool) ([]byte, *Re
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("DownloadFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -4464,7 +4463,7 @@ func (c *Client4) GenerateSupportPacket() ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -5268,7 +5267,7 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response, 
 		return nil, BuildResponse(rp), AppErrorFromJSON(rp.Body)
 	}
 
-	data, err := ioutil.ReadAll(rp.Body)
+	data, err := io.ReadAll(rp.Body)
 	if err != nil {
 		return nil, BuildResponse(rp), NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)
 	}
@@ -5614,7 +5613,7 @@ func (c *Client4) GetBrandImage() ([]byte, *Response, error) {
 		return nil, BuildResponse(r), AppErrorFromJSON(r.Body)
 	}
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetBrandImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6560,7 +6559,7 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetEmojiImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)
 	}
@@ -6801,7 +6800,7 @@ func (c *Client4) DownloadJob(jobId string) ([]byte, *Response, error) {
 	}
 	defer closeBody(r)
 
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode)
 	}

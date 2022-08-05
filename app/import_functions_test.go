@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -4378,11 +4377,11 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testImage2 := filepath.Join(testsDir, "test.svg")
 	// create a temp file with same name as original but with a different first byte
-	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	tmpFolder, _ := os.MkdirTemp("", "imgFake")
 	testImageFake := filepath.Join(tmpFolder, "test.png")
-	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData, _ := os.ReadFile(testImage)
 	fakeFileData[0] = 0
-	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	_ = os.WriteFile(testImageFake, fakeFileData, 0644)
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.

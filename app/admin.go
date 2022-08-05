@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -261,7 +260,7 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	defer res.Body.Close()
 
-	responseData, err := ioutil.ReadAll(res.Body)
+	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
 	}

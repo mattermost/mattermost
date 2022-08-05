@@ -5,7 +5,6 @@ package web
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -219,12 +218,12 @@ func TestStaticFilesRequest(t *testing.T) {
 	mainJS := `var x = alert();`
 	mainJSPath := filepath.Join(pluginDir, "main.js")
 	require.NoError(t, err)
-	err = ioutil.WriteFile(mainJSPath, []byte(mainJS), 0777)
+	err = os.WriteFile(mainJSPath, []byte(mainJS), 0777)
 	require.NoError(t, err)
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "webapp": {"bundle_path":"main.js"}, "settings_schema": {"settings": []}}`
-	ioutil.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+	os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Activate the plugin
 	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
@@ -273,9 +272,9 @@ func TestPublicFilesRequest(t *testing.T) {
 	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
-	pluginDir, err := ioutil.TempDir("", "")
+	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	webappPluginDir, err := ioutil.TempDir("", "")
+	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
@@ -307,7 +306,7 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
-	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Write the test public file
 	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
@@ -315,11 +314,11 @@ func TestPublicFilesRequest(t *testing.T) {
 	os.MkdirAll(htmlFolderPath, os.ModePerm)
 	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
 
-	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	htmlFileErr := os.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
 	assert.NoError(t, htmlFileErr)
 
 	nefariousHTML := `You shouldn't be able to get here!`
-	htmlFileErr = ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
+	htmlFileErr = os.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
 	assert.NoError(t, htmlFileErr)
 
 	manifest, activated, reterr := env.Activate(pluginID)
