@@ -2092,7 +2092,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	th.App.ClearChannelMembersCache(th.Context, "channelID")
+	require.NoError(t, th.App.ClearChannelMembersCache(th.Context, "channelID"))
 }
 
 func TestGetMemberCountsByGroup(t *testing.T) {

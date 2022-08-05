@@ -6152,6 +6152,10 @@
     "translation": "Failed to retrieve the team members."
   },
   {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Error clearing team member cache"
+  },
+  {
     "id": "app.team.get.find.app_error",
     "translation": "Unable to find the existing team."
   },
