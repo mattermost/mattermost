@@ -477,7 +477,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 
 	if len(ChannelMentionsAcrossTeams) > 0 {
 		for mentionedTeam, mentionedTeamChannels := range ChannelMentionsAcrossTeams {
-			team, err := a.Srv().Store.Team().GetByName(mentionedTeam)
+			team, err := a.Srv().Store().Team().GetByName(mentionedTeam)
 			if err != nil {
 				mlog.Warn("Failed to get team of the channel mention", mlog.String("mentionedTeam", channel.TeamId))
 				continue

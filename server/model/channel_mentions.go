@@ -40,10 +40,8 @@ func ChannelMentionsAcrossTeams(message string) map[string][]string {
 			name := channelString[1:]
 			team := teamString[1:]
 			if !alreadyMentioned[match] {
-
 				names[team] = append(names[team], name)
-
-				alreadyMentioned[name] = true
+				alreadyMentioned[match] = true
 			}
 		}
 	}
