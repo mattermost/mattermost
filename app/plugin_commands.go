@@ -117,7 +117,7 @@ func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
 // command can be found, returns nil for all arguments.
-func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
@@ -150,7 +150,7 @@ func (a *App) tryExecutePluginCommand(c *request.Context, args *model.CommandArg
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	for username, userID := range a.MentionsToTeamMembers(args.Command, args.TeamId) {
+	for username, userID := range a.MentionsToTeamMembers(c, args.Command, args.TeamId) {
 		args.AddUserMention(username, userID)
 	}
 
