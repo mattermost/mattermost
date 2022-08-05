@@ -58,13 +58,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	// Share same configuration with app.TestHelper
-	prevListenAddress := *th.Service.Config().ServiceSettings.ListenAddress
-	defer th.Service.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
-		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
