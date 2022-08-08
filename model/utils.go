@@ -234,12 +234,11 @@ func (er *AppError) Error() string {
 		sb.WriteString(er.DetailedError)
 	}
 
-	// render all wrapped errors
+	// render the wrapped error
 	err := er.wrapped
-	for err != nil {
+	if err != nil {
 		sb.WriteString(", ")
 		sb.WriteString(err.Error())
-		err = errors.Unwrap(err)
 	}
 
 	return sb.String()
