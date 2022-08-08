@@ -83,7 +83,7 @@ func (cds *ClusterDiscoveryService) Stop() {
 }
 
 func (s *Server) IsLeader() bool {
-	if s.License() != nil && *s.Config().ClusterSettings.Enable && s.Cluster != nil {
+	if s.License() != nil && *s.platform.Config().ClusterSettings.Enable && s.Cluster != nil {
 		return s.Cluster.IsLeader()
 	}
 	return true
