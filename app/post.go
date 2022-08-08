@@ -251,7 +251,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			post.AddProp("attachments", attachmentsInterface)
 		}
 		if err != nil {
-			a.Log().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
+			c.Logger().Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
 	}
 
@@ -329,7 +329,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if len(post.FileIds) > 0 {
 		if err = a.attachFilesToPost(post); err != nil {
-			mlog.Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
+			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics() != nil {
@@ -348,12 +348,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			UpdateFollowing: true,
 		})
 		if err != nil {
-			mlog.Warn("Failed to update thread membership", mlog.Err(err))
+			c.Logger().Warn("Failed to update thread membership", mlog.Err(err))
 		}
 	}
 
 	if err := a.handlePostEvents(c, rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
-		mlog.Warn("Failed to handle post events", mlog.Err(err))
+		c.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
