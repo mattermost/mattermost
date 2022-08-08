@@ -88,9 +88,6 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 	}
 
 	if ps.serviceConfig.StartMetrics && *ps.Config().MetricsSettings.Enable {
-		if ps.metrics.metricsImpl != nil {
-			ps.metrics.metricsImpl.Register()
-		}
 		ps.RestartMetrics()
 	} else {
 		ps.ShutdownMetrics()
