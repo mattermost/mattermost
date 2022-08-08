@@ -61,13 +61,17 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 	var progress *AdvancedPermissionsPhase2Progress
 	if lastDone == "" {
 		// Haven't started the migration yet.
-		progress = new(AdvancedPermissionsPhase2Progress)
-		progress.CurrentTable = "TeamMembers"
-		progress.LastChannelId = strings.Repeat("0", 26)
-		progress.LastTeamId = strings.Repeat("0", 26)
-		progress.LastUserId = strings.Repeat("0", 26)
+		progress = &AdvancedPermissionsPhase2Progress{
+			CurrentTable:  "TeamMembers",
+			LastChannelId: strings.Repeat("0", 26),
+			LastTeamId:    strings.Repeat("0", 26),
+			LastUserId:    strings.Repeat("0", 26),
+		}
 	} else {
-		progress = AdvancedPermissionsPhase2ProgressFromJSON(strings.NewReader(lastDone))
+		err := json.NewDecoder(strings.NewReader(lastDone)).Decode(&progress)
+		if err != nil {
+			return false, "", model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress", map[string]any{"lastDone": lastDone}, "", http.StatusInternalServerError).Wrap(err)
+		}
 		if !progress.IsValid() {
 			return false, "", model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress", map[string]any{"progress": progress.ToJSON()}, "", http.StatusInternalServerError)
 		}
