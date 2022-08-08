@@ -193,7 +193,7 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
