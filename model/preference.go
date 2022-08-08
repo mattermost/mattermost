@@ -98,6 +98,8 @@ func (o *Preference) IsValid() *AppError {
 	return nil
 }
 
+var preUpdateColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
+
 func (o *Preference) PreUpdate() {
 	if o.Category == PreferenceCategoryTheme {
 		// decode the value of theme (a map of strings to string) and eliminate any invalid values
@@ -105,15 +107,13 @@ func (o *Preference) PreUpdate() {
 		// just continue, the invalid preference value should get caught by IsValid before saving
 		json.NewDecoder(strings.NewReader(o.Value)).Decode(&props)
 
-		colorPattern := regexp.MustCompile(`^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$`)
-
 		// blank out any invalid theme values
 		for name, value := range props {
 			if name == "image" || name == "type" || name == "codeTheme" {
 				continue
 			}
 
-			if !colorPattern.MatchString(value) {
+			if !preUpdateColorPattern.MatchString(value) {
 				props[name] = "#ffffff"
 			}
 		}
