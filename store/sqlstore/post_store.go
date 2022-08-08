@@ -784,6 +784,13 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 		}
 
 		for _, p := range posts {
+			if p.Id == id {
+				// Based on the conditions above such as sq.Or{ sq.Eq{"p.Id": rootId}, sq.Eq{"p.RootId": rootId}, }
+				// posts may contain the "id" post which has already been fetched and added in the "pl"
+				// So, skip the "id" to avoid duplicate entry of the post
+				continue
+			}
+
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
@@ -2188,7 +2195,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	query := s.getQueryBuilder().
-		Select("COUNT(p.Id) AS Value").
+		Select("COUNT(*) AS Value").
 		From("Posts p")
 
 	if options.TeamId != "" {

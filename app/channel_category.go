@@ -151,7 +151,7 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 
 	updatedCategoriesJSON, jsonErr := json.Marshal(updatedCategories)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode original categories to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateSidebarCategories", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	message.Add("updatedCategories", string(updatedCategoriesJSON))

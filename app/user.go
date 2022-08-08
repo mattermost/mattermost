@@ -1220,7 +1220,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return userUpdate.New, nil
 }
 
-func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
@@ -1416,7 +1416,6 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 		email,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
-
 	if err != nil {
 		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError)
 	}
@@ -2196,7 +2195,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2241,7 +2240,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2518,7 +2517,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 
 	payload, jsonErr := json.Marshal(userThread)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode thread to JSON")
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))

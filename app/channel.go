@@ -91,17 +91,10 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		}
 	}
 
-	var err *model.AppError
 	for _, channelName := range a.DefaultChannelNames(c) {
 		channel, channelErr := a.Srv().Store.Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, channelErr.Error(), http.StatusInternalServerError)
-			}
+			c.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -661,7 +654,7 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil)
 	channelJSON, jsonErr := json.Marshal(channel)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
@@ -1019,7 +1012,9 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 		if err != nil {
 			return nil, err
 		}
-		a.sendUpdatedRoleEvent(adminRole)
+		if appErr := a.sendUpdatedRoleEvent(adminRole); appErr != nil {
+			return nil, appErr
+		}
 
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil)
 		a.Publish(message)
@@ -1285,7 +1280,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1314,7 +1309,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1587,7 +1582,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
-			mlog.Error("Failed to post join channel message", mlog.Err(err))
+			return nil, err
 		}
 	} else {
 		a.Srv().Go(func() {
@@ -2513,11 +2508,9 @@ func (a *App) RemoveUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 	} else {
-		a.Srv().Go(func() {
-			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
-				mlog.Error("Failed to post user removal message", mlog.Err(err))
-			}
-		})
+		if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+			c.Logger().Error("Failed to post user removal message", mlog.Err(err))
+		}
 	}
 
 	return nil
@@ -2701,7 +2694,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if a.IsCRTEnabledForUser(c, userID) {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode thread to JSON")
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 			message.Add("thread", string(payload))
@@ -3268,7 +3261,7 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 
 		memberJSON, jsonErr := json.Marshal(member)
 		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return nil, model.NewAppError("setChannelsMuted", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		}
 
 		evt.Add("channelMember", string(memberJSON))
@@ -3369,21 +3362,22 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	return nil
 }
 
-func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) {
+func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil)
 		memberJSON, jsonErr := json.Marshal(channelMember)
 		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return jsonErr
 		}
 		message.Add("channelMember", string(memberJSON))
 		a.Publish(message)
 		return nil
 	}
 	if err := a.forEachChannelMember(c, channelID, clearSessionCache); err != nil {
-		c.Logger().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+		return fmt.Errorf("error clearing cache for channel members: channel_id: %s, error: %v", channelID, err)
 	}
+	return nil
 }
 
 func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {

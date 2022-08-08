@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -138,7 +137,9 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return nil, err
 	}
 
-	a.sendUpdatedRoleEvent(role)
+	if appErr := a.sendUpdatedRoleEvent(role); appErr != nil {
+		return nil, appErr
+	}
 
 	return role, err
 }
@@ -225,7 +226,10 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	for _, ir := range impactedRoles {
 		if ir.Name != role.Name {
-			a.sendUpdatedRoleEvent(ir)
+			appErr = a.sendUpdatedRoleEvent(ir)
+			if appErr != nil {
+				return nil, appErr
+			}
 		}
 	}
 
@@ -254,17 +258,15 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 	return nil
 }
 
-func (a *App) sendUpdatedRoleEvent(role *model.Role) {
+func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil)
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode role to JSON", mlog.Err(jsonErr))
+		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("role", string(roleJSON))
-
-	a.Srv().Go(func() {
-		a.Publish(message)
-	})
+	a.Publish(message)
+	return nil
 }
 
 func RemoveRoles(rolesToRemove []string, roles string) string {

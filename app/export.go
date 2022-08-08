@@ -15,6 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -61,7 +62,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
@@ -74,52 +75,52 @@ func (a *App) BulkExport(writer io.Writer, outPath string, opts model.BulkExport
 		}
 	}
 
-	mlog.Info("Bulk export: exporting version")
+	ctx.Logger().Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting teams")
+	ctx.Logger().Info("Bulk export: exporting teams")
 	teamNames, err := a.exportAllTeams(writer)
 	if err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting channels")
+	ctx.Logger().Info("Bulk export: exporting channels")
 	if err = a.exportAllChannels(writer, teamNames); err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting users")
+	ctx.Logger().Info("Bulk export: exporting users")
 	if err = a.exportAllUsers(writer); err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(writer, opts.IncludeAttachments)
+	ctx.Logger().Info("Bulk export: exporting posts")
+	attachments, err := a.exportAllPosts(ctx, writer, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting emoji")
+	ctx.Logger().Info("Bulk export: exporting emoji")
 	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting direct channels")
+	ctx.Logger().Info("Bulk export: exporting direct channels")
 	if err = a.exportAllDirectChannels(writer); err != nil {
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(writer, opts.IncludeAttachments)
+	ctx.Logger().Info("Bulk export: exporting direct posts")
+	directAttachments, err := a.exportAllDirectPosts(ctx, writer, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
 
 	if opts.IncludeAttachments {
-		mlog.Info("Bulk export: exporting file attachments")
+		ctx.Logger().Info("Bulk export: exporting file attachments")
 		for _, attachment := range attachments {
 			if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
 				return err
@@ -383,7 +384,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
 	var attachments []AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 
@@ -407,7 +408,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 
 			postLine := ImportLineForPost(post)
 
-			replies, replyAttachments, err := a.buildPostReplies(post.Id, withAttachments)
+			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
 			if err != nil {
 				return nil, err
 			}
@@ -419,7 +420,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 			postLine.Post.Replies = &replies
 			postLine.Post.Reactions = &[]ReactionImportData{}
 			if post.HasReactions {
-				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
+				postLine.Post.Reactions, err = a.BuildPostReactions(ctx, post.Id)
 				if err != nil {
 					return nil, err
 				}
@@ -444,7 +445,7 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]Attachme
 	}
 }
 
-func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
+func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
 	var replies []ReplyImportData
 	var attachments []AttachmentImportData
 
@@ -457,7 +458,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 		replyImportObject := ImportReplyFromPost(reply)
 		if reply.HasReactions {
 			var appErr *model.AppError
-			replyImportObject.Reactions, appErr = a.BuildPostReactions(reply.Id)
+			replyImportObject.Reactions, appErr = a.BuildPostReactions(ctx, reply.Id)
 			if appErr != nil {
 				return nil, nil, appErr
 			}
@@ -479,7 +480,7 @@ func (a *App) buildPostReplies(postID string, withAttachments bool) ([]ReplyImpo
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.AppError) {
+func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
 	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
@@ -492,7 +493,7 @@ func (a *App) BuildPostReactions(postID string) (*[]ReactionImportData, *model.A
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
-				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
+				ctx.Logger().Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
 			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -634,7 +635,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
+func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
 	var attachments []AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	for {
@@ -670,7 +671,7 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 			}
 
 			// Do the Replies.
-			replies, replyAttachments, err := a.buildPostReplies(post.Id, withAttachments)
+			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
 			if err != nil {
 				return nil, err
 			}
