@@ -103,11 +103,13 @@ type AppIface interface {
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
+	//
 	//	['town-square', 'off-topic']
+	//
 	// However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 	// 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-	//	['town-square', 'game-of-thrones', 'wow']
 	//
+	//	['town-square', 'game-of-thrones', 'wow']
 	DefaultChannelNames(c request.CTX) []string
 	// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 	DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError)
@@ -227,6 +229,8 @@ type AppIface interface {
 	GetTeamSchemeChannelRoles(c request.CTX, teamID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// GetUserStatusesByIds used by apiV4
+	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
 	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
@@ -386,8 +390,6 @@ type AppIface interface {
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
-	//GetUserStatusesByIds used by apiV4
-	GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError)
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
