@@ -1323,7 +1323,7 @@ func TestConfigFilteredByTag(t *testing.T) {
 	// Remove entire sections but the map is still there
 	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, 0, len(clusterSettings))
+	require.Empty(t, clusterSettings)
 
 	// Some fields are removed if they have the filtering tag
 	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]any)

@@ -98,7 +98,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	session = &Session{TeamMembers: []*TeamMember{}}
 	copySession = session.DeepCopy()
 
-	assert.Equal(t, 0, len(copySession.TeamMembers))
+	assert.Empty(t, copySession.TeamMembers)
 }
 
 func TestSessionCSRF(t *testing.T) {

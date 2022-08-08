@@ -261,7 +261,7 @@ func TestCleanUsername(t *testing.T) {
 	assert.Equal(t, CleanUsername("PUNCH"), "punch", "didn't clean name properly")
 	assert.Equal(t, CleanUsername("spin'punch"), "spin-punch", "didn't clean name properly")
 	assert.Equal(t, CleanUsername("spin"), "spin", "didn't clean name properly")
-	assert.Equal(t, len(CleanUsername("all")), 27, "didn't clean name properly")
+	assert.Len(t, CleanUsername("all"), 27, "didn't clean name properly")
 }
 
 func TestRoles(t *testing.T) {
@@ -338,18 +338,18 @@ func TestUserSlice(t *testing.T) {
 		slice := UserSlice([]*User{user0, user1, user2})
 
 		activeUsers := slice.FilterByActive(true)
-		assert.Equal(t, 2, len(activeUsers))
+		assert.Len(t, activeUsers, 2)
 		for _, user := range activeUsers {
 			assert.True(t, user.DeleteAt == 0)
 		}
 
 		inactiveUsers := slice.FilterByActive(false)
-		assert.Equal(t, 1, len(inactiveUsers))
+		assert.Len(t, inactiveUsers, 1)
 		for _, user := range inactiveUsers {
 			assert.True(t, user.DeleteAt != 0)
 		}
 
 		nonBotUsers := slice.FilterWithoutBots()
-		assert.Equal(t, 1, len(nonBotUsers))
+		assert.Len(t, nonBotUsers, 1)
 	})
 }
