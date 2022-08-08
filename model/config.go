@@ -3078,19 +3078,20 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // environment with ExperimentalSettings.RestrictedSystemAdmin set to true.
 //
 // Example:
-//  type HairSettings struct {
-//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
-//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
-//      // PermissionManageSystem grants read and write access.
-//      Colour string `access:"reporting,user_management_groups"`
 //
-//      // Length is only readable and writable via PermissionManageSystem.
-//      Length string
+//	type HairSettings struct {
+//	    // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
+//	    // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
+//	    // PermissionManageSystem grants read and write access.
+//	    Colour string `access:"reporting,user_management_groups"`
 //
-//      // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
-//      // PermissionManageSystem can always read the value.
-//      Product bool `access:write_restrictable`
-//  }
+//	    // Length is only readable and writable via PermissionManageSystem.
+//	    Length string
+//
+//	    // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
+//	    // PermissionManageSystem can always read the value.
+//	    Product bool `access:write_restrictable`
+//	}
 type Config struct {
 	ServiceSettings           ServiceSettings
 	TeamSettings              TeamSettings
