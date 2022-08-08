@@ -4,6 +4,7 @@
 package filestore
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"io"
@@ -365,7 +366,16 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 	options := s3PutOptions(b.encrypt, contentType)
-	info, err := b.client.PutObject(ctx, b.bucket, path, fr, -1, options)
+
+	objSize := -1
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	// We pass an object size only in situations where bifrost is not
+	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
+	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+		objSize = buf.Len()
+	}
+
+	info, err := b.client.PutObject(ctx, b.bucket, path, fr, int64(objSize), options)
 	if err != nil {
 		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
@@ -393,7 +403,14 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	partName := fp + ".part"
 	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel2()
-	info, err := b.client.PutObject(ctx2, b.bucket, partName, fr, -1, options)
+	objSize := -1
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	// We pass an object size only in situations where bifrost is not
+	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
+	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+		objSize = buf.Len()
+	}
+	info, err := b.client.PutObject(ctx2, b.bucket, partName, fr, int64(objSize), options)
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 	}
