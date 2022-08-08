@@ -16,14 +16,14 @@ var validCloudSKUs map[string]interface{} = map[string]interface{}{
 
 // These are the features a non admin would typically ping an admin about
 var nonAdminPaidFeatures map[string]interface{} = map[string]interface{}{
-	"Guest Accounts":          nil,
-	"Custom User groups":      nil,
-	"Create Multiple Teams":   nil,
-	"Start call":              nil,
-	"Playbooks Retrospective": nil,
-	"Unlimited Messages":      nil,
-	"Unlimited File Storage":  nil,
-	"All":                     nil,
+	"Guest Accounts":            nil,
+	"Custom User groups":        nil,
+	"Create Multiple Teams":     nil,
+	"Start call":                nil,
+	"Playbooks Retrospective":   nil,
+	"Unlimited Messages":        nil,
+	"Unlimited File Storage":    nil,
+	"All Professional features": nil,
 }
 
 type NotifyAdminData struct {

@@ -107,31 +107,31 @@ func (a *App) ZZZDATA() []*model.NotifyAdminData {
 	d := []*model.NotifyAdminData{
 		&model.NotifyAdminData{
 			Id:              "test_id1",
-			UserId:          "userid1",
+			UserId:          "8mcagrxjitnetpczgp5xk94taw",
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "Guest Accounts",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id2",
-			UserId:          "userid2",
+			UserId:          "tgaqxj4nybr4zbh8q7q4mht8ta",
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "Guest Accounts",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id3",
-			UserId:          "userid3",
+			UserId:          "4m6ynd1zy3ys7crs1a8io15emc",
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "Guest Accounts",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id4",
-			UserId:          "userid4",
+			UserId:          "s6apf9muhtft5b1dfm6773ak6a",
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "Guest Accounts",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id5",
-			UserId:          "userid5",
+			UserId:          "yh4gx8tp9brzpj8p9hz67ekabe",
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "Guest Accounts",
 		},
@@ -155,15 +155,15 @@ func (a *App) ZZZDATA() []*model.NotifyAdminData {
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id9",
-			UserId:          "userid9",
+			UserId:          "8mcagrxjitnetpczgp5xk94taw",
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All",
+			RequiredFeature: "All Professional features",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id10",
-			UserId:          "userid10",
+			UserId:          "4chdbexzniywxbggceyx7sprko",
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All",
+			RequiredFeature: "All Professional features",
 		},
 		&model.NotifyAdminData{
 			Id:              "test_id11",
@@ -175,7 +175,13 @@ func (a *App) ZZZDATA() []*model.NotifyAdminData {
 			Id:              "test_id12",
 			UserId:          "userid8",
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All",
+			RequiredFeature: "All Professional features",
+		},
+		&model.NotifyAdminData{
+			Id:              "test_id13",
+			UserId:          "8mcagrxjitnetpczgp5xk94taw",
+			RequiredPlan:    "cloud-enterprise",
+			RequiredFeature: "Custom user groups",
 		},
 	}
 
