@@ -20,7 +20,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 
 	compliances, err := a.Srv().Store.Compliance().GetAll(page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetComplianceReports", "app.compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetComplianceReports", "app.compliance.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return compliances, nil
@@ -40,7 +40,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SaveComplianceReport", "app.compliance.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SaveComplianceReport", "app.compliance.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -65,9 +65,9 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -77,7 +77,7 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
 	f, err := ioutil.ReadFile(*a.Config().ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip")
 	if err != nil {
-		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusNotImplemented)
+		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 	}
 	return f, nil
 }

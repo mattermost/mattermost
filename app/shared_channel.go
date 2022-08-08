@@ -77,7 +77,7 @@ func (a *App) HasSharedChannel(channelID string) (bool, error) {
 func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, *model.AppError) {
 	channels, err := a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
 	if err != nil {
-		return nil, model.NewAppError("GetSharedChannels", "app.channel.get_channels.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetSharedChannels", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels, nil
 }
@@ -126,9 +126,9 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return rc, nil

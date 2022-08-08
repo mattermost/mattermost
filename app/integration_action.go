@@ -98,7 +98,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 			default:
 				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 			}
@@ -116,9 +116,9 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -209,7 +209,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(tr.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 			default:
 				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
 			}
@@ -244,7 +244,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	}
 	requestJSON, jsonErr := json.Marshal(upstreamRequest)
 	if jsonErr != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	resp, appErr = a.DoActionRequest(c, upstreamURL, requestJSON)
 	if appErr != nil {
@@ -313,7 +313,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	rawURLPath := path.Clean(rawURL)
@@ -323,7 +323,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -447,7 +447,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	warnMetricId := filepath.Base(rawURL)
@@ -608,7 +608,7 @@ func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDi
 
 	b, jsonErr := json.Marshal(request)
 	if jsonErr != nil {
-		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("SubmitInteractiveDialog", "app.submit_interactive_dialog.json_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 	}
 
 	resp, err := a.DoActionRequest(c, url, b)

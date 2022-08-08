@@ -158,7 +158,7 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 
 	us, storeErr := a.Srv().Store.UploadSession().Save(us)
 	if storeErr != nil {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	return us, nil
@@ -253,7 +253,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	if written > 0 {
 		us.FileOffset += written
 		if storeErr := a.Srv().Store.UploadSession().Update(us); storeErr != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 	if err != nil {
@@ -268,14 +268,14 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	// upload is done, create FileInfo
 	file, err := a.FileReader(uploadPath)
 	if err != nil {
-		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// generate file info
 	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
 	file.Close()
 	if genErr != nil {
-		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, genErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, "", http.StatusInternalServerError).Wrap(genErr)
 	}
 
 	info.CreatorId = us.UserId
@@ -309,7 +309,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	if us.Type == model.UploadTypeImport {
 		if err := a.MoveFile(uploadPath, us.Path); err != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -320,7 +320,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		case errors.As(storeErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 

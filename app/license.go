@@ -67,7 +67,7 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		case errors.As(err, &nfErr):
 			return model.NewAppError("RequestTrialLicense", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("RequestTrialLicense", "app.user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("RequestTrialLicense", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -161,12 +161,12 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, model.NewAppError("addLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("addLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	uniqueUserCount, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if uniqueUserCount > int64(*license.Features.Users) {
@@ -221,7 +221,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -303,7 +303,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 	sysVar.Value = ""
 
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
-		return model.NewAppError("RemoveLicense", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveLicense", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	s.SetLicense(nil)
@@ -331,12 +331,12 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
 	trialRequestJSON, jsonErr := json.Marshal(trialRequest)
 	if jsonErr != nil {
-		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
 	if err != nil {
-		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer resp.Body.Close()
 
@@ -395,7 +395,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(license.Customer.Email))
 	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return tokenString, nil

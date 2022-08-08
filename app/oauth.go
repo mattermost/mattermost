@@ -49,9 +49,9 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		default:
-			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -68,9 +68,9 @@ func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -95,9 +95,9 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		default:
-			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -110,7 +110,7 @@ func (a *App) DeleteOAuthApp(appID string) *model.AppError {
 	}
 
 	if err := a.Srv().Store.OAuth().DeleteApp(appID); err != nil {
-		return model.NewAppError("DeleteOAuthApp", "app.oauth.delete_app.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteOAuthApp", "app.oauth.delete_app.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().InvalidateAllCaches(); err != nil {
@@ -127,7 +127,7 @@ func (a *App) GetOAuthApps(page, perPage int) ([]*model.OAuthApp, *model.AppErro
 
 	oauthApps, err := a.Srv().Store.OAuth().GetApps(page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetOAuthApps", "app.oauth.get_apps.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOAuthApps", "app.oauth.get_apps.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApps, nil
@@ -140,7 +140,7 @@ func (a *App) GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.
 
 	oauthApps, err := a.Srv().Store.OAuth().GetAppByUser(userID, page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetOAuthAppsByCreator", "app.oauth.get_app_by_user.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOAuthAppsByCreator", "app.oauth.get_app_by_user.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return oauthApps, nil
@@ -187,9 +187,9 @@ func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.Author
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -459,7 +459,7 @@ func (a *App) GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*mod
 
 	apps, err := a.Srv().Store.OAuth().GetAuthorizedApps(userID, page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetAuthorizedAppsForUser", "app.oauth.get_apps.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAuthorizedAppsForUser", "app.oauth.get_apps.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for k, a := range apps {
@@ -478,7 +478,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 	// Revoke app sessions
 	accessData, err := a.Srv().Store.OAuth().GetAccessDataByUserForApp(userID, appID)
 	if err != nil {
-		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.get_access_data_by_user_for_app.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.get_access_data_by_user_for_app.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, ad := range accessData {
@@ -487,13 +487,13 @@ func (a *App) DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError {
 		}
 
 		if err := a.Srv().Store.OAuth().RemoveAccessData(ad.Token); err != nil {
-			return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.remove_access_data.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.remove_access_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	// Deauthorize the app
 	if err := a.Srv().Store.Preference().Delete(userID, model.PreferenceCategoryAuthorizedOAuthApp, appID); err != nil {
-		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -512,9 +512,9 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		default:
-			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -525,11 +525,11 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 	if err := a.ch.srv.userService.RevokeAccessToken(token); err != nil {
 		switch {
 		case errors.Is(err, users.GetTokenError):
-			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.Is(err, users.DeleteTokenError):
-			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		case errors.Is(err, users.DeleteSessionError):
-			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -659,9 +659,9 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		default:
-			return nil, model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -683,7 +683,7 @@ func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("CreateOAuthStateToken", "app.recover.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateOAuthStateToken", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -693,7 +693,7 @@ func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError
 func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 	mToken, err := a.Srv().Store.Token().GetByToken(token)
 	if err != nil {
-		return nil, model.NewAppError("GetOAuthStateToken", "api.oauth.invalid_state_token.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("GetOAuthStateToken", "api.oauth.invalid_state_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if mToken.Type != model.TokenTypeOAuth {
@@ -711,7 +711,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e2.Error(), http.StatusNotImplemented)
+		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, "", http.StatusNotImplemented).Wrap(e2)
 	}
 
 	secure := false
@@ -776,12 +776,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e2.Error(), http.StatusNotImplemented)
+		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, "", http.StatusNotImplemented).Wrap(e2)
 	}
 
 	b, strErr := b64.StdEncoding.DecodeString(state)
 	if strErr != nil {
-		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, strErr.Error(), http.StatusBadRequest)
+		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(strErr)
 	}
 
 	stateStr := string(b)
@@ -836,7 +836,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	req, requestErr := http.NewRequest("POST", *sso.TokenEndpoint, strings.NewReader(p.Encode()))
 	if requestErr != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, requestErr.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(requestErr)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -844,7 +844,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	resp, err := a.HTTPService().MakeClient(true).Do(req)
 	if err != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer resp.Body.Close()
 
@@ -871,13 +871,13 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if ar.IdToken != "" {
 		userFromToken, err = provider.GetUserFromIdToken(ar.IdToken)
 		if err != nil {
-			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	req, requestErr = http.NewRequest("GET", *sso.UserAPIEndpoint, strings.NewReader(""))
 	if requestErr != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(requestErr)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -886,7 +886,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	resp, err = a.HTTPService().MakeClient(true).Do(req)
 	if err != nil {
-		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, err.Error(), http.StatusInternalServerError)
+		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(err)
 	} else if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 
