@@ -62,12 +62,12 @@ func TestSessionIsValid(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.input.IsValid()
+			appErr := tc.input.IsValid()
 			if tc.expectedError != "" {
-				require.NotNil(t, err)
-				require.Equal(t, tc.expectedError, err.Id)
+				require.NotNil(t, appErr)
+				require.Equal(t, tc.expectedError, appErr.Id)
 			} else {
-				require.Nil(t, err)
+				require.Nil(t, appErr)
 			}
 		})
 	}
