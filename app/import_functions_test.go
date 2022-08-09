@@ -3127,7 +3127,7 @@ func TestImportImportPost(t *testing.T) {
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 2, "Unexpected number of posts found.")
-		th.TestLogger.Flush()
+		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
 
 		rootPost := posts[0]
