@@ -14,6 +14,66 @@ type NotifyAdminStore struct {
 	mock.Mock
 }
 
+// DeleteAll provides a mock function with given fields: trial
+func (_m *NotifyAdminStore) DeleteAll(trial bool) error {
+	ret := _m.Called(trial)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(bool) error); ok {
+		r0 = rf(trial)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Get provides a mock function with given fields: trial
+func (_m *NotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
+	ret := _m.Called(trial)
+
+	var r0 []*model.NotifyAdminData
+	if rf, ok := ret.Get(0).(func(bool) []*model.NotifyAdminData); ok {
+		r0 = rf(trial)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.NotifyAdminData)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
+		r1 = rf(trial)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetDataByUserIdAndFeature provides a mock function with given fields: userId, feature
+func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature string) ([]*model.NotifyAdminData, error) {
+	ret := _m.Called(userId, feature)
+
+	var r0 []*model.NotifyAdminData
+	if rf, ok := ret.Get(0).(func(string, string) []*model.NotifyAdminData); ok {
+		r0 = rf(userId, feature)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.NotifyAdminData)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, feature)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: data
 func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
 	ret := _m.Called(data)

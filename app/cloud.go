@@ -18,6 +18,42 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
+	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
+	if err != nil {
+		// todo (allan): check for NoSqlRows
+		return true
+	}
+	if len(data) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (a *App) SaveAdminNotification(c *request.Context, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
+	userId := c.Session().Id
+	requiredFeature := notifyData.RequiredFeature
+	requiredPlan := notifyData.RequiredPlan
+	trial := notifyData.TrialNotification
+
+	if a.UserAlreadyNotifiedOnRequiredFeature(userId, requiredFeature) {
+		return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
+	}
+
+	_, appErr := a.SaveAdminNotifyData(&model.NotifyAdminData{
+		UserId:          userId,
+		RequiredPlan:    requiredPlan,
+		RequiredFeature: requiredFeature,
+		Trial:           trial,
+	})
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
 func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
 	userId := c.Session().Id
 

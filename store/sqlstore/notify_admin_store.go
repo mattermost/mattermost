@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	sq "github.com/mattermost/squirrel"
 )
 
 type SqlNotifyAdminStore struct {
@@ -38,4 +39,45 @@ func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdm
 	}
 
 	return data, nil
+}
+
+func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId, feature string) ([]*model.NotifyAdminData, error) {
+	data := []*model.NotifyAdminData{}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("NotifyAdmin").
+		Where(sq.Eq{"UserId": userId, "RequiredFeature": feature}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data by user id and required feature")
+	}
+
+	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "notifcation data by user id: %s and required feature: %s", userId, feature)
+	}
+	return data, nil
+}
+
+func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
+	data := []*model.NotifyAdminData{}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("NotifyAdmin").
+		Where(sq.Eq{"trial": trial}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get all notifcation data")
+	}
+
+	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
+		return nil, errors.Wrap(err, "notifcation data")
+	}
+	return data, nil
+}
+
+func (s SqlNotifyAdminStore) DeleteAll(trial bool) error {
+	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE trial = ?", trial); err != nil {
+		return errors.Wrapf(err, "failed to remove all notification data with trial=%s", trial)
+	}
+	return nil
 }
