@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -55,7 +54,7 @@ func fileBytes(t *testing.T, path string) []byte {
 	f, err := os.Open(path)
 	require.NoError(t, err)
 	defer f.Close()
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
 }
@@ -701,10 +700,10 @@ func TestUploadFiles(t *testing.T) {
 							data, _, err := get(ri.Id)
 							require.NoError(t, err)
 
-							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
+							expected, err := os.ReadFile(filepath.Join(testDir, name))
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
-								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								tf, err := os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.NoError(t, err)
 								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
