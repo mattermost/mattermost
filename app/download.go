@@ -35,7 +35,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Errorf("failed to parse url %s", downloadURL)
 	}
-	if !*s.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
+	if !*s.platform.Config().PluginSettings.AllowInsecureDownloadURL && u.Scheme != "https" {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
