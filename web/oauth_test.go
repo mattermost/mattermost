@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -636,7 +635,7 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 
 func closeBody(r *http.Response) {
 	if r != nil && r.Body != nil {
-		ioutil.ReadAll(r.Body)
+		io.ReadAll(r.Body)
 		r.Body.Close()
 	}
 }

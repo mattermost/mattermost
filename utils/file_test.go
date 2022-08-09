@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,18 +16,18 @@ import (
 )
 
 func TestCopyDir(t *testing.T) {
-	srcDir, err := ioutil.TempDir("", "src")
+	srcDir, err := os.MkdirTemp("", "src")
 	require.NoError(t, err)
 	defer os.RemoveAll(srcDir)
 
-	dstParentDir, err := ioutil.TempDir("", "dstparent")
+	dstParentDir, err := os.MkdirTemp("", "dstparent")
 	require.NoError(t, err)
 	defer os.RemoveAll(dstParentDir)
 
 	dstDir := filepath.Join(dstParentDir, "dst")
 
 	tempFile := "temp.txt"
-	err = ioutil.WriteFile(filepath.Join(srcDir, tempFile), []byte("test file"), 0655)
+	err = os.WriteFile(filepath.Join(srcDir, tempFile), []byte("test file"), 0655)
 	require.NoError(t, err)
 
 	childDir := "child"
@@ -36,7 +35,7 @@ func TestCopyDir(t *testing.T) {
 	require.NoError(t, err)
 
 	childTempFile := "childtemp.txt"
-	err = ioutil.WriteFile(filepath.Join(srcDir, childDir, childTempFile), []byte("test file"), 0755)
+	err = os.WriteFile(filepath.Join(srcDir, childDir, childTempFile), []byte("test file"), 0755)
 	require.NoError(t, err)
 
 	err = CopyDir(srcDir, dstDir)
@@ -46,7 +45,7 @@ func TestCopyDir(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(0655), uint32(stat.Mode()))
 	assert.False(t, stat.IsDir())
-	data, err := ioutil.ReadFile(filepath.Join(dstDir, tempFile))
+	data, err := os.ReadFile(filepath.Join(dstDir, tempFile))
 	assert.NoError(t, err)
 	assert.Equal(t, "test file", string(data))
 
@@ -58,7 +57,7 @@ func TestCopyDir(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(0755), uint32(stat.Mode()))
 	assert.False(t, stat.IsDir())
-	data, err = ioutil.ReadFile(filepath.Join(dstDir, childDir, childTempFile))
+	data, err = os.ReadFile(filepath.Join(dstDir, childDir, childTempFile))
 	assert.NoError(t, err)
 	assert.Equal(t, "test file", string(data))
 

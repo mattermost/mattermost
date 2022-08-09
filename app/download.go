@@ -5,7 +5,6 @@ package app
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -64,5 +63,5 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

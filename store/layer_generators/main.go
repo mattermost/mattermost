@@ -10,7 +10,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -49,7 +49,7 @@ func buildRetryLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -62,7 +62,7 @@ func buildTimerLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
 }
 
 func buildOpenTracingLayer() error {
@@ -75,7 +75,7 @@ func buildOpenTracingLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
 }
 
 type methodParam struct {
@@ -155,7 +155,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to open store/store.go file: %w", err)
 	}
-	src, err := ioutil.ReadAll(file)
+	src, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ package utils
 import (
 	"archive/zip"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,7 +89,7 @@ func TestUnzipToPath(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 	require.NotEmpty(t, testDir)
 
-	dir, err := ioutil.TempDir("", "unzip")
+	dir, err := os.MkdirTemp("", "unzip")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 

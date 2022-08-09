@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -384,7 +384,7 @@ func TestPrivateServePluginRequest(t *testing.T) {
 			handler := func(context *plugin.Context, w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, testCase.ExpectedURL, r.URL.Path)
 
-				body, _ := ioutil.ReadAll(r.Body)
+				body, _ := io.ReadAll(r.Body)
 				assert.Equal(t, expectedBody, body)
 			}
 
@@ -827,7 +827,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 	t.Run("automatic, enabled plugin, no signature", func(t *testing.T) {
 		// Install the plugin and enable
-		pluginBytes, err := ioutil.ReadFile(testPluginPath)
+		pluginBytes, err := os.ReadFile(testPluginPath)
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 
@@ -935,7 +935,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		// Install first plugin and enable
-		pluginBytes, err := ioutil.ReadFile(testPluginPath)
+		pluginBytes, err := os.ReadFile(testPluginPath)
 		require.NoError(t, err)
 		require.NotNil(t, pluginBytes)
 

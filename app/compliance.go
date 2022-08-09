@@ -5,8 +5,8 @@ package app
 
 import (
 	"errors"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -75,7 +75,7 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 }
 
 func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
-	f, err := ioutil.ReadFile(*a.Config().ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip")
+	f, err := os.ReadFile(*a.Config().ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip")
 	if err != nil {
 		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusNotImplemented)
 	}
