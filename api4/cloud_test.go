@@ -30,7 +30,7 @@ func Test_getCloudLimits(t *testing.T) {
 		limits, r, err := th.Client.GetProductLimits()
 		require.Error(t, err)
 		require.Nil(t, limits)
-		require.Equal(t, http.StatusNotImplemented, r.StatusCode, "Expected 501 Not Implemented")
+		require.Equal(t, http.StatusForbidden, r.StatusCode, "Expected 403 forbidden")
 	})
 
 	t.Run("non cloud license returns not implemented", func(t *testing.T) {
@@ -44,7 +44,7 @@ func Test_getCloudLimits(t *testing.T) {
 		limits, r, err := th.Client.GetProductLimits()
 		require.Error(t, err)
 		require.Nil(t, limits)
-		require.Equal(t, http.StatusNotImplemented, r.StatusCode, "Expected 501 Not Implemented")
+		require.Equal(t, http.StatusForbidden, r.StatusCode, "Expected 403 forbidden")
 	})
 
 	t.Run("error fetching limits returns internal server error", func(t *testing.T) {
