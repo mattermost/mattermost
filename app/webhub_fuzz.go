@@ -6,7 +6,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -273,7 +272,7 @@ func generateInitialCorpus() error {
 		if err != nil {
 			return err
 		}
-		err = ioutil.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
+		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err
 		}

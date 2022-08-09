@@ -6,7 +6,6 @@ package testlib
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -164,7 +163,7 @@ func (h *MainHelper) PreloadMigrations() {
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "postgres_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
@@ -175,7 +174,7 @@ func (h *MainHelper) PreloadMigrations() {
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "mysql_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
