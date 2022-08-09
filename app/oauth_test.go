@@ -210,7 +210,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
-		assert.NotEqual(t, "", err.DetailedError)
+		assert.Error(t, err.Unwrap())
 	})
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
