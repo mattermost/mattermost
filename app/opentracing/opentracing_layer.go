@@ -9933,6 +9933,50 @@ func (a *OpenTracingAppLayer) GetTopChannelsForUserSince(c request.CTX, userID s
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID string, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopInactiveChannelsForTeamSince")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTopInactiveChannelsForTeamSince(c, teamID, userID, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetTopInactiveChannelsForUserSince(c request.CTX, userID string, teamID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopInactiveChannelsForUserSince")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTopInactiveChannelsForUserSince(c, userID, teamID, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopReactionsForTeamSince")

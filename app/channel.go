@@ -3446,3 +3446,20 @@ func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnix
 	}
 	return postCountByDay, nil
 }
+
+func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	// TODO: get top inactive channels from store
+	return &model.TopInactiveChannelList{}, nil
+}
+
+func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	// ODO: get top inactive channels from store
+	return &model.TopInactiveChannelList{}, nil
+}

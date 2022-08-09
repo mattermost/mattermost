@@ -790,6 +790,8 @@ type AppIface interface {
 	GetTokenById(token string) (*model.Token, *model.AppError)
 	GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
 	GetTopChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError)
+	GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError)
+	GetTopInactiveChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError)
 	GetTopReactionsForTeamSince(teamID string, userID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
