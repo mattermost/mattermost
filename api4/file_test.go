@@ -512,7 +512,7 @@ func TestUploadFiles(t *testing.T) {
 			client:                th.SystemAdminClient,
 			names:                 []string{"test.png"},
 			skipSuccessValidation: true,
-			checkResponse:         CheckNotImplementedStatus,
+			checkResponse:         CheckForbiddenStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
 				enableFileAttachments := *a.Config().FileSettings.EnableFileAttachments
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
@@ -919,7 +919,7 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp, err = client.GetFileLink(fileId)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, _, err := client.GetFileLink(fileId)
@@ -1090,7 +1090,7 @@ func TestGetPublicFile(t *testing.T) {
 
 	resp, err = http.Get(link)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusNotImplemented, resp.StatusCode, "should've failed to get image with disabled public link")
+	require.Equal(t, http.StatusForbidden, resp.StatusCode, "should've failed to get image with disabled public link")
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
