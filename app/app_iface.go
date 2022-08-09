@@ -553,7 +553,7 @@ type AppIface interface {
 	EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
 	ExportPermissions(w io.Writer) error
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
-	FeatureBasedFlatten() map[string][]*model.NotifyAdminData
+	FeatureBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
@@ -674,6 +674,7 @@ type AppIface interface {
 	GetNewUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string
 	GetNotificationNameFormat(user *model.User) string
+	GetNotifyAdminData(trial bool) ([]*model.NotifyAdminData, *model.AppError)
 	GetNumberOfChannelsOnTeam(c request.CTX, teamID string) (int, *model.AppError)
 	GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, code, secret, refreshToken string) (*model.AccessResponse, *model.AppError)
 	GetOAuthAccessTokenForImplicitFlow(userID string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError)
@@ -1017,7 +1018,7 @@ type AppIface interface {
 	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
-	SendNotifyAdminPosts(c *request.Context)
+	SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppError
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendTestPushNotification(deviceID string) string
@@ -1137,11 +1138,10 @@ type AppIface interface {
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool
-	UserBasedFlatten() map[string][]*model.NotifyAdminData
+	UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData
 	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	ZZZDATA() []*model.NotifyAdminData
 }

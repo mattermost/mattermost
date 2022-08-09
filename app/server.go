@@ -688,6 +688,8 @@ func NewServer(options ...Option) (*Server, error) {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
+			appInstance.runCheckForAdminUpgradeNotificationsJob()
+			appInstance.runCheckForAdminTrialNotificationsJob()
 			runDNDStatusExpireJob(appInstance)
 			runPostReminderJob(appInstance)
 		})
@@ -1517,6 +1519,18 @@ func runConfigCleanupJob(s *Server) {
 func (s *Server) runInactivityCheckJob() {
 	model.CreateRecurringTask("Server inactivity Check", func() {
 		s.doInactivityCheck()
+	}, time.Hour*24)
+}
+
+func (a *App) runCheckForAdminUpgradeNotificationsJob() {
+	model.CreateRecurringTask("check for admin upgrade notifications job", func() {
+		a.doCheckForAdminUpgradeNotifications()
+	}, time.Hour*24)
+}
+
+func (a *App) runCheckForAdminTrialNotificationsJob() {
+	model.CreateRecurringTask("check for admin trial notifications job", func() {
+		a.doCheckForAdminTrialNotifications()
 	}, time.Hour*24)
 }
 

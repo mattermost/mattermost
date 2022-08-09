@@ -40,7 +40,7 @@ func (nad *NotifyAdminData) IsValid() *AppError {
 		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid plan, %s provided", nad.RequiredPlan), nil, "", http.StatusBadRequest)
 	}
 
-	if _, featureOk := validCloudSKUs[nad.RequiredFeature]; !featureOk {
+	if _, featureOk := nonAdminPaidFeatures[nad.RequiredFeature]; !featureOk {
 		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid feature, %s provided", nad.RequiredFeature), nil, "", http.StatusBadRequest)
 	}
 

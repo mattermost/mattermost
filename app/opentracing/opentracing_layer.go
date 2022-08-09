@@ -4086,7 +4086,7 @@ func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInf
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FeatureBasedFlatten() map[string][]*model.NotifyAdminData {
+func (a *OpenTracingAppLayer) FeatureBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FeatureBasedFlatten")
 
@@ -4098,7 +4098,7 @@ func (a *OpenTracingAppLayer) FeatureBasedFlatten() map[string][]*model.NotifyAd
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.FeatureBasedFlatten()
+	resultVar0 := a.app.FeatureBasedFlatten(data)
 
 	return resultVar0
 }
@@ -7116,6 +7116,28 @@ func (a *OpenTracingAppLayer) GetNotificationNameFormat(user *model.User) string
 	resultVar0 := a.app.GetNotificationNameFormat(user)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) GetNotifyAdminData(trial bool) ([]*model.NotifyAdminData, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNotifyAdminData")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetNotifyAdminData(trial)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(c request.CTX, teamID string) (int, *model.AppError) {
@@ -15140,7 +15162,7 @@ func (a *OpenTracingAppLayer) SendNotifications(c request.CTX, post *model.Post,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context) {
+func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifyAdminPosts")
 
@@ -15152,7 +15174,14 @@ func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context) {
 	}()
 
 	defer span.Finish()
-	a.app.SendNotifyAdminPosts(c)
+	resultVar0 := a.app.SendNotifyAdminPosts(c, trial)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
@@ -17986,7 +18015,7 @@ func (a *OpenTracingAppLayer) UserAlreadyNotifiedOnRequiredFeature(user string, 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UserBasedFlatten() map[string][]*model.NotifyAdminData {
+func (a *OpenTracingAppLayer) UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserBasedFlatten")
 
@@ -17998,7 +18027,7 @@ func (a *OpenTracingAppLayer) UserBasedFlatten() map[string][]*model.NotifyAdmin
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UserBasedFlatten()
+	resultVar0 := a.app.UserBasedFlatten(data)
 
 	return resultVar0
 }
@@ -18155,23 +18184,6 @@ func (a *OpenTracingAppLayer) WriteFile(fr io.Reader, path string) (int64, *mode
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) ZZZDATA() []*model.NotifyAdminData {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ZZZDATA")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.ZZZDATA()
-
-	return resultVar0
 }
 
 func NewOpenTracingAppLayer(childApp app.AppIface, ctx context.Context) *OpenTracingAppLayer {

@@ -71,32 +71,6 @@ func (api *API) InitCloud() {
 // 	ReturnStatusOK(w)
 // }
 
-// func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
-// var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-// err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-// if err != nil {
-// 	c.SetInvalidParamWithErr("notifyAdminRequest", err)
-// 	return
-// }
-
-// _, appErr := c.App.SaveAdminNotifyData(&model.NotifyAdminData{
-// 	UserId:          c.AppContext.Session().Id,
-// 	RequiredPlan:    "cloud-professional",
-// 	RequiredFeature: "Guest Accounts",
-// })
-// if appErr != nil {
-// 	c.Err = appErr
-// 	return
-// }
-
-// c.App.SendNotifyAdminPosts(c.AppContext)
-
-// 	err := c.App.Srv().Store.NotifyAdmin().DeleteAll(false)
-// 	fmt.Println("ERR", err)
-
-// 	ReturnStatusOK(w)
-// }
-
 func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
@@ -105,14 +79,40 @@ func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	appErr := c.App.SaveAdminNotification(c.AppContext, notifyAdminRequest)
+	_, appErr := c.App.SaveAdminNotifyData(&model.NotifyAdminData{
+		UserId:          c.AppContext.Session().UserId,
+		RequiredPlan:    "cloud-professional",
+		RequiredFeature: "Guest Accounts",
+	})
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
+	// c.App.SendNotifyAdminPosts(c.AppContext)
+
+	// 	err := c.App.Srv().Store.NotifyAdmin().DeleteAll(false)
+	// 	fmt.Println("ERR", err)
+
 	ReturnStatusOK(w)
 }
+
+// func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
+// 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
+// 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
+// 	if err != nil {
+// 		c.SetInvalidParamWithErr("notifyAdminRequest", err)
+// 		return
+// 	}
+
+// 	appErr := c.App.SaveAdminNotification(c.AppContext, notifyAdminRequest)
+// 	if appErr != nil {
+// 		c.Err = appErr
+// 		return
+// 	}
+
+// 	ReturnStatusOK(w)
+// }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
