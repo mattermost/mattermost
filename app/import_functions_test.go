@@ -3100,7 +3100,6 @@ func TestImportImportPost(t *testing.T) {
 	})
 
 	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
-		t.Skip("MM-44922")
 		now := model.GetMillis()
 		before := now - 10
 		data := LineImportWorkerData{
@@ -3128,6 +3127,7 @@ func TestImportImportPost(t *testing.T) {
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 2, "Unexpected number of posts found.")
+		th.TestLogger.Flush()
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
 
 		rootPost := posts[0]
