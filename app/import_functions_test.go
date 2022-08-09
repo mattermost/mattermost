@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -3100,7 +3099,6 @@ func TestImportImportPost(t *testing.T) {
 	})
 
 	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
-		t.Skip("MM-44922")
 		now := model.GetMillis()
 		before := now - 10
 		data := LineImportWorkerData{
@@ -3128,6 +3126,7 @@ func TestImportImportPost(t *testing.T) {
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 2, "Unexpected number of posts found.")
+		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
 
 		rootPost := posts[0]
@@ -4378,11 +4377,11 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testImage2 := filepath.Join(testsDir, "test.svg")
 	// create a temp file with same name as original but with a different first byte
-	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	tmpFolder, _ := os.MkdirTemp("", "imgFake")
 	testImageFake := filepath.Join(tmpFolder, "test.png")
-	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData, _ := os.ReadFile(testImage)
 	fakeFileData[0] = 0
-	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	_ = os.WriteFile(testImageFake, fakeFileData, 0644)
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.

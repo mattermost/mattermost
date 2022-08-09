@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	_ "image/gif"
 	_ "image/png"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -76,13 +76,13 @@ func TestFileInfoIsImage(t *testing.T) {
 func TestGetInfoForFile(t *testing.T) {
 	fakeFile := make([]byte, 1000)
 
-	pngFile, err := ioutil.ReadFile("../tests/test.png")
+	pngFile, err := os.ReadFile("../tests/test.png")
 	require.NoError(t, err, "Failed to load test.png")
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
 
-	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
+	animatedGifFile, err := os.ReadFile("../tests/testgif.gif")
 	require.NoError(t, err, "Failed to load testgif.gif")
 
 	var ttc = []struct {
