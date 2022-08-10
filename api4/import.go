@@ -28,7 +28,7 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(imports)
 	if err != nil {
-		c.Err = model.NewAppError("listImports", "app.import.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("listImports", "app.import.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

@@ -500,15 +500,16 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 
 func BenchmarkS3WriteFile(b *testing.B) {
 	settings := FileBackendSettings{
-		DriverName:              driverS3,
-		AmazonS3AccessKeyId:     "minioaccesskey",
-		AmazonS3SecretAccessKey: "miniosecretkey",
-		AmazonS3Bucket:          "mattermost-test",
-		AmazonS3Region:          "",
-		AmazonS3Endpoint:        "localhost:9000",
-		AmazonS3PathPrefix:      "",
-		AmazonS3SSL:             false,
-		AmazonS3SSE:             false,
+		DriverName:                         driverS3,
+		AmazonS3AccessKeyId:                "minioaccesskey",
+		AmazonS3SecretAccessKey:            "miniosecretkey",
+		AmazonS3Bucket:                     "mattermost-test",
+		AmazonS3Region:                     "",
+		AmazonS3Endpoint:                   "localhost:9000",
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		AmazonS3SSE:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 20000,
 	}
 
 	backend, err := NewFileBackend(settings)
