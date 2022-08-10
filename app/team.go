@@ -168,7 +168,7 @@ func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *mo
 				return nil, model.NewAppError("CreateTeam", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 			}
 		case errors.As(err, &cErr):
-			return nil, model.NewAppError("CreateTeam", store.ChannelExistsError, nil, cErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreateTeam", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(cErr)
 		case errors.As(err, &ltErr):
 			return nil, model.NewAppError("CreateTeam", "store.sql_channel.save_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(ltErr)
 		case errors.As(err, &appErr):
@@ -225,7 +225,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &domErr):
-			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(domErr)
 		default:
 			return nil, model.NewAppError("UpdateTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -790,11 +790,11 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		var limitExceededErr *store.ErrLimitExceeded
 		switch {
 		case errors.Is(err, teams.AcceptedDomainError):
-			return nil, model.NewAppError("JoinUserToTeam", "api.team.join_user_to_team.allowed_domains.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("JoinUserToTeam", "api.team.join_user_to_team.allowed_domains.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.Is(err, teams.MemberCountError):
 			return nil, model.NewAppError("JoinUserToTeam", "app.team.get_active_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		case errors.Is(err, teams.MaxMemberCountError):
-			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+team.Id, http.StatusBadRequest)
+			return nil, model.NewAppError("JoinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+team.Id, http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		case errors.As(err, &conflictErr):
