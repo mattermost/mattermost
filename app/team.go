@@ -147,7 +147,7 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
-func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *model.AppError) {
+func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
 		var invErr *store.ErrInvalidInput

@@ -158,7 +158,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	return err
 }
 
-func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) *model.AppError {
+func (a *App) importTeam(c request.CTX, data *TeamImportData, dryRun bool) *model.AppError {
 	if err := validateTeamImportData(data); err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 	return nil
 }
 
-func (a *App) importChannel(c *request.Context, data *ChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importChannel(c request.CTX, data *ChannelImportData, dryRun bool) *model.AppError {
 	if err := validateChannelImportData(data); err != nil {
 		return err
 	}
@@ -1089,7 +1089,7 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.
 	return nil
 }
 
-func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *model.Post, teamID string) *model.AppError {
+func (a *App) importReplies(c request.CTX, data []ReplyImportData, post *model.Post, teamID string) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1191,7 +1191,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 	return nil
 }
 
-func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(c request.CTX, data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
 	var (
 		name string
 		file io.Reader
@@ -1342,7 +1342,7 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(c request.CTX, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1531,7 +1531,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(c request.CTX, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
 	if attachments == nil {
 		return nil
 	}
@@ -1644,7 +1644,7 @@ func (a *App) importDirectChannel(c request.CTX, data *DirectChannelImportData, 
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(c request.CTX, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
