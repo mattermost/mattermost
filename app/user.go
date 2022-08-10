@@ -435,9 +435,9 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusBadRequest).Wrap(invErr)
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, nfErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusInternalServerError).Wrap(nfErr)
 		default:
 			return nil, model.NewAppError("GetUserByAuth", "app.user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -862,13 +862,11 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 	}
 
 	if user == nil {
-		err = model.NewAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "", http.StatusBadRequest)
-		return err
+		return model.NewAppError("updatePassword", "api.user.update_password.valid_account.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if user.AuthData != nil && *user.AuthData != "" {
-		err = model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
-		return err
+		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
 	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
@@ -1118,7 +1116,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
