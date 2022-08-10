@@ -141,14 +141,14 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	return nil
 }
 
-func (a *App) exportWriteLine(writer io.Writer, line *LineImportData) *model.AppError {
+func (a *App) exportWriteLine(w io.Writer, line *LineImportData) *model.AppError {
 	b, err := json.Marshal(line)
 	if err != nil {
-		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if _, err := writer.Write(append(b, '\n')); err != nil {
-		return model.NewAppError("BulkExport", "app.export.export_write_line.io_writer.error", nil, "err="+err.Error(), http.StatusBadRequest)
+	if _, err := w.Write(append(b, '\n')); err != nil {
+		return model.NewAppError("BulkExport", "app.export.export_write_line.io_writer.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	return nil

@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -108,7 +108,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 
 	pchan := make(chan testTelemetryPayload, 100)
 	receiver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 
 		var p testTelemetryPayload
@@ -154,8 +154,8 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("Config").Return(cfg)
 	serverIfaceMock.On("IsLeader").Return(true)
 
-	pluginDir, _ := ioutil.TempDir("", "")
-	webappPluginDir, _ := ioutil.TempDir("", "")
+	pluginDir, _ := os.MkdirTemp("", "")
+	webappPluginDir, _ := os.MkdirTemp("", "")
 	cleanUp := func() {
 		os.RemoveAll(pluginDir)
 		os.RemoveAll(webappPluginDir)

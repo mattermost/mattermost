@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -517,7 +517,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.ServiceGitlab, "", state, "")
 
 				require.NotNil(t, body)
-				bodyBytes, bodyErr := ioutil.ReadAll(body)
+				bodyBytes, bodyErr := io.ReadAll(body)
 				require.NoError(t, bodyErr)
 				assert.Equal(t, userData, string(bodyBytes))
 

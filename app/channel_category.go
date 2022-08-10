@@ -144,7 +144,7 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	updatedCategories, originalCategories, err := a.Srv().Store.Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
-		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, teamID, "", userID, nil)

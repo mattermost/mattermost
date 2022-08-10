@@ -5,7 +5,7 @@ package api4
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -461,7 +461,7 @@ func TestPatchBot(t *testing.T) {
 		r, err := th.Client.DoAPIPut("/bots/"+createdBot.UserId, `{"creator_id":"`+th.BasicUser2.Id+`"}`)
 		require.NoError(t, err)
 		defer func() {
-			_, _ = ioutil.ReadAll(r.Body)
+			_, _ = io.ReadAll(r.Body)
 			_ = r.Body.Close()
 		}()
 		var patchedBot *model.Bot

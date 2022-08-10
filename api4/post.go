@@ -970,9 +970,9 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
-	if err != nil {
-		c.Err = err
+	infos, appErr := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -980,11 +980,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, jsonErr := json.Marshal(infos)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getFileInfosForPost", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(infos)
+	if err != nil {
+		c.Err = model.NewAppError("getFileInfosForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
 	w.Write(js)

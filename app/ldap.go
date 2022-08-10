@@ -4,7 +4,7 @@
 package app
 
 import (
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -186,12 +186,12 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = a.Srv().configStore.SetFile(filename, data)
+	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
 		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -234,7 +234,7 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 }
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
-	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
+	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 	return nil

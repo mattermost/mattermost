@@ -251,9 +251,9 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	manifests, err := c.App.GetActivePluginManifests()
-	if err != nil {
-		c.Err = err
+	manifests, appErr := c.App.GetActivePluginManifests()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -268,11 +268,12 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, jsonErr := json.Marshal(clientManifests)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getWebappPlugins", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(clientManifests)
+	if err != nil {
+		c.Err = model.NewAppError("getWebappPlugins", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -294,7 +295,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	filter, err := parseMarketplacePluginFilter(r.URL)
 	if err != nil {
-		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -306,7 +307,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(plugins)
 	if err != nil {
-		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getMarketplacePlugins", "app.plugin.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

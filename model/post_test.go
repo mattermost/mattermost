@@ -5,7 +5,7 @@ package model
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -369,13 +369,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 var markdownSample, markdownSampleWithRewrittenImageURLs string
 
 func init() {
-	bytes, err := ioutil.ReadFile("testdata/markdown-sample.md")
+	bytes, err := os.ReadFile("testdata/markdown-sample.md")
 	if err != nil {
 		panic(err)
 	}
 	markdownSample = string(bytes)
 
-	bytes, err = ioutil.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
+	bytes, err = os.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
 	if err != nil {
 		panic(err)
 	}
