@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 
@@ -37,7 +36,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if isSamlFile(&a.Config().SamlSettings, name) {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
-	data, err := ioutil.ReadAll(key)
+	data, err := io.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -122,7 +121,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 }
 
 func decodeIfArmored(reader io.Reader) (io.Reader, error) {
-	readBytes, err := ioutil.ReadAll(reader)
+	readBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't read the file")
 	}

@@ -6,7 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -293,7 +293,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.io_error", nil, err.Error(), http.StatusBadRequest)
 		return
@@ -464,7 +464,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.io_error", nil, err.Error(), http.StatusBadRequest)
 		return
@@ -1109,8 +1109,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 // licensedAndConfiguredForGroupBySource returns an app error if not properly license or configured for the given group type. The returned app error
 // will have a blank 'Where' field, which should be subsequently set by the caller, for example:
 //
-//    err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
-//    err.Where = "Api4.getGroup"
+//	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
+//	err.Where = "Api4.getGroup"
 //
 // Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
