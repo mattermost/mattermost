@@ -156,7 +156,6 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool
@@ -223,6 +222,14 @@ func (o *Channel) TotalMsgCountRoot_() float64 {
 
 func (o *Channel) LastRootPostAt_() float64 {
 	return float64(o.LastRootPostAt)
+}
+
+func (o *Channel) ExtraUpdateAt_() float64 {
+	return float64(o.ExtraUpdateAt)
+}
+
+func (o *Channel) Props_() StringInterface {
+	return StringInterface(o.Props)
 }
 
 func (o *Channel) DeepCopy() *Channel {

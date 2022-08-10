@@ -5,7 +5,6 @@ package utils_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,7 +40,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("no config", func(t *testing.T) {
-		tempDir, err := ioutil.TempDir("", "test_update_assets_subpath")
+		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 		os.Chdir(tempDir)
@@ -53,7 +52,7 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 
 func TestUpdateAssetsSubpath(t *testing.T) {
 	t.Run("no client dir", func(t *testing.T) {
-		tempDir, err := ioutil.TempDir("", "test_update_assets_subpath")
+		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 		os.Chdir(tempDir)
@@ -63,7 +62,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 	})
 
 	t.Run("valid", func(t *testing.T) {
-		tempDir, err := ioutil.TempDir("", "test_update_assets_subpath")
+		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 		os.Chdir(tempDir)
@@ -163,9 +162,9 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
-				ioutil.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700)
-				ioutil.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700)
-				ioutil.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700)
+				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700)
+				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700)
+				os.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700)
 				err := utils.UpdateAssetsSubpath(testCase.Subpath)
 				if testCase.ExpectedError != nil {
 					require.Equal(t, testCase.ExpectedError, err)
@@ -173,7 +172,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 					require.NoError(t, err)
 				}
 
-				contents, err := ioutil.ReadFile(filepath.Join(tempDir, model.ClientDir, "root.html"))
+				contents, err := os.ReadFile(filepath.Join(tempDir, model.ClientDir, "root.html"))
 				require.NoError(t, err)
 
 				// Rewrite the expected and contents for simpler diffs when failed.
@@ -181,11 +180,11 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				contentsStr := strings.Replace(string(contents), ">", ">\n", -1)
 				require.Equal(t, expectedRootHTML, contentsStr)
 
-				contents, err = ioutil.ReadFile(filepath.Join(tempDir, model.ClientDir, "main.css"))
+				contents, err = os.ReadFile(filepath.Join(tempDir, model.ClientDir, "main.css"))
 				require.NoError(t, err)
 				require.Equal(t, testCase.ExpectedMainCSS, string(contents))
 
-				contents, err = ioutil.ReadFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"))
+				contents, err = os.ReadFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"))
 				require.NoError(t, err)
 				require.Equal(t, testCase.ExpectedManifestJSON, string(contents))
 			})

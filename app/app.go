@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -116,7 +117,7 @@ func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.ch.srv.Metrics
+	return a.ch.srv.GetMetrics()
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification
@@ -173,6 +174,9 @@ func (a *App) SetServer(srv *Server) {
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 }
+
+// Ensure system service adapter implements `product.SystemService`
+var _ product.SystemService = (*systemServiceAdapter)(nil)
 
 // systemServiceAdapter provides a collection of system APIs for use by products.
 type systemServiceAdapter struct {

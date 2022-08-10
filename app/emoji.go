@@ -39,11 +39,11 @@ const (
 
 func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// wipe the emoji id so that existing emojis can't get overwritten
@@ -52,8 +52,8 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	// do our best to validate the emoji before committing anything to the DB so that we don't have to clean up
 	// orphaned files left over when validation fails later on
 	emoji.PreSave()
-	if err := emoji.IsValid(); err != nil {
-		return nil, err
+	if appErr := emoji.IsValid(); appErr != nil {
+		return nil, appErr
 	}
 
 	if emoji.CreatorId != sessionUserId {
@@ -61,28 +61,27 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	}
 
 	if existingEmoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emoji.Name, true); err == nil && existingEmoji != nil {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	imageData := multiPartImageData.File["image"]
 	if len(imageData) == 0 {
-		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
 	}
 
-	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
-		return nil, err
+	if appErr := a.UploadEmojiImage(emoji.Id, imageData[0]); appErr != nil {
+		return nil, appErr
 	}
 
 	emoji, err := a.Srv().Store.Emoji().Save(emoji)
 	if err != nil {
-		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil)
 	emojiJSON, jsonErr := json.Marshal(emoji)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode emoji to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("CreateEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("emoji", string(emojiJSON))
 	a.Publish(message)
@@ -100,11 +99,11 @@ func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *mod
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return model.NewAppError("UploadEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("UploadEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	file, err := imageData.Open()
@@ -185,11 +184,11 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 
 func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	emoji, err := a.Srv().Store.Emoji().Get(context.Background(), emojiId, true)
@@ -208,11 +207,11 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 
 func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("GetEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	emoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emojiName, true)
@@ -231,7 +230,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	emoji, err := a.Srv().Store.Emoji().GetMultipleByName(names)
@@ -269,7 +268,7 @@ func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 
 func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	list, err := a.Srv().Store.Emoji().Search(name, prefixOnly, limit)

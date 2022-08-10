@@ -10,7 +10,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -257,7 +256,7 @@ func download(url string, limit int64) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	out, err := ioutil.TempFile("", "*_mattermost.tar.gz")
+	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
 	if err != nil {
 		return "", err
 	}
@@ -310,7 +309,7 @@ func extractBinary(executablePath string, filename string) error {
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
 			permissions := getFilePermissionsOrDefault(executablePath, 0755)
-			tmpFile, err := ioutil.TempFile(path.Dir(executablePath), "*")
+			tmpFile, err := os.CreateTemp(path.Dir(executablePath), "*")
 			if err != nil {
 				return err
 			}

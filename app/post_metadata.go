@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -42,7 +41,7 @@ var linkCache = cache.NewLRU(cache.LRUOptions{
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
-	s.AddConfigListener(func(before, after *model.Config) {
+	s.platform.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
@@ -54,12 +53,12 @@ func (s *Server) initPostMetadata() {
 
 func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
-		Posts:                make(map[string]*model.Post, len(originalList.Posts)),
-		Order:                originalList.Order,
-		NextPostId:           originalList.NextPostId,
-		PrevPostId:           originalList.PrevPostId,
-		HasNext:              originalList.HasNext,
-		HasInaccessiblePosts: originalList.HasInaccessiblePosts,
+		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
+		Order:                     originalList.Order,
+		NextPostId:                originalList.NextPostId,
+		PrevPostId:                originalList.PrevPostId,
+		HasNext:                   originalList.HasNext,
+		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
 	for id, originalPost := range originalList.Posts {
@@ -216,7 +215,7 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster)
+	return a.GetFileInfosForPost(post.Id, fromMaster, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
@@ -606,7 +605,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 		if body != nil {
 			defer func() {
-				io.Copy(ioutil.Discard, body)
+				io.Copy(io.Discard, body)
 				body.Close()
 			}()
 		}

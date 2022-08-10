@@ -34,6 +34,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
 	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
 	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
+	api.BaseRoutes.PostForUser.Handle("/reminder", api.APISessionRequired(setPostReminder)).Methods("POST")
+
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
 }
@@ -41,7 +43,7 @@ func (api *API) InitPost() {
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -104,14 +106,19 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
 	if err := rp.EncodeJSON(w); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ephRequest := model.PostEphemeral{}
 
-	json.NewDecoder(r.Body).Decode(&ephRequest)
+	jsonErr := json.NewDecoder(r.Body).Decode(&ephRequest)
+	if jsonErr != nil {
+		c.SetInvalidParamWithErr("body", jsonErr)
+		return
+	}
+
 	if ephRequest.UserID == "" {
 		c.SetInvalidParam("user_id")
 		return
@@ -401,7 +408,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
-			w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
 		return
@@ -438,7 +445,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -471,10 +478,10 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
+	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -520,6 +527,35 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
+		return
+	}
+
+	rPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	hasPermission := false
+	becauseCompliance := false
+	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
+		hasPermission = true
+	} else if channel, cErr := c.App.GetChannel(c.AppContext, rPost.ChannelId); cErr == nil {
+		if channel.Type == model.ChannelTypeOpen &&
+			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
+			hasPermission = true
+			if *c.App.Config().MessageExportSettings.EnableExport {
+				hasPermission = false
+				becauseCompliance = true
+			}
+		}
+	}
+
+	if !hasPermission {
+		if becauseCompliance {
+			c.Err = model.NewAppError("getPostThread", "api.post.compliance_enabled.join_channel_to_view_post", nil, "", http.StatusForbidden)
+		} else {
+			c.SetPermissionError(model.PermissionReadChannel)
+		}
 		return
 	}
 
@@ -625,7 +661,7 @@ func searchPostsInAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId string) {
 	var params model.SearchParameter
 	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
-		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -708,7 +744,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.Post
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -769,7 +805,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var post model.PostPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&post); jsonErr != nil {
-		c.SetInvalidParam("post")
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -838,8 +874,38 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(state); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId().RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
+	var reminder model.PostReminder
+	if jsonErr := json.NewDecoder(r.Body).Decode(&reminder); jsonErr != nil {
+		c.SetInvalidParamWithErr("target_time", jsonErr)
+		return
+	}
+
+	appErr := c.App.SetPostReminder(c.Params.PostId, c.Params.UserId, reminder.TargetTime)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
@@ -898,9 +964,15 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos, err := c.App.GetFileInfosForPostWithMigration(c.Params.PostId)
-	if err != nil {
-		c.Err = err
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if includeDeleted && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	infos, appErr := c.App.GetFileInfosForPostWithMigration(c.Params.PostId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -908,11 +980,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, jsonErr := json.Marshal(infos)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getFileInfosForPost", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(infos)
+	if err != nil {
+		c.Err = model.NewAppError("getFileInfosForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
 	w.Write(js)

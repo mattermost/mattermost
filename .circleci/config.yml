@@ -17,7 +17,7 @@ jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: mattermost/mattermost-build-webapp:20210524_node-16
+      - image: mattermost/mattermost-build-webapp:20220802_node-16.10.0@sha256:3272aa759f10c2ef1719ed08cc82ddb07224bec5be86f09800c72f5e2a623c3d
     resource_class: xlarge
     # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:

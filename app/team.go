@@ -24,12 +24,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
+// teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
 type teamServiceWrapper struct {
 	app AppIface
 }
@@ -41,6 +43,9 @@ func (w *teamServiceWrapper) GetMember(teamID, userID string) (*model.TeamMember
 func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	return w.app.AddTeamMember(ctx, teamID, userID)
 }
+
+// Ensure the wrapper implements the product service.
+var _ product.TeamService = (*teamServiceWrapper)(nil)
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
@@ -226,7 +231,9 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		}
 	}
 
-	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+		return nil, appErr
+	}
 
 	return oldTeam, nil
 }
@@ -296,9 +303,14 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		}
 	}
 
-	a.ClearTeamMembersCache(team.Id)
+	nErr = a.ClearTeamMembersCache(team.Id)
+	if nErr != nil {
+		return nil, model.NewAppError("UpdateTeamScheme", "app.team.clear_cache.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
 
-	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme)
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
+		return nil, appErr
+	}
 
 	return oldTeam, nil
 }
@@ -331,7 +343,9 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 		}
 	}
 
-	a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -357,7 +371,9 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		}
 	}
 
-	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+		return nil, appErr
+	}
 
 	return team, nil
 }
@@ -384,12 +400,14 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 		}
 	}
 
-	a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+		return nil, appErr
+	}
 
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event string) {
+func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -402,10 +420,11 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
 	teamJSON, jsonErr := json.Marshal(team)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode team to JSON", mlog.Err(jsonErr))
+		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("team", string(teamJSON))
 	a.Publish(message)
+	return nil
 }
 
 func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError) {
@@ -502,7 +521,9 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles strin
 
 	a.ClearSessionCacheForUser(userID)
 
-	a.sendUpdatedMemberRoleEvent(userID, member)
+	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+		return nil, appErr
+	}
 
 	return member, nil
 }
@@ -539,22 +560,25 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 
 	a.ClearSessionCacheForUser(userID)
 
-	a.sendUpdatedMemberRoleEvent(userID, member)
+	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+		return nil, appErr
+	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
+func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("member", string(tmJSON))
 	a.Publish(message)
+	return nil
 }
 
-func (a *App) AddUserToTeam(c *request.Context, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (a *App) AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
@@ -758,7 +782,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 	return team, teamMember, nil
 }
 
-func (a *App) JoinUserToTeam(c *request.Context, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(team, user)
 	if err != nil {
 		var appErr *model.AppError
@@ -1054,7 +1078,7 @@ func (a *App) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string,
 	return teamIDs, nil
 }
 
-func (a *App) AddTeamMember(c *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
+func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	_, teamMember, err := a.AddUserToTeam(c, teamID, userID, "")
 	if err != nil {
 		return nil, err
@@ -1147,7 +1171,7 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 	return teamUnread, nil
 }
 
-func (a *App) RemoveUserFromTeam(c *request.Context, teamID string, userID string, requestorId string) *model.AppError {
+func (a *App) RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
@@ -1240,7 +1264,7 @@ func (a *App) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMe
 	return nil
 }
 
-func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, requestorId string) *model.AppError {
+func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
 	teamMember, err := a.GetTeamMember(team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -1283,11 +1307,11 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 
 		if requestorId == user.Id {
 			if err = a.postLeaveTeamMessage(c, user, channel); err != nil {
-				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
+				c.Logger().Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err = a.postRemoveFromTeamMessage(c, user, channel); err != nil {
-				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
+				c.Logger().Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -1303,7 +1327,7 @@ func (a *App) LeaveTeam(c *request.Context, team *model.Team, user *model.User, 
 	return nil
 }
 
-func (a *App) postLeaveTeamMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postLeaveTeamMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.leave.left"), user.Username),
@@ -1321,7 +1345,7 @@ func (a *App) postLeaveTeamMessage(c *request.Context, user *model.User, channel
 	return nil
 }
 
-func (a *App) postRemoveFromTeamMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postRemoveFromTeamMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.remove_user_from_team.removed"), user.Username),
@@ -1792,7 +1816,9 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	a.sendTeamEvent(team, model.WebsocketEventDeleteTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -1818,7 +1844,9 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
-	a.sendTeamEvent(team, model.WebsocketEventDeleteTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -1844,7 +1872,10 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 		}
 	}
 
-	a.sendTeamEvent(team, model.WebsocketEventRestoreTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
@@ -2017,7 +2048,9 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -2034,7 +2067,9 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	a.sendTeamEvent(team, model.WebsocketEventUpdateTeam)
+	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+		return appErr
+	}
 
 	return nil
 }
@@ -2067,15 +2102,14 @@ func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
 	return nil
 }
 
-func (a *App) ClearTeamMembersCache(teamID string) {
+func (a *App) ClearTeamMembersCache(teamID string) error {
 	perPage := 100
 	page := 0
 
 	for {
 		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page*perPage, perPage, nil)
 		if err != nil {
-			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
-			break
+			return fmt.Errorf("failed to get team members: %v", err)
 		}
 
 		for _, teamMember := range teamMembers {
@@ -2084,7 +2118,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
 			tmJSON, jsonErr := json.Marshal(teamMember)
 			if jsonErr != nil {
-				mlog.Warn("Failed to encode team member to JSON", mlog.Err(jsonErr))
+				return jsonErr
 			}
 			message.Add("member", string(tmJSON))
 			a.Publish(message)
@@ -2097,4 +2131,5 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 
 		page++
 	}
+	return nil
 }

@@ -23,15 +23,15 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	categories, err := c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
-	if err != nil {
-		c.Err = err
+	categories, appErr := c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("getCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
@@ -70,9 +70,9 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	categoryJSON, jsonErr := json.Marshal(category)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoryJSON, err := json.Marshal(category)
+	if err != nil {
+		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -92,13 +92,16 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	order, err := c.App.GetSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId)
-	if err != nil {
-		c.Err = err
+	order, appErr := c.App.GetSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJSON(order)))
+	err := json.NewEncoder(w).Encode(order)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -145,15 +148,15 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	categories, err := c.App.GetSidebarCategory(c.AppContext, c.Params.CategoryId)
-	if err != nil {
-		c.Err = err
+	categories, appErr := c.App.GetSidebarCategory(c.AppContext, c.Params.CategoryId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("getCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -177,7 +180,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
 	if err != nil {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
@@ -199,9 +202,9 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -210,12 +213,12 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
+	channels, appErr := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
-	if err != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
+	if appErr != nil {
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 
 	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
@@ -278,7 +281,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
@@ -295,9 +298,9 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	categoryJSON, jsonErr := json.Marshal(categories[0])
-	if jsonErr != nil {
-		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoryJSON, err := json.Marshal(categories[0])
+	if err != nil {
+		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

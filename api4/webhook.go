@@ -30,7 +30,7 @@ func (api *API) InitWebhook() {
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidParam("incoming_webhook")
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -86,7 +86,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -98,7 +98,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.IncomingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidParam("incoming_webhook")
+		c.SetInvalidParamWithErr("incoming_webhook", jsonErr)
 		return
 	}
 
@@ -173,29 +173,31 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(incomingHook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	teamId := r.URL.Query().Get("team_id")
-	userId := c.AppContext.Session().UserId
+	var (
+		teamID = r.URL.Query().Get("team_id")
+		userID = c.AppContext.Session().UserId
 
-	var hooks []*model.IncomingWebhook
-	var err *model.AppError
+		hooks  []*model.IncomingWebhook
+		appErr *model.AppError
+	)
 
-	if teamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageIncomingWebhooks) {
+	if teamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageIncomingWebhooks) {
 			c.SetPermissionError(model.PermissionManageIncomingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersIncomingWebhooks) {
-			userId = ""
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOthersIncomingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetIncomingWebhooksForTeamPageByUser(teamID, userID, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageIncomingWebhooks) {
 			c.SetPermissionError(model.PermissionManageIncomingWebhooks)
@@ -204,22 +206,23 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Remove userId as a filter if they have permission to manage others.
 		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOthersIncomingWebhooks) {
-			userId = ""
+			userID = ""
 		}
 
-		hooks, err = c.App.GetIncomingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetIncomingWebhooksPageByUser(userID, c.Params.Page, c.Params.PerPage)
 	}
 
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(hooks)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	js, jsonErr := json.Marshal(hooks)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getIncomingHooks", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Write(js)
 }
 
@@ -273,7 +276,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(hook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -342,7 +345,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var updatedHook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&updatedHook); jsonErr != nil {
-		c.SetInvalidParam("outgoing_webhook")
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -395,14 +398,14 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hook model.OutgoingWebhook
 	if jsonErr := json.NewDecoder(r.Body).Decode(&hook); jsonErr != nil {
-		c.SetInvalidParam("outgoing_webhook")
+		c.SetInvalidParamWithErr("outgoing_webhook", jsonErr)
 		return
 	}
 
@@ -446,42 +449,45 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelId := r.URL.Query().Get("channel_id")
-	teamId := r.URL.Query().Get("team_id")
-	userId := c.AppContext.Session().UserId
+	var (
+		query     = r.URL.Query()
+		channelID = query.Get("channel_id")
+		teamID    = query.Get("team_id")
+		userID    = c.AppContext.Session().UserId
 
-	var hooks []*model.OutgoingWebhook
-	var err *model.AppError
+		hooks  []*model.OutgoingWebhook
+		appErr *model.AppError
+	)
 
-	if channelId != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionManageOutgoingWebhooks) {
+	if channelID != "" {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOutgoingWebhooks) {
 			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionManageOthersOutgoingWebhooks) {
-			userId = ""
+		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, c.Params.Page, c.Params.PerPage)
-	} else if teamId != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingWebhooks) {
+		hooks, appErr = c.App.GetOutgoingWebhooksForChannelPageByUser(channelID, userID, c.Params.Page, c.Params.PerPage)
+	} else if teamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOutgoingWebhooks) {
 			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersOutgoingWebhooks) {
-			userId = ""
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageOthersOutgoingWebhooks) {
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetOutgoingWebhooksForTeamPageByUser(teamID, userID, c.Params.Page, c.Params.PerPage)
 	} else {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) {
 			c.SetPermissionError(model.PermissionManageOutgoingWebhooks)
@@ -490,22 +496,23 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Remove userId as a filter if they have permission to manage others.
 		if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOthersOutgoingWebhooks) {
-			userId = ""
+			userID = ""
 		}
 
-		hooks, err = c.App.GetOutgoingWebhooksPageByUser(userId, c.Params.Page, c.Params.PerPage)
+		hooks, appErr = c.App.GetOutgoingWebhooksPageByUser(userID, c.Params.Page, c.Params.PerPage)
 	}
 
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(hooks)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("getOutgoingHooks", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	js, jsonErr := json.Marshal(hooks)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getOutgoingHooks", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Write(js)
 }
 
@@ -545,7 +552,7 @@ func getOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(hook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -592,7 +599,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(rhook); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

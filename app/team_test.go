@@ -1044,7 +1044,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mocks.SessionStore{},
 		OAuthStore:   &mocks.OAuthStore{},
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
@@ -1088,7 +1088,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		GroupStore:   &mocks.GroupStore{},
 		Users:        th.App.ch.srv.userService,
 		WebHub:       th.App.ch.srv,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
@@ -1433,7 +1433,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	th.App.ClearTeamMembersCache("teamID")
+	require.NoError(t, th.App.ClearTeamMembersCache("teamID"))
 }
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {

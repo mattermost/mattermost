@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -33,7 +32,7 @@ var atMentionRegexp = regexp.MustCompile(`\B@[[:alnum:]][[:alnum:]\.\-_:]*`)
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
-	DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse
+	DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -52,7 +51,7 @@ func GetCommandProvider(name string) CommandProvider {
 }
 
 // @openTracingParams teamID, skipSlackParsing
-func (a *App) CreateCommandPost(c *request.Context, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+func (a *App) CreateCommandPost(c request.CTX, post *model.Post, teamID string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
@@ -180,7 +179,7 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 }
 
 // @openTracingParams args
-func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (a *App) ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	message := ""
 	index := strings.IndexFunc(args.Command, unicode.IsSpace)
@@ -198,7 +197,7 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		mlog.Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
+		c.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
@@ -235,7 +234,7 @@ func (a *App) ExecuteCommand(c *request.Context, args *model.CommandArgs) (*mode
 
 // MentionsToTeamMembers returns all the @ mentions found in message that
 // belong to users in the specified team, linking them to their users
-func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap {
+func (a *App) MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -253,7 +252,7 @@ func (a *App) MentionsToTeamMembers(message, teamID string) model.UserMentionMap
 
 			var nfErr *store.ErrNotFound
 			if nErr != nil && !errors.As(nErr, &nfErr) {
-				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
+				c.Logger().Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
 
@@ -347,7 +346,7 @@ func (a *App) MentionsToPublicChannels(c request.CTX, message, teamID string) mo
 
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
-func (a *App) tryExecuteBuiltInCommand(c *request.Context, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
+func (a *App) tryExecuteBuiltInCommand(c request.CTX, args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
 	if provider == nil {
 		return nil, nil
@@ -443,7 +442,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, nil
 	}
 
-	mlog.Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
+	c.Logger().Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)
@@ -462,7 +461,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 
 	p.Set("trigger_id", args.TriggerId)
 
-	userMentionMap := a.MentionsToTeamMembers(message, team.Id)
+	userMentionMap := a.MentionsToTeamMembers(c, message, team.Id)
 	for key, values := range userMentionMap.ToURLValues() {
 		p[key] = values
 	}
@@ -521,7 +520,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 	if resp.StatusCode != http.StatusOK {
 		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
-		bodyBytes, _ := ioutil.ReadAll(body)
+		bodyBytes, _ := io.ReadAll(body)
 
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 	}
@@ -536,7 +535,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	return cmd, response, nil
 }
 
-func (a *App) HandleCommandResponse(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
 	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
@@ -570,7 +569,7 @@ func (a *App) HandleCommandResponse(c *request.Context, command *model.Command, 
 	return response, nil
 }
 
-func (a *App) HandleCommandResponsePost(c *request.Context, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
 	post := &model.Post{}
 	post.ChannelId = args.ChannelId
 	post.RootId = args.RootId

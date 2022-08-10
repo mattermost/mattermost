@@ -47,7 +47,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -106,7 +106,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Job
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidParam("job")
+		c.SetInvalidParamWithErr("job", jsonErr)
 		return
 	}
 
@@ -137,7 +137,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rjob); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -162,15 +162,15 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, err := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	jobs, appErr := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(jobs)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(jobs)
+	if err != nil {
+		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)
@@ -192,17 +192,18 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, err := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	jobs, appErr := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(jobs)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getJobsByType", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(jobs)
+	if err != nil {
+		c.Err = model.NewAppError("getJobsByType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 

@@ -59,7 +59,7 @@ type AppIface interface {
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	MentionsToTeamMembers(message, teamID string) model.UserMentionMap
+	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)

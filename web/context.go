@@ -221,6 +221,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
+	c.Err = NewInvalidParamError(parameter).Wrap(err)
+}
+
 func (c *Context) SetInvalidURLParam(parameter string) {
 	c.Err = NewInvalidURLParamError(parameter)
 }
@@ -237,8 +241,8 @@ func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
 
-func (c *Context) SetJSONEncodingError() {
-	c.Err = NewJSONEncodingError()
+func (c *Context) SetJSONEncodingError(err error) {
+	c.Err = NewJSONEncodingError(err)
 }
 
 func (c *Context) SetCommandNotFoundError() {
@@ -269,10 +273,12 @@ func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewInvalidURLParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewServerBusyError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 	return err
@@ -288,9 +294,9 @@ func NewInvalidRemoteClusterTokenError() *model.AppError {
 	return err
 }
 
-func NewJSONEncodingError() *model.AppError {
-	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
-	return err
+func NewJSONEncodingError(err error) *model.AppError {
+	appErr := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	return appErr
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {

@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/marketplace"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -37,6 +37,9 @@ type pluginSignaturePath struct {
 	path          string
 	signaturePath string
 }
+
+// Ensure routerService implements `product.RouterService`
+var _ product.RouterService = (*routerService)(nil)
 
 type routerService struct {
 	mu        sync.Mutex
@@ -222,7 +225,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log, ch.srv.Metrics)
+	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log, ch.srv.GetMetrics())
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -972,7 +975,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 	defer fileReader.Close()
 
-	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	tmpDir, err := os.MkdirTemp("", "plugintmp")
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
@@ -1082,7 +1085,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 		if sigErr != nil {
 			return nil, "", errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
 		}
-		bytes, sigErr := ioutil.ReadAll(sigReader)
+		bytes, sigErr := io.ReadAll(sigReader)
 		if sigErr != nil {
 			return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
 		}
@@ -1101,7 +1104,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 }
 
 func getIcon(iconPath string) (string, error) {
-	icon, err := ioutil.ReadFile(iconPath)
+	icon, err := os.ReadFile(iconPath)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}

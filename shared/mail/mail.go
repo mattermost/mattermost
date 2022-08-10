@@ -58,7 +58,6 @@ type mailData struct {
 }
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
-//
 type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error

@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
@@ -54,12 +53,12 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		case errors.As(err, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("UpdatePreferences", "app.preference.save.updating.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("UpdatePreferences", "app.preference.save.updating.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(preferences); err != nil {
-		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
@@ -69,7 +68,7 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil)
 	prefsJSON, jsonErr := json.Marshal(preferences)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+		return model.NewAppError("UpdatePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
 	a.Publish(message)
@@ -88,12 +87,12 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 
 	for _, preference := range preferences {
 		if err := a.Srv().Store.Preference().Delete(userID, preference.Category, preference.Name); err != nil {
-			return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("DeletePreferences", "app.preference.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if err := a.Srv().Store.Channel().DeleteSidebarChannelsByPreferences(preferences); err != nil {
-		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil)
@@ -103,7 +102,7 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil)
 	prefsJSON, jsonErr := json.Marshal(preferences)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+		return model.NewAppError("DeletePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
 	a.Publish(message)

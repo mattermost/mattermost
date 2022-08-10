@@ -1858,10 +1858,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -2054,10 +2050,6 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
@@ -2240,6 +2232,10 @@
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "Due to compliance rules configured on this instance the channel must be joined before its posts can be read."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -5912,6 +5908,14 @@
     "translation": "Unable to update the Post."
   },
   {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
     "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },
@@ -6146,6 +6150,10 @@
   {
     "id": "app.team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the team members."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Error clearing team member cache"
   },
   {
     "id": "app.team.get.find.app_error",
@@ -7982,6 +7990,10 @@
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",

@@ -347,6 +347,33 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	}
 }
 
+func TestJoinDefaultChannelsExperimentalDefaultChannelsMissing(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(th.Context, basicChannel2)
+	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, "thischanneldoesnotexist", basicChannel2.Name}
+	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
+
+	user := th.CreateUser()
+	require.Nil(t, th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, ""))
+
+	for _, channelName := range defaultChannelList {
+		if channelName == "thischanneldoesnotexist" {
+			continue // skip the non-existent channel
+		}
+
+		channel, err := th.App.GetChannelByName(th.Context, channelName, th.BasicTeam.Id, false)
+		require.Nil(t, err, "Expected nil, didn't receive nil")
+
+		member, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+
+		require.NotNil(t, member, "Expected member object, got nil")
+		require.Nil(t, err, "Expected nil object, didn't receive nil")
+	}
+}
+
 func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1004,18 +1031,18 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	user := th.BasicUser
 	user.Timezone["useAutomaticTimezone"] = "false"
 	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	user2 := th.BasicUser2
 	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
-	th.App.UpdateUser(user2, false)
+	th.App.UpdateUser(th.Context, user2, false)
 
 	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user3)
 	th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 
 	ruser.Timezone["automaticTimezone"] = "NoWhere/Island"
-	th.App.UpdateUser(ruser, false)
+	th.App.UpdateUser(th.Context, ruser, false)
 
 	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ = th.App.CreateUser(th.Context, &user4)
@@ -2029,7 +2056,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)
@@ -2065,7 +2092,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	th.App.ClearChannelMembersCache(th.Context, "channelID")
+	require.NoError(t, th.App.ClearChannelMembersCache(th.Context, "channelID"))
 }
 
 func TestGetMemberCountsByGroup(t *testing.T) {

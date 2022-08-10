@@ -269,13 +269,13 @@ func (_m *MockAppIface) InvalidateCacheForUser(userID string) {
 	_m.Called(userID)
 }
 
-// MentionsToTeamMembers provides a mock function with given fields: message, teamID
-func (_m *MockAppIface) MentionsToTeamMembers(message string, teamID string) model.UserMentionMap {
-	ret := _m.Called(message, teamID)
+// MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
+func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
+	ret := _m.Called(c, message, teamID)
 
 	var r0 model.UserMentionMap
-	if rf, ok := ret.Get(0).(func(string, string) model.UserMentionMap); ok {
-		r0 = rf(message, teamID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) model.UserMentionMap); ok {
+		r0 = rf(c, message, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.UserMentionMap)
