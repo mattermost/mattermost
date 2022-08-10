@@ -115,7 +115,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
-				nil, fileErr.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(fileErr)
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
@@ -171,10 +171,10 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 		switch {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, nfErr.Error(), http.StatusNotFound)
+				nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return us, nil
@@ -184,7 +184,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return uss, nil
 }

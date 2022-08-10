@@ -587,7 +587,7 @@ func (a *App) LoginByOAuth(c *request.Context, service string, userData io.Reade
 	authUser, err1 := provider.GetUserFromJSON(bytes.NewReader(buf.Bytes()), tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
-			map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
+			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
 
 	if *authUser.AuthData == "" {
@@ -638,7 +638,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 	ssoUser, err1 := provider.GetUserFromJSON(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
-			map[string]any{"Service": service}, err1.Error(), http.StatusBadRequest)
+			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
 	}
 
 	if *ssoUser.AuthData == "" {

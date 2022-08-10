@@ -393,7 +393,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	activeUsers, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	expirationTime := time.Now().UTC().Add(expiration)
