@@ -33,7 +33,7 @@ func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(results)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.localCheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.localCheckIntegrity", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +24,7 @@ func (ae *archiveExtractor) Match(filename string) bool {
 }
 
 func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error) {
-	dir, err := ioutil.TempDir(os.TempDir(), "archiver")
+	dir, err := os.MkdirTemp(os.TempDir(), "archiver")
 	if err != nil {
 		return "", fmt.Errorf("error creating temporary file: %v", err)
 	}
@@ -49,7 +48,7 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker) (string, error
 			filename = strings.ReplaceAll(filename, "-", " ")
 			filename = strings.ReplaceAll(filename, ".", " ")
 			filename = strings.ReplaceAll(filename, ",", " ")
-			data, err2 := ioutil.ReadAll(file)
+			data, err2 := io.ReadAll(file)
 			if err2 != nil {
 				return err2
 			}

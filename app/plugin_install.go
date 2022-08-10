@@ -33,14 +33,12 @@
 // Prepackaged plugins are included with the server. They otherwise follow the above flow, except do not get uploaded
 // to the filestore. Prepackaged plugins override all other plugins with the same plugin id, but only when the prepackaged
 // plugin is newer. Managed plugins unconditionally override unmanaged plugins with the same plugin id.
-//
 package app
 
 import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -280,7 +278,7 @@ func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, in
 		}
 	}
 
-	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	tmpDir, err := os.MkdirTemp("", "plugintmp")
 	if err != nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -305,7 +303,7 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	dir, err := ioutil.ReadDir(extractDir)
+	dir, err := os.ReadDir(extractDir)
 	if err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

@@ -6,8 +6,8 @@ package app
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
@@ -213,7 +213,7 @@ func TestUploadData(t *testing.T) {
 
 	t.Run("image processing", func(t *testing.T) {
 		testDir, _ := fileutils.FindDir("tests")
-		data, err := ioutil.ReadFile(filepath.Join(testDir, "test.png"))
+		data, err := os.ReadFile(filepath.Join(testDir, "test.png"))
 		require.NoError(t, err)
 		require.NotEmpty(t, data)
 

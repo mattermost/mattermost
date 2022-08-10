@@ -64,17 +64,18 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required
-	statuses, err := c.App.GetUserStatusesByIds(userIds)
-	if err != nil {
-		c.Err = err
+	statuses, appErr := c.App.GetUserStatusesByIds(userIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(statuses)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(statuses)
+	if err != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 

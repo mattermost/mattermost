@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -203,7 +202,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
 	}
 
-	b, readErr := ioutil.ReadAll(r.Body)
+	b, readErr := io.ReadAll(r.Body)
 	if readErr != nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
