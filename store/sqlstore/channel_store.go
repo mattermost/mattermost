@@ -4319,6 +4319,179 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
+// GetTopInactiveChannelsForTeamSince returns the filtered post counts of the following Channels sets:
+// a) those that are private channels in the given user's membership graph on the given team, and
+// b) those that are public channels in the given team.
+func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	channels := make([]*model.TopInactiveChannel, 0)
+	var args []any
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+
+	query := `
+		SELECT
+			ID,
+			Type,
+			DisplayName,
+			Name,
+			TeamID,
+			MessageCount,
+			LastActivityAt
+		FROM
+			((SELECT
+				Posts.ChannelId AS ID,
+				'O' AS Type,
+				PublicChannels.DisplayName AS DisplayName,
+				PublicChannels.Name AS Name,
+				PublicChannels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				PublicChannels.DeleteAt AS DeleteAt,
+				max(Posts.CreateAt) AS LastActivityAt
+			FROM
+				Posts
+				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = []any{since}
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND PublicChannels.TeamId = ?
+			GROUP BY
+				Posts.ChannelId,
+				PublicChannels.DisplayName,
+				PublicChannels.Name,
+				PublicChannels.TeamId,
+				PublicChannels.DeleteAt)
+		UNION ALL
+			(SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				Channels.TeamId AS TeamID,
+				count(Posts.Id) AS MessageCount,
+				Channels.DeleteAt AS DeleteAt,
+				max(Posts.CreateAt) AS LastActivityAt
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND Posts.Type = ''`
+	args = append(args, teamID, since)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query += mySqlPropsQuery
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		query += postgresPropQuery
+	}
+
+	query += `
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'P'
+				AND ChannelMembers.UserId = ?
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name,
+				Channels.TeamId,
+				Channels.DeleteAt)) AS A
+		WHERE
+			DeleteAt = 0
+		ORDER BY
+			MessageCount ASC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, teamID, userID, limit+1, offset)
+
+	fmt.Println(query, args)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
+}
+
+// GetTopInactiveChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
+// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
+func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	channels := make([]*model.TopInactiveChannel, 0)
+	var args []any
+	var query string
+
+	var propsQuery string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+	}
+
+	query = `
+		SELECT
+			Posts.ChannelId AS ID,
+			Channels.Type AS Type,
+			Channels.DisplayName AS DisplayName,
+			Channels.Name AS Name,
+			Channels.TeamId AS TeamID,
+			count(Posts.Id) AS MessageCount,
+			max(Posts.CreateAt) AS LastActivityAt
+		FROM
+			Posts
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+		WHERE
+			Posts.DeleteAt = 0
+			AND Posts.CreateAt > ?
+			AND Posts.Type = ''
+			AND Channels.DeleteAt = 0
+			AND (Channels.Type = 'O' OR Channels.Type = 'P')
+			AND ChannelMembers.UserId = ? `
+
+	query += propsQuery
+
+	args = []any{since, userID}
+
+	if teamID != "" {
+		query += `
+			AND Channels.TeamID = ?`
+		args = append(args, teamID)
+	}
+
+	query += `
+		Group By
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name,
+			Channels.TeamId
+		ORDER BY
+			MessageCount ASC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Inactive Channels")
+	}
+	fmt.Println(userID, teamID)
+
+	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
+}
+
 func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
 	var unixSelect string
 	var propsQuery string

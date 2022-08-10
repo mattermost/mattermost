@@ -424,7 +424,7 @@ func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *ht
 	loc := user.GetTimezoneLocation()
 	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
 
-	topChannels, err := c.App.GetTopInactiveChannelsForTeamSince(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, &model.InsightsOpts{
+	topChannels, err := c.App.GetTopInactiveChannelsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
 		StartUnixMilli: startTime.UnixMilli(),
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,

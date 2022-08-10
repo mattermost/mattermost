@@ -9955,7 +9955,7 @@ func (a *OpenTracingAppLayer) GetTopInactiveChannelsForTeamSince(c request.CTX, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTopInactiveChannelsForUserSince(c request.CTX, userID string, teamID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTopInactiveChannelsForUserSince(c request.CTX, teamID string, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopInactiveChannelsForUserSince")
 
@@ -9967,7 +9967,7 @@ func (a *OpenTracingAppLayer) GetTopInactiveChannelsForUserSince(c request.CTX, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTopInactiveChannelsForUserSince(c, userID, teamID, opts)
+	resultVar0, resultVar1 := a.app.GetTopInactiveChannelsForUserSince(c, teamID, userID, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

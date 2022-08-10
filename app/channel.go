@@ -3451,15 +3451,21 @@ func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID s
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
-	// TODO: get top inactive channels from store
-	return &model.TopInactiveChannelList{}, nil
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", "app.channel.get_top_invalid_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
 }
 
-func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// ODO: get top inactive channels from store
-	return &model.TopInactiveChannelList{}, nil
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", "app.channel.get_top_invalid_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topChannels, nil
 }
