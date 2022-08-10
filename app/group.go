@@ -113,7 +113,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	user, err := a.Srv().Store.User().GetByUsername(val)
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("", "app.group.get_by_username_failure", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("", "app.group.get_by_username_failure", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user != nil {
 		return model.NewAppError("", "app.group.username_conflict", nil, "", http.StatusBadRequest)

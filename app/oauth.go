@@ -648,7 +648,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 
 	user, nErr := a.Srv().Store.User().GetByEmail(email)
 	if nErr != nil {
-		return nil, model.NewAppError("CompleteSwitchWithOAuth", MissingAccountError, nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if err := a.RevokeAllSessions(user.Id); err != nil {

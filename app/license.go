@@ -65,7 +65,7 @@ func (w *licenseWrapper) RequestTrialLicense(requesterID string, users int, term
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("RequestTrialLicense", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("RequestTrialLicense", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
 			return model.NewAppError("RequestTrialLicense", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
