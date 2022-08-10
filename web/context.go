@@ -241,8 +241,8 @@ func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
 
-func (c *Context) SetJSONEncodingError() {
-	c.Err = NewJSONEncodingError()
+func (c *Context) SetJSONEncodingError(err error) {
+	c.Err = NewJSONEncodingError(err)
 }
 
 func (c *Context) SetCommandNotFoundError() {
@@ -294,9 +294,9 @@ func NewInvalidRemoteClusterTokenError() *model.AppError {
 	return err
 }
 
-func NewJSONEncodingError() *model.AppError {
-	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
-	return err
+func NewJSONEncodingError(err error) *model.AppError {
+	appErr := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	return appErr
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {

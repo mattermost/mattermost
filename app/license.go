@@ -342,9 +342,9 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 
 // RequestTrialLicense request a trial license from the mattermost official license server
 func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
-	trialRequestJSON, jsonErr := json.Marshal(trialRequest)
-	if jsonErr != nil {
-		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	trialRequestJSON, err := json.Marshal(trialRequest)
+	if err != nil {
+		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	resp, err := http.Post(RequestTrialURL, "application/json", bytes.NewBuffer(trialRequestJSON))
@@ -363,7 +363,11 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 			fmt.Sprintf("Unexpected HTTP status code %q returned by server", resp.Status), http.StatusInternalServerError)
 	}
 
-	licenseResponse := model.MapFromJSON(resp.Body)
+	var licenseResponse map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&licenseResponse)
+	if err != nil {
+		s.GetLogger().Warn("Error decoding license response", mlog.Err(err))
+	}
 
 	if _, ok := licenseResponse["license"]; !ok {
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)

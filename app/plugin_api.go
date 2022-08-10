@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -897,7 +896,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	fileBuffer, err := ioutil.ReadAll(file)
+	fileBuffer, err := io.ReadAll(file)
 	if err != nil {
 		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1029,7 +1028,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	if len(split) != 3 {
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
+			Body:       io.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
 		}
 	}
 	destinationPluginId := split[1]
@@ -1043,7 +1042,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
+			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}

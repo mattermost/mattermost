@@ -98,9 +98,9 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 	var body io.Reader
 	var contentType string
 	if hook.ContentType == "application/json" {
-		js, jsonErr := json.Marshal(payload)
-		if jsonErr != nil {
-			mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+		js, err := json.Marshal(payload)
+		if err != nil {
+			c.Logger().Warn("Failed to encode to JSON", mlog.Err(err))
 		}
 		body = bytes.NewReader(js)
 		contentType = "application/json"
@@ -116,7 +116,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		a.Srv().Go(func() {
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
 			if err != nil {
-				mlog.Error("Event POST failed.", mlog.Err(err))
+				c.Logger().Error("Event POST failed.", mlog.Err(err))
 				return
 			}
 
@@ -147,7 +147,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 					webhookResp.IconURL = hook.IconURL
 				}
 				if _, err := a.CreateWebhookPost(c, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId); err != nil {
-					mlog.Error("Failed to create response post.", mlog.Err(err))
+					c.Logger().Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
 		})

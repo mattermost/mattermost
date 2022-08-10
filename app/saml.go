@@ -8,7 +8,7 @@ import (
 	"encoding/pem"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -42,7 +42,7 @@ func (a *App) writeSamlFile(filename string, fileData *multipart.FileHeader) *mo
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -212,7 +212,7 @@ func (a *App) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	}
 	defer resp.Body.Close()
 
-	bodyXML, err := ioutil.ReadAll(resp.Body)
+	bodyXML, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, model.NewAppError("FetchSamlMetadataFromIdp", "app.admin.saml.failure_read_response_body_from_idp.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

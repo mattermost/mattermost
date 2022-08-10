@@ -1291,17 +1291,17 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 }
 
 func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
-	if nErr != nil {
+	member, err := a.Srv().Store.Channel().UpdateMember(member)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
+		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -2606,14 +2606,14 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
-	if err != nil {
-		return nil, err
+	post, appErr := a.GetSinglePost(postID, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	threadId := post.RootId
@@ -2621,9 +2621,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(c, user, post)
-	if err != nil {
-		return nil, err
+	unreadMentions, unreadMentionsRoot, appErr := a.countMentionsFromPost(c, user, post)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// if root post,
@@ -2645,9 +2645,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, err := a.GetSinglePost(post.RootId, false)
-	if err != nil {
-		return nil, err
+	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
@@ -2656,10 +2656,10 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow {
-		threadMembership, sErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		threadMembership, mErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		var errNotFound *store.ErrNotFound
-		if sErr != nil && !errors.As(sErr, &errNotFound) {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		if mErr != nil && !errors.As(mErr, &errNotFound) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		// Follow thread if we're not already following it
 		if threadMembership == nil {
@@ -2670,25 +2670,25 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 				UpdateViewedTimestamp: false,
 				UpdateParticipants:    false,
 			}
-			threadMembership, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-			if sErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+			threadMembership, mErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if mErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 			}
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
 		threadMembership.LastViewed = post.CreateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
-		if err != nil {
-			return nil, err
+		threadMembership.UnreadMentions, appErr = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
+		if appErr != nil {
+			return nil, appErr
 		}
-		threadMembership, sErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		threadMembership, mErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, sErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		thread, mErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
@@ -3215,14 +3215,14 @@ func (a *App) ToggleMuteChannel(c request.CTX, channelID, userID string) (*model
 }
 
 func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string, muted bool) ([]*model.ChannelMember, *model.AppError) {
-	members, nErr := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
-	if nErr != nil {
+	members, err := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
+	if err != nil {
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -3242,17 +3242,17 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 		return nil, nil
 	}
 
-	updated, nErr := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
-	if nErr != nil {
+	updated, err := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
+		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -3377,7 +3377,7 @@ func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 		return nil
 	}
 	if err := a.forEachChannelMember(c, channelID, clearSessionCache); err != nil {
-		return fmt.Errorf("error clearing cache for channel members: channel_id: %s, error: %v", channelID, err)
+		return fmt.Errorf("error clearing cache for channel members: channel_id: %s, error: %w", channelID, err)
 	}
 	return nil
 }

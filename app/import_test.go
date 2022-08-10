@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -439,7 +438,7 @@ func BenchmarkBulkImport(b *testing.B) {
 	info, err := importFile.Stat()
 	require.NoError(b, err)
 
-	dir, err := ioutil.TempDir("", "testimport")
+	dir, err := os.MkdirTemp("", "testimport")
 	require.NoError(b, err)
 	defer os.RemoveAll(dir)
 

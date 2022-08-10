@@ -417,9 +417,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 	}
 	userInput = strings.TrimPrefix(userInput, "/")
 
-	commands, err := c.App.ListAutocompleteCommands(c.Params.TeamId, c.AppContext.T)
-	if err != nil {
-		c.Err = err
+	commands, appErr := c.App.ListAutocompleteCommands(c.Params.TeamId, c.AppContext.T)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -436,9 +436,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 
 	suggestions := c.App.GetSuggestions(c.AppContext, commandArgs, commands, roleId)
 
-	js, jsonErr := json.Marshal(suggestions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(suggestions)
+	if err != nil {
+		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)

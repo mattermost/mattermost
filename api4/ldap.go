@@ -111,9 +111,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.IsConfigured = c.Params.IsConfigured
 	}
 
-	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
-	if err != nil {
-		c.Err = err
+	groups, total, appErr := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -130,12 +130,12 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		mugs = append(mugs, mug)
 	}
 
-	b, marshalErr := json.Marshal(struct {
+	b, err := json.Marshal(struct {
 		Count  int                   `json:"count"`
 		Groups []*mixedUnlinkedGroup `json:"groups"`
 	}{Count: total, Groups: mugs})
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -162,9 +162,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ldapGroup, err := c.App.GetLdapGroup(c.Params.RemoteId)
-	if err != nil {
-		c.Err = err
+	ldapGroup, appErr := c.App.GetLdapGroup(c.Params.RemoteId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -175,9 +175,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
-	if err != nil && err.Id != "app.group.no_rows" {
-		c.Err = err
+	group, appErr := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
+	if appErr != nil && appErr.Id != "app.group.no_rows" {
+		c.Err = appErr
 		return
 	}
 	if group != nil {
@@ -203,9 +203,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			group.DeleteAt = 0
 			group.DisplayName = displayName
 			group.RemoteId = ldapGroup.RemoteId
-			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
-			if err != nil {
-				c.Err = err
+			newOrUpdatedGroup, appErr = c.App.UpdateGroup(group)
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
 			auditRec.AddEventResultState(newOrUpdatedGroup)
@@ -222,9 +222,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
 		}
-		newOrUpdatedGroup, err = c.App.CreateGroup(newGroup)
-		if err != nil {
-			c.Err = err
+		newOrUpdatedGroup, appErr = c.App.CreateGroup(newGroup)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		auditRec.AddEventResultState(newOrUpdatedGroup)
@@ -232,9 +232,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		status = http.StatusCreated
 	}
 
-	b, marshalErr := json.Marshal(newOrUpdatedGroup)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(newOrUpdatedGroup)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

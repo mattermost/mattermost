@@ -8,7 +8,6 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -241,7 +240,7 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	}
 
 	defer minioObject.Close()
-	f, err := ioutil.ReadAll(minioObject)
+	f, err := io.ReadAll(minioObject)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}

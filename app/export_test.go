@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -590,7 +589,7 @@ func TestBulkExport(t *testing.T) {
 	th := Setup(t)
 	testsDir, _ := fileutils.FindDir("tests")
 
-	dir, err := ioutil.TempDir("", "import_test")
+	dir, err := os.MkdirTemp("", "import_test")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 

@@ -52,8 +52,8 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	// do our best to validate the emoji before committing anything to the DB so that we don't have to clean up
 	// orphaned files left over when validation fails later on
 	emoji.PreSave()
-	if err := emoji.IsValid(); err != nil {
-		return nil, err
+	if appErr := emoji.IsValid(); appErr != nil {
+		return nil, appErr
 	}
 
 	if emoji.CreatorId != sessionUserId {
@@ -61,17 +61,16 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	}
 
 	if existingEmoji, err := a.Srv().Store.Emoji().GetByName(context.Background(), emoji.Name, true); err == nil && existingEmoji != nil {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	imageData := multiPartImageData.File["image"]
 	if len(imageData) == 0 {
-		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
 	}
 
-	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
-		return nil, err
+	if appErr := a.UploadEmojiImage(emoji.Id, imageData[0]); appErr != nil {
+		return nil, appErr
 	}
 
 	emoji, err := a.Srv().Store.Emoji().Save(emoji)

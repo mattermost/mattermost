@@ -4,7 +4,7 @@
 package app
 
 import (
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 
@@ -186,7 +186,7 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -122,9 +122,9 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 }
 
 func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
-	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
-		err.Where = "CreateGroupWithUserIds"
-		return nil, err
+	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
+		appErr.Where = "CreateGroupWithUserIds"
+		return nil, appErr
 	}
 
 	newGroup, err := a.Srv().Store.Group().CreateWithUserIds(group)
@@ -161,28 +161,12 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	if err := a.isUniqueToUsernames(group.GetName()); err != nil {
-		err.Where = "UpdateGroup"
-		return nil, err
+	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
+		appErr.Where = "UpdateGroup"
+		return nil, appErr
 	}
 
 	updatedGroup, err := a.Srv().Store.Group().Update(group)
-
-	if err == nil {
-		count, countErr := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
-		if countErr != nil {
-			return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(countErr)
-		}
-		updatedGroup.MemberCount = model.NewInt(int(count))
-		messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
-		groupJSON, jsonErr := json.Marshal(updatedGroup)
-		if jsonErr != nil {
-			return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-		}
-		messageWs.Add("group", string(groupJSON))
-		a.Publish(messageWs)
-	}
-
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
@@ -198,6 +182,21 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 			return nil, model.NewAppError("UpdateGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
+	if err != nil {
+		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	updatedGroup.MemberCount = model.NewInt(int(count))
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil)
+
+	groupJSON, err := json.Marshal(updatedGroup)
+	if err != nil {
+		return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	messageWs.Add("group", string(groupJSON))
+	a.Publish(messageWs)
 
 	return updatedGroup, nil
 }

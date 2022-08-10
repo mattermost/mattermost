@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -976,7 +975,7 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 	defer fileReader.Close()
 
-	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	tmpDir, err := os.MkdirTemp("", "plugintmp")
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
@@ -1086,7 +1085,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 		if sigErr != nil {
 			return nil, "", errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
 		}
-		bytes, sigErr := ioutil.ReadAll(sigReader)
+		bytes, sigErr := io.ReadAll(sigReader)
 		if sigErr != nil {
 			return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
 		}
@@ -1105,7 +1104,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 }
 
 func getIcon(iconPath string) (string, error) {
-	icon, err := ioutil.ReadFile(iconPath)
+	icon, err := os.ReadFile(iconPath)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}

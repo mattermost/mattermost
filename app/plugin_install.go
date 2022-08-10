@@ -39,7 +39,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -279,7 +278,7 @@ func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, in
 		}
 	}
 
-	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	tmpDir, err := os.MkdirTemp("", "plugintmp")
 	if err != nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -304,7 +303,7 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	dir, err := ioutil.ReadDir(extractDir)
+	dir, err := os.ReadDir(extractDir)
 	if err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

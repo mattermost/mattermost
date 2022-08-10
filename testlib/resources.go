@@ -6,7 +6,6 @@ package testlib
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -116,7 +115,7 @@ func CopyFile(src, dst string) error {
 func SetupTestResources() (string, error) {
 	testResourcesToSetup := getTestResourcesToSetup()
 
-	tempDir, err := ioutil.TempDir("", "testlib")
+	tempDir, err := os.MkdirTemp("", "testlib")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create temporary directory")
 	}
@@ -195,7 +194,7 @@ func setupConfig(configDir string) error {
 	}
 
 	configJSON := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJSON, buf, 0644)
+	err = os.WriteFile(configJSON, buf, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}
