@@ -6,7 +6,6 @@ package filestore
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -38,7 +37,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	mlog.InitGlobalLogger(logger)
 
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 

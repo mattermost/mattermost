@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -201,7 +200,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factori
 
 	// Add config from file
 	if cfgFile != "" {
-		b, err := ioutil.ReadFile(cfgFile)
+		b, err := os.ReadFile(cfgFile)
 		if err != nil {
 			return fmt.Errorf("error reading logger config file %s: %w", cfgFile, err)
 		}

@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -253,7 +253,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -435,7 +435,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		Header:     w.headers,
-		Body:       ioutil.NopCloser(bytes.NewReader(w.data)),
+		Body:       io.NopCloser(bytes.NewReader(w.data)),
 	}
 	if resp.StatusCode == 0 {
 		resp.StatusCode = http.StatusOK
