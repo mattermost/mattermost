@@ -528,15 +528,6 @@ workflows:
             - setup
       - build:
           requires:
-            - check-go-mod-tidy
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-golangci-lint
-            - check-migrations
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
