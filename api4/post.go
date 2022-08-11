@@ -523,35 +523,6 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rPost, err := c.App.GetSinglePost(c.Params.PostId, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	hasPermission := false
-	becauseCompliance := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), rPost.ChannelId, model.PermissionReadChannel) {
-		hasPermission = true
-	} else if channel, cErr := c.App.GetChannel(c.AppContext, rPost.ChannelId); cErr == nil {
-		if channel.Type == model.ChannelTypeOpen &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
-			hasPermission = true
-			if *c.App.Config().MessageExportSettings.EnableExport {
-				hasPermission = false
-				becauseCompliance = true
-			}
-		}
-	}
-
-	if !hasPermission {
-		if becauseCompliance {
-			c.Err = model.NewAppError("getPostThread", "api.post.compliance_enabled.join_channel_to_view_post", nil, "", http.StatusForbidden)
-		} else {
-			c.SetPermissionError(model.PermissionReadChannel)
-		}
-		return
-	}
-
 	// For now, by default we return all items unless it's set to maintain
 	// backwards compatibility with mobile. But when the next ESR passes, we need to
 	// change this to web.PerPageDefault.
