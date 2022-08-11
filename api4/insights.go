@@ -23,6 +23,9 @@ func (api *API) InitInsights() {
 	// Threads
 	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForTeamSince))).Methods("GET")
 	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForUserSince))).Methods("GET")
+
+	// New teammembers
+	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
 }
 
 // Top Reactions
@@ -356,4 +359,50 @@ func postCountByDurationViewModel(c *Context, topChannelList *model.TopChannelLi
 		return nil, err
 	}
 	return model.ToDailyPostCountViewModel(postCountsByDay, startTime, model.TimeRangeToNumberDays(timeRange), channelIDs), nil
+}
+
+func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
+	ntms, count, err := c.App.GetNewTeamMembersSince(c.AppContext, c.Params.TeamId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ntms.TotalCount = count
+
+	js, jsonErr := json.Marshal(ntms)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getNewTeamembersForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
 }
