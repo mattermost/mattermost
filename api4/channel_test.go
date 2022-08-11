@@ -3840,7 +3840,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 	th.App.Srv().SetLicense(nil)
 	resp, err = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.

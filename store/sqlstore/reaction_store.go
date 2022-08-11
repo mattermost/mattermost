@@ -316,8 +316,7 @@ func (s *SqlReactionStore) GetTopForUserSince(userID string, teamID string, sinc
 			count(EmojiName) AS Count
 		FROM
 			Reactions
-			INNER JOIN Posts ON Reactions.PostId = Posts.Id
-			INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+			INNER JOIN Channels ON Channels.Id = Reactions.ChannelId
 		WHERE
 			Reactions.DeleteAt = 0
 			AND Reactions.UserId = ?
