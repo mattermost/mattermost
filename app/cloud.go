@@ -148,6 +148,54 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	return nil
 }
 
+func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	if err != nil {
+		return err
+	}
+
+	for _, admin := range sysAdmins {
+		switch emailToSend {
+		case model.DelinquencyEmail7:
+			err := a.Srv().EmailService.SendDelinquencyEmail7(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 7", mlog.Err(err))
+			}
+		case model.DelinquencyEmail14:
+			err := a.Srv().EmailService.SendDelinquencyEmail14(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 14", mlog.Err(err))
+			}
+		case model.DelinquencyEmail30:
+			err := a.Srv().EmailService.SendDelinquencyEmail30(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 30", mlog.Err(err))
+			}
+		case model.DelinquencyEmail45:
+			err := a.Srv().EmailService.SendDelinquencyEmail45(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 45", mlog.Err(err))
+			}
+		case model.DelinquencyEmail60:
+			err := a.Srv().EmailService.SendDelinquencyEmail60(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 60", mlog.Err(err))
+			}
+		case model.DelinquencyEmail75:
+			err := a.Srv().EmailService.SendDelinquencyEmail75(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 75", mlog.Err(err))
+			}
+		case model.DelinquencyEmail90:
+			err := a.Srv().EmailService.SendDelinquencyEmail90(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			if err != nil {
+				a.Log().Error("Error sending delinquency email 90", mlog.Err(err))
+			}
+		}
+	}
+	return nil
+}
+
 func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
 	if limits.Teams != nil && limits.Teams.Active != nil && *limits.Teams.Active > 0 {
 		err := a.AdjustTeamsFromProductLimits(limits.Teams)

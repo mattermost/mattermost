@@ -3427,6 +3427,22 @@
     "id": "api.templates.payment_failed.subject",
     "translation": "Action required: Payment failed for Mattermost Cloud"
   },
+    {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Your payment wasn't completed"
+  },
+    {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "We couldn't process your most recent payment. To keep your Cloud (Plan) active, please contact your financial institution as soon as possible. Then, update your payment details as needed."
+  },
+    {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "We couldn't process your most recent payment. To keep your Cloud (Plan) active, please contact your financial institution as soon as possible. Then, update your payment details as needed."
+  },
   {
     "id": "api.templates.payment_failed.title",
     "translation": "Failed Payment"

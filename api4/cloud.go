@@ -665,6 +665,15 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		c.Logger.Info("Updated subscription from webhook event")
+	case model.EventTypeTriggerDelinquencyEmail:
+		var emailToTrigger model.DelinquencyEmail
+		if event.DelinquencyEmail != nil {
+			emailToTrigger = model.DelinquencyEmail(event.DelinquencyEmail.EmailToTrigger)
+		}
+		if nErr := c.App.SendDelinquencyEmail(emailToTrigger); nErr != nil {
+			c.Err = nErr
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)

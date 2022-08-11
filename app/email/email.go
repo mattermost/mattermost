@@ -1000,6 +1000,54 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 	return nil
 }
 
+func (es *Service) SendDelinquencyEmail7(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.delinquency_7.title")
+	data.Props["SubTitle1"] = T("api.templates.delinquency_7.subtitle1")
+	data.Props["SubTitle2"] = T("api.templates.delinquency_7.subtitle2")
+	// data.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]any{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	// data.Props["Info2"] = T("api.templates.payment_failed.info2")
+	// data.Props["Info3"] = T("api.templates.payment_failed.info3")
+	data.Props["Button"] = T("api.templates.delinquency_7.button")
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	data.Props["Footer"] = T("api.templates.copyright")
+
+	body, err := es.templatesContainer.RenderToString("cloud_7_day_arrears", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendEmailWithCustomReplyTo(email, subject, body, *es.config().SupportSettings.SupportEmail); err != nil {
+		return err
+	}
+
+	return nil
+}
+func (es *Service) SendDelinquencyEmail14(email, locale, siteURL string) error {
+	return nil
+}
+func (es *Service) SendDelinquencyEmail30(email, locale, siteURL string) error {
+	return nil
+}
+func (es *Service) SendDelinquencyEmail45(email, locale, siteURL string) error {
+	return nil
+}
+func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
+	return nil
+}
+func (es *Service) SendDelinquencyEmail75(email, locale, siteURL string) error {
+	return nil
+}
+func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
+	return nil
+}
+
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (es *Service) SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error {
