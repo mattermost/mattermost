@@ -805,6 +805,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamI
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),
 			SchemeAdmin: team.Email == user.Email && !user.IsGuest(),
+			CreateAt:    model.GetMillis(),
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
