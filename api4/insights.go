@@ -225,7 +225,7 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 
 	js, jsonErr := json.Marshal(topChannels)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
@@ -318,9 +318,9 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, err := json.Marshal(topThreads)
-	if err != nil {
-		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	js, jsonErr := json.Marshal(topThreads)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
