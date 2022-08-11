@@ -4416,8 +4416,6 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 		OFFSET ?`
 	args = append(args, teamID, userID, limit+1, offset)
 
-	fmt.Println(query, args)
-
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
@@ -4487,7 +4485,6 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Inactive Channels")
 	}
-	fmt.Println(userID, teamID)
 
 	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
 }

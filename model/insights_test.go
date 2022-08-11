@@ -120,3 +120,40 @@ func TestGetTopThreadListWithPagination(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTopInactiveChannelListWithPagination(t *testing.T) {
+	channels := []*TopInactiveChannel{
+		{ID: NewId(), MessageCount: 2},
+		{ID: NewId(), MessageCount: 5},
+		{ID: NewId(), MessageCount: 7},
+		{ID: NewId(), MessageCount: 80},
+		{ID: NewId(), MessageCount: 85},
+		{ID: NewId(), MessageCount: 92}}
+
+	hasNextTC := []struct {
+		Description string
+		Limit       int
+		Offset      int
+		Expected    *TopInactiveChannelList
+	}{
+		{
+			Description: "has one page",
+			Limit:       len(channels),
+			Offset:      0,
+			Expected:    &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: false}, Items: channels},
+		},
+		{
+			Description: "has more than one page",
+			Limit:       len(channels) - 1,
+			Offset:      0,
+			Expected:    &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: true}, Items: channels},
+		},
+	}
+
+	for _, test := range hasNextTC {
+		t.Run(test.Description, func(t *testing.T) {
+			actual := GetTopInactiveChannelListWithPagination(channels, test.Limit)
+			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
+		})
+	}
+}
