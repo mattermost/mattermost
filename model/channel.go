@@ -156,7 +156,6 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool

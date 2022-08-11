@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -29,7 +28,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -48,7 +47,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -67,9 +66,9 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *s.Config().LogSettings.EnableFile {
+	if *s.platform.Config().LogSettings.EnableFile {
 		s.Log.Flush()
-		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+		logFile := config.GetLogFileLocation(*s.platform.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
@@ -261,7 +260,7 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	defer res.Body.Close()
 
-	responseData, err := ioutil.ReadAll(res.Body)
+	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
 	}

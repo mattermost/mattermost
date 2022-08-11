@@ -6,7 +6,6 @@ package plugin
 import (
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -86,7 +85,7 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 //
 // Plugins are found non-recursively and paths beginning with a dot are always ignored.
 func scanSearchPath(path string) ([]*model.BundleInfo, error) {
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +467,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 
 	sourceBundleFilepath := filepath.Join(destinationPath, filepath.Base(bundlePath))
 
-	sourceBundleFileContents, err := ioutil.ReadFile(sourceBundleFilepath)
+	sourceBundleFileContents, err := os.ReadFile(sourceBundleFilepath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}

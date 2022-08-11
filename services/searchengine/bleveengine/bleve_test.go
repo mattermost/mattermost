@@ -4,7 +4,6 @@
 package bleveengine
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -37,7 +36,7 @@ func TestBleveEngineTestSuite(t *testing.T) {
 }
 
 func (s *BleveEngineTestSuite) setupIndexes() {
-	indexDir, err := ioutil.TempDir("", "mmbleve")
+	indexDir, err := os.MkdirTemp("", "mmbleve")
 	if err != nil {
 		s.Require().FailNow("Cannot setup bleveengine tests: %s", err.Error())
 	}

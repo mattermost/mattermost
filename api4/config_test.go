@@ -6,7 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -533,7 +533,7 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 }
 
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
-	logFile, err := ioutil.TempFile("", "adv.log")
+	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
@@ -569,7 +569,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 
 	require.NoError(t, logFile.Sync())
 
-	data, err := ioutil.ReadAll(logFile)
+	data, err := io.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
 
@@ -955,7 +955,7 @@ func TestMigrateConfig(t *testing.T) {
 		file, err := json.MarshalIndent(cfg, "", "  ")
 		require.NoError(t, err)
 
-		err = ioutil.WriteFile("from.json", file, 0644)
+		err = os.WriteFile("from.json", file, 0644)
 		require.NoError(t, err)
 
 		defer os.Remove("from.json")
