@@ -4533,11 +4533,11 @@
   },
   {
     "id": "app.channel.get_top_invalid_for_team_since.app_error",
-    "translation": ""
+    "translation": " "
   },
   {
     "id": "app.channel.get_top_invalid_for_user_since.app_error",
-    "translation": ""
+    "translation": " "
   },
   {
     "id": "app.channel.get_unread.app_error",
