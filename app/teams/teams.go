@@ -141,6 +141,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 		UserId:      user.Id,
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
+		CreateAt:    model.GetMillis(),
 	}
 
 	if !user.IsGuest() {

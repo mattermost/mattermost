@@ -8985,6 +8985,24 @@ func (s *OpenTracingLayerTeamStore) GetMembersByIds(teamID string, userIds []str
 	return result, err
 }
 
+func (s *OpenTracingLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetNewTeamMembersSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, resultVar1, err
+}
+
 func (s *OpenTracingLayerTeamStore) GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamMembersForExport")
