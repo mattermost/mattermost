@@ -14,6 +14,11 @@ RUN apt-get update \
   && apt-get install --no-install-recommends -y \
   ca-certificates=20200601~deb10u2 \
   curl=7.64.0-4+deb10u2 \
+  mime-support=3.62 \
+  unrtf=0.21.10-clean-1 \
+  wv=1.2.9-4.2+b2 \
+  poppler-utils=0.71.0-5 \
+  tidy=2:5.6.0-10 \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost
