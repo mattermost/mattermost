@@ -9,8 +9,8 @@
           <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
         </mj-column>
       </mj-section>
-      <mj-include path="./partials/cloud_title_2subtitles_button.mjml" />
-      <mj-include path="./partials/cloud_laptop_error.mjml" />
+      <mj-include path="./partials/cloud_title_3subtitles_button.mjml" />
+      <mj-include path="./partials/cloud_upgrade_person.mjml" />
       <mj-include path="./partials/cloud_questions_hr_email_footer.mjml" />
     </mj-wrapper>
   </mj-body>

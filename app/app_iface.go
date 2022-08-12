@@ -1012,12 +1012,12 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(c request.CTX, channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError)
+	SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError
 	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
-	SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError
 	SendTestPushNotification(deviceID string) string
 	SendUpgradeConfirmationEmail() *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
