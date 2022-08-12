@@ -889,3 +889,86 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 		}
 	})
 }
+
+func TestNewTeamMembersSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.LoginBasic()
+
+	team := th.CreateTeam()
+
+	t.Run("accepts only starter or professional license skus", func(t *testing.T) {
+		_, resp, _ := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE10))
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		_, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("rejects guests", func(t *testing.T) {
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+		defer th.App.PromoteGuestToUser(th.Context, th.BasicUser, "")
+
+		_, resp, _ = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 5)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("implements pagination", func(t *testing.T) {
+		// check the first page of results
+		list, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.Equal(t, int(list.TotalCount), 1)
+		require.Len(t, list.Items, 1)
+		require.False(t, list.HasNext)
+
+		// check the 2nd page
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		require.GreaterOrEqual(t, len(list.Items), 0)
+
+		// add a few new team members and re-test the pagination
+		user := th.CreateUser()
+		_, appErr := th.App.AddTeamMember(th.Context, team.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddTeamMember(th.Context, team.Id, user.Id)
+		require.Nil(t, appErr)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, 3, int(list.TotalCount))
+		require.Len(t, list.Items, 2)
+		require.True(t, list.HasNext)
+
+		list, resp, err = th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 1, 2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, int(list.TotalCount), 3)
+		require.Len(t, list.Items, 1)
+		require.False(t, list.HasNext)
+	})
+}
