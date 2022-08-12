@@ -2195,25 +2195,9 @@ func TestGetPostThread(t *testing.T) {
 
 	client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
-	// Channel is public, and compliance export is OFF, should be able to read post
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.MessageExportSettings.EnableExport = false
-	})
+	// Channel is public, should be able to read post
 	_, _, err = client.GetPostThread(th.BasicPost.Id, "", false)
 	require.NoError(t, err)
-
-	// channel is public, and compliance export is ON, should NOT be able to read post
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.MessageExportSettings.EnableExport = true
-	})
-	_, resp, err = client.GetPostThread(th.BasicPost.Id, "", false)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.MessageExportSettings.EnableExport = messageExportEnabled
-	})
 
 	privatePost := th.CreatePostWithClient(client, th.BasicPrivateChannel)
 
