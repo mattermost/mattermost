@@ -4420,6 +4420,12 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
 
+	channels, err := postProcessTopInactiveChannels(s, channels)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
 }
 
@@ -4486,7 +4492,23 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 		return nil, errors.Wrap(err, "failed to get top Inactive Channels")
 	}
 
+	channels, err := postProcessTopInactiveChannels(s, channels)
+	if err != nil {
+		return nil, err
+	}
+
 	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
+}
+
+func postProcessTopInactiveChannels(s SqlChannelStore, channels []*model.TopInactiveChannel) ([]*model.TopInactiveChannel, error) {
+	for index, channel := range channels {
+		members, err := s.User().GetProfilesInChannel(&model.UserGetOptions{InChannelId: channel.ID, Page: 0, PerPage: 100})
+		if err != nil {
+			return nil, errors.Wrapf(err, "Couldn't get channel members for channel: %s", channel.DisplayName)
+		}
+		channels[index].Participants = members
+	}
+	return channels, nil
 }
 
 func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {

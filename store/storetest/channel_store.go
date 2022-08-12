@@ -8005,8 +8005,18 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	// create dm channel
-	u1 := model.User{Id: model.NewId()}
-	u2 := model.User{Id: model.NewId()}
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err = ss.User().Save(&u1)
+	require.NoError(t, err)
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(&u2)
+	require.NoError(t, err)
+
 	uBot := model.User{Id: model.NewId()}
 	_, nErr = ss.Channel().CreateDirectChannel(&u1, &u2)
 	require.NoError(t, nErr)
@@ -8077,6 +8087,10 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 		require.Equal(t, topInactiveChannels.Items[0].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
 		require.Equal(t, topInactiveChannels.Items[1].ID, channelPrivate.Id)
 		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
+
+		// participants
+		require.Equal(t, topInactiveChannels.Items[1].Participants[0].Id, u1.Id)
+		require.Equal(t, topInactiveChannels.Items[2].Participants[0].Id, u1.Id)
 	})
 
 	t.Run("top inactive channels for user - u1 ", func(t *testing.T) {
