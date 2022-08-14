@@ -31,8 +31,7 @@ func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
 	return false
 }
 
-func (a *App) SaveAdminNotification(c *request.Context, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
-	userId := c.Session().Id
+func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
 	requiredFeature := notifyData.RequiredFeature
 	requiredPlan := notifyData.RequiredPlan
 	trial := notifyData.TrialNotification

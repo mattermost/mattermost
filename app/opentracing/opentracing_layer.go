@@ -14304,7 +14304,7 @@ func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SaveAdminNotification(c *request.Context, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
+func (a *OpenTracingAppLayer) SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAdminNotification")
 
@@ -14316,7 +14316,7 @@ func (a *OpenTracingAppLayer) SaveAdminNotification(c *request.Context, notifyDa
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SaveAdminNotification(c, notifyData)
+	resultVar0 := a.app.SaveAdminNotification(userId, notifyData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

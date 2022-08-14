@@ -241,7 +241,6 @@ type ProductLimits struct {
 }
 
 type NotifyAdminToUpgradeRequest struct {
-	CurrentTeamId     string `json:"current_team_id"`
 	TrialNotification bool   `json:"trial_notification"`
 	RequiredPlan      string `json:"required_plan"`
 	RequiredFeature   string `json:"required_feature"`

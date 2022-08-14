@@ -23,6 +23,8 @@ var nonAdminPaidFeatures map[string]interface{} = map[string]interface{}{
 	"Playbooks Retrospective":   nil,
 	"Unlimited Messages":        nil,
 	"Unlimited File Storage":    nil,
+	"Unlimited Integrations":    nil,
+	"Unlimited Board cards":     nil,
 	"All Professional features": nil,
 }
 
