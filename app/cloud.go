@@ -116,8 +116,14 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 	for _, admin := range sysadmins {
 		T := i18n.GetUserTranslations(admin.Locale)
 		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+		if len(userBasedData) == 1 {
+			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData)}) // todo (allan): investigate if translations library can do this
+		}
 		if trial {
 			message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+			if len(userBasedData) == 1 {
+				message = T("app.cloud.trial_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData)})
+			}
 		}
 
 		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
@@ -145,8 +151,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 		}
 	}
 
-	// all the notifications are now sent in a post and can safely be removed
-	a.Srv().Store.NotifyAdmin().DeleteAll(trial)
+	a.FinishSendAdminNotifyPost(trial)
 
 	return nil
 }
@@ -193,6 +198,25 @@ func (a *App) CanNotify(trial bool) bool {
 	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
 	timeDiff := model.GetMillis() - int64(lastNotificationTimestamp)
 	return timeDiff >= int64(daysToMillis)
+}
+
+func (a *App) FinishSendAdminNotifyPost(trial bool) {
+	systemVarName := lastUpgradeNotificationTimeStamp
+	if trial {
+		systemVarName = lastTrialNotificationTimeStamp
+	}
+
+	val := strconv.FormatInt(model.GetMillis(), 10)
+	sysVar := &model.System{Name: systemVarName, Value: val}
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
+		mlog.Error("Unable to finish send admin notify post job", mlog.Err(err))
+	}
+
+	// all the notifications are now sent in a post and can safely be removed
+	if err := a.Srv().Store.NotifyAdmin().DeleteAll(trial); err != nil {
+		mlog.Error("Unable to finish send admin notify post job", mlog.Err(err))
+	}
+
 }
 
 func (a *App) UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {

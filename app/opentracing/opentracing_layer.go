@@ -4396,6 +4396,21 @@ func (a *OpenTracingAppLayer) FindTeamByName(name string) bool {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FinishSendAdminNotifyPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.FinishSendAdminNotifyPost(trial)
+}
+
 func (a *OpenTracingAppLayer) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateMfaSecret")
