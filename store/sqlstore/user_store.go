@@ -1765,7 +1765,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 
 	teamMembers := []*model.TeamMember{}
 	teamMembersQuery, args, _ := us.getQueryBuilder().
-		Select("TeamId, UserId, Roles, DeleteAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
+		Select("TeamId, UserId, Roles, DeleteAt, CreateAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
