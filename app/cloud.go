@@ -4,10 +4,12 @@
 package app
 
 import (
-	"encoding/json"
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -16,19 +18,19 @@ import (
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
-	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
-	if err != nil {
-		// todo (allan): check for NoSqlRows
-		return true
-	}
-	if len(data) > 0 {
-		return true
-	}
+const lastTrialNotificationTimeStamp = "LAST_TRIAL_NOTIFICATION_TIMESTAMP"
+const lastUpgradeNotificationTimeStamp = "LAST_UPGRADE_NOTIFICATION_TIMESTAMP"
+const defaultCloudNotifyAdminCoolOffDays = 30
 
-	return false
+// Ensure cloud service wrapper implements `product.CloudService`
+var _ product.CloudService = (*cloudWrapper)(nil)
+
+// cloudWrapper provides an implementation of `product.CloudService` for use by products.
+type cloudWrapper struct {
+	cloud einterfaces.CloudInterface
 }
 
 func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
@@ -37,7 +39,7 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	trial := notifyData.TrialNotification
 
 	if a.UserAlreadyNotifiedOnRequiredFeature(userId, requiredFeature) {
-		return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
+		return model.NewAppError("app.SaveAdminNotification", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
 	}
 
 	_, appErr := a.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -53,32 +55,34 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	return nil
 }
 
-func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
-	userId := c.Session().Id
+func (a *App) doCheckForAdminUpgradeNotifications() {
+	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	a.SendNotifyAdminPosts(ctx, false)
+}
 
-	fakeId := strings.ReplaceAll(model.CloudNotifyAdminInfo, "_", "") + "123456"
+func (a *App) doCheckForAdminTrialNotifications() {
+	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	a.SendNotifyAdminPosts(ctx, true)
+}
 
-	// check if already notified
-	notificationPref, err := a.Srv().Store.Preference().Get(fakeId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
+func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
+	d, err := a.Srv().Store.NotifyAdmin().Save(data)
 	if err != nil {
-		mlog.Warn("Unable to get preference cloud_user_ephemeral_info", mlog.Err(err))
-	}
-
-	if notificationPref != nil {
-		info := &model.AdminNotificationUserInfo{}
-		err = json.Unmarshal([]byte(notificationPref.Value), info)
-		if err != nil {
-			mlog.Warn("Unable to Unmarshal", mlog.Err(err))
-		}
-
-		if !model.CanNotify(info.LastNotificationTimestamp) {
-			return model.NewAppError("app.NotifySystemAdminsToUpgrade", "api.cloud.notify_admin_to_upgrade_error.already_notified", nil, "", http.StatusForbidden)
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("SaveAdminNotifyData", "app.notify_admin.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	team, appErr := a.GetTeam(currentUserTeamID)
-	if appErr != nil {
-		return appErr
+	return d, nil
+}
+
+func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppError {
+	if !a.CanNotify(trial) {
+		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
 	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{
@@ -87,7 +91,6 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	})
-
 	if appErr != nil {
 		return appErr
 	}
@@ -97,8 +100,26 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		return appErr
 	}
 
+	data, err := a.Srv().Store.NotifyAdmin().Get(trial)
+	if err != nil {
+		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if len(data) == 0 {
+		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "No notification data available", http.StatusInternalServerError)
+	}
+
+	userBasedData := a.UserBasedFlatten(data)
+	featureBasedData := a.FeatureBasedFlatten(data)
+	props := make(model.StringInterface)
+
 	for _, admin := range sysadmins {
 		T := i18n.GetUserTranslations(admin.Locale)
+		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+		if trial {
+			message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+		}
+
 		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
 		if appErr != nil {
 			mlog.Warn("Error getting direct channel", mlog.Err(appErr))
@@ -106,11 +127,16 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 
 		post := &model.Post{
-			Message:   T("api.cloud.upgrade_plan_bot_message", map[string]any{"TeamName": team.Name}),
+			Message:   message,
 			UserId:    systemBot.UserId,
 			ChannelId: channel.Id,
 			Type:      fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), // webapp will have to create renderer for this custom post type
+
 		}
+
+		props["requested_features"] = featureBasedData
+		props["trial"] = trial
+		post.SetProps(props)
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
@@ -119,35 +145,72 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		}
 	}
 
-	// mark as done for current user until end of cool off period
-	out, err := json.Marshal(&model.AdminNotificationUserInfo{
-		LastUserIDToNotify:        userId,
-		LastNotificationTimestamp: model.GetMillis(),
-	})
-	if err != nil {
-		mlog.Warn("Unable to Marshal", mlog.Err(err))
-	}
-
-	pref := model.Preference{
-		UserId:   fakeId, // to only have one preference for now and not a preference per user
-		Category: model.PreferenceCloudUserEphemeralInfo,
-		Name:     model.CloudNotifyAdminInfo,
-		Value:    string(out),
-	}
-
-	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
-		mlog.Warn("Encountered error saving cloud_user_ephemeral_info preference", mlog.Err(err))
-	}
+	// all the notifications are now sent in a post and can safely be removed
+	a.Srv().Store.NotifyAdmin().DeleteAll(trial)
 
 	return nil
 }
 
-// Ensure cloud service wrapper implements `product.CloudService`
-var _ product.CloudService = (*cloudWrapper)(nil)
+func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
+	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
+	if err != nil {
+		return true // any error should flag as already notified to avoid data corruption like duplicates
+	}
+	if len(data) > 0 {
+		return true // if we find data, it means this user already notified on the need for this feature
+	}
 
-// cloudWrapper provides an implementation of `product.CloudService` for use by products.
-type cloudWrapper struct {
-	cloud einterfaces.CloudInterface
+	return false
+}
+
+func (a *App) CanNotify(trial bool) bool {
+	systemVarName := lastUpgradeNotificationTimeStamp
+	if trial {
+		systemVarName = lastTrialNotificationTimeStamp
+	}
+
+	sysVal, sysValErr := a.Srv().Store.System().GetByName(systemVarName)
+	if sysValErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(sysValErr, &nfErr) { // if no timestamps have been recorded before, system is free to notify
+			return true
+		}
+		mlog.Error("Cannot notify", mlog.Err(sysValErr))
+		return false
+	}
+
+	lastNotificationTimestamp, err := strconv.ParseFloat(sysVal.Value, 64)
+	if err != nil {
+		mlog.Error("Cannot notify", mlog.Err(err))
+		return false
+	}
+
+	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
+	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
+	if parseError != nil {
+		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
+	}
+	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
+	timeDiff := model.GetMillis() - int64(lastNotificationTimestamp)
+	return timeDiff >= int64(daysToMillis)
+}
+
+func (a *App) UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
+	myMapp := make(map[string][]*model.NotifyAdminData)
+	for _, d := range data {
+		myMapp[d.UserId] = append(myMapp[d.UserId], d)
+	}
+
+	return myMapp
+}
+
+func (a *App) FeatureBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
+	myMapp := make(map[string][]*model.NotifyAdminData)
+	for _, d := range data {
+		myMapp[d.RequiredFeature] = append(myMapp[d.RequiredFeature], d)
+	}
+
+	return myMapp
 }
 
 func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {

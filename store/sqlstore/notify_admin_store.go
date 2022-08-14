@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -53,6 +54,9 @@ func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId, feature string) (
 	}
 
 	if err := s.GetReplicaX().Select(&data, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("NotifyAdmin", fmt.Sprintf("user id: %s and required feature: %s", userId, feature))
+		}
 		return nil, errors.Wrapf(err, "notifcation data by user id: %s and required feature: %s", userId, feature)
 	}
 	return data, nil

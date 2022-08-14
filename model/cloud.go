@@ -4,8 +4,8 @@
 package model
 
 import (
-	"os"
-	"strconv"
+	"fmt"
+	"net/http"
 	"strings"
 )
 
@@ -240,24 +240,57 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 
+var validCloudSKUs map[string]interface{} = map[string]interface{}{
+	"cloud-starter":      nil,
+	"cloud-professional": nil,
+	"cloud-enterprise":   nil,
+}
+
+// These are the features a non admin would typically ping an admin about
+var nonAdminPaidFeatures map[string]interface{} = map[string]interface{}{
+	"Guest Accounts":            nil,
+	"Custom User groups":        nil,
+	"Create Multiple Teams":     nil,
+	"Start call":                nil,
+	"Playbooks Retrospective":   nil,
+	"Unlimited Messages":        nil,
+	"Unlimited File Storage":    nil,
+	"Unlimited Integrations":    nil,
+	"Unlimited Board cards":     nil,
+	"All Professional features": nil,
+}
+
 type NotifyAdminToUpgradeRequest struct {
 	TrialNotification bool   `json:"trial_notification"`
 	RequiredPlan      string `json:"required_plan"`
 	RequiredFeature   string `json:"required_feature"`
 }
 
-type AdminNotificationUserInfo struct {
-	LastUserIDToNotify        string
-	LastNotificationTimestamp int64
+type NotifyAdminData struct {
+	Id              string `json:"id,omitempty"`
+	CreateAt        int64  `json:"create_at,omitempty"`
+	UserId          string `json:"user_id"`
+	RequiredPlan    string `json:"required_plan"`
+	RequiredFeature string `json:"required_feature"`
+	Trial           bool   `json:"trial"`
 }
 
-func CanNotify(lastNotificationTimestamp int64) bool {
-	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
-	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
-	if parseError != nil {
-		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
+func (nad *NotifyAdminData) IsValid() *AppError {
+	if _, planOk := validCloudSKUs[nad.RequiredPlan]; !planOk {
+		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid plan, %s provided", nad.RequiredPlan), nil, "", http.StatusBadRequest)
 	}
-	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
-	timeDiff := GetMillis() - lastNotificationTimestamp
-	return timeDiff >= int64(daysToMillis)
+
+	if _, featureOk := nonAdminPaidFeatures[nad.RequiredFeature]; !featureOk {
+		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid feature, %s provided", nad.RequiredFeature), nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (nad *NotifyAdminData) PreSave() {
+	if nad.Id == "" {
+		nad.Id = NewId()
+	}
+
+	nad.CreateAt = GetMillis()
 }
