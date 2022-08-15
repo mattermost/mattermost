@@ -167,13 +167,13 @@ func (_m *ServiceInterface) SendDeactivateAccountEmail(_a0 string, locale string
 	return r0
 }
 
-// SendDelinquencyEmail14 provides a mock function with given fields: _a0, locale, siteURL
-func (_m *ServiceInterface) SendDelinquencyEmail14(_a0 string, locale string, siteURL string) error {
-	ret := _m.Called(_a0, locale, siteURL)
+// SendDelinquencyEmail14 provides a mock function with given fields: _a0, locale, siteURL, planName
+func (_m *ServiceInterface) SendDelinquencyEmail14(_a0 string, locale string, siteURL string, planName string) error {
+	ret := _m.Called(_a0, locale, siteURL, planName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(_a0, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, planName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -181,13 +181,13 @@ func (_m *ServiceInterface) SendDelinquencyEmail14(_a0 string, locale string, si
 	return r0
 }
 
-// SendDelinquencyEmail30 provides a mock function with given fields: _a0, locale, siteURL
-func (_m *ServiceInterface) SendDelinquencyEmail30(_a0 string, locale string, siteURL string) error {
-	ret := _m.Called(_a0, locale, siteURL)
+// SendDelinquencyEmail30 provides a mock function with given fields: _a0, locale, siteURL, planName
+func (_m *ServiceInterface) SendDelinquencyEmail30(_a0 string, locale string, siteURL string, planName string) error {
+	ret := _m.Called(_a0, locale, siteURL, planName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(_a0, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, planName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -195,13 +195,13 @@ func (_m *ServiceInterface) SendDelinquencyEmail30(_a0 string, locale string, si
 	return r0
 }
 
-// SendDelinquencyEmail45 provides a mock function with given fields: _a0, locale, siteURL
-func (_m *ServiceInterface) SendDelinquencyEmail45(_a0 string, locale string, siteURL string) error {
-	ret := _m.Called(_a0, locale, siteURL)
+// SendDelinquencyEmail45 provides a mock function with given fields: _a0, locale, siteURL, planName, delinquencyDate
+func (_m *ServiceInterface) SendDelinquencyEmail45(_a0 string, locale string, siteURL string, planName string, delinquencyDate string) error {
+	ret := _m.Called(_a0, locale, siteURL, planName, delinquencyDate)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(_a0, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, planName, delinquencyDate)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -223,13 +223,13 @@ func (_m *ServiceInterface) SendDelinquencyEmail60(_a0 string, locale string, si
 	return r0
 }
 
-// SendDelinquencyEmail7 provides a mock function with given fields: _a0, locale, siteURL
-func (_m *ServiceInterface) SendDelinquencyEmail7(_a0 string, locale string, siteURL string) error {
-	ret := _m.Called(_a0, locale, siteURL)
+// SendDelinquencyEmail7 provides a mock function with given fields: _a0, locale, siteURL, planName
+func (_m *ServiceInterface) SendDelinquencyEmail7(_a0 string, locale string, siteURL string, planName string) error {
+	ret := _m.Called(_a0, locale, siteURL, planName)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(_a0, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, planName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -237,13 +237,13 @@ func (_m *ServiceInterface) SendDelinquencyEmail7(_a0 string, locale string, sit
 	return r0
 }
 
-// SendDelinquencyEmail75 provides a mock function with given fields: _a0, locale, siteURL
-func (_m *ServiceInterface) SendDelinquencyEmail75(_a0 string, locale string, siteURL string) error {
-	ret := _m.Called(_a0, locale, siteURL)
+// SendDelinquencyEmail75 provides a mock function with given fields: _a0, locale, siteURL, planName, delinquencyDate
+func (_m *ServiceInterface) SendDelinquencyEmail75(_a0 string, locale string, siteURL string, planName string, delinquencyDate string) error {
+	ret := _m.Called(_a0, locale, siteURL, planName, delinquencyDate)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(_a0, locale, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string) error); ok {
+		r0 = rf(_a0, locale, siteURL, planName, delinquencyDate)
 	} else {
 		r0 = ret.Error(0)
 	}
