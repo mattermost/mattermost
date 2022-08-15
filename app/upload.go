@@ -171,7 +171,7 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 		switch {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, "", http.StatusNotFound).Wrap(nfErr)
+				nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
 				nil, "", http.StatusInternalServerError).Wrap(err)

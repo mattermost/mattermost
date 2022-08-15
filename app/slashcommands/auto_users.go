@@ -67,9 +67,9 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		case errors.As(nErr, &conflictErr):
-			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.conflict.app_error", nil, "", http.StatusBadRequest).Wrap(conflictErr)
+			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.conflict.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &limitExceededErr):
-			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.max_accounts.app_error", nil, "", http.StatusBadRequest).Wrap(limitExceededErr)
+			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.max_accounts.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}

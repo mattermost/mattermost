@@ -1073,7 +1073,7 @@ func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1096,9 +1096,9 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		var ltErr *store.ErrLimitExceeded
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &ltErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(ltErr)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1134,7 +1134,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			default:
 				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}

@@ -48,7 +48,7 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("CreateOAuthApp", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -67,7 +67,7 @@ func (a *App) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetOAuthApp", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -94,7 +94,7 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateOAuthApp", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -186,7 +186,7 @@ func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.Author
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.find.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return "", model.NewAppError("AllowOAuthAppAccessToUser", "app.oauth.get_app.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -511,7 +511,7 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("RegenerateOAuthAppSecret", "app.oauth.update_app.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -658,7 +658,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}

@@ -126,7 +126,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 			default:
 				code = "app.user.save.existing.app_error"
 			}
-			return nil, model.NewAppError("CreateBot", code, nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("CreateBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("CreateBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -261,7 +261,7 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 				default:
 					code = "app.user.save.existing.app_error"
 				}
-				return nil, model.NewAppError("getOrCreateBot", code, nil, "", http.StatusBadRequest).Wrap(invErr)
+				return nil, model.NewAppError("getOrCreateBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
 			default:
 				return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -314,7 +314,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -335,12 +335,12 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("PatchBot", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &conErr):
-			if cErr, ok := nErr.(*store.ErrConflict); ok && cErr.Resource == "Username" {
-				return nil, model.NewAppError("PatchBot", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(cErr)
+			if conErr.Resource == "Username" {
+				return nil, model.NewAppError("PatchBot", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			}
-			return nil, model.NewAppError("PatchBot", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(conErr)
+			return nil, model.NewAppError("PatchBot", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -356,7 +356,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.ID)
+			return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(nErr)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
@@ -373,7 +373,7 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.ID)
+			return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(err)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("GetBot", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -397,7 +397,7 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -412,7 +412,7 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.ID)
+			return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(nErr)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotActive", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -434,7 +434,7 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 			var appErr *model.AppError
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.MakeBotNotFoundError(nfErr.ID)
+				return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(nErr)
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
@@ -452,7 +452,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(invErr)
+			return model.NewAppError("PermanentDeleteBot", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PatchBot", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -472,7 +472,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.ID)
+			return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(err)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return nil, model.NewAppError("UpdateBotOwner", "app.bot.getbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -486,7 +486,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.MakeBotNotFoundError(nfErr.ID)
+			return nil, model.MakeBotNotFoundError(nfErr.ID).Wrap(err)
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.

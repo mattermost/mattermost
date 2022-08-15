@@ -349,7 +349,7 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -413,7 +413,7 @@ func (a *App) GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -467,7 +467,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(errCh, &nfErr):
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(errCh)
 			default:
 				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(errCh)
 			}
@@ -505,7 +505,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.override.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.override.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -574,7 +574,7 @@ func (a *App) GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -745,7 +745,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			default:
 				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -758,7 +758,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result2.NErr, &nfErr):
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusNotFound).Wrap(result2.NErr)
 			default:
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(result2.NErr)
 			}
@@ -807,7 +807,7 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
@@ -828,7 +828,7 @@ func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]any{"hook_id": hookID}, "", http.StatusNotFound).Wrap(nfErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]any{"hook_id": hookID}, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -841,7 +841,7 @@ func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *
 		case errors.As(cmdErr, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+cmdErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "", http.StatusBadRequest).Wrap(cmdErr)
 		}
 	}
 
@@ -856,7 +856,7 @@ func (a *App) HandleCommandWebhook(c *request.Context, hookID string, response *
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}

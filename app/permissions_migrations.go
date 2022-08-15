@@ -176,7 +176,7 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
-				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
 				return model.NewAppError("doPermissionsMigration", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}

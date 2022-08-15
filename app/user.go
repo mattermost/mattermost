@@ -64,7 +64,7 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreateUserWithToken", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("CreateUserWithToken", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("CreateUserWithToken", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -126,7 +126,7 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreateUserWithInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("CreateUserWithInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("CreateUserWithInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -236,19 +236,19 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.Is(nErr, users.AcceptedDomainError):
-			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createUserOrGuest", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createUserOrGuest", "api.user.check_user_password.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.Is(nErr, users.UserStoreIsEmptyError):
 			return nil, model.NewAppError("createUserOrGuest", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		case errors.As(nErr, &invErr):
 			switch invErr.Field {
 			case "email":
-				return nil, model.NewAppError("createUserOrGuest", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case "username":
-				return nil, model.NewAppError("createUserOrGuest", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("createUserOrGuest", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return nil, model.NewAppError("createUserOrGuest", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			}
 		default:
 			return nil, model.NewAppError("createUserOrGuest", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -263,7 +263,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("createUserOrGuest", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+				return nil, model.NewAppError("createUserOrGuest", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 			default:
 				return nil, model.NewAppError("createUserOrGuest", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -382,7 +382,7 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -406,7 +406,7 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByUsername", "app.user.get_by_username.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetUserByUsername", "app.user.get_by_username.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByUsername", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -420,7 +420,7 @@ func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByEmail", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -435,9 +435,9 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusInternalServerError).Wrap(nfErr)
+			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByAuth", "app.user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -942,7 +942,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateActive", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("UpdateActive", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateActive", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1059,7 +1059,7 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1116,7 +1116,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("UpdateUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1174,12 +1174,12 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("UpdateUser", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &conErr):
-			if cErr, ok := err.(*store.ErrConflict); ok && cErr.Resource == "Username" {
-				return nil, model.NewAppError("UpdateUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest)
+			if conErr.Resource == "Username" {
+				return nil, model.NewAppError("UpdateUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
-			return nil, model.NewAppError("UpdateUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1510,7 +1510,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		case errors.As(result.NErr, &appErr):
 			return nil, appErr
 		case errors.As(result.NErr, &invErr):
-			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 		default:
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
@@ -1589,7 +1589,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(invErr)
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]any{"user_id": invErr.Value}, "", http.StatusBadRequest).Wrap(err)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1989,7 +1989,7 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 			case errors.As(err, &appErr):
 				return appErr
 			case errors.As(err, &invErr):
-				return model.NewAppError("UpdateOAuthUserAttrs", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return model.NewAppError("UpdateOAuthUserAttrs", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
 				return model.NewAppError("UpdateOAuthUserAttrs", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -2298,7 +2298,7 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("ConvertBotToUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("ConvertBotToUser", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return nil, model.NewAppError("ConvertBotToUser", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}

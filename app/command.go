@@ -399,7 +399,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(tr.NErr, &nfErr):
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
 		default:
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 		}
@@ -411,7 +411,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
 		default:
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
@@ -423,7 +423,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(cr.NErr, &nfErr):
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(cr.NErr)
 		default:
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
@@ -680,7 +680,7 @@ func (a *App) GetCommand(commandID string) (*model.Command, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]any{"command_id": commandID}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]any{"command_id": commandID}, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -709,7 +709,7 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": updatedCmd.Id}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": updatedCmd.Id}, "", http.StatusNotFound).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
@@ -729,7 +729,7 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": command.Id}, "", http.StatusNotFound)
+			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": command.Id}, "", http.StatusNotFound).Wrap(err)
 		case errors.As(err, &appErr):
 			return appErr
 		default:
@@ -753,7 +753,7 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": cmd.Id}, "", http.StatusNotFound)
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]any{"command_id": cmd.Id}, "", http.StatusNotFound).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:

@@ -171,9 +171,9 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("DeleteEmoji", "app.emoji.delete.no_results", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
+			return model.NewAppError("DeleteEmoji", "app.emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusNotFound).Wrap(err)
 		default:
-			return model.NewAppError("DeleteEmoji", "app.emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("DeleteEmoji", "app.emoji.delete.app_error", nil, "id="+emoji.Id, http.StatusInternalServerError).Wrap(err)
 		}
 	}
 

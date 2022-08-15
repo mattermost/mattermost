@@ -214,9 +214,9 @@ func (a *App) importTeam(c *request.Context, data *TeamImportData, dryRun bool) 
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return model.NewAppError("BulkImport", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return model.NewAppError("BulkImport", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			case errors.As(err, &invErr):
-				return model.NewAppError("BulkImport", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return model.NewAppError("BulkImport", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
 				return model.NewAppError("BulkImport", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -501,20 +501,20 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 			case errors.As(err, &appErr):
 				return appErr
 			case errors.Is(err, users.AcceptedDomainError):
-				return model.NewAppError("importUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("importUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case errors.Is(err, users.UserStoreIsEmptyError):
-				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			case errors.As(err, &invErr):
 				switch invErr.Field {
 				case "email":
-					return model.NewAppError("importUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+					return model.NewAppError("importUser", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				case "username":
-					return model.NewAppError("importUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+					return model.NewAppError("importUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				default:
-					return model.NewAppError("importUser", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+					return model.NewAppError("importUser", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 			default:
-				return model.NewAppError("importUser", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				return model.NewAppError("importUser", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -553,7 +553,7 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 					var invErr *store.ErrInvalidInput
 					switch {
 					case errors.As(nErr, &invErr):
-						return model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+						return model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 					default:
 						return model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 					}
@@ -1011,7 +1011,7 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 		case errors.As(nErr, &appErr):
 			return appErr
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("importUserChannels", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return model.NewAppError("importUserChannels", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
 			return model.NewAppError("importUserChannels", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -1027,7 +1027,7 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 			case errors.As(nErr, &cErr):
 				switch cErr.Resource {
 				case "ChannelMembers":
-					return model.NewAppError("importUserChannels", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(cErr)
+					return model.NewAppError("importUserChannels", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 				}
 			case errors.As(nErr, &appErr):
 				return appErr
@@ -1173,7 +1173,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 			case errors.As(err, &appErr):
 				return appErr
 			case errors.As(err, &invErr):
-				return model.NewAppError("importReplies", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				return model.NewAppError("importReplies", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
 				return model.NewAppError("importReplies", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -1462,7 +1462,7 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			case errors.As(nErr, &appErr):
 				retErr = appErr
 			case errors.As(nErr, &invErr):
-				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			default:
 				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -1773,7 +1773,7 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			case errors.As(err, &appErr):
 				retErr = appErr
 			case errors.As(err, &invErr):
-				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
 				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}

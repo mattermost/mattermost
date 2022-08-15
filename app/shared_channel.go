@@ -23,7 +23,7 @@ func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	if _, err := a.GetSharedChannel(channelId); err == nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is already shared")
+			return fmt.Errorf("channel is already shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -34,7 +34,7 @@ func (a *App) checkChannelIsShared(channelId string) error {
 	if _, err := a.GetSharedChannel(channelId); err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is not shared")
+			return fmt.Errorf("channel is not shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -46,7 +46,7 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is not shared")
+			return fmt.Errorf("channel is not shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -126,7 +126,7 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

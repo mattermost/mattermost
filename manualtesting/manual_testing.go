@@ -84,7 +84,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &invErr):
-				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
+				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case errors.As(err, &appErr):
 				c.Err = appErr
 			default:

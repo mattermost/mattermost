@@ -50,7 +50,7 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest)
+			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -74,7 +74,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+			return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
 		default:
 			return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -123,7 +123,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+			return model.NewAppError("DoubleCheckPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
 		default:
 			return model.NewAppError("DoubleCheckPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

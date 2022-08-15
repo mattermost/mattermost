@@ -98,7 +98,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
 			default:
 				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
@@ -116,7 +116,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			default:
 				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -195,7 +195,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
 		default:
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
@@ -209,7 +209,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(tr.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
 			default:
 				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 			}
