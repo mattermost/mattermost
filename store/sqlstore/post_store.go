@@ -209,8 +209,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	if err != nil {
 		return posts, -1, errors.Wrap(err, "begin_transaction")
 	}
-
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if _, err = transaction.Exec(query, args...); err != nil {
 		return nil, -1, errors.Wrap(err, "failed to save Post")
@@ -388,7 +387,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (psts []*model.Post, index int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
@@ -402,7 +401,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, in
 	if err != nil {
 		return nil, -1, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(tx)
+	defer finalizeTransactionX(tx, &err)
 
 	for idx, post := range posts {
 		if _, err2 := tx.NamedExec(`UPDATE Posts
@@ -566,15 +565,18 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 	)
 	var post postWithExtra
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userID).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.Id": id}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_ToSql2")
+	}
 
-	err := s.GetReplicaX().Get(&post, postFetchQuery, args...)
+	err = s.GetReplicaX().Get(&post, postFetchQuery, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -641,7 +643,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_Tosql")
+		return nil, errors.Wrap(err, "getPostWithCollapsedThreads_Tosql2")
 	}
 	err = s.GetReplicaX().Select(&posts, sql, args...)
 	if err != nil {
@@ -847,7 +849,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	if collapsedThreads {
 		q.Where(sq.Eq{"RootId": ""})
 	}
-	sql, args, _ := q.ToSql()
+	sql, args := q.MustSql()
 
 	var et etagPosts
 	err := s.GetReplicaX().Get(&et, sql, args...)
@@ -863,12 +865,12 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 
 // Soft deletes a post
 // and cleans up the thread if it's a comment
-func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) error {
+func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	id := postIds{}
 	// TODO: change this to later delete thread directly from postID
@@ -921,13 +923,13 @@ func (s *SqlPostStore) Delete(postID string, time int64, deleteByID string) erro
 	return nil
 }
 
-func (s *SqlPostStore) permanentDelete(postId string) error {
+func (s *SqlPostStore) permanentDelete(postId string) (err error) {
 	var post model.Post
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	err = transaction.Get(&post, "SELECT * FROM Posts WHERE Id = ?", postId)
 	if err != nil && err != sql.ErrNoRows {
@@ -954,13 +956,13 @@ type postIds struct {
 	UserId string
 }
 
-func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
+func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error) {
 	results := []postIds{}
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	err = transaction.Select(&results, "Select Id, RootId FROM Posts WHERE UserId = ? AND RootId != ''", userId)
 	if err != nil {
@@ -1028,12 +1030,12 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 // Permanent deletes all channel root posts and comments,
 // deletes all threads and thread memberships
 // no thread comment cleanup needed, since we are deleting threads and thread memberships
-func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
+func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	results := []postIds{}
 	err = transaction.Select(&results, "SELECT Id, RootId, UserId FROM Posts WHERE ChannelId = ?", channelId)
@@ -1219,7 +1221,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	)
 	var posts []*postWithExtra
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
@@ -1229,8 +1231,11 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
 		OrderBy("Posts.CreateAt DESC").ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getPostsSinceCollapsedThreads_ToSql")
+	}
 
-	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
+	err = s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
@@ -2661,13 +2666,13 @@ func (s *SqlPostStore) SearchPostsForUser(paramsList []*model.SearchParams, user
 
 const lastSearchesLimit = 5
 
-func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) error {
+func (s *SqlPostStore) LogRecentSearch(userID string, searchQuery []byte, createAt int64) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	var lastSearchPointer int
 	var queryStr string
@@ -2897,7 +2902,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	if len(rootIds) == 0 {
 		return nil
 	}
-	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().
+	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
 			"Threads.ChannelId",
@@ -2909,6 +2914,10 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		From("Threads").
 		Where(sq.Eq{"Threads.PostId": rootIds}).
 		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "updateThreadsFromPosts_ToSql")
+	}
+
 	threadsByRoots := []*model.Thread{}
 	if err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
 		return err
@@ -3133,7 +3142,7 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	sql := `SELECT EXISTS (SELECT 1 FROM Posts	WHERE Id=?)`
 	var exist bool
@@ -3169,14 +3178,14 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	return nil
 }
 
-func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+func (s *SqlPostStore) GetPostReminders(now int64) (prs []*model.PostReminder, err error) {
 	reminders := []*model.PostReminder{}
 
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	err = transaction.Select(&reminders, `SELECT PostId, UserId
 		FROM PostReminders

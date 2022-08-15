@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"io"
 	"net/url"
 	"strconv"
 	"strings"
@@ -50,10 +51,23 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 }
 
 // finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransactionX(transaction *sqlxTxWrapper) {
+func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
 	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+		if perr != nil && *perr == nil {
+			*perr = err
+			return
+		}
+
+		// TODO(noxer): Return a multi-error instead of falling back on mlog
 		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+	}
+}
+
+func deferClose(c io.Closer, perr *error) {
+	err := c.Close()
+	if perr != nil && *perr == nil {
+		*perr = err
 	}
 }
 

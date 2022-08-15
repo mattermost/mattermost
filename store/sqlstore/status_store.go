@@ -137,13 +137,13 @@ func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status
 	return statuses, nil
 }
 
-func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+func (s SqlStatusStore) UpdateExpiredDNDStatuses() (stats []*model.Status, err error) {
 	if s.DriverName() == model.DatabaseDriverMysql {
 		transaction, err := s.GetMasterX().Beginx()
 		if err != nil {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &err)
 		statuses, err := s.updateExpiredStatuses(transaction)
 		if err != nil {
 			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")

@@ -86,7 +86,7 @@ func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 	return &SqlRoleStore{sqlStore}
 }
 
-func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
+func (s *SqlRoleStore) Save(role *model.Role) (ro *model.Role, err error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
@@ -97,10 +97,10 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &err)
+
 		createdRole, err := s.createRole(role, transaction)
 		if err != nil {
-			_ = transaction.Rollback()
 			return nil, errors.Wrap(err, "unable to create Role")
 		} else if err := transaction.Commit(); err != nil {
 			return nil, errors.Wrap(err, "commit_transaction")
