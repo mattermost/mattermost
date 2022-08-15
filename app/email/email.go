@@ -1000,7 +1000,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 	return nil
 }
 
-func (es *Service) SendDelinquencyEmail7(email, locale, siteURL string) error {
+func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.payment_failed.subject")
@@ -1009,7 +1009,7 @@ func (es *Service) SendDelinquencyEmail7(email, locale, siteURL string) error {
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.delinquency_7.title")
 	data.Props["SubTitle1"] = T("api.templates.delinquency_7.subtitle1")
-	data.Props["SubTitle2"] = T("api.templates.delinquency_7.subtitle2")
+	data.Props["SubTitle2"] = T("api.templates.delinquency_7.subtitle2", map[string]any{"Plan": planName})
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
@@ -1029,10 +1029,10 @@ func (es *Service) SendDelinquencyEmail7(email, locale, siteURL string) error {
 
 	return nil
 }
-func (es *Service) SendDelinquencyEmail14(email, locale, siteURL string) error {
+func (es *Service) SendDelinquencyEmail14(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_14.subject")
+	subject := T("api.templates.delinquency_14.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
@@ -1058,15 +1058,15 @@ func (es *Service) SendDelinquencyEmail14(email, locale, siteURL string) error {
 
 	return nil
 }
-func (es *Service) SendDelinquencyEmail30(email, locale, siteURL string) error {
+func (es *Service) SendDelinquencyEmail30(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_30.subject")
+	subject := T("api.templates.delinquency_30.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.delinquency_30.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_30.subtitle1")
+	data.Props["SubTitle1"] = T("api.templates.delinquency_30.subtitle1", map[string]any{"Plan": planName})
 	data.Props["SubTitle2"] = T("api.templates.delinquency_30.subtitle2")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
@@ -1089,22 +1089,22 @@ func (es *Service) SendDelinquencyEmail30(email, locale, siteURL string) error {
 	return nil
 }
 
-func (es *Service) SendDelinquencyEmail45(email, locale, siteURL string) error {
+func (es *Service) SendDelinquencyEmail45(email, locale, siteURL, planName, delinquencyDate string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_45.subject")
+	subject := T("api.templates.delinquency_45.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.delinquency_45.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_45.subtitle1")
+	data.Props["SubTitle1"] = T("api.templates.delinquency_45.subtitle1", map[string]any{"DelinquencyDate": delinquencyDate})
 	data.Props["SubTitle2"] = T("api.templates.delinquency_45.subtitle2")
 	data.Props["SubTitle3"] = T("api.templates.delinquency_45.subtitle3")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_45.button")
-	data.Props["IncludeDowngrade"] = false
+	data.Props["IncludeSecondaryActionButton"] = false
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	data.Props["Footer"] = T("api.templates.copyright")
@@ -1124,7 +1124,7 @@ func (es *Service) SendDelinquencyEmail45(email, locale, siteURL string) error {
 func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_45.subject")
+	subject := T("api.templates.delinquency_60.subject")
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
@@ -1137,8 +1137,8 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_60.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeDowngrade"] = true
-	data.Props["DowngradeToStarter"] = T("api.templates.delinquency_60.downgrade_to_starter")
+	data.Props["IncludeSecondaryActionButton"] = true
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_starter")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 60 day one so its reused
@@ -1154,24 +1154,24 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	return nil
 }
 
-func (es *Service) SendDelinquencyEmail75(email, locale, siteURL string) error {
+func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_45.subject")
+	subject := T("api.templates.delinquency_75.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.delinquency_75.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_75.subtitle1")
-	data.Props["SubTitle2"] = T("api.templates.delinquency_75.subtitle2")
+	data.Props["SubTitle1"] = T("api.templates.delinquency_75.subtitle1", map[string]any{"DelinquencyDate": delinquencyDate})
+	data.Props["SubTitle2"] = T("api.templates.delinquency_75.subtitle2", map[string]any{"Plan": planName})
 	data.Props["SubTitle3"] = T("api.templates.delinquency_75.subtitle3")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_75.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeDowngrade"] = true
-	data.Props["DowngradeToStarter"] = T("api.templates.delinquency_75.downgrade_to_starter")
+	data.Props["IncludeSecondaryActionButton"] = true
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_starter")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 75 day one so its reused
@@ -1190,12 +1190,12 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL string) error {
 func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.delinquency_45.subject")
+	subject := T("api.templates.delinquency_90.subject")
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.delinquency_90.title")
-	data.Props["SubTitle1"] = T("api.templates.delinquency_90.subtitle1")
+	data.Props["SubTitle1"] = T("api.templates.delinquency_90.subtitle1", map[string]any{"SiteURL": siteURL})
 	data.Props["SubTitle2"] = T("api.templates.delinquency_90.subtitle2")
 	data.Props["SubTitle3"] = T("api.templates.delinquency_90.subtitle3")
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
@@ -1203,7 +1203,8 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 	data.Props["Button"] = T("api.templates.delinquency_90.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["IncludeDowngrade"] = false
+	data.Props["IncludeSecondaryActionButton"] = true
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_90.secondary_action_button")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	body, err := es.templatesContainer.RenderToString("cloud_90_day_arrears", data)

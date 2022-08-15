@@ -3245,7 +3245,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost Cloud {Plan}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
@@ -3285,11 +3285,11 @@
   },
   {
     "id": "api.templates.delinquency_30.subject",
-    "translation": "Act to keep your Mattermost Cloud {Plan} Features"
+    "translation": "Act to keep your Mattermost {{.Plan}} Features"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
-    "translation": "You have time to keep your Mattermost Cloud (Plan) active but you'll need to resolve issues with your payment method."
+    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
@@ -3305,11 +3305,11 @@
   },
   {
     "id": "api.templates.delinquency_45.subject",
-    "translation": "Notice: Your Mattermost Cloud {Plan} will be downgraded soon"
+    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We've been unable to collect payment for outstanding invoices dated mm/dd/yyyy and mm/dd/yyyy"
+    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -3330,6 +3330,10 @@
   {
     "id": "api.templates.delinquency_60.downgrade_to_starter",
     "translation": "Downgrade to Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Action Required: Workspace will be downgraded in 30 days"
   },
   {
     "id": "api.templates.delinquency_60.subtitle1",
@@ -3357,7 +3361,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
-    "translation": "To keep your Cloud (Plan) active, please contact your financial institution as soon as possible. Then, update your payment details as needed."
+    "translation": "To keep your {{.Plan}} plan active, please contact your financial institution as soon as possible. Then, update your payment details as needed."
   },
   {
     "id": "api.templates.delinquency_7.title",
@@ -3372,12 +3376,16 @@
     "translation": "Downgrade to Cloud Starter"
   },
   {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
+  },
+  {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since mm/dd."
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Starter. Your {Plan} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+    "translation": "Your workspace will be downgraded to Cloud Starter. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
@@ -3392,8 +3400,16 @@
     "translation": "Update payment"
   },
   {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "View Plans & Pricing"
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Your Mattermost Cloud workspace has been downgraded"
+  },
+  {
     "id": "api.templates.delinquency_90.subtitle1",
-    "translation": "If you use Cloud {Plan} features for important business operations, these will no longer be available and you'll experience a degraded performance."
+    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
@@ -4802,6 +4818,18 @@
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Couldn't retrieve cloud products"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Couldn't retrieve cloud subscription"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Subscription is not delinquent"
   },
   {
     "id": "app.command.createcommand.internal_error",

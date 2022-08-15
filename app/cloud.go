@@ -148,31 +148,64 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	return nil
 }
 
+func getCurrentProduct(subscriptionProductID string, products []*model.Product) *model.Product {
+	for _, product := range products {
+		if product.ID == subscriptionProductID {
+			return product
+		}
+	}
+	return nil
+}
+
 func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	sysAdmins, aErr := a.getSysAdminsEmailRecipients()
+	if aErr != nil {
+		return aErr
+	}
+	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		return err
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_subscription.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if subscription == nil {
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	products, err := a.Cloud().GetCloudProducts("", false)
+	if err != nil {
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if products == nil {
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	planName := getCurrentProduct(subscription.ProductID, products).Name
+
+	if subscription.DelinquentSince == nil {
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_subscription_delinquency_date.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	delinquentSince := time.Unix(*subscription.DelinquentSince, 0)
+
+	delinquencyDate := delinquentSince.Format("01/02/2006")
 	for _, admin := range sysAdmins {
 		switch emailToSend {
 		case model.DelinquencyEmail7:
-			err := a.Srv().EmailService.SendDelinquencyEmail7(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			err := a.Srv().EmailService.SendDelinquencyEmail7(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL, planName)
 			if err != nil {
 				a.Log().Error("Error sending delinquency email 7", mlog.Err(err))
 			}
 		case model.DelinquencyEmail14:
-			err := a.Srv().EmailService.SendDelinquencyEmail14(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			err := a.Srv().EmailService.SendDelinquencyEmail14(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL, planName)
 			if err != nil {
 				a.Log().Error("Error sending delinquency email 14", mlog.Err(err))
 			}
 		case model.DelinquencyEmail30:
-			err := a.Srv().EmailService.SendDelinquencyEmail30(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			err := a.Srv().EmailService.SendDelinquencyEmail30(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL, planName)
 			if err != nil {
 				a.Log().Error("Error sending delinquency email 30", mlog.Err(err))
 			}
 		case model.DelinquencyEmail45:
-			err := a.Srv().EmailService.SendDelinquencyEmail45(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			err := a.Srv().EmailService.SendDelinquencyEmail45(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL, planName, delinquencyDate)
 			if err != nil {
 				a.Log().Error("Error sending delinquency email 45", mlog.Err(err))
 			}
@@ -182,7 +215,7 @@ func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.Ap
 				a.Log().Error("Error sending delinquency email 60", mlog.Err(err))
 			}
 		case model.DelinquencyEmail75:
-			err := a.Srv().EmailService.SendDelinquencyEmail75(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+			err := a.Srv().EmailService.SendDelinquencyEmail75(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL, planName, delinquencyDate)
 			if err != nil {
 				a.Log().Error("Error sending delinquency email 75", mlog.Err(err))
 			}
