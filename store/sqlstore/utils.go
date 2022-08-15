@@ -82,8 +82,9 @@ func containsAlphaNumericChar(s string) bool {
 }
 
 // isQuotedWord return true if the input string is quoted, false otherwise. Ex :-
-// 		"quoted string"  -  will return true
-// 		unquoted string  -  will return false
+//
+//	"quoted string"  -  will return true
+//	unquoted string  -  will return false
 func isQuotedWord(s string) bool {
 	if len(s) < 2 {
 		return false
