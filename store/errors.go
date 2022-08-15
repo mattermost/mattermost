@@ -166,8 +166,8 @@ type ErrUniqueConstraint struct {
 //
 // Examples:
 //
-//  store.NewErrUniqueConstraint("DisplayName") // single column constraint
-//  store.NewErrUniqueConstraint("Name", "Source") // multi-column constraint
+//	store.NewErrUniqueConstraint("DisplayName") // single column constraint
+//	store.NewErrUniqueConstraint("Name", "Source") // multi-column constraint
 func NewErrUniqueConstraint(columns ...string) *ErrUniqueConstraint {
 	return &ErrUniqueConstraint{
 		Columns: columns,
