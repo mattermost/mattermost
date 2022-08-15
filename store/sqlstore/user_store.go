@@ -1653,7 +1653,7 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) string {
 	return fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
 }
 
-func (us SqlUserStore) ClearAllCustomRoleAssignments() error {
+func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 	builtInRoles := model.MakeDefaultRoles()
 	lastUserId := strings.Repeat("0", 26)
 
@@ -1664,7 +1664,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() error {
 		if transaction, err = us.GetMasterX().Beginx(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &err)
 
 		users := []*model.User{}
 		if err := transaction.Select(&users, "SELECT * from Users WHERE Id > ? ORDER BY Id LIMIT 1000", lastUserId); err != nil {
@@ -1885,12 +1885,12 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 	return resultQuery
 }
 
-func (us SqlUserStore) PromoteGuestToUser(userId string) error {
+func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 	transaction, err := us.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	user, err := us.Get(context.Background(), userId)
 	if err != nil {
@@ -1954,12 +1954,12 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) error {
 	return nil
 }
 
-func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
 	transaction, err := us.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	user, err := us.Get(context.Background(), userID)
 	if err != nil {
