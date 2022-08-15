@@ -1352,12 +1352,12 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 
 	ihcresult := <-ihc
 	if ihcresult.NErr != nil {
-		return model.NewAppError("DeleteChannel", "app.webhooks.get_incoming_by_channel.app_error", nil, ihcresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_incoming_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ihcresult.NErr)
 	}
 
 	ohcresult := <-ohc
 	if ohcresult.NErr != nil {
-		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, ohcresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ohcresult.NErr)
 	}
 
 	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
@@ -2136,7 +2136,7 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		case errors.As(uresult.NErr, &nfErr):
 			return model.NewAppError("CreateChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
 
@@ -2247,7 +2247,7 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		case errors.As(cresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, cresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cresult.NErr)
 		}
 	}
 	uresult := <-uc
@@ -2257,12 +2257,12 @@ func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *mode
 		case errors.As(uresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
 	ccresult := <-mcc
 	if ccresult.NErr != nil {
-		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, ccresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
 	}
 
 	channel := cresult.Data.(*model.Channel)

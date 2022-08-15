@@ -1512,7 +1512,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		case errors.As(result.NErr, &invErr):
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(invErr)
 		default:
-			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	ruser := result.Data.(*model.UserUpdate).New

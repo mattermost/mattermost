@@ -1567,7 +1567,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 			case errors.As(result.NErr, &nfErr):
 				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 			default:
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
 		post := result.Data.(*model.Post)

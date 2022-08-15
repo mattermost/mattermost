@@ -684,7 +684,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	var hook *model.IncomingWebhook
 	result := <-hchan
 	if result.NErr != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, result.NErr.Error(), http.StatusBadRequest)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 	}
 	hook = result.Data.(*model.IncomingWebhook)
 
@@ -760,7 +760,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 			case errors.As(result2.NErr, &nfErr):
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 			default:
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result2.NErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(result2.NErr)
 			}
 		}
 		channel = result2.Data.(*model.Channel)
@@ -772,7 +772,7 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 
 	result = <-uchan
 	if result.NErr != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, result.NErr.Error(), http.StatusForbidden)
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "", http.StatusForbidden).Wrap(result.NErr)
 	}
 
 	if channel.Type != model.ChannelTypeOpen && !a.HasPermissionToChannel(c, hook.UserId, channel.Id, model.PermissionReadChannel) {

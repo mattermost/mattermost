@@ -600,7 +600,7 @@ func (a *App) AddUserToTeam(c request.CTX, teamID string, userID string, userReq
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeam", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeam", "app.team.get.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeam", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -612,7 +612,7 @@ func (a *App) AddUserToTeam(c request.CTX, teamID string, userID string, userReq
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeam", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeam", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -681,7 +681,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.team.get.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -697,7 +697,7 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeamByToken", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -757,7 +757,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -769,7 +769,7 @@ func (a *App) AddUserToTeamByInviteId(c *request.Context, inviteId string, userI
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("AddUserToTeamByInviteId", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -1193,7 +1193,7 @@ func (a *App) RemoveUserFromTeam(c request.CTX, teamID string, userID string, re
 		case errors.As(result.NErr, &nfErr):
 			return model.NewAppError("RemoveUserFromTeam", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return model.NewAppError("RemoveUserFromTeam", "app.team.get_by_invite_id.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("RemoveUserFromTeam", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -1205,7 +1205,7 @@ func (a *App) RemoveUserFromTeam(c request.CTX, teamID string, userID string, re
 		case errors.As(result.NErr, &nfErr):
 			return model.NewAppError("RemoveUserFromTeam", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return model.NewAppError("RemoveUserFromTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("RemoveUserFromTeam", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -1393,7 +1393,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.team.get_by_invite_id.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -1405,7 +1405,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -1520,7 +1520,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 
 	result := <-cchan
 	if result.NErr != nil {
-		return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 	}
 	channels := result.Data.([]*model.Channel)
 
@@ -1531,7 +1531,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	user := result.Data.(*model.User)
@@ -1543,7 +1543,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 		case errors.As(result.NErr, &nfErr):
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.team.get_by_invite_id.finding.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.team.get_by_invite_id.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 	}
 	team := result.Data.(*model.Team)
@@ -1898,13 +1898,13 @@ func (a *App) GetTeamStats(teamID string, restrictions *model.ViewUsersRestricti
 
 	result := <-tchan
 	if result.NErr != nil {
-		return nil, model.NewAppError("GetTeamStats", "app.team.get_member_count.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTeamStats", "app.team.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 	}
 	stats.TotalMemberCount = result.Data.(int64)
 
 	result = <-achan
 	if result.NErr != nil {
-		return nil, model.NewAppError("GetTeamStats", "app.team.get_active_member_count.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTeamStats", "app.team.get_active_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 	}
 	stats.ActiveMemberCount = result.Data.(int64)
 

@@ -401,7 +401,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		case errors.As(tr.NErr, &nfErr):
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 		}
 	}
 	team := tr.Data.(*model.Team)
@@ -413,7 +413,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		case errors.As(ur.NErr, &nfErr):
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
 	user := ur.Data.(*model.User)
@@ -425,7 +425,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		case errors.As(cr.NErr, &nfErr):
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, cr.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
 	}
 	channel := cr.Data.(*model.Channel)
