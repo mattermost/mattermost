@@ -3297,7 +3297,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "If no action is taken, your workspace will be downgraded and the following data will be archived:"
+    "translation": "if no action is taken, your workspace will be downgraded and the following data will be archived:"
   },
   {
     "id": "api.templates.delinquency_30.title",
@@ -3417,7 +3417,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data has been archived due to Cloud Starter limitations."
+    "translation": "In addition, your data may have been archived due to Cloud Starter limitations."
   },
   {
     "id": "api.templates.delinquency_90.subtitle3",
