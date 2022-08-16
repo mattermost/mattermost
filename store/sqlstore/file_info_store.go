@@ -754,7 +754,7 @@ func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) 
 	return size, nil
 }
 
-// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a total size upto n bits.
+// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	if n <= 0 {
 		return 0, errors.New("n can't be less than 1")
