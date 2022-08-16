@@ -96,6 +96,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 }
 
 func (ch *Channels) syncPluginsActiveState() {
+	ch.srv.GetLogger().Info("syncing plugin state")
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
@@ -160,6 +161,8 @@ func (ch *Channels) syncPluginsActiveState() {
 				defer wg.Done()
 
 				pluginID := plugin.Manifest.Id
+
+				ch.srv.GetLogger().Info("activating plugin", mlog.String("plugin_id", pluginID))
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
 				if err != nil {
 					plugin.WrapLogger(ch.srv.Log).Error("Unable to activate plugin", mlog.Err(err))
@@ -258,6 +261,8 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *old.PluginSettings.Enable == *new.PluginSettings.Enable {
 			ch.installFeatureFlagPlugins()
+
+			ch.srv.GetLogger().Info("syncing plugin state due to config listener")
 			ch.syncPluginsActiveState()
 		}
 		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
