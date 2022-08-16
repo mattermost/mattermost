@@ -472,6 +472,10 @@
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
   {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Missing required fields to send delinquency email."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
@@ -3421,7 +3425,7 @@
   },
   {
     "id": "api.templates.delinquency_90.title",
-    "translation": "Your Mattermost workspace has been downgraded  "
+    "translation": "Your Mattermost workspace has been downgraded"
   },
   {
     "id": "api.templates.email_change_body.info",

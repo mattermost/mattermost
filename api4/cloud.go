@@ -669,6 +669,9 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		var emailToTrigger model.DelinquencyEmail
 		if event.DelinquencyEmail != nil {
 			emailToTrigger = model.DelinquencyEmail(event.DelinquencyEmail.EmailToTrigger)
+		} else {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.delinquency_email.missing_email_to_trigger", nil, "", http.StatusInternalServerError)
+			return
 		}
 		if nErr := c.App.SendDelinquencyEmail(emailToTrigger); nErr != nil {
 			c.Err = nErr
