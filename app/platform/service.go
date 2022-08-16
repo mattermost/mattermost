@@ -20,7 +20,9 @@ import (
 type PlatformService struct {
 	serviceConfig ServiceConfig
 	configStore   *config.Store
-	logger        *mlog.Logger
+
+	logger              *mlog.Logger
+	notificationsLogger *mlog.Logger
 
 	metrics *platformMetrics
 
@@ -46,6 +48,10 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 		configStore:   sc.ConfigStore,
 		logger:        sc.Logger,
 		cluster:       sc.Cluster,
+	}
+
+	if err := ps.initLogging(); err != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err)
 	}
 
 	if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
@@ -76,4 +82,8 @@ func (ps *PlatformService) ShutdownConfig() error {
 
 func (ps *PlatformService) SetTelemetryId(id string) {
 	ps.telemetryId = id
+}
+
+func (ps *PlatformService) SetLogger(logger *mlog.Logger) {
+	ps.logger = logger
 }

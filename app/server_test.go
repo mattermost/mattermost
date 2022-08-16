@@ -409,7 +409,7 @@ func TestPanicLog(t *testing.T) {
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		s.Log.Info("inside panic handler")
+		s.Log().Info("inside panic handler")
 		panic("log this panic")
 	})
 

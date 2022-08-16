@@ -36,12 +36,16 @@ func (c *ServiceConfig) validate() error {
 
 	if c.Logger == nil {
 		var err error
-		// If Logger is not set, use a default logger temporarily.
-		// this should be removed once the logger is properly configured with the service config.
-		// MM-45841
 		c.Logger, err = mlog.NewLogger()
 		if err != nil {
 			return err
+		}
+		logCfg, err := config.MloggerConfigFromLoggerConfig(&c.ConfigStore.Get().LogSettings, nil, config.GetLogFileLocation)
+		if err != nil {
+			return err
+		}
+		if errCfg := c.Logger.ConfigureTargets(logCfg, nil); errCfg != nil {
+			return fmt.Errorf("failed to configure test logger: %w", errCfg)
 		}
 	}
 	return nil

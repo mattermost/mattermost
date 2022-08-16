@@ -55,7 +55,6 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
-			Logger:       s.Log,
 			StartMetrics: s.startMetrics,
 			Cluster:      s.Cluster,
 		}
@@ -78,7 +77,6 @@ func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
-			Logger:       s.Log,
 			StartMetrics: s.startMetrics,
 			Cluster:      s.Cluster,
 		}
@@ -129,7 +127,10 @@ func StartSearchEngine(s *Server) error {
 
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
-		s.Log = logger
+		// s.Log = logger
+		if s.platform != nil {
+			s.platform.SetLogger(logger)
+		}
 		return nil
 	}
 }
