@@ -81,7 +81,7 @@ func (s SqlNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 
 func (s SqlNotifyAdminStore) DeleteAll(trial bool) error {
 	if _, err := s.GetMasterX().Exec("DELETE FROM NotifyAdmin WHERE trial = ?", trial); err != nil {
-		return errors.Wrapf(err, "failed to remove all notification data with trial=%s", trial)
+		return errors.Wrapf(err, "failed to remove all notification data with trial=%t", trial)
 	}
 	return nil
 }

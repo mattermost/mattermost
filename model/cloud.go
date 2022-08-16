@@ -258,6 +258,7 @@ var nonAdminPaidFeatures map[string]interface{} = map[string]interface{}{
 	"Unlimited Integrations":    nil,
 	"Unlimited Board cards":     nil,
 	"All Professional features": nil,
+	"All Enterprise features":   nil,
 }
 
 type NotifyAdminToUpgradeRequest struct {
