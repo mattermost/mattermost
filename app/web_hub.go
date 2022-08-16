@@ -157,8 +157,8 @@ func (a *App) HubUnregister(webConn *WebConn) {
 }
 
 func (s *Server) Publish(message *model.WebSocketEvent) {
-	if s.Metrics != nil {
-		s.Metrics.IncrementWebsocketEvent(message.EventType())
+	if s.GetMetrics() != nil {
+		s.GetMetrics().IncrementWebsocketEvent(message.EventType())
 	}
 
 	s.PublishSkipClusterSend(message)
@@ -357,7 +357,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
-		if metrics := h.srv.Metrics; metrics != nil {
+		if metrics := h.srv.GetMetrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
@@ -525,7 +525,7 @@ func (h *Hub) Start() {
 					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
-				if metrics := h.srv.Metrics; metrics != nil {
+				if metrics := h.srv.GetMetrics(); metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
 				msg = msg.PrecomputeJSON()

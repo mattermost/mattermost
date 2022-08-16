@@ -5,7 +5,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -111,7 +111,7 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = ioutil.WriteFile(fs.path, b, 0600)
+	err = os.WriteFile(fs.path, b, 0600)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
@@ -130,7 +130,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 	}
 	defer f.Close()
 
-	fileBytes, err := ioutil.ReadAll(f)
+	fileBytes, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
 	resolvedPath := fs.resolveFilePath(name)
 
-	data, err := ioutil.ReadFile(resolvedPath)
+	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
 	}
@@ -160,7 +160,7 @@ func (fs *FileStore) GetFilePath(name string) string {
 func (fs *FileStore) SetFile(name string, data []byte) error {
 	resolvedPath := fs.resolveFilePath(name)
 
-	err := ioutil.WriteFile(resolvedPath, data, 0600)
+	err := os.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}

@@ -59,7 +59,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	if err != nil {
 		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
+	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
 		var limitExceededErr *store.ErrLimitExceeded
@@ -78,7 +78,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, error) {
+func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
@@ -113,7 +113,7 @@ func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, e
 	return ruser, nil
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(c *request.Context, num utils.Range) ([]*model.User, error) {
+func (cfg *AutoUserCreator) CreateTestUsers(c request.CTX, num utils.Range) ([]*model.User, error) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 

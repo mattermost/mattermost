@@ -10,7 +10,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -58,7 +58,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile(outputFile, formattedCode, 0644)
+	err = os.WriteFile(outputFile, formattedCode, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to open %s file: %w", inputFile, err)
 	}
-	src, err := ioutil.ReadAll(file)
+	src, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}

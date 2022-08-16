@@ -5,7 +5,6 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +23,7 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
 
-	tempDir, err := ioutil.TempDir("", "setupConfigFile")
+	tempDir, err := os.MkdirTemp("", "setupConfigFile")
 	require.NoError(t, err)
 
 	err = os.Chdir(tempDir)
@@ -32,13 +31,13 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 
 	var name string
 	if cfg != nil {
-		f, err := ioutil.TempFile(tempDir, "setupConfigFile")
+		f, err := os.CreateTemp(tempDir, "setupConfigFile")
 		require.NoError(t, err)
 
 		cfgData, err := marshalConfig(cfg)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(f.Name(), cfgData, 0644)
+		os.WriteFile(f.Name(), cfgData, 0644)
 
 		name = f.Name()
 	}
@@ -165,7 +164,7 @@ func TestFileStoreNew(t *testing.T) {
 		_, tearDown := setupConfigFile(t, nil)
 		defer tearDown()
 
-		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
+		tempDir, err := os.MkdirTemp("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 
@@ -184,7 +183,7 @@ func TestFileStoreNew(t *testing.T) {
 		_, tearDown := setupConfigFile(t, nil)
 		defer tearDown()
 
-		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
+		tempDir, err := os.MkdirTemp("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 
@@ -203,7 +202,7 @@ func TestFileStoreNew(t *testing.T) {
 		_, tearDown := setupConfigFile(t, nil)
 		defer tearDown()
 
-		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
+		tempDir, err := os.MkdirTemp("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 
@@ -225,7 +224,7 @@ func TestFileStoreNew(t *testing.T) {
 		cfgData, err := marshalConfig(testConfig)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(path, cfgData, 0644)
+		os.WriteFile(path, cfgData, 0644)
 
 		fs, err := NewFileStore(path, false)
 		require.NoError(t, err)
@@ -815,7 +814,7 @@ func TestFileStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(path, cfgData, 0644)
+		os.WriteFile(path, cfgData, 0644)
 
 		err = fs.Load()
 		if assert.Error(t, err) {
@@ -876,7 +875,7 @@ func TestFileStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(minimalConfig)
 		require.NoError(t, err)
 
-		err = ioutil.WriteFile(path, cfgData, 0644)
+		err = os.WriteFile(path, cfgData, 0644)
 		require.NoError(t, err)
 
 		err = fs.Load()
@@ -971,11 +970,11 @@ func TestFileGetFile(t *testing.T) {
 		err := os.MkdirAll("config", 0700)
 		require.NoError(t, err)
 
-		f, err := ioutil.TempFile("config", "empty-file")
+		f, err := os.CreateTemp("config", "empty-file")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
 
-		err = ioutil.WriteFile(f.Name(), nil, 0777)
+		err = os.WriteFile(f.Name(), nil, 0777)
 		require.NoError(t, err)
 
 		data, err := fs.GetFile(f.Name())
@@ -987,11 +986,11 @@ func TestFileGetFile(t *testing.T) {
 		err := os.MkdirAll("config", 0700)
 		require.NoError(t, err)
 
-		f, err := ioutil.TempFile("config", "test-file")
+		f, err := os.CreateTemp("config", "test-file")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
 
-		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		err = os.WriteFile(f.Name(), []byte("test"), 0777)
 		require.NoError(t, err)
 
 		data, err := fs.GetFile(f.Name())
@@ -1102,11 +1101,11 @@ func TestFileHasFile(t *testing.T) {
 		err = os.MkdirAll("config", 0700)
 		require.NoError(t, err)
 
-		f, err := ioutil.TempFile("config", "test-file")
+		f, err := os.CreateTemp("config", "test-file")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
 
-		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		err = os.WriteFile(f.Name(), []byte("test"), 0777)
 		require.NoError(t, err)
 
 		has, err := fs.HasFile(f.Name())
@@ -1191,11 +1190,11 @@ func TestFileRemoveFile(t *testing.T) {
 		err = os.MkdirAll("config", 0700)
 		require.NoError(t, err)
 
-		f, err := ioutil.TempFile("config", "test-file")
+		f, err := os.CreateTemp("config", "test-file")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
 
-		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		err = os.WriteFile(f.Name(), []byte("test"), 0777)
 		require.NoError(t, err)
 
 		err = fs.RemoveFile(f.Name())
@@ -1314,7 +1313,7 @@ func TestFileStoreSetReadOnlyFF(t *testing.T) {
 
 func TestResolveConfigPath(t *testing.T) {
 	t.Run("should be able to resolve an absolute path", func(t *testing.T) {
-		cf, err := ioutil.TempFile("", "config-test.json")
+		cf, err := os.CreateTemp("", "config-test.json")
 		require.NoError(t, err)
 		info, err := cf.Stat()
 		require.NoError(t, err)
@@ -1329,7 +1328,7 @@ func TestResolveConfigPath(t *testing.T) {
 	})
 
 	t.Run("should be able to resolve relative path", func(t *testing.T) {
-		tempDir, err := ioutil.TempDir("", "resolveconfig")
+		tempDir, err := os.MkdirTemp("", "resolveconfig")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 

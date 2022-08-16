@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -521,7 +520,7 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 
 		pref := model.Preference{UserId: savedUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: savedUser.Id, Value: "0"}
 		if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
-			mlog.Warn("Encountered error saving tutorial preference", mlog.Err(err))
+			c.Logger().Warn("Encountered error saving tutorial preference", mlog.Err(err))
 		}
 
 	} else {
@@ -584,14 +583,14 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 		}
 
 		if err != nil {
-			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
+			c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {
 			defer file.Close()
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
 			if err := a.SetProfileImageFromFile(c, savedUser.Id, file); err != nil {
-				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
+				c.Logger().Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}
 	}
@@ -806,6 +805,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamI
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),
 			SchemeAdmin: team.Email == user.Email && !user.IsGuest(),
+			CreateAt:    model.GetMillis(),
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
@@ -1137,7 +1137,7 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 		if reply.CreateAt < post.CreateAt {
-			mlog.Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			c.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
 		if replyData.Type != nil {
@@ -1217,7 +1217,7 @@ func (a *App) importAttachment(c *request.Context, data *AttachmentImportData, p
 
 	timestamp := utils.TimeFromMillis(post.CreateAt)
 
-	fileData, err := ioutil.ReadAll(file)
+	fileData, err := io.ReadAll(file)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.read_file_data.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	}

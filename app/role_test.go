@@ -6,7 +6,7 @@ package app
 import (
 	"context"
 	"encoding/csv"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -130,7 +130,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	require.NoError(t, e)
 	defer file.Close()
 
-	b, e := ioutil.ReadAll(file)
+	b, e := io.ReadAll(file)
 	require.NoError(t, e)
 
 	r := csv.NewReader(strings.NewReader(string(b)))

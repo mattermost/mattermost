@@ -569,7 +569,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	require.Equal(t, rgc.Id, rgc2.Id, "should have returned existing channel")
 
 	m2, _ := th.App.GetChannelMembersPage(th.Context, rgc2.Id, 0, 10)
-	require.Equal(t, m, m2)
+	require.ElementsMatch(t, m, m2)
 
 	_, resp, err = client.CreateGroupChannel([]string{user2.Id})
 	require.Error(t, err)
@@ -3840,7 +3840,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 	th.App.Srv().SetLicense(nil)
 	resp, err = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.

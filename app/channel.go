@@ -91,17 +91,10 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		}
 	}
 
-	var err *model.AppError
 	for _, channelName := range a.DefaultChannelNames(c) {
 		channel, channelErr := a.Srv().Store.Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, channelErr.Error(), http.StatusInternalServerError)
-			}
+			c.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -648,11 +641,11 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(invErr)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -661,7 +654,7 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil)
 	channelJSON, jsonErr := json.Marshal(channel)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
@@ -1019,7 +1012,9 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 		if err != nil {
 			return nil, err
 		}
-		a.sendUpdatedRoleEvent(adminRole)
+		if appErr := a.sendUpdatedRoleEvent(adminRole); appErr != nil {
+			return nil, appErr
+		}
 
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil)
 		a.Publish(message)
@@ -1272,9 +1267,9 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1285,7 +1280,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1294,17 +1289,17 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 }
 
 func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
-	if nErr != nil {
+	member, err := a.Srv().Store.Channel().UpdateMember(member)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1314,7 +1309,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1587,7 +1582,7 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
-			mlog.Error("Failed to post join channel message", mlog.Err(err))
+			return nil, err
 		}
 	} else {
 		a.Srv().Go(func() {
@@ -2513,11 +2508,9 @@ func (a *App) RemoveUserFromChannel(c request.CTX, userIDToRemove string, remove
 			return err
 		}
 	} else {
-		a.Srv().Go(func() {
-			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
-				mlog.Error("Failed to post user removal message", mlog.Err(err))
-			}
-		})
+		if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+			c.Logger().Error("Failed to post user removal message", mlog.Err(err))
+		}
 	}
 
 	return nil
@@ -2611,14 +2604,14 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
-	if err != nil {
-		return nil, err
+	post, appErr := a.GetSinglePost(postID, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	threadId := post.RootId
@@ -2626,18 +2619,18 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(c, user, post)
-	if err != nil {
-		return nil, err
+	unreadMentions, unreadMentionsRoot, appErr := a.countMentionsFromPost(c, user, post)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// if root post,
 	// In CRT Supported Client: badge on channel only sums mentions in root posts including and below the post that was marked.
 	// In CRT Unsupported Client: badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
 	if post.RootId == "" {
-		channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
-		if nErr != nil {
-			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		channelUnread, err := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
+		if err != nil {
+			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, true)
@@ -2650,21 +2643,21 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, err := a.GetSinglePost(post.RootId, false)
-	if err != nil {
-		return nil, err
+	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
-	if nErr != nil {
-		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	channel, err := a.Srv().Store.Channel().Get(post.ChannelId, true)
+	if err != nil {
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow {
-		threadMembership, sErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		threadMembership, mErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		var errNotFound *store.ErrNotFound
-		if sErr != nil && !errors.As(sErr, &errNotFound) {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		if mErr != nil && !errors.As(mErr, &errNotFound) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		// Follow thread if we're not already following it
 		if threadMembership == nil {
@@ -2675,25 +2668,25 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 				UpdateViewedTimestamp: false,
 				UpdateParticipants:    false,
 			}
-			threadMembership, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-			if sErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+			threadMembership, mErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if mErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 			}
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
 		threadMembership.LastViewed = post.CreateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
-		if err != nil {
-			return nil, err
+		threadMembership.UnreadMentions, appErr = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
+		if appErr != nil {
+			return nil, appErr
 		}
-		threadMembership, sErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		threadMembership, mErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, sErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		thread, mErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
@@ -2701,7 +2694,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if a.IsCRTEnabledForUser(c, userID) {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode thread to JSON")
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
 			message.Add("thread", string(payload))
@@ -2709,9 +2702,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false)
-	if nErr != nil {
-		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	channelUnread, err := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false)
+	if err != nil {
+		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, false)
 	a.UpdateMobileAppBadge(userID)
@@ -3220,14 +3213,14 @@ func (a *App) ToggleMuteChannel(c request.CTX, channelID, userID string) (*model
 }
 
 func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string, muted bool) ([]*model.ChannelMember, *model.AppError) {
-	members, nErr := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
-	if nErr != nil {
+	members, err := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
+	if err != nil {
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -3247,17 +3240,17 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 		return nil, nil
 	}
 
-	updated, nErr := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
-	if nErr != nil {
+	updated, err := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nfErr)
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -3268,7 +3261,7 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 
 		memberJSON, jsonErr := json.Marshal(member)
 		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return nil, model.NewAppError("setChannelsMuted", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		}
 
 		evt.Add("channelMember", string(memberJSON))
@@ -3369,27 +3362,28 @@ func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model
 	return nil
 }
 
-func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) {
+func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil)
 		memberJSON, jsonErr := json.Marshal(channelMember)
 		if jsonErr != nil {
-			c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return jsonErr
 		}
 		message.Add("channelMember", string(memberJSON))
 		a.Publish(message)
 		return nil
 	}
 	if err := a.forEachChannelMember(c, channelID, clearSessionCache); err != nil {
-		c.Logger().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+		return fmt.Errorf("error clearing cache for channel members: channel_id: %s, error: %w", channelID, err)
 	}
+	return nil
 }
 
 func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
 	channelMemberCounts, err := a.Srv().Store.Channel().GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 	if err != nil {
-		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelMemberCounts, nil

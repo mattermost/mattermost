@@ -525,7 +525,7 @@ func TestMentionsToTeamMembers(t *testing.T) {
 	}
 
 	for _, data := range fixture {
-		actualMap := th.App.MentionsToTeamMembers(data.message, data.inTeam)
+		actualMap := th.App.MentionsToTeamMembers(th.Context, data.message, data.inTeam)
 		require.Equal(t, actualMap, data.expectedMap)
 	}
 }
