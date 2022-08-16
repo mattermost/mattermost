@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 )
 
@@ -233,6 +234,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 
 	if hasChanged {
 		s.configLock.Unlock()
+		mlog.Debug("DYLSTERLOG - invokeConfigListeners due to store.Set()")
 		s.invokeConfigListeners(oldCfg, newCfgCopy.Clone())
 		s.configLock.Lock()
 	}
@@ -338,6 +340,7 @@ func (s *Store) Load() error {
 
 	if hasChanged {
 		s.configLock.Unlock()
+		mlog.Debug("DYLSTERLOG - invokeConfigListeners due to store.Load()")
 		s.invokeConfigListeners(oldCfg, loadedCfgCopy)
 		s.configLock.Lock()
 	}
