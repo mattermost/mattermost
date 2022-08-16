@@ -573,4 +573,5 @@ func TestCancelTaskSetsTaskToNil(t *testing.T) {
 	require.NotNil(t, task)
 	cancelTask(&taskMut, &task)
 	require.Nil(t, task)
+	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }
