@@ -290,7 +290,7 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 }
 
 func (s *Server) createPushNotificationsHub(c request.CTX) {
-	buffer := *s.platform.Config().EmailSettings.PushNotificationBuffer
+	buffer := *s.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               New(ServerConnector(s.Channels())),
