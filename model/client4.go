@@ -7970,20 +7970,20 @@ func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 	nrJSON, err := json.Marshal(nr)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
+	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin", string(nrJSON))
 	if err != nil {
-		return r.StatusCode
+		return r.StatusCode, err
 	}
 
 	closeBody(r)
 
-	return r.StatusCode
+	return r.StatusCode, nil
 }
 
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
