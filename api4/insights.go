@@ -383,13 +383,10 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopInactiveChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // top inactive channels
@@ -436,13 +433,10 @@ func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getInactiveTopChannelsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // postCountByDurationViewModel expects a list of channels that are pre-authorized for the given user to view.
