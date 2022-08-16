@@ -11,6 +11,7 @@ import (
 
 	"github.com/wiggin77/merror"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -271,7 +272,7 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 		userIDs[post.UserId] = p2mm{}
 
 		// get mentions and users for each mention
-		mentionMap := scs.app.MentionsToTeamMembers(post.Message, sc.TeamId)
+		mentionMap := scs.app.MentionsToTeamMembers(request.EmptyContext(scs.server.GetLogger()), post.Message, sc.TeamId)
 		for _, userID := range mentionMap {
 			userIDs[userID] = p2mm{
 				post:       post,

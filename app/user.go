@@ -1220,7 +1220,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 	return userUpdate.New, nil
 }
 
-func (a *App) UpdateUserActive(c *request.Context, userID string, active bool) *model.AppError {
+func (a *App) UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError {
 	user, err := a.GetUser(userID)
 
 	if err != nil {
@@ -1241,7 +1241,7 @@ func (a *App) updateUserNotifyProps(userID string, props map[string]string) *mod
 		case errors.As(err, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("UpdateUser", "app.user.update.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1416,9 +1416,8 @@ func (a *App) CreatePasswordRecoveryToken(userID, email string) (*model.Token, *
 		email,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
-
 	if err != nil {
-		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
@@ -2185,9 +2184,9 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
-		if err != nil {
-			c.Logger().Warn("Failed to get channel members for user on promote guest to user", mlog.Err(err))
+		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
+		if appErr != nil {
+			c.Logger().Warn("Failed to get channel members for user on promote guest to user", mlog.Err(appErr))
 		}
 
 		for _, member := range channelMembers {
@@ -2196,7 +2195,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2229,9 +2228,9 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	for _, member := range teamMembers {
 		a.sendUpdatedMemberRoleEvent(user.Id, member)
 
-		channelMembers, err := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
-		if err != nil {
-			c.Logger().Warn("Failed to get channel members for users on demote user to guest", mlog.Err(err))
+		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
+		if appErr != nil {
+			c.Logger().Warn("Failed to get channel members for users on demote user to guest", mlog.Err(appErr))
 			continue
 		}
 
@@ -2241,7 +2240,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
-				c.Logger().Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
 			a.Publish(evt)
@@ -2518,7 +2517,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 
 	payload, jsonErr := json.Marshal(userThread)
 	if jsonErr != nil {
-		c.Logger().Warn("Failed to encode thread to JSON")
+		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("thread", string(payload))
 	message.Add("previous_unread_replies", int64(0))

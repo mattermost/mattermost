@@ -6,7 +6,6 @@ package audit
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -72,7 +71,7 @@ func TestAudit_LogRecord(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			tempDir, err := ioutil.TempDir(os.TempDir(), "TestAudit_LogRecord")
+			tempDir, err := os.MkdirTemp(os.TempDir(), "TestAudit_LogRecord")
 			require.NoError(t, err)
 			defer os.Remove(tempDir)
 
@@ -92,7 +91,7 @@ func TestAudit_LogRecord(t *testing.T) {
 			err = logger.Shutdown()
 			require.NoError(t, err)
 
-			logs, err := ioutil.ReadFile(filePath)
+			logs, err := os.ReadFile(filePath)
 			require.NoError(t, err)
 
 			actual := strings.TrimSpace(string(logs))

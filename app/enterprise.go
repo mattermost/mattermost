@@ -87,9 +87,9 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var metricsInterface func(*Server) einterfaces.MetricsInterface
+var metricsInterface func(*Server, string, string) einterfaces.MetricsInterface
 
-func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
+func RegisterMetricsInterface(f func(*Server, string, string) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
@@ -112,10 +112,6 @@ func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
 }
 
 func (s *Server) initEnterprise() {
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s)
-	}
-
 	if clusterInterface != nil && s.Cluster == nil {
 		s.Cluster = clusterInterface(s)
 	}

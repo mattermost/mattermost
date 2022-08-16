@@ -1188,7 +1188,7 @@ func TestSearchUsers(t *testing.T) {
 	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
 		_, resp, err = th.SystemAdminClient.SearchUsers(search)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -2719,7 +2719,7 @@ func TestGetUsersInGroup(t *testing.T) {
 	t.Run("Requires ldap license", func(t *testing.T) {
 		_, response, err := th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		CheckForbiddenStatus(t, response)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
