@@ -16,8 +16,8 @@ type PostList struct {
 	PrevPostId string           `json:"prev_post_id"`
 	// HasNext indicates whether there are more items to be fetched or not.
 	HasNext bool `json:"has_next"`
-	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
-	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
+	// HasInaccessiblePosts tells if there are inaccessible posts, past the cloud limit.
+	HasInaccessiblePosts bool `json:"has_inaccessible_posts"`
 }
 
 func NewPostList() *PostList {
@@ -37,12 +37,12 @@ func (o *PostList) Clone() *PostList {
 		postsCopy[k] = v.Clone()
 	}
 	return &PostList{
-		Order:                     orderCopy,
-		Posts:                     postsCopy,
-		NextPostId:                o.NextPostId,
-		PrevPostId:                o.PrevPostId,
-		HasNext:                   o.HasNext,
-		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
+		Order:                orderCopy,
+		Posts:                postsCopy,
+		NextPostId:           o.NextPostId,
+		PrevPostId:           o.PrevPostId,
+		HasNext:              o.HasNext,
+		HasInaccessiblePosts: o.HasInaccessiblePosts,
 	}
 }
 

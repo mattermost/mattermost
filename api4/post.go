@@ -408,7 +408,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Post is inaccessible due to cloud plan's limit.
 		if err.Id == "app.post.cloud.get.app_error" {
-			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+			w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
 		}
 
 		return
@@ -445,7 +445,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
+	postsList, hasInaccessiblePosts, err := c.App.GetPostsByIds(postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -478,7 +478,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		posts = append(posts, post)
 	}
 
-	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
+	w.Header().Set(model.HeaderHasInaccessiblePosts, strconv.FormatBool(hasInaccessiblePosts))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
