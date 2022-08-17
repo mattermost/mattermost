@@ -60,7 +60,10 @@ func TestConfigSave(t *testing.T) {
 		newCfg := oldCfg.Clone()
 		newCfg.ServiceSettings.SiteURL = model.NewString("http://newhost.me")
 
-		cm.On("ConfigChanged", oldCfg, newCfg, true).Return(nil)
+		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
+		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
+
+		cm.On("ConfigChanged", sanitizedOldCfg, sanitizedNewCfg, true).Return(nil)
 
 		_, _, appErr := th.Service.SaveConfig(newCfg, true)
 		require.Nil(t, appErr)
