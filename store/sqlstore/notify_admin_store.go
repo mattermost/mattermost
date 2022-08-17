@@ -22,9 +22,9 @@ func newSqlNotifyAdminStore(sqlStore *SqlStore) store.NotifyAdminStore {
 	return &SqlNotifyAdminStore{sqlStore}
 }
 
-func (us SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, error) {
+func (s SqlNotifyAdminStore) insert(data *model.NotifyAdminData) (sql.Result, error) {
 	query := `INSERT INTO NotifyAdmin (Id, UserId, CreateAt, RequiredPlan, RequiredFeature, Trial) VALUES (:Id, :UserId, :CreateAt, :RequiredPlan, :RequiredFeature, :Trial)`
-	return us.GetMasterX().NamedExec(query, data)
+	return s.GetMasterX().NamedExec(query, data)
 }
 
 func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {

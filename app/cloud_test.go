@@ -31,7 +31,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, false)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
-		require.Error(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("error sending trial post when do notifications are available", func(t *testing.T) {
@@ -47,7 +47,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, true)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
-		require.Error(t, err)
+		require.NotNil(t, err)
 	})
 
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
