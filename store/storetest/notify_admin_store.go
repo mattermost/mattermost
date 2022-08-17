@@ -152,13 +152,16 @@ func testDeleteAll(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	err = ss.NotifyAdmin().DeleteAll(false) // delete all upgrade requests
+	require.NoError(t, err)
 	upgradeRequests, err := ss.NotifyAdmin().Get(false)
 	require.Equal(t, len(upgradeRequests), 0)
 
 	trialRequests, err := ss.NotifyAdmin().Get(true)
+	require.NoError(t, err)
 	require.Equal(t, len(trialRequests), 2) // trial requests should still exist
 
 	err = ss.NotifyAdmin().DeleteAll(true) // delete all trial requests
+	require.NoError(t, err)
 	trialRequests, err = ss.NotifyAdmin().Get(false)
 	require.Equal(t, len(trialRequests), 0)
 }
