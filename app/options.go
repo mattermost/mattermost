@@ -6,7 +6,6 @@ package app
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -53,22 +52,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
 
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			Logger:       s.Log,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
-		if sErr != nil {
-			return errors.Wrap(sErr, "failed to initialize platform")
-		}
-		s.platform = ps
-
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 		return nil
 	}
 }
@@ -76,21 +60,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			Logger:       s.Log,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
-		if sErr != nil {
-			return errors.Wrap(sErr, "failed to initialize platform")
-		}
-		s.platform = ps
+		s.configStore = &configWrapper{srv: s, Store: configStore}
 
 		return nil
 	}

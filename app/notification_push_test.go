@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
@@ -1444,13 +1443,9 @@ func TestPushNotificationRace(t *testing.T) {
 		Router:    mux.NewRouter(),
 		filestore: &fmocks.FileBackend{},
 	}
-	var err error
-	s.platform, err = platform.New(platform.ServiceConfig{
-		ConfigStore: memoryStore,
-	})
-	require.NoError(t, err)
+	s.configStore = &configWrapper{srv: s, Store: memoryStore}
 	serviceMap := map[ServiceKey]any{
-		ConfigKey:    s.platform,
+		ConfigKey:    s.configStore,
 		LicenseKey:   &licenseWrapper{s},
 		FilestoreKey: s.filestore,
 	}

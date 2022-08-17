@@ -31,6 +31,12 @@ type licenseSvc interface {
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
+// namer is an interface which enforces that
+// all services can return their names.
+type namer interface {
+	Name() ServiceKey
+}
+
 // Channels contains all channels related state.
 type Channels struct {
 	srv        *Server
@@ -101,7 +107,7 @@ func init() {
 func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
 		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log),
+		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
 		uploadLockMap: map[string]bool{},
 	}
 
@@ -127,6 +133,10 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
 			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("Config service does not contain Name method")
+			}
 			ch.cfgSvc = cfgSvc
 		case FilestoreKey:
 			filestore, ok := svc.(filestore.FileBackend)
@@ -138,6 +148,10 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 			svc, ok := svc.(licenseSvc)
 			if !ok {
 				return nil, errors.New("License service did not satisfy licenseSvc interface")
+			}
+			_, ok = svc.(namer)
+			if !ok {
+				return nil, errors.New("License service does not contain Name method")
 			}
 			ch.licenseSvc = svc
 		}

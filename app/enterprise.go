@@ -87,9 +87,9 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var metricsInterface func(*Server, string, string) einterfaces.MetricsInterface
+var metricsInterface func(*Server) einterfaces.MetricsInterface
 
-func RegisterMetricsInterface(f func(*Server, string, string) einterfaces.MetricsInterface) {
+func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 

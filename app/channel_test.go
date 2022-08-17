@@ -2056,7 +2056,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.platform.Config,
+		ConfigFn:     th.App.ch.srv.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})
 	require.NoError(t, err)

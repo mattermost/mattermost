@@ -4,11 +4,6 @@
 package platform
 
 import (
-	"fmt"
-	"sync"
-	"sync/atomic"
-
-	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -23,14 +18,6 @@ type PlatformService struct {
 	logger        *mlog.Logger
 
 	metrics *platformMetrics
-
-	featureFlagSynchronizerMutex sync.Mutex
-	featureFlagSynchronizer      *featureflag.Synchronizer
-	featureFlagStop              chan struct{}
-	featureFlagStopped           chan struct{}
-
-	licenseValue atomic.Value
-	telemetryId  string
 
 	cluster einterfaces.ClusterInterface
 }
@@ -61,19 +48,4 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	}
 
 	return nil
-}
-
-func (ps *PlatformService) ShutdownConfig() error {
-	if ps.configStore != nil {
-		err := ps.configStore.Close()
-		if err != nil {
-			return fmt.Errorf("failed to close config store: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (ps *PlatformService) SetTelemetryId(id string) {
-	ps.telemetryId = id
 }

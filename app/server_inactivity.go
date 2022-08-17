@@ -17,17 +17,17 @@ const inactivityEmailSent = "INACTIVITY"
 
 func (s *Server) doInactivityCheck() {
 
-	if *s.platform.Config().ServiceSettings.EnableDeveloper {
+	if *s.Config().ServiceSettings.EnableDeveloper {
 		mlog.Info("No activity check because developer mode is enabled")
 		return
 	}
 
-	if !*s.platform.Config().EmailSettings.EnableInactivityEmail {
+	if !*s.Config().EmailSettings.EnableInactivityEmail {
 		mlog.Info("No activity check because EnableInactivityEmail is false")
 		return
 	}
 
-	if !s.platform.Config().FeatureFlags.EnableInactivityCheckJob {
+	if !s.Config().FeatureFlags.EnableInactivityCheckJob {
 		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
 		return
 	}
@@ -70,7 +70,7 @@ func (s *Server) doInactivityCheck() {
 }
 
 func (s *Server) takeInactivityAction() {
-	siteURL := *s.platform.Config().ServiceSettings.SiteURL
+	siteURL := *s.Config().ServiceSettings.SiteURL
 	if siteURL == "" {
 		mlog.Warn("No SiteURL configured")
 	}
