@@ -4629,19 +4629,19 @@
   },
   {
     "id": "app.cloud.trial_plan_bot_message",
-    "translation": "{{.UsersNum}} members of the Acme workspace have requested starting the Enterprise trial for access to: "
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
-    "translation": "{{.UsersNum}} member of the Acme workspace has requested starting the Enterprise trial for access to: "
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested starting the Enterprise trial for access to: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message",
-    "translation": "{{.UsersNum}} members of the Acme workspace have requested a workspace upgrade for: "
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested a workspace upgrade for: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
-    "translation": "{{.UsersNum}} member of the Acme workspace has requested a workspace upgrade for: "
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
   },
   {
     "id": "app.command.createcommand.internal_error",

@@ -85,6 +85,13 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Failed to get subscription", http.StatusInternalServerError)
+	}
+
+	workspaceName := subscription.GetWorkSpaceNameFromDNS()
+
 	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{
 		Page:     0,
 		PerPage:  100,
@@ -115,14 +122,14 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 
 	for _, admin := range sysadmins {
 		T := i18n.GetUserTranslations(admin.Locale)
-		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 		if len(userBasedData) == 1 {
-			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData)}) // todo (allan): investigate if translations library can do this
+			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
 		}
 		if trial {
-			message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData)})
+			message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 			if len(userBasedData) == 1 {
-				message = T("app.cloud.trial_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData)})
+				message = T("app.cloud.trial_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 			}
 		}
 
