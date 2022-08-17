@@ -2064,7 +2064,7 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	mut.Lock()
 	defer mut.Unlock()
 	if *taskPointer != nil {
-		(**taskPointer).Cancel()
+		(*taskPointer).Cancel()
 		*taskPointer = nil
 	}
 }
