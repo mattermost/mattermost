@@ -5024,10 +5024,6 @@
     "translation": "Unable to save the team theme preferences"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
-  },
-  {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
   },
