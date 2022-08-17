@@ -22,6 +22,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
 			th.App.Srv().Cloud = cloudImpl
@@ -38,6 +40,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
 			th.App.Srv().Cloud = cloudImpl
@@ -53,6 +57,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -116,6 +122,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("successfully send trial notification", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
@@ -181,14 +189,13 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
 			th.App.Srv().Cloud = cloudImpl
 		}()
 		th.App.Srv().Cloud = &cloud
-
-		// os.Setenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
-		// defer os.Unsetenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
 
 		// some some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -210,8 +217,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		// time.Sleep(5 * time.Second)
-
 		// second time trying to notify is forbidden
 		appErr = th.App.SendNotifyAdminPosts(ctx, false)
 		require.NotNil(t, appErr)
@@ -221,6 +226,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("can send post at the end of cool off period", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
