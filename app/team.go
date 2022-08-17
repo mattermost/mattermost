@@ -147,7 +147,7 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	return nil
 }
 
-func (a *App) CreateTeam(c *request.Context, team *model.Team) (*model.Team, *model.AppError) {
+func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	rteam, err := a.ch.srv.teamService.CreateTeam(team)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -2132,4 +2132,17 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 		page++
 	}
 	return nil
+}
+
+func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.InsightsOpts) (*model.NewTeamMembersList, int64, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	ntms, count, err := a.Srv().Store.Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.post.get_new_team_members_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return ntms, count, nil
 }
