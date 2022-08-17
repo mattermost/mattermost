@@ -108,7 +108,7 @@ func processAttachments(line *LineImportData, basePath string, filesMap map[stri
 	return nil
 }
 
-func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	postLines := []LineImportWorkerData{}
 	directPostLines := []LineImportWorkerData{}
 	for line := range lines {
@@ -167,7 +167,7 @@ func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, atta
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -200,7 +200,7 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 		}
 
 		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.process_attachments.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
+			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
 		}
 
 		if lineNumber == 1 {
@@ -281,7 +281,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(c request.CTX, line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
