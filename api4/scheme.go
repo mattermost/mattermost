@@ -93,17 +93,18 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	schemes, err := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	schemes, appErr := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(schemes)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getSchemes", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(schemes)
+	if err != nil {
+		c.Err = model.NewAppError("getSchemes", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -118,9 +119,9 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scheme, err := c.App.GetScheme(c.Params.SchemeId)
-	if err != nil {
-		c.Err = err
+	scheme, appErr := c.App.GetScheme(c.Params.SchemeId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -129,17 +130,18 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, err := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	teams, appErr := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(teams)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTeamsForScheme", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(teams)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamsForScheme", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
