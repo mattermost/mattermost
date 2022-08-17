@@ -2687,7 +2687,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
-	// add a bot post to ensure it's not counted
+	// add a bot post to ensure it's counted
 	_, err := th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
@@ -2700,7 +2700,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 
-	// add a webhook post to ensure it's not counted
+	// add a webhook post to ensure it's counted
 	_, err = th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
@@ -2737,8 +2737,8 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 		{ID: channel6.Id, MessageCount: 1},
 		{ID: channel5.Id, MessageCount: 2},
 		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel3.Id, MessageCount: 4},
-		{ID: channel2.Id, MessageCount: 5},
+		{ID: channel3.Id, MessageCount: 5},
+		{ID: channel2.Id, MessageCount: 6},
 		{ID: th.BasicChannel.Id, MessageCount: 7},
 	}
 
@@ -2766,7 +2766,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
-	// add a bot post to ensure it's not counted
+	// add a bot post to ensure it's counted
 	_, err := th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
@@ -2779,7 +2779,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 
-	// add a webhook post to ensure it's not counted
+	// add a webhook post to ensure it's counted
 	_, err = th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
@@ -2816,8 +2816,8 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 		{ID: channel6.Id, MessageCount: 1},
 		{ID: channel5.Id, MessageCount: 2},
 		{ID: channel4.Id, MessageCount: 3},
-		{ID: channel3.Id, MessageCount: 4},
-		{ID: channel2.Id, MessageCount: 5},
+		{ID: channel3.Id, MessageCount: 5},
+		{ID: channel2.Id, MessageCount: 6},
 		{ID: th.BasicChannel.Id, MessageCount: 7},
 	}
 
