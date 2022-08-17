@@ -8089,8 +8089,8 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
 
 		// participants
-		require.Equal(t, topInactiveChannels.Items[1].Participants[0].Id, u1.Id)
-		require.Equal(t, topInactiveChannels.Items[2].Participants[0].Id, u1.Id)
+		require.Equal(t, topInactiveChannels.Items[1].Participants[0], u1.Id)
+		require.Equal(t, topInactiveChannels.Items[2].Participants[0], u1.Id)
 	})
 
 	t.Run("top inactive channels for user - u1 ", func(t *testing.T) {

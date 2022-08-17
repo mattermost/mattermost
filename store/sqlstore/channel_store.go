@@ -4501,12 +4501,46 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 }
 
 func postProcessTopInactiveChannels(s SqlChannelStore, channels []*model.TopInactiveChannel) ([]*model.TopInactiveChannel, error) {
+	// query channel members for Ids
+	var conditionalAggrSelector string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		conditionalAggrSelector = "GROUP_CONCAT(UserId SEPARATOR ',') as UserIds"
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		conditionalAggrSelector = "string_agg(UserId, ',') as UserIds"
+	}
+
+	var channelIds []string
+	for _, channel := range channels {
+		channelIds = append(channelIds, channel.ID)
+	}
+	q := s.getQueryBuilder().Select("ChannelId", conditionalAggrSelector).From("ChannelMembers").
+		Where(sq.Eq{
+			"ChannelId": channelIds,
+		}).GroupBy("ChannelId")
+
+	channelsUserIdsMap := make(map[string]string, len(channels))
+	type ChannelUserIdsResult struct {
+		ChannelId string
+		UserIds   string
+	}
+
+	channelsUserIdsResultList := make([]ChannelUserIdsResult, len(channels))
+	sql, args, err := q.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to stringify squirrel query")
+	}
+	if err := s.GetReplicaX().Select(&channelsUserIdsResultList, sql, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Inactive Channels users")
+	}
+
+	for _, channelUserIds := range channelsUserIdsResultList {
+		channelsUserIdsMap[channelUserIds.ChannelId] = channelUserIds.UserIds
+	}
 	for index, channel := range channels {
-		members, err := s.User().GetProfilesInChannel(&model.UserGetOptions{InChannelId: channel.ID, Page: 0, PerPage: 100})
-		if err != nil {
-			return nil, errors.Wrapf(err, "Couldn't get channel members for channel: %s", channel.DisplayName)
-		}
-		channels[index].Participants = members
+		userIds := channelsUserIdsMap[channel.ID]
+		userIdsSlice := strings.Split(userIds, ",")
+
+		channels[index].Participants = userIdsSlice
 	}
 	return channels, nil
 }

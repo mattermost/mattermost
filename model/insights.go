@@ -76,7 +76,7 @@ type TopInactiveChannel struct {
 	Name           string      `json:"name"`
 	TeamID         string      `json:"team_id"`
 	LastActivityAt int64       `json:"last_activity_at"`
-	Participants   []*User     `json:"participants"`
+	Participants   StringArray `json:"participants"`
 	MessageCount   int64       `json:"-"`
 }
 
