@@ -414,7 +414,7 @@ endif
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-	./scripts/setup_go_work.sh
+	./scripts/setup_go_work.sh $(IGNORE_IF_EXISTS)
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
