@@ -25,13 +25,13 @@ const (
 	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
 )
 
-func stopOnError(err LineImportWorkerError) bool {
+func stopOnError(c request.CTX, err LineImportWorkerError) bool {
 	switch err.Error.Id {
 	case "api.file.upload_file.large_image.app_error":
-		mlog.Warn("Large image import error", mlog.Err(err.Error))
+		c.Logger().Warn("Large image import error", mlog.Err(err.Error))
 		return false
 	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
-		mlog.Warn("Invalid direct channel import data", mlog.Err(err.Error))
+		c.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
 	default:
 		return true
@@ -226,7 +226,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					if stopOnError(err) {
+					if stopOnError(c, err) {
 						return err.Error, err.LineNumber
 					}
 				}
@@ -244,7 +244,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
 		case err := <-errorsChan:
-			if stopOnError(err) {
+			if stopOnError(c, err) {
 				close(linesChan)
 				wg.Wait()
 				return err.Error, err.LineNumber
@@ -261,7 +261,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		if stopOnError(err) {
+		if stopOnError(c, err) {
 			return err.Error, err.LineNumber
 		}
 	}
