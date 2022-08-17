@@ -83,9 +83,11 @@ func testGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	upgradeRequests, err := ss.NotifyAdmin().Get(false)
+	require.NoError(t, err)
 	require.Equal(t, len(upgradeRequests), 1)
 
 	trialRequests, err := ss.NotifyAdmin().Get(true)
+	require.NoError(t, err)
 	require.Equal(t, len(trialRequests), 2)
 
 	tearDown(t, ss)
@@ -113,6 +115,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, "All Professional features")
+	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
 	require.Equal(t, user1Request[0].RequiredFeature, "All Professional features")
 

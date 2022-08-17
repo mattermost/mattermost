@@ -364,6 +364,7 @@ func TestNotifyAdmin(t *testing.T) {
 			RequiredFeature: "All Professional features",
 		})
 		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, statusCode)
 
 		// second attempt to notify for all professional features
 		statusCode, err = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
