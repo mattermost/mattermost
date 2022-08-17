@@ -1101,6 +1101,15 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return fileInfo, appErr
 }
 
+func (a *App) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr == nil {
+		a.generateMiniPreview(fileInfo)
+	}
+
+	return fileInfo, appErr
+}
+
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
@@ -1133,6 +1142,20 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 
 func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
 	info, err := a.GetFileInfo(fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.ReadFile(info.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (a *App) getFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
+	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
 	if err != nil {
 		return nil, err
 	}

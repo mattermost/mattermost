@@ -1600,6 +1600,17 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted
 	return fileInfos, firstInaccessibleFileTime, nil
 }
 
+func (a *App) getFileInfosForPostIgnoreCloudLimit(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
+	if err != nil {
+		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.generateMiniPreviewForInfos(fileInfos)
+
+	return fileInfos, nil
+}
+
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
 	if f := a.ImageProxyAdder(); f != nil {
 		return post.WithRewrittenImageURLs(f)
