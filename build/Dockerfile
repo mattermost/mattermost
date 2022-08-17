@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/7.1.2/mattermost-7.1.2-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/7.2.0/mattermost-7.2.0-linux-amd64.tar.gz?src=docker"
 
 # # Install needed packages
 RUN apt-get update \
