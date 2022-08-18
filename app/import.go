@@ -196,7 +196,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
 		}
 
 		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
@@ -267,7 +267,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	}
 
 	if err := scanner.Err(); err != nil {
-		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
+		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err), 0
 	}
 
 	return nil, 0
