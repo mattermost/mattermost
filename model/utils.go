@@ -266,8 +266,28 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
+}
+
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
 }
 
 func (er *AppError) Unwrap() error {
