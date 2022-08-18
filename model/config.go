@@ -3263,72 +3263,72 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := o.TeamSettings.isValid(); err != nil {
-		return err
+	if appErr := o.TeamSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SqlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SqlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.FileSettings.isValid(); err != nil {
-		return err
+	if appErr := o.FileSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.EmailSettings.isValid(); err != nil {
-		return err
+	if appErr := o.EmailSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LdapSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LdapSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SamlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
-	if err := o.RateLimitSettings.isValid(); err != nil {
-		return err
+	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ServiceSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ServiceSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ElasticsearchSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ElasticsearchSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.BleveSettings.isValid(); err != nil {
-		return err
+	if appErr := o.BleveSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DataRetentionSettings.isValid(); err != nil {
-		return err
+	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LocalizationSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.MessageExportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.MessageExportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DisplaySettings.isValid(); err != nil {
-		return err
+	if appErr := o.DisplaySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImageProxySettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImageProxySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 	return nil
 }
