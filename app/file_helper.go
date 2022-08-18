@@ -9,62 +9,37 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-// assumes checking was already performed that at least one post is inaccessible
-func (b accessibleBounds) getInaccessibleRange(listLength int) (int, int) {
-	var start, end int
-	if b.start == 0 {
-		start = b.end + 1
-		end = listLength - 1
-	} else {
-		start = 0
-		end = b.start - 1
+// removeInaccessibleContentFromFilesSlice removes content from the files beyond the cloud plan's limit
+// and also returns the firstInaccessibleFileTime
+func (a *App) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
+	if len(files) == 0 {
+		return 0, nil
 	}
-	return start, end
-}
 
-// linearFilterFileList make no assumptions about ordering, go through files one by one
-// this is the slower fallback that is still safe
-// if we can not assume files are ordered by CreatedAt
-func linearFilterFileList(fileList *model.FileInfoList, earliestAccessibleTime int64) {
-	files := fileList.FileInfos
-	order := fileList.Order
-
-	n := 0
-	for i, fileID := range order {
-		if createAt := files[fileID].CreateAt; createAt >= earliestAccessibleTime {
-			order[n] = order[i]
-			n++
-		} else {
-			if createAt > fileList.FirstInaccessibleFileTime {
-				fileList.FirstInaccessibleFileTime = createAt
-			}
-			delete(files, fileID)
-		}
+	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
+	if appErr != nil {
+		return 0, model.NewAppError("removeInaccessibleFileListContent", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
-	fileList.Order = order[:n]
-}
+	if lastAccessibleFileTime == 0 {
+		// No need to remove content, all files are accessible
+		return 0, nil
+	}
 
-// linearFilterFilesSlice make no assumptions about ordering, go through files one by one
-// this is the slower fallback that is still safe
-// if we can not assume files are ordered by CreatedAt
-func linearFilterFilesSlice(files []*model.FileInfo, earliestAccessibleTime int64) ([]*model.FileInfo, int64) {
 	var firstInaccessibleFileTime int64 = 0
-	n := 0
-	for i := range files {
-		if createAt := files[i].CreateAt; createAt >= earliestAccessibleTime {
-			files[n] = files[i]
-			n++
-		} else {
+	for _, file := range files {
+		if createAt := file.CreateAt; createAt < lastAccessibleFileTime {
+			file.MakeContentInaccessible()
 			if createAt > firstInaccessibleFileTime {
 				firstInaccessibleFileTime = createAt
 			}
 		}
 	}
-	return files[:n], firstInaccessibleFileTime
+
+	return firstInaccessibleFileTime, nil
 }
 
 // filterInaccessibleFiles filters out the files, past the cloud limit
-func (a *App) filterInaccessibleFiles(fileList *model.FileInfoList, options filterPostOptions) *model.AppError {
+func (a *App) filterInaccessibleFiles(fileList *model.FileInfoList, options filterFileOptions) *model.AppError {
 	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
 		return nil
 	}
@@ -141,11 +116,11 @@ func (a *App) isInaccessibleFile(file *model.FileInfo) (int64, *model.AppError) 
 		FileInfos: map[string]*model.FileInfo{file.Id: file},
 	}
 
-	return fl.FirstInaccessibleFileTime, a.filterInaccessibleFiles(fl, filterPostOptions{assumeSortedCreatedAt: true})
+	return fl.FirstInaccessibleFileTime, a.filterInaccessibleFiles(fl, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
 // getFilteredAccessibleFiles returns accessible files filtered as per the cloud plan's limit and also indicates if there were any inaccessible files
-func (a *App) getFilteredAccessibleFiles(files []*model.FileInfo, options filterPostOptions) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFilteredAccessibleFiles(files []*model.FileInfo, options filterFileOptions) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(files) == 0 {
 		return files, 0, nil
 	}
@@ -186,4 +161,49 @@ func (a *App) getFilteredAccessibleFiles(files []*model.FileInfo, options filter
 
 	filteredFiles, firstInaccessibleFileTime := linearFilterFilesSlice(files, lastAccessibleFileTime)
 	return filteredFiles, firstInaccessibleFileTime, nil
+}
+
+type filterFileOptions struct {
+	assumeSortedCreatedAt bool
+}
+
+// linearFilterFileList make no assumptions about ordering, go through files one by one
+// this is the slower fallback that is still safe
+// if we can not assume files are ordered by CreatedAt
+func linearFilterFileList(fileList *model.FileInfoList, earliestAccessibleTime int64) {
+	files := fileList.FileInfos
+	order := fileList.Order
+
+	n := 0
+	for i, fileID := range order {
+		if createAt := files[fileID].CreateAt; createAt >= earliestAccessibleTime {
+			order[n] = order[i]
+			n++
+		} else {
+			if createAt > fileList.FirstInaccessibleFileTime {
+				fileList.FirstInaccessibleFileTime = createAt
+			}
+			delete(files, fileID)
+		}
+	}
+	fileList.Order = order[:n]
+}
+
+// linearFilterFilesSlice make no assumptions about ordering, go through files one by one
+// this is the slower fallback that is still safe
+// if we can not assume files are ordered by CreatedAt
+func linearFilterFilesSlice(files []*model.FileInfo, earliestAccessibleTime int64) ([]*model.FileInfo, int64) {
+	var firstInaccessibleFileTime int64 = 0
+	n := 0
+	for i := range files {
+		if createAt := files[i].CreateAt; createAt >= earliestAccessibleTime {
+			files[n] = files[i]
+			n++
+		} else {
+			if createAt > firstInaccessibleFileTime {
+				firstInaccessibleFileTime = createAt
+			}
+		}
+	}
+	return files[:n], firstInaccessibleFileTime
 }

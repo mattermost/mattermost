@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -1100,6 +1101,15 @@ func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return fileInfo, appErr
 }
 
+func (a *App) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr == nil {
+		a.generateMiniPreview(fileInfo)
+	}
+
+	return fileInfo, appErr
+}
+
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
@@ -1115,9 +1125,12 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		}
 	}
 
-	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterPostOptions{
-		assumeSortedCreatedAt: opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated,
-	})
+	filterOptions := filterFileOptions{}
+	if opt != nil && (opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated) {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+
+	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1129,6 +1142,20 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 
 func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
 	info, err := a.GetFileInfo(fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.ReadFile(info.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (a *App) getFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
+	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
 	if err != nil {
 		return nil, err
 	}
@@ -1270,7 +1297,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterPostOptions{assumeSortedCreatedAt: true})
+	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
@@ -1362,12 +1389,14 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 	return nil
 }
 
+// getCloudFilesSizeLimit returns size in bytes
 func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 
+	// limits is in bits
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
 		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1378,5 +1407,5 @@ func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 		return 0, nil
 	}
 
-	return *limits.Files.TotalStorage, nil
+	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
 }

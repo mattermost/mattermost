@@ -834,6 +834,6 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
 	// File is inaccessible due to cloud plan's limit.
 	if appErr.Id == "app.file.cloud.get.app_error" {
-		w.Header().Set(model.HeaderHasInaccessiblePosts, "true")
+		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
 	}
 }

@@ -4805,7 +4805,7 @@
   },
   {
     "id": "app.file.cloud.get.app_error",
-    "translation": "Can not fetch the file as it is past the cloud's plan limit."
+    "translation": "Can not fetch the file as it is past the cloud plan's limit."
   },
   {
     "id": "app.file_info.get.app_error",

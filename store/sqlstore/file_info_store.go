@@ -754,19 +754,22 @@ func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) 
 	return size, nil
 }
 
-// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a total size upto n bits.
+// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
 func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	if n <= 0 {
 		return 0, errors.New("n can't be less than 1")
 	}
 
-	sizeSubQuery := sq.Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").From("FileInfo fi")
+	sizeSubQuery := sq.
+		Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
+		From("FileInfo fi").
+		Where(sq.Eq{"fi.DeleteAt": 0})
 
 	builder := fs.getQueryBuilder().
 		Select("fi2.CreateAt").
 		FromSelect(sizeSubQuery, "fi2").
 		Where(sq.LtOrEq{"fi2.RunningTotal": n}).
-		OrderBy("fi2.CreateAt DESC").
+		OrderBy("fi2.CreateAt").
 		Limit(1)
 
 	query, queryArgs, err := builder.ToSql()
