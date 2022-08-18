@@ -1216,7 +1216,7 @@ func TestSearchUsers(t *testing.T) {
 	})
 }
 
-func findUserInList(id string, users []*model.User) bool {
+func findUserInList(id string, users []*model.User) bool { //nolint:unused
 	for _, user := range users {
 		if user.Id == id {
 			return true
