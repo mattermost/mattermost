@@ -8060,7 +8060,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 
 	_, err = ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
-		ChannelId: channelSaved0.Id,
+		ChannelId: channelPublic1.Id,
 		Message:   "test",
 		Props: model.StringInterface{
 			"from_bot": true,
@@ -8087,6 +8087,8 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 		require.Equal(t, topInactiveChannels.Items[0].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
 		require.Equal(t, topInactiveChannels.Items[1].ID, channelPrivate.Id)
 		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
+		// test bot posts are counted
+		require.Equal(t, topInactiveChannels.Items[2].MessageCount, int64(4))
 
 		// participants
 		require.Equal(t, topInactiveChannels.Items[1].Participants[0], u1.Id)

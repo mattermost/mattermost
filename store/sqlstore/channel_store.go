@@ -4348,10 +4348,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			WHERE
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
-				AND Posts.Type = ''`
-	args = []any{since}
-
-	query += `
+				AND Posts.Type = ''
 				AND PublicChannels.TeamId = ?
 				AND PublicChannels.DeleteAt = 0
 			GROUP BY
@@ -4374,10 +4371,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			WHERE
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
-				AND Posts.Type = ''`
-	args = append(args, teamID, since)
-
-	query += `
+				AND Posts.Type = ''
 				AND Channels.TeamId = ?
 				AND Channels.Type = 'P'
 				AND Channels.DeleteAt = 0
@@ -4392,7 +4386,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			Name ASC
 		LIMIT ?
 		OFFSET ?`
-	args = append(args, teamID, userID, limit+1, offset)
+	args = append(args, since, teamID, since, teamID, userID, limit+1, offset)
 
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
