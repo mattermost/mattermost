@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -19,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
+func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
 	channel := notification.Channel
 	post := notification.Post
 
@@ -107,7 +108,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 
-	var bodyText, err = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
+	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
 	if err != nil {
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
@@ -215,7 +216,7 @@ type postData struct {
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
+func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
 		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
@@ -237,7 +238,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 			mdPostMessage = postMessage
 		}
 
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
 		if err != nil {
 			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
 			normalizedPostMessage = mdPostMessage
@@ -276,7 +277,7 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	// Override title and subtile for replies with CRT enabled
-	if a.IsCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+	if a.IsCRTEnabledForUser(c, recipient.Id) && post.RootId != "" {
 		// Title is the same in all cases
 		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
 
@@ -347,7 +348,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
-func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
+func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName, teamURL string) (string, *model.AppError) {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
 		return "", err
@@ -358,7 +359,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 		return postMessage, nil
 	}
 
-	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	channels, err := a.GetChannelsByNames(c, channelNames, team.Id)
 	if err != nil {
 		return "", err
 	}

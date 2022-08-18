@@ -13,9 +13,10 @@ const (
 	USERNAME = "Username"
 )
 
-//msgp:tuple TeamMember
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple TeamMember
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -25,6 +26,21 @@ type TeamMember struct {
 	SchemeUser    bool   `json:"scheme_user"`
 	SchemeAdmin   bool   `json:"scheme_admin"`
 	ExplicitRoles string `json:"explicit_roles"`
+	CreateAt      int64  `json:"-"`
+}
+
+func (o *TeamMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"team_id":        o.TeamId,
+		"user_id":        o.UserId,
+		"roles":          o.Roles,
+		"delete_at":      o.DeleteAt,
+		"scheme_guest":   o.SchemeGuest,
+		"scheme_user":    o.SchemeUser,
+		"scheme_admin":   o.SchemeAdmin,
+		"explicit_roles": o.ExplicitRoles,
+		"create_at":      o.CreateAt,
+	}
 }
 
 //msgp:ignore TeamUnread

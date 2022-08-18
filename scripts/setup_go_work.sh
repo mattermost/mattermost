@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ ! -f "go.work" ]] ;
+if [[ $1 != "true" ]] ;
 then
     echo "Creating a go.work file"
 

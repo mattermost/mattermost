@@ -31,7 +31,7 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := &request.Context{}
+	appContext := request.EmptyContext(nil)
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -61,7 +61,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		importZipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		// find JSONL import file.
@@ -77,7 +77,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 			jsonFile, err = f.Open()
 			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			defer jsonFile.Close()

@@ -90,9 +90,25 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type NewTeamMembersList struct {
+	InsightsListData
+	Items      []*NewTeamMember `json:"items"`
+	TotalCount int64            `json:"total_count"`
+}
+
+type NewTeamMember struct {
+	Id        string `json:"id"`
+	Username  string `json:"username"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Position  string `json:"position"`
+	Nickname  string `json:"nickname"`
+	CreateAt  int64  `json:"create_at"`
+}
+
 type DurationPostCount struct {
 	ChannelID string `db:"channelid"`
-	// Duration is an ISO8601 date string representing either a day or a day and hour (ex. "2022-05-26" or "2022-05-26T14").
+	// Duration is an ISO8601 date string.
 	Duration  string `db:"duration"`
 	PostCount int    `db:"postcount"`
 }
@@ -112,27 +128,30 @@ func TimeRangeToNumberDays(timeRange string) int {
 
 // ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
 // Example 1 (grouped by day):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-12": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-12": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
+//
 // Example 2 (grouped by hour):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11T01": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-11T02": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11T01": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-11T02": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
 type ChannelPostCountByDuration map[string]map[string]int
 
 func blankChannelCountsMap(channelIDs []string) map[string]int {
@@ -242,4 +261,14 @@ func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadL
 	}
 
 	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
+}
+
+func GetNewTeamMembersListWithPagination(teamMembers []*NewTeamMember, limit int) *NewTeamMembersList {
+	var hasNext bool
+	if (limit != 0) && (len(teamMembers) == limit+1) {
+		hasNext = true
+		teamMembers = teamMembers[:len(teamMembers)-1]
+	}
+
+	return &NewTeamMembersList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: teamMembers}
 }
