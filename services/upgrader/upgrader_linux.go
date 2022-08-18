@@ -23,6 +23,7 @@ import (
 
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp" //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/armor"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -108,19 +109,49 @@ func verifySignature(filename string, sigfilename string, publicKey []byte) erro
 		mlog.Debug("Unable to open the Mattermost .tar file to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
+	defer mattermost_tar.Close()
 
 	signature, err := os.Open(sigfilename)
 	if err != nil {
-		mlog.Debug("Unable to open the Mattermost .sig file verify the file signature", mlog.Err(err))
+		mlog.Debug("Unable to open the Mattermost .sig file to verify the file signature", mlog.Err(err))
+		return NewInvalidSignature()
+	}
+	defer signature.Close()
+
+	decodedSignature, err := decodeArmoredSignature(signature)
+	if err != nil {
+		mlog.Debug("Unable to decode the Mattermost .sig file to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
-	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature)
+	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, decodedSignature)
 	if err != nil {
 		mlog.Debug("Unable to verify the Mattermost file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
+
 	return nil
+}
+
+// decodeArmoredSignature tries to decode the armored signature.
+// If no armor block is found, just return the original signature reader.
+func decodeArmoredSignature(signature io.ReadSeeker) (io.Reader, error) {
+	block, err := armor.Decode(signature)
+	if err != nil {
+		// if the error is io.EOF, then we didn't find an armored block
+		if errors.Is(err, io.EOF) {
+			_, err = signature.Seek(0, io.SeekStart)
+			return signature, err
+		}
+
+		return nil, err
+	}
+
+	if block.Type != openpgp.SignatureType {
+		return nil, fmt.Errorf("unexpected signature type, expected %s, got %s", openpgp.SignatureType, block.Type)
+	}
+
+	return block.Body, nil
 }
 
 func canIWriteTheExecutable() error {

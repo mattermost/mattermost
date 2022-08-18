@@ -8,6 +8,7 @@ import (
 	"compress/gzip"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -160,5 +161,44 @@ func TestExtractBinary(t *testing.T) {
 		bytes, err := io.ReadAll(tmpMockExecutableAfter)
 		require.NoError(t, err)
 		require.Equal(t, []byte("test"), bytes)
+	})
+}
+
+func TestDecodeArmor(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		input := strings.NewReader("")
+		output, err := decodeArmoredSignature(input)
+		require.NoError(t, err)
+		require.True(t, output == input, "output instance should be the input instance")
+	})
+
+	t.Run("garbage", func(t *testing.T) {
+		input := strings.NewReader("garbage")
+		output, err := decodeArmoredSignature(input)
+		require.NoError(t, err)
+		require.True(t, output == input, "output instance should be the input instance")
+		pos, _ := input.Seek(0, io.SeekCurrent)
+		require.Zero(t, pos, "reader should be at the beginning")
+	})
+
+	t.Run("valid signature block", func(t *testing.T) {
+		input := strings.NewReader(`-----BEGIN PGP SIGNATURE-----
+
+		bm93IHRoYXQncyBzb21lIHRob3JvdWdoIGNvZGUgcmV2aWV3LiBnb29kIHdvcmshIQ==
+
+		-----END PGP SIGNATURE-----`)
+		output, err := decodeArmoredSignature(input)
+		require.NoError(t, err)
+		require.False(t, output == input, "output instance should be different from the input instance")
+	})
+
+	t.Run("wrong signature type", func(t *testing.T) {
+		input := strings.NewReader(`-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+		bm93IHRoYXQncyBzb21lIHRob3JvdWdoIGNvZGUgcmV2aWV3LiBnb29kIHdvcmshIQ==
+
+		-----END PGP PUBLIC KEY BLOCK-----`)
+		_, err := decodeArmoredSignature(input)
+		require.Error(t, err)
 	})
 }
