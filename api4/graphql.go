@@ -78,7 +78,7 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if response != nil {
 			if err := json.NewEncoder(w).Encode(response); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 		}
 	}()

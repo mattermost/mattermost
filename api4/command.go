@@ -32,7 +32,7 @@ func (api *API) InitCommand() {
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
-		c.SetInvalidParam("command")
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
@@ -62,7 +62,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -74,7 +74,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil || cmd.Id != c.Params.CommandId {
-		c.SetInvalidParam("command")
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
@@ -122,7 +122,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -134,7 +134,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var cmr model.CommandMoveRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmr); jsonErr != nil {
-		c.SetInvalidParam("team_id")
+		c.SetInvalidParamWithErr("team_id", jsonErr)
 		return
 	}
 
@@ -274,7 +274,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(commands); err != nil {
-		mlog.Warn("Error writing response", mlog.Err(err))
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
 
@@ -305,14 +305,14 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(cmd); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var commandArgs model.CommandArgs
 	if jsonErr := json.NewDecoder(r.Body).Decode(&commandArgs); jsonErr != nil {
-		c.SetInvalidParam("command_args")
+		c.SetInvalidParamWithErr("command_args", jsonErr)
 		return
 	}
 
@@ -368,7 +368,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -390,7 +390,7 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.NewEncoder(w).Encode(commands); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -417,9 +417,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 	}
 	userInput = strings.TrimPrefix(userInput, "/")
 
-	commands, err := c.App.ListAutocompleteCommands(c.Params.TeamId, c.AppContext.T)
-	if err != nil {
-		c.Err = err
+	commands, appErr := c.App.ListAutocompleteCommands(c.Params.TeamId, c.AppContext.T)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -436,9 +436,9 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 
 	suggestions := c.App.GetSuggestions(c.AppContext, commandArgs, commands, roleId)
 
-	js, jsonErr := json.Marshal(suggestions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(suggestions)
+	if err != nil {
+		c.Err = model.NewAppError("listCommandAutocompleteSuggestions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)

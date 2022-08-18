@@ -261,7 +261,7 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 	sum.Write([]byte(triggerData))
 	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
 	if err != nil {
-		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, err.Error(), http.StatusInternalServerError)
+		return "", "", NewAppError("GenerateTriggerId", "interactive_message.generate_trigger_id.signing_failed", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	base64Sig := base64.StdEncoding.EncodeToString(signature)
@@ -271,9 +271,9 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, err := GenerateTriggerId(r.UserId, s)
-	if err != nil {
-		return "", "", err
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	if appErr != nil {
+		return "", "", appErr
 	}
 
 	r.TriggerId = triggerId
@@ -283,7 +283,7 @@ func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (strin
 func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, string, *AppError) {
 	triggerIdBytes, err := base64.StdEncoding.DecodeString(triggerId)
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	split := strings.Split(string(triggerIdBytes), ":")
@@ -303,7 +303,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 
 	signature, err := base64.StdEncoding.DecodeString(split[3])
 	if err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.base64_decode_failed_signature", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var esig struct {
@@ -311,7 +311,7 @@ func DecodeAndVerifyTriggerId(triggerId string, s *ecdsa.PrivateKey) (string, st
 	}
 
 	if _, err := asn1.Unmarshal(signature, &esig); err != nil {
-		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, err.Error(), http.StatusBadRequest)
+		return "", "", NewAppError("DecodeAndVerifyTriggerId", "interactive_message.decode_trigger_id.signature_decode_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	triggerData := strings.Join([]string{clientTriggerId, userId, timestampStr}, ":") + ":"

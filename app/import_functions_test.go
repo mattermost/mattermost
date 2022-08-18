@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -3100,7 +3099,6 @@ func TestImportImportPost(t *testing.T) {
 	})
 
 	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
-		t.Skip("MM-44922")
 		now := model.GetMillis()
 		before := now - 10
 		data := LineImportWorkerData{
@@ -3128,6 +3126,7 @@ func TestImportImportPost(t *testing.T) {
 		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 2, "Unexpected number of posts found.")
+		require.NoError(t, th.TestLogger.Flush())
 		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
 
 		rootPost := posts[0]
@@ -4151,45 +4150,45 @@ func TestImportImportEmoji(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 
 	data := EmojiImportData{Name: ptrStr(model.NewId())}
-	err := th.App.importEmoji(&data, true)
-	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
+	appErr := th.App.importEmoji(&data, true)
+	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
 	emoji, nErr := th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
 	data.Image = ptrStr(testImage)
-	err = th.App.importEmoji(&data, true)
-	assert.Nil(t, err, "Valid emoji should have passed dry run")
+	appErr = th.App.importEmoji(&data, true)
+	assert.Nil(t, appErr, "Valid emoji should have passed dry run")
 
 	data = EmojiImportData{Name: ptrStr(model.NewId())}
-	err = th.App.importEmoji(&data, false)
-	assert.NotNil(t, err, "Invalid emoji should have failed apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.NotNil(t, appErr, "Invalid emoji should have failed apply mode")
 
 	data.Image = ptrStr("non-existent-file")
-	err = th.App.importEmoji(&data, false)
-	assert.NotNil(t, err, "Emoji with bad image file should have failed apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.NotNil(t, appErr, "Emoji with bad image file should have failed apply mode")
 
 	data.Image = ptrStr(testImage)
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
 	emoji, nErr = th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "Second run should have succeeded apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "Second run should have succeeded apply mode")
 
 	data = EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "System emoji should not fail")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "System emoji should not fail")
 
 	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
 	data = EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
-	err = th.App.importEmoji(&data, false)
-	require.NotNil(t, err)
-	require.Contains(t, err.DetailedError, utils.SizeLimitExceeded.Error())
+	appErr = th.App.importEmoji(&data, false)
+	require.NotNil(t, appErr)
+	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {
@@ -4378,11 +4377,11 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testImage2 := filepath.Join(testsDir, "test.svg")
 	// create a temp file with same name as original but with a different first byte
-	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	tmpFolder, _ := os.MkdirTemp("", "imgFake")
 	testImageFake := filepath.Join(tmpFolder, "test.png")
-	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData, _ := os.ReadFile(testImage)
 	fakeFileData[0] = 0
-	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	_ = os.WriteFile(testImageFake, fakeFileData, 0644)
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.

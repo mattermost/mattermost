@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitImport() {
@@ -26,11 +27,7 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(imports)
-	if err != nil {
-		c.Err = model.NewAppError("listImports", "app.import.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
+	if err := json.NewEncoder(w).Encode(imports); err != nil {
+		c.Logger.Warn("Error writing imports", mlog.Err(err))
 	}
-
-	w.Write(data)
 }

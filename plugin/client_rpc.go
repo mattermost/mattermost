@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/rpc"
@@ -21,7 +20,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
@@ -164,7 +162,6 @@ func init() {
 	gob.Register(&pq.Error{})
 	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
-	gob.Register(&opengraph.OpenGraph{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
@@ -446,7 +443,7 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 		}
 		r.Body = connectIOReader(connection)
 	} else {
-		r.Body = ioutil.NopCloser(&bytes.Buffer{})
+		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
 	defer r.Body.Close()
 
@@ -489,7 +486,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 	}
 
 	if request.Body != nil {
-		requestBody, err := ioutil.ReadAll(request.Body)
+		requestBody, err := io.ReadAll(request.Body)
 		if err != nil {
 			log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
 			return nil
@@ -506,20 +503,20 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 		return nil
 	}
 
-	_returns.Response.Body = ioutil.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
+	_returns.Response.Body = io.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
 
 	return _returns.Response
 }
 
 func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
-	args.Request.Body = ioutil.NopCloser(bytes.NewBuffer(args.RequestBody))
+	args.Request.Body = io.NopCloser(bytes.NewBuffer(args.RequestBody))
 
 	if hook, ok := s.impl.(interface {
 		PluginHTTP(request *http.Request) *http.Response
 	}); ok {
 		response := hook.PluginHTTP(args.Request)
 
-		responseBody, err := ioutil.ReadAll(response.Body)
+		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
 			return encodableError(fmt.Errorf("RPC call to PluginHTTP API failed: %s", err.Error()))
 		}

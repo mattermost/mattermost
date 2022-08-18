@@ -11,7 +11,7 @@ import (
 	"image/draw"
 	"image/png"
 	"io"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -174,7 +174,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 	}
 
 	fontDir, _ := fileutils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
+	fontBytes, err := os.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, err
 	}

@@ -289,3 +289,123 @@ func TestGraphQLTeamMembers(t *testing.T) {
 		assert.Len(t, q.TeamMembers, 1)
 	})
 }
+
+func TestGraphQLTeamMembersAsGuest(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_GRAPHQL", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_GRAPHQL")
+
+	th := Setup(t)
+
+	id := model.NewId()
+	team := &model.Team{
+		DisplayName:     "dn_" + id,
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	}
+
+	var err error
+	team, _, err = th.Client.CreateTeam(team)
+	require.NoError(t, err)
+	th.BasicTeam = team
+
+	th.BasicChannel = th.CreatePublicChannel()
+	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	th.LoginBasic()
+
+	defer th.TearDown()
+
+	require.Nil(t, th.App.DemoteUserToGuest(th.Context, th.BasicUser))
+
+	var q struct {
+		TeamMembers []struct {
+			User struct {
+				ID        string `json:"id"`
+				Username  string `json:"username"`
+				Email     string `json:"email"`
+				FirstName string `json:"firstName"`
+				LastName  string `json:"lastName"`
+				NickName  string `json:"nickname"`
+			} `json:"user"`
+			Team struct {
+				ID                  string  `json:"id"`
+				DisplayName         string  `json:"displayName"`
+				Name                string  `json:"name"`
+				CreateAt            float64 `json:"createAt"`
+				DeleteAt            float64 `json:"deleteAt"`
+				SchemeId            *string `json:"schemeId"`
+				PolicyId            *string `json:"policyId"`
+				CloudLimitsArchived bool    `json:"cloudLimitsArchived"`
+			} `json:"team"`
+			Roles []struct {
+				ID            string   `json:"id"`
+				Name          string   `json:"Name"`
+				Permissions   []string `json:"permissions"`
+				SchemeManaged bool     `json:"schemeManaged"`
+				BuiltIn       bool     `json:"builtIn"`
+			} `json:"roles"`
+			DeleteAt    float64 `json:"deleteAt"`
+			SchemeGuest bool    `json:"schemeGuest"`
+			SchemeUser  bool    `json:"schemeUser"`
+			SchemeAdmin bool    `json:"schemeAdmin"`
+		} `json:"teamMembers"`
+	}
+
+	t.Run("User", func(t *testing.T) {
+		input := graphQLInput{
+			OperationName: "teamMembers",
+			Query: `
+	query teamMembers($userId: String = "", $teamId: String = "") {
+	  teamMembers(userId: $userId, teamId: $teamId) {
+	  	team {
+	  		id
+	  		displayName
+	  	}
+	  	user {
+	  		id
+	  		username
+	  		email
+	  		firstName
+	  		lastName
+	  	}
+	  	roles {
+	  		id
+	  		name
+	  	}
+	  	schemeGuest
+	  	schemeUser
+	  	schemeAdmin
+	  }
+	}
+	`,
+			Variables: map[string]any{
+				"userId": "me",
+			},
+		}
+
+		resp, err := th.MakeGraphQLRequest(&input)
+		require.NoError(t, err)
+		require.Len(t, resp.Errors, 0)
+		require.NoError(t, json.Unmarshal(resp.Data, &q))
+		assert.Len(t, q.TeamMembers, 1)
+
+		tm := q.TeamMembers[0]
+		assert.Equal(t, th.BasicTeam.Id, tm.Team.ID)
+		assert.Equal(t, th.BasicTeam.DisplayName, tm.Team.DisplayName)
+
+		assert.Equal(t, th.BasicUser.Id, tm.User.ID)
+		assert.Equal(t, th.BasicUser.Username, tm.User.Username)
+		assert.Equal(t, th.BasicUser.Email, tm.User.Email)
+		assert.Equal(t, th.BasicUser.FirstName, tm.User.FirstName)
+		assert.Equal(t, th.BasicUser.LastName, tm.User.LastName)
+
+		require.Len(t, tm.Roles, 1)
+		assert.NotEmpty(t, tm.Roles[0].ID)
+		assert.Equal(t, "team_guest", tm.Roles[0].Name)
+		assert.True(t, tm.SchemeGuest)
+		assert.False(t, tm.SchemeUser)
+		assert.False(t, tm.SchemeAdmin)
+	})
+}

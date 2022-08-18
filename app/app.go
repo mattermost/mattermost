@@ -61,11 +61,11 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SystemInstallationDateKey)
 	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return value, nil
 }
@@ -73,11 +73,11 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
-		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return value, nil
 }
@@ -117,7 +117,7 @@ func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.ch.srv.Metrics
+	return a.ch.srv.GetMetrics()
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification
