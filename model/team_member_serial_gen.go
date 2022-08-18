@@ -17,8 +17,8 @@ func (z *TeamMember) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 8 {
-		err = msgp.ArrayError{Wanted: 8, Got: zb0001}
+	if zb0001 != 9 {
+		err = msgp.ArrayError{Wanted: 9, Got: zb0001}
 		return
 	}
 	z.TeamId, err = dc.ReadString()
@@ -61,13 +61,18 @@ func (z *TeamMember) DecodeMsg(dc *msgp.Reader) (err error) {
 		err = msgp.WrapError(err, "ExplicitRoles")
 		return
 	}
+	z.CreateAt, err = dc.ReadInt64()
+	if err != nil {
+		err = msgp.WrapError(err, "CreateAt")
+		return
+	}
 	return
 }
 
 // EncodeMsg implements msgp.Encodable
 func (z *TeamMember) EncodeMsg(en *msgp.Writer) (err error) {
-	// array header, size 8
-	err = en.Append(0x98)
+	// array header, size 9
+	err = en.Append(0x99)
 	if err != nil {
 		return
 	}
@@ -111,14 +116,19 @@ func (z *TeamMember) EncodeMsg(en *msgp.Writer) (err error) {
 		err = msgp.WrapError(err, "ExplicitRoles")
 		return
 	}
+	err = en.WriteInt64(z.CreateAt)
+	if err != nil {
+		err = msgp.WrapError(err, "CreateAt")
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *TeamMember) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// array header, size 8
-	o = append(o, 0x98)
+	// array header, size 9
+	o = append(o, 0x99)
 	o = msgp.AppendString(o, z.TeamId)
 	o = msgp.AppendString(o, z.UserId)
 	o = msgp.AppendString(o, z.Roles)
@@ -127,6 +137,7 @@ func (z *TeamMember) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.AppendBool(o, z.SchemeUser)
 	o = msgp.AppendBool(o, z.SchemeAdmin)
 	o = msgp.AppendString(o, z.ExplicitRoles)
+	o = msgp.AppendInt64(o, z.CreateAt)
 	return
 }
 
@@ -138,8 +149,8 @@ func (z *TeamMember) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err)
 		return
 	}
-	if zb0001 != 8 {
-		err = msgp.ArrayError{Wanted: 8, Got: zb0001}
+	if zb0001 != 9 {
+		err = msgp.ArrayError{Wanted: 9, Got: zb0001}
 		return
 	}
 	z.TeamId, bts, err = msgp.ReadStringBytes(bts)
@@ -182,12 +193,17 @@ func (z *TeamMember) UnmarshalMsg(bts []byte) (o []byte, err error) {
 		err = msgp.WrapError(err, "ExplicitRoles")
 		return
 	}
+	z.CreateAt, bts, err = msgp.ReadInt64Bytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err, "CreateAt")
+		return
+	}
 	o = bts
 	return
 }
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TeamMember) Msgsize() (s int) {
-	s = 1 + msgp.StringPrefixSize + len(z.TeamId) + msgp.StringPrefixSize + len(z.UserId) + msgp.StringPrefixSize + len(z.Roles) + msgp.Int64Size + msgp.BoolSize + msgp.BoolSize + msgp.BoolSize + msgp.StringPrefixSize + len(z.ExplicitRoles)
+	s = 1 + msgp.StringPrefixSize + len(z.TeamId) + msgp.StringPrefixSize + len(z.UserId) + msgp.StringPrefixSize + len(z.Roles) + msgp.Int64Size + msgp.BoolSize + msgp.BoolSize + msgp.BoolSize + msgp.StringPrefixSize + len(z.ExplicitRoles) + msgp.Int64Size
 	return
 }

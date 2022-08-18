@@ -6,8 +6,8 @@ package i18n
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -59,7 +59,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 }
 
 func initTranslationsWithDir(dir string) error {
-	files, _ := ioutil.ReadDir(dir)
+	files, _ := os.ReadDir(dir)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()

@@ -6,7 +6,6 @@ package filestore
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -38,7 +37,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	mlog.InitGlobalLogger(logger)
 
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -501,15 +500,16 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 
 func BenchmarkS3WriteFile(b *testing.B) {
 	settings := FileBackendSettings{
-		DriverName:              driverS3,
-		AmazonS3AccessKeyId:     "minioaccesskey",
-		AmazonS3SecretAccessKey: "miniosecretkey",
-		AmazonS3Bucket:          "mattermost-test",
-		AmazonS3Region:          "",
-		AmazonS3Endpoint:        "localhost:9000",
-		AmazonS3PathPrefix:      "",
-		AmazonS3SSL:             false,
-		AmazonS3SSE:             false,
+		DriverName:                         driverS3,
+		AmazonS3AccessKeyId:                "minioaccesskey",
+		AmazonS3SecretAccessKey:            "miniosecretkey",
+		AmazonS3Bucket:                     "mattermost-test",
+		AmazonS3Region:                     "",
+		AmazonS3Endpoint:                   "localhost:9000",
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		AmazonS3SSE:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 20000,
 	}
 
 	backend, err := NewFileBackend(settings)

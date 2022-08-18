@@ -26,6 +26,7 @@ type TeamMember struct {
 	SchemeUser    bool   `json:"scheme_user"`
 	SchemeAdmin   bool   `json:"scheme_admin"`
 	ExplicitRoles string `json:"explicit_roles"`
+	CreateAt      int64  `json:"-"`
 }
 
 func (o *TeamMember) Auditable() map[string]interface{} {
@@ -38,6 +39,7 @@ func (o *TeamMember) Auditable() map[string]interface{} {
 		"scheme_user":    o.SchemeUser,
 		"scheme_admin":   o.SchemeAdmin,
 		"explicit_roles": o.ExplicitRoles,
+		"create_at":      o.CreateAt,
 	}
 }
 

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -29,9 +28,9 @@ import (
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
-	pluginDir, err := ioutil.TempDir("", "")
+	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	webappPluginDir, err := ioutil.TempDir("", "")
+	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
@@ -45,7 +44,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		_, _, activationErr := env.Activate(pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
@@ -1024,9 +1023,9 @@ func TestHookMetrics(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
 
-		pluginDir, err := ioutil.TempDir("", "")
+		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
-		webappPluginDir, err := ioutil.TempDir("", "")
+		webappPluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
@@ -1069,7 +1068,7 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating
 		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()

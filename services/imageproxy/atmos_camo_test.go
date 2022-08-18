@@ -4,7 +4,7 @@
 package imageproxy
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -85,7 +85,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	assert.Equal(t, "image/png", contentType)
 
 	require.NotNil(t, body)
-	respBody, _ := ioutil.ReadAll(body)
+	respBody, _ := io.ReadAll(body)
 	assert.Equal(t, []byte("1111111111"), respBody)
 }
 

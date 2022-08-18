@@ -6,7 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -425,7 +425,7 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 			}
 			continue
 		}
-		b, ioerr := ioutil.ReadAll(f)
+		b, ioerr := io.ReadAll(f)
 		f.Close()
 		if ioerr != nil {
 			return nil, path, ioerr

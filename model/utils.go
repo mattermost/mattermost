@@ -292,7 +292,7 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
 	}
 	return &er
 }
@@ -400,23 +400,25 @@ func MapBoolToJSON(objmap map[string]bool) string {
 
 // MapFromJSON will decode the key/value pair map
 func MapFromJSON(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
 // MapFromJSON will decode the key/value pair map
 func MapBoolFromJSON(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
@@ -426,12 +428,13 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
@@ -458,12 +461,13 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 }
 
 func StringInterfaceFromJSON(data io.Reader) map[string]any {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]any
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]any)
 	}
+
 	return objmap
 }
 

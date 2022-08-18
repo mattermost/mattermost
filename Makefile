@@ -149,18 +149,18 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.2
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.7.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.7.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.29.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.31.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.1.0
+PLUGIN_PACKAGES += focalboard-v7.2.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -414,7 +414,7 @@ endif
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-	./scripts/setup_go_work.sh
+	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 
