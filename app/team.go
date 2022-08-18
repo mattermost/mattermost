@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
@@ -198,6 +199,71 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 	}
 
 	if _, err := a.JoinUserToTeam(c, rteam, user, ""); err != nil {
+		return nil, err
+	}
+
+	// TODO: check if this is the first team
+	// a.ch.srv.GetStore().Team().AnalyticsTeamCount(nil)
+
+	// Find the default channel
+	c.Logger().Debug("===================")
+	c.Logger().Debug("===================")
+	c.Logger().Debug("===================")
+	c.Logger().Debug("===================")
+	c.Logger().Debug("===================")
+	c.Logger().Debug("Get Channel By Name")
+	defaultChannel, err := a.GetChannelByName(c, model.DefaultChannelName, rteam.Id, false)
+	if err != nil {
+		c.Logger().Debug("ERROR Get Channel By Name")
+		return nil, err
+	}
+
+	c.Logger().Debug("Send Ephemeral Post")
+	// post an ephemeral message to the default channel by System User
+	if a.SendEphemeralPost(c, user.Id, &model.Post{
+		ChannelId: defaultChannel.Id,
+		Message:   "Yop eph",
+		Type:      model.PostTypeEphemeral,
+	}); err != nil {
+		c.Logger().Debug("ERROR Send Ephemeral Post")
+		return nil, err
+	}
+
+	go func() {
+		time.Sleep(time.Second * 10)
+		c.Logger().Debug("GO Send Ephemeral Post")
+		// post an ephemeral message to the default channel by System User
+		if a.SendEphemeralPost(c, user.Id, &model.Post{
+			UserId:    user.Id,
+			ChannelId: defaultChannel.Id,
+			Message:   "Yop go eph post",
+			Type:      model.PostTypeEphemeral,
+		}); err != nil {
+			c.Logger().Debug("ERROR GO Send Ephemeral Post")
+		}
+	}()
+
+	c.Logger().Debug("Send Post 1")
+	// post an ephemeral message to the default channel by System User
+	if a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		ChannelId: defaultChannel.Id,
+		Message:   "Yop eph post",
+		Type:      model.PostTypeEphemeral,
+	}, defaultChannel, false, false); err != nil {
+		c.Logger().Debug("ERROR Send Post 1")
+		return nil, err
+	}
+
+	c.Logger().Debug("Send Post 2")
+	// post an ephemeral message to the default channel by System User
+	if a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		ChannelId: defaultChannel.Id,
+		Message:   "Yop",
+		Type:      model.PostTypeDefault,
+	}, defaultChannel, false, false); err != nil {
+		c.Logger().Debug("ERROR Send Post 2")
 		return nil, err
 	}
 
