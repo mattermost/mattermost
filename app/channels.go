@@ -224,6 +224,8 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		ch: ch,
 	}
 
+	services[UserKey] = &App{ch: ch}
+
 	return ch, nil
 }
 

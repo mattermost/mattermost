@@ -2230,10 +2230,6 @@
     "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Due to compliance rules configured on this instance the channel must be joined before its posts can be read."
-  },
-  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -3337,11 +3333,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -4876,10 +4872,6 @@
     "translation": "JSON decode of line failed."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
-  },
-  {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
@@ -5018,10 +5010,6 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",

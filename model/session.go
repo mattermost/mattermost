@@ -34,14 +34,14 @@ const (
 	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
 )
 
-//msgp StringMap
+//msgp:tuple StringMap
 type StringMap map[string]string
-
-//msgp:tuple Session
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple Session
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`

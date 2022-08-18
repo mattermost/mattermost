@@ -82,7 +82,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -94,7 +94,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -164,7 +164,7 @@ func (c *Context) MfaRequired() {
 
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
-		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 		return
 	}
 

@@ -151,27 +151,30 @@ func TimeRangeToNumberDays(timeRange string) int {
 
 // ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
 // Example 1 (grouped by day):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-12": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-12": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
+//
 // Example 2 (grouped by hour):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11T01": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-11T02": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11T01": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-11T02": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
 type ChannelPostCountByDuration map[string]map[string]int
 
 func blankChannelCountsMap(channelIDs []string) map[string]int {

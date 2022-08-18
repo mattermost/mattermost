@@ -26,7 +26,7 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
 	data, err := s.platform.GetConfigFile(name)
 	if err != nil {
-		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return data, nil
 }
@@ -38,11 +38,11 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 	data, err := io.ReadAll(key)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	err = a.Srv().platform.SetConfigFile(name, data)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -61,7 +61,7 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	}
 	filename := filepath.Base(name)
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
-		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
