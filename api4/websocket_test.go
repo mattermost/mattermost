@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -197,6 +198,81 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	require.Error(t, err, "Should have errored because Origin does not match host! SECURITY ISSUE!")
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "" })
+}
+
+func TestWebSocketReconnectRace(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+
+	ev := <-WebSocketClient.EventChannel
+	require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	evData := ev.GetData()
+	connID := evData["connection_id"].(string)
+	seq := int(ev.GetSequence())
+
+	var wg sync.WaitGroup
+	n := 10
+	wg.Add(n)
+
+	WebSocketClient.Close()
+
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			ws, err := th.CreateReliableWebSocketClient(connID, seq+1)
+			require.NoError(t, err)
+			defer ws.Close()
+			ws.Listen()
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestWebSocketSendBinary(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(client)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(client2)
+	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	require.NoError(t, err)
+	defer WebSocketClient2.Close()
+
+	time.Sleep(1000 * time.Millisecond)
+
+	WebSocketClient.SendBinaryMessage("get_statuses", nil)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error, resp.Error)
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1)
+
+	status, ok := resp.Data[th.BasicUser.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
+	status, ok = resp.Data[th.BasicUser2.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
+
+	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
+		"user_ids": []string{th.BasicUser2.Id},
+	})
+	status, ok = resp.Data[th.BasicUser2.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
 }
 
 func TestWebSocketStatuses(t *testing.T) {

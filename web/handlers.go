@@ -41,7 +41,7 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -55,10 +55,10 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.app.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
 	return &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -71,7 +71,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 }
 
 type Handler struct {
-	App                       app.AppIface
+	Srv                       *app.Server
 	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName               string
 	RequireSession            bool
@@ -86,9 +86,60 @@ type Handler struct {
 	cspShaDirective string
 }
 
+func generateDevCSP(c Context) string {
+	// Add unsafe-eval to the content security policy for faster source maps in development mode
+	devCSPMap := make(map[string]bool)
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-eval"] = true
+	}
+
+	// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
+	// see https://github.com/reduxjs/redux-devtools/issues/380
+	if model.BuildNumber == "dev" {
+		devCSPMap["unsafe-inline"] = true
+	}
+
+	// Add supported flags for debugging during development, even if not on a dev build.
+	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
+		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
+			if len(devFlagKVSplit) != 2 {
+				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
+				continue
+			}
+			devFlagKey := devFlagKVSplit[0]
+			devFlagValue := devFlagKVSplit[1]
+
+			// Ignore disabled keys
+			if devFlagValue != "true" {
+				continue
+			}
+
+			// Honour only supported keys
+			switch devFlagKey {
+			case "unsafe-eval", "unsafe-inline":
+				devCSPMap[devFlagKey] = true
+			default:
+				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+			}
+		}
+	}
+	var devCSP string
+	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
+	for _, devCSPFlag := range supportedCSPFlags {
+		if devCSPMap[devCSPFlag] {
+			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
+		}
+	}
+
+	return devCSP
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w = newWrappedWriter(w)
 	now := time.Now()
+
+	appInstance := app.New(app.ServerConnector(h.Srv.Channels()))
 
 	requestID := model.NewId()
 	var statusCode string
@@ -107,7 +158,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c := &Context{
 		AppContext: &request.Context{},
-		App:        h.App,
+		App:        appInstance,
 	}
 
 	t, _ := i18n.GetTranslationsAndLocaleFromRequest(r)
@@ -117,6 +168,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext.SetUserAgent(r.UserAgent())
 	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.AppContext.SetPath(r.URL.Path)
+	c.AppContext.SetContext(context.Background())
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -156,17 +208,20 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
+	}
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
-	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
+	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Channels().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
 	cloudCSP := ""
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
@@ -174,17 +229,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 
-		// Add unsafe-eval to the content security policy for faster source maps in development mode
-		devCSP := ""
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-eval'"
-		}
-
-		// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
-		// see https://github.com/reduxjs/redux-devtools/issues/380
-		if model.BuildNumber == "dev" {
-			devCSP += " 'unsafe-inline'"
-		}
+		devCSP := generateDevCSP(*c)
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
@@ -228,7 +273,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -237,7 +282,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.AppContext.SetSession(session)
 		}
-	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
 		if remoteId := c.GetRemoteID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //
@@ -261,6 +306,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
+	c.AppContext.SetLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -338,7 +384,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
+			var endpoint string
+			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+				// It's a graphQL query, so use the operation name.
+				endpoint = c.GraphQLOperationName
+			} else {
+				endpoint = h.HandlerName
+			}
+			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
 		}
 	}
 }
@@ -394,7 +447,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 // granted.
 func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -403,7 +456,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -414,7 +467,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 // websocket.
 func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: false,
@@ -423,7 +476,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
@@ -433,7 +486,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 // be granted.
 func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
-		App:            w.app,
+		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
 		RequireSession: true,
@@ -442,7 +495,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsStatic:       false,
 		IsLocal:        false,
 	}
-	if *w.app.Config().ServiceSettings.WebserverMode == "gzip" {
+	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler

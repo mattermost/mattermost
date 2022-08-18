@@ -6,7 +6,6 @@ package testlib
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -38,26 +37,8 @@ type testResourceDetails struct {
 	action  int8
 }
 
-// getCommonBaseSearchPaths() is a custom version of what fileutils exposes. At some point, consolidate.
-func getCommonBaseSearchPaths() []string {
-	paths := []string{
-		".",
-		"..",
-		"../..",
-		"../../..",
-		"../../../..",
-	}
-
-	// this enables the server to be used in tests from a different repository
-	if mmPath := os.Getenv("MM_SERVER_PATH"); mmPath != "" {
-		paths = append(paths, mmPath)
-	}
-
-	return paths
-}
-
 func findFile(path string) string {
-	return fileutils.FindPath(path, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
+	return fileutils.FindPath(path, fileutils.CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return !fileInfo.IsDir()
 	})
 }
@@ -72,7 +53,7 @@ func findDir(dir string) (string, bool) {
 		return path.Dir(srcPath), true
 	}
 
-	found := fileutils.FindPath(dir, getCommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
+	found := fileutils.FindPath(dir, fileutils.CommonBaseSearchPaths(), func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
 	if found == "" {
@@ -134,7 +115,7 @@ func CopyFile(src, dst string) error {
 func SetupTestResources() (string, error) {
 	testResourcesToSetup := getTestResourcesToSetup()
 
-	tempDir, err := ioutil.TempDir("", "testlib")
+	tempDir, err := os.MkdirTemp("", "testlib")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create temporary directory")
 	}
@@ -213,7 +194,7 @@ func setupConfig(configDir string) error {
 	}
 
 	configJSON := path.Join(configDir, "config.json")
-	err = ioutil.WriteFile(configJSON, buf, 0644)
+	err = os.WriteFile(configJSON, buf, 0644)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write config to %s", configJSON)
 	}

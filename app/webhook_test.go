@@ -388,7 +388,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		"LongPostAndMultipleAttachments": {
 			Post: &model.Post{
 				Message: strings.Repeat("本", maxPostSize*3/2),
-				Props: map[string]interface{}{
+				Props: map[string]any{
 					"attachments": []*model.SlackAttachment{
 						{
 							Text: strings.Repeat("本", 1000),
@@ -408,7 +408,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				},
 				{
 					Message: strings.Repeat("本", maxPostSize/2),
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"attachments": []*model.SlackAttachment{
 							{
 								Text: strings.Repeat("本", 1000),
@@ -420,7 +420,7 @@ func TestSplitWebhookPost(t *testing.T) {
 					},
 				},
 				{
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"attachments": []*model.SlackAttachment{
 							{
 								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
@@ -433,7 +433,7 @@ func TestSplitWebhookPost(t *testing.T) {
 		"UnsplittableProps": {
 			Post: &model.Post{
 				Message: "foo",
-				Props: map[string]interface{}{
+				Props: map[string]any{
 					"foo": strings.Repeat("x", model.PostPropsMaxUserRunes*2),
 				},
 			},
@@ -467,7 +467,7 @@ func makePost(message int, attachments []int) *model.Post {
 			}
 			sa = append(sa, attach)
 		}
-		props = map[string]interface{}{"attachments": sa}
+		props = map[string]any{"attachments": sa}
 	}
 	post := &model.Post{
 		Message: strings.Repeat("那", message),
@@ -587,7 +587,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		}
 	}
 
-	waitUntilWebhookResposeIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
+	waitUntilWebhookResponseIsCreatedAsPost := func(channel *model.Channel, th *TestHelper, createdPost chan *model.Post) {
 		go func() {
 			for i := 0; i < 5; i++ {
 				time.Sleep(time.Second)
@@ -646,8 +646,8 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
 				ExpectedUsername:           "webhookuser",
-				ExpectedIconURL:            "http://webhok/icon",
-				WebhookResponse:            &model.OutgoingWebhookResponse{Text: &webHookResponse, Username: "webhookuser", IconURL: "http://webhok/icon"},
+				ExpectedIconURL:            "http://webhook/icon",
+				WebhookResponse:            &model.OutgoingWebhookResponse{Text: &webHookResponse, Username: "webhookuser", IconURL: "http://webhook/icon"},
 			},
 		}
 		return testCasesOutgoing
@@ -681,13 +681,13 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			channel := th.CreateChannel(th.BasicTeam)
+			channel := th.CreateChannel(th.Context, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
 			th.App.TriggerWebhook(th.Context, payload, hook, th.BasicPost, channel)
 
-			waitUntilWebhookResposeIsCreatedAsPost(channel, th, createdPost)
+			waitUntilWebhookResponseIsCreatedAsPost(channel, th, createdPost)
 
 			select {
 			case webhookPost := <-createdPost:
@@ -782,7 +782,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
-		releaseHandler := make(chan interface{})
+		releaseHandler := make(chan any)
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Don't actually handle the response, allowing the app to timeout.

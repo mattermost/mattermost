@@ -62,7 +62,7 @@ func TestChannelIsValid(t *testing.T) {
 	o.Type = "U"
 	require.NotNil(t, o.IsValid())
 
-	o.Type = "P"
+	o.Type = ChannelTypePrivate
 	require.Nil(t, o.IsValid())
 
 	o.Header = strings.Repeat("01234567890", 100)

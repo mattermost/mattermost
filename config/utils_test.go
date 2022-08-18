@@ -159,8 +159,13 @@ func TestIsDatabaseDSN(t *testing.T) {
 			Expected: true,
 		},
 		{
-			Name:     "Postgresql DSN",
+			Name:     "Postgresql 'postgres' DSN",
 			DSN:      "postgres://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Postgresql 'postgresql' DSN",
+			DSN:      "postgresql://localhost",
 			Expected: true,
 		},
 		{

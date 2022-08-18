@@ -174,7 +174,9 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 }
 
 func IsDatabaseDSN(dsn string) bool {
-	return strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://")
+	return strings.HasPrefix(dsn, "mysql://") ||
+		strings.HasPrefix(dsn, "postgres://") ||
+		strings.HasPrefix(dsn, "postgresql://")
 }
 
 // stripPassword remove the password from a given DSN
@@ -199,11 +201,11 @@ func stripPassword(dsn, schema string) string {
 }
 
 func isJSONMap(data string) bool {
-	var m map[string]interface{}
+	var m map[string]any
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 
-func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+func GetValueByPath(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {

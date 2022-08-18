@@ -12,12 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
+	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -565,6 +568,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	for name, tc := range map[string]struct {
 		Message                  string
@@ -675,6 +679,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			replyToThreadType: model.CommentsNotifyAny,
 			ChannelType:       model.ChannelTypeDirect,
 			ExpectedMessage:   "this is a message",
+		},
+		"full message, direct message channel, commented on CRT enabled thread": {
+			Message:           "this is a message",
+			replyToThreadType: model.CommentsNotifyCRT,
+			ChannelType:       model.ChannelTypeDirect,
+			ExpectedMessage:   "user: this is a message",
 		},
 		"generic message with channel, public channel, no mention": {
 			Message:                  "this is a message",
@@ -932,11 +942,11 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	receiver := th.CreateUser()
 	th.LinkUserToTeam(sender, team)
 	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(team)
+	channel1 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel1)
 	th.AddUserToChannel(receiver, channel1)
 
-	channel2 := th.CreateChannel(team)
+	channel2 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel2)
 	th.AddUserToChannel(receiver, channel2)
 
@@ -972,7 +982,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg, err := th.App.BuildPushNotificationMessage(model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(th.Context, model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
@@ -1024,9 +1034,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 
 		// Don't do any checking if it's a benchmark
 		if _, ok := h.t.(*testing.B); ok {
-			resp := model.NewOkPushResponse()
-			jsonData, _ := json.Marshal(&resp)
-			fmt.Fprintln(w, jsonData)
+			h.printResponse(w, model.NewOkPushResponse())
 			return
 		}
 
@@ -1035,9 +1043,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		var err error
 		if r.URL.Path == "/api/v1/send_push" {
 			if err = json.NewDecoder(r.Body).Decode(&notification); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 			// We verify that messages are being sent in order per-device.
@@ -1050,9 +1056,7 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 			}
 		} else {
 			if err = json.NewDecoder(r.Body).Decode(&notificationAck); err != nil {
-				resp := model.NewErrorPushResponse("fail")
-				jsonData, _ := json.Marshal(&resp)
-				fmt.Fprintln(w, jsonData)
+				h.printResponse(w, model.NewErrorPushResponse("fail"))
 				return
 			}
 		}
@@ -1079,9 +1083,13 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 				resp = model.NewRemovePushResponse()
 			}
 		}
-		jsonData, _ := json.Marshal(&resp)
-		fmt.Fprintln(w, jsonData)
+		h.printResponse(w, resp)
 	}
+}
+
+func (h *testPushNotificationHandler) printResponse(w http.ResponseWriter, resp model.PushResponse) {
+	jsonData, _ := json.Marshal(&resp)
+	fmt.Fprintln(w, string(jsonData))
 }
 
 func (h *testPushNotificationHandler) numReqs() int {
@@ -1143,18 +1151,39 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
+	// When CRT is disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDisabled
 	})
 
-	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1")
+	err := th.App.clearPushNotificationSync(th.Context, sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
 	require.Equal(t, 1, handler.numReqs())
 	assert.Equal(t, "channel1", handler.notifications()[0].ChannelId)
 	assert.Equal(t, model.PushTypeClear, handler.notifications()[0].Type)
+
+	// When CRT is enabled, Send badge count adding both "User unreads" + "User thread mentions"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+
+	mockThreadStore := mocks.ThreadStore{}
+	mockThreadStore.On("GetTotalUnreadMentions", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(int64(3), nil)
+	mockStore.On("Thread").Return(&mockThreadStore)
+
+	err = th.App.clearPushNotificationSync(th.Context, sess1.Id, "user1", "channel1", "")
+	require.Nil(t, err)
+	assert.Equal(t, handler.notifications()[1].Badge, 4)
 }
 
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
@@ -1198,6 +1227,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1212,6 +1242,33 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[0].Type)
 	assert.Equal(t, 1, handler.notifications()[1].ContentAvailable)
 	assert.Equal(t, model.PushTypeUpdateBadge, handler.notifications()[1].Type)
+}
+
+func TestSendTestPushNotification(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	handler := &testPushNotificationHandler{t: t}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	// Per mock definition, first time will send remove, second time will send OK
+	result := th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "false", result)
+	result = th.App.SendTestPushNotification("platform:id")
+	assert.Equal(t, "true", result)
+
+	// Server side verification.
+	// We verify that 2 requests have been sent, and also check the message contents.
+	require.Equal(t, 2, handler.numReqs())
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[0].Type)
+	assert.Equal(t, model.PushTypeTest, handler.notifications()[1].Type)
 }
 
 func TestSendAckToPushProxy(t *testing.T) {
@@ -1237,6 +1294,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
@@ -1336,7 +1394,7 @@ func TestAllPushNotifications(t *testing.T) {
 		case 2:
 			go func(sessID, userID string) {
 				defer wg.Done()
-				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id)
+				th.App.clearPushNotification(sessID, userID, th.BasicChannel.Id, "")
 			}(data.session.Id, data.user.Id)
 		}
 	}
@@ -1368,6 +1426,9 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	mockPreferenceStore := mocks.PreferenceStore{}
@@ -1378,18 +1439,34 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		configStore: memoryStore,
-		Store:       mockStore,
+		Store:     mockStore,
+		products:  make(map[string]Product),
+		Router:    mux.NewRouter(),
+		filestore: &fmocks.FileBackend{},
 	}
-	app := New(ServerConnector(s))
+	var err error
+	s.platform, err = platform.New(platform.ServiceConfig{
+		ConfigStore: memoryStore,
+	})
+	require.NoError(t, err)
+	serviceMap := map[ServiceKey]any{
+		ConfigKey:    s.platform,
+		LicenseKey:   &licenseWrapper{s},
+		FilestoreKey: s.filestore,
+	}
+	ch, err := NewChannels(s, serviceMap)
+	require.NoError(t, err)
+	s.products["channels"] = ch
+
+	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
-		s.createPushNotificationsHub()
+		s.createPushNotificationsHub(th.Context)
 
 		s.StopPushNotificationsHubWorkers()
 
 		// Now we start sending messages after the PN hub is shut down.
 		// We test all 3 notification types.
-		app.clearPushNotification("currentSessionId", "userId", "channelId")
+		app.clearPushNotification("currentSessionId", "userId", "channelId", "")
 
 		app.UpdateMobileAppBadge("userId")
 
@@ -1412,7 +1489,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	originalMessage := "hello world"
 	post := &model.Post{
 		Message: originalMessage,
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": []*model.SlackAttachment{
 				{
 					AuthorName: "testuser",
@@ -1426,7 +1503,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	ch := &model.Channel{}
 
 	t.Run("The notification should contain the fallback message from the attachment", func(t *testing.T) {
-		pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+		pn := th.App.buildFullPushNotificationMessage(th.Context, "full", post, user, ch, ch.Name, "test", false, false, "")
 		assert.Equal(t, "test: hello world\nfallback text", pn.Message)
 	})
 
@@ -1468,6 +1545,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	// create 50 users, each having 2 sessions.
 	type userSession struct {
@@ -1558,7 +1636,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 			case 2:
 				go func(sessID, userID string) {
 					defer wg.Done()
-					th.App.clearPushNotification(sessID, userID, ch.Id)
+					th.App.clearPushNotification(sessID, userID, ch.Id, "")
 				}(data.session.Id, data.user.Id)
 			}
 		}

@@ -20,6 +20,6 @@ func TestPluginKeyIsValid(t *testing.T) {
 	kv.Key = ""
 	assert.NotNil(t, kv.IsValid())
 
-	kv.Key = "this is an extremely long key and should be invalid and this is being verified in this test"
+	kv.Key = "this is an extremely long, long, long, long, long, long, long, long, long, long, long, long, long key and should be invalid and this is being verified in this test"
 	assert.NotNil(t, kv.IsValid())
 }

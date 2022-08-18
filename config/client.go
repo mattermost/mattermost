@@ -36,6 +36,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnablePermalinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnablePermalinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(*c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
+	props["EnableClientPerformanceDebugging"] = strconv.FormatBool(*c.ServiceSettings.EnableClientPerformanceDebugging)
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
 	props["MinimumHashtagLength"] = fmt.Sprintf("%v", *c.ServiceSettings.MinimumHashtagLength)
 	props["EnablePreviewFeatures"] = strconv.FormatBool(*c.ServiceSettings.EnablePreviewFeatures)
@@ -52,10 +53,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
-	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
 
-	props["ExperimentalCloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
 	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
+	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
@@ -92,10 +92,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
-	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
-
-	props["EnableReliableWebSockets"] = strconv.FormatBool(*c.ServiceSettings.EnableReliableWebSockets)
-
 	// Set default values for all options that require a license.
 	props["ExperimentalEnableAuthenticationTransfer"] = "true"
 	props["LdapNicknameAttributeSet"] = "false"
@@ -125,12 +121,16 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["DataRetentionEnableBoardsDeletion"] = "false"
+	props["DataRetentionBoardsRetentionDays"] = "0"
 	props["CWSURL"] = ""
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceURL == model.PluginSettingsDefaultMarketplaceURL)
 	props["ExperimentalSharedChannels"] = "false"
 	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
+	props["EnableCustomGroups"] = "false"
+	props["InsightsEnabled"] = "false"
 
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
@@ -189,6 +189,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+			props["DataRetentionEnableBoardsDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableBoardsDeletion)
+			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
 		}
 
 		if *license.Features.Cloud {
@@ -198,6 +200,14 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		if *license.Features.SharedChannels {
 			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 			props["ExperimentalRemoteClusterService"] = strconv.FormatBool(c.FeatureFlags.EnableRemoteClusterService && *c.ExperimentalSettings.EnableRemoteClusterService)
+		}
+
+		if license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise {
+			props["EnableCustomGroups"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomGroups)
+		}
+
+		if (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && c.FeatureFlags.InsightsEnabled {
+			props["InsightsEnabled"] = "true"
 		}
 	}
 
@@ -229,12 +239,12 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
 	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
-	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
-	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
 	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
 	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableDiagnostics"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
+
+	props["EnableComplianceExport"] = strconv.FormatBool(*c.MessageExportSettings.EnableExport)
 
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)

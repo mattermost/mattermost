@@ -26,7 +26,7 @@ func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := json.NewEncoder(w).Encode(termsOfService); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -36,7 +36,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if license := c.App.Srv().License(); license == nil || !*license.Features.CustomTermsOfService {
+	if license := c.App.Channels().License(); license == nil || !*license.Features.CustomTermsOfService {
 		c.Err = model.NewAppError("createTermsOfService", "api.create_terms_of_service.custom_terms_of_service_disabled.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -67,11 +67,11 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := json.NewEncoder(w).Encode(termsOfService); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	} else {
 		if err := json.NewEncoder(w).Encode(oldTermsOfService); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}
 	auditRec.Success()

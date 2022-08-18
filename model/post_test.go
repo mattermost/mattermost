@@ -5,7 +5,7 @@ package model
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -28,50 +28,50 @@ func TestPostIsValid(t *testing.T) {
 	o := Post{}
 	maxPostSize := 10000
 
-	err := o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr := o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Id = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.CreateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UpdateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UserId = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.RootId = ""
 
 	o.Message = strings.Repeat("0", maxPostSize+1)
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Message = strings.Repeat("0", maxPostSize)
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 
 	o.Message = "test"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 	o.Type = "junk"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Type = PostCustomTypePrefix + "type"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -277,7 +277,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -299,7 +299,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -324,7 +324,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    "mattermost",
 								},
@@ -346,7 +346,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 							},
 							Integration: &PostActionIntegration{
 								URL: "http://localhost",
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"context": "foobar",
 									"test":    123,
 								},
@@ -369,13 +369,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 var markdownSample, markdownSampleWithRewrittenImageURLs string
 
 func init() {
-	bytes, err := ioutil.ReadFile("testdata/markdown-sample.md")
+	bytes, err := os.ReadFile("testdata/markdown-sample.md")
 	if err != nil {
 		panic(err)
 	}
 	markdownSample = string(bytes)
 
-	bytes, err = ioutil.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
+	bytes, err = os.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
 	if err != nil {
 		panic(err)
 	}
@@ -848,7 +848,7 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 
 func TestPostAttachments(t *testing.T) {
 	p := &Post{
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": []byte(`[{
 				"actions" : {null}
 			}]
@@ -857,17 +857,17 @@ func TestPostAttachments(t *testing.T) {
 	}
 
 	t.Run("empty actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{}},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{}},
 		}
 		attachments := p.Attachments()
 		require.Empty(t, attachments[0].Actions)
 	})
 
 	t.Run("a couple of actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{
-				map[string]interface{}{"id": "test1"}, map[string]interface{}{"id": "test2"}},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
+				map[string]any{"id": "test1"}, map[string]any{"id": "test2"}},
 			},
 		}
 
@@ -878,9 +878,9 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"actions": []interface{}{
-				map[string]interface{}{"id": "test1"}, nil, map[string]interface{}{"id": "test2"}, nil, nil},
+		p.Props["attachments"] = []any{
+			map[string]any{"actions": []any{
+				map[string]any{"id": "test1"}, nil, map[string]any{"id": "test2"}, nil, nil},
 			},
 		}
 
@@ -891,11 +891,11 @@ func TestPostAttachments(t *testing.T) {
 	})
 
 	t.Run("nil fields", func(t *testing.T) {
-		p.Props["attachments"] = []interface{}{
-			map[string]interface{}{"fields": []interface{}{
-				map[string]interface{}{"value": ":emoji1:"},
+		p.Props["attachments"] = []any{
+			map[string]any{"fields": []any{
+				map[string]any{"value": ":emoji1:"},
 				nil,
-				map[string]interface{}{"value": ":emoji2:"},
+				map[string]any{"value": ":emoji2:"},
 			},
 			},
 		}

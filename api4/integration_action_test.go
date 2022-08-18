@@ -5,7 +5,7 @@ package api4
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +21,7 @@ type testHandler struct {
 }
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	bb, err := ioutil.ReadAll(r.Body)
+	bb, err := io.ReadAll(r.Body)
 	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	var poir model.PostActionIntegrationRequest
@@ -55,7 +55,7 @@ func TestPostActionCookies(t *testing.T) {
 
 	for name, test := range map[string]struct {
 		Action             model.PostAction
-		ExpectedSucess     bool
+		ExpectedSuccess    bool
 		ExpectedStatusCode int
 	}{
 		"32 character ID": {
@@ -65,12 +65,12 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"6 character ID": {
@@ -80,12 +80,12 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     true,
+			ExpectedSuccess:    true,
 			ExpectedStatusCode: http.StatusOK,
 		},
 		"Empty ID": {
@@ -95,12 +95,12 @@ func TestPostActionCookies(t *testing.T) {
 				Type: model.PostActionTypeButton,
 				Integration: &model.PostActionIntegration{
 					URL: server.URL,
-					Context: map[string]interface{}{
+					Context: map[string]any{
 						"test-key": "test-value",
 					},
 				},
 			},
-			ExpectedSucess:     false,
+			ExpectedSuccess:    false,
 			ExpectedStatusCode: http.StatusNotFound,
 		},
 	} {
@@ -112,7 +112,7 @@ func TestPostActionCookies(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
-				Props: map[string]interface{}{
+				Props: map[string]any{
 					"attachments": []*model.SlackAttachment{
 						{
 							Title:     "some-title",
@@ -130,7 +130,7 @@ func TestPostActionCookies(t *testing.T) {
 
 			resp, err := client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
 			require.NotNil(t, resp)
-			if test.ExpectedSucess {
+			if test.ExpectedSuccess {
 				assert.NoError(t, err)
 			} else {
 				assert.Error(t, err)
@@ -226,7 +226,7 @@ func TestSubmitDialog(t *testing.T) {
 		UserId:     th.BasicUser.Id,
 		ChannelId:  th.BasicChannel.Id,
 		TeamId:     th.BasicTeam.Id,
-		Submission: map[string]interface{}{"somename": "somevalue"},
+		Submission: map[string]any{"somename": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

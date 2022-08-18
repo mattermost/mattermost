@@ -4,7 +4,6 @@
 package slashcommands
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,7 +22,7 @@ func TestMuteCommandNoChannel(t *testing.T) {
 	}
 
 	channel1 := th.BasicChannel
-	channel1M, channel1MError := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+	channel1M, channel1MError := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 
 	assert.Nil(t, channel1MError, "User is not a member of channel 1")
 	assert.NotEqual(
@@ -46,7 +45,7 @@ func TestMuteCommandNoArgs(t *testing.T) {
 	defer th.tearDown()
 
 	channel1 := th.BasicChannel
-	channel1M, _ := th.App.GetChannelMember(context.Background(), channel1.Id, th.BasicUser.Id)
+	channel1M, _ := th.App.GetChannelMember(th.Context, channel1.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.ChannelNotifyAll, channel1M.NotifyProps[model.MarkUnreadNotifyProp])
 
@@ -88,7 +87,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	}, true)
 
-	channel2M, _ := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.ChannelNotifyAll, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 
@@ -101,7 +100,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}, channel2.Name)
 	assert.Equal(t, "api.command_mute.success_mute", resp.Text)
-	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.ChannelNotifyMention, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 
 	// Now unmute the channel
@@ -112,7 +111,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	}, "~"+channel2.Name)
 
 	assert.Equal(t, "api.command_mute.success_unmute", resp.Text)
-	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.ChannelNotifyAll, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 }
 
@@ -174,7 +173,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 	}
 
 	channel2, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
-	channel2M, _ := th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ := th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 
 	assert.Equal(t, model.ChannelNotifyAll, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 
@@ -188,7 +187,7 @@ func TestMuteCommandDMChannel(t *testing.T) {
 	}, "")
 	assert.Equal(t, "api.command_mute.success_mute_direct_msg", resp.Text)
 	time.Sleep(time.Millisecond)
-	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.ChannelNotifyMention, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 
 	// Now unmute the channel
@@ -200,6 +199,6 @@ func TestMuteCommandDMChannel(t *testing.T) {
 
 	assert.Equal(t, "api.command_mute.success_unmute_direct_msg", resp.Text)
 	time.Sleep(time.Millisecond)
-	channel2M, _ = th.App.GetChannelMember(context.Background(), channel2.Id, th.BasicUser.Id)
+	channel2M, _ = th.App.GetChannelMember(th.Context, channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.ChannelNotifyAll, channel2M.NotifyProps[model.MarkUnreadNotifyProp])
 }

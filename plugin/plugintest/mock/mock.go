@@ -24,10 +24,10 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return mock.AnythingOfType(t)
 }
 
-func AssertExpectationsForObjects(t TestingT, testObjects ...interface{}) bool {
+func AssertExpectationsForObjects(t TestingT, testObjects ...any) bool {
 	return mock.AssertExpectationsForObjects(t, testObjects...)
 }
 
-func MatchedBy(fn interface{}) interface{} {
+func MatchedBy(fn any) any {
 	return mock.MatchedBy(fn)
 }

@@ -19,10 +19,32 @@ var notAllowedPermissions = []string{
 }
 
 func (api *API) InitRole() {
+	api.BaseRoutes.Roles.Handle("", api.APISessionRequired(getAllRoles)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.APISessionRequiredTrustRequester(getRole)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.APISessionRequiredTrustRequester(getRoleByName)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/names", api.APISessionRequiredTrustRequester(getRolesByNames)).Methods("POST")
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}/patch", api.APISessionRequired(patchRole)).Methods("PUT")
+}
+
+func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	roles, appErr := c.App.GetAllRoles()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(roles)
+	if err != nil {
+		c.Err = model.NewAppError("getAllRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,7 +60,7 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -55,7 +77,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -73,17 +95,18 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roles, err := c.App.GetRolesByNames(cleanedRoleNames)
-	if err != nil {
-		c.Err = err
+	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(roles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getRolesByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(roles)
+	if err != nil {
+		c.Err = model.NewAppError("getRolesByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -94,20 +117,22 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var patch model.RolePatch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("role")
+	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
+		c.SetInvalidParamWithErr("role", err)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
+	auditRec.AddEventParameter("role_patch", patch)
 	defer c.LogAuditRec(auditRec)
 
-	oldRole, err := c.App.GetRole(c.Params.RoleId)
-	if err != nil {
-		c.Err = err
+	oldRole, appErr := c.App.GetRole(c.Params.RoleId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
-	auditRec.AddMeta("role", oldRole)
+	auditRec.AddEventPriorState(oldRole)
+	auditRec.AddEventObjectType("role")
 
 	// manage_system permission is required to patch system_admin
 	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
@@ -123,7 +148,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isGuest := oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId
-	if c.App.Srv().License() == nil && patch.Permissions != nil {
+	if c.App.Channels().License() == nil && patch.Permissions != nil {
 		if isGuest {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
@@ -151,12 +176,23 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		*patch.Permissions = model.RemoveDuplicateStrings(*patch.Permissions)
 	}
 
-	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
+	if c.App.Channels().License() != nil && isGuest && !*c.App.Channels().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if oldRole.Name == model.TeamAdminRoleId || oldRole.Name == model.ChannelAdminRoleId || oldRole.Name == model.SystemUserRoleId || oldRole.Name == model.TeamUserRoleId || oldRole.Name == model.ChannelUserRoleId || oldRole.Name == model.SystemGuestRoleId || oldRole.Name == model.TeamGuestRoleId || oldRole.Name == model.ChannelGuestRoleId {
+	if oldRole.Name == model.TeamAdminRoleId ||
+		oldRole.Name == model.ChannelAdminRoleId ||
+		oldRole.Name == model.SystemUserRoleId ||
+		oldRole.Name == model.TeamUserRoleId ||
+		oldRole.Name == model.ChannelUserRoleId ||
+		oldRole.Name == model.SystemGuestRoleId ||
+		oldRole.Name == model.TeamGuestRoleId ||
+		oldRole.Name == model.ChannelGuestRoleId ||
+		oldRole.Name == model.PlaybookAdminRoleId ||
+		oldRole.Name == model.PlaybookMemberRoleId ||
+		oldRole.Name == model.RunAdminRoleId ||
+		oldRole.Name == model.RunMemberRoleId {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 			return
@@ -168,17 +204,17 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	role, err := c.App.PatchRole(oldRole, &patch)
-	if err != nil {
-		c.Err = err
+	role, appErr := c.App.PatchRole(oldRole, &patch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
+	auditRec.AddEventResultState(role)
 	auditRec.Success()
-	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

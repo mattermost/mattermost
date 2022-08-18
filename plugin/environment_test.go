@@ -5,7 +5,6 @@ package plugin
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func TestAvaliablePlugins(t *testing.T) {
-	dir, err1 := ioutil.TempDir("", "mm-plugin-test")
+func TestAvailablePlugins(t *testing.T) {
+	dir, err1 := os.MkdirTemp("", "mm-plugin-test")
 	require.NoError(t, err1)
 	t.Cleanup(func() {
 		os.RemoveAll(dir)
@@ -28,7 +27,6 @@ func TestAvaliablePlugins(t *testing.T) {
 
 	t.Run("Should be able to load available plugins", func(t *testing.T) {
 		bundle1 := model.BundleInfo{
-			ManifestPath: "",
 			Manifest: &model.Manifest{
 				Id:      "someid",
 				Version: "1",
@@ -41,7 +39,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		path := filepath.Join(dir, "plugin1", "plugin.json")
 		manifestJSON, jsonErr := json.Marshal(bundle1.Manifest)
 		require.NoError(t, jsonErr)
-		err = ioutil.WriteFile(path, manifestJSON, 0644)
+		err = os.WriteFile(path, manifestJSON, 0644)
 		require.NoError(t, err)
 
 		bundles, err := env.Available()
@@ -55,7 +53,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		defer os.RemoveAll(filepath.Join(dir, "plugin2"))
 
 		path := filepath.Join(dir, "plugin2", "manifest.json")
-		err = ioutil.WriteFile(path, []byte("{}"), 0644)
+		err = os.WriteFile(path, []byte("{}"), 0644)
 		require.NoError(t, err)
 
 		bundles, err := env.Available()

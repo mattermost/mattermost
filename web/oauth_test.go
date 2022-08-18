@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -18,7 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -368,7 +366,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 	defer th.TearDown()
 	c := &Context{
 		App:        th.App,
-		AppContext: &request.Context{},
+		AppContext: th.Context,
 		Params: &Params{
 			Service: "gitlab",
 		},
@@ -573,7 +571,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	defer th.TearDown()
 	c := &Context{
 		App:        th.App,
-		AppContext: &request.Context{},
+		AppContext: th.Context,
 		Params: &Params{
 			Service: "gitlab",
 		},
@@ -637,7 +635,7 @@ func HTTPGet(url string, httpClient *http.Client, authToken string, followRedire
 
 func closeBody(r *http.Response) {
 	if r != nil && r.Body != nil {
-		ioutil.ReadAll(r.Body)
+		io.ReadAll(r.Body)
 		r.Body.Close()
 	}
 }
@@ -803,5 +801,20 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
 		panic(err2)
+	}
+}
+
+func TestFullyQualifiedRedirectURL(t *testing.T) {
+	const siteURL = "https://xxx.yyy/mm"
+	for target, expected := range map[string]string{
+		"":            "https://xxx.yyy/mm",
+		"/":           "https://xxx.yyy/mm/",
+		"some-path":   "https://xxx.yyy/mm/some-path",
+		"/some-path":  "https://xxx.yyy/mm/some-path",
+		"/some-path/": "https://xxx.yyy/mm/some-path/",
+	} {
+		t.Run(target, func(t *testing.T) {
+			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target))
+		})
 	}
 }

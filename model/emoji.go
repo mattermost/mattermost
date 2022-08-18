@@ -25,6 +25,17 @@ type Emoji struct {
 	Name      string `json:"name"`
 }
 
+func (emoji *Emoji) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         emoji.Id,
+		"create_at":  emoji.CreateAt,
+		"update_at":  emoji.UpdateAt,
+		"delete_at":  emoji.CreateAt,
+		"creator_id": emoji.CreatorId,
+		"name":       emoji.Name,
+	}
+}
+
 func inSystemEmoji(emojiName string) bool {
 	_, ok := SystemEmojis[emojiName]
 	return ok
@@ -78,8 +89,11 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if inSystemEmoji(name) {
+		return NewAppError("Emoji.IsValid", "model.emoji.system_emoji_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

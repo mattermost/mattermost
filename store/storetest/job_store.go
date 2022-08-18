@@ -19,6 +19,7 @@ import (
 func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, ss) })
+	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, ss) })
 	t.Run("JobGetAllByTypesPage", func(t *testing.T) { testJobGetAllByTypesPage(t, ss) })
 	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
@@ -29,6 +30,7 @@ func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, ss) })
 	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, ss) })
 	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, ss) })
+	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, ss) })
 }
 
 func testJobSaveGet(t *testing.T, ss store.Store) {
@@ -79,6 +81,34 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 	}
 
 	received, err := ss.Job().GetAllByType(jobType)
+	require.NoError(t, err)
+	require.Len(t, received, 2)
+	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
+}
+
+func testJobGetAllByTypeAndStatus(t *testing.T, ss store.Store) {
+	jobType := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
+		{
+			Id:     model.NewId(),
+			Type:   jobType,
+			Status: model.JobStatusPending,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.NoError(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	received, err := ss.Job().GetAllByTypeAndStatus(jobType, model.JobStatusPending)
 	require.NoError(t, err)
 	require.Len(t, received, 2)
 	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
@@ -551,4 +581,44 @@ func testJobDelete(t *testing.T, ss store.Store) {
 
 	_, err = ss.Job().Delete(job.Id)
 	assert.NoError(t, err)
+}
+
+func testJobCleanup(t *testing.T, ss store.Store) {
+	now := model.GetMillis()
+	ids := make([]string, 0, 10)
+	for i := 0; i < 10; i++ {
+		job, err := ss.Job().Save(&model.Job{
+			Id:       model.NewId(),
+			CreateAt: now - int64(i),
+			Status:   model.JobStatusPending,
+		})
+		require.NoError(t, err)
+		ids = append(ids, job.Id)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	jobs, err := ss.Job().GetAllByStatus(model.JobStatusPending)
+	require.NoError(t, err)
+	assert.Len(t, jobs, 10)
+
+	err = ss.Job().Cleanup(now+1, 5)
+	require.NoError(t, err)
+
+	// Should not clean up pending jobs
+	jobs, err = ss.Job().GetAllByStatus(model.JobStatusPending)
+	require.NoError(t, err)
+	assert.Len(t, jobs, 10)
+
+	for _, id := range ids {
+		_, err = ss.Job().UpdateStatus(id, model.JobStatusSuccess)
+		require.NoError(t, err)
+	}
+
+	err = ss.Job().Cleanup(now+1, 5)
+	require.NoError(t, err)
+
+	// Should clean up now
+	jobs, err = ss.Job().GetAllByStatus(model.JobStatusSuccess)
+	require.NoError(t, err)
+	assert.Len(t, jobs, 0)
 }

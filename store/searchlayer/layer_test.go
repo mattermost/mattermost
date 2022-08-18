@@ -29,7 +29,7 @@ func TestUpdateConfigRace(t *testing.T) {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
 	cfg.ClusterSettings.MaxIdleConns = model.NewInt(1)
-	searchEngine := searchengine.NewBroker(cfg, nil)
+	searchEngine := searchengine.NewBroker(cfg)
 	layer := searchlayer.NewSearchLayer(&testlib.TestStore{Store: store}, searchEngine, cfg)
 	var wg sync.WaitGroup
 

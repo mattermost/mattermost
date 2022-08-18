@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func makeLRUPredictibleTestData(num int) [][2]string {
+func makeLRUPredictableTestData(num int) [][2]string {
 	kv := make([][2]string, num)
 	for i := 0; i < len(kv); i++ {
 		kv[i] = [2]string{
@@ -39,7 +39,7 @@ func TestNewLRUStriped(t *testing.T) {
 }
 
 func TestLRUStripedKeyDistribution(t *testing.T) {
-	dataset := makeLRUPredictibleTestData(100)
+	dataset := makeLRUPredictableTestData(100)
 
 	scache, err := NewLRUStriped(LRUOptions{StripedBuckets: 4, Size: len(dataset)})
 	require.NoError(t, err)

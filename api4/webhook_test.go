@@ -331,7 +331,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	}, "WhenInvalidHookID")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		th.LoginBasic()
 		_, resp, err := th.Client.GetIncomingWebhook(rhook.Id, "")
 		require.Error(t, err)
@@ -378,7 +378,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 		rhook, _, err := th.SystemAdminClient.CreateIncomingWebhook(hook)
 		require.NoError(t, err)
@@ -719,7 +719,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		nonExistentHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id}
+		nonExistentHook := &model.OutgoingWebhook{}
 		_, resp, err = client.GetOutgoingWebhook(nonExistentHook.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -752,7 +752,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = false })
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		// webhook creations are allways performed by a sysadmin
+		// webhook creations are always performed by a sysadmin
 		// because it's not currently possible to create a webhook via
 		// local mode
 		var err error
@@ -1264,7 +1264,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	}, "WhenHookExists")
 
-	t.Run("WhenUserDoesNotHavePemissions", func(t *testing.T) {
+	t.Run("WhenUserDoesNotHavePermissions", func(t *testing.T) {
 		hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"dogs"}}
 		rhook, _, err := th.SystemAdminClient.CreateOutgoingWebhook(hook)

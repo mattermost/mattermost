@@ -22,6 +22,7 @@ func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
 	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, ss) })
 	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
 	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, ss) })
+	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
@@ -29,7 +30,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
@@ -55,7 +56,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(&ch, -1)
@@ -84,7 +85,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(ch, -1)
@@ -180,7 +181,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
@@ -292,7 +293,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
 	channel, err := ss.Channel().Save(channel, -1)
@@ -374,18 +375,69 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "DisplayName",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "DisplayName",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{channel.Id},
 	})
 	require.NoError(t, err)
 
-	nowMillis := leaveTime + *channelPolicy.PostDuration*24*60*60*1000 + 1
+	nowMillis := leaveTime + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
 	_, _, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(
 		nowMillis, 0, limit, model.RetentionPolicyCursor{})
 	require.NoError(t, err)
 	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
 	require.NoError(t, err)
 	require.Empty(t, result, "history should have been deleted by channel policy")
+}
+
+func testGetChannelsLeftSince(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	joinTime := int64(1000)
+	err = ss.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, joinTime)
+	require.NoError(t, err)
+
+	// has not left
+	ids, err := ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime)
+	require.NoError(t, err)
+	assert.Empty(t, ids)
+
+	// left
+	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, joinTime+100)
+	require.NoError(t, err)
+	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+100)
+	require.NoError(t, err)
+	assert.Equal(t, []string{channel.Id}, ids)
+	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+200)
+	require.NoError(t, err)
+	assert.Empty(t, ids)
+
+	// joined and left again.
+	err = ss.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, joinTime+200)
+	require.NoError(t, err)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, joinTime+300)
+	require.NoError(t, err)
+	// should be same for both time stamps
+	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+100)
+	require.NoError(t, err)
+	assert.Equal(t, []string{channel.Id}, ids)
+	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+300)
+	require.NoError(t, err)
+	assert.Equal(t, []string{channel.Id}, ids)
 }

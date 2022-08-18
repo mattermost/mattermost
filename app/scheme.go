@@ -21,9 +21,9 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetScheme", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -39,9 +39,9 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -62,7 +62,7 @@ func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Schem
 
 	scheme, err := s.Store.Scheme().GetAllPage(scope, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetSchemes", "app.scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetSchemes", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return scheme, nil
 }
@@ -83,6 +83,10 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	scheme.DefaultChannelAdminRole = ""
 	scheme.DefaultChannelUserRole = ""
 	scheme.DefaultChannelGuestRole = ""
+	scheme.DefaultPlaybookAdminRole = ""
+	scheme.DefaultPlaybookMemberRole = ""
+	scheme.DefaultRunAdminRole = ""
+	scheme.DefaultRunMemberRole = ""
 	scheme.CreateAt = 0
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0
@@ -95,9 +99,9 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateScheme", "app.scheme.save.invalid_scheme.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreateScheme", "app.scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("CreateScheme", "app.scheme.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -130,9 +134,9 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.invalid_scheme.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateScheme", "app.scheme.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -148,9 +152,9 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("DeleteScheme", "app.scheme.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("DeleteScheme", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
@@ -171,7 +175,7 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 
 	teams, err := a.Srv().Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetTeamsForScheme", "app.team.get_by_scheme.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTeamsForScheme", "app.team.get_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return teams, nil
 }
@@ -191,7 +195,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 
 	channelList, nErr := a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 	if nErr != nil {
-		return nil, model.NewAppError("GetChannelsForScheme", "app.channel.get_by_scheme.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelsForScheme", "app.channel.get_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return channelList, nil
@@ -203,7 +207,7 @@ func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
 	}
 
 	if _, err := s.Store.System().GetByName(model.MigrationKeyAdvancedPermissionsPhase2); err != nil {
-		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
+		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 	}
 
 	s.phase2PermissionsMigrationComplete = true
