@@ -149,9 +149,9 @@ func (group *Group) Patch(patch *GroupPatch) {
 }
 
 func (group *Group) IsValidForCreate() *AppError {
-	err := group.IsValidName()
-	if err != nil {
-		return err
+	appErr := group.IsValidName()
+	if appErr != nil {
+		return appErr
 	}
 
 	if l := len(group.DisplayName); l == 0 || l > GroupDisplayNameMaxLength {
@@ -199,8 +199,8 @@ func (group *Group) IsValidForUpdate() *AppError {
 	if group.UpdateAt == 0 {
 		return NewAppError("Group.IsValidForUpdate", "model.group.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
-	if err := group.IsValidForCreate(); err != nil {
-		return err
+	if appErr := group.IsValidForCreate(); appErr != nil {
+		return appErr
 	}
 	return nil
 }
