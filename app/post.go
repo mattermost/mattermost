@@ -1205,12 +1205,17 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	}
 	// Reset order to only include the last unread post: if the thread appears in the centre
 	// channel organically, those replies will be added below.
-	postList.Order = []string{lastUnreadPostId}
+	postList.Order = []string{}
+	// Add lastUnreadPostId in order, only if it hasn't been filtered as per the cloud plan's limit
+	if _, ok := postList.Posts[lastUnreadPostId]; ok {
+		postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
-		return nil, err
-	} else if postListBefore != nil {
-		postList.Extend(postListBefore)
+		// BeforePosts will only be accessible if the lastUnreadPostId is itself accessible
+		if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+			return nil, err
+		} else if postListBefore != nil {
+			postList.Extend(postListBefore)
+		}
 	}
 
 	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
