@@ -8,7 +8,7 @@ require (
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.44.79
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/blevesearch/bleve/v2 v2.3.2
+	github.com/blevesearch/bleve/v2 v2.3.4-0.20220810122446-d89c6c0a6873
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
@@ -84,6 +84,7 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.3.0 // indirect
 	github.com/blevesearch/bleve_index_api v1.0.3 // indirect
+	github.com/blevesearch/geo v0.1.14 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
 	github.com/blevesearch/gtreap v0.1.1 // indirect
 	github.com/blevesearch/mmap-go v1.0.4 // indirect
@@ -96,7 +97,7 @@ require (
 	github.com/blevesearch/zapx/v12 v12.3.5 // indirect
 	github.com/blevesearch/zapx/v13 v13.3.5 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.5 // indirect
-	github.com/blevesearch/zapx/v15 v15.3.4 // indirect
+	github.com/blevesearch/zapx/v15 v15.3.5-0.20220805051919-e14ad3bf63e7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
@@ -108,6 +109,7 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
@@ -184,7 +186,6 @@ require (
 exclude (
 	github.com/RoaringBitmap/roaring v0.7.0
 	github.com/RoaringBitmap/roaring v0.7.1
-	github.com/blevesearch/bleve/v2 v2.3.3
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 	github.com/willf/bitset v1.2.0
 )
