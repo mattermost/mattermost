@@ -73,12 +73,12 @@ func TestPadDateStringZeros(t *testing.T) {
 }
 
 func TestAppError(t *testing.T) {
-	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := err.ToJSON()
+	appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
+	json := appErr.ToJSON()
 	rerr := AppErrorFromJSON(strings.NewReader(json))
-	require.Equal(t, err.Message, rerr.Message)
+	require.Equal(t, appErr.Message, rerr.Message)
 
-	t.Log(err.Error())
+	t.Log(appErr.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {

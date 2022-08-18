@@ -271,9 +271,9 @@ func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppErro
 }
 
 func (r *PostActionIntegrationRequest) GenerateTriggerId(s crypto.Signer) (string, string, *AppError) {
-	clientTriggerId, triggerId, err := GenerateTriggerId(r.UserId, s)
-	if err != nil {
-		return "", "", err
+	clientTriggerId, triggerId, appErr := GenerateTriggerId(r.UserId, s)
+	if appErr != nil {
+		return "", "", appErr
 	}
 
 	r.TriggerId = triggerId

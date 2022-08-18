@@ -176,13 +176,13 @@ func TestReactionIsValid(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := test.reaction.IsValid()
+		appErr := test.reaction.IsValid()
 		if test.shouldErr {
 			// there should be an error here
-			require.NotNil(t, err, test.errMsg)
+			require.NotNil(t, appErr, test.errMsg)
 		} else {
 			// err should be nil here
-			require.Nil(t, err, test.errMsg)
+			require.Nil(t, appErr, test.errMsg)
 		}
 	}
 }
