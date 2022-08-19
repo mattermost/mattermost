@@ -140,21 +140,22 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID              string   `json:"id"`
-	CustomerID      string   `json:"customer_id"`
-	ProductID       string   `json:"product_id"`
-	AddOns          []string `json:"add_ons"`
-	StartAt         int64    `json:"start_at"`
-	EndAt           int64    `json:"end_at"`
-	CreateAt        int64    `json:"create_at"`
-	Seats           int      `json:"seats"`
-	Status          string   `json:"status"`
-	DNS             string   `json:"dns"`
-	IsPaidTier      string   `json:"is_paid_tier"`
-	LastInvoice     *Invoice `json:"last_invoice"`
-	IsFreeTrial     string   `json:"is_free_trial"`
-	TrialEndAt      int64    `json:"trial_end_at"`
-	DelinquentSince *int64   `json:"delinquent_since"`
+	ID                string   `json:"id"`
+	CustomerID        string   `json:"customer_id"`
+	ProductID         string   `json:"product_id"`
+	AddOns            []string `json:"add_ons"`
+	StartAt           int64    `json:"start_at"`
+	EndAt             int64    `json:"end_at"`
+	CreateAt          int64    `json:"create_at"`
+	Seats             int      `json:"seats"`
+	Status            string   `json:"status"`
+	DNS               string   `json:"dns"`
+	IsPaidTier        string   `json:"is_paid_tier"`
+	LastInvoice       *Invoice `json:"last_invoice"`
+	IsFreeTrial       string   `json:"is_free_trial"`
+	TrialEndAt        int64    `json:"trial_end_at"`
+	DelinquentSince   *int64   `json:"delinquent_since"`
+	ComplianceBlocked string   `json:"compliance_blocked"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -209,7 +210,8 @@ type CloudWorkspaceOwner struct {
 	UserName string `json:"username"`
 }
 type SubscriptionChange struct {
-	ProductID string `json:"product_id"`
+	ProductID       string   `json:"product_id"`
+	ShippingAddress *Address `json:"shipping_address"`
 }
 
 type BoardsLimits struct {

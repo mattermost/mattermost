@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -140,10 +141,14 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
-
+	c.Logger.Error(fmt.Sprintf("%+v", subscriptionChange))
 	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err.Error() == "compliance-failed" {
+			c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.compliance_failed", nil, "", http.StatusUnprocessableEntity)
+		} else {
+			c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 		return
 	}
 
