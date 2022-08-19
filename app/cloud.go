@@ -85,12 +85,12 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
-	subscription, err := a.Cloud().GetSubscription("")
-	if err != nil {
-		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Failed to get subscription", http.StatusInternalServerError)
-	}
+	workspaceName := ""
 
-	workspaceName := subscription.GetWorkSpaceNameFromDNS()
+	subscription, _ := a.Cloud().GetSubscription("")
+	if subscription != nil {
+		workspaceName = subscription.GetWorkSpaceNameFromDNS()
+	}
 
 	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{
 		Page:     0,
