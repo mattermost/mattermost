@@ -760,10 +760,21 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 		return 0, errors.New("n can't be less than 1")
 	}
 
-	sizeSubQuery := sq.
-		Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
-		From("FileInfo fi").
-		Where(sq.Eq{"fi.DeleteAt": 0})
+	var sizeSubQuery sq.SelectBuilder
+	// Separate query for MySql, as current min-version 5.x doesn't support window-functions
+	if fs.DriverName() == model.DatabaseDriverMysql {
+		sizeSubQuery = sq.
+			Select("(@runningSum := @runningSum + fi.Size) RunningTotal", "fi.CreateAt").
+			From("FileInfo fi").
+			Join("(SELECT @runningSum := 0) as tmp").
+			Where(sq.Eq{"fi.DeleteAt": 0}).
+			OrderBy("fi.CreateAt DESC, fi.Id")
+	} else {
+		sizeSubQuery = sq.
+			Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
+			From("FileInfo fi").
+			Where(sq.Eq{"fi.DeleteAt": 0})
+	}
 
 	builder := fs.getQueryBuilder().
 		Select("fi2.CreateAt").
