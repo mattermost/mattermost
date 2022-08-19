@@ -556,6 +556,36 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, csClear, userCs)
+
+	// Set a custom status for clearing it later
+	custom.Emoji = ":100"
+	custom.Text = "happy 100"
+
+	err = api.UpdateUserCustomStatus(user1.Id, custom)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
+	// Let plugin set a status
+	pluginCs := &model.CustomStatus{
+		Emoji:        ":calendar:",
+		Text:         "In meeting",
+		SetByProduct: true,
+	}
+	err = api.UpdateUserCustomStatus(user1.Id, pluginCs)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, pluginCs, userCs)
+
+	// Let plugin restore the status
+	err = api.RestoreToPreviousCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
 }
 
 func TestPluginAPIGetFile(t *testing.T) {
