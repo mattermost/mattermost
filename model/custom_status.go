@@ -30,10 +30,11 @@ var validCustomStatusDuration = map[string]bool{
 }
 
 type CustomStatus struct {
-	Emoji     string    `json:"emoji"`
-	Text      string    `json:"text"`
-	Duration  string    `json:"duration"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Emoji        string    `json:"emoji"`
+	Text         string    `json:"text"`
+	Duration     string    `json:"duration"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	SetByProduct bool      `json:"set_by_product,omitempty"`
 }
 
 func (cs *CustomStatus) PreSave() {

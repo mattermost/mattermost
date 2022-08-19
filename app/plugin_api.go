@@ -369,6 +369,39 @@ func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *
 	return api.app.GetCustomStatus(userID)
 }
 
+func (api *PluginAPI) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	cs, appErr := api.app.GetCustomStatus(userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// If user changed the custom status explicitly, don't restore to previous status
+	if cs == nil || !cs.SetByProduct {
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "", http.StatusBadRequest)
+	}
+
+	rcs, err := api.app.GetRecentCustomStatuses(userID)
+	if err != nil {
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to get recent statuses to reset", http.StatusInternalServerError)
+	}
+
+	if len(rcs) == 0 {
+		err := api.app.RemoveCustomStatus(api.ctx, userID)
+		if err != nil {
+			return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to remove custom status", http.StatusInternalServerError)
+		}
+
+		return nil
+	}
+
+	cserr := api.app.SetCustomStatus(api.ctx, userID, rcs[0])
+	if cserr != nil {
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to revert custom status", http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (api *PluginAPI) GetUsersInChannel(channelID, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.ChannelSortByUsername:

@@ -422,8 +422,11 @@ func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStat
 		return updateErr
 	}
 
-	if err := a.addRecentCustomStatus(userID, cs); err != nil {
-		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+	// Add only status set by user to recent statuses
+	if !cs.SetByProduct {
+		if err := a.addRecentCustomStatus(userID, cs); err != nil {
+			a.Log().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+		}
 	}
 
 	return nil
@@ -451,6 +454,21 @@ func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppErr
 	}
 
 	return user.GetCustomStatus(), nil
+}
+
+func (a *App) GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, error) {
+	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+
+	var existingRCS []*model.CustomStatus
+	if jsonErr := json.Unmarshal([]byte(pref.Value), &existingRCS); jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return existingRCS, nil
 }
 
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
