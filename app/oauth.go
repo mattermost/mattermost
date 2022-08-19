@@ -168,7 +168,7 @@ func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRe
 	// parse authRequest.RedirectURI to handle query parameters see: https://mattermost.atlassian.net/browse/MM-46216
 	uri, err := url.Parse(authRequest.RedirectURI)
 	if err != nil {
-		return authRequest.RedirectURI + "?error=parse_error&state=" + authRequest.State, nil
+		return authRequest.RedirectURI + "?error=redirect_uri_parse_error&state=" + authRequest.State, nil
 	}
 	queryParams := uri.Query()
 	if _, err := a.Srv().Store.OAuth().SaveAuthData(authData); err != nil {

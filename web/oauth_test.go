@@ -137,6 +137,35 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	_, resp, err = apiClient.AuthorizeOAuthApp(authRequest)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+
+	// test callback URI doesn't have malformed query parameters
+	oappWithQueryParamInCallback := &model.OAuthApp{
+		Name:         GenerateTestAppName(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com?simply=lovely"},
+		CreatorId:    th.SystemAdminUser.Id,
+	}
+
+	rapp, appErr = th.App.CreateOAuthApp(oappWithQueryParamInCallback)
+	require.Nil(t, appErr)
+
+	authRequest = &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     rapp.Id,
+		RedirectURI:  rapp.CallbackUrls[0],
+		Scope:        "",
+		State:        "123",
+	}
+	uriResponse, _, err := apiClient.AuthorizeOAuthApp(authRequest)
+	require.NoError(t, err)
+	ru, _ = url.Parse(uriResponse)
+	require.NotEmpty(t, uriResponse, "redirect url should be set")
+	require.NotNil(t, ru, "redirect url unparseable")
+	// require no query parameter to have "?"
+	require.False(t, strings.Contains(ru.RawQuery, "?"), "should not malform query parameters")
+	require.NotEmpty(t, ru.Query().Get("code"), "authorization code not returned")
+	require.Equal(t, ru.Query().Get("state"), authRequest.State, "returned state doesn't match")
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
