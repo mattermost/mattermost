@@ -283,7 +283,7 @@ type API interface {
 	// Minimum server version: 6.2
 	UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError
 
-	// RestoreToPreviousCustomStatus will reset user status to a previous state if not changed by any other state.
+	// RestoreToPreviousCustomStatus will reset user's custom status to a previously custom status set by user itself.
 	//
 	// @tag User
 	// Minimum server version: 7.2
