@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -72,12 +73,12 @@ func TestPadDateStringZeros(t *testing.T) {
 }
 
 func TestAppError(t *testing.T) {
-	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := err.ToJSON()
+	appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
+	json := appErr.ToJSON()
 	rerr := AppErrorFromJSON(strings.NewReader(json))
-	require.Equal(t, err.Message, rerr.Message)
+	require.Equal(t, appErr.Message, rerr.Message)
 
-	t.Log(err.Error())
+	t.Log(appErr.Error())
 }
 
 func TestAppErrorJunk(t *testing.T) {
@@ -103,12 +104,58 @@ func TestAppErrorRender(t *testing.T) {
 
 	t.Run("WrappedMultiple", func(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
-		assert.EqualError(t, aerr, "here: message, my error (inner error), inner error")
+		assert.EqualError(t, aerr, "here: message, my error (inner error)")
 	})
 
 	t.Run("DetailedWrappedMultiple", func(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
-		assert.EqualError(t, aerr, "here: message, details, my error (inner error), inner error")
+		assert.EqualError(t, aerr, "here: message, details, my error (inner error)")
+	})
+}
+
+func TestAppErrorSerialize(t *testing.T) {
+	t.Run("Normal", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "", http.StatusTeapot)
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Empty(t, berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Detailed", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "detail", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Wrapped", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "wrapped", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Detailed + Wrapped", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		js := aerr.ToJSON()
+		berr := AppErrorFromJSON(strings.NewReader(js))
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "detail, wrapped", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
 	})
 }
 

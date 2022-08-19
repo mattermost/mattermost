@@ -171,7 +171,7 @@ func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 			case *model.AppError:
 				return err
 			default:
-				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		return nil
@@ -182,18 +182,18 @@ func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	defer file.Close()
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
-		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -235,7 +235,7 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
-		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
