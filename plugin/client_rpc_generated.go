@@ -2008,6 +2008,34 @@ func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs
 	return nil
 }
 
+type Z_RestoreToPreviousCustomStatusArgs struct {
+	A string
+}
+
+type Z_RestoreToPreviousCustomStatusReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	_args := &Z_RestoreToPreviousCustomStatusArgs{userID}
+	_returns := &Z_RestoreToPreviousCustomStatusReturns{}
+	if err := g.client.Call("Plugin.RestoreToPreviousCustomStatus", _args, _returns); err != nil {
+		log.Printf("RPC call to RestoreToPreviousCustomStatus API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RestoreToPreviousCustomStatus(args *Z_RestoreToPreviousCustomStatusArgs, returns *Z_RestoreToPreviousCustomStatusReturns) error {
+	if hook, ok := s.impl.(interface {
+		RestoreToPreviousCustomStatus(userID string) *model.AppError
+	}); ok {
+		returns.A = hook.RestoreToPreviousCustomStatus(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RestoreToPreviousCustomStatus called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RemoveUserCustomStatusArgs struct {
 	A string
 }

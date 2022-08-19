@@ -3035,6 +3035,22 @@ func (_m *API) RequestTrialLicense(requesterID string, users int, termsAccepted 
 	return r0
 }
 
+// RestoreToPreviousCustomStatus provides a mock function with given fields: userID
+func (_m *API) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RevokeSession provides a mock function with given fields: sessionID
 func (_m *API) RevokeSession(sessionID string) *model.AppError {
 	ret := _m.Called(sessionID)

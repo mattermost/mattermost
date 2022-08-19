@@ -329,6 +329,13 @@ func (api *apiTimerLayer) UpdateUserCustomStatus(userID string, customStatus *mo
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RestoreToPreviousCustomStatus(userID string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RestoreToPreviousCustomStatus(userID)
+	api.recordTime(startTime, "RestoreToPreviousCustomStatus", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) RemoveUserCustomStatus(userID string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.RemoveUserCustomStatus(userID)
