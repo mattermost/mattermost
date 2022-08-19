@@ -90,6 +90,10 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type TopDMInsightUserInformation struct {
+	InsightUserInformation
+	Position string `json:"position"`
+}
 type NewTeamMembersList struct {
 	InsightsListData
 	Items      []*NewTeamMember `json:"items"`
@@ -111,6 +115,25 @@ type DurationPostCount struct {
 	// Duration is an ISO8601 date string.
 	Duration  string `db:"duration"`
 	PostCount int    `db:"postcount"`
+}
+
+// Top DMs
+type TopDM struct {
+	MessageCount         int64                        `json:"post_count"`
+	OutgoingMessageCount int64                        `json:"outgoing_message_count"`
+	Participants         string                       `json:"-"`
+	ChannelId            string                       `json:"-"`
+	SecondParticipant    *TopDMInsightUserInformation `json:"second_participant"`
+}
+
+type OutgoingMessageQueryResult struct {
+	ChannelId    string
+	MessageCount int
+}
+
+type TopDMList struct {
+	InsightsListData
+	Items []*TopDM `json:"items"`
 }
 
 func TimeRangeToNumberDays(timeRange string) int {
@@ -261,6 +284,20 @@ func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadL
 	}
 
 	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
+}
+
+// GetTopDMListWithPagination adds a rank to each item in the given list of TopDM and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopDM is assumed to be
+// sorted by MessageCount(score). Returns a TopDMList.
+func GetTopDMListWithPagination(dms []*TopDM, limit int) *TopDMList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(dms) == limit+1) {
+		hasNext = true
+		dms = dms[:len(dms)-1]
+	}
+
+	return &TopDMList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: dms}
 }
 
 func GetNewTeamMembersListWithPagination(teamMembers []*NewTeamMember, limit int) *NewTeamMembersList {
