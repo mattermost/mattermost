@@ -9120,6 +9120,10 @@
     "translation": "Unable to get the users, invalid sorting criteria."
   },
   {
+    "id": "plugin.api.restore_to_previous_custom_status",
+    "translation": "Unable to restore previous custom status of user."
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
   },
