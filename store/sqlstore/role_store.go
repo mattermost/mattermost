@@ -102,8 +102,8 @@ func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 		createdRole, terr := s.createRole(role, transaction)
 		if terr != nil {
 			return nil, errors.Wrap(terr, "unable to create Role")
-		} else if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		} else if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return createdRole, nil
 	}

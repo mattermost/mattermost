@@ -3855,7 +3855,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 		}
 
 		channelMembers := []*channelMember{}
-		if err := transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (?, ?) ORDER BY ChannelId, UserId LIMIT 1000", lastChannelId, lastUserId); err != nil {
+		if err = transaction.Select(&channelMembers, "SELECT * from ChannelMembers WHERE (ChannelId, UserId) > (?, ?) ORDER BY ChannelId, UserId LIMIT 1000", lastChannelId, lastUserId); err != nil {
 			finalizeTransactionX(transaction, &err)
 			return errors.Wrap(err, "failed to find ChannelMembers")
 		}
