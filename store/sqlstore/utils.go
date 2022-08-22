@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/wiggin77/merror"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -54,21 +55,13 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
 	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
-		if perr != nil && *perr == nil {
-			*perr = err
-			return
-		}
-
-		// TODO(noxer): Return a multi-error instead of falling back on mlog
-		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+		*perr = merror.Append(*perr, err)
 	}
 }
 
 func deferClose(c io.Closer, perr *error) {
 	err := c.Close()
-	if perr != nil && *perr == nil {
-		*perr = err
-	}
+	*perr = merror.Append(*perr, err)
 }
 
 // removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain
