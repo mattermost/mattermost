@@ -81,18 +81,18 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (grp *model.Group, err error) {
+func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.Group, err error) {
 	if g.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", g.Id)
 	}
 
 	// Check if group values are formatted correctly
-	if err := g.IsValidForCreate(); err != nil {
-		return nil, err
+	if appErr := g.IsValidForCreate(); appErr != nil {
+		return nil, appErr
 	}
 
 	// Check Users exist
-	if err := s.checkUsersExist(g.UserIds); err != nil {
+	if err = s.checkUsersExist(g.UserIds); err != nil {
 		return nil, err
 	}
 

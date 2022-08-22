@@ -39,16 +39,16 @@ func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (s
 	return txn.Exec(query, args...)
 }
 
-func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (pol *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
+func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Insert new policy
 	// 2. Insert new channels into policy
 	// 3. Insert new teams into policy
 
-	if err := s.checkTeamsExist(policy.TeamIDs); err != nil {
+	if err = s.checkTeamsExist(policy.TeamIDs); err != nil {
 		return nil, err
 	}
-	if err := s.checkChannelsExist(policy.ChannelIDs); err != nil {
+	if err = s.checkChannelsExist(policy.ChannelIDs); err != nil {
 		return nil, err
 	}
 
@@ -196,7 +196,7 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyI
 	return
 }
 
-func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (pol *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
+func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Update policy attributes
 	// 2. Delete existing channels from policy

@@ -555,7 +555,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 }
 
 // Save writes the (non-direct) channel channel to the database.
-func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (ch *model.Channel, err error) {
+func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
@@ -620,7 +620,7 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (channel *model.Channel, err error) {
+func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (_ *model.Channel, err error) {
 	if directChannel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
@@ -696,7 +696,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 }
 
 // Update writes the updated channel to the database.
-func (s SqlChannelStore) Update(channel *model.Channel) (ch *model.Channel, err error) {
+func (s SqlChannelStore) Update(channel *model.Channel) (_ *model.Channel, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -1805,7 +1805,7 @@ func (s SqlChannelStore) saveMemberT(member *model.ChannelMember) (*model.Channe
 	return members[0], nil
 }
 
-func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (channelMembers []*model.ChannelMember, err error) {
+func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (_ []*model.ChannelMember, err error) {
 	for _, member := range members {
 		member.PreUpdate()
 
@@ -1874,7 +1874,7 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) (*model.Chann
 	return updatedMembers[0], nil
 }
 
-func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (channelMember *model.ChannelMember, err error) {
+func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (_ *model.ChannelMember, err error) {
 	tx, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -2078,14 +2078,14 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (ids map[string]string, err error) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
 	cache_key := userId
 	if includeDeleted {
 		cache_key += "_deleted"
 	}
 	if allowFromCache {
-		var ids map[string]string
-		if err := allChannelMembersForUserCache.Get(cache_key, &ids); err == nil {
+		ids := make(map[string]string)
+		if err = allChannelMembersForUserCache.Get(cache_key, &ids); err == nil {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 			}
@@ -2145,7 +2145,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	if err = rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "error while iterating over rows")
 	}
-	ids = data.ToMapStringString()
+	ids := data.ToMapStringString()
 
 	if allowFromCache {
 		allChannelMembersForUserCache.SetWithExpiry(cache_key, ids, AllChannelMembersForUserCacheDuration)
@@ -3743,7 +3743,7 @@ func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit 
 // in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
-func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (data map[string]string, err error) {
+func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (_ map[string]string, err error) {
 	var transaction *sqlxTxWrapper
 
 	if transaction, err = s.GetMasterX().Beginx(); err != nil {
@@ -3809,7 +3809,7 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
-	data = make(map[string]string)
+	data := make(map[string]string)
 	data["ChannelId"] = channelMembers[len(channelMembers)-1].ChannelId
 	data["UserId"] = channelMembers[len(channelMembers)-1].UserId
 	return data, nil

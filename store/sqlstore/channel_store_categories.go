@@ -20,7 +20,7 @@ type dbSelecter interface {
 	Select(i any, query string, args ...any) error
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (categories *model.OrderedSidebarCategories, err error) {
+func (s SqlChannelStore) CreateInitialSidebarCategories(userId string, opts *store.SidebarCategorySearchOpts) (_ *model.OrderedSidebarCategories, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
@@ -249,7 +249,7 @@ func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *sqlxTxWrapper, 
 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (data map[string]any, err error) {
+func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (_ map[string]any, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, err
@@ -285,7 +285,7 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 		return nil, nil
 	}
 
-	data = make(map[string]any)
+	data := make(map[string]any)
 	data["UserId"] = userFavorites[len(userFavorites)-1].UserId
 	data["SortOrder"] = runningOrder
 	return data, nil
@@ -296,7 +296,7 @@ type sidebarCategoryForJoin struct {
 	ChannelId *string
 }
 
-func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (categories *model.SidebarCategoryWithChannels, err error) {
+func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -418,7 +418,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (categories *model.SidebarCategoryWithChannels, err error) {
+func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -958,7 +958,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *sqlxTxWrapp
 	}
 
 	categoryIds := []string{}
-	if err := transaction.Select(&categoryIds, idsQuery, idsParams...); err != nil {
+	if err = transaction.Select(&categoryIds, idsQuery, idsParams...); err != nil {
 		return errors.Wrap(err, "Failed to get Favorites sidebar categories")
 	}
 

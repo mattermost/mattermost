@@ -387,7 +387,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (psts []*model.Post, index int, err error) {
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, _ int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
@@ -3178,7 +3178,7 @@ func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	return nil
 }
 
-func (s *SqlPostStore) GetPostReminders(now int64) (prs []*model.PostReminder, err error) {
+func (s *SqlPostStore) GetPostReminders(now int64) (_ []*model.PostReminder, err error) {
 	reminders := []*model.PostReminder{}
 
 	transaction, err := s.GetMasterX().Beginx()

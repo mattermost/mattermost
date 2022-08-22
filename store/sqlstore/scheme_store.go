@@ -22,20 +22,20 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 	return &SqlSchemeStore{sqlStore}
 }
 
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (sch *model.Scheme, err error) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction, &err)
+		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, err := s.createScheme(scheme, transaction)
-		if err != nil {
-			return nil, err
+		newScheme, terr := s.createScheme(scheme, transaction)
+		if terr != nil {
+			return nil, terr
 		}
-		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return newScheme, nil
 	}
