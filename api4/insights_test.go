@@ -890,6 +890,126 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	})
 }
 
+func TestGetTopDMsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.TeamSettings.EnableUserDeactivation = true
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	// basicuser1 - bu1, basicuser - bu
+	// create dm channels for  bu-bu, bu1-bu1, bu-bu1, bot-bu
+	basicUser := th.BasicUser
+	basicUser1 := th.BasicUser2
+
+	th.LoginBasic2()
+	client := th.Client
+	channelBu1Bu1, _, err := client.CreateDirectChannel(basicUser1.Id, basicUser1.Id)
+	require.NoError(t, err)
+
+	th.LoginBasic()
+	client = th.Client
+	channelBuBu, _, err := client.CreateDirectChannel(basicUser.Id, basicUser.Id)
+	require.NoError(t, err)
+	channelBuBu1, _, err := client.CreateDirectChannel(basicUser.Id, basicUser1.Id)
+	require.NoError(t, err)
+
+	// bot creation with permission
+	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserRoleId, false)
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	createdBot, resp, err := th.Client.CreateBot(bot)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(createdBot.UserId)
+	channelBuBot, _, err := client.CreateDirectChannel(basicUser.Id, createdBot.UserId)
+	require.NoError(t, err)
+
+	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
+	postsGenConfig := []map[string]interface{}{
+		{
+			"chId":      channelBuBu.Id,
+			"postCount": 2,
+		},
+		{
+			"chId":      channelBu1Bu1.Id,
+			"postCount": 1,
+		},
+		{
+			"chId":      channelBuBu1.Id,
+			"postCount": 3,
+		},
+		{
+			"chId":      channelBuBot.Id,
+			"postCount": 3,
+		},
+	}
+
+	for _, postGen := range postsGenConfig {
+		postCount := postGen["postCount"].(int)
+		for i := 0; i < postCount; i++ {
+			if postGen["chId"] == channelBu1Bu1.Id {
+				th.LoginBasic2()
+				client = th.Client
+				userId := basicUser1.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.NoError(t, err)
+			} else {
+				th.LoginBasic()
+				client = th.Client
+				userId := basicUser.Id
+				post := &model.Post{UserId: userId, ChannelId: postGen["chId"].(string), Message: "zz" + model.NewId() + "a"}
+				_, _, err = client.CreatePost(post)
+				require.NoError(t, err)
+			}
+		}
+	}
+
+	// get top dms for bu
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, basicUser1.Id)
+	})
+
+	// get top dms for bu1
+	t.Run("get top dms for basic user 2", func(t *testing.T) {
+		th.LoginBasic2()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+	})
+	// deactivate basicuser1
+	_, err = th.Client.DeleteUser(basicUser1.Id)
+	require.NoError(t, err)
+	// deactivated users DMs should show in topDMs
+	t.Run("get top dms for basic user 1", func(t *testing.T) {
+		th.LoginBasic()
+		client = th.Client
+		topDMs, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 100)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMs.Items, 1)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+	})
+}
+
 func TestNewTeamMembersSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

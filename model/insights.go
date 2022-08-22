@@ -106,6 +106,10 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type TopDMInsightUserInformation struct {
+	InsightUserInformation
+	Position string `json:"position"`
+}
 type NewTeamMembersList struct {
 	InsightsListData
 	Items      []*NewTeamMember `json:"items"`
@@ -129,6 +133,25 @@ type DurationPostCount struct {
 	PostCount int    `db:"postcount"`
 }
 
+// Top DMs
+type TopDM struct {
+	MessageCount         int64                        `json:"post_count"`
+	OutgoingMessageCount int64                        `json:"outgoing_message_count"`
+	Participants         string                       `json:"-"`
+	ChannelId            string                       `json:"-"`
+	SecondParticipant    *TopDMInsightUserInformation `json:"second_participant"`
+}
+
+type OutgoingMessageQueryResult struct {
+	ChannelId    string
+	MessageCount int
+}
+
+type TopDMList struct {
+	InsightsListData
+	Items []*TopDM `json:"items"`
+}
+
 func TimeRangeToNumberDays(timeRange string) int {
 	var n int
 	switch timeRange {
@@ -144,27 +167,30 @@ func TimeRangeToNumberDays(timeRange string) int {
 
 // ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
 // Example 1 (grouped by day):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-12": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-12": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
+//
 // Example 2 (grouped by hour):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11T01": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-11T02": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11T01": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-11T02": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
 type ChannelPostCountByDuration map[string]map[string]int
 
 func blankChannelCountsMap(channelIDs []string) map[string]int {
@@ -288,6 +314,20 @@ func GetTopInactiveChannelListWithPagination(channels []*TopInactiveChannel, lim
 	}
 
 	return &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
+}
+
+// GetTopDMListWithPagination adds a rank to each item in the given list of TopDM and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopDM is assumed to be
+// sorted by MessageCount(score). Returns a TopDMList.
+func GetTopDMListWithPagination(dms []*TopDM, limit int) *TopDMList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(dms) == limit+1) {
+		hasNext = true
+		dms = dms[:len(dms)-1]
+	}
+
+	return &TopDMList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: dms}
 }
 
 func GetNewTeamMembersListWithPagination(teamMembers []*NewTeamMember, limit int) *NewTeamMembersList {

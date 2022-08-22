@@ -16,6 +16,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -564,4 +565,13 @@ func TestSentry(t *testing.T) {
 			require.Fail(t, "Sentry report didn't arrive")
 		}
 	})
+}
+
+func TestCancelTaskSetsTaskToNil(t *testing.T) {
+	var taskMut sync.Mutex
+	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
+	require.NotNil(t, task)
+	cancelTask(&taskMut, &task)
+	require.Nil(t, task)
+	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }

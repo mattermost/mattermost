@@ -381,7 +381,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}

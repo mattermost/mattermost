@@ -2986,6 +2986,148 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	return nil
 }
 
+func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Expr("Channels.Type = 'D'"),
+			sq.Eq{"cm.UserId": userID},
+		})
+	var aggregator string
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		aggregator = "group_concat(distinct cm.UserId) as Participants"
+	} else {
+		aggregator = "string_agg(distinct cm.UserId, ',') as Participants"
+	}
+
+	topDMsBuilder := s.getQueryBuilder().Select("vch.TotalMsgCount as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
+		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
+		Join("Posts as p on p.ChannelId = vch.Id").
+		Where(sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
+		}).GroupBy("vch.id", "vch.TotalMsgCount")
+
+	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
+
+	topDMs := make([]*model.TopDM, 0)
+	sql, args, err := topDMsBuilder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetTopDMsForUserSince_ToSql")
+	}
+	err = s.GetReplicaX().Select(&topDMs, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
+	}
+
+	// fill SecondParticipant column
+	topDMs, err = postProcessTopDMs(s, userID, topDMs, since)
+	if err != nil {
+		return nil, err
+	}
+	return model.GetTopDMListWithPagination(topDMs, limit), nil
+}
+
+func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, since int64) ([]*model.TopDM, error) {
+	var topDMsFiltered = []*model.TopDM{}
+	var secondParticipantIds []string
+	var channelIds []string
+
+	// identify second participant in a list of participants
+	for _, topDM := range topDMs {
+		participants := strings.Split(topDM.Participants, ",")
+		var secondParticipantId string
+		if len(participants) == 1 {
+			// channel with self
+			secondParticipantId = "-1"
+		} else {
+			if participants[0] == userID {
+				secondParticipantId = participants[1]
+			} else {
+				secondParticipantId = participants[0]
+			}
+		}
+		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
+		channelIds = append(channelIds, topDM.ChannelId)
+	}
+
+	// get user profiles
+	users, err := s.User().GetProfileByIds(context.Background(), secondParticipantIds, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get second participants' information")
+	}
+
+	// get outgoing message count for userId
+	outgoingMessagesQuery := s.getQueryBuilder().Select("ch.Id as ChannelId, count(p.Id) as MessageCount").From("Channels as ch").
+		Join("Posts as p on p.ChannelId=ch.Id").Where(
+		sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
+			sq.Eq{
+				"ch.Id": channelIds,
+			},
+			sq.Eq{
+				"p.UserId": userID,
+			},
+		}).GroupBy("ch.Id")
+
+	outgoingMessages := make([]*model.OutgoingMessageQueryResult, 0)
+	sql, args, err := outgoingMessagesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetTopDMsForUserSince_outgoingMessagesQuery_ToSql")
+	}
+	err = s.GetReplicaX().Select(&outgoingMessages, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
+	}
+
+	// create map of channelId -> MessageCount
+	outgoingMessagesMap := make(map[string]int)
+	for _, outgoingMessage := range outgoingMessages {
+		outgoingMessagesMap[outgoingMessage.ChannelId] = outgoingMessage.MessageCount
+	}
+
+	// create map of userId -> User
+	usersMap := make(map[string]*model.User)
+	for _, user := range users {
+		usersMap[user.Id] = user
+	}
+
+	for index, topDM := range topDMs {
+		if secondParticipantIds[index] == "-1" {
+			continue
+		}
+		user := usersMap[secondParticipantIds[index]]
+		if user.IsBot {
+			continue
+		}
+		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
+			InsightUserInformation: model.InsightUserInformation{
+				Id:                user.Id,
+				LastPictureUpdate: user.LastPictureUpdate,
+				FirstName:         user.FirstName,
+				LastName:          user.LastName,
+				Username:          user.Username,
+				NickName:          user.Nickname,
+			},
+			Position: user.Position,
+		}
+
+		topDM.OutgoingMessageCount = int64(outgoingMessagesMap[topDM.ChannelId])
+		topDMsFiltered = append(topDMsFiltered, topDM)
+	}
+
+	return topDMsFiltered, nil
+}
+
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
