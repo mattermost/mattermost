@@ -15,7 +15,6 @@ import (
 )
 
 func TestBusySet(t *testing.T) {
-	t.Skip("MM-45725")
 	cluster := &ClusterMock{Busy: &Busy{}}
 	busy := NewBusy(cluster)
 
@@ -24,10 +23,10 @@ func TestBusySet(t *testing.T) {
 	}
 
 	require.False(t, busy.IsBusy())
+	require.True(t, compareBusyState(t, busy, cluster.Busy))
 
 	busy.Set(time.Millisecond * 100)
 	require.True(t, busy.IsBusy())
-	require.True(t, compareBusyState(t, busy, cluster.Busy))
 	// should automatically expire after 100ms.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*20)
 	// allow a moment for cluster to sync.
