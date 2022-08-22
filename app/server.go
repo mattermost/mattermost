@@ -1858,10 +1858,6 @@ func (s *Server) HTTPService() httpservice.HTTPService {
 	return s.httpService
 }
 
-// func (s *Server) SetLog(l *mlog.Logger) {
-// 	s.Log = l
-// }
-
 func (s *Server) GetLogger() mlog.LoggerIFace {
 	return s.platform.Logger()
 }

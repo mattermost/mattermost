@@ -71,8 +71,7 @@ func (ps *PlatformService) NotificationsLogger() *mlog.Logger {
 }
 
 func (ps *PlatformService) EnableLoggingMetrics() {
-	// TODO: Move to platform
-	if ps.metrics.metricsImpl == nil {
+	if ps.metrics == nil || ps.metrics.metricsImpl == nil {
 		return
 	}
 
