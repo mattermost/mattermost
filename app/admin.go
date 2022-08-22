@@ -71,7 +71,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 		logFile := config.GetLogFileLocation(*s.platform.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer file.Close()
@@ -91,17 +91,17 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 		}
 		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		for {
 			pos, err := file.Seek(searchPos, io.SeekCurrent)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			_, err = file.ReadAt(b, pos)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if b[0] == newLine[0] || pos == 0 {
@@ -110,7 +110,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 					line := make([]byte, lineEndPos-pos)
 					_, err := file.ReadAt(line, pos)
 					if err != nil {
-						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 					lines = append(lines, string(line))
 				}

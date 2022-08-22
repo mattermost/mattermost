@@ -79,7 +79,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppErro
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, s := range statuses {
@@ -99,7 +99,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppErro
 	return statusMap, nil
 }
 
-//GetUserStatusesByIds used by apiV4
+// GetUserStatusesByIds used by apiV4
 func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
@@ -127,7 +127,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, s := range statuses {
@@ -379,9 +379,9 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetStatus", "app.status.get.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetStatus", "app.status.get.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetStatus", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetStatus", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
