@@ -1717,7 +1717,7 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
-	usersQuery, args, _ := us.usersQuery.
+	usersQuery, args, err := us.usersQuery.
 		Where(sq.Or{
 			sq.Gt{"u.CreateAt": startTime},
 			sq.And{
@@ -1728,7 +1728,11 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 		OrderBy("u.CreateAt ASC, u.Id ASC").
 		Limit(uint64(limit)).
 		ToSql()
-	err := us.GetSearchReplicaX().Select(&users, usersQuery, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql1")
+	}
+
+	err = us.GetSearchReplicaX().Select(&users, usersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -1739,7 +1743,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 	}
 
 	channelMembers := []*model.ChannelMember{}
-	channelMembersQuery, args, _ := us.getQueryBuilder().
+	channelMembersQuery, args, err := us.getQueryBuilder().
 		Select(`
 				cm.ChannelId,
 				cm.UserId,
@@ -1758,17 +1762,25 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
 		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql2")
+	}
+
 	err = us.GetSearchReplicaX().Select(&channelMembers, channelMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
 
 	teamMembers := []*model.TeamMember{}
-	teamMembersQuery, args, _ := us.getQueryBuilder().
-		Select("TeamId, UserId, Roles, DeleteAt, CreateAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
+	teamMembersQuery, args, err := us.getQueryBuilder().
+		Select("TeamId, UserId, Roles, DeleteAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
 		From("TeamMembers").
 		Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql3")
+	}
+
 	err = us.GetSearchReplicaX().Select(&teamMembers, teamMembersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find TeamMembers")
@@ -2059,14 +2071,18 @@ func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string
 // direct and group channels.
 func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 	userIds := []string{}
-	usersQuery, args, _ := us.getQueryBuilder().
+	usersQuery, args, err := us.getQueryBuilder().
 		Select("DISTINCT ocm.UserId").
 		From("ChannelMembers AS cm").
 		Join("ChannelMembers AS ocm ON ocm.ChannelId = cm.ChannelId").
 		Where(sq.NotEq{"ocm.UserId": userId}).
 		Where(sq.Eq{"cm.UserId": userId}).
 		ToSql()
-	err := us.GetSearchReplicaX().Select(&userIds, usersQuery, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "GetKnownUsers_ToSql")
+	}
+
+	err = us.GetSearchReplicaX().Select(&userIds, usersQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers")
 	}
