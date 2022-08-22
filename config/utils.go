@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -202,11 +201,11 @@ func stripPassword(dsn, schema string) string {
 }
 
 func isJSONMap(data string) bool {
-	var m map[string]interface{}
+	var m map[string]any
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 
-func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+func GetValueByPath(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {
@@ -261,30 +260,4 @@ func equal(oldCfg, newCfg *model.Config) (bool, error) {
 		return false, fmt.Errorf("failed to marshal new config: %w", err)
 	}
 	return !bytes.Equal(oldCfgBytes, newCfgBytes), nil
-}
-
-// appendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
-func appendMultipleStatementsFlag(dataSource string) (string, error) {
-
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-
-	if config.Params == nil {
-		config.Params = map[string]string{}
-	}
-
-	config.Params["multiStatements"] = "true"
-	return config.FormatDSN(), nil
-}
-
-// resetReadTimeout removes the timeout contraint from the MySQL dsn.
-func resetReadTimeout(dataSource string) (string, error) {
-	config, err := mysql.ParseDSN(dataSource)
-	if err != nil {
-		return "", err
-	}
-	config.ReadTimeout = 0
-	return config.FormatDSN(), nil
 }

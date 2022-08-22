@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/testlib"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -668,7 +670,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount+1)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err := th.App.GetChannelByName(*data.Name, team.Id, false)
+	channel, err := th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	assert.Equal(t, *data.Name, channel.Name)
@@ -692,7 +694,7 @@ func TestImportImportChannel(t *testing.T) {
 	th.CheckChannelsCount(t, channelCount)
 
 	// Get the Channel and check all the fields are correct.
-	channel, err = th.App.GetChannelByName(*data.Name, team.Id, false)
+	channel, err = th.App.GetChannelByName(th.Context, *data.Name, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	assert.Equal(t, *data.Name, channel.Name)
@@ -719,7 +721,7 @@ func TestImportImportUser(t *testing.T) {
 	data := UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	err = th.App.importUser(&data, true)
+	err = th.App.importUser(th.Context, &data, true)
 	require.Error(t, err, "Should have failed to import invalid user.")
 
 	// Check that no more users are in the DB.
@@ -735,7 +737,7 @@ func TestImportImportUser(t *testing.T) {
 		Username: ptrStr(model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
-	appErr := th.App.importUser(&data, true)
+	appErr := th.App.importUser(th.Context, &data, true)
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that no more users are in the DB.
@@ -750,7 +752,7 @@ func TestImportImportUser(t *testing.T) {
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	err = th.App.importUser(&data, false)
+	err = th.App.importUser(th.Context, &data, false)
 	require.Error(t, err, "Should have failed to import invalid user.")
 
 	// Check that no more users are in the DB.
@@ -773,7 +775,7 @@ func TestImportImportUser(t *testing.T) {
 		LastName:     ptrStr(model.NewId()),
 		Position:     ptrStr(model.NewId()),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that one more user is in the DB.
@@ -816,7 +818,7 @@ func TestImportImportUser(t *testing.T) {
 	data.Roles = ptrStr("system_admin system_user")
 	data.Locale = ptrStr("zh_CN")
 
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 	// Check user count the same.
@@ -848,20 +850,20 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check Password and AuthData together.
 	data.Password = ptrStr("PasswordTest")
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.AuthData = nil
 	data.AuthService = nil
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 	data.Password = ptrStr("")
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.Password = ptrStr(strings.Repeat("0123456789", 10))
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.Password = ptrStr("TestPassword")
@@ -884,7 +886,7 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	username = model.NewId()
@@ -901,7 +903,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team member count")
 	teamMemberCount := len(teamMembers)
 
-	channelMemberCount, appErr := th.App.GetChannelMemberCount(channel.Id)
+	channelMemberCount, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get channel member count")
 
 	// Test with an invalid team & channel membership in dry-run mode.
@@ -915,7 +917,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, true)
+	appErr = th.App.importUser(th.Context, &data, true)
 	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in dry-run mode.
@@ -929,7 +931,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, true)
+	appErr = th.App.importUser(th.Context, &data, true)
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in dry-run mode.
@@ -943,7 +945,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, true)
+	appErr = th.App.importUser(th.Context, &data, true)
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & unknown channel name in dry-run mode.
@@ -957,7 +959,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, true)
+	appErr = th.App.importUser(th.Context, &data, true)
 	assert.Nil(t, appErr)
 
 	// Test with a valid team & valid channel name in dry-run mode.
@@ -971,7 +973,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, true)
+	appErr = th.App.importUser(th.Context, &data, true)
 	assert.Nil(t, appErr)
 
 	// Check no new member objects were created because dry run mode.
@@ -979,7 +981,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
-	cmc, appErr := th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr := th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
 
@@ -994,7 +996,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in apply mode.
@@ -1008,7 +1010,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in apply mode.
@@ -1022,7 +1024,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.NotNil(t, appErr)
 
 	// Check no new member objects were created because all tests should have failed so far.
@@ -1030,7 +1032,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount)
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
@@ -1045,7 +1047,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.NotNil(t, appErr)
 
 	// Check only new team member object created because dry run mode.
@@ -1053,7 +1055,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1)
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
@@ -1076,7 +1078,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	// Check only new channel member object created because dry run mode.
@@ -1084,12 +1086,12 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Check channel member properties.
-	channelMember, appErr := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member from database.")
 	assert.Equal(t, "channel_user", channelMember.Roles)
 	assert.Equal(t, "default", channelMember.NotifyProps[model.DesktopNotifyProp])
@@ -1116,7 +1118,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	// Check both member properties.
@@ -1124,7 +1126,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
 	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
 	assert.Equal(t, model.UserNotifyMention, channelMember.NotifyProps[model.DesktopNotifyProp])
@@ -1139,7 +1141,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	cmc, appErr = th.App.GetChannelMemberCount(th.Context, channel.Id)
 	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
@@ -1152,6 +1154,7 @@ func TestImportImportUser(t *testing.T) {
 		UseMilitaryTime:    ptrStr("true"),
 		CollapsePreviews:   ptrStr("true"),
 		MessageDisplay:     ptrStr("compact"),
+		ColorizeUsernames:  ptrStr("true"),
 		ChannelDisplayMode: ptrStr("centered"),
 		TutorialStep:       ptrStr("3"),
 		UseMarkdownPreview: ptrStr("true"),
@@ -1159,7 +1162,7 @@ func TestImportImportUser(t *testing.T) {
 		ShowUnreadSection:  ptrStr("true"),
 		EmailInterval:      ptrStr("immediately"),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	// Check their values.
@@ -1170,6 +1173,7 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryAdvancedSettings, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
@@ -1185,11 +1189,12 @@ func TestImportImportUser(t *testing.T) {
 		UseMilitaryTime:    ptrStr("false"),
 		CollapsePreviews:   ptrStr("false"),
 		MessageDisplay:     ptrStr("clean"),
+		ColorizeUsernames:  ptrStr("false"),
 		ChannelDisplayMode: ptrStr("full"),
 		TutorialStep:       ptrStr("2"),
 		EmailInterval:      ptrStr("hour"),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	// Check their values again.
@@ -1197,6 +1202,7 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime, *data.UseMilitaryTime)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapseSetting, *data.CollapsePreviews)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameMessageDisplay, *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameColorizeUsernames, *data.ColorizeUsernames)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameChannelDisplayMode, *data.ChannelDisplayMode)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryTutorialSteps, user.Id, *data.TutorialStep)
 	checkPreference(t, th.App, user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval, "3600")
@@ -1211,7 +1217,7 @@ func TestImportImportUser(t *testing.T) {
 		ChannelTrigger:   ptrStr("true"),
 		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(username)
@@ -1237,7 +1243,7 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.CommentsNotifyRoot),
 		MentionKeys:      ptrStr("valid,misc"),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(username)
@@ -1263,7 +1269,7 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
 		MentionKeys:      ptrStr("misc"),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(username)
@@ -1288,7 +1294,7 @@ func TestImportImportUser(t *testing.T) {
 		ChannelTrigger:   ptrStr("false"),
 		CommentsTrigger:  ptrStr(model.CommentsNotifyAny),
 	}
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(username)
@@ -1320,7 +1326,7 @@ func TestImportImportUser(t *testing.T) {
 		MentionKeys:      ptrStr("misc"),
 	}
 
-	appErr = th.App.importUser(&data, false)
+	appErr = th.App.importUser(th.Context, &data, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(username)
@@ -1384,7 +1390,7 @@ func TestImportImportUser(t *testing.T) {
 	require.NoError(t, nErr, "Failed to import scheme")
 
 	teamData := &TeamImportData{
-		Name:            ptrStr(model.NewId()),
+		Name:            ptrStr(NewTestId()),
 		DisplayName:     ptrStr("Display Name"),
 		Type:            ptrStr("O"),
 		Description:     ptrStr("The team description."),
@@ -1398,7 +1404,7 @@ func TestImportImportUser(t *testing.T) {
 
 	channelData := &ChannelImportData{
 		Team:        &teamName,
-		Name:        ptrStr(model.NewId()),
+		Name:        ptrStr(NewTestId()),
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 		Header:      ptrStr("Channel Header"),
@@ -1406,7 +1412,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 	appErr = th.App.importChannel(th.Context, channelData, false)
 	assert.Nil(t, appErr)
-	channel, appErr = th.App.GetChannelByName(*channelData.Name, team.Id, false)
+	channel, appErr = th.App.GetChannelByName(th.Context, *channelData.Name, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database")
 
 	// Test with a valid team & valid channel name in apply mode.
@@ -1426,7 +1432,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(userData, false)
+	appErr = th.App.importUser(th.Context, userData, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(*userData.Username)
@@ -1440,7 +1446,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.True(t, channelMember.SchemeAdmin)
@@ -1468,7 +1474,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(deletedUserData, false)
+	appErr = th.App.importUser(th.Context, deletedUserData, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(*deletedUserData.Username)
@@ -1482,7 +1488,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1510,7 +1516,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	appErr = th.App.importUser(deletedGuestData, false)
+	appErr = th.App.importUser(th.Context, deletedGuestData, false)
 	assert.Nil(t, appErr)
 
 	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
@@ -1524,7 +1530,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1537,8 +1543,8 @@ func TestImportUserTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	team2 := th.CreateTeam()
-	channel2 := th.CreateChannel(th.BasicTeam)
-	channel3 := th.CreateChannel(team2)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel3 := th.CreateChannel(th.Context, team2)
 	customRole := th.CreateRole("test_custom_role")
 	sampleTheme := "{\"test\":\"#abcdef\"}"
 
@@ -1711,13 +1717,13 @@ func TestImportUserTeams(t *testing.T) {
 
 			// Two times import must end with the same results
 			for x := 0; x < 2; x++ {
-				err := th.App.importUserTeams(user, tc.data)
+				err := th.App.importUserTeams(th.Context, user, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, err)
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
+				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 				require.NoError(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
@@ -1750,7 +1756,7 @@ func TestImportUserTeams(t *testing.T) {
 		}
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
-		err := th.App.importUserTeams(user, data)
+		err := th.App.importUserTeams(th.Context, user, data)
 		require.NotNil(t, err)
 	})
 }
@@ -1758,7 +1764,7 @@ func TestImportUserTeams(t *testing.T) {
 func TestImportUserChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	channel2 := th.CreateChannel(th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	customRole := th.CreateRole("test_custom_role")
 	sampleNotifyProps := UserChannelNotifyPropsImportData{
 		Desktop:    model.NewString("all"),
@@ -1865,7 +1871,7 @@ func TestImportUserChannels(t *testing.T) {
 
 			// Two times import must end with the same results
 			for x := 0; x < 2; x++ {
-				appErr := th.App.importUserChannels(user, th.BasicTeam, tc.data)
+				appErr := th.App.importUserChannels(th.Context, user, th.BasicTeam, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, appErr)
 				} else {
@@ -1903,7 +1909,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 			MentionKeys: ptrStr(""),
 		},
 	}
-	require.Nil(t, th.App.importUser(&data, false))
+	require.Nil(t, th.App.importUser(th.Context, &data, false))
 
 	user, err := th.App.GetUserByUsername(username)
 	require.Nil(t, err)
@@ -1943,7 +1949,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -1951,12 +1957,12 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, err := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Create a user.
 	username := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -1964,7 +1970,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	// Try adding an invalid post in dry run mode.
@@ -2022,7 +2028,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	data = LineImportWorkerData{
 		LineImportData{
 			Post: &PostImportData{
-				Team:     ptrStr(model.NewId()),
+				Team:     ptrStr(NewTestId()),
 				Channel:  &channelName,
 				User:     &username,
 				Message:  ptrStr("Message"),
@@ -2043,7 +2049,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		LineImportData{
 			Post: &PostImportData{
 				Team:     &teamName,
-				Channel:  ptrStr(model.NewId()),
+				Channel:  ptrStr(NewTestId()),
 				User:     &username,
 				Message:  ptrStr("Message"),
 				CreateAt: ptrInt64(model.GetMillis()),
@@ -2204,7 +2210,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Post with flags.
 	username2 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -2466,11 +2472,11 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
+	_, err = th.App.GetChannelByName(th.Context, channelName, team2.Id, false)
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Count the number of posts in the team2.
-	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team2.Id, false, false)
+	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team2.Id})
 	require.NoError(t, nErr)
 
 	// Try adding two valid posts in apply mode.
@@ -2547,7 +2553,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -2555,12 +2561,12 @@ func TestImportImportPost(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	channel, appErr := th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user.
 	username := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -2568,7 +2574,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	username2 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -2576,7 +2582,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	time := model.GetMillis()
@@ -2645,7 +2651,7 @@ func TestImportImportPost(t *testing.T) {
 		data := LineImportWorkerData{
 			LineImportData{
 				Post: &PostImportData{
-					Team:     ptrStr(model.NewId()),
+					Team:     ptrStr(NewTestId()),
 					Channel:  &channelName,
 					User:     &username,
 					Message:  ptrStr("Message"),
@@ -2665,7 +2671,7 @@ func TestImportImportPost(t *testing.T) {
 			LineImportData{
 				Post: &PostImportData{
 					Team:     &teamName,
-					Channel:  ptrStr(model.NewId()),
+					Channel:  ptrStr(NewTestId()),
 					User:     &username,
 					Message:  ptrStr("Message"),
 					CreateAt: ptrInt64(model.GetMillis()),
@@ -3091,6 +3097,47 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || post.EditAt != *data.Post.EditAt
 		require.False(t, postBool, "Post properties not as expected")
 	})
+
+	t.Run("Reply CreateAt before parent post CreateAt", func(t *testing.T) {
+		now := model.GetMillis()
+		before := now - 10
+		data := LineImportWorkerData{
+			LineImportData{
+				Post: &PostImportData{
+					Team:     &teamName,
+					Channel:  &channelName,
+					User:     &user2.Username,
+					Message:  ptrStr("Message with reply"),
+					CreateAt: &now,
+					Replies: &[]ReplyImportData{{
+						User:     &username,
+						Message:  ptrStr("Message reply 2"),
+						CreateAt: &before,
+					}},
+				},
+			},
+			1,
+		}
+
+		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
+		require.NoError(t, nErr)
+		require.Len(t, posts, 2, "Unexpected number of posts found.")
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, "Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt")
+
+		rootPost := posts[0]
+		replyPost := posts[1]
+		if rootPost.RootId != "" {
+			replyPost = posts[0]
+			rootPost = posts[1]
+		}
+		require.Equal(t, rootPost.Id, replyPost.RootId)
+		require.Equal(t, now, replyPost.CreateAt)
+	})
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
@@ -3111,7 +3158,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	err = th.App.importDirectChannel(&data, true)
+	err = th.App.importDirectChannel(th.Context, &data, true)
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
@@ -3123,7 +3170,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	appErr := th.App.importDirectChannel(&data, true)
+	appErr := th.App.importDirectChannel(th.Context, &data, true)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3136,7 +3183,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	appErr = th.App.importDirectChannel(&data, true)
+	appErr = th.App.importDirectChannel(th.Context, &data, true)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3147,7 +3194,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	data.Members = &[]string{
 		model.NewId(),
 	}
-	err = th.App.importDirectChannel(&data, false)
+	err = th.App.importDirectChannel(th.Context, &data, false)
 	require.Error(t, err)
 
 	// Check that no more channels are in the DB.
@@ -3159,7 +3206,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that one more DIRECT channel is in the DB.
@@ -3167,7 +3214,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount)
 
 	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3176,7 +3223,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3196,7 +3243,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Username,
 		model.NewId(),
 	}
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.NotNil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3209,7 +3256,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Username,
 		user3.Username,
 	}
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that one more GROUP channel is in the DB.
@@ -3217,7 +3264,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.ChannelTypeGroup, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3226,7 +3273,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
@@ -3239,7 +3286,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3252,7 +3299,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	appErr = th.App.importDirectChannel(&data, false)
+	appErr = th.App.importDirectChannel(th.Context, &data, false)
 	require.Nil(t, appErr)
 
 	channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
@@ -3272,7 +3319,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			th.BasicUser2.Username,
 		},
 	}
-	appErr := th.App.importDirectChannel(&channelData, false)
+	appErr := th.App.importDirectChannel(th.Context, &channelData, false)
 	require.Nil(t, appErr)
 
 	// Get the channel.
@@ -3283,7 +3330,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
@@ -3629,7 +3676,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			user3.Username,
 		},
 	}
-	appErr = th.App.importDirectChannel(&channelData, false)
+	appErr = th.App.importDirectChannel(th.Context, &channelData, false)
 	require.Nil(t, appErr)
 
 	// Get the channel.
@@ -3639,12 +3686,12 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIDs)
+	channel, appErr = th.App.createGroupChannel(th.Context, userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, nErr)
 	initialPostCount = result
 
@@ -4103,39 +4150,45 @@ func TestImportImportEmoji(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 
 	data := EmojiImportData{Name: ptrStr(model.NewId())}
-	err := th.App.importEmoji(&data, true)
-	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
+	appErr := th.App.importEmoji(&data, true)
+	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
 	emoji, nErr := th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
 	data.Image = ptrStr(testImage)
-	err = th.App.importEmoji(&data, true)
-	assert.Nil(t, err, "Valid emoji should have passed dry run")
+	appErr = th.App.importEmoji(&data, true)
+	assert.Nil(t, appErr, "Valid emoji should have passed dry run")
 
 	data = EmojiImportData{Name: ptrStr(model.NewId())}
-	err = th.App.importEmoji(&data, false)
-	assert.NotNil(t, err, "Invalid emoji should have failed apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.NotNil(t, appErr, "Invalid emoji should have failed apply mode")
 
 	data.Image = ptrStr("non-existent-file")
-	err = th.App.importEmoji(&data, false)
-	assert.NotNil(t, err, "Emoji with bad image file should have failed apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.NotNil(t, appErr, "Emoji with bad image file should have failed apply mode")
 
 	data.Image = ptrStr(testImage)
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
 	emoji, nErr = th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "Second run should have succeeded apply mode")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "Second run should have succeeded apply mode")
 
 	data = EmojiImportData{Name: ptrStr("smiley"), Image: ptrStr(testImage)}
-	err = th.App.importEmoji(&data, false)
-	assert.Nil(t, err, "System emoji should not fail")
+	appErr = th.App.importEmoji(&data, false)
+	assert.Nil(t, appErr, "System emoji should not fail")
+
+	largeImage := filepath.Join(testsDir, "large_image_file.jpg")
+	data = EmojiImportData{Name: ptrStr(model.NewId()), Image: ptrStr(largeImage)}
+	appErr = th.App.importEmoji(&data, false)
+	require.NotNil(t, appErr)
+	require.ErrorIs(t, appErr.Unwrap(), utils.SizeLimitExceeded)
 }
 
 func TestImportAttachment(t *testing.T) {
@@ -4175,7 +4228,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -4183,12 +4236,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user3.
 	username := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4197,7 +4250,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.NotNil(t, user3)
 
 	username2 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4206,7 +4259,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create direct post users.
 	username3 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4214,7 +4267,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	username4 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username4,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4324,16 +4377,16 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testImage2 := filepath.Join(testsDir, "test.svg")
 	// create a temp file with same name as original but with a different first byte
-	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	tmpFolder, _ := os.MkdirTemp("", "imgFake")
 	testImageFake := filepath.Join(tmpFolder, "test.png")
-	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData, _ := os.ReadFile(testImage)
 	fakeFileData[0] = 0
-	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	_ = os.WriteFile(testImageFake, fakeFileData, 0644)
 	defer os.RemoveAll(tmpFolder)
 
 	// Create a user.
 	username := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4341,7 +4394,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user1 from database.")
 
 	username2 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4451,7 +4504,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := NewTestId()
 	chanTypeOpen := model.ChannelTypeOpen
 	th.App.importChannel(th.Context, &ChannelImportData{
 		Team:        &teamName,
@@ -4459,12 +4512,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        &chanTypeOpen,
 	}, false)
-	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	_, appErr = th.App.GetChannelByName(th.Context, channelName, team.Id, false)
 	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create users
 	username2 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4473,7 +4526,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	// Create direct post users.
 	username3 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username3,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
@@ -4481,7 +4534,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	username4 := model.NewId()
-	th.App.importUser(&UserImportData{
+	th.App.importUser(th.Context, &UserImportData{
 		Username: &username4,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)

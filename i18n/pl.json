@@ -1861,7 +1861,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Zobacz post"
+    "translation": "Odpowiedz w Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2648,10 +2648,6 @@
     "translation": "Brak wymaganej właściwości: User."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Odpowiedź CreateAt musi być wyższa niż parent post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Brakująca wymagana właściwość odpowiedzi: create_at."
   },
@@ -3162,10 +3158,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch jest aktualnie zatrzymane."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Nie udało się połączyć z serwerem Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -4777,7 +4769,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 89+"
+    "translation": "Wersja 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7317,7 +7309,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sesja wygasła: Zaloguj się, aby kontynuować otrzymywanie powiadomień. Sesje dla {{.siteName}} są skonfigurowane przez Administratora Systemu tak, aby wygasały co {{.daysCount}} dni."
+    "translation": "Sesja wygasła: Zaloguj się, aby kontynuować otrzymywanie powiadomień. Sesje dla {{.siteName}} są skonfigurowane przez Administratora Systemu tak, aby wygasały co {{.hoursCount}} godzin."
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
@@ -7744,10 +7736,6 @@
     "translation": "Dodaj aplikacje do swojego obszaru roboczego"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Twój darmowy 14-dniowy okres próbny Mattermost wkrótce się kończy"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Twoja subskrypcja Mattermost została przedłużona"
   },
@@ -7773,7 +7761,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Twoja 14-dniowa wersja testowa {{.WorkSpace}} jest gotowa do pracy!"
+    "translation": "Twoja przestrzeń robocza jest gotowa do pracy!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7826,34 +7814,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
     "translation": "Usprawnij swoją pracę dzięki narzędziom takim jak GitHub, Jira i Zoom. Poznaj wszystkie integracje, które mamy na naszej stronie"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, Twój 14-dniowy okres próbny Mattermost Cloud Professional kończy się za 3 dni, w dniu {{.TrialEnd}}. Proszę dodać informacje o płatności, aby Twój zespół mógł dalej korzystać z zalet Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Zakończenie okresu próbnego chmury Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Dodaj metodę płatności"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Twój darmowy 14-dniowy okres próbny programu Mattermost zakończył się dzisiaj"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-dniowy bezpłatny okres próbny Mattermost Cloud Enterprise zakończył się dzisiaj, {{.TodayDate}}. Prosimy o podanie informacji o płatności, aby zespół mógł nadal korzystać z zalet usługi Cloud Enterprise. Jeśli nie dodasz informacji o płatności w ciągu 30 dni, trwale usuniemy przestrzeń roboczą w chmurze i utracisz wszystkie powiązane dane."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Zakończył się okres próbny chmury Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Rozpocznij subskrypcję"
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -8177,7 +8137,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Napisz do nas w każdej chwili na adres "
+    "translation": "Potrzebujesz pomocy lub masz pytania? Napisz do nas na adres "
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -9137,7 +9097,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HEY! Otwórz Mattermost, aby zwiększyć produktywność swojego zespołu!"
+    "translation": "Otwórz Mattermost, aby zwiększyć produktywność swojego zespołu!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9234,5 +9194,181 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "W ustawieniach poczty e-mail nie ustawiono wartości."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Lista e-mail jest pusta"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Nazwa kanału jest nieprawidłowa"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Nazwa musi być złożona z co najmniej 1 lub więcej małych znaków alfanumerycznych."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Nieprawidłowy post_id"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelsLen }} kanałów w Zespole {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelsLen }} kanałów w Zespole {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Błąd podczas przetwarzania danych."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Nieprawidłowa treść żądania."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights kryje się za flagą funkcji, która nie jest włączona."
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Zostałeś uaktualniony!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Potwierdzenie Aktualizacji Mattermost"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Ustawienia Elasticsearch mają nieustawione wartości."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Błąd aktualizacji subskrypcji z webhooka."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Przesyłanie danych do instancji Chmury za pomocą mmctl nie jest obsługiwane. Proszę sprawdzić dokumentację tutaj: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Błąd pobierania ostatnich wyszukiwań"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Osiągnąłeś maksymalny limit {{.NumIntegrations}} włączonych integracji. Aby zainstalować nieograniczoną liczbę integracji, uaktualnij do jednego z naszych płatnych planów."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nie można uzyskać liczby zespołów"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Nie można uzyskać możliwości korzystania z zespołów"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Nie można przywrócić zespołu, ponieważ osiągnięto limit zespołów"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Nie można utworzyć zespołu, ponieważ osiągnięto limit zespołów"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Nie udało się uzyskać informacji o wykorzystaniu pamięci masowej."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Nieprawidłowa współbieżność dekodera {{.Wartość}}. Powinna być liczbą dodatnią lub -1."
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Nie można uzyskać informacji o najważniejszych wątkach dla użytkownika."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Nie można uzyskać najlepszych wątków dla zespołu."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Funkcja Insights jest wyłączona."
+  },
+  {
+    "id": "api.insights.license_error",
+    "translation": "Twoja licencja nie obsługuje funkcji Insights."
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Administrator został już powiadomiony"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nie można przetworzyć wartości:{{.Value}} na int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Nie można pobrać postu, ponieważ przekroczony został limit planu chmury'y."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Błąd pobierania ostatniego dostępnego postu"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Nieprawidłowa wartość limitu czasu {{.Value}}. Powinna być liczbą dodatnią."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nie udało się wygenerować informacji o pliku z przesłanych danych."
   }
 ]

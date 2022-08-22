@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func validateSchemeImportData(data *SchemeImportData) *model.AppError {
@@ -331,10 +332,10 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 			}
 		}
 
-		if tdata.Theme != nil && 0 < len(strings.Trim(*tdata.Theme, " \t\r")) {
+		if tdata.Theme != nil && strings.Trim(*tdata.Theme, " \t\r") != "" {
 			var unused map[string]string
 			if err := json.NewDecoder(strings.NewReader(*tdata.Theme)).Decode(&unused); err != nil {
-				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -412,7 +413,7 @@ func validateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
+		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int64("reply_create_at", *data.CreateAt), mlog.Int64("parent_create_at", parentCreateAt))
 	}
 
 	return nil
@@ -491,7 +492,7 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]interface{}{"Username": favoriter}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]any{"Username": favoriter}, "", http.StatusBadRequest)
 			}
 		}
 	}
@@ -538,7 +539,7 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]interface{}{"Username": flagger}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]any{"Username": flagger}, "", http.StatusBadRequest)
 			}
 		}
 	}

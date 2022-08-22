@@ -48,7 +48,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	var authRequest *model.AuthorizeRequest
 	err := json.NewDecoder(r.Body).Decode(&authRequest)
 	if err != nil || authRequest == nil {
-		c.SetInvalidParam("authorize_request")
+		c.SetInvalidParamWithErr("authorize_request", err)
 		return
 	}
 
@@ -241,7 +241,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(accessRsp); err != nil {
-		mlog.Warn("Error writing response", mlog.Err(err))
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
 

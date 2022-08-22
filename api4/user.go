@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -92,6 +91,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
@@ -108,7 +108,7 @@ func (api *API) InitUser() {
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -120,8 +120,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("invite_id", inviteId)
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventParameter("iid", inviteId)
+	auditRec.AddEventParameter("r", redirect)
+	auditRec.AddEventParameter("user", user)
 
 	// No permission check required
 
@@ -161,11 +162,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("user", ruser) // overwrite meta
+	auditRec.AddEventResultState(ruser)
+	auditRec.AddEventObjectType("user")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -219,7 +221,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -281,7 +283,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -332,7 +334,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -416,7 +418,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -458,7 +460,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("setProfileImage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	if imageArray[0] != nil {
-		auditRec.AddMeta("filename", imageArray[0].Filename)
+		auditRec.AddEventParameter("filename", imageArray[0].Filename)
 	}
 
 	user, err := c.App.GetUser(c.Params.UserId)
@@ -477,7 +479,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageData := imageArray[0]
-	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -505,6 +507,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("setDefaultProfileImage", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
 	user, err := c.App.GetUser(c.Params.UserId)
@@ -514,7 +517,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	auditRec.AddMeta("user", user)
 
-	if err := c.App.SetDefaultProfileImage(user); err != nil {
+	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
 		return
 	}
@@ -543,7 +546,7 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -607,7 +610,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -619,39 +622,44 @@ func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(c.AppContext, channelIds, c.IsSystemAdmin())
-	if err != nil {
-		c.Err = err
+	usersByChannelId, appErr := c.App.GetUsersByGroupChannelIds(c.AppContext, channelIds, c.IsSystemAdmin())
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, _ := json.Marshal(usersByChannelId)
-	w.Write(b)
+	err := json.NewEncoder(w).Encode(usersByChannelId)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	inTeamId := r.URL.Query().Get("in_team")
-	notInTeamId := r.URL.Query().Get("not_in_team")
-	inChannelId := r.URL.Query().Get("in_channel")
-	inGroupId := r.URL.Query().Get("in_group")
-	notInGroupId := r.URL.Query().Get("not_in_group")
-	notInChannelId := r.URL.Query().Get("not_in_channel")
-	groupConstrained := r.URL.Query().Get("group_constrained")
-	withoutTeam := r.URL.Query().Get("without_team")
-	inactive := r.URL.Query().Get("inactive")
-	active := r.URL.Query().Get("active")
-	role := r.URL.Query().Get("role")
-	sort := r.URL.Query().Get("sort")
-	rolesString := r.URL.Query().Get("roles")
-	channelRolesString := r.URL.Query().Get("channel_roles")
-	teamRolesString := r.URL.Query().Get("team_roles")
+	var (
+		query              = r.URL.Query()
+		inTeamId           = query.Get("in_team")
+		notInTeamId        = query.Get("not_in_team")
+		inChannelId        = query.Get("in_channel")
+		inGroupId          = query.Get("in_group")
+		notInGroupId       = query.Get("not_in_group")
+		notInChannelId     = query.Get("not_in_channel")
+		groupConstrained   = query.Get("group_constrained")
+		withoutTeam        = query.Get("without_team")
+		inactive           = query.Get("inactive")
+		active             = query.Get("active")
+		role               = query.Get("role")
+		sort               = query.Get("sort")
+		rolesString        = query.Get("roles")
+		channelRolesString = query.Get("channel_roles")
+		teamRolesString    = query.Get("team_roles")
+	)
 
 	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidURLParam("team_id")
 		return
 	}
 
-	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" {
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -666,11 +674,17 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("sort")
 		return
 	}
+	if sort == "admin" && inChannelId == "" {
+		c.SetInvalidURLParam("sort")
+		return
+	}
 
-	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
-	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
-	inactiveBool, _ := strconv.ParseBool(inactive)
-	activeBool, _ := strconv.ParseBool(active)
+	var (
+		withoutTeamBool, _      = strconv.ParseBool(withoutTeam)
+		groupConstrainedBool, _ = strconv.ParseBool(groupConstrained)
+		inactiveBool, _         = strconv.ParseBool(inactive)
+		activeBool, _           = strconv.ParseBool(active)
+	)
 
 	if inactiveBool && activeBool {
 		c.SetInvalidURLParam("inactive")
@@ -702,9 +716,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -729,14 +743,16 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		ViewRestrictions: restrictions,
 	}
 
-	var profiles []*model.User
-	etag := ""
+	var (
+		profiles []*model.User
+		etag     string
+	)
 
 	if inChannelId != "" {
 		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-			channel, appErr := c.App.GetChannel(inChannelId)
-			if appErr != nil {
-				c.Err = appErr
+			channel, cErr := c.App.GetChannel(c.AppContext, inChannelId)
+			if cErr != nil {
+				c.Err = cErr
 				return
 			}
 			if channel.DeleteAt != 0 {
@@ -753,14 +769,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if notInTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), notInTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
@@ -772,7 +788,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if inTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
@@ -780,26 +796,28 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+		} else if sort == "admin" {
+			profiles, appErr = c.App.GetUsersInChannelPageByAdmin(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
 		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
@@ -808,34 +826,35 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
-		if err != nil {
-			c.Err = err
+		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 	} else if notInGroupId != "" {
-		if gErr := requireGroupAccess(c, notInGroupId); gErr != nil {
-			gErr.Where = "Api.getUsers"
-			c.Err = gErr
+		appErr = requireGroupAccess(c, notInGroupId)
+		if appErr != nil {
+			appErr.Where = "Api.getUsers"
+			c.Err = appErr
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
-		if err != nil {
-			c.Err = err
+		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 	} else {
-		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.AppContext.Session().UserId, userGetOptions)
-		if err != nil {
-			c.Err = err
+		userGetOptions, appErr = c.App.RestrictUsersGetByPermissions(c.AppContext.Session().UserId, userGetOptions)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
-		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -844,9 +863,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -873,10 +892,10 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
-		c.SetInvalidParam("user_ids")
+	var userIDs []string
+	err := json.NewDecoder(r.Body).Decode(&userIDs)
+	if err != nil || len(userIDs) == 0 {
+		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
 
@@ -887,30 +906,30 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, parseError := strconv.ParseInt(sinceString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("since")
+		since, sErr := strconv.ParseInt(sinceString, 10, 64)
+		if sErr != nil {
+			c.SetInvalidParamWithErr("since", sErr)
 			return
 		}
 		options.Since = since
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	options.ViewRestrictions = restrictions
 
-	users, err := c.App.GetUsersByIds(userIds, options)
-	if err != nil {
-		c.Err = err
+	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(users)
+	if err != nil {
+		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -918,28 +937,28 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames := model.ArrayFromJSON(r.Body)
-
-	if len(usernames) == 0 {
-		c.SetInvalidParam("usernames")
+	var usernames []string
+	err := json.NewDecoder(r.Body).Decode(&usernames)
+	if err != nil || len(usernames) == 0 {
+		c.SetInvalidParamWithErr("usernames", err)
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	users, appErr := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(users)
 	if err != nil {
-		c.Err = err
-		return
-	}
-
-	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -947,21 +966,22 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds, err := c.App.GetKnownUsers(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	userIDs, appErr := c.App.GetKnownUsers(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	data, _ := json.Marshal(userIds)
-
-	w.Write(data)
+	err := json.NewEncoder(w).Encode(userIDs)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.UserSearch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("")
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("props", err)
 		return
 	}
 
@@ -980,27 +1000,27 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
-			gErr.Where = "Api.searchUsers"
-			c.Err = gErr
+		if appErr := requireGroupAccess(c, props.InGroupId); appErr != nil {
+			appErr.Where = "Api.searchUsers"
+			c.Err = appErr
 			return
 		}
 	}
 
 	if props.NotInGroupId != "" {
-		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
-			gErr.Where = "Api.searchUsers"
-			c.Err = gErr
+		if appErr := requireGroupAccess(c, props.NotInGroupId); appErr != nil {
+			appErr.Where = "Api.searchUsers"
+			c.Err = appErr
 			return
 		}
 	}
 
-	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
+	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.InChannelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
-	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel) {
+	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), props.NotInChannelId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -1039,21 +1059,21 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
-	options, err := c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
-	if err != nil {
-		c.Err = err
+	options, appErr := c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	profiles, err := c.App.SearchUsers(&props, options)
-	if err != nil {
-		c.Err = err
+	profiles, appErr := c.App.SearchUsers(&props, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1086,7 +1106,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channelId != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -1147,7 +1167,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1159,7 +1179,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1188,7 +1208,9 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", ouser)
+	auditRec.AddEventParameter("user", user)
+	auditRec.AddEventPriorState(ouser)
+	auditRec.AddEventObjectType("user")
 
 	if c.AppContext.Session().IsOAuth {
 		if ouser.Email != user.Email {
@@ -1203,7 +1225,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+			map[string]any{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
@@ -1216,18 +1238,18 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.UpdateUserAsUser(&user, c.IsSystemAdmin())
+	ruser, err := c.App.UpdateUserAsUser(c.AppContext, &user, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", ruser)
+	auditRec.AddEventResultState(ruser)
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1239,11 +1261,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.UserPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
+	auditRec.AddEventParameter("user_patch", patch.Auditable())
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
@@ -1256,7 +1279,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user_id")
 		return
 	}
-	auditRec.AddMeta("user", ouser)
+	auditRec.AddEventPriorState(ouser)
+	auditRec.AddEventObjectType("user")
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -1276,7 +1300,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
+			map[string]any{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
@@ -1293,7 +1317,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.PatchUser(c.Params.UserId, &patch, c.IsSystemAdmin())
+	ruser, err := c.App.PatchUser(c.AppContext, c.Params.UserId, &patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1302,11 +1326,11 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
 
 	auditRec.Success()
-	auditRec.AddMeta("patch", ruser)
+	auditRec.AddEventResultState(ruser)
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1319,6 +1343,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.Params.UserId
 
 	auditRec := c.MakeAuditRecord("deleteUser", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userId) {
@@ -1337,7 +1362,8 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventObjectType("user")
 
 	// Cannot update a system admin unless user making request is a systemadmin also
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -1390,22 +1416,23 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
+	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("roles", newRoles)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageRoles) {
 		c.SetPermissionError(model.PermissionManageRoles)
 		return
 	}
 
-	user, err := c.App.UpdateUserRoles(c.Params.UserId, newRoles, true)
+	user, err := c.App.UpdateUserRoles(c.AppContext, c.Params.UserId, newRoles, true)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventResultState(user)
+	auditRec.AddEventObjectType("user")
 	c.LogAudit(fmt.Sprintf("user=%s roles=%s", c.Params.UserId, newRoles))
 
 	ReturnStatusOK(w)
@@ -1427,7 +1454,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updateUserActive", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("active", active)
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventParameter("active", active)
 
 	// true when you're trying to de-activate yourself
 	isSelfDeactivate := !active && c.Params.UserId == c.AppContext.Session().UserId
@@ -1448,7 +1476,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventObjectType("user")
 
 	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -1497,9 +1526,11 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
+
+	auditRec.AddEventParameter("user_auth", userAuth.Auditable())
 
 	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
 		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
@@ -1507,7 +1538,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+		auditRec.AddEventPriorState(user)
 	}
 
 	user, err := c.App.UpdateUserAuth(c.Params.UserId, &userAuth)
@@ -1515,13 +1546,14 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddEventResultState(user)
 
 	auditRec.Success()
 	auditRec.AddMeta("auth_service", user.AuthService)
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1567,7 +1599,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if err := c.App.UpdateMfa(activate, c.Params.UserId, code); err != nil {
+	if err := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
 		c.Err = err
 		return
 	}
@@ -1606,7 +1638,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	if err := json.NewEncoder(w).Encode(secret); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1654,9 +1686,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+			err = c.App.UpdatePasswordAsUser(c.AppContext, c.Params.UserId, currentPassword, newPassword)
 		} else if canUpdatePassword {
-			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.AppContext, c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		}
@@ -1690,7 +1722,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("token", token)
 	c.LogAudit("attempt - token=" + token)
 
-	if err := c.App.ResetPasswordFromToken(token, newPassword); err != nil {
+	if err := c.App.ResetPasswordFromToken(c.AppContext, token, newPassword); err != nil {
 		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
@@ -1714,7 +1746,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("sendPasswordReset", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("email", email)
+	auditRec.AddEventParameter("props", props)
 
 	sent, err := c.App.SendPasswordReset(email, c.App.GetSiteURL())
 	if err != nil {
@@ -1806,7 +1838,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
-		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
+		c.Logger.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
 		if certPem == "" || certEmail == "" {
 			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
@@ -1821,8 +1853,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("login", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("login_id", loginId)
-	auditRec.AddMeta("device_id", deviceId)
+	auditRec.AddEventParameter("login_id", loginId)
+	auditRec.AddEventParameter("device_id", deviceId)
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
@@ -1859,11 +1891,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
-	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
-	}
-
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
@@ -1879,7 +1906,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1904,7 +1931,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("login", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("login_id", loginID)
+	auditRec.AddEventParameter("login_id", loginID)
 	user, err := c.App.AuthenticateUserForLogin(c.AppContext, "", loginID, "", "", token, false)
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
@@ -1957,9 +1984,9 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := c.App.GetSessions(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	sessions, appErr := c.App.GetSessions(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1967,11 +1994,12 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		session.Sanitize()
 	}
 
-	js, jsonErr := json.Marshal(sessions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(sessions)
+	if err != nil {
+		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -2001,7 +2029,10 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("session", session)
+
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventPriorState(session)
+	auditRec.AddEventObjectType("session")
 
 	if session.UserId != c.Params.UserId {
 		c.SetInvalidURLParam("user_id")
@@ -2027,7 +2058,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("revokeAllSessionsForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -2076,7 +2107,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("attachDeviceId", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("device_id", deviceId)
+	auditRec.AddEventParameter("props", props)
 
 	// A special case where we logout of all other sessions with the same device id
 	if err := c.App.RevokeSessionsForDeviceId(c.AppContext.Session().UserId, deviceId, c.AppContext.Session().Id); err != nil {
@@ -2085,9 +2116,9 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.AppContext.Session().UserId)
-	c.App.SetSessionExpireInDays(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInHours(c.AppContext.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInHours)
 
-	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+	maxAgeSeconds := *c.App.Config().ServiceSettings.SessionLengthMobileInHours * 60 * 60
 
 	secure := false
 	if app.GetProtocol(r) == "https" {
@@ -2096,12 +2127,12 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.AppContext.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAge,
+		MaxAge:   maxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   c.App.GetCookieDomain(),
@@ -2128,6 +2159,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("getUserAudits", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -2150,7 +2182,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2166,7 +2198,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("verifyUserEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.VerifyEmailFromToken(token); err != nil {
+	if err := c.App.VerifyEmailFromToken(c.AppContext, token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -2190,7 +2222,8 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("email", email)
+	auditRec.AddEventParameter("props", props)
+	auditRec.AddEventParameter("r", redirect)
 
 	user, err := c.App.GetUserForLogin("", email)
 	if err != nil {
@@ -2214,15 +2247,13 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var switchRequest model.SwitchRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
-		c.SetInvalidParam("switch_request")
+		c.SetInvalidParamWithErr("switch_request", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("switchAccountType", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("email", switchRequest.Email)
-	auditRec.AddMeta("new_service", switchRequest.NewService)
-	auditRec.AddMeta("old_service", switchRequest.CurrentService)
+	auditRec.AddEventParameter("switch_request", switchRequest)
 
 	link := ""
 	var err *model.AppError
@@ -2263,6 +2294,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createUserAccessToken", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
@@ -2277,7 +2309,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var accessToken model.UserAccessToken
 	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
-		c.SetInvalidParam("user_access_token")
+		c.SetInvalidParamWithErr("user_access_token", jsonErr)
 		return
 	}
 
@@ -2312,7 +2344,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success - token_id=" + token.Id)
 
 	if err := json.NewEncoder(w).Encode(token); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2323,8 +2355,8 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var props model.UserAccessTokenSearch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("user_access_token_search")
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("user_access_token_search", err)
 		return
 	}
 
@@ -2333,15 +2365,15 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	accessTokens, err := c.App.SearchUserAccessTokens(props.Term)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.SearchUserAccessTokens(props.Term)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2354,15 +2386,15 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokens, err := c.App.GetUserAccessTokens(c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.GetUserAccessTokens(c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2385,15 +2417,15 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	accessTokens, err := c.App.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2411,9 +2443,9 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := c.App.GetUserAccessToken(c.Params.TokenId, true)
-	if err != nil {
-		c.Err = err
+	accessToken, appErr := c.App.GetUserAccessToken(c.Params.TokenId, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2423,7 +2455,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2437,7 +2469,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("revokeUserAccessToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("token_id", tokenId)
+	auditRec.AddEventParameter("props", props)
 	c.LogAudit("")
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRevokeUserAccessToken) {
@@ -2480,8 +2512,8 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("disableUserAccessToken", audit.Fail)
+	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("token_id", tokenId)
 	c.LogAudit("")
 
 	// No separate permission for this action for now
@@ -2526,7 +2558,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("enableUserAccessToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("token_id", tokenId)
+	auditRec.AddEventParameter("props", props)
 	c.LogAudit("")
 
 	// No separate permission for this action for now
@@ -2578,8 +2610,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("terms_id", termsOfServiceId)
-	auditRec.AddMeta("accepted", accepted)
+	auditRec.AddEventParameter("props", props)
 
 	if user, err := c.App.GetUser(userId); err == nil {
 		auditRec.AddMeta("user", user)
@@ -2609,7 +2640,7 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(result); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2621,6 +2652,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("promoteGuestToUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPromoteGuest) {
 		c.SetPermissionError(model.PermissionPromoteGuest)
@@ -2665,6 +2697,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDemoteToGuest) {
@@ -2690,7 +2723,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DemoteUserToGuest(user); err != nil {
+	if err := c.App.DemoteUserToGuest(c.AppContext, user); err != nil {
 		c.Err = err
 		return
 	}
@@ -2707,7 +2740,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var typingRequest model.TypingRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
-		c.SetInvalidParam("typing_request")
+		c.SetInvalidParamWithErr("typing_request", jsonErr)
 		return
 	}
 
@@ -2716,7 +2749,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.HasPermissionToChannel(c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
+	if !c.App.HasPermissionToChannel(c.AppContext, c.Params.UserId, typingRequest.ChannelId, model.PermissionCreatePost) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
@@ -2742,6 +2775,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	auditRec := c.MakeAuditRecord("verifyUserEmailWithoutToken", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", user.Id)
 
@@ -2759,7 +2793,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2769,13 +2803,14 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("convertUserToBot", audit.Fail)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user", user)
 
@@ -2784,17 +2819,19 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.ConvertUserToBot(user)
-	if err != nil {
-		c.Err = err
+	bot, appErr := c.App.ConvertUserToBot(user)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	auditRec.AddMeta("convertedTo", bot)
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventResultState(bot)
+	auditRec.AddEventObjectType("bot")
 
-	js, jsonErr := json.Marshal(bot)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(bot)
+	if err != nil {
+		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2814,15 +2851,15 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	uss, appErr := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(uss)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(uss)
+	if err != nil {
+		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)
@@ -2839,14 +2876,14 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2876,9 +2913,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("from", from)
-	auditRec.AddMeta("match_field", matchField)
-	auditRec.AddMeta("force", force)
+	auditRec.AddEventParameter("props", props)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -2926,7 +2961,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("auto")
 		return
 	}
-	matches, ok := props["matches"].(map[string]interface{})
+	matches, ok := props["matches"].(map[string]any)
 	if !ok {
 		c.SetInvalidParam("matches")
 		return
@@ -2935,9 +2970,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("from", from)
-	auditRec.AddMeta("matches", matches)
-	auditRec.AddMeta("auto", auto)
+	auditRec.AddEventParameter("props", props)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
@@ -2993,7 +3026,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3064,7 +3097,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3076,23 +3109,23 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 
 	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
-	auditRec.AddMeta("timestamp", c.Params.Timestamp)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("thread_id", c.Params.ThreadId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("timestamp", c.Params.Timestamp)
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	thread, err := c.App.UpdateThreadReadForUser(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.AppContext, c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3106,10 +3139,10 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec := c.MakeAuditRecord("setUnreadThreadByPostId", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
-	auditRec.AddMeta("post_id", c.Params.PostId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("thread_id", c.Params.ThreadId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("post_id", c.Params.PostId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -3121,14 +3154,14 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	thread, err := c.App.UpdateThreadReadForUserByPost(c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.PostId)
+	thread, err := c.App.UpdateThreadReadForUserByPost(c.AppContext, c.AppContext.Session().Id, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3142,17 +3175,12 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unfollowThreadByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("thread_id", c.Params.ThreadId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3175,9 +3203,9 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("followThreadByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("thread_id", c.Params.ThreadId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -3207,8 +3235,8 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("team_id", c.Params.TeamId)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventParameter("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
@@ -3236,12 +3264,36 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	users, appErr := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	err := json.NewEncoder(w).Encode(users)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	searchParams, err := c.App.GetRecentSearchesForUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	b, _ := json.Marshal(users)
-	w.Write(b)
+	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -199,7 +199,7 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 	return nil
 }
 
-func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []any, err error) {
 	if len(userIds) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
@@ -631,7 +631,7 @@ func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, sync
 
 func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	var err error
-	var result interface{}
+	var result any
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
@@ -1740,6 +1740,26 @@ func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
 }
 
+func (s *SqlGroupStore) DistinctGroupMemberCountForSource(source model.GroupSource) (int64, error) {
+	builder := s.getQueryBuilder().
+		Select("COUNT(DISTINCT GroupMembers.UserId)").
+		From("GroupMembers").
+		Join("UserGroups ON GroupMembers.GroupId = UserGroups.Id").
+		Where(sq.Eq{"UserGroups.Source": source, "GroupMembers.DeleteAt": 0})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "distinct_group_member_count_for_source_tosql")
+	}
+
+	var count int64
+	if err = s.GetReplicaX().Get(&count, query, args...); err != nil {
+		return 0, errors.Wrapf(err, "failed to select distinct groupmember count for source %q", source)
+	}
+
+	return count, nil
+}
+
 func (s *SqlGroupStore) GroupCountWithAllowReference() (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"AllowReference": true, "DeleteAt": 0})
 }
@@ -1748,7 +1768,7 @@ func (s *SqlGroupStore) countTable(tableName string) (int64, error) {
 	return s.countTableWithSelectAndWhere("COUNT(*)", tableName, nil)
 }
 
-func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]interface{}) (int64, error) {
+func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]any) (int64, error) {
 	if whereStmt == nil {
 		whereStmt = sq.Eq{"DeleteAt": 0}
 	}
@@ -1782,7 +1802,7 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*mode
 	return members, err
 }
 
-func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []any, err error) {
 	var retrievedGroup model.Group
 	// Check Group exists
 	if err = s.GetReplicaX().Get(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
@@ -1834,7 +1854,7 @@ func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*mode
 	return members, err
 }
 
-func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []interface{}, err error) {
+func (s *SqlGroupStore) buildDeleteMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, query string, args []any, err error) {
 	membersSelectQuery, membersSelectArgs, err := s.getQueryBuilder().
 		Select("*").
 		From("GroupMembers").

@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -68,7 +67,7 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
+	result, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
@@ -128,27 +127,30 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestStopOnError(t *testing.T) {
-	assert.True(t, stopOnError(LineImportWorkerError{
+	th := Setup(t)
+	defer th.TearDown()
+
+	assert.True(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.True(t, stopOnError(LineImportWorkerError{
+	assert.True(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
@@ -439,7 +441,7 @@ func BenchmarkBulkImport(b *testing.B) {
 	info, err := importFile.Stat()
 	require.NoError(b, err)
 
-	dir, err := ioutil.TempDir("", "testimport")
+	dir, err := os.MkdirTemp("", "testimport")
 	require.NoError(b, err)
 	defer os.RemoveAll(dir)
 

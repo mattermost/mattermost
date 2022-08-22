@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -44,7 +44,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	}
 
 	if me.IsBinaryParamEnabled() {
-		jsonProps = me.AppendBinaryFlag(jsonProps)
+		jsonProps = AppendBinaryFlag(jsonProps)
 	}
 
 	query, args, err := me.getQueryBuilder().
@@ -59,7 +59,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -87,7 +87,7 @@ func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*mo
 
 	tempMembers, err := me.Team().GetTeamsForUser(
 		WithMaster(context.Background()),
-		session.UserId)
+		session.UserId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -107,7 +107,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId, "", true)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}
@@ -268,7 +268,7 @@ func (me SqlSessionStore) UpdateProps(session *model.Session) error {
 		return errors.Wrap(err, "failed marshalling session props")
 	}
 	if me.IsBinaryParamEnabled() {
-		jsonProps = me.AppendBinaryFlag(jsonProps)
+		jsonProps = AppendBinaryFlag(jsonProps)
 	}
 	query, args, err := me.getQueryBuilder().
 		Update("Sessions").

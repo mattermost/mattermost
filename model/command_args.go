@@ -24,6 +24,19 @@ type CommandArgs struct {
 	Session Session `json:"-"`
 }
 
+func (o *CommandArgs) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":    o.UserId,
+		"channel_id": o.ChannelId,
+		"team_id":    o.TeamId,
+		"root_id":    o.RootId,
+		"parent_id":  o.ParentId,
+		"trigger_id": o.TriggerId,
+		"command":    o.Command,
+		"site_url":   o.SiteURL,
+	}
+}
+
 // AddUserMention adds or overrides an entry in UserMentions with name username
 // and identifier userId
 func (o *CommandArgs) AddUserMention(username, userId string) {

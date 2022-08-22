@@ -16,11 +16,11 @@ func TestStringify(t *testing.T) {
 		assert.Empty(t, strings)
 	})
 	t.Run("EmptyShouldReturnEmpty", func(t *testing.T) {
-		strings := stringify(make([]interface{}, 0))
+		strings := stringify(make([]any, 0))
 		assert.Empty(t, strings)
 	})
 	t.Run("PrimitivesAndCompositesShouldReturnCorrectValues", func(t *testing.T) {
-		strings := stringify([]interface{}{
+		strings := stringify([]any{
 			1234,
 			3.14159265358979323846264338327950288419716939937510,
 			true,
@@ -46,7 +46,7 @@ func TestStringify(t *testing.T) {
 		}, strings)
 	})
 	t.Run("ErrorShouldReturnFormattedStack", func(t *testing.T) {
-		strings := stringify([]interface{}{
+		strings := stringify([]any{
 			errors.New("error"),
 			errors.WithStack(errors.New("error")),
 		})
@@ -89,6 +89,6 @@ func TestToObjects(t *testing.T) {
 	})
 	t.Run("ShouldReturnSliceOfObjects", func(t *testing.T) {
 		objects := toObjects([]string{"foo", "bar"})
-		assert.Equal(t, []interface{}{"foo", "bar"}, objects)
+		assert.Equal(t, []any{"foo", "bar"}, objects)
 	})
 }

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -29,9 +28,9 @@ import (
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
-	pluginDir, err := ioutil.TempDir("", "")
+	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	webappPluginDir, err := ioutil.TempDir("", "")
+	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
 	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
@@ -45,7 +44,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		_, _, activationErr := env.Activate(pluginID)
 		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
@@ -462,15 +461,12 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(th.Context,
-			"noteam",
+		_, err := th.App.UploadFile(th.Context,
+			[]byte("inputfile"),
 			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+			"testhook.txt",
 		)
+
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
 		}
@@ -515,15 +511,12 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(th.Context,
-			"noteam",
+		_, err := th.App.UploadFile(th.Context,
+			[]byte("inputfile"),
 			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+			"testhook.txt",
 		)
+
 		if assert.NotNil(t, err) {
 			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
 		}
@@ -562,20 +555,16 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(th.Context,
-			"noteam",
+		response, err := th.App.UploadFile(th.Context,
+			[]byte("inputfile"),
 			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+			"testhook.txt",
 		)
+
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
-		assert.Equal(t, 1, len(response.FileInfos))
 
-		fileID := response.FileInfos[0].Id
+		fileID := response.Id
 		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
@@ -638,19 +627,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(th.Context,
-			"noteam",
+		response, err := th.App.UploadFile(th.Context,
+			[]byte("inputfile"),
 			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+			"testhook.txt",
 		)
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
-		assert.Equal(t, 1, len(response.FileInfos))
-		fileID := response.FileInfos[0].Id
+		fileID := response.Id
 
 		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
@@ -885,7 +869,7 @@ func TestErrorString(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				return model.NewAppError("where", "id", map[string]interface{}{"param": 1}, "details", 42)
+				return model.NewAppError("where", "id", map[string]any{"param": 1}, "details", 42)
 			}
 
 			func main() {
@@ -912,6 +896,7 @@ func TestHookContext(t *testing.T) {
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API
@@ -1038,9 +1023,9 @@ func TestHookMetrics(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
 
-		pluginDir, err := ioutil.TempDir("", "")
+		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
-		webappPluginDir, err := ioutil.TempDir("", "")
+		webappPluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
@@ -1083,7 +1068,7 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating
 		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()
@@ -1299,6 +1284,50 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 		hookCalled = true
 		return hookCalled
 	}, plugin.OnSendDailyTelemetryID)
+
+	require.True(t, hookCalled)
+}
+
+func TestHookOnCloudLimitsUpdated(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/model"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnCloudLimitsUpdated(_ *model.ProductLimits) {
+			return
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	hookCalled := false
+	th.App.GetPluginsEnvironment().RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		hooks.OnCloudLimitsUpdated(nil)
+
+		hookCalled = true
+		return hookCalled
+	}, plugin.OnCloudLimitsUpdatedID)
 
 	require.True(t, hookCalled)
 }

@@ -87,19 +87,19 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 	return appliedConfig
 }
 
-// generateEnvironmentMap creates a map[string]interface{} containing true at the leaves mirroring the
+// generateEnvironmentMap creates a map[string]any containing true at the leaves mirroring the
 // configuration structure so the client can know which env variables are overridden
-func generateEnvironmentMap(env map[string]string, filter func(reflect.StructField) bool) map[string]interface{} {
+func generateEnvironmentMap(env map[string]string, filter func(reflect.StructField) bool) map[string]any {
 	rType := reflect.TypeOf(model.Config{})
 	return generateEnvironmentMapWithBaseKey(env, rType, "MM", filter)
 }
 
-func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type, base string, filter func(reflect.StructField) bool) map[string]interface{} {
+func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type, base string, filter func(reflect.StructField) bool) map[string]any {
 	if rType.Kind() != reflect.Struct {
 		return nil
 	}
 
-	mapRepresentation := make(map[string]interface{})
+	mapRepresentation := make(map[string]any)
 	for i := 0; i < rType.NumField(); i++ {
 		rField := rType.Field(i)
 		if filter != nil && !filter(rField) {
@@ -126,7 +126,7 @@ func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type
 // removeEnvOverrides returns a new config without the given environment overrides.
 // If a config variable has an environment override, that variable is set to the value that was
 // read from the store.
-func removeEnvOverrides(cfg, cfgWithoutEnv *model.Config, envOverrides map[string]interface{}) *model.Config {
+func removeEnvOverrides(cfg, cfgWithoutEnv *model.Config, envOverrides map[string]any) *model.Config {
 	paths := getPaths(envOverrides)
 	newCfg := cfg.Clone()
 	for _, path := range paths {
@@ -142,13 +142,13 @@ func removeEnvOverrides(cfg, cfgWithoutEnv *model.Config, envOverrides map[strin
 // getPaths turns a nested map into a slice of paths describing the keys of the map. Eg:
 // map[string]map[string]map[string]bool{"this":{"is first":{"path":true}, "is second":{"path":true}))) is turned into:
 // [][]string{{"this", "is first", "path"}, {"this", "is second", "path"}}
-func getPaths(m map[string]interface{}) [][]string {
+func getPaths(m map[string]any) [][]string {
 	return getPathsRec(m, nil)
 }
 
 // getPathsRec assembles the paths (see `getPaths` above)
-func getPathsRec(src interface{}, curPath []string) [][]string {
-	if srcMap, ok := src.(map[string]interface{}); ok {
+func getPathsRec(src any, curPath []string) [][]string {
+	if srcMap, ok := src.(map[string]any); ok {
 		paths := [][]string{}
 		for k, v := range srcMap {
 			paths = append(paths, getPathsRec(v, append(curPath, k))...)
@@ -161,10 +161,10 @@ func getPathsRec(src interface{}, curPath []string) [][]string {
 
 // getVal walks `src` (here it starts with a model.Config, then recurses into its leaves)
 // and returns the reflect.Value of the leaf at the end `path`
-func getVal(src interface{}, path []string) reflect.Value {
+func getVal(src any, path []string) reflect.Value {
 	var val reflect.Value
 
-	// If we recursed on a Value, we already have it. If we're calling on an interface{}, get the Value.
+	// If we recursed on a Value, we already have it. If we're calling on an any, get the Value.
 	switch v := src.(type) {
 	case reflect.Value:
 		val = v

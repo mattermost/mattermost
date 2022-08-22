@@ -25,13 +25,13 @@ const (
 	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
 )
 
-func stopOnError(err LineImportWorkerError) bool {
+func stopOnError(c request.CTX, err LineImportWorkerError) bool {
 	switch err.Error.Id {
 	case "api.file.upload_file.large_image.app_error":
-		mlog.Warn("Large image import error", mlog.Err(err.Error))
+		c.Logger().Warn("Large image import error", mlog.Err(err.Error))
 		return false
 	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
-		mlog.Warn("Invalid direct channel import data", mlog.Err(err.Error))
+		c.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
 	default:
 		return true
@@ -108,7 +108,7 @@ func processAttachments(line *LineImportData, basePath string, filesMap map[stri
 	return nil
 }
 
-func (a *App) bulkImportWorker(c *request.Context, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	postLines := []LineImportWorkerData{}
 	directPostLines := []LineImportWorkerData{}
 	for line := range lines {
@@ -167,7 +167,7 @@ func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, atta
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -196,11 +196,11 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
 		}
 
 		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.process_attachments.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
 		}
 
 		if lineNumber == 1 {
@@ -226,7 +226,7 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					if stopOnError(err) {
+					if stopOnError(c, err) {
 						return err.Error, err.LineNumber
 					}
 				}
@@ -244,7 +244,7 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
 		case err := <-errorsChan:
-			if stopOnError(err) {
+			if stopOnError(c, err) {
 				close(linesChan)
 				wg.Wait()
 				return err.Error, err.LineNumber
@@ -261,13 +261,13 @@ func (a *App) bulkImport(c *request.Context, jsonlReader io.Reader, attachmentsR
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		if stopOnError(err) {
+		if stopOnError(c, err) {
 			return err.Error, err.LineNumber
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
+		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err), 0
 	}
 
 	return nil, 0
@@ -281,7 +281,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(c request.CTX, line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
@@ -302,19 +302,19 @@ func (a *App) importLine(c *request.Context, line LineImportData, dryRun bool) *
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(line.User, dryRun)
+		return a.importUser(c, line.User, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importDirectChannel(line.DirectChannel, dryRun)
+		return a.importDirectChannel(c, line.DirectChannel, dryRun)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
 		return a.importEmoji(line.Emoji, dryRun)
 	default:
-		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
+		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}
 }
 

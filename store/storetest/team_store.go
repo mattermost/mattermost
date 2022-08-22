@@ -73,6 +73,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
+	t.Run("GetNewTeamMembersSince", func(t *testing.T) { testGetNewTeamMembersSince(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1318,7 +1319,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
 	ctx := context.Background()
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1347,14 +1348,30 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, uid)
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
 	require.NoError(t, err)
 	require.Len(t, ms, 2)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, teamId2, true)
+	require.NoError(t, err)
+	require.Len(t, ms, 1)
+
+	m4.DeleteAt = model.GetMillis()
+	_, err = ss.Team().UpdateMember(m4)
+	require.NoError(t, err)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", true)
+	require.NoError(t, err)
+	require.Len(t, ms, 2)
+
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid, "", false)
+	require.NoError(t, err)
+	require.Len(t, ms, 1)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.NoError(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId, "", true)
 	require.NoError(t, err)
 	require.Empty(t, ms)
 }
@@ -1369,7 +1386,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
@@ -1710,7 +1727,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members in one team", func(t *testing.T) {
@@ -3601,4 +3618,18 @@ func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Team().GroupSyncedTeamCount()
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
+}
+
+func testGetNewTeamMembersSince(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName:      NewTestId(),
+		Name:             NewTestId(),
+		Email:            MakeEmail(),
+		Type:             model.TeamInvite,
+		GroupConstrained: model.NewBool(true),
+	})
+	require.NoError(t, err)
+
+	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000)
+	require.NoError(t, err)
 }
