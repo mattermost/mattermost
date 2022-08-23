@@ -46,7 +46,6 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 	ps := &PlatformService{
 		serviceConfig: sc,
 		configStore:   sc.ConfigStore,
-		logger:        sc.Logger,
 		cluster:       sc.Cluster,
 	}
 

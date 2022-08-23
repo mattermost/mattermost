@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/config"
@@ -19,9 +20,23 @@ func (ps *PlatformService) ReconfigureLogger() error {
 
 // initLogging initializes and configures the logger(s). This may be called more than once.
 func (ps *PlatformService) initLogging() error {
-	var err error
 	// create the app logger if needed
 	if ps.logger == nil {
+		var err error
+		ps.logger, err = mlog.NewLogger()
+		if err != nil {
+			return err
+		}
+
+		logCfg, err := config.MloggerConfigFromLoggerConfig(&ps.Config().LogSettings, nil, config.GetLogFileLocation)
+		if err != nil {
+			return err
+		}
+
+		if errCfg := ps.logger.ConfigureTargets(logCfg, nil); errCfg != nil {
+			return fmt.Errorf("failed to configure test logger: %w", errCfg)
+		}
+
 		ps.logger, err = mlog.NewLogger()
 		if err != nil {
 			return err
@@ -59,6 +74,7 @@ func (ps *PlatformService) initLogging() error {
 			return err
 		}
 	}
+
 	return nil
 }
 
