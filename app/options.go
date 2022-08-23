@@ -129,9 +129,11 @@ func StartSearchEngine(s *Server) error {
 // If not, logger should be set after platform service are initialized.
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
-		if s.platform != nil {
-			s.platform.SetLogger(logger)
+		if s.platform == nil {
+			return errors.New("platform service is not initialized")
 		}
+
+		s.platform.SetLogger(logger)
 		return nil
 	}
 }
