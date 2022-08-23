@@ -160,7 +160,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.1.0
+PLUGIN_PACKAGES += focalboard-v7.2.0
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -412,7 +412,7 @@ endif
 setup-go-work: export BUILD_ENTERPRISE_READY := $(BUILD_ENTERPRISE_READY)
 setup-go-work: export BUILD_BOARDS := $(BUILD_BOARDS)
 setup-go-work: ## Sets up your go.work file
-	./scripts/setup_go_work.sh
+	./scripts/setup_go_work.sh $(IGNORE_GO_WORK_IF_EXISTS)
 
 check-style: golangci-lint plugin-checker vet ## Runs style/lint checks
 

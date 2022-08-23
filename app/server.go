@@ -1628,7 +1628,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
 	if appErr != nil {
-		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	// we want to at least have one email sent out to an admin
@@ -1735,7 +1735,7 @@ func (s *Server) doLicenseExpirationCheck() {
 func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale, siteURL string) *model.AppError {
 
 	if err := s.EmailService.SendRemoveExpiredLicenseEmail(renewalLink, email, locale, siteURL); err != nil {
-		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -2049,11 +2049,11 @@ func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppErr
 	if err != nil {
 		switch {
 		case errors.Is(err, users.DefaultFontError):
-			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		case errors.Is(err, users.UserInitialsError):
-			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -2063,7 +2063,7 @@ func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppErr
 func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	result, nErr := s.FileBackend().ReadFile(path)
 	if nErr != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
@@ -2074,12 +2074,12 @@ func withMut(mut *sync.Mutex, f func()) {
 	f()
 }
 
-func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
+func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	mut.Lock()
 	defer mut.Unlock()
-	if task != nil {
-		task.Cancel()
-		task = nil
+	if *taskPointer != nil {
+		(*taskPointer).Cancel()
+		*taskPointer = nil
 	}
 }
 
@@ -2096,7 +2096,7 @@ func runDNDStatusExpireJob(a *App) {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
 			})
 		} else {
-			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
+			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
 }
@@ -2114,7 +2114,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
 			})
 		} else {
-			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
+			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
 }
@@ -2122,7 +2122,7 @@ func runPostReminderJob(a *App) {
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
 	table, err := a.Srv().Store.GetAppliedMigrations()
 	if err != nil {
-		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return table, nil
 }

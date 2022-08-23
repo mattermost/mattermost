@@ -50,7 +50,7 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, errCh.Error(), http.StatusBadRequest)
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
 		return nil, err
 	}
 
@@ -101,9 +101,9 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -144,7 +144,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	// client, making the API call feel idempotent.
 	actualPost, err := a.GetSinglePost(postID, false)
 	if err != nil {
-		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	mlog.Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
@@ -193,9 +193,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreatePost", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("CreatePost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -300,9 +300,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("CreatePost", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreatePost", "app.post.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -397,7 +397,7 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 		post.FileIds = attachedIds
 
 		if _, err := a.Srv().Store.Post().Overwrite(post); err != nil {
-			return model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -416,7 +416,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 		if channel == nil {
 			postChannel, err := a.Srv().Store.Channel().GetForPost(post.Id)
 			if err != nil {
-				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(err)
 			}
 			channel = postChannel
 		}
@@ -573,11 +573,11 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdatePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 	oldPost := postLists.Posts[post.Id]
@@ -662,7 +662,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -687,13 +687,13 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	rpost, nErr = a.addPostPreviewProp(rpost)
 	if nErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil)
 	postJSON, jsonErr := rpost.ToJSON()
 	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("post", postJSON)
 
@@ -808,9 +808,9 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsPage", "app.post.get_posts.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPostsPage", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostsPage", "app.post.get_root_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPostsPage", "app.post.get_root_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -828,9 +828,9 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPosts", "app.post.get_posts.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPosts", "app.post.get_posts.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPosts", "app.post.get_root_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPosts", "app.post.get_root_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -848,7 +848,7 @@ func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPostsSince(options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
-		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
@@ -864,9 +864,9 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -888,11 +888,11 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPostThread", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -914,7 +914,7 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
@@ -927,7 +927,7 @@ func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.Post
 func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
@@ -940,7 +940,7 @@ func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit in
 func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
@@ -957,11 +957,11 @@ func (a *App) GetPermalinkPost(c request.CTX, postID string, userID string) (*mo
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPermalinkPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -992,9 +992,9 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1020,9 +1020,9 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1056,9 +1056,9 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1081,7 +1081,7 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store.Post().GetPostAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
-		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return post, nil
@@ -1090,7 +1090,7 @@ func (a *App) GetPostAfterTime(channelID string, time int64, collapsedThreads bo
 func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store.Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
 	if err != nil {
-		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return postID, nil
@@ -1099,7 +1099,7 @@ func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads 
 func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
 	postID, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelID, time, collapsedThreads)
 	if err != nil {
-		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return postID, nil
@@ -1205,12 +1205,17 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 	}
 	// Reset order to only include the last unread post: if the thread appears in the centre
 	// channel organically, those replies will be added below.
-	postList.Order = []string{lastUnreadPostId}
+	postList.Order = []string{}
+	// Add lastUnreadPostId in order, only if it hasn't been filtered as per the cloud plan's limit
+	if _, ok := postList.Posts[lastUnreadPostId]; ok {
+		postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
-		return nil, err
-	} else if postListBefore != nil {
-		postList.Extend(postListBefore)
+		// BeforePosts will only be accessible if the lastUnreadPostId is itself accessible
+		if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+			return nil, err
+		} else if postListBefore != nil {
+			postList.Extend(postListBefore)
+		}
 	}
 
 	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
@@ -1226,7 +1231,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store.Post().GetSingle(postID, false)
 	if err != nil {
-		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	channel, appErr := a.GetChannel(c, post.ChannelId)
@@ -1244,7 +1249,7 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, "", http.StatusNotFound).Wrap(nfErr)
+			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1565,9 +1570,9 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result.NErr, &nfErr):
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
 			default:
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
 		post := result.Data.(*model.Post)
@@ -1586,7 +1591,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
-		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
@@ -1665,7 +1670,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
 	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	count := 0
@@ -1692,7 +1697,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
 	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	for _, p := range posts {
@@ -1719,7 +1724,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		// In a DM channel, every post made by the other user is a mention
 		count, countRoot, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
-			return 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
 		return count, countRoot, nil
@@ -1888,9 +1893,9 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, 0, model.NewAppError("GetPostsByIds", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1909,11 +1914,11 @@ func (a *App) GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, op
 
 	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topThreadsWithEmbedAndImage, nil
 }
@@ -1925,13 +1930,24 @@ func (a *App) GetTopThreadsForUserSince(c request.CTX, teamID, userID string, op
 
 	topThreads, err := a.Srv().Store.Thread().GetTopThreadsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.post.get_top_threads_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	topThreadsWithEmbedAndImage, err := includeEmbedsAndImages(a, c, topThreads, userID)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.post.get_top_threads_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topThreadsWithEmbedAndImage, nil
+}
+
+func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*model.TopDMList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopDMsForUserSince", "app.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	topDMs, err := a.Srv().Store.Post().GetTopDMsForUserSince(userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopDMsForUserSince", "app.post.get_top_dms_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return topDMs, nil
 }
 
 func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
@@ -1943,12 +1959,12 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	}
 	err := a.Srv().Store.Post().SetPostReminder(reminder)
 	if err != nil {
-		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
 	if err != nil {
-		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetPostReminder", "app.post_reminder.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	parsed := time.Unix(targetTime, 0).UTC().Format(time.RFC822)

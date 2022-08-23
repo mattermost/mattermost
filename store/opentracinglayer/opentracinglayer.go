@@ -6125,6 +6125,24 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string, inclDeleted bool) (*mod
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetTopDMsForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetTopDMsForUserSince(userID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.HasAutoResponsePostByUserSince")

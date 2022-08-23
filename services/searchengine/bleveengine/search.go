@@ -23,7 +23,7 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 
 	blvPost := BLVPostFromPost(post, teamId)
 	if err := b.PostIndex.Index(blvPost.Id, blvPost); err != nil {
-		return model.NewAppError("Bleveengine.IndexPost", "bleveengine.index_post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.IndexPost", "bleveengine.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -214,7 +214,7 @@ func (b *BleveEngine) SearchPosts(channels model.ChannelList, searchParams []*mo
 	search.SortBy([]string{"-CreateAt"})
 	results, err := b.PostIndex.Search(search)
 	if err != nil {
-		return nil, nil, model.NewAppError("Bleveengine.SearchPosts", "bleveengine.search_posts.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("Bleveengine.SearchPosts", "bleveengine.search_posts.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	postIds := []string{}
@@ -298,7 +298,7 @@ func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	if err := b.PostIndex.Delete(post.Id); err != nil {
-		return model.NewAppError("Bleveengine.DeletePost", "bleveengine.delete_post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.DeletePost", "bleveengine.delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -309,7 +309,7 @@ func (b *BleveEngine) IndexChannel(channel *model.Channel, userIDs, teamMemberID
 
 	blvChannel := BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
 	if err := b.ChannelIndex.Index(blvChannel.Id, blvChannel); err != nil {
-		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -381,7 +381,7 @@ func (b *BleveEngine) SearchChannels(teamId, userID, term string, isGuest bool) 
 	query.Size = model.ChannelSearchDefaultLimit
 	results, err := b.ChannelIndex.Search(query)
 	if err != nil {
-		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	channelIds := []string{}
@@ -397,7 +397,7 @@ func (b *BleveEngine) DeleteChannel(channel *model.Channel) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	if err := b.ChannelIndex.Delete(channel.Id); err != nil {
-		return model.NewAppError("Bleveengine.DeleteChannel", "bleveengine.delete_channel.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.DeleteChannel", "bleveengine.delete_channel.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -408,7 +408,7 @@ func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string
 
 	blvUser := BLVUserFromUserAndTeams(user, teamsIds, channelsIds)
 	if err := b.UserIndex.Index(blvUser.Id, blvUser); err != nil {
-		return model.NewAppError("Bleveengine.IndexUser", "bleveengine.index_user.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.IndexUser", "bleveengine.index_user.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -440,7 +440,7 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 	uchanSearch.Size = options.Limit
 	uchan, err := b.UserIndex.Search(uchanSearch)
 	if err != nil {
-		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// users not in channel
@@ -477,7 +477,7 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 	nuchanSearch.Size = options.Limit
 	nuchan, err := b.UserIndex.Search(nuchanSearch)
 	if err != nil {
-		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.nuchan.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.nuchan.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	uchanIds := []string{}
@@ -540,7 +540,7 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 	search.Size = options.Limit
 	results, err := b.UserIndex.Search(search)
 	if err != nil {
-		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	usersIds := []string{}
@@ -556,7 +556,7 @@ func (b *BleveEngine) DeleteUser(user *model.User) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	if err := b.UserIndex.Delete(user.Id); err != nil {
-		return model.NewAppError("Bleveengine.DeleteUser", "bleveengine.delete_user.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.DeleteUser", "bleveengine.delete_user.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -567,7 +567,7 @@ func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.A
 
 	blvFile := BLVFileFromFileInfo(file, channelId)
 	if err := b.FileIndex.Index(blvFile.Id, blvFile); err != nil {
-		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_file.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_file.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -768,7 +768,7 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 	search.SortBy([]string{"-CreateAt"})
 	results, err := b.FileIndex.Search(search)
 	if err != nil {
-		return nil, model.NewAppError("Bleveengine.SearchFiles", "bleveengine.search_files.error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("Bleveengine.SearchFiles", "bleveengine.search_files.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	fileIds := []string{}
@@ -785,7 +785,7 @@ func (b *BleveEngine) DeleteFile(fileID string) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	if err := b.FileIndex.Delete(fileID); err != nil {
-		return model.NewAppError("Bleveengine.DeleteFile", "bleveengine.delete_file.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.DeleteFile", "bleveengine.delete_file.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
