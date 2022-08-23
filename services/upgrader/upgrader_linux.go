@@ -257,7 +257,12 @@ func download(url string, limit int64) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.ContentLength > limit {
-		mlog.Warn("ContentLength exceeds the download limit", mlog.Int64("limit", limit), mlog.Int64("contentLength", resp.ContentLength))
+		mlog.Warn("ContentLength exceeds the download limit", mlog.String("url", url), mlog.Int64("limit", limit), mlog.Int64("contentLength", resp.ContentLength))
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		io.Copy(io.Discard, resp.Body)
+		return "", errors.Errorf("error downloading file %s: %s", url, resp.Status)
 	}
 
 	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
@@ -268,14 +273,17 @@ func download(url string, limit int64) (string, error) {
 
 	counter := &writeCounter{total: resp.ContentLength}
 	_, err = io.Copy(out, io.TeeReader(&io.LimitedReader{R: resp.Body, N: limit}, counter))
+	if err != nil {
+		return "", err
+	}
 
 	// drain the body
 	n, _ := io.Copy(io.Discard, resp.Body)
 	if n > 0 {
-		return "", errors.Errorf("download size exceeded the maximum allowed size by %d bytes", n)
+		return "", errors.Errorf("download size of %s exceeded the maximum allowed size by %d bytes", url, n)
 	}
 
-	return out.Name(), err
+	return out.Name(), nil
 }
 
 func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
