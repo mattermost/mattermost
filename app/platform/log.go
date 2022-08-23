@@ -36,11 +36,6 @@ func (ps *PlatformService) initLogging() error {
 		if errCfg := ps.logger.ConfigureTargets(logCfg, nil); errCfg != nil {
 			return fmt.Errorf("failed to configure test logger: %w", errCfg)
 		}
-
-		ps.logger, err = mlog.NewLogger()
-		if err != nil {
-			return err
-		}
 	}
 
 	// create notification logger if needed
