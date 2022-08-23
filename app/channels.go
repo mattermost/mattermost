@@ -226,6 +226,10 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 
 	services[UserKey] = &App{ch: ch}
 
+	services[PreferencesKey] = &preferencesServiceWrapper{
+		app: &App{ch: ch},
+	}
+
 	return ch, nil
 }
 
