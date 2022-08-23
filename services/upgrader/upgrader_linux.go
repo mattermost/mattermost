@@ -202,7 +202,7 @@ func UpgradeToE0() error {
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*300)
+	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*512)
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
@@ -256,6 +256,10 @@ func download(url string, limit int64) (string, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.ContentLength > limit {
+		mlog.Warn("ContentLength exceeds the download limit", mlog.Int64("limit", limit), mlog.Int64("contentLength", resp.ContentLength))
+	}
+
 	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
 	if err != nil {
 		return "", err
@@ -264,6 +268,13 @@ func download(url string, limit int64) (string, error) {
 
 	counter := &writeCounter{total: resp.ContentLength}
 	_, err = io.Copy(out, io.TeeReader(&io.LimitedReader{R: resp.Body, N: limit}, counter))
+
+	// drain the body
+	n, _ := io.Copy(io.Discard, resp.Body)
+	if n > 0 {
+		return "", errors.Errorf("download size exceeded the maximum allowed size by %d bytes", n)
+	}
+
 	return out.Name(), err
 }
 
