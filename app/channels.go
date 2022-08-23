@@ -231,7 +231,7 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 
 func (ch *Channels) Start() error {
 	// Start plugins
-	ctx := request.EmptyContext(ch.srv.GetLogger())
+	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {

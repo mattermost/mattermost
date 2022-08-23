@@ -403,7 +403,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		ClusterKey:       s.clusterWrapper,
 		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.GetLogger(),
+		LogKey:           s.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       &kvStoreWrapper{srv: s},
 		StoreKey:         store.NewStoreServiceAdapter(s.Store),
@@ -481,7 +481,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
-	s.createPushNotificationsHub(request.EmptyContext(s.GetLogger()))
+	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
 	if err2 := i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -659,7 +659,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.platform.AddConfigListener(func(old, new *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
 		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
-			c := request.EmptyContext(s.GetLogger())
+			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
@@ -669,7 +669,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.platform.Config().GuestAccountsSettings.Enable {
 		appInstance := New(ServerConnector(s.Channels()))
-		c := request.EmptyContext(s.GetLogger())
+		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
@@ -1856,10 +1856,6 @@ func (s *Server) TelemetryId() string {
 
 func (s *Server) HTTPService() httpservice.HTTPService {
 	return s.httpService
-}
-
-func (s *Server) GetLogger() mlog.LoggerIFace {
-	return s.platform.Logger()
 }
 
 // GetStore returns the server's Store. Exposing via a method
