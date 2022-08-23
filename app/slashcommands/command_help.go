@@ -41,5 +41,10 @@ func (h *HelpProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 		helpLink = model.SupportSettingsDefaultHelpLink
 	}
 
-	return &model.CommandResponse{GotoLocation: helpLink}
+	return &model.CommandResponse{
+		ResponseType: model.CommandResponseTypeEphemeral,
+		Text: args.T("api.command_help.success", map[string]any{
+			"HelpLink": helpLink,
+		}),
+	}
 }
