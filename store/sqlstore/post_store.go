@@ -3012,7 +3012,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			},
 		}).GroupBy("vch.id")
 
-	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC")
+	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
 
 	topDMs := make([]*model.TopDM, 0)
 	sql, args, err := topDMsBuilder.ToSql()
@@ -3029,21 +3029,6 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	if err != nil {
 		return nil, err
 	}
-	// limit and offset are handled here since we're filtering bot, self dms out of the rows we get from query results.
-	// Since DM count would be of the order ~10s, and filtered by date, this wouldn't be a _very_ expensive query until we integrate limits to sql
-	// following portion tries to replicate how postgres handles limits and offsets, before passing to pagination handler
-	countTopDMs := len(topDMs)
-	maxDmIndex := offset + limit + 1
-	// conditions where
-	if maxDmIndex > countTopDMs {
-		maxDmIndex = countTopDMs
-	}
-	if offset > countTopDMs {
-		// ensures []*TopDM{} is passed to pagination handler as this is an edge case
-		offset = maxDmIndex
-	}
-
-	topDMs = topDMs[offset:maxDmIndex]
 	return model.GetTopDMListWithPagination(topDMs, limit), nil
 }
 
