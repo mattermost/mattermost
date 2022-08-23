@@ -2213,14 +2213,13 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 	var count int64
 	err := s.GetReplicaX().Get(&count, `
 		SELECT
-			COUNT(*)
+		    COUNT(FileInfo.*)
 		FROM
-			FileInfo
-                LEFT JOIN Posts as P ON FileInfo.PostId=P.Id
-                LEFT JOIN Channels as C on C.Id=P.ChannelId
+		    FileInfo
 		WHERE
-                        FileInfo.DeleteAt = 0
-			AND C.Id = ?`, channelId)
+		    FileInfo.DeleteAt = 0
+            AND FileInfo.PostId IN (SELECT id FROM posts WHERE Channelid = ?)`,
+		channelId)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count files with channelId=%s", channelId)
 	}
