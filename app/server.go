@@ -103,6 +103,7 @@ const (
 	KVStoreKey       ServiceKey = "kvstore"
 	StoreKey         ServiceKey = "storekey"
 	SystemKey        ServiceKey = "systemkey"
+	PreferencesKey   ServiceKey = "preferenceskey"
 )
 
 type Server struct {
