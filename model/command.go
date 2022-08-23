@@ -122,7 +122,7 @@ func (o *Command) IsValid() *AppError {
 
 	if o.AutocompleteData != nil {
 		if err := o.AutocompleteData.IsValid(); err != nil {
-			return NewAppError("Command.IsValid", "model.command.is_valid.autocomplete_data.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Command.IsValid", "model.command.is_valid.autocomplete_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 

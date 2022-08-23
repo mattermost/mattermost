@@ -1910,10 +1910,6 @@
     "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Your license doesn't support Insights feature."
-  },
-  {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
   },
@@ -3333,11 +3329,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -4888,10 +4884,6 @@
     "translation": "JSON decode of line failed."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
-  },
-  {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "Incorrect or missing version in the data import file. Make sure version is the first object in your import file and try again."
   },
@@ -5030,10 +5022,6 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -5886,6 +5874,10 @@
   {
     "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Unable to get top DMs for user."
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
