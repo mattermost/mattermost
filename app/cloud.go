@@ -57,12 +57,12 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 
 func (a *App) doCheckForAdminUpgradeNotifications() {
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	a.SendNotifyAdminPosts(ctx, false)
+	a.SendNotifyAdminPosts(ctx, "", "", false)
 }
 
 func (a *App) doCheckForAdminTrialNotifications() {
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	a.SendNotifyAdminPosts(ctx, true)
+	a.SendNotifyAdminPosts(ctx, "", "", true)
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
@@ -80,16 +80,38 @@ func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdm
 	return d, nil
 }
 
-func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppError {
+func getCurrentProduct(products []*model.Product, id string) *model.Product {
+	for _, product := range products {
+		if product.ID == id {
+			return product
+		}
+	}
+	return nil
+}
+
+func filterNotificationData(data []*model.NotifyAdminData, test func(*model.NotifyAdminData) bool) (ret []*model.NotifyAdminData) {
+	for _, d := range data {
+		if test(d) {
+			ret = append(ret, d)
+		}
+	}
+	return
+}
+
+func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
 	if !a.CanNotify(trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
-	workspaceName := ""
+	if workspaceName == "" && currentSKU == "" {
+		subscription, _ := a.Cloud().GetSubscription("")
+		if subscription != nil {
+			workspaceName = subscription.GetWorkSpaceNameFromDNS()
 
-	subscription, _ := a.Cloud().GetSubscription("")
-	if subscription != nil {
-		workspaceName = subscription.GetWorkSpaceNameFromDNS()
+			products, _ := a.Cloud().GetCloudProducts("", true) // HANDLE ERROR
+			currentProduct := getCurrentProduct(products, subscription.ProductID)
+			currentSKU = currentProduct.SKU
+		}
 	}
 
 	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{
@@ -111,6 +133,8 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppErr
 	if err != nil {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
 
 	if len(data) == 0 {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "No notification data available", http.StatusInternalServerError)

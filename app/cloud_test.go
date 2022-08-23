@@ -34,7 +34,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th.App.Srv().Cloud = &cloud
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, false)
+		err := th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
 		require.NotNil(t, err)
 	})
@@ -52,7 +52,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th.App.Srv().Cloud = &cloud
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, true)
+		err := th.App.SendNotifyAdminPosts(ctx, "", "none", true)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
 		require.NotNil(t, err)
 	})
@@ -78,7 +78,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -144,7 +144,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, true)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", true)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -209,7 +209,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -221,7 +221,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// second time trying to notify is forbidden
-		appErr = th.App.SendNotifyAdminPosts(ctx, false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.NotNil(t, appErr)
 		require.Equal(t, appErr.Error(), "SendNotifyAdminPosts: Unable to send notification post., Cannot notify yet")
 	})
@@ -250,7 +250,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -264,7 +264,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		time.Sleep(5 * time.Second)
 
 		// no error sending second time
-		appErr = th.App.SendNotifyAdminPosts(ctx, false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
 		require.Nil(t, appErr)
 	})
 }

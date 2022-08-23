@@ -15194,7 +15194,7 @@ func (a *OpenTracingAppLayer) SendNotifications(c request.CTX, post *model.Post,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context, trial bool) *model.AppError {
+func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifyAdminPosts")
 
@@ -15206,7 +15206,7 @@ func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context, trial boo
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendNotifyAdminPosts(c, trial)
+	resultVar0 := a.app.SendNotifyAdminPosts(c, workspaceName, currentSKU, trial)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
