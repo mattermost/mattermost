@@ -2067,12 +2067,12 @@ func withMut(mut *sync.Mutex, f func()) {
 	f()
 }
 
-func cancelTask(mut *sync.Mutex, task *model.ScheduledTask) {
+func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	mut.Lock()
 	defer mut.Unlock()
-	if task != nil {
-		task.Cancel()
-		task = nil
+	if *taskPointer != nil {
+		(*taskPointer).Cancel()
+		*taskPointer = nil
 	}
 }
 
@@ -2089,7 +2089,7 @@ func runDNDStatusExpireJob(a *App) {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
 			})
 		} else {
-			cancelTask(&a.ch.dndTaskMut, a.ch.dndTask)
+			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
 }
@@ -2107,7 +2107,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
 			})
 		} else {
-			cancelTask(&a.ch.postReminderMut, a.ch.postReminderTask)
+			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
 }

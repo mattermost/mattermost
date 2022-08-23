@@ -3062,3 +3062,103 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Len(t, topUser2ThreadsAfterPrivateReplyDelete.Items, 0)
 }
+
+func TestGetTopDMsForUserSince(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
+
+	// users
+	user := th.CreateUser()
+	u1 := th.CreateUser()
+	u2 := th.CreateUser()
+	u3 := th.CreateUser()
+	u4 := th.CreateUser()
+	// user direct messages
+	chUser1, nErr := th.App.createDirectChannel(th.Context, u1.Id, user.Id)
+	fmt.Println(chUser1, nErr)
+	require.Nil(t, nErr)
+	chUser2, nErr := th.App.createDirectChannel(th.Context, u2.Id, user.Id)
+	require.Nil(t, nErr)
+	chUser3, nErr := th.App.createDirectChannel(th.Context, u3.Id, user.Id)
+	require.Nil(t, nErr)
+	// other user direct message
+	chUser3User4, nErr := th.App.createDirectChannel(th.Context, u3.Id, u4.Id)
+	require.Nil(t, nErr)
+
+	// sample post data
+	// for u1
+	_, err := th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    u1.Id,
+	}, "", false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    user.Id,
+	}, "", false)
+	require.Nil(t, err)
+	// for u2: 1 post
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser2.Id,
+		UserId:    u2.Id,
+	}, "", false)
+	require.Nil(t, err)
+	// for user-u3: 3 posts
+	for i := 0; i < 3; i++ {
+		_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+			ChannelId: chUser3.Id,
+			UserId:    user.Id,
+		}, "", false)
+		require.Nil(t, err)
+	}
+	// for u4-u3: 4 posts
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	}, "", false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	}, "", false)
+	require.Nil(t, err)
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	}, "", false)
+	require.Nil(t, err)
+
+	_, err = th.App.CreatePostAsUser(th.Context, &model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	}, "", false)
+	require.Nil(t, err)
+
+	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
+		topDMs, err := th.App.GetTopDMsForUserSince(user.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 3)
+		// check order, magnitude of items
+		// fmt.Println(topDMs.Items[0].MessageCount, topDMs.Items[1].MessageCount, topDMs.Items[2].MessageCount)
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
+		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
+	})
+	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, err := th.App.GetTopDMsForUserSince(u4.Id, &model.InsightsOpts{StartUnixMilli: 100, Page: 0, PerPage: 100})
+		require.Nil(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 1)
+		// check order, magnitude of items
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
+	})
+}
