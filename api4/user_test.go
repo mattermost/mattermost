@@ -1028,6 +1028,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestSearchUsers(t *testing.T) {
+	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1215,7 +1216,7 @@ func TestSearchUsers(t *testing.T) {
 	})
 }
 
-func findUserInList(id string, users []*model.User) bool {
+func findUserInList(id string, users []*model.User) bool { //nolint:unused
 	for _, user := range users {
 		if user.Id == id {
 			return true
