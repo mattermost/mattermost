@@ -17,19 +17,25 @@ type jsonArray []string
 
 func (a jsonArray) Value() (driver.Value, error) {
 	var out bytes.Buffer
-	_ = out.WriteByte('[')
+	if err := out.WriteByte('['); err != nil {
+		return nil, err
+	}
 
 	for i, item := range a {
-		_, _ = out.WriteString(strconv.Quote(item))
+		if _, err := out.WriteString(strconv.Quote(item)); err != nil {
+			return nil, err
+		}
 
 		// Skip the last element.
 		if i < len(a)-1 {
-			_ = out.WriteByte(',')
+			if err := out.WriteByte(','); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	_ = out.WriteByte(']')
-	return out.Bytes(), nil
+	err := out.WriteByte(']')
+	return out.Bytes(), err
 }
 
 type jsonStringVal string
