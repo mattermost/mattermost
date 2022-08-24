@@ -89,10 +89,10 @@ func (a *App) Srv() *Server {
 	return a.ch.srv
 }
 func (a *App) Log() *mlog.Logger {
-	return a.ch.srv.Log
+	return a.ch.srv.Log()
 }
 func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog
+	return a.ch.srv.NotificationsLog()
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
