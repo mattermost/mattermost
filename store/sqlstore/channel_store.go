@@ -1564,7 +1564,8 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		return nil, errors.Wrapf(err, "failed to find channel with TeamId=%s and Name=%s", teamId, name)
 	}
 
-	return &channel, channelByNameCache.SetWithExpiry(teamId+name, &channel, ChannelCacheDuration)
+	err = channelByNameCache.SetWithExpiry(teamId+name, &channel, ChannelCacheDuration)
+	return &channel, err
 }
 
 func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Channel, error) {
