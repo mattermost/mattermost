@@ -61,23 +61,6 @@ jobs:
           root: ~/mattermost
           paths:
             - mattermost-webapp
-  setup-focalboard:
-    working_directory: ~/mattermost/focalboard
-    docker:
-      - image: cimg/base:2022.08@sha256:35e5e29930ab565475a4f2aa9b4124998ed67dbc7b0e2dd5f420a4189d08d0d2
-    resource_class: xlarge
-    steps:
-      - run: |
-          cd ../
-          git clone --depth=10 --no-single-branch https://github.com/mattermost/focalboard.git
-          cd focalboard
-          git checkout $CIRCLE_BRANCH || git checkout main
-          echo $(git rev-parse HEAD)
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - focalboard
-
   check-deps:
     parameters:
       cve_data_directory:
@@ -318,38 +301,7 @@ jobs:
             - mattermost-server
             - mattermost-webapp
 
-  build-focalboard:
-    docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
-    resource_class: xlarge
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd focalboard
-            make server-linux
-  configure-multirepo:
-    docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd mattermost-server
-            make setup-go-work
-            cd ../focalboard
-            EXCLUDE_ENTERPRISE=TRUE make templates-archive
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-server
-            - mattermost-webapp
-            - focalboard
-
+ 
   test:
     executor:
       name: ubuntu
@@ -556,12 +508,6 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - setup-focalboard:
-          filters:
-            branches:
-              ignore:
-                - master
-                - /^release-.*/
       # Disabling check-deps since the new version is not on bintray and all builds will fail
       # we've are on top of this, and it's going to be temporary.
       #- check-deps:
@@ -583,46 +529,37 @@ workflows:
                 - /^release-.*/
       - check-app-layers:
           requires:
-            - configure-multirepo
-      - check-store-layers:
-          requires:
-            - configure-multirepo
-      - check-mocks:
-          requires:
-            - configure-multirepo
-      - check-email-templates:
-          requires:
-            - configure-multirepo
-      - check-gen-serialized:
-          requires:
-            - configure-multirepo
-      - check-mattermost-vet:
-          requires:
-            - configure-multirepo
-      - check-migrations:
-          requires:
-            - configure-multirepo
-      - build-api-spec:
-          requires:
-            - configure-multirepo
-      - configure-multirepo:
-         requires:
             - setup-mattermost-server
             - setup-mattermost-webapp
-            - setup-focalboard
-      - build-mattermost-server:
+      - check-store-layers:
           requires:
-            - check-go-mod-tidy
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-golangci-lint
-            - check-migrations
-            - build-api-spec
-      - build-focalboard:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - check-mocks:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - check-email-templates:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - check-gen-serialized:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - check-mattermost-vet:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - check-migrations:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - build-api-spec:
+          requires:
+            - setup-mattermost-server
+            - setup-mattermost-webapp
+      - build-mattermost-server:
           requires:
             - check-go-mod-tidy
             - check-app-layers
@@ -638,174 +575,12 @@ workflows:
           context: mattermost-ci-pr-builds-s3
           requires:
             - build-mattermost-server
-            - build-focalboard
       - upload-s3:
           context: mattermost-ci-pr-builds-s3
           requires:
             - build-mattermost-server
-            - build-focalboard
       - build-docker:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
-      - test:
-          name: test-mysql
-          dbdriver: mysql
-          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
-          racemode: ""
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      - test:
-          name: test-postgres-normal
-          dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
-          racemode: ""
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      - test:
-          name: test-postgres-binary
-          dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
-          racemode: ""
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      - test-schema:
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-  release-build:
-    jobs:
-      - setup-mattermost-server:
-          filters:
-            branches:
-              only:
-                - master
-                - /^release-.*/
-                - cloud
-      - setup-mattermost-webapp:
-          filters:
-            branches:
-              only:
-                - master
-                - /^release-.*/
-                - cloud
-
-      # Disabling check-deps since the new version is not on bintray and all builds will fail
-      # we've are on top of this, and it's going to be temporary.
-      #- check-deps:
-      #    context: sast-webhook
-      #    requires:
-      #      - setup
-      # - check-i18n:
-      #     requires:
-      #       - setup
-      - check-golangci-lint:
-          filters:
-            branches:
-              only:
-                - master
-                - /^release-.*/
-                - cloud
-      - check-go-mod-tidy:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-app-layers:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-store-layers:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - build-api-spec:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-mocks:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-email-templates:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-gen-serialized:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - check-mattermost-vet:
-          requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-      - sentry:
-          context: matterbuild-sentry
-          requires:
-            - check-go-mod-tidy
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-golangci-lint
-            - build-api-spec
-      - build-mattermost-server:
-          requires:
-            - check-go-mod-tidy
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - build-api-spec
-      - test:
-          name: test-mysql
-          dbdriver: mysql
-          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
-          racemode: "-race"
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      - test:
-          name: test-postgres-normal
-          dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
-          racemode: "-race"
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      - test:
-          name: test-postgres-binary
-          dbdriver: postgres
-          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
-          racemode: ""
-          requires:
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-      # test-schema for master run in .gitlab-ci.yml
+  
