@@ -4348,7 +4348,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			WHERE
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
-				AND Posts.Type = ''
+				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
 				AND PublicChannels.TeamId = ?
 				AND PublicChannels.DeleteAt = 0
 			GROUP BY
@@ -4371,7 +4371,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			WHERE
 				Posts.DeleteAt = 0
 				AND Posts.CreateAt > ?
-				AND Posts.Type = ''
+				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
 				AND Channels.TeamId = ?
 				AND Channels.Type = 'P'
 				AND Channels.DeleteAt = 0
@@ -4423,7 +4423,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 		WHERE
 			Posts.DeleteAt = 0
 			AND Posts.CreateAt > ?
-			AND Posts.Type = ''
+			AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
 			AND Channels.DeleteAt = 0
 			AND (Channels.Type = 'O' OR Channels.Type = 'P')
 			AND ChannelMembers.UserId = ? `

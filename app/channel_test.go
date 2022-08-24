@@ -2687,6 +2687,12 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
+	// delete offtopic channel - which interferes with 'least' active channel results
+	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
+	require.Nil(t, appErr)
+
 	// add a bot post to ensure it's counted
 	_, err := th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a bot",
@@ -2763,6 +2769,12 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// delete offtopic channel - which interferes with 'least' active channel results
+	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
+	require.Nil(t, appErr)
 
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
