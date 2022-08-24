@@ -4502,6 +4502,11 @@ func postProcessTopInactiveChannels(s SqlChannelStore, channels []*model.TopInac
 		userIdsSlice := strings.Split(userIds, ",")
 
 		channels[index].Participants = userIdsSlice
+
+		// handle channels with 0 participants
+		if len(userIdsSlice) == 1 && userIdsSlice[0] == "" {
+			channels[index].Participants = make([]string, 0)
+		}
 	}
 	return channels, nil
 }
