@@ -19,17 +19,12 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
-type mockLogger struct {
-	mlog.LoggerIFace
-}
-
-func (ml *mockLogger) Log(level mlog.Level, s string, flds ...mlog.Field) {}
-
 func TestOnReceiveChannelInvite(t *testing.T) {
 	t.Run("when msg payload is empty, it does nothing", func(t *testing.T) {
 		mockServer := &MockServerIface{}
-		mockLogger := &mockLogger{}
-		mockServer.On("GetLogger").Return(mockLogger)
+		mockLogger, err := mlog.NewLogger()
+		require.NoError(t, err)
+		mockServer.On("Log").Return(mockLogger)
 		mockApp := &MockAppIface{}
 		scs := &Service{
 			server: mockServer,
@@ -43,15 +38,16 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{}
 		msg := model.RemoteClusterMsg{}
 
-		err := scs.onReceiveChannelInvite(msg, remoteCluster, nil)
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 		mockStore.AssertNotCalled(t, "Channel")
 	})
 
 	t.Run("when invitation prescribes a readonly channel, it does create a readonly channel", func(t *testing.T) {
 		mockServer := &MockServerIface{}
-		mockLogger := &mockLogger{}
-		mockServer.On("GetLogger").Return(mockLogger)
+		mockLogger, err := mlog.NewLogger()
+		require.NoError(t, err)
+		mockServer.On("Log").Return(mockLogger)
 		mockApp := &MockAppIface{}
 		scs := &Service{
 			server: mockServer,
@@ -110,8 +106,9 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 	t.Run("when invitation prescribes a readonly channel and readonly update fails, it returns an error", func(t *testing.T) {
 		mockServer := &MockServerIface{}
-		mockLogger := &mockLogger{}
-		mockServer.On("GetLogger").Return(mockLogger)
+		mockLogger, err := mlog.NewLogger()
+		require.NoError(t, err)
+		mockServer.On("Log").Return(mockLogger)
 		mockApp := &MockAppIface{}
 		scs := &Service{
 			server: mockServer,
@@ -152,8 +149,9 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 	t.Run("when invitation prescribes a direct channel, it does create a direct channel", func(t *testing.T) {
 		mockServer := &MockServerIface{}
-		mockLogger := &mockLogger{}
-		mockServer.On("GetLogger").Return(mockLogger)
+		mockLogger, err := mlog.NewLogger()
+		require.NoError(t, err)
+		mockServer.On("Log").Return(mockLogger)
 		mockApp := &MockAppIface{}
 		scs := &Service{
 			server: mockServer,
