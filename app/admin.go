@@ -67,7 +67,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.platform.Config().LogSettings.EnableFile {
-		s.Log.Flush()
+		s.Log().Flush()
 		logFile := config.GetLogFileLocation(*s.platform.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {

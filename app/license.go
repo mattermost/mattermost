@@ -366,7 +366,7 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	var licenseResponse map[string]string
 	err = json.NewDecoder(resp.Body).Decode(&licenseResponse)
 	if err != nil {
-		s.GetLogger().Warn("Error decoding license response", mlog.Err(err))
+		s.Log().Warn("Error decoding license response", mlog.Err(err))
 	}
 
 	if _, ok := licenseResponse["license"]; !ok {
