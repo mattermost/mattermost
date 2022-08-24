@@ -87,7 +87,7 @@ func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	appErr := c.App.SendNotifyAdminPosts(c.AppContext, "", "none", notifyAdminRequest.TrialNotification)
+	appErr := c.App.SendNotifyAdminPosts(c.AppContext, "", "", notifyAdminRequest.TrialNotification)
 	if appErr != nil {
 		c.Err = appErr
 		return

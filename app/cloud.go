@@ -57,12 +57,45 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 
 func (a *App) doCheckForAdminUpgradeNotifications() {
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	a.SendNotifyAdminPosts(ctx, "", "", false)
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch Subscription", mlog.Err(err))
+		return
+	}
+
+	products, err := a.Cloud().GetCloudProducts("", true)
+	if err != nil {
+		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch cloud products", mlog.Err(err))
+		return
+	}
+
+	currentProduct := getCurrentProduct(products, subscription.ProductID)
+	currentSKU := currentProduct.SKU
+
+	workspaceName := subscription.GetWorkSpaceNameFromDNS()
+
+	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, false)
 }
 
 func (a *App) doCheckForAdminTrialNotifications() {
 	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	a.SendNotifyAdminPosts(ctx, "", "", true)
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch Subscription", mlog.Err(err))
+		return
+	}
+
+	products, err := a.Cloud().GetCloudProducts("", true)
+	if err != nil {
+		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch cloud products", mlog.Err(err))
+		return
+	}
+
+	currentProduct := getCurrentProduct(products, subscription.ProductID)
+	currentSKU := currentProduct.SKU
+
+	workspaceName := subscription.GetWorkSpaceNameFromDNS()
+	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, true)
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
@@ -101,17 +134,6 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
 	if !a.CanNotify(trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
-	}
-
-	if workspaceName == "" && currentSKU == "" {
-		subscription, _ := a.Cloud().GetSubscription("")
-		if subscription != nil {
-			workspaceName = subscription.GetWorkSpaceNameFromDNS()
-
-			products, _ := a.Cloud().GetCloudProducts("", true) // HANDLE ERROR
-			currentProduct := getCurrentProduct(products, subscription.ProductID)
-			currentSKU = currentProduct.SKU
-		}
 	}
 
 	sysadmins, appErr := a.GetUsersFromProfiles(&model.UserGetOptions{

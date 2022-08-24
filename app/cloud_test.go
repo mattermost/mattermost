@@ -11,15 +11,11 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
-	cloud := mocks.CloudInterface{}
-	cloud.Mock.On("GetSubscription", mock.Anything).Return(&model.Subscription{DNS: "test.dns.server"}, nil)
 
 	t.Run("error sending upgrade post when do notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -27,14 +23,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		err := th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
 		require.NotNil(t, err)
 	})
@@ -45,14 +35,8 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "none", true)
+		err := th.App.SendNotifyAdminPosts(ctx, "", "", true)
 		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
 		require.NotNil(t, err)
 	})
@@ -63,22 +47,23 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
 		// some some notifications
-		requestedData, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
 			RequiredFeature: "All Professional features",
 		})
 		require.Nil(t, appErr)
 
+		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser2.Id,
+			RequiredPlan:    "cloud-professional",
+			RequiredFeature: "All Professional features",
+		})
+		require.Nil(t, appErr)
+
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -104,22 +89,10 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
-		require.Equal(t, len(postList.Order), 1)
 		post := postList.Posts[postList.Order[0]]
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
-		require.Equal(t, "1 member of the test workspace has requested a workspace upgrade for: ", post.Message)
-
-		flattenedData := th.App.FeatureBasedFlatten([]*model.NotifyAdminData{
-			requestedData,
-		})
-
-		props := make(model.StringInterface)
-		props["requested_features"] = flattenedData
-
-		postProps := post.GetProps()
-		require.Equal(t, postProps["trial"], false)
-		require.Equal(t, props["requested_features"], props["requested_features"])
+		require.Equal(t, "2 members of the test workspace have requested a workspace upgrade for: ", post.Message)
 	})
 
 	t.Run("successfully send trial notification", func(t *testing.T) {
@@ -127,12 +100,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
 
 		// some some notifications
 		requestedData, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -144,7 +111,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", true)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", true)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -170,7 +137,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
-		require.Equal(t, len(postList.Order), 1)
 		post := postList.Posts[postList.Order[0]]
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
@@ -194,12 +160,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
-
 		// some some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
@@ -209,7 +169,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -221,7 +181,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// second time trying to notify is forbidden
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.NotNil(t, appErr)
 		require.Equal(t, appErr.Error(), "SendNotifyAdminPosts: Unable to send notification post., Cannot notify yet")
 	})
@@ -231,12 +191,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = &cloud
 
 		os.Setenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
 		defer os.Unsetenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
@@ -250,7 +204,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -264,7 +218,63 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		time.Sleep(5 * time.Second)
 
 		// no error sending second time
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "none", false)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
 		require.Nil(t, appErr)
+	})
+
+	t.Run("can filter notifications when plan changes within cool off period", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		// some some notifications
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser.Id,
+			RequiredPlan:    "cloud-professional",
+			RequiredFeature: "All Professional features",
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+			UserId:          th.BasicUser2.Id,
+			RequiredPlan:    "cloud-enterprise",
+			RequiredFeature: "All Enterprise features",
+			Trial:           false,
+		})
+		require.Nil(t, appErr)
+
+		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "cloud-professional", false) // try and send notification but workspace currentSKU has since changed to cloud-professional
+		require.Nil(t, appErr)
+
+		bot, appErr := th.App.GetSystemBot()
+		require.Nil(t, appErr)
+
+		// message sending is async, wait time for it
+		var channel *model.Channel
+		var err error
+		var timeout = 5 * time.Second
+		begin := time.Now()
+		for {
+			if time.Since(begin) > timeout {
+				break
+			}
+			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			if err == nil && channel != nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
+
+		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		post := postList.Posts[postList.Order[0]]
+		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
+		require.Equal(t, bot.UserId, post.UserId)
+		require.Equal(t, "1 member of the test workspace has requested a workspace upgrade for: ", post.Message) // expect only one member's notification even though 2 were added
 	})
 }
