@@ -16,6 +16,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -404,12 +405,13 @@ func TestPanicLog(t *testing.T) {
 	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer(SetLogger(logger))
+	s, err := NewServer()
 	require.NoError(t, err)
+	s.Platform().SetLogger(logger)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		s.Log.Info("inside panic handler")
+		s.Log().Info("inside panic handler")
 		panic("log this panic")
 	})
 
@@ -564,4 +566,13 @@ func TestSentry(t *testing.T) {
 			require.Fail(t, "Sentry report didn't arrive")
 		}
 	})
+}
+
+func TestCancelTaskSetsTaskToNil(t *testing.T) {
+	var taskMut sync.Mutex
+	task := model.CreateRecurringTaskFromNextIntervalTime("a test task", func() {}, 5*time.Minute)
+	require.NotNil(t, task)
+	cancelTask(&taskMut, &task)
+	require.Nil(t, task)
+	require.NotPanics(t, func() { cancelTask(&taskMut, &task) })
 }

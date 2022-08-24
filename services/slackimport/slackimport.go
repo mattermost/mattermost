@@ -122,7 +122,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
 		log.WriteString(i18n.T("api.slackimport.slack_import.zip.app_error"))
-		return model.NewAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error(), http.StatusBadRequest), log
+		return model.NewAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, "", http.StatusBadRequest).Wrap(err), log
 	}
 
 	var channels []slackChannel
@@ -138,7 +138,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 		fileReader, err := file.Open()
 		if err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}))
-			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
+			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, "", http.StatusInternalServerError).Wrap(err), log
 		}
 		reader := utils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
 		if file.Name == "channels.json" {

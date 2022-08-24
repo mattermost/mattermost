@@ -120,3 +120,78 @@ func TestGetTopThreadListWithPagination(t *testing.T) {
 		})
 	}
 }
+
+func TestGetTopInactiveChannelListWithPagination(t *testing.T) {
+	channels := []*TopInactiveChannel{
+		{ID: NewId(), MessageCount: 2},
+		{ID: NewId(), MessageCount: 5},
+		{ID: NewId(), MessageCount: 7},
+		{ID: NewId(), MessageCount: 80},
+		{ID: NewId(), MessageCount: 85},
+		{ID: NewId(), MessageCount: 92}}
+
+	hasNextTC := []struct {
+		Description string
+		Limit       int
+		Offset      int
+		Expected    *TopInactiveChannelList
+	}{
+		{
+			Description: "has one page",
+			Limit:       len(channels),
+			Offset:      0,
+			Expected:    &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: false}, Items: channels},
+		},
+		{
+			Description: "has more than one page",
+			Limit:       len(channels) - 1,
+			Offset:      0,
+			Expected:    &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: true}, Items: channels},
+		},
+	}
+
+	for _, test := range hasNextTC {
+		t.Run(test.Description, func(t *testing.T) {
+			actual := GetTopInactiveChannelListWithPagination(channels, test.Limit)
+			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
+		})
+	}
+}
+
+func TestGetTopDMsListWithPagination(t *testing.T) {
+	dms := []*TopDM{
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 100},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 80},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 90},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 76},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 43},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 2},
+		{SecondParticipant: &TopDMInsightUserInformation{InsightUserInformation: InsightUserInformation{Id: NewId()}}, MessageCount: 1},
+	}
+	hasNextTT := []struct {
+		Description string
+		Limit       int
+		Offset      int
+		Expected    *TopDMList
+	}{
+		{
+			Description: "has one page",
+			Limit:       len(dms),
+			Offset:      0,
+			Expected:    &TopDMList{InsightsListData: InsightsListData{HasNext: false}, Items: dms},
+		},
+		{
+			Description: "has more than one page",
+			Limit:       len(dms) - 1,
+			Offset:      0,
+			Expected:    &TopDMList{InsightsListData: InsightsListData{HasNext: true}, Items: dms},
+		},
+	}
+
+	for _, test := range hasNextTT {
+		t.Run(test.Description, func(t *testing.T) {
+			actual := GetTopDMListWithPagination(dms, test.Limit)
+			assert.Equal(t, test.Expected.HasNext, actual.HasNext)
+		})
+	}
+}

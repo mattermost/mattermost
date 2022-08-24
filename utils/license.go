@@ -56,7 +56,7 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 
 	var license model.License
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	return &license, nil

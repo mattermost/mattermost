@@ -127,27 +127,30 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestStopOnError(t *testing.T) {
-	assert.True(t, stopOnError(LineImportWorkerError{
+	th := Setup(t)
+	defer th.TearDown()
+
+	assert.True(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.True(t, stopOnError(LineImportWorkerError{
+	assert.True(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
 		1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
+	assert.False(t, stopOnError(th.Context, LineImportWorkerError{
 		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
 		1,
 	}))

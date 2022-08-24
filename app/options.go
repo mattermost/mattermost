@@ -55,7 +55,6 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
-			Logger:       s.Log,
 			StartMetrics: s.startMetrics,
 			Cluster:      s.Cluster,
 		}
@@ -78,7 +77,6 @@ func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
-			Logger:       s.Log,
 			StartMetrics: s.startMetrics,
 			Cluster:      s.Cluster,
 		}
@@ -127,9 +125,15 @@ func StartSearchEngine(s *Server) error {
 	return nil
 }
 
+// SetLogger requires platform service to be initialized before calling.
+// If not, logger should be set after platform service are initialized.
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
-		s.Log = logger
+		if s.platform == nil {
+			return errors.New("platform service is not initialized")
+		}
+
+		s.platform.SetLogger(logger)
 		return nil
 	}
 }
