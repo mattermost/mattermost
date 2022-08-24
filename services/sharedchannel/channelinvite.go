@@ -122,7 +122,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		return fmt.Errorf("invalid channel invite: %w", err)
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Channel invite received",
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Channel invite received",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("channel_id", invite.ChannelId),
 		mlog.String("channel_name", invite.Name),
@@ -158,7 +158,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
-		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.GetLogger()), channel)
+		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
@@ -172,7 +172,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {
-		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.GetLogger()), channel)
+		scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 		scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
 		return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 	}
@@ -197,7 +197,7 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 	}
 
 	// check user perms?
-	channel, appErr := scs.app.CreateChannelWithUser(request.EmptyContext(scs.server.GetLogger()), channelNew, rc.CreatorId)
+	channel, appErr := scs.app.CreateChannelWithUser(request.EmptyContext(scs.server.Log()), channelNew, rc.CreatorId)
 	if appErr != nil {
 		return nil, fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
 	}
@@ -210,7 +210,7 @@ func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel
 		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
 	}
 
-	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.GetLogger()), invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
+	channel, err := scs.app.GetOrCreateDirectChannel(request.EmptyContext(scs.server.Log()), invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
 	if err != nil {
 		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, err)
 	}
