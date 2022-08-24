@@ -181,9 +181,7 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	Audit            *audit.Audit
-	Log              *mlog.Logger
-	NotificationsLog *mlog.Logger
+	Audit *audit.Audit
 
 	joinCluster       bool
 	startMetrics      bool
@@ -243,7 +241,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
-			Logger:       s.Log,
 			StartMetrics: s.startMetrics,
 			Cluster:      s.Cluster,
 		}
@@ -260,11 +257,6 @@ func NewServer(options ...Option) (*Server, error) {
 		if s.licenseValue.Load() != nil {
 			ps.SetLicense(s.licenseValue.Load().(*model.License)) // in case license is set in server options
 		}
-	}
-
-	// Step 2: Logging
-	if err := s.initLogging(); err != nil {
-		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
@@ -412,7 +404,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		ClusterKey:       s.clusterWrapper,
 		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.GetLogger(),
+		LogKey:           s.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       &kvStoreWrapper{srv: s},
 		StoreKey:         store.NewStoreServiceAdapter(s.Store),
@@ -490,7 +482,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
 	}
 
-	s.createPushNotificationsHub(request.EmptyContext(s.GetLogger()))
+	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
 	if err2 := i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -523,7 +515,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.Publish(message)
 		})
 
-		if err = s.initLogging(); err != nil {
+		if err = s.platform.ReconfigureLogger(); err != nil {
 			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
 			return
 		}
@@ -539,7 +531,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log)
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log())
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -613,12 +605,12 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.removeUnlicensedLogTargets(license)
-	s.enableLoggingMetrics()
+	s.platform.RemoveUnlicensedLogTargets(license)
+	s.platform.EnableLoggingMetrics()
 
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.removeUnlicensedLogTargets(newLicense)
-		s.enableLoggingMetrics()
+		s.platform.RemoveUnlicensedLogTargets(newLicense)
+		s.platform.EnableLoggingMetrics()
 	})
 
 	// Enable developer settings if this is a "dev" build
@@ -642,7 +634,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 
 		if err := s.platform.RestartMetrics(); err != nil {
-			s.Log.Error("Failed to reset metrics server", mlog.Err(err))
+			s.Log().Error("Failed to reset metrics server", mlog.Err(err))
 		}
 	})
 
@@ -668,7 +660,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.platform.AddConfigListener(func(old, new *model.Config) {
 		appInstance := New(ServerConnector(s.Channels()))
 		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
-			c := request.EmptyContext(s.GetLogger())
+			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
@@ -678,7 +670,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Disable active guest accounts on first run if guest accounts are disabled
 	if !*s.platform.Config().GuestAccountsSettings.Enable {
 		appInstance := New(ServerConnector(s.Channels()))
-		c := request.EmptyContext(s.GetLogger())
+		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
@@ -786,70 +778,6 @@ func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
 	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
-// initLogging initializes and configures the logger(s). This may be called more than once.
-func (s *Server) initLogging() error {
-	var err error
-	// create the app logger if needed
-	if s.Log == nil {
-		s.Log, err = mlog.NewLogger()
-		if err != nil {
-			return err
-		}
-	}
-
-	// create notification logger if needed
-	if s.NotificationsLog == nil {
-		l, err := mlog.NewLogger()
-		if err != nil {
-			return err
-		}
-		s.NotificationsLog = l.With(mlog.String("logSource", "notifications"))
-	}
-
-	if err := s.platform.ConfigureLogger("logging", s.Log, &s.platform.Config().LogSettings, config.GetLogFileLocation); err != nil {
-		// if the config is locked then a unit test has already configured and locked the logger; not an error.
-		if !errors.Is(err, mlog.ErrConfigurationLock) {
-			// revert to default logger if the config is invalid
-			mlog.InitGlobalLogger(nil)
-			return err
-		}
-	}
-
-	// Redirect default Go logger to app logger.
-	s.Log.RedirectStdLog(mlog.LvlStdLog)
-
-	// Use the app logger as the global logger (eventually remove all instances of global logging).
-	mlog.InitGlobalLogger(s.Log)
-
-	notificationLogSettings := config.GetLogSettingsFromNotificationsLogSettings(&s.platform.Config().NotificationLogSettings)
-	if err := s.platform.ConfigureLogger("notification logging", s.NotificationsLog, notificationLogSettings, config.GetNotificationsLogFileLocation); err != nil {
-		if !errors.Is(err, mlog.ErrConfigurationLock) {
-			mlog.Error("Error configuring notification logger", mlog.Err(err))
-			return err
-		}
-	}
-	return nil
-}
-
-// removeUnlicensedLogTargets removes any unlicensed log target types.
-func (s *Server) removeUnlicensedLogTargets(license *model.License) {
-	if license != nil && *license.Features.AdvancedLogging {
-		// advanced logging enabled via license; no need to remove any targets
-		return
-	}
-
-	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancelCtx()
-
-	s.Log.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
-
-	s.NotificationsLog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
-	})
-}
-
 func (s *Server) startInterClusterServices(license *model.License) error {
 	if license == nil {
 		mlog.Debug("No license provided; Remote Cluster services disabled")
@@ -916,22 +844,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	return nil
 }
 
-func (s *Server) enableLoggingMetrics() {
-	if s.GetMetrics() == nil {
-		return
-	}
-
-	s.Log.SetMetricsCollector(s.GetMetrics().GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
-
-	// logging config needs to be reloaded when metrics collector is added or changed.
-	if err := s.initLogging(); err != nil {
-		mlog.Error("Error re-configuring logging for metrics")
-		return
-	}
-
-	mlog.Debug("Logging metrics enabled")
-}
-
 const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
@@ -957,7 +869,7 @@ func (s *Server) StopHTTPServer() {
 }
 
 func (s *Server) Shutdown() {
-	s.Log.Info("Stopping Server...")
+	s.Log().Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
 
@@ -968,24 +880,24 @@ func (s *Server) Shutdown() {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			s.Log.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			s.Log().Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		s.Log.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		s.Log().Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
-			s.Log.Error("Error shutting down shared channel services", mlog.Err(err))
+			s.Log().Error("Error shutting down shared channel services", mlog.Err(err))
 		}
 	}
 	if s.remoteClusterService != nil {
 		if err = s.remoteClusterService.Shutdown(); err != nil {
-			s.Log.Error("Error shutting down intercluster services", mlog.Err(err))
+			s.Log().Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
 	s.serviceMux.RUnlock()
@@ -1007,7 +919,7 @@ func (s *Server) Shutdown() {
 	s.platform.StopFeatureFlagUpdateJob()
 
 	if err = s.platform.ShutdownConfig(); err != nil {
-		s.Log.Warn("Failed to shut down config store", mlog.Err(err))
+		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
 	if s.Cluster != nil {
@@ -1015,7 +927,7 @@ func (s *Server) Shutdown() {
 	}
 
 	if err = s.platform.ShutdownMetrics(); err != nil {
-		s.Log.Warn("Failed to stop metrics server", mlog.Err(err))
+		s.Log().Warn("Failed to stop metrics server", mlog.Err(err))
 	}
 
 	// This must be done after the cluster is stopped.
@@ -1024,10 +936,10 @@ func (s *Server) Shutdown() {
 		// before stopping them as both calls essentially become no-ops
 		// if nothing is running.
 		if err = s.Jobs.StopWorkers(); err != nil && !errors.Is(err, jobs.ErrWorkersNotRunning) {
-			s.Log.Warn("Failed to stop job server workers", mlog.Err(err))
+			s.Log().Warn("Failed to stop job server workers", mlog.Err(err))
 		}
 		if err = s.Jobs.StopSchedulers(); err != nil && !errors.Is(err, jobs.ErrSchedulersNotRunning) {
-			s.Log.Warn("Failed to stop job server schedulers", mlog.Err(err))
+			s.Log().Warn("Failed to stop job server schedulers", mlog.Err(err))
 		}
 	}
 
@@ -1036,7 +948,7 @@ func (s *Server) Shutdown() {
 	// on parent services.
 	for name, product := range s.products {
 		if err2 := product.Stop(); err2 != nil {
-			s.Log.Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
+			s.Log().Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
 		}
 	}
 
@@ -1046,19 +958,19 @@ func (s *Server) Shutdown() {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			s.Log.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
+			s.Log().Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
-	s.Log.Info("Server stopped")
+	s.Log().Info("Server stopped")
 
 	// shutdown main and notification loggers which will flush any remaining log records.
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
-	if err = s.NotificationsLog.ShutdownWithTimeout(timeoutCtx); err != nil {
+	if err = s.NotificationsLog().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down notification logger: %v", err)
 	}
-	if err = s.Log.ShutdownWithTimeout(timeoutCtx); err != nil {
+	if err = s.Log().ShutdownWithTimeout(timeoutCtx); err != nil {
 		fmt.Fprintf(os.Stderr, "Error shutting down main logger: %v", err)
 	}
 }
@@ -1240,7 +1152,7 @@ func (s *Server) Start() error {
 
 		// If we have debugging of CORS turned on then forward messages to logs
 		if debug {
-			corsWrapper.Log = s.Log.With(mlog.String("source", "cors")).StdLogger(mlog.LvlDebug)
+			corsWrapper.Log = s.Log().With(mlog.String("source", "cors")).StdLogger(mlog.LvlDebug)
 		}
 
 		handler = corsWrapper.Handler(handler)
@@ -1260,7 +1172,7 @@ func (s *Server) Start() error {
 	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
-	errStdLog := s.Log.With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
+	errStdLog := s.Log().With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
 
 	s.Server = &http.Server{
 		Handler:      handler,
@@ -1305,7 +1217,7 @@ func (s *Server) Start() error {
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
-					ErrorLog: s.Log.With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
+					ErrorLog: s.Log().With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 				}
 				go server.ListenAndServe()
 			} else {
@@ -1319,7 +1231,7 @@ func (s *Server) Start() error {
 
 					server := &http.Server{
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
-						ErrorLog: s.Log.With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
+						ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
 					}
 					server.Serve(redirectListener)
 				}()
@@ -1732,7 +1644,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-				s.Log.Error(err.Error())
+				s.Log().Error(err.Error())
 			}
 		})
 	}
@@ -1947,14 +1859,6 @@ func (s *Server) HTTPService() httpservice.HTTPService {
 	return s.httpService
 }
 
-func (s *Server) SetLog(l *mlog.Logger) {
-	s.Log = l
-}
-
-func (s *Server) GetLogger() mlog.LoggerIFace {
-	return s.Log
-}
-
 // GetStore returns the server's Store. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetStore() store.Store {
@@ -2117,4 +2021,12 @@ func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.App
 // Expose platform service from server, this should be replaced with server itself in time.
 func (s *Server) Platform() *platform.PlatformService {
 	return s.platform
+}
+
+func (s *Server) Log() *mlog.Logger {
+	return s.platform.Logger()
+}
+
+func (s *Server) NotificationsLog() *mlog.Logger {
+	return s.platform.NotificationsLogger()
 }
