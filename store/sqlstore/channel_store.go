@@ -1557,7 +1557,7 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		return nil, errors.Wrapf(err, "getByName_tosql")
 	}
 
-	if err := s.GetReplicaX().Get(&channel, queryStr, args...); err != nil {
+	if err = s.GetReplicaX().Get(&channel, queryStr, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s&Name=%s", teamId, name))
 		}
