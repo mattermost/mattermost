@@ -1,5 +1,9 @@
 [
   {
+    "id": "",
+    "translation": ""
+  },
+  {
     "id": "April",
     "translation": "April"
   },
@@ -58,18 +62,6 @@
   {
     "id": "September",
     "translation": "September"
-  },
-  {
-    "id": "Testing not enabled",
-    "translation": ""
-  },
-  {
-    "id": "Unable to fetch Subscription",
-    "translation": ""
-  },
-  {
-    "id": "Unable to fetch cloud products",
-    "translation": ""
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
@@ -7166,10 +7158,6 @@
   {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
-  },
-  {
-    "id": "current product cannot be nil",
-    "translation": ""
   },
   {
     "id": "ent.account_migration.get_all_failed",

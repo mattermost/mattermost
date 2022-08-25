@@ -58,17 +58,17 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 	ctx := request.EmptyContext(a.Srv().Log())
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "Unable to fetch Subscription", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	products, err := a.Cloud().GetCloudProducts("", true)
 	if err != nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "Unable to fetch cloud products", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	currentProduct := getCurrentProduct(subscription.ProductID, products)
 	if currentProduct == nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "current product cannot be nil", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "current product is nil", http.StatusInternalServerError)
 	}
 	currentSKU := currentProduct.SKU
 

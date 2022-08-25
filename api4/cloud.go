@@ -75,7 +75,7 @@ func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().ServiceSettings.EnableTesting {
-		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "Testing not enabled", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "", nil, "Testing not enabled", http.StatusForbidden)
 		return
 	}
 
