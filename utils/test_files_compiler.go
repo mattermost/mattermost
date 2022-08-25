@@ -5,7 +5,6 @@ package utils
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,7 +15,7 @@ import (
 )
 
 func CompileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
+	dir, err := os.MkdirTemp(".", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -25,7 +24,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 
 	// Write out main.go given the source code.
 	main := filepath.Join(dir, "main.go")
-	err = ioutil.WriteFile(main, []byte(sourceCode), 0600)
+	err = os.WriteFile(main, []byte(sourceCode), 0600)
 	require.NoError(t, err)
 
 	_, sourceFile, _, ok := runtime.Caller(0)
@@ -45,7 +44,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 }
 
 func CompileGoTest(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
+	dir, err := os.MkdirTemp(".", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -54,7 +53,7 @@ func CompileGoTest(t *testing.T, sourceCode, outputPath string) {
 
 	// Write out main.go given the source code.
 	main := filepath.Join(dir, "main_test.go")
-	err = ioutil.WriteFile(main, []byte(sourceCode), 0600)
+	err = os.WriteFile(main, []byte(sourceCode), 0600)
 	require.NoError(t, err)
 
 	_, sourceFile, _, ok := runtime.Caller(0)

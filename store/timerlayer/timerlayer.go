@@ -1653,6 +1653,38 @@ func (s *TimerLayerChannelStore) GetTopChannelsForUserSince(userID string, teamI
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetTopInactiveChannelsForTeamSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTopInactiveChannelsForTeamSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetTopInactiveChannelsForUserSince(teamID, userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTopInactiveChannelsForUserSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	start := time.Now()
 
@@ -5258,6 +5290,38 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelID string, timestamp in
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostReminderMetadata(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminderMetadata", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostReminders(now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminders", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -5430,6 +5494,22 @@ func (s *TimerLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetSingle", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetTopDMsForUserSince(userID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetTopDMsForUserSince", success, elapsed)
 	}
 	return result, err
 }
@@ -5639,6 +5719,22 @@ func (s *TimerLayerPostStore) SearchPostsForUser(paramsList []*model.SearchParam
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SearchPostsForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	start := time.Now()
+
+	err := s.PostStore.SetPostReminder(reminder)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SetPostReminder", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
@@ -8022,6 +8118,22 @@ func (s *TimerLayerTeamStore) GetMembersByIds(teamID string, userIds []string, r
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetMembersByIds", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerTeamStore) GetNewTeamMembersSince(teamID string, since int64, offset int, limit int) (*model.NewTeamMembersList, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.TeamStore.GetNewTeamMembersSince(teamID, since, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetNewTeamMembersSince", success, elapsed)
+	}
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerTeamStore) GetTeamMembersForExport(userID string) ([]*model.TeamMemberForExport, error) {

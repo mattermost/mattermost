@@ -784,6 +784,13 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 		}
 
 		for _, p := range posts {
+			if p.Id == id {
+				// Based on the conditions above such as sq.Or{ sq.Eq{"p.Id": rootId}, sq.Eq{"p.RootId": rootId}, }
+				// posts may contain the "id" post which has already been fetched and added in the "pl"
+				// So, skip the "id" to avoid duplicate entry of the post
+				continue
+			}
+
 			pl.AddPost(p)
 			pl.AddOrder(p.Id)
 		}
@@ -2188,7 +2195,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 
 func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int64, error) {
 	query := s.getQueryBuilder().
-		Select("COUNT(p.Id) AS Value").
+		Select("COUNT(*) AS Value").
 		From("Posts p")
 
 	if options.TeamId != "" {
@@ -2840,8 +2847,23 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 			}
 		}
 
+		lastReplyAtSubquery := sq.Select("COALESCE(MAX(CreateAt), 0)").
+			From("Posts").
+			Where(sq.Eq{
+				"RootId":   rootId,
+				"DeleteAt": 0,
+			})
+
+		lastReplyCountSubquery := sq.Select("Count(*)").
+			From("Posts").
+			Where(sq.Eq{
+				"RootId":   rootId,
+				"DeleteAt": 0,
+			})
+
 		updateQueryString, updateArgs, err := updateQuery.
-			Set("ReplyCount", sq.Expr("ReplyCount - 1")).
+			Set("LastReplyAt", lastReplyAtSubquery).
+			Set("ReplyCount", lastReplyCountSubquery).
 			Where(sq.And{
 				sq.Eq{"PostId": rootId},
 				sq.Gt{"ReplyCount": 0},
@@ -2962,4 +2984,240 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		}
 	}
 	return nil
+}
+
+func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
+		Where(sq.And{
+			sq.Expr("Channels.Type = 'D'"),
+			sq.Eq{"cm.UserId": userID},
+		})
+	var aggregator string
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		aggregator = "group_concat(distinct cm.UserId) as Participants"
+	} else {
+		aggregator = "string_agg(distinct cm.UserId, ',') as Participants"
+	}
+
+	topDMsBuilder := s.getQueryBuilder().Select("vch.TotalMsgCount as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
+		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
+		Join("Posts as p on p.ChannelId = vch.Id").
+		Where(sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
+		}).GroupBy("vch.id", "vch.TotalMsgCount")
+
+	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
+
+	topDMs := make([]*model.TopDM, 0)
+	sql, args, err := topDMsBuilder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetTopDMsForUserSince_ToSql")
+	}
+	err = s.GetReplicaX().Select(&topDMs, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
+	}
+
+	// fill SecondParticipant column
+	topDMs, err = postProcessTopDMs(s, userID, topDMs, since)
+	if err != nil {
+		return nil, err
+	}
+	return model.GetTopDMListWithPagination(topDMs, limit), nil
+}
+
+func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, since int64) ([]*model.TopDM, error) {
+	var topDMsFiltered = []*model.TopDM{}
+	var secondParticipantIds []string
+	var channelIds []string
+
+	// identify second participant in a list of participants
+	for _, topDM := range topDMs {
+		participants := strings.Split(topDM.Participants, ",")
+		var secondParticipantId string
+		if len(participants) == 1 {
+			// channel with self
+			secondParticipantId = "-1"
+		} else {
+			if participants[0] == userID {
+				secondParticipantId = participants[1]
+			} else {
+				secondParticipantId = participants[0]
+			}
+		}
+		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
+		channelIds = append(channelIds, topDM.ChannelId)
+	}
+
+	// get user profiles
+	users, err := s.User().GetProfileByIds(context.Background(), secondParticipantIds, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get second participants' information")
+	}
+
+	// get outgoing message count for userId
+	outgoingMessagesQuery := s.getQueryBuilder().Select("ch.Id as ChannelId, count(p.Id) as MessageCount").From("Channels as ch").
+		Join("Posts as p on p.ChannelId=ch.Id").Where(
+		sq.And{
+			sq.Gt{
+				"p.UpdateAt": since,
+			},
+			sq.Eq{
+				"p.DeleteAt": 0,
+			},
+			sq.Eq{
+				"ch.Id": channelIds,
+			},
+			sq.Eq{
+				"p.UserId": userID,
+			},
+		}).GroupBy("ch.Id")
+
+	outgoingMessages := make([]*model.OutgoingMessageQueryResult, 0)
+	sql, args, err := outgoingMessagesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetTopDMsForUserSince_outgoingMessagesQuery_ToSql")
+	}
+	err = s.GetReplicaX().Select(&outgoingMessages, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find top DMs for user-id: %s", userID)
+	}
+
+	// create map of channelId -> MessageCount
+	outgoingMessagesMap := make(map[string]int)
+	for _, outgoingMessage := range outgoingMessages {
+		outgoingMessagesMap[outgoingMessage.ChannelId] = outgoingMessage.MessageCount
+	}
+
+	// create map of userId -> User
+	usersMap := make(map[string]*model.User)
+	for _, user := range users {
+		usersMap[user.Id] = user
+	}
+
+	for index, topDM := range topDMs {
+		if secondParticipantIds[index] == "-1" {
+			continue
+		}
+		user := usersMap[secondParticipantIds[index]]
+		if user.IsBot {
+			continue
+		}
+		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
+			InsightUserInformation: model.InsightUserInformation{
+				Id:                user.Id,
+				LastPictureUpdate: user.LastPictureUpdate,
+				FirstName:         user.FirstName,
+				LastName:          user.LastName,
+				Username:          user.Username,
+				NickName:          user.Nickname,
+			},
+			Position: user.Position,
+		}
+
+		topDM.OutgoingMessageCount = int64(outgoingMessagesMap[topDM.ChannelId])
+		topDMsFiltered = append(topDMsFiltered, topDM)
+	}
+
+	return topDMsFiltered, nil
+}
+
+func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	sql := `SELECT EXISTS (SELECT 1 FROM Posts	WHERE Id=?)`
+	var exist bool
+	err = transaction.Get(&exist, sql, reminder.PostId)
+	if err != nil {
+		return errors.Wrap(err, "failed to check for post")
+	}
+	if !exist {
+		return store.NewErrNotFound("Post", reminder.PostId)
+	}
+
+	query := s.getQueryBuilder().
+		Insert("PostReminders").
+		Columns("PostId", "UserId", "TargetTime").
+		Values(reminder.PostId, reminder.UserId, reminder.TargetTime)
+
+	if s.DriverName() == model.DatabaseDriverMysql {
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE TargetTime = ?", reminder.TargetTime))
+	} else {
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET TargetTime = ?", reminder.TargetTime))
+	}
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "setPostReminder_tosql")
+	}
+	if _, err2 := transaction.Exec(sql, args...); err2 != nil {
+		return errors.Wrap(err2, "failed to insert post reminder")
+	}
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction)
+
+	err = transaction.Select(&reminders, `SELECT PostId, UserId
+		FROM PostReminders
+		WHERE TargetTime < ?`, now)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
+	if err == sql.ErrNoRows {
+		// No need to execute delete statement if there's nothing to delete.
+		return reminders, nil
+	}
+
+	// Postgres supports RETURNING * in a DELETE statement, but MySQL doesn't.
+	// So we are stuck with 2 queries. Not taking separate paths for Postgres
+	// and MySQL for simplicity.
+	_, err = transaction.Exec(`DELETE from PostReminders WHERE TargetTime < ?`, now)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to delete post reminders")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return reminders, nil
+}
+
+func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostReminderMetadata, error) {
+	meta := &store.PostReminderMetadata{}
+	err := s.GetReplicaX().Get(meta, `SELECT c.id as ChannelId,
+			t.name as TeamName,
+			u.locale as UserLocale, u.username as Username
+		FROM Posts p, Channels c, Teams t, Users u
+		WHERE p.ChannelId=c.Id
+		AND c.TeamId=t.Id
+		AND p.UserId=u.Id
+		AND p.Id=?`, postID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get post reminder metadata")
+	}
+
+	return meta, nil
 }

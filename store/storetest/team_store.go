@@ -73,6 +73,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
 	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
+	t.Run("GetNewTeamMembersSince", func(t *testing.T) { testGetNewTeamMembersSince(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1385,7 +1386,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
@@ -1726,7 +1727,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		require.Error(t, nErr)
-		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error", nErr.Error())
 	})
 
 	t.Run("too many members in one team", func(t *testing.T) {
@@ -3617,4 +3618,18 @@ func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Team().GroupSyncedTeamCount()
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
+}
+
+func testGetNewTeamMembersSince(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName:      NewTestId(),
+		Name:             NewTestId(),
+		Email:            MakeEmail(),
+		Type:             model.TeamInvite,
+		GroupConstrained: model.NewBool(true),
+	})
+	require.NoError(t, err)
+
+	_, _, err = ss.Team().GetNewTeamMembersSince(team.Id, 0, 0, 1000)
+	require.NoError(t, err)
 }

@@ -3078,19 +3078,20 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // environment with ExperimentalSettings.RestrictedSystemAdmin set to true.
 //
 // Example:
-//  type HairSettings struct {
-//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
-//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
-//      // PermissionManageSystem grants read and write access.
-//      Colour string `access:"reporting,user_management_groups"`
 //
-//      // Length is only readable and writable via PermissionManageSystem.
-//      Length string
+//	type HairSettings struct {
+//	    // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
+//	    // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
+//	    // PermissionManageSystem grants read and write access.
+//	    Colour string `access:"reporting,user_management_groups"`
 //
-//      // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
-//      // PermissionManageSystem can always read the value.
-//      Product bool `access:write_restrictable`
-//  }
+//	    // Length is only readable and writable via PermissionManageSystem.
+//	    Length string
+//
+//	    // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
+//	    // PermissionManageSystem can always read the value.
+//	    Product bool `access:write_restrictable`
+//	}
 type Config struct {
 	ServiceSettings           ServiceSettings
 	TeamSettings              TeamSettings
@@ -3262,72 +3263,72 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := o.TeamSettings.isValid(); err != nil {
-		return err
+	if appErr := o.TeamSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SqlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SqlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.FileSettings.isValid(); err != nil {
-		return err
+	if appErr := o.FileSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.EmailSettings.isValid(); err != nil {
-		return err
+	if appErr := o.EmailSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LdapSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LdapSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SamlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
 		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
-	if err := o.RateLimitSettings.isValid(); err != nil {
-		return err
+	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ServiceSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ServiceSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ElasticsearchSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ElasticsearchSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.BleveSettings.isValid(); err != nil {
-		return err
+	if appErr := o.BleveSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DataRetentionSettings.isValid(); err != nil {
-		return err
+	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LocalizationSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.MessageExportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.MessageExportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DisplaySettings.isValid(); err != nil {
-		return err
+	if appErr := o.DisplaySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImageProxySettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImageProxySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 	return nil
 }
@@ -3500,19 +3501,19 @@ func (s *LdapSettings) isValid() *AppError {
 
 		if *s.UserFilter != "" {
 			if _, err := ldap.CompileFilter(*s.UserFilter); err != nil {
-				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 
 		if *s.GuestFilter != "" {
 			if _, err := ldap.CompileFilter(*s.GuestFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 
 		if *s.AdminFilter != "" {
 			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -3644,13 +3645,13 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -3706,7 +3707,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if _, err := time.Parse("15:04", *s.PostsAggregatorJobStartTime); err != nil {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if *s.LiveIndexingBatchSize < 1 {
@@ -3756,7 +3757,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
-		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	return nil
@@ -3782,7 +3783,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 		} else if s.DailyRunTime == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
 		} else if _, err := time.Parse("15:04", *s.DailyRunTime); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		} else if s.BatchSize == nil || *s.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
 		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv) {

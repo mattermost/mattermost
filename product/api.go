@@ -80,7 +80,7 @@ type LicenseService interface {
 // The service shall be registered via app.UserKey service key.
 type UserService interface {
 	GetUser(userID string) (*model.User, *model.AppError)
-	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
+	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -178,4 +178,13 @@ type StoreService interface {
 // The service shall be registered via app.SystemKey service key.
 type SystemService interface {
 	GetDiagnosticId() string
+}
+
+// PreferencesService is the API for accessing the Preferences service APIs.
+//
+// The service shall be registered via app.PreferencesKey service key.
+type PreferencesService interface {
+	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
+	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
 }

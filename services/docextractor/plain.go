@@ -5,7 +5,6 @@ package docextractor
 
 import (
 	"io"
-	"io/ioutil"
 	"unicode"
 	"unicode/utf8"
 )
@@ -47,6 +46,6 @@ func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker) (string, err
 		}
 	}
 
-	text, _ := ioutil.ReadAll(r)
+	text, _ := io.ReadAll(r)
 	return string(runes[0:total]) + string(text), nil
 }

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -29,7 +28,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -48,7 +47,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -67,12 +66,12 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *s.Config().LogSettings.EnableFile {
-		s.Log.Flush()
-		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+	if *s.platform.Config().LogSettings.EnableFile {
+		s.Log().Flush()
+		logFile := config.GetLogFileLocation(*s.platform.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer file.Close()
@@ -92,17 +91,17 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 		}
 		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		for {
 			pos, err := file.Seek(searchPos, io.SeekCurrent)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			_, err = file.ReadAt(b, pos)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if b[0] == newLine[0] || pos == 0 {
@@ -111,7 +110,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 					line := make([]byte, lineEndPos-pos)
 					_, err := file.ReadAt(line, pos)
 					if err != nil {
-						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 					lines = append(lines, string(line))
 				}
@@ -200,7 +199,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 	}
 	defer func() {
-		_, _ = io.Copy(ioutil.Discard, res.Body)
+		_, _ = io.Copy(io.Discard, res.Body)
 		_ = res.Body.Close()
 	}()
 
@@ -261,7 +260,7 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	defer res.Body.Close()
 
-	responseData, err := ioutil.ReadAll(res.Body)
+	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
 	}
