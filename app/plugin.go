@@ -19,6 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
+	"github.com/pkg/profile"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -451,6 +452,11 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
+	defer profile.Start(
+		profile.CPUProfile,
+		profile.NoShutdownHook,
+		profile.ProfilePath("."),
+	).Stop()
 	appErr := a.ch.disablePlugin(id)
 	if appErr != nil {
 		return appErr
