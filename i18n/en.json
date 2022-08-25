@@ -4848,6 +4848,18 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Couldn't retrieve cloud products"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Couldn't retrieve cloud subscription"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Subscription is not delinquent"
+  },
+  {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
   },
@@ -4862,18 +4874,6 @@
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
-  },
-  {
-    "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "Couldn't retrieve cloud products"
-  },
-  {
-    "id": "app.cloud.get_subscription.app_error",
-    "translation": "Couldn't retrieve cloud subscription"
-  },
-  {
-    "id": "app.cloud.get_subscription_delinquency_date.app_error",
-    "translation": "Subscription is not delinquent"
   },
   {
     "id": "app.command.createcommand.internal_error",
