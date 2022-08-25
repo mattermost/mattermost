@@ -411,7 +411,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+		assert.Equal(t, "'unsafe-eval' 'unsafe-inline' http://localhost:9006", devCSP)
 
 	})
 	t.Run("allowed dev flags", func(t *testing.T) {
@@ -436,7 +436,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+		assert.Equal(t, "'unsafe-inline' 'unsafe-eval'", devCSP)
 	})
 
 	t.Run("partial dev flags", func(t *testing.T) {
@@ -461,7 +461,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval'", devCSP)
+		assert.Equal(t, "'unsafe-eval'", devCSP)
 	})
 
 	t.Run("unknown dev flags", func(t *testing.T) {
@@ -486,7 +486,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval'", devCSP)
+		assert.Equal(t, "'unsafe-eval'", devCSP)
 	})
 
 	t.Run("empty dev flags", func(t *testing.T) {
