@@ -192,7 +192,6 @@ func TestUpdateUser(t *testing.T) {
 		user.Username = *group.Name
 		u, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
 	})
 }
@@ -246,7 +245,6 @@ func TestCreateUser(t *testing.T) {
 		user.Username = *group.Name
 		u, err := th.App.CreateUser(th.Context, user)
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
 	})
 
