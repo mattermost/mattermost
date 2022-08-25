@@ -14,11 +14,12 @@ import (
 
 const schedFreq = 1 * time.Minute
 
-func MakeScheduler(jobServer *jobs.JobServer, license *model.License) model.Scheduler {
+func MakeScheduler(jobServer *jobs.JobServer, license *model.License, jobType string) model.Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
 		enabled := license != nil && *license.Features.Cloud
-		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", model.JobTypeNotifyAdmin))
+		mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", jobType))
 		return enabled
 	}
-	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeNotifyAdmin, schedFreq, isEnabled)
+	return jobs.NewPeriodicScheduler(jobServer, jobType, schedFreq, isEnabled)
+
 }

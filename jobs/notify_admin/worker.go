@@ -6,14 +6,15 @@ import (
 )
 
 const (
-	JobName = "NotifyAdmin"
+	UpgradeNotifyJobName = "UpgradeNotifyAdmin"
+	TrialNotifyJobName   = "TrialNotifyAdmin"
 )
 
 type AppIface interface {
 	DoCheckForAdminNotifications(trial bool) *model.AppError
 }
 
-func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
@@ -25,6 +26,22 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(UpgradeNotifyJobName, jobServer, execute, isEnabled)
+	return worker
+}
+
+func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
+	isEnabled := func(_ *model.Config) bool {
+		return license != nil && license.Features != nil && *license.Features.Cloud
+	}
+	execute := func(_ *model.Job) error {
+		appErr := app.DoCheckForAdminNotifications(true)
+		if appErr != nil {
+			return appErr
+		}
+
+		return nil
+	}
+	worker := jobs.NewSimpleWorker(TrialNotifyJobName, jobServer, execute, isEnabled)
 	return worker
 }

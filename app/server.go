@@ -1849,9 +1849,15 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeNotifyAdmin,
-		notify_admin.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		notify_admin.MakeScheduler(s.Jobs, s.License()),
+		model.JobTypeUpgradeNotifyAdmin,
+		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeTrialNotifyAdmin,
+		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
 	)
 }
 
