@@ -4319,6 +4319,198 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 	return model.GetTopChannelListWithPagination(channels, limit), nil
 }
 
+// GetTopInactiveChannelsForTeamSince returns the filtered post counts of the following Channels sets:
+// a) those that are private channels in the given user's membership graph on the given team, and
+// b) those that are public channels in the given team.
+func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	channels := make([]*model.TopInactiveChannel, 0)
+	var args []any
+
+	query := `
+		SELECT
+			ID,
+			Type,
+			DisplayName,
+			Name,
+			MessageCount,
+			LastActivityAt
+		FROM
+			((SELECT
+				Posts.ChannelId AS ID,
+				'O' AS Type,
+				PublicChannels.DisplayName AS DisplayName,
+				PublicChannels.Name AS Name,
+				count(Posts.Id) AS MessageCount,
+				max(Posts.CreateAt) AS LastActivityAt
+			FROM
+				Posts
+				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
+				AND PublicChannels.TeamId = ?
+				AND PublicChannels.DeleteAt = 0
+			GROUP BY
+				Posts.ChannelId,
+				PublicChannels.DisplayName,
+				PublicChannels.Name,
+				PublicChannels.TeamId)
+		UNION ALL
+			(SELECT
+				Posts.ChannelId AS ID,
+				Channels.Type AS Type,
+				Channels.DisplayName AS DisplayName,
+				Channels.Name AS Name,
+				count(Posts.Id) AS MessageCount,
+				max(Posts.CreateAt) AS LastActivityAt
+			FROM
+				Posts
+				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			WHERE
+				Posts.DeleteAt = 0
+				AND Posts.CreateAt > ?
+				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
+				AND Channels.TeamId = ?
+				AND Channels.Type = 'P'
+				AND Channels.DeleteAt = 0
+				AND ChannelMembers.UserId = ?
+			GROUP BY
+				Posts.ChannelId,
+				Channels.Type,
+				Channels.DisplayName,
+				Channels.Name)) AS A
+		ORDER BY
+			MessageCount ASC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, since, teamID, since, teamID, userID, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Channels")
+	}
+
+	channels, err := postProcessTopInactiveChannels(s, channels)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
+}
+
+// GetTopInactiveChannelsForUserSince returns the filtered post counts of channels with with posts created by the user
+// after the given timestamp within the given team (or across the workspace if no team is given). Excludes DM and GM channels.
+func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	channels := make([]*model.TopInactiveChannel, 0)
+	var args []any
+	var query string
+
+	query = `
+		SELECT
+			Posts.ChannelId AS ID,
+			Channels.Type AS Type,
+			Channels.DisplayName AS DisplayName,
+			Channels.Name AS Name,
+			count(Posts.Id) AS MessageCount,
+			max(Posts.CreateAt) AS LastActivityAt
+		FROM
+			Posts
+			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+		WHERE
+			Posts.DeleteAt = 0
+			AND Posts.CreateAt > ?
+			AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
+			AND Channels.DeleteAt = 0
+			AND (Channels.Type = 'O' OR Channels.Type = 'P')
+			AND ChannelMembers.UserId = ? `
+
+	args = []any{since, userID}
+
+	if teamID != "" {
+		query += `
+			AND Channels.TeamID = ?`
+		args = append(args, teamID)
+	}
+
+	query += `
+		Group By
+			Posts.ChannelId,
+			Channels.Type,
+			Channels.DisplayName,
+			Channels.Name
+		ORDER BY
+			MessageCount ASC,
+			Name ASC
+		LIMIT ?
+		OFFSET ?`
+	args = append(args, limit+1, offset)
+
+	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Inactive Channels")
+	}
+
+	channels, err := postProcessTopInactiveChannels(s, channels)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.GetTopInactiveChannelListWithPagination(channels, limit), nil
+}
+
+func postProcessTopInactiveChannels(s SqlChannelStore, channels []*model.TopInactiveChannel) ([]*model.TopInactiveChannel, error) {
+	// query channel members for Ids
+	var conditionalAggrSelector string
+	if s.DriverName() == model.DatabaseDriverMysql {
+		conditionalAggrSelector = "GROUP_CONCAT(UserId SEPARATOR ',') as UserIds"
+	} else if s.DriverName() == model.DatabaseDriverPostgres {
+		conditionalAggrSelector = "string_agg(UserId, ',') as UserIds"
+	}
+
+	var channelIds []string
+	for _, channel := range channels {
+		channelIds = append(channelIds, channel.ID)
+	}
+	q := s.getQueryBuilder().Select("ChannelId", conditionalAggrSelector).From("ChannelMembers").
+		Where(sq.Eq{
+			"ChannelId": channelIds,
+		}).GroupBy("ChannelId")
+
+	channelsUserIdsMap := make(map[string]string, len(channels))
+	type ChannelUserIdsResult struct {
+		ChannelId string
+		UserIds   string
+	}
+
+	channelsUserIdsResultList := make([]ChannelUserIdsResult, len(channels))
+	sql, args, err := q.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to stringify squirrel query")
+	}
+	if err := s.GetReplicaX().Select(&channelsUserIdsResultList, sql, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get top Inactive Channels users")
+	}
+
+	for _, channelUserIds := range channelsUserIdsResultList {
+		channelsUserIdsMap[channelUserIds.ChannelId] = channelUserIds.UserIds
+	}
+	for index, channel := range channels {
+		userIds := channelsUserIdsMap[channel.ID]
+		userIdsSlice := strings.Split(userIds, ",")
+
+		channels[index].Participants = userIdsSlice
+
+		// handle channels with 0 participants
+		if len(userIdsSlice) == 1 && userIdsSlice[0] == "" {
+			channels[index].Participants = make([]string, 0)
+		}
+	}
+	return channels, nil
+}
+
 func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, atLocation *time.Location) ([]*model.DurationPostCount, error) {
 	var unixSelect string
 	var propsQuery string

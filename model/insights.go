@@ -63,6 +63,22 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
+// Top Channels
+type TopInactiveChannelList struct {
+	InsightsListData
+	Items []*TopInactiveChannel `json:"items"`
+}
+
+type TopInactiveChannel struct {
+	ID             string      `json:"id"`
+	Type           ChannelType `json:"type"`
+	DisplayName    string      `json:"display_name"`
+	Name           string      `json:"name"`
+	LastActivityAt int64       `json:"last_activity_at"`
+	Participants   StringArray `json:"participants"`
+	MessageCount   int64       `json:"-"`
+}
+
 // Top Threads
 type TopThreadList struct {
 	InsightsListData
@@ -284,6 +300,20 @@ func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadL
 	}
 
 	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
+}
+
+// GetTopInactiveChannelListWithPagination adds a rank to each item in the given list of TopInactiveChannel and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopInactiveChannel is assumed to be
+// sorted by Score. Returns a TopInactiveChannelList.
+func GetTopInactiveChannelListWithPagination(channels []*TopInactiveChannel, limit int) *TopInactiveChannelList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(channels) == limit+1) {
+		hasNext = true
+		channels = channels[:len(channels)-1]
+	}
+
+	return &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
 }
 
 // GetTopDMListWithPagination adds a rank to each item in the given list of TopDM and checks if there is
