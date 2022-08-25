@@ -66,7 +66,7 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 		return model.NewAppError("DoCheckForAdminNotifications", "Unable to fetch cloud products", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	currentProduct := getCurrentProduct(products, subscription.ProductID)
+	currentProduct := getCurrentProduct(subscription.ProductID, products)
 	if currentProduct == nil {
 		return model.NewAppError("DoCheckForAdminNotifications", "current product cannot be nil", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -90,15 +90,6 @@ func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdm
 	}
 
 	return d, nil
-}
-
-func getCurrentProduct(products []*model.Product, id string) *model.Product {
-	for _, product := range products {
-		if product.ID == id {
-			return product
-		}
-	}
-	return nil
 }
 
 func filterNotificationData(data []*model.NotifyAdminData, test func(*model.NotifyAdminData) bool) (ret []*model.NotifyAdminData) {
