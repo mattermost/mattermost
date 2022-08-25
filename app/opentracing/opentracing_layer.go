@@ -15084,6 +15084,28 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(c request.CTX, channel
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDelinquencyEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendDelinquencyEmail(emailToSend)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string, redirect string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEmailVerification")

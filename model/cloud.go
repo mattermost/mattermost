@@ -15,6 +15,7 @@ const (
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
 var MockCWS string
@@ -189,13 +190,30 @@ type InvoiceLineItem struct {
 	Metadata     map[string]any `json:"metadata"`
 }
 
+type DelinquencyEmailTrigger struct {
+	EmailToTrigger string `json:"email_to_send"`
+}
+
+type DelinquencyEmail string
+
+const (
+	DelinquencyEmail7  DelinquencyEmail = "7"
+	DelinquencyEmail14 DelinquencyEmail = "14"
+	DelinquencyEmail30 DelinquencyEmail = "30"
+	DelinquencyEmail45 DelinquencyEmail = "45"
+	DelinquencyEmail60 DelinquencyEmail = "60"
+	DelinquencyEmail75 DelinquencyEmail = "75"
+	DelinquencyEmail90 DelinquencyEmail = "90"
+)
+
 type CWSWebhookPayload struct {
-	Event                             string               `json:"event"`
-	FailedPayment                     *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
-	ProductLimits                     *ProductLimits       `json:"product_limits"`
-	Subscription                      *Subscription        `json:"subscription"`
-	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
+	Event                             string                   `json:"event"`
+	FailedPayment                     *FailedPayment           `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner     `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits           `json:"product_limits"`
+	Subscription                      *Subscription            `json:"subscription"`
+	SubscriptionTrialEndUnixTimeStamp int64                    `json:"trial_end_time_stamp"`
+	DelinquencyEmail                  *DelinquencyEmailTrigger `json:"delinquency_email"`
 }
 
 type FailedPayment struct {
