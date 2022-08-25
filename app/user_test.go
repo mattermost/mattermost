@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -1036,6 +1037,12 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
+	// upload profile image
+	user := th.BasicUser
+
+	err = th.App.SetDefaultProfileImage(th.Context, user)
+	require.Nil(t, err)
+
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "botname",
 		Description: "a bot",
@@ -1076,6 +1083,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
 	require.NotNil(t, err, "GetFileInfo after DeleteUser is nil. err=%v", err)
+
+	// test deletion of profile picture
+	exists, err := th.App.FileExists(filepath.Join("users", user.Id))
+	require.Nil(t, err, "Unable to stat finfo. err=%v", err)
+	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 }
 
 func TestPasswordRecovery(t *testing.T) {
