@@ -96,7 +96,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GraphQL = false
 	f.InsightsEnabled = true
 	f.CommandPalette = false
-	f.PostForwarding = true
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
