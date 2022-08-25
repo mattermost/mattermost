@@ -541,6 +541,7 @@ type AppIface interface {
 	DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
+	DoCheckForAdminNotifications(trial bool) *model.AppError
 	DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError)
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()

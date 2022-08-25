@@ -54,30 +54,27 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	return nil
 }
 
-func (a *App) doCheckForAdminNotifications(trial bool) {
+func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 	ctx := request.EmptyContext(a.Srv().Log())
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		mlog.Error("doCheckForAdminNotifications: Unable to fetch Subscription", mlog.Err(err))
-		return
+		return model.NewAppError("DoCheckForAdminNotifications", "Unable to fetch Subscription", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	products, err := a.Cloud().GetCloudProducts("", true)
 	if err != nil {
-		mlog.Error("doCheckForAdminNotifications: Unable to fetch cloud products", mlog.Err(err))
-		return
+		return model.NewAppError("DoCheckForAdminNotifications", "Unable to fetch cloud products", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	currentProduct := getCurrentProduct(products, subscription.ProductID)
 	if currentProduct == nil {
-		mlog.Error("doCheckForAdminNotifications: currentProduct unavailable")
-		return
+		return model.NewAppError("DoCheckForAdminNotifications", "current product cannot be nil", nil, err.Error(), http.StatusInternalServerError)
 	}
 	currentSKU := currentProduct.SKU
 
 	workspaceName := subscription.GetWorkSpaceNameFromDNS()
 
-	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)
+	return a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {

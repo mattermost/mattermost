@@ -48,6 +48,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
+	"github.com/mattermost/mattermost-server/v6/jobs/notify_admin"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -681,8 +682,6 @@ func NewServer(options ...Option) (*Server, error) {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
 			s.runInactivityCheckJob()
-			appInstance.runCheckForAdminUpgradeNotificationsJob()
-			appInstance.runCheckForAdminTrialNotificationsJob()
 			runDNDStatusExpireJob(appInstance)
 			runPostReminderJob(appInstance)
 		})
@@ -1435,18 +1434,6 @@ func (s *Server) runInactivityCheckJob() {
 	}, time.Hour*24)
 }
 
-func (a *App) runCheckForAdminUpgradeNotificationsJob() {
-	model.CreateRecurringTask("check for admin upgrade notifications job", func() {
-		a.doCheckForAdminNotifications(false)
-	}, time.Minute*1)
-}
-
-func (a *App) runCheckForAdminTrialNotificationsJob() {
-	model.CreateRecurringTask("check for admin trial notifications job", func() {
-		a.doCheckForAdminNotifications(true)
-	}, time.Hour*24)
-}
-
 func (s *Server) runLicenseExpirationCheckJob() {
 	s.doLicenseExpirationCheck()
 	model.CreateRecurringTask("License Expiration Check", func() {
@@ -1859,6 +1846,12 @@ func (s *Server) initJobs() {
 		model.JobTypeLastAccessiblePost,
 		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeNotifyAdmin,
+		notify_admin.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License()),
 	)
 }
 

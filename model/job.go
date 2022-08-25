@@ -28,6 +28,7 @@ const (
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
 	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeNotifyAdmin                  = "notify_admin"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
