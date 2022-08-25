@@ -60,6 +60,10 @@
     "translation": "September"
   },
   {
+    "id": "Testing not enabled",
+    "translation": ""
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
