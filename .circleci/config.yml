@@ -652,7 +652,7 @@ workflows:
           name: test-mysql
           dbdriver: mysql
           dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
-          racemode: ""
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers
@@ -663,7 +663,7 @@ workflows:
           name: test-postgres-normal
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
-          racemode: ""
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers
@@ -674,7 +674,7 @@ workflows:
           name: test-postgres-binary
           dbdriver: postgres
           dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
-          racemode: ""
+          racemode: "-race"
           requires:
             - check-app-layers
             - check-store-layers

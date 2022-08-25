@@ -20,8 +20,10 @@ echo "GOFLAGS: $GOFLAGS"
 
 if [[ $GOFLAGS == "-race " && $IS_CI == "true" ]] ;
 then
-	export GOMAXPROCS=4
+	export GOMAXPROCS=2
 fi
+
+echo "GOMAXPROCS: $GOMAXPROCS"
 
 find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
 find . -type d -name data -not -path './data' | xargs rm -rf
