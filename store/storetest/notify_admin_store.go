@@ -19,10 +19,10 @@ func TestNotifyAdminStore(t *testing.T, ss store.Store) {
 }
 
 func tearDown(t *testing.T, ss store.Store) {
-	err := ss.NotifyAdmin().DeleteBefore(true, model.GetMillis())
+	err := ss.NotifyAdmin().DeleteBefore(true, model.GetMillis()+model.GetMillis())
 	require.NoError(t, err)
 
-	err = ss.NotifyAdmin().DeleteBefore(false, model.GetMillis())
+	err = ss.NotifyAdmin().DeleteBefore(false, model.GetMillis()+model.GetMillis())
 	require.NoError(t, err)
 }
 
@@ -36,6 +36,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	_, err := ss.NotifyAdmin().Save(d1)
 	require.NoError(t, err)
 
+	// unknow plan error
 	d2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "cloud-professional",
@@ -45,12 +46,31 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	_, err = ss.NotifyAdmin().Save(d2)
 	require.Error(t, err)
 
+	// unknown feature error
 	d3 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "Unknown plan",
 		RequiredFeature: "All Professional features",
 	}
 	_, err = ss.NotifyAdmin().Save(d3)
+	require.Error(t, err)
+
+	// same user requesting same feature error
+	singleUserId := model.NewId()
+	d5 := &model.NotifyAdminData{
+		UserId:          singleUserId,
+		RequiredPlan:    "cloud-professional",
+		RequiredFeature: "All Professional features",
+	}
+	_, err = ss.NotifyAdmin().Save(d5)
+	require.NoError(t, err)
+
+	d6 := &model.NotifyAdminData{
+		UserId:          singleUserId,
+		RequiredPlan:    "cloud-professional",
+		RequiredFeature: "All Professional features",
+	}
+	_, err = ss.NotifyAdmin().Save(d6)
 	require.Error(t, err)
 
 	tearDown(t, ss)
@@ -69,7 +89,7 @@ func testGet(t *testing.T, ss store.Store) {
 
 	d1Trial := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    "cloud-enterprise",
 		RequiredFeature: "All Enterprise features",
 		Trial:           true,
 	}
@@ -78,7 +98,7 @@ func testGet(t *testing.T, ss store.Store) {
 
 	d1Trial2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    "cloud-enterprise",
 		RequiredFeature: "All Enterprise features",
 		Trial:           true,
 	}
@@ -120,7 +140,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, "All Professional features")
 	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
-	require.Equal(t, user1Request[0].RequiredFeature, "All Professional features")
+	require.Equal(t, user1Request[0].RequiredFeature, model.MattermostPaidFeature("All Professional features"))
 
 	tearDown(t, ss)
 }
