@@ -41,6 +41,51 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
+type MattermostPaidFeature string
+
+const (
+	PaidFeatureGuestAccounts           = MattermostPaidFeature("Guest Accounts")
+	PaidFeatureCustomUsergroups        = MattermostPaidFeature("Custom User groups")
+	PaidFeatureCreateMultipleTeams     = MattermostPaidFeature("Create Multiple Teams")
+	PaidFeatureStartcall               = MattermostPaidFeature("Start call")
+	PaidFeaturePlaybooksRetrospective  = MattermostPaidFeature("Playbooks Retrospective")
+	PaidFeatureUnlimitedMessages       = MattermostPaidFeature("Unlimited Messages")
+	PaidFeatureUnlimitedFileStorage    = MattermostPaidFeature("Unlimited File Storage")
+	PaidFeatureUnlimitedIntegrations   = MattermostPaidFeature("Unlimited Integrations")
+	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeature("Unlimited Board cards")
+	PaidFeatureAllProfessionalfeatures = MattermostPaidFeature("All Professional features")
+	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("All Enterprise features")
+)
+
+type CloudSKU string
+
+const (
+	CloudSKUStarter      = CloudSKU("cloud-starter")
+	CloudSKUProfessional = CloudSKU("cloud-professional")
+	CloudSKUEnterprise   = CloudSKU("cloud-enterprise")
+)
+
+var validCloudSKUs map[CloudSKU]struct{} = map[CloudSKU]struct{}{
+	CloudSKUStarter:      {},
+	CloudSKUProfessional: {},
+	CloudSKUEnterprise:   {},
+}
+
+// These are the features a non admin would typically ping an admin about
+var nonAdminPaidFeatures map[MattermostPaidFeature]struct{} = map[MattermostPaidFeature]struct{}{
+	PaidFeatureGuestAccounts:           {},
+	PaidFeatureCustomUsergroups:        {},
+	PaidFeatureCreateMultipleTeams:     {},
+	PaidFeatureStartcall:               {},
+	PaidFeaturePlaybooksRetrospective:  {},
+	PaidFeatureUnlimitedMessages:       {},
+	PaidFeatureUnlimitedFileStorage:    {},
+	PaidFeatureUnlimitedIntegrations:   {},
+	PaidFeatureUnlimitedBoardcards:     {},
+	PaidFeatureAllProfessionalfeatures: {},
+	PaidFeatureAllEnterprisefeatures:   {},
+}
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID                string             `json:"id"`
@@ -237,41 +282,18 @@ type ProductLimits struct {
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
-
-var validCloudSKUs map[string]interface{} = map[string]interface{}{
-	"cloud-starter":      nil,
-	"cloud-professional": nil,
-	"cloud-enterprise":   nil,
-}
-
-// These are the features a non admin would typically ping an admin about
-var nonAdminPaidFeatures map[string]interface{} = map[string]interface{}{
-	"Guest Accounts":            nil,
-	"Custom User groups":        nil,
-	"Create Multiple Teams":     nil,
-	"Start call":                nil,
-	"Playbooks Retrospective":   nil,
-	"Unlimited Messages":        nil,
-	"Unlimited File Storage":    nil,
-	"Unlimited Integrations":    nil,
-	"Unlimited Board cards":     nil,
-	"All Professional features": nil,
-	"All Enterprise features":   nil,
-}
-
 type NotifyAdminToUpgradeRequest struct {
-	TrialNotification bool   `json:"trial_notification"`
-	RequiredPlan      string `json:"required_plan"`
-	RequiredFeature   string `json:"required_feature"`
+	TrialNotification bool                  `json:"trial_notification"`
+	RequiredPlan      CloudSKU              `json:"required_plan"`
+	RequiredFeature   MattermostPaidFeature `json:"required_feature"`
 }
 
 type NotifyAdminData struct {
-	Id              string `json:"id,omitempty"`
-	CreateAt        int64  `json:"create_at,omitempty"`
-	UserId          string `json:"user_id"`
-	RequiredPlan    string `json:"required_plan"`
-	RequiredFeature string `json:"required_feature"`
-	Trial           bool   `json:"trial"`
+	CreateAt        int64                 `json:"create_at,omitempty"`
+	UserId          string                `json:"user_id"`
+	RequiredPlan    CloudSKU              `json:"required_plan"`
+	RequiredFeature MattermostPaidFeature `json:"required_feature"`
+	Trial           bool                  `json:"trial"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {
@@ -287,9 +309,5 @@ func (nad *NotifyAdminData) IsValid() *AppError {
 }
 
 func (nad *NotifyAdminData) PreSave() {
-	if nad.Id == "" {
-		nad.Id = NewId()
-	}
-
 	nad.CreateAt = GetMillis()
 }

@@ -14,13 +14,13 @@ type NotifyAdminStore struct {
 	mock.Mock
 }
 
-// DeleteAll provides a mock function with given fields: trial
-func (_m *NotifyAdminStore) DeleteAll(trial bool) error {
-	ret := _m.Called(trial)
+// DeleteBefore provides a mock function with given fields: trial, now
+func (_m *NotifyAdminStore) DeleteBefore(trial bool, now int64) error {
+	ret := _m.Called(trial, now)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(bool) error); ok {
-		r0 = rf(trial)
+	if rf, ok := ret.Get(0).(func(bool, int64) error); ok {
+		r0 = rf(trial, now)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -52,11 +52,11 @@ func (_m *NotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 // GetDataByUserIdAndFeature provides a mock function with given fields: userId, feature
-func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature string) ([]*model.NotifyAdminData, error) {
+func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 	ret := _m.Called(userId, feature)
 
 	var r0 []*model.NotifyAdminData
-	if rf, ok := ret.Get(0).(func(string, string) []*model.NotifyAdminData); ok {
+	if rf, ok := ret.Get(0).(func(string, model.MattermostPaidFeature) []*model.NotifyAdminData); ok {
 		r0 = rf(userId, feature)
 	} else {
 		if ret.Get(0) != nil {
@@ -65,7 +65,7 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+	if rf, ok := ret.Get(1).(func(string, model.MattermostPaidFeature) error); ok {
 		r1 = rf(userId, feature)
 	} else {
 		r1 = ret.Error(1)

@@ -5601,11 +5601,11 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 
 }
 
-func (s *RetryLayerNotifyAdminStore) DeleteAll(trial bool) error {
+func (s *RetryLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
 
 	tries := 0
 	for {
-		err := s.NotifyAdminStore.DeleteAll(trial)
+		err := s.NotifyAdminStore.DeleteBefore(trial, now)
 		if err == nil {
 			return nil
 		}
@@ -5643,7 +5643,7 @@ func (s *RetryLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 
 }
 
-func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature string) ([]*model.NotifyAdminData, error) {
+func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 
 	tries := 0
 	for {

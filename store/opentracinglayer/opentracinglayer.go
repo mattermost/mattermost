@@ -4944,16 +4944,16 @@ func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadat
 	return result, err
 }
 
-func (s *OpenTracingLayerNotifyAdminStore) DeleteAll(trial bool) error {
+func (s *OpenTracingLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.DeleteAll")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.DeleteBefore")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.NotifyAdminStore.DeleteAll(trial)
+	err := s.NotifyAdminStore.DeleteBefore(trial, now)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4980,7 +4980,7 @@ func (s *OpenTracingLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdmin
 	return result, err
 }
 
-func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature string) ([]*model.NotifyAdminData, error) {
+func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndFeature")
 	s.Root.Store.SetContext(newCtx)

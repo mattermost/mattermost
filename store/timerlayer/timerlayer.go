@@ -4485,10 +4485,10 @@ func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) DeleteAll(trial bool) error {
+func (s *TimerLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
 	start := time.Now()
 
-	err := s.NotifyAdminStore.DeleteAll(trial)
+	err := s.NotifyAdminStore.DeleteBefore(trial, now)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -4496,7 +4496,7 @@ func (s *TimerLayerNotifyAdminStore) DeleteAll(trial bool) error {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.DeleteAll", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.DeleteBefore", success, elapsed)
 	}
 	return err
 }
@@ -4517,7 +4517,7 @@ func (s *TimerLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 	return result, err
 }
 
-func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature string) ([]*model.NotifyAdminData, error) {
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 	start := time.Now()
 
 	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)

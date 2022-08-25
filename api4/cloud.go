@@ -74,6 +74,11 @@ func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().ServiceSettings.EnableTesting {
+		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "Testing not enabled", nil, "", http.StatusForbidden)
+		return
+	}
+
 	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
 	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
 	if err != nil {

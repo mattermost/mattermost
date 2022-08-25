@@ -1083,9 +1083,9 @@ func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, jsonlReader
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CanNotify(trial bool) bool {
+func (a *OpenTracingAppLayer) CanNotifyAdmin(trial bool) bool {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CanNotify")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CanNotifyAdmin")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -1095,7 +1095,7 @@ func (a *OpenTracingAppLayer) CanNotify(trial bool) bool {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CanNotify(trial)
+	resultVar0 := a.app.CanNotifyAdmin(trial)
 
 	return resultVar0
 }
@@ -4103,23 +4103,6 @@ func (a *OpenTracingAppLayer) ExtractContentFromFileInfo(fileInfo *model.FileInf
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FeatureBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FeatureBasedFlatten")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.FeatureBasedFlatten(data)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FetchSamlMetadataFromIdp")
@@ -4396,7 +4379,7 @@ func (a *OpenTracingAppLayer) FindTeamByName(name string) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool) {
+func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FinishSendAdminNotifyPost")
 
@@ -4408,7 +4391,7 @@ func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool) {
 	}()
 
 	defer span.Finish()
-	a.app.FinishSendAdminNotifyPost(trial)
+	a.app.FinishSendAdminNotifyPost(trial, now)
 }
 
 func (a *OpenTracingAppLayer) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
@@ -18030,7 +18013,7 @@ func (a *OpenTracingAppLayer) UpsertGroupSyncable(groupSyncable *model.GroupSync
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UserAlreadyNotifiedOnRequiredFeature(user string, feature string) bool {
+func (a *OpenTracingAppLayer) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserAlreadyNotifiedOnRequiredFeature")
 
@@ -18043,23 +18026,6 @@ func (a *OpenTracingAppLayer) UserAlreadyNotifiedOnRequiredFeature(user string, 
 
 	defer span.Finish()
 	resultVar0 := a.app.UserAlreadyNotifiedOnRequiredFeature(user, feature)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserBasedFlatten")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.UserBasedFlatten(data)
 
 	return resultVar0
 }

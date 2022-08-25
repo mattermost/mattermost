@@ -17,7 +17,7 @@ import (
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
 
-	t.Run("error sending upgrade post when do notifications are available", func(t *testing.T) {
+	t.Run("no error sending upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -25,11 +25,10 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, "", "", false)
-		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
-		require.NotNil(t, err)
+		require.Nil(t, err)
 	})
 
-	t.Run("error sending trial post when do notifications are available", func(t *testing.T) {
+	t.Run("no error sending trial post when do notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -37,8 +36,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 		err := th.App.SendNotifyAdminPosts(ctx, "", "", true)
-		require.Equal(t, err.Error(), "SendNotifyAdminPosts: Unable to send notification post., No notification data available")
-		require.NotNil(t, err)
+		require.Nil(t, err)
 	})
 
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
@@ -142,7 +140,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, bot.UserId, post.UserId)
 		require.Equal(t, "1 member of the test workspace has requested starting the Enterprise trial for access to: ", post.Message)
 
-		flattenedData := th.App.FeatureBasedFlatten([]*model.NotifyAdminData{
+		flattenedData := th.App.groupNotifyAdminByFeature([]*model.NotifyAdminData{
 			requestedData,
 		})
 

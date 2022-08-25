@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,7 +22,7 @@ import (
 
 const lastTrialNotificationTimeStamp = "LAST_TRIAL_NOTIFICATION_TIMESTAMP"
 const lastUpgradeNotificationTimeStamp = "LAST_UPGRADE_NOTIFICATION_TIMESTAMP"
-const defaultCloudNotifyAdminCoolOffDays = 30
+const defaultCloudNotifyAdminCoolOffDays = 0.0001157407407 // this is a temp change
 
 // Ensure cloud service wrapper implements `product.CloudService`
 var _ product.CloudService = (*cloudWrapper)(nil)
@@ -55,47 +54,30 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	return nil
 }
 
-func (a *App) doCheckForAdminUpgradeNotifications() {
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
+func (a *App) doCheckForAdminNotifications(trial bool) {
+	ctx := request.EmptyContext(a.Srv().Log())
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch Subscription", mlog.Err(err))
+		mlog.Error("doCheckForAdminNotifications: Unable to fetch Subscription", mlog.Err(err))
 		return
 	}
 
 	products, err := a.Cloud().GetCloudProducts("", true)
 	if err != nil {
-		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch cloud products", mlog.Err(err))
+		mlog.Error("doCheckForAdminNotifications: Unable to fetch cloud products", mlog.Err(err))
 		return
 	}
 
 	currentProduct := getCurrentProduct(products, subscription.ProductID)
+	if currentProduct == nil {
+		mlog.Error("doCheckForAdminNotifications: currentProduct unavailable")
+		return
+	}
 	currentSKU := currentProduct.SKU
 
 	workspaceName := subscription.GetWorkSpaceNameFromDNS()
 
-	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, false)
-}
-
-func (a *App) doCheckForAdminTrialNotifications() {
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	subscription, err := a.Cloud().GetSubscription("")
-	if err != nil {
-		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch Subscription", mlog.Err(err))
-		return
-	}
-
-	products, err := a.Cloud().GetCloudProducts("", true)
-	if err != nil {
-		mlog.Error("doCheckForAdminUpgradeNotifications: Unable to fetch cloud products", mlog.Err(err))
-		return
-	}
-
-	currentProduct := getCurrentProduct(products, subscription.ProductID)
-	currentSKU := currentProduct.SKU
-
-	workspaceName := subscription.GetWorkSpaceNameFromDNS()
-	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, true)
+	a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
@@ -132,7 +114,7 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 }
 
 func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
-	if !a.CanNotify(trial) {
+	if !a.CanNotifyAdmin(trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
@@ -151,19 +133,22 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 		return appErr
 	}
 
+	now := model.GetMillis()
+
 	data, err := a.Srv().Store.NotifyAdmin().Get(trial)
 	if err != nil {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
+	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return string(nad.RequiredPlan) != currentSKU })
 
 	if len(data) == 0 {
-		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "No notification data available", http.StatusInternalServerError)
+		mlog.Warn("No notification data available")
+		return nil
 	}
 
-	userBasedData := a.UserBasedFlatten(data)
-	featureBasedData := a.FeatureBasedFlatten(data)
+	userBasedData := a.groupNotifyAdminByUser(data)
+	featureBasedData := a.groupNotifyAdminByFeature(data)
 	props := make(model.StringInterface)
 
 	for _, admin := range sysadmins {
@@ -204,12 +189,12 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 		}
 	}
 
-	a.FinishSendAdminNotifyPost(trial)
+	a.FinishSendAdminNotifyPost(trial, now)
 
 	return nil
 }
 
-func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
+func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
 	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
 	if err != nil {
 		return true // any error should flag as already notified to avoid data corruption like duplicates
@@ -221,7 +206,7 @@ func (a *App) UserAlreadyNotifiedOnRequiredFeature(user, feature string) bool {
 	return false
 }
 
-func (a *App) CanNotify(trial bool) bool {
+func (a *App) CanNotifyAdmin(trial bool) bool {
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -253,7 +238,7 @@ func (a *App) CanNotify(trial bool) bool {
 	return timeDiff >= int64(daysToMillis)
 }
 
-func (a *App) FinishSendAdminNotifyPost(trial bool) {
+func (a *App) FinishSendAdminNotifyPost(trial bool, now int64) {
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -266,28 +251,28 @@ func (a *App) FinishSendAdminNotifyPost(trial bool) {
 	}
 
 	// all the notifications are now sent in a post and can safely be removed
-	if err := a.Srv().Store.NotifyAdmin().DeleteAll(trial); err != nil {
+	if err := a.Srv().Store.NotifyAdmin().DeleteBefore(trial, now); err != nil {
 		mlog.Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 
 }
 
-func (a *App) UserBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	myMapp := make(map[string][]*model.NotifyAdminData)
+func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
+	myMap := make(map[string][]*model.NotifyAdminData)
 	for _, d := range data {
-		myMapp[d.UserId] = append(myMapp[d.UserId], d)
+		myMap[d.UserId] = append(myMap[d.UserId], d)
 	}
 
-	return myMapp
+	return myMap
 }
 
-func (a *App) FeatureBasedFlatten(data []*model.NotifyAdminData) map[string][]*model.NotifyAdminData {
-	myMapp := make(map[string][]*model.NotifyAdminData)
+func (a *App) groupNotifyAdminByFeature(data []*model.NotifyAdminData) map[model.MattermostPaidFeature][]*model.NotifyAdminData {
+	myMap := make(map[model.MattermostPaidFeature][]*model.NotifyAdminData)
 	for _, d := range data {
-		myMapp[d.RequiredFeature] = append(myMapp[d.RequiredFeature], d)
+		myMap[d.RequiredFeature] = append(myMap[d.RequiredFeature], d)
 	}
 
-	return myMapp
+	return myMap
 }
 
 func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {

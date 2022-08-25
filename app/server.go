@@ -1437,13 +1437,13 @@ func (s *Server) runInactivityCheckJob() {
 
 func (a *App) runCheckForAdminUpgradeNotificationsJob() {
 	model.CreateRecurringTask("check for admin upgrade notifications job", func() {
-		a.doCheckForAdminUpgradeNotifications()
+		a.doCheckForAdminNotifications(false)
 	}, time.Minute*1)
 }
 
 func (a *App) runCheckForAdminTrialNotificationsJob() {
 	model.CreateRecurringTask("check for admin trial notifications job", func() {
-		a.doCheckForAdminTrialNotifications()
+		a.doCheckForAdminNotifications(true)
 	}, time.Hour*24)
 }
 

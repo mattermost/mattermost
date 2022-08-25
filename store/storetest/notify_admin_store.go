@@ -15,14 +15,14 @@ func TestNotifyAdminStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testNotifyAdminStoreSave(t, ss) })
 	t.Run("testGetDataByUserIdAndFeature", func(t *testing.T) { testGetDataByUserIdAndFeature(t, ss) })
 	t.Run("testGet", func(t *testing.T) { testGet(t, ss) })
-	t.Run("testDeleteAll", func(t *testing.T) { testDeleteAll(t, ss) })
+	t.Run("testDeleteBefore", func(t *testing.T) { testDeleteBefore(t, ss) })
 }
 
 func tearDown(t *testing.T, ss store.Store) {
-	err := ss.NotifyAdmin().DeleteAll(true)
+	err := ss.NotifyAdmin().DeleteBefore(true, model.GetMillis())
 	require.NoError(t, err)
 
-	err = ss.NotifyAdmin().DeleteAll(false)
+	err = ss.NotifyAdmin().DeleteBefore(false, model.GetMillis())
 	require.NoError(t, err)
 }
 
@@ -125,7 +125,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	tearDown(t, ss)
 }
 
-func testDeleteAll(t *testing.T, ss store.Store) {
+func testDeleteBefore(t *testing.T, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
@@ -154,7 +154,7 @@ func testDeleteAll(t *testing.T, ss store.Store) {
 	_, err = ss.NotifyAdmin().Save(d1Trial2)
 	require.NoError(t, err)
 
-	err = ss.NotifyAdmin().DeleteAll(false) // delete all upgrade requests
+	err = ss.NotifyAdmin().DeleteBefore(false, model.GetMillis()) // delete all upgrade requests
 	require.NoError(t, err)
 
 	upgradeRequests, err := ss.NotifyAdmin().Get(false)
@@ -165,7 +165,7 @@ func testDeleteAll(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, len(trialRequests), 2) // trial requests should still exist
 
-	err = ss.NotifyAdmin().DeleteAll(true) // delete all trial requests
+	err = ss.NotifyAdmin().DeleteBefore(true, model.GetMillis()) // delete all trial requests
 	require.NoError(t, err)
 
 	trialRequests, err = ss.NotifyAdmin().Get(false)
