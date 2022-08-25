@@ -2141,7 +2141,7 @@ func (a *App) GetNewTeamMembersSince(c request.CTX, teamID string, opts *model.I
 
 	ntms, count, err := a.Srv().Store.Team().GetNewTeamMembersSince(teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, 0, model.NewAppError("GetNewTeamMembersSince", "app.post.get_new_team_members_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("GetNewTeamMembersSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return ntms, count, nil
