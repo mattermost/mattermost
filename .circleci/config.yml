@@ -7,7 +7,7 @@ orbs:
 executors:
   ubuntu:
     working_directory: ~/mattermost/
-    resource_class: xlarge
+    resource_class: 2xlarge
     machine:
       image: "ubuntu-2004:202201-02"
     environment:

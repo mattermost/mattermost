@@ -81,18 +81,18 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Group, error) {
+func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.Group, err error) {
 	if g.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", g.Id)
 	}
 
 	// Check if group values are formatted correctly
-	if err := g.IsValidForCreate(); err != nil {
-		return nil, err
+	if appErr := g.IsValidForCreate(); appErr != nil {
+		return nil, appErr
 	}
 
 	// Check Users exist
-	if err := s.checkUsersExist(g.UserIds); err != nil {
+	if err = s.checkUsersExist(g.UserIds); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +118,8 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (*model.Gro
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Create a new usergroup
 	if _, err = txn.Exec(groupInsertQuery, groupInsertArgs...); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -1378,12 +1379,7 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 	groups := map[string][]*model.GroupWithSchemeAdmin{}
 	for _, tgroup := range tgroups {
 		group := tgroup.groupWithSchemeAdmin.ToModel()
-
-		if val, ok := groups[tgroup.ChannelId]; ok {
-			groups[tgroup.ChannelId] = append(val, group)
-		} else {
-			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{group}
-		}
+		groups[tgroup.ChannelId] = append(groups[tgroup.ChannelId], group)
 	}
 
 	return groups, nil
