@@ -405,12 +405,13 @@ func TestPanicLog(t *testing.T) {
 	logger.LockConfiguration()
 
 	// Creating a server with logger
-	s, err := NewServer(SetLogger(logger))
+	s, err := NewServer()
 	require.NoError(t, err)
+	s.Platform().SetLogger(logger)
 
 	// Route for just panicking
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		s.Log.Info("inside panic handler")
+		s.Log().Info("inside panic handler")
 		panic("log this panic")
 	})
 
