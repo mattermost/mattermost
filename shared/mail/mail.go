@@ -12,6 +12,8 @@ import (
 	"net/mail"
 	"net/smtp"
 	"time"
+	"regexp"
+	"fmt"
 
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
@@ -291,6 +293,11 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	htmlMessage := mail.htmlBody
 
 	txtBody, err := html2text.FromString(mail.htmlBody)
+
+	// could be replaced by a call to GetSiteURL() but I have no idea how to do that...
+	siteurl := "https://matter.most"
+	re := regexp.MustCompile("^https://([^/]+).*$")
+
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		txtBody = ""
@@ -315,6 +322,8 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 
 	if mail.messageID != "" {
 		headers["Message-ID"] = []string{mail.messageID}
+	} else {
+		headers["Message-ID"] = []string{fmt.Sprintf("mattermost-notification-%d000@%s", time.Now().Unix(), re.ReplaceAllString(siteurl, "$1"))}
 	}
 
 	if mail.inReplyTo != "" {
