@@ -390,6 +390,53 @@ func TestNotifyAdmin(t *testing.T) {
 		require.Equal(t, http.StatusOK, statusCode)
 	})
 }
+
+func TestTriggerNotifyAdmin(t *testing.T) {
+	t.Run("error when EnableAPITriggerNotifyAdmin is not true", func(t *testing.T) {
+		th := Setup(t).InitBasic().InitLogin()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = false })
+
+		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Internal error during cloud api request.")
+		require.Equal(t, http.StatusForbidden, statusCode)
+
+	})
+
+	t.Run("error when non admins try to trigger notifications", func(t *testing.T) {
+		th := Setup(t).InitBasic().InitLogin()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = true })
+
+		statusCode, err := th.Client.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": You do not have the appropriate permissions.")
+		require.Equal(t, http.StatusForbidden, statusCode)
+	})
+
+	t.Run("happy path", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = true })
+
+		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
+			RequiredPlan:    "cloud-professional",
+			RequiredFeature: "All Professional features",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, statusCode)
+
+		statusCode, err = th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, statusCode)
+	})
+}
 func Test_validateBusinessEmail(t *testing.T) {
 	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()

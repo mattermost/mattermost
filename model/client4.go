@@ -8036,6 +8036,22 @@ func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 	return r.StatusCode, nil
 }
 
+func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
+	nrJSON, err := json.Marshal(nr)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := c.DoAPIPost(c.cloudRoute()+"/trigger-notify-admin-posts", string(nrJSON))
+	if err != nil {
+		return r.StatusCode, err
+	}
+
+	closeBody(r)
+
+	return r.StatusCode, nil
+}
+
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {
 	payload, _ := json.Marshal(email)
 	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/validate-business-email", payload)

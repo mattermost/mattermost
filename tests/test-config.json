@@ -60,6 +60,7 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "EnableAPITeamDeletion": false,
+        "EnableAPITriggerNotifyAdmin": false,
         "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
