@@ -577,6 +577,10 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		FromCreateAt:             fromCreateAt,
 	}
 	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 	if list.FirstInaccessiblePostTime != 0 {
 		clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
 		clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
@@ -588,10 +592,6 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err := clientPostList.EncodeJSON(w); err != nil {
 			mlog.Warn("Error while writing response", mlog.Err(err))
 		}
-		return
-	}
-	if err != nil {
-		c.Err = err
 		return
 	}
 
