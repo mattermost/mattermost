@@ -3416,7 +3416,7 @@ func (a *App) GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, o
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3428,7 +3428,7 @@ func (a *App) GetTopChannelsForUserSince(c request.CTX, userID, teamID string, o
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3444,7 +3444,7 @@ func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnix
 	}
 	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
 	if err != nil {
-		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("PostCountsByDuration", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return postCountByDay, nil
 }
@@ -3455,7 +3455,7 @@ func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID s
 	}
 	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", "app.channel.get_top_invalid_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3467,7 +3467,7 @@ func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID s
 
 	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", "app.channel.get_top_invalid_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
