@@ -136,11 +136,11 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 	}
 
 	userBasedData := a.groupNotifyAdminByUser(data)
-	featureBasedData := a.groupNotifyAdminByFeature(data)
 	props := make(model.StringInterface)
 
 	for _, admin := range sysadmins {
 		T := i18n.GetUserTranslations(admin.Locale)
+		featureBasedData := a.groupNotifyAdminByFeature(data, T)
 		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 		if len(userBasedData) == 1 {
 			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
@@ -182,7 +182,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 	return nil
 }
 
-func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
+func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeatureTranslationId) bool {
 	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
 	if err != nil {
 		return true // any error should flag as already notified to avoid data corruption like duplicates
@@ -254,10 +254,22 @@ func (a *App) groupNotifyAdminByUser(data []*model.NotifyAdminData) map[string][
 	return myMap
 }
 
-func (a *App) groupNotifyAdminByFeature(data []*model.NotifyAdminData) map[model.MattermostPaidFeature][]*model.NotifyAdminData {
-	myMap := make(map[model.MattermostPaidFeature][]*model.NotifyAdminData)
+func (a *App) groupNotifyAdminByFeature(data []*model.NotifyAdminData, T i18n.TranslateFunc) map[model.MattermostPaidFeatureTranslationId][]*model.NotifyAdminData {
+	T("mattermost.feature.guest_accounts")
+	T("mattermost.feature.custom_user_groups")
+	T("mattermost.feature.create_multiple_teams")
+	T("mattermost.feature.start_call")
+	T("mattermost.feature.playbooks_retro")
+	T("mattermost.feature.unlimited_messages")
+	T("mattermost.feature.unlimited_file_storage")
+	T("mattermost.feature.unlimited_integrations")
+	T("mattermost.feature.unlimited_board_cards")
+	T("mattermost.feature.all_professional")
+	T("mattermost.feature.all_enterprise")
+	myMap := make(map[model.MattermostPaidFeatureTranslationId][]*model.NotifyAdminData)
 	for _, d := range data {
-		myMap[d.RequiredFeature] = append(myMap[d.RequiredFeature], d)
+		translatedFeatureName := model.MattermostPaidFeatureTranslationId(T(string(d.RequiredFeature)))
+		myMap[translatedFeatureName] = append(myMap[d.RequiredFeature], d)
 	}
 
 	return myMap

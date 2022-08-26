@@ -5685,7 +5685,7 @@ func (s *RetryLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, 
 
 }
 
-func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+func (s *RetryLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeatureTranslationId) ([]*model.NotifyAdminData, error) {
 
 	tries := 0
 	for {

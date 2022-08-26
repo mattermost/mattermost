@@ -42,20 +42,20 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
-type MattermostPaidFeature string
+type MattermostPaidFeatureTranslationId string
 
 const (
-	PaidFeatureGuestAccounts           = MattermostPaidFeature("Guest Accounts")
-	PaidFeatureCustomUsergroups        = MattermostPaidFeature("Custom User groups")
-	PaidFeatureCreateMultipleTeams     = MattermostPaidFeature("Create Multiple Teams")
-	PaidFeatureStartcall               = MattermostPaidFeature("Start call")
-	PaidFeaturePlaybooksRetrospective  = MattermostPaidFeature("Playbooks Retrospective")
-	PaidFeatureUnlimitedMessages       = MattermostPaidFeature("Unlimited Messages")
-	PaidFeatureUnlimitedFileStorage    = MattermostPaidFeature("Unlimited File Storage")
-	PaidFeatureUnlimitedIntegrations   = MattermostPaidFeature("Unlimited Integrations")
-	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeature("Unlimited Board cards")
-	PaidFeatureAllProfessionalfeatures = MattermostPaidFeature("All Professional features")
-	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("All Enterprise features")
+	PaidFeatureGuestAccounts           = MattermostPaidFeatureTranslationId("mattermost.feature.guest_accounts")
+	PaidFeatureCustomUsergroups        = MattermostPaidFeatureTranslationId("mattermost.feature.custom_user_groups")
+	PaidFeatureCreateMultipleTeams     = MattermostPaidFeatureTranslationId("mattermost.feature.create_multiple_teams")
+	PaidFeatureStartcall               = MattermostPaidFeatureTranslationId("mattermost.feature.start_call")
+	PaidFeaturePlaybooksRetrospective  = MattermostPaidFeatureTranslationId("mattermost.feature.playbooks_retro")
+	PaidFeatureUnlimitedMessages       = MattermostPaidFeatureTranslationId("mattermost.feature.unlimited_messages")
+	PaidFeatureUnlimitedFileStorage    = MattermostPaidFeatureTranslationId("mattermost.feature.unlimited_file_storage")
+	PaidFeatureUnlimitedIntegrations   = MattermostPaidFeatureTranslationId("mattermost.feature.unlimited_integrations")
+	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeatureTranslationId("mattermost.feature.unlimited_board_cards")
+	PaidFeatureAllProfessionalfeatures = MattermostPaidFeatureTranslationId("mattermost.feature.all_professional")
+	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeatureTranslationId("mattermost.feature.all_enterprise")
 )
 
 type CloudSKU string
@@ -73,7 +73,7 @@ var validCloudSKUs map[CloudSKU]struct{} = map[CloudSKU]struct{}{
 }
 
 // These are the features a non admin would typically ping an admin about
-var nonAdminPaidFeatures map[MattermostPaidFeature]struct{} = map[MattermostPaidFeature]struct{}{
+var nonAdminPaidFeatures map[MattermostPaidFeatureTranslationId]struct{} = map[MattermostPaidFeatureTranslationId]struct{}{
 	PaidFeatureGuestAccounts:           {},
 	PaidFeatureCustomUsergroups:        {},
 	PaidFeatureCreateMultipleTeams:     {},
@@ -301,17 +301,17 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 type NotifyAdminToUpgradeRequest struct {
-	TrialNotification bool                  `json:"trial_notification"`
-	RequiredPlan      CloudSKU              `json:"required_plan"`
-	RequiredFeature   MattermostPaidFeature `json:"required_feature"`
+	TrialNotification bool                               `json:"trial_notification"`
+	RequiredPlan      CloudSKU                           `json:"required_plan"`
+	RequiredFeature   MattermostPaidFeatureTranslationId `json:"required_feature"`
 }
 
 type NotifyAdminData struct {
-	CreateAt        int64                 `json:"create_at,omitempty"`
-	UserId          string                `json:"user_id"`
-	RequiredPlan    CloudSKU              `json:"required_plan"`
-	RequiredFeature MattermostPaidFeature `json:"required_feature"`
-	Trial           bool                  `json:"trial"`
+	CreateAt        int64                              `json:"create_at,omitempty"`
+	UserId          string                             `json:"user_id"`
+	RequiredPlan    CloudSKU                           `json:"required_plan"`
+	RequiredFeature MattermostPaidFeatureTranslationId `json:"required_feature"`
+	Trial           bool                               `json:"trial"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {

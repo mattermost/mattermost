@@ -30,7 +30,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
 	_, err := ss.NotifyAdmin().Save(d1)
@@ -50,7 +50,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	d3 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "Unknown plan",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 	_, err = ss.NotifyAdmin().Save(d3)
 	require.Error(t, err)
@@ -60,7 +60,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	d5 := &model.NotifyAdminData{
 		UserId:          singleUserId,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 	_, err = ss.NotifyAdmin().Save(d5)
 	require.NoError(t, err)
@@ -68,7 +68,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	d6 := &model.NotifyAdminData{
 		UserId:          singleUserId,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 	_, err = ss.NotifyAdmin().Save(d6)
 	require.Error(t, err)
@@ -81,7 +81,7 @@ func testGet(t *testing.T, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
 	_, err := ss.NotifyAdmin().Save(d1)
@@ -90,7 +90,7 @@ func testGet(t *testing.T, ss store.Store) {
 	d1Trial := &model.NotifyAdminData{
 		UserId:          userId1,
 		RequiredPlan:    "cloud-enterprise",
-		RequiredFeature: "All Enterprise features",
+		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
 	_, err = ss.NotifyAdmin().Save(d1Trial)
@@ -99,7 +99,7 @@ func testGet(t *testing.T, ss store.Store) {
 	d1Trial2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "cloud-enterprise",
-		RequiredFeature: "All Enterprise features",
+		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
 	_, err = ss.NotifyAdmin().Save(d1Trial2)
@@ -121,7 +121,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
 	_, err := ss.NotifyAdmin().Save(d1)
@@ -131,16 +131,16 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	d2 := &model.NotifyAdminData{
 		UserId:          userId2,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "Custom User groups",
+		RequiredFeature: model.PaidFeatureCustomUsergroups,
 	}
 
 	_, err = ss.NotifyAdmin().Save(d2)
 	require.NoError(t, err)
 
-	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, "All Professional features")
+	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, model.PaidFeatureAllProfessionalfeatures)
 	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
-	require.Equal(t, user1Request[0].RequiredFeature, model.MattermostPaidFeature("All Professional features"))
+	require.Equal(t, user1Request[0].RequiredFeature, model.MattermostPaidFeatureTranslationId(model.PaidFeatureAllProfessionalfeatures))
 
 	tearDown(t, ss)
 }
@@ -150,7 +150,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Professional features",
+		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
 	_, err := ss.NotifyAdmin().Save(d1)
@@ -159,7 +159,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 	d1Trial := &model.NotifyAdminData{
 		UserId:          userId1,
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Enterprise features",
+		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
 	_, err = ss.NotifyAdmin().Save(d1Trial)
@@ -168,7 +168,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 	d1Trial2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
 		RequiredPlan:    "cloud-professional",
-		RequiredFeature: "All Enterprise features",
+		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
 	_, err = ss.NotifyAdmin().Save(d1Trial2)

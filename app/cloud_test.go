@@ -49,14 +49,14 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureGuestAccounts,
 		})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser2.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureGuestAccounts,
 		})
 		require.Nil(t, appErr)
 
@@ -100,10 +100,10 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		// some some notifications
-		requestedData, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
+		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 			Trial:           true,
 		})
 		require.Nil(t, appErr)
@@ -139,17 +139,6 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
 		require.Equal(t, bot.UserId, post.UserId)
 		require.Equal(t, "1 member of the test workspace has requested starting the Enterprise trial for access to: ", post.Message)
-
-		flattenedData := th.App.groupNotifyAdminByFeature([]*model.NotifyAdminData{
-			requestedData,
-		})
-
-		props := make(model.StringInterface)
-		props["requested_features"] = flattenedData
-
-		postProps := post.GetProps()
-		require.Equal(t, postProps["trial"], true)
-		require.Equal(t, props["requested_features"], props["requested_features"])
 	})
 
 	t.Run("error when trying to send post before end of cool off period", func(t *testing.T) {
@@ -162,7 +151,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.Nil(t, appErr)
 
@@ -174,7 +163,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "Custom User groups",
+			RequiredFeature: model.PaidFeatureCustomUsergroups,
 		})
 		require.Nil(t, appErr)
 
@@ -197,7 +186,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.Nil(t, appErr)
 
@@ -209,7 +198,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "Custom User groups",
+			RequiredFeature: model.PaidFeatureCustomUsergroups,
 		})
 		require.Nil(t, appErr)
 
@@ -230,7 +219,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
@@ -238,7 +227,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser2.Id,
 			RequiredPlan:    "cloud-enterprise",
-			RequiredFeature: "All Enterprise features",
+			RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)

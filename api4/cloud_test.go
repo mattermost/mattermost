@@ -301,7 +301,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "Unknown plan",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 
 		require.Error(t, err)
@@ -316,7 +316,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:      "Unknown plan",
-			RequiredFeature:   "All Professional features",
+			RequiredFeature:   model.PaidFeatureAllProfessionalfeatures,
 			TrialNotification: true,
 		})
 
@@ -361,7 +361,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)
@@ -369,7 +369,7 @@ func TestNotifyAdmin(t *testing.T) {
 		// second attempt to notify for all professional features
 		statusCode, err = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.Error(t, err)
 
@@ -383,7 +383,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 
 		require.NoError(t, err)
@@ -427,7 +427,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "cloud-professional",
-			RequiredFeature: "All Professional features",
+			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, statusCode)

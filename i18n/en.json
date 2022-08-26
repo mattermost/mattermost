@@ -7828,6 +7828,50 @@
     "translation": "Mattermost Security Bulletin"
   },
   {
+    "id": "mattermost.feature.all_enterprise",
+    "translation": "All Enterprise features"
+  },
+  {
+    "id": "mattermost.feature.all_professional",
+    "translation": "All Professional features"
+  },
+  {
+    "id": "mattermost.feature.create_multiple_teams",
+    "translation": "Create Multiple Teams"
+  },
+  {
+    "id": "mattermost.feature.custom_user_groups",
+    "translation": "Custom User groups"
+  },
+  {
+    "id": "mattermost.feature.guest_accounts",
+    "translation": "Guest Accounts"
+  },
+  {
+    "id": "mattermost.feature.playbooks_retro",
+    "translation": "Playbooks Retrospective"
+  },
+  {
+    "id": "mattermost.feature.start_call",
+    "translation": "Start call"
+  },
+  {
+    "id": "mattermost.feature.unlimited_board_cards",
+    "translation": "Unlimited Board cards"
+  },
+  {
+    "id": "mattermost.feature.unlimited_file_storage",
+    "translation": "Unlimited File Storage"
+  },
+  {
+    "id": "mattermost.feature.unlimited_integrations",
+    "translation": "Unlimited Integrations"
+  },
+  {
+    "id": "mattermost.feature.unlimited_messages",
+    "translation": "Unlimited Messages"
+  },
+  {
     "id": "mfa.activate.app_error",
     "translation": "Unable to update MFA active status for the user."
   },
