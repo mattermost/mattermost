@@ -42,7 +42,7 @@ func (s SqlNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdm
 	return data, nil
 }
 
-func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeatureTranslationId) ([]*model.NotifyAdminData, error) {
+func (s SqlNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 	data := []*model.NotifyAdminData{}
 	query, args, err := s.getQueryBuilder().
 		Select("*").

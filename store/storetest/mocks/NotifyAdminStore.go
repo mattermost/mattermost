@@ -52,11 +52,11 @@ func (_m *NotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
 }
 
 // GetDataByUserIdAndFeature provides a mock function with given fields: userId, feature
-func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeatureTranslationId) ([]*model.NotifyAdminData, error) {
+func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
 	ret := _m.Called(userId, feature)
 
 	var r0 []*model.NotifyAdminData
-	if rf, ok := ret.Get(0).(func(string, model.MattermostPaidFeatureTranslationId) []*model.NotifyAdminData); ok {
+	if rf, ok := ret.Get(0).(func(string, model.MattermostPaidFeature) []*model.NotifyAdminData); ok {
 		r0 = rf(userId, feature)
 	} else {
 		if ret.Get(0) != nil {
@@ -65,7 +65,7 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, model.MattermostPaidFeatureTranslationId) error); ok {
+	if rf, ok := ret.Get(1).(func(string, model.MattermostPaidFeature) error); ok {
 		r1 = rf(userId, feature)
 	} else {
 		r1 = ret.Error(1)

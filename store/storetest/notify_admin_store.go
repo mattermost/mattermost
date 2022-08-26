@@ -140,7 +140,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, model.PaidFeatureAllProfessionalfeatures)
 	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
-	require.Equal(t, user1Request[0].RequiredFeature, model.MattermostPaidFeatureTranslationId(model.PaidFeatureAllProfessionalfeatures))
+	require.Equal(t, user1Request[0].RequiredFeature, model.MattermostPaidFeature(model.PaidFeatureAllProfessionalfeatures))
 
 	tearDown(t, ss)
 }
