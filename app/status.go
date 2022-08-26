@@ -458,6 +458,9 @@ func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppErr
 
 func (a *App) GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, error) {
 	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+	if err != nil {
+		return nil, err
+	}
 
 	var existingRCS []*model.CustomStatus
 	if jsonErr := json.Unmarshal([]byte(pref.Value), &existingRCS); jsonErr != nil {

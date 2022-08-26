@@ -377,18 +377,18 @@ func (api *PluginAPI) RestoreToPreviousCustomStatus(userID string) *model.AppErr
 
 	// If user changed the custom status explicitly, don't restore to previous status
 	if cs == nil || !cs.SetByProduct {
-		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "", http.StatusBadRequest)
+		return nil
 	}
 
 	rcs, err := api.app.GetRecentCustomStatuses(userID)
 	if err != nil {
-		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to get recent statuses to reset", http.StatusInternalServerError)
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to get recent statuses to reset", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(rcs) == 0 {
 		err := api.app.RemoveCustomStatus(api.ctx, userID)
 		if err != nil {
-			return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to remove custom status", http.StatusInternalServerError)
+			return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to remove custom status", http.StatusInternalServerError).Wrap(err)
 		}
 
 		return nil
@@ -396,7 +396,7 @@ func (api *PluginAPI) RestoreToPreviousCustomStatus(userID string) *model.AppErr
 
 	cserr := api.app.SetCustomStatus(api.ctx, userID, rcs[0])
 	if cserr != nil {
-		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to revert custom status", http.StatusInternalServerError)
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to revert custom status", http.StatusInternalServerError).Wrap(cserr)
 	}
 
 	return nil
