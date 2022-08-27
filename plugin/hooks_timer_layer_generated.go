@@ -212,3 +212,9 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
 }
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivated(userID string) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.UserHasBeenDeactivated(userID)
+	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
+}

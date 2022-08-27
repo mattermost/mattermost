@@ -43,6 +43,7 @@ const (
 	OnInstallID                     = 25
 	OnSendDailyTelemetryID          = 26
 	OnCloudLimitsUpdatedID          = 27
+	UserHasBeenDeactivatedID        = 28
 	TotalHooksID                    = iota
 )
 
@@ -270,4 +271,9 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
+
+	// UserHasBeenDeactivated is invoked when a user is made inactive.
+	//
+	// Minimum server version:
+	UserHasBeenDeactivated(userID string)
 }

@@ -788,6 +788,56 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 }
 
+func TestUserHasBeenDeactivated(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasBeenDeactivated(userID string) {
+			user, _ := p.API.GetUser(userID)
+			user.Nickname = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	user := &model.User{
+		Email:       model.NewId() + "success+test@example.com",
+		Nickname:    "Darth Vader",
+		Username:    "vader" + model.NewId(),
+		Password:    "passwd1",
+		AuthService: "",
+	}
+
+	_, err := th.App.CreateUser(th.Context, user)
+	require.Nil(t, err)
+
+	_, err = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+	user, err = th.App.GetUser(user.Id)
+
+	require.Nil(t, err)
+	require.Equal(t, "plugin-callback-success", user.Nickname)
+}
+
 func TestUserHasBeenCreated(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

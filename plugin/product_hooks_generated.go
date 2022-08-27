@@ -114,6 +114,10 @@ type OnCloudLimitsUpdatedIFace interface {
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
 }
 
+type UserHasBeenDeactivatedIFace interface {
+	UserHasBeenDeactivated(userID string)
+}
+
 type hooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -351,6 +355,15 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 		return nil, errors.New("hook has OnCloudLimitsUpdated method but does not implement plugin.OnCloudLimitsUpdated interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements UserHasBeenDeactivated interface.
+	tt = reflect.TypeOf((*UserHasBeenDeactivatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserHasBeenDeactivatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserHasBeenDeactivated"); ok {
+		return nil, errors.New("hook has UserHasBeenDeactivated method but does not implement plugin.UserHasBeenDeactivated interface")
+	}
+
 	return a, nil
 }
 
@@ -576,5 +589,14 @@ func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 	}
 
 	a.productHooks.(OnCloudLimitsUpdatedIFace).OnCloudLimitsUpdated(limits)
+
+}
+
+func (a *hooksAdapter) UserHasBeenDeactivated(userID string) {
+	if _, ok := a.implemented[UserHasBeenDeactivatedID]; !ok {
+		panic("product hooks must implement UserHasBeenDeactivated")
+	}
+
+	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(userID)
 
 }

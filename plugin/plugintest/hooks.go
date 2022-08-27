@@ -274,6 +274,11 @@ func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 
+// UserHasBeenDeactivated provides a mock function with given fields: userID
+func (_m *Hooks) UserHasBeenDeactivated(userID string) {
+	_m.Called(userID)
+}
+
 // UserHasJoinedChannel provides a mock function with given fields: c, channelMember, actor
 func (_m *Hooks) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
 	_m.Called(c, channelMember, actor)

@@ -965,6 +965,15 @@ func (a *App) UpdateActive(c *request.Context, user *model.User, active bool) (*
 
 	a.sendUpdatedUserEvent(*ruser)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil && !active && user.DeleteAt != 0 {
+		a.Srv().Go(func() {
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasBeenDeactivated(user.Id)
+				return true
+			}, plugin.UserHasBeenDeactivatedID)
+		})
+	}
+
 	return ruser, nil
 }
 
