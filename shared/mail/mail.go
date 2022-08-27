@@ -296,7 +296,7 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 
 	// could be replaced by a call to GetSiteURL() but I have no idea how to do that...
 	siteurl := "https://matter.most"
-	re := regexp.MustCompile("^https://([^/]+).*$")
+	re := regexp.MustCompile("^https?://([^/:]+).*$")
 
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
