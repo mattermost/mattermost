@@ -3716,10 +3716,6 @@
     "translation": "Kunde inte läsa dataimportfilens version."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kunde inte rangera svaret."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Kunde inte spara gruppens tema-inställningar"
   },
@@ -8911,10 +8907,6 @@
     "translation": " svarade i en tråd."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fel vid bulkimport av bifogade filer."
-  },
-  {
     "id": "model.session.is_valid.user_id.app_error",
     "translation": "Ogiltigt UserId-fält för sessionen."
   },
@@ -9319,10 +9311,6 @@
     "translation": "Funktionen Insights är inaktiverad."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Din licens stöder inte funktionen Insights."
-  },
-  {
     "id": "api.authorization_error.guest",
     "translation": " "
   },
@@ -9369,10 +9357,6 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "Fel vid hämtning av det senaste tillgängliga inlägget"
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "På grund av de efterlevnadsregler som konfigurerats för den här instansen måste du gå med i kanalen innan dess inlägg kan läsas."
   },
   {
     "id": "app.team.clear_cache.app_error",

@@ -8844,10 +8844,6 @@
     "translation": "błąd wstawiania"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nie można uzyskać odpowiedzi."
-  },
-  {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Nie można zaimportować członków zespołu, ponieważ nie można dodać już więcej członków w tym zespole"
   },
@@ -8862,10 +8858,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Błąd generowania hasła."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Błąd podczas przetwarzania masowego importu załączników."
   },
   {
     "id": "app.import.attachment.read_file_data.error",
@@ -9332,10 +9324,6 @@
     "translation": "Funkcja Insights jest wyłączona."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Twoja licencja nie obsługuje funkcji Insights."
-  },
-  {
     "id": "api.cloud.upgrade_plan_bot_message",
     "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
   },
@@ -9370,10 +9358,6 @@
   {
     "id": "app.post_reminder.app_error",
     "translation": " "
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Ze względu na reguły zgodności skonfigurowany na tej instancji kanał musi zostać dołączony, zanim jego posty będą mogły być czytane."
   },
   {
     "id": "app.team.clear_cache.app_error",

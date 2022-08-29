@@ -8207,10 +8207,6 @@
     "translation": "Einfügefehler"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kann Antwort nicht ordnen."
-  },
-  {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Konnte neue Teammitgliedschaft nicht importieren, da keine weiteren Mitglieder in diesem Team erlaubt sind"
   },
@@ -8911,10 +8907,6 @@
     "translation": " antwortete auf eine Unterhaltung."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fehler bei der Verarbeitung von Anhängen beim Massenimport."
-  },
-  {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Ungültige Benutzerrollen mit mehr als {{.Limit}} Zeichen."
   },
@@ -9331,10 +9323,6 @@
     "translation": "Die Insights Funktion ist deaktiviert."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Deine Lizenz unterstützt die Insights-Funktion nicht."
-  },
-  {
     "id": "api.cloud.upgrade_plan_bot_message",
     "translation": "Ein Mitglied von {{.TeamName}} hat dich benachrichtigt den Arbeitsbereich upzugraden."
   },
@@ -9369,10 +9357,6 @@
   {
     "id": "app.post_reminder.app_error",
     "translation": " "
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Durch Compliance Regeln in dieser Umgebung, muss man Mitglied des Kanals werden, bevor die Kanal-Nachrichten gelesen werden können."
   },
   {
     "id": "app.team.clear_cache.app_error",

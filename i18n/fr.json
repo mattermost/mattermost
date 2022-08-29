@@ -7580,10 +7580,6 @@
     "translation": "erreur d'insertion"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Impossible de préparer la réponse."
-  },
-  {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Impossible d'importer les membres de l'équipe parce que plus aucun membre n'est autorisé dans cette équipe"
   },
@@ -8483,10 +8479,6 @@
     "translation": "{{.SenderName}} a répondu à un fil"
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Erreur lors du traitement des fichiers joints lors de l'import en masse."
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Erreur lors de la transformation des données (unmarshalling)."
   },
@@ -8921,10 +8913,6 @@
   {
     "id": "api.license_error",
     "translation": "l'API endpoint nécessite une licence"
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": "Votre licence ne prend pas en charge la fonctionnalité d'aperçu."
   },
   {
     "id": "api.insights.feature_disabled",
