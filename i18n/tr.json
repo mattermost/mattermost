@@ -9373,9 +9373,5 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Bu kopyada yapılandırılmış uyumluluk kuralları nedeniyle, gönderilerinin okunabilmesi için önce kanala katılınması gerekir."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Dosyalar yüklenemedi. Belirtilen dosya sayısı hatalı."
   }
 ]
