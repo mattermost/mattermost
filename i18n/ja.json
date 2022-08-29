@@ -9354,5 +9354,21 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "不正なタイムアウト値 {{.Value}} 。正の数にする必要があります。"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "チームメンバーのキャッシュをクリアする際にエラーが発生しました"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "このインスタンスで設定されたコンプライアンスルールにより、投稿を読み取る前にチャンネルに参加する必要があります。"
   }
 ]
