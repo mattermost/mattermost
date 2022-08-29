@@ -212,6 +212,43 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
 }
 
+func TestCreatePostWithOAuthClient(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	originalOAuthSetting := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = originalOAuthSetting
+	})
+
+	oAuthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "name",
+		CallbackUrls: []string{"http://test.com"},
+		Homepage:     "http://test.com",
+	})
+	require.Nil(t, appErr, "should create an OAuthApp")
+
+	session, appErr := th.App.CreateSession(&model.Session{
+		UserId:  th.SystemAdminUser.Id,
+		Token:   "token",
+		IsOAuth: true,
+		Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
+	})
+	require.Nil(t, appErr, "should create a session")
+
+	client := th.CreateClient()
+	client.SetOAuthToken(session.Token)
+	post, _, err := client.CreatePost(th.BasicPost)
+	require.NoError(t, err)
+
+	require.Equal(t, "true", post.GetProp("from_integration"))
+}
+
 func TestCreatePostEphemeral(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
