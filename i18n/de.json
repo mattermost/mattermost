@@ -620,7 +620,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Die Mattermost-Hilfeseite öffnen"
+    "translation": "Zeige Mattermost-Hilfemeldung"
   },
   {
     "id": "api.command_help.name",
@@ -7784,7 +7784,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost Kontaktanfrage. Ich bin daran interessiert mehr über die Verwendung von erweiterten Berechtigugnen mit System Schemata zu lernen.\n"
+    "translation": "Mattermost Kontaktanfrage. Ich bin daran interessiert mehr über die Verwendung von erweiterten Berechtigungen mit System Schemata zu lernen.\n"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -9373,5 +9373,205 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Durch Compliance Regeln in dieser Umgebung, muss man Mitglied des Kanals werden, bevor die Kanal-Nachrichten gelesen werden können."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fehler beim Löschen des Team Mitglieder Cache"
+  },
+  {
+    "id": "app.post.get_new_team_members_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Kann die Top DM für den Benutzer nicht holen."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Das Martkplatzkommando wird auf deinem Gerät nicht unterstützt."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "Martkplatz"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Öffne den Marktplatz"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus drei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n**[Boards](/boards)** - Verwalte Projekte und Aufgaben in einer Kanban-Board Struktur um dein Team beim Erreichen von Zielen zu unterstützen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
+  },
+  {
+    "id": "app.channel.get_top_invalid_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_invalid_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Bezahlart aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Dein Arbeitsbereich wird in 15 Tagen herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Dein Arbeitsbereich wird auf Cloud Starter herabgestuft. Deins {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Dies ist eine letzte Erinnerung, dass wir seit {{.DelinquencyDate}} keine Zahlung für deinen Mattermost Cloud-Arbeitsbereich erhalten haben"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Herunterstufen zu Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Bezahlart aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Deine Zahlung wurde nicht abgeschlossen"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Um deinen {{.Plan}} aktiv zu halten, wende dich bitte so bald wie möglich an dein Finanzinstitut. Aktualisiere dann, falls notwendig, deine Zahlungsdaten."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Wir konnten deine letzte Zahlung nicht bearbeiten"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Bezahlart aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Dein Mattermost-Arbeitsbereich wird in 30 Tagen herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Wir werden deinen Arbeitsbereich innerhalb von 30 Tagen automatisch herabstufen, wenn wir deine Zahlung nicht bearbeiten können."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Bitte aktualisiere deine Zahlungsinformationen bald, um deine ausstehenden Rechnungen zu verarbeiten."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Herabstufen zu Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Bezahlinformation aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Dein Arbeitsbereich wird in Kürze herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Aktualisiere jetzt deine Kreditkarteninformationen."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Ein herabgestufter Arbeitsbereich kann sich negativ auf kritische Arbeitsabläufe, Integrationen und andere geschäftskritische Aktivitäten in deinem Arbeitsbereich auswirken."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Wir waren nicht in der Lage, ausstehende Rechnungen mit Datum {{.DelinquencyDate}} zu begleichen. Dein Arbeitsbereich ist in Gefahr heruntergestuft zu werden."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Hinweis: Dein Mattermost {{.Plan}} wird in Kürze heruntergestuft"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Zahlungsinformationen aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Dein Arbeitsbereich wird in Kürze archiviert"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "Wenn du nicht aktiv wirst, wird dein Arbeitsbereich heruntergestuft und die folgenden Daten werden archiviert:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Zu hast Zeit deinen Mattermost {{.Plan}} aktiv zu halten, aber du solltest die Probleme mit deiner Zahlungsart lösen."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Reagiere um deine Mattermost {{.Plan}} Funktionen zu behalten"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Sieh alle Dokumentation zu Einschränkungen an."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Bezahlart aktualisieren"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktive Plugins und Integrationen"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Nachrichtenverlauf"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Dateien"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Karten von deinen Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Bezahlung nicht erhalten"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Bitte kontaktiere dein Finanzinstitut um Unklarheiten zu beseitigen. Dann aktualisiere deine Bezahlinformation, falls notwendig."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Starter zurückgestuft zu werden."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Bezahlung ist überfällig für deinen Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Bezahlart aktualisieren"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Erforderliche Felder für den Versand einer E-Mail über Zahlungsrückstände fehlen."
   }
 ]
