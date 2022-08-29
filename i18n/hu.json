@@ -6432,10 +6432,6 @@
     "translation": "A maximális méretek feletti fájlokat nem lehet feltölteni: {{.Filename}}"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Nem lehetett a fájlokat feltölteni. Helytelen számú fájl lett megadva."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Nem sikerült feltölteni a fájl(oka)t. {{.NumClientIds}} client_ids szerepel {{.NumFiles}} fájlhoz."
   },
@@ -7959,10 +7955,6 @@
   {
     "id": "api.marshal_error",
     "translation": "Adatkonverzió nem sikerült."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nem kérhető próba licenc. Kérjük, konfigurálja a Rendszer URL-jét a Mattermost Rendszerkonzol webkiszolgáló részében."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
