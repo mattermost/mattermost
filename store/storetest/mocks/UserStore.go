@@ -961,7 +961,7 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 }
 
 // GetUnreadCount provides a mock function with given fields: userID
-func (_m *UserStore) GetUnreadCount(userID string) (int64, error) {
+func (_m *UserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 	ret := _m.Called(userID)
 
 	var r0 int64

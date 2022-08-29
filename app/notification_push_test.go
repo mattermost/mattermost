@@ -1233,7 +1233,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 	})
 
-	err := th.App.updateMobileAppBadgeSync("user1")
+	err := th.App.updateMobileAppBadgeSync(th.Context, "user1")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 2 requests have been sent, and also check the message contents.

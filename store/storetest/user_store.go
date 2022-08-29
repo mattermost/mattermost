@@ -2440,13 +2440,22 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
-	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
+
+	// Increment root mentions by 1
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true)
+	require.NoError(t, nErr)
+
+	// CRT is enabled, only root mentions are counted
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message with CRT")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)
