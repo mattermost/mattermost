@@ -8880,11 +8880,11 @@
   },
   {
     "id": "app.post.marshal.app_error",
-    "translation": "Fehler die Nachricht zu marshallen."
+    "translation": "Fehler beim Serialisieren der Nachricht."
   },
   {
     "id": "api.unmarshal_error",
-    "translation": "Fehler beim Unmarshalling."
+    "translation": "Fehler beim Deserialisieren."
   },
   {
     "id": "app.notification.body.thread_gm.subTitle",
@@ -9361,5 +9361,21 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Ungültiger Timeoutwert {{.Value}}. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hallo, ich soll dich an {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} von @{{.Username}} erinnern"
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "Durch Compliance Regeln in dieser Umgebung, muss man Mitglied des Kanals werden, bevor die Kanal-Nachrichten gelesen werden können."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Kann keine Dateien hochladen. Inkorrekte Anzahl an Dateien spezifiziert."
   }
 ]
