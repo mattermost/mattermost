@@ -2996,10 +2996,27 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	var botsFilterExpr, stringSplitKeyword string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		stringSplitKeyword = "split_part"
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		stringSplitKeyword = "SUBSTRING_INDEX"
+	}
+
+	/*
+		Channel.Name is of the format userId1__userId2.
+		Using this, self dms, and bot dms can be filtered.
+	*/
+	botsFilterExpr = fmt.Sprintf(`
+		%s(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+		AND %s(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+	`, stringSplitKeyword, stringSplitKeyword)
 	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
 		Where(sq.And{
 			sq.Expr("Channels.Type = 'D'"),
 			sq.Eq{"cm.UserId": userID},
+			sq.NotEq{"Channels.Name": fmt.Sprintf("%s__%s", userID, userID)},
+			sq.Expr(botsFilterExpr),
 		})
 	var aggregator string
 
@@ -3050,15 +3067,10 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, si
 	for _, topDM := range topDMs {
 		participants := strings.Split(topDM.Participants, ",")
 		var secondParticipantId string
-		if len(participants) == 1 {
-			// channel with self
-			secondParticipantId = "-1"
+		if participants[0] == userID {
+			secondParticipantId = participants[1]
 		} else {
-			if participants[0] == userID {
-				secondParticipantId = participants[1]
-			} else {
-				secondParticipantId = participants[0]
-			}
+			secondParticipantId = participants[0]
 		}
 		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
 		channelIds = append(channelIds, topDM.ChannelId)
@@ -3112,12 +3124,9 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, si
 
 	for index, topDM := range topDMs {
 		if secondParticipantIds[index] == "-1" {
-			continue
+			return nil, errors.Wrapf(err, "failed to find second user for topDM: %s", userID)
 		}
 		user := usersMap[secondParticipantIds[index]]
-		if user.IsBot {
-			continue
-		}
 		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
 			InsightUserInformation: model.InsightUserInformation{
 				Id:                user.Id,
