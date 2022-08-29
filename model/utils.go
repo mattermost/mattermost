@@ -33,6 +33,7 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
 )
 
 type StringInterface map[string]any
@@ -234,12 +235,11 @@ func (er *AppError) Error() string {
 		sb.WriteString(er.DetailedError)
 	}
 
-	// render all wrapped errors
+	// render the wrapped error
 	err := er.wrapped
-	for err != nil {
+	if err != nil {
 		sb.WriteString(", ")
 		sb.WriteString(err.Error())
-		err = errors.Unwrap(err)
 	}
 
 	return sb.String()
@@ -266,8 +266,28 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
+}
+
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
 }
 
 func (er *AppError) Unwrap() error {
@@ -293,7 +313,7 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
 	}
 	return &er
 }
@@ -401,23 +421,25 @@ func MapBoolToJSON(objmap map[string]bool) string {
 
 // MapFromJSON will decode the key/value pair map
 func MapFromJSON(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
 // MapFromJSON will decode the key/value pair map
 func MapBoolFromJSON(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
@@ -427,12 +449,13 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
@@ -459,12 +482,13 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 }
 
 func StringInterfaceFromJSON(data io.Reader) map[string]any {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]any
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]any)
 	}
+
 	return objmap
 }
 

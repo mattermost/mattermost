@@ -33,7 +33,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(exports)
 	if err != nil {
-		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

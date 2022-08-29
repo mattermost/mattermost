@@ -1820,7 +1820,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("scheme_id", *schemeID)
 
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1891,23 +1891,23 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	users, totalCount, err := c.App.ChannelMembersMinusGroupMembers(
+	users, totalCount, appErr := c.App.ChannelMembersMinusGroupMembers(
 		c.Params.ChannelId,
 		groupIDs,
 		c.Params.Page,
 		c.Params.PerPage,
 	)
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, marshalErr := json.Marshal(&model.UsersWithGroupsAndCount{
+	b, err := json.Marshal(&model.UsersWithGroupsAndCount{
 		Users: users,
 		Count: totalCount,
 	})
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.channelMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.channelMembersMinusGroupMembers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1916,7 +1916,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 
 func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.channel.channel_member_counts_by_group.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.channel.channel_member_counts_by_group.license.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1932,15 +1932,15 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
-	channelMemberCounts, err := c.App.GetMemberCountsByGroup(app.WithMaster(context.Background()), c.Params.ChannelId, includeTimezones)
-	if err != nil {
-		c.Err = err
+	channelMemberCounts, appErr := c.App.GetMemberCountsByGroup(app.WithMaster(context.Background()), c.Params.ChannelId, includeTimezones)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, marshalErr := json.Marshal(channelMemberCounts)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(channelMemberCounts)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1949,7 +1949,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.GetChannelModerations", "api.channel.get_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.GetChannelModerations", "api.channel.get_channel_moderations.license.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1963,21 +1963,21 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	channelModerations, err := c.App.GetChannelModerationsForChannel(c.AppContext, channel)
-	if err != nil {
-		c.Err = err
+	channelModerations, appErr := c.App.GetChannelModerationsForChannel(c.AppContext, channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, marshalErr := json.Marshal(channelModerations)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(channelModerations)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getChannelModerations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1986,7 +1986,7 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -2024,9 +2024,9 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 	auditRec.AddEventParameter("patch", channelModerationsPatch)
 
-	b, marshalErr := json.Marshal(channelModerations)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(channelModerations)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

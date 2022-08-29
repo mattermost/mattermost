@@ -1,0 +1,17 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody" width="660px">
+    <mj-wrapper mj-class="email" border-radius="0">
+      <mj-section padding="24px" border-top="1px solid #E5E5E5" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
+        <mj-column>
+          <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
+        </mj-column>
+      </mj-section>
+      <mj-include path="./partials/cloud_title_2subtitles_button.mjml" />
+      <mj-include path="./partials/cloud_laptop_error.mjml" />
+      <mj-include path="./partials/cloud_questions_hr_email_footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>

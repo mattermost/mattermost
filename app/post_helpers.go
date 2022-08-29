@@ -147,7 +147,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
-		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
@@ -229,7 +229,7 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 	filteredPosts := []*model.Post{}
 	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
 	if appErr != nil {
-		return filteredPosts, 0, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return filteredPosts, 0, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	} else if lastAccessiblePostTime == 0 {
 		// No need to filter, all posts are accessible
 		return posts, 0, nil
