@@ -9373,9 +9373,5 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "På grund av de efterlevnadsregler som konfigurerats för den här instansen måste du gå med i kanalen innan dess inlägg kan läsas."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Kunde inte ladda upp filer. Felaktigt antal filer angivna."
   }
 ]
