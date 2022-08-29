@@ -8358,7 +8358,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost súgó oldal megnyitása"
+    "translation": "Mattermost súgó üzenet megjelenítése"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -9310,5 +9310,25 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Hiba a csapattagok gyorsítótárának törlésében"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Nem lehet lekérni a felhasználó legtöbb közvetlen üzeneteit."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "A Mattermost egy nyílt forráskódú platform a biztonságos kommunikációhoz, együttműködéshez és az eszközök és csapatok közötti munka összehangolásához.\nA Mattermost három kulcsfontosságú eszközt tartalmaz:\n\n**Csatornák** - Maradjon kapcsolatban csapatával 1:1 és csoportos üzenetküldéssel.\n**[Forgatókönyvek](/playbooks)** - Építsen és konfiguráljon megismételhető folyamatokat meghatározott és kiszámítható eredmények elérése érdekében.\n**[Táblák](/boards)** - Kezelje a projekteket és feladatokat Kanban tábla struktúrában, hogy segítse csapatát a kulcsfontosságú mérföldkövek elérésében.\n\n[Dokumentáció és útmutatók megtekintése]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Piactér megnyitása"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "A marketplace parancs nem támogatott az Ön eszközén."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
   }
 ]
