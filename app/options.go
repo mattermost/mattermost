@@ -94,6 +94,28 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
+func ConfigWithStore(configStore *config.Store, st store.Store) Option {
+	return func(s *Server) error {
+		platformCfg := platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Cluster:      s.Cluster,
+			Store:        st,
+		}
+		if metricsInterface != nil {
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
+		}
+
+		ps, sErr := platform.New(platformCfg)
+		if sErr != nil {
+			return errors.Wrap(sErr, "failed to initialize platform")
+		}
+		s.platform = ps
+
+		return nil
+	}
+}
+
 func SetFileStore(filestore filestore.FileBackend) Option {
 	return func(s *Server) error {
 		s.filestore = filestore

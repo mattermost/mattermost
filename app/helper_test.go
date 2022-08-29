@@ -65,7 +65,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	buffer := &mlog.Buffer{}
 
-	options = append(options, ConfigStore(configStore))
+	options = append(options, ConfigWithStore(configStore, dbStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
 		options = append(options, StoreOverride(func(s *Server) store.Store {
