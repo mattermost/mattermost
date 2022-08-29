@@ -9357,5 +9357,25 @@
   {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Ongeldige time-out waarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "Door de compliance regels die op deze instantie zijn geconfigureerd moet het kanaal eerst worden binnengegaan voordat de berichten kunnen worden gelezen."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Fout bij uploaden van bestanden. Foutief aantal opgegeven bestanden."
   }
 ]
