@@ -10,7 +10,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -203,7 +202,7 @@ func UpgradeToE0() error {
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzURL(), 1024*1024*300)
+	filename, err := download(getCurrentVersionTgzURL())
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
@@ -214,7 +213,8 @@ func UpgradeToE0() error {
 		return err
 	}
 	defer os.Remove(filename)
-	sigfilename, err := download(getCurrentVersionTgzURL()+".sig", 1024)
+
+	sigfilename, err := download(getCurrentVersionTgzURL() + ".sig")
 	if err != nil {
 		if sigfilename != "" {
 			os.Remove(sigfilename)
@@ -250,22 +250,31 @@ func UpgradeToE0Status() (int64, error) {
 	return getUpgradePercentage(), getUpgradeError()
 }
 
-func download(url string, limit int64) (string, error) {
+func download(url string) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	out, err := ioutil.TempFile("", "*_mattermost.tar.gz")
+	if resp.StatusCode != http.StatusOK {
+		io.Copy(io.Discard, resp.Body)
+		return "", errors.Errorf("error downloading file %s: %s", url, resp.Status)
+	}
+
+	out, err := os.CreateTemp("", "*_mattermost.tar.gz")
 	if err != nil {
 		return "", err
 	}
 	defer out.Close()
 
 	counter := &writeCounter{total: resp.ContentLength}
-	_, err = io.Copy(out, io.TeeReader(&io.LimitedReader{R: resp.Body, N: limit}, counter))
-	return out.Name(), err
+	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
+	if err != nil {
+		return "", err
+	}
+
+	return out.Name(), nil
 }
 
 func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
@@ -310,7 +319,7 @@ func extractBinary(executablePath string, filename string) error {
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
 			permissions := getFilePermissionsOrDefault(executablePath, 0755)
-			tmpFile, err := ioutil.TempFile(path.Dir(executablePath), "*")
+			tmpFile, err := os.CreateTemp(path.Dir(executablePath), "*")
 			if err != nil {
 				return err
 			}

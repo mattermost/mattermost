@@ -67,8 +67,6 @@ type FeatureFlags struct {
 
 	CommandPalette bool
 
-	PostForwarding bool
-
 	AdvancedTextEditor bool
 
 	// Enable Boards as a product (multi-product architecture)
@@ -98,11 +96,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.GraphQL = false
 	f.InsightsEnabled = true
 	f.CommandPalette = false
-	f.PostForwarding = false
 	f.AdvancedTextEditor = true
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "Upgrade"
+	f.PlanUpgradeButtonText = "upgrade"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

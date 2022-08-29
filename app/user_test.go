@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -191,7 +192,6 @@ func TestUpdateUser(t *testing.T) {
 		user.Username = *group.Name
 		u, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
 	})
 }
@@ -245,7 +245,6 @@ func TestCreateUser(t *testing.T) {
 		user.Username = *group.Name
 		u, err := th.App.CreateUser(th.Context, user)
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.group_name_conflict", err.Id)
 		require.Nil(t, u)
 	})
 
@@ -1036,6 +1035,12 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.Nil(t, err, "Unable to upload file. err=%v", err)
 
+	// upload profile image
+	user := th.BasicUser
+
+	err = th.App.SetDefaultProfileImage(th.Context, user)
+	require.Nil(t, err)
+
 	bot, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "botname",
 		Description: "a bot",
@@ -1076,6 +1081,11 @@ func TestPermanentDeleteUser(t *testing.T) {
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
 	require.NotNil(t, err, "GetFileInfo after DeleteUser is nil. err=%v", err)
+
+	// test deletion of profile picture
+	exists, err := th.App.FileExists(filepath.Join("users", user.Id))
+	require.Nil(t, err, "Unable to stat finfo. err=%v", err)
+	require.False(t, exists, "Profile image wasn't deleted. err=%v", err)
 }
 
 func TestPasswordRecovery(t *testing.T) {
@@ -1712,7 +1722,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 			UserStore:    &mockUserStore,
 			SessionStore: &storemocks.SessionStore{},
 			OAuthStore:   &storemocks.OAuthStore{},
-			ConfigFn:     th.App.ch.srv.Config,
+			ConfigFn:     th.App.ch.srv.platform.Config,
 			LicenseFn:    th.App.ch.srv.License,
 		})
 		require.NoError(t, err)
@@ -1749,8 +1759,8 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	})
 
 	t.Run("successfully create a user with insights feature flag disabled", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.Server.platform.SetConfigReadOnlyFF(false)
+		defer th.Server.platform.SetConfigReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateUser()
@@ -1769,8 +1779,8 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 	})
 
 	t.Run("successfully create a guest user with initial tutorial, insights and recommended steps preferences", func(t *testing.T) {
-		th.Server.configStore.SetReadOnlyFF(false)
-		defer th.Server.configStore.SetReadOnlyFF(true)
+		th.Server.platform.SetConfigReadOnlyFF(false)
+		defer th.Server.platform.SetConfigReadOnlyFF(true)
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.InsightsEnabled = true })
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)

@@ -82,7 +82,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -94,7 +94,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -105,7 +105,7 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
+		mlog.String("error", err.Error()),
 	}
 	switch {
 	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
@@ -164,7 +164,7 @@ func (c *Context) MfaRequired() {
 
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
-		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 		return
 	}
 
@@ -241,8 +241,8 @@ func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
 
-func (c *Context) SetJSONEncodingError() {
-	c.Err = NewJSONEncodingError()
+func (c *Context) SetJSONEncodingError(err error) {
+	c.Err = NewJSONEncodingError(err)
 }
 
 func (c *Context) SetCommandNotFoundError() {
@@ -294,9 +294,9 @@ func NewInvalidRemoteClusterTokenError() *model.AppError {
 	return err
 }
 
-func NewJSONEncodingError() *model.AppError {
-	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
-	return err
+func NewJSONEncodingError(err error) *model.AppError {
+	appErr := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	return appErr
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {

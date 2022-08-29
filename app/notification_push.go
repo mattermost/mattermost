@@ -6,13 +6,13 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 	"strings"
 	"sync"
-
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -232,14 +232,14 @@ func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID,
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
 	if err != nil {
-		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	msg.Badge = int(unreadCount)
 
 	if msg.IsCRTEnabled {
 		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
 		if err != nil {
-			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		msg.Badge += int(totalUnreadMentions)
 	}
@@ -270,7 +270,7 @@ func (a *App) updateMobileAppBadgeSync(userID string) *model.AppError {
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
 	if err != nil {
-		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	msg.Badge = int(unreadCount)
@@ -290,7 +290,7 @@ func (a *App) UpdateMobileAppBadge(userID string) {
 }
 
 func (s *Server) createPushNotificationsHub(c request.CTX) {
-	buffer := *s.Config().EmailSettings.PushNotificationBuffer
+	buffer := *s.platform.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               New(ServerConnector(s.Channels())),
@@ -382,9 +382,9 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushResponse, error) {
-	msgJSON, jsonErr := json.Marshal(msg)
-	if jsonErr != nil {
-		return nil, errors.Wrap(jsonErr, "failed to encode to JSON")
+	msgJSON, err := json.Marshal(msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode to JSON: %w", err)
 	}
 
 	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
@@ -400,8 +400,8 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	defer resp.Body.Close()
 
 	var pushResponse model.PushResponse
-	if jsonErr := json.NewDecoder(resp.Body).Decode(&pushResponse); jsonErr != nil {
-		return nil, errors.Wrap(jsonErr, "failed to decode from JSON")
+	if err := json.NewDecoder(resp.Body).Decode(&pushResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode from JSON: %w", err)
 	}
 
 	return pushResponse, nil
@@ -427,7 +427,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	case model.PushStatusRemove:
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
-		return errors.New("Device was reported as removed")
+		return errors.New("device was reported as removed")
 	case model.PushStatusFail:
 		return errors.New(pushResponse[model.PushStatusErrorMsg])
 	}
@@ -447,9 +447,9 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		mlog.String("status", model.PushReceived),
 	)
 
-	ackJSON, jsonErr := json.Marshal(ack)
-	if jsonErr != nil {
-		return errors.Wrap(jsonErr, "failed to encode to JSON")
+	ackJSON, err := json.Marshal(ack)
+	if err != nil {
+		return fmt.Errorf("failed to encode to JSON: %w", err)
 	}
 
 	request, err := http.NewRequest(
@@ -457,7 +457,6 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.APIURLSuffixV1+"/ack",
 		bytes.NewReader(ackJSON),
 	)
-
 	if err != nil {
 		return err
 	}
@@ -467,19 +466,16 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return err
 	}
 	defer resp.Body.Close()
+
 	// Reading the body to completion.
 	_, err = io.Copy(io.Discard, resp.Body)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
 	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userID)
 	if err != nil {
-		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return sessions, nil
@@ -572,7 +568,7 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
 	if err != nil {
-		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	msg.Badge = int(unreadCount)
 

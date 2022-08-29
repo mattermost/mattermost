@@ -1110,7 +1110,7 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 	case model.DatabaseDriverMysql:
 		// Usually a version string is of the form 5.6.49-log, 10.4.5-MariaDB etc.
 		if strings.Contains(strings.ToLower(ver), "maria") {
-			mlog.Debug("MariaDB detected. Skipping version check.")
+			mlog.Warn("MariaDB detected. You are using an unsupported database. Please consider using MySQL or Postgres.")
 			return true, nil
 		}
 		parts := strings.Split(ver, "-")
@@ -1124,15 +1124,15 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		majorVer, err2 := strconv.Atoi(versions[0])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		minorVer, err2 := strconv.Atoi(versions[1])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		patchVer, err2 := strconv.Atoi(versions[2])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRequiredMySQLVersion {

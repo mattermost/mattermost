@@ -62,6 +62,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
+	t.Run("GetTopDMsForUserSince", func(t *testing.T) { testGetTopDMsForUserSince(t, ss, s) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -568,6 +569,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
+		t.Skip("MM-46134")
 		o1, err := ss.Post().Save(&model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()})
 		require.NoError(t, err)
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
@@ -643,7 +645,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.True(t, r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
@@ -675,7 +677,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -4056,4 +4058,125 @@ func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
 	_, err = ss.Post().GetNthRecentPostTime(10000)
 	assert.Error(t, err)
 	assert.IsType(t, &store.ErrNotFound{}, err)
+}
+
+func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
+	// users
+	user := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u1 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u2 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	_, err := ss.User().Save(&user)
+	require.NoError(t, err)
+	_, err = ss.User().Save(&u1)
+	require.NoError(t, err)
+	_, err = ss.User().Save(&u2)
+	require.NoError(t, err)
+	_, err = ss.User().Save(&u3)
+	require.NoError(t, err)
+	_, err = ss.User().Save(&u4)
+	require.NoError(t, err)
+	// user direct messages
+	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
+	require.NoError(t, nErr)
+	chUser2, nErr := ss.Channel().CreateDirectChannel(&u2, &user)
+	require.NoError(t, nErr)
+	chUser3, nErr := ss.Channel().CreateDirectChannel(&u3, &user)
+	require.NoError(t, nErr)
+	// other user direct message
+	chUser3User4, nErr := ss.Channel().CreateDirectChannel(&u3, &u4)
+	require.NoError(t, nErr)
+
+	// sample post data
+	// for u1
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    u1.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser1.Id,
+		UserId:    user.Id,
+	})
+	require.NoError(t, err)
+	// for u2: 1 post
+	postToDelete, err := ss.Post().Save(&model.Post{
+		ChannelId: chUser2.Id,
+		UserId:    u2.Id,
+	})
+	require.NoError(t, err)
+	// for user-u3: 3 posts
+	for i := 0; i < 3; i++ {
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: chUser3.Id,
+			UserId:    user.Id,
+		})
+		require.NoError(t, err)
+	}
+	// for u4-u3: 4 posts
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	})
+	require.NoError(t, err)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u3.Id,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser3User4.Id,
+		UserId:    u4.Id,
+	})
+	require.NoError(t, err)
+	t.Run("should return topDMs when userid is specified ", func(t *testing.T) {
+		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
+		require.NoError(t, storeErr)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 3)
+		// check order, magnitude of items
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
+		require.Equal(t, topDMs.Items[0].OutgoingMessageCount, int64(3))
+		require.Equal(t, topDMs.Items[1].SecondParticipant.Id, u1.Id)
+		require.Equal(t, topDMs.Items[1].MessageCount, int64(2))
+		require.Equal(t, topDMs.Items[1].OutgoingMessageCount, int64(1))
+		require.Equal(t, topDMs.Items[2].SecondParticipant.Id, u2.Id)
+		require.Equal(t, topDMs.Items[2].MessageCount, int64(1))
+		require.Equal(t, topDMs.Items[2].OutgoingMessageCount, int64(0))
+		// this also ensures that u3-u4 conversation doesn't show up in others' top DMs.
+	})
+	t.Run("topDMs should only consider user's DM channels ", func(t *testing.T) {
+		// u4 only takes part in one conversation
+		topDMs, storeErr := ss.Post().GetTopDMsForUserSince(u4.Id, 100, 0, 100)
+		require.NoError(t, storeErr)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 1)
+		// check order, magnitude of items
+		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, u3.Id)
+		require.Equal(t, topDMs.Items[0].MessageCount, int64(4))
+	})
+	t.Run("topDMs will not consider self dms", func(t *testing.T) {
+		chUser, nErr := ss.Channel().CreateDirectChannel(&user, &user)
+		require.NoError(t, nErr)
+		_, err = ss.Post().Save(&model.Post{
+			ChannelId: chUser.Id,
+			UserId:    user.Id,
+		})
+		// delete u2 post
+		err := ss.Post().Delete(postToDelete.Id, 200, user.Id)
+		require.NoError(t, err)
+		// u4 only takes part in one conversation
+		topDMs, err := ss.Post().GetTopDMsForUserSince(user.Id, 100, 0, 100)
+		require.NoError(t, err)
+		// len of topDMs.Items should be 3
+		require.Len(t, topDMs.Items, 2)
+	})
 }

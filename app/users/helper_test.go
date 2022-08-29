@@ -5,7 +5,6 @@ package users
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -48,7 +47,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "userservicetest")
+	tempWorkspace, err := os.MkdirTemp("", "userservicetest")
 	if err != nil {
 		panic(err)
 	}
