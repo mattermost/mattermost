@@ -6796,7 +6796,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Öppna Mattermost hjälp sida"
+    "translation": "Visa Mattermost hjälpmeddelande"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -9204,11 +9204,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till kanalen {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} bjöd in dig att ansluta till kanalen {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9373,5 +9373,33 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "På grund av de efterlevnadsregler som konfigurerats för den här instansen måste du gå med i kanalen innan dess inlägg kan läsas."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fel vid rensning av cache av teammedlemmar"
+  },
+  {
+    "id": "app.post.get_new_team_members_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Det går inte att få fram användarens topp-direktmeddelanden."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Kommandot Marketplace stöds inte på din enhet."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marknadsplats"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Besök Marketplace"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanban-struktur för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
   }
 ]
