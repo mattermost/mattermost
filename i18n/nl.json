@@ -9373,5 +9373,17 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Door de compliance regels die op deze instantie zijn geconfigureerd moet het kanaal eerst worden binnengegaan voordat de berichten kunnen worden gelezen."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fout bij het wissen van de cache van teamleden"
+  },
+  {
+    "id": "app.post.get_new_team_members_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Fout bij het ophalen van de top-privé-berichten voor gebruiker."
   }
 ]
