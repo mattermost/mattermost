@@ -1082,10 +1082,6 @@
     "translation": "Impossibile caricare i file. Ci sono {{.NumClientIds}} client_ids per {{.NumFiles}} file."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Impossibile caricare i file. Specifica numero di file non valido."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Non è stato possibile caricare il file che supera le dimensioni massime: {{.Filename}}"
   },
@@ -5942,10 +5938,6 @@
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "Il parametro id squadra è richiesto per l'autocompletamento del canale."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Impossibile richiedere una licenza di prova. Configurare l'URL del sito nella sezione server web della console di sistema di Mattermost."
   },
   {
     "id": "api.channel.move_channel.type.invalid",

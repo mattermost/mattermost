@@ -1082,10 +1082,6 @@
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "No se pudo cargar el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
@@ -5950,10 +5946,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "No se puede obtener el mensaje pendiente."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
