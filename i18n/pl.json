@@ -8988,10 +8988,6 @@
     "translation": "Odpowiedź SAML jest zbyt długa"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "Onboarding może być ukończony tylko przez administratora systemu."
   },
@@ -9000,15 +8996,7 @@
     "translation": "Nie udało się zdekodować kompletnego żądania."
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
     "translation": " "
   },
   {
@@ -9018,10 +9006,6 @@
   {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Nazwa koliduje z istniejącą nazwą systemową emoji."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -9128,10 +9112,6 @@
     "translation": "Bleve Bulk Indexing Batch Size musi wynosić co najmniej {{.BatchSize}}."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
     "translation": " "
   },
@@ -9142,10 +9122,6 @@
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Nie można uzyskać wszystkich zadań według typu i statusu."
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
   },
   {
     "id": "app.group.get_by_username_failure",
@@ -9196,10 +9172,6 @@
     "translation": "Nieprawidłowy post_id"
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.reaction.get_top_for_team_since.app_error",
     "translation": " "
   },
@@ -9230,10 +9202,6 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Insights kryje się za flagą funkcji, która nie jest włączona."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_for_team_since.app_error",
@@ -9300,15 +9268,7 @@
     "translation": "Nieprawidłowa współbieżność dekodera {{.Wartość}}. Powinna być liczbą dodatnią lub -1."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": " "
   },
   {
@@ -9356,16 +9316,8 @@
     "translation": "Cześć, oto Twoje przypomnienie o tej wiadomości od @{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_reminder.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.team.clear_cache.app_error",
     "translation": "Błąd czyszczenia pamięci podręcznej członków zespołu"
-  },
-  {
-    "id": "app.post.get_new_team_members_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",
@@ -9386,10 +9338,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
-  },
-  {
-    "id": "app.channel.get_top_invalid_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_invalid_for_team_since.app_error",

@@ -9020,10 +9020,6 @@
     "translation": "ошибка подсчета групп"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Имя конфликтует с существующим системным именем эмодзи."
   },
@@ -9060,23 +9056,11 @@
     "translation": "имя группы не уникально"
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   },
   {
@@ -9132,15 +9116,7 @@
     "translation": "Гостевой доступ к указанному "
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
     "translation": " "
   },
   {
@@ -9166,10 +9142,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Недопустимый post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.reaction.get_top_for_team_since.app_error",
@@ -9230,10 +9202,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_for_team_since.app_error",

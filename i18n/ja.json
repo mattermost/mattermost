@@ -8984,10 +8984,6 @@
     "translation": "オンボーディングの完了リクエストをデコードできませんでした。"
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
   },
@@ -9028,10 +9024,6 @@
     "translation": "ボード"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "既存のシステム絵文字名と名前が競合しています。"
   },
@@ -9056,15 +9048,7 @@
     "translation": "グループ名が重複しています"
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   },
   {
@@ -9124,15 +9108,7 @@
     "translation": "メール送信時にエラーが発生しました"
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
     "translation": " "
   },
   {
@@ -9170,10 +9146,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "不正な post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.reaction.get_top_for_team_since.app_error",
@@ -9222,10 +9194,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "電子メールの設定に未設定の値があります。"
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_for_team_since.app_error",
@@ -9304,15 +9272,7 @@
     "translation": "インサイト機能は無効化されています。"
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": " "
   },
   {
@@ -9352,15 +9312,7 @@
     "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_reminder.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.post.get_top_dms_for_user_since.app_error",
     "translation": "ユーザーのトップDMを取得できませんでした。"
-  },
-  {
-    "id": "app.post.get_new_team_members_since.app_error",
-    "translation": " "
   }
 ]
