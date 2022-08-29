@@ -8984,23 +8984,11 @@
     "translation": "SAML válasz túl hosszú"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_unmarshal.failure",
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
   },
   {
@@ -9014,10 +9002,6 @@
   {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "A név ütközik egy meglévő rendszer emoji nevével."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
