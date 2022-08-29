@@ -107,7 +107,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return string(nad.RequiredPlan) != currentSKU })
+	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
 
 	if len(data) == 0 {
 		mlog.Warn("No notification data available")
