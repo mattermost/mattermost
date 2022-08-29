@@ -1124,15 +1124,15 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		majorVer, err2 := strconv.Atoi(versions[0])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		minorVer, err2 := strconv.Atoi(versions[1])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		patchVer, err2 := strconv.Atoi(versions[2])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRequiredMySQLVersion {
