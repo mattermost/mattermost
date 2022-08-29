@@ -8996,10 +8996,6 @@
     "translation": "Nie udało się zdekodować kompletnego żądania."
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Nazwa koliduje z istniejącą nazwą systemową emoji."
   },
