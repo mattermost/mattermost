@@ -621,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Otwórz stronę pomocy Mattermost"
+    "translation": "Pokaż komunikat pomocy Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -9221,11 +9221,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
@@ -9374,5 +9374,41 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Ze względu na reguły zgodności skonfigurowany na tej instancji kanał musi zostać dołączony, zanim jego posty będą mogły być czytane."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Błąd czyszczenia pamięci podręcznej członków zespołu"
+  },
+  {
+    "id": "app.post.get_new_team_members_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Nie można uzyskać najlepszych DM dla użytkownika."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Polecenie marketplace nie jest obsługiwane w Twoim urządzeniu."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "Sklep"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Otwórz Sklep"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
+  },
+  {
+    "id": "app.channel.get_top_invalid_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_invalid_for_team_since.app_error",
+    "translation": " "
   }
 ]
