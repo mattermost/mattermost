@@ -56,23 +56,13 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 
 func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 	ctx := request.EmptyContext(a.Srv().Log())
-	subscription, err := a.Cloud().GetSubscription("")
-	if err != nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	license := a.Srv().License()
+	if license == nil {
+		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "No license found", http.StatusInternalServerError)
 	}
 
-	products, err := a.Cloud().GetCloudProducts("", true)
-	if err != nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	currentProduct := getCurrentProduct(subscription.ProductID, products)
-	if currentProduct == nil {
-		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "current product is nil", http.StatusInternalServerError)
-	}
-	currentSKU := currentProduct.SKU
-
-	workspaceName := subscription.GetWorkSpaceNameFromDNS()
+	currentSKU := license.SkuShortName
+	workspaceName := ""
 
 	return a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)
 }

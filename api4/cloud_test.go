@@ -331,7 +331,7 @@ func TestNotifyAdmin(t *testing.T) {
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:    "cloud-professional",
+			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: "Unknown feature",
 		})
 
@@ -345,7 +345,7 @@ func TestNotifyAdmin(t *testing.T) {
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:      "cloud-professional",
+			RequiredPlan:      model.LicenseShortSkuProfessional,
 			RequiredFeature:   "Unknown feature",
 			TrialNotification: true,
 		})
@@ -360,7 +360,7 @@ func TestNotifyAdmin(t *testing.T) {
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:    "cloud-professional",
+			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.NoError(t, err)
@@ -368,7 +368,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 		// second attempt to notify for all professional features
 		statusCode, err = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:    "cloud-professional",
+			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.Error(t, err)
@@ -382,7 +382,7 @@ func TestNotifyAdmin(t *testing.T) {
 		defer th.TearDown()
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:    "cloud-professional",
+			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 
@@ -392,11 +392,11 @@ func TestNotifyAdmin(t *testing.T) {
 }
 
 func TestTriggerNotifyAdmin(t *testing.T) {
-	t.Run("error when EnableAPITriggerNotifyAdmin is not true", func(t *testing.T) {
+	t.Run("error when EnableTesting is not true", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = false })
 
 		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
 
@@ -410,7 +410,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 		statusCode, err := th.Client.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
 
@@ -423,10 +423,10 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerNotifyAdmin = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:    "cloud-professional",
+			RequiredPlan:    model.LicenseShortSkuProfessional,
 			RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 		})
 		require.NoError(t, err)

@@ -58,18 +58,9 @@ const (
 	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("mattermost.feature.all_enterprise")
 )
 
-type CloudSKU string
-
-const (
-	CloudSKUStarter      = CloudSKU("cloud-starter")
-	CloudSKUProfessional = CloudSKU("cloud-professional")
-	CloudSKUEnterprise   = CloudSKU("cloud-enterprise")
-)
-
-var validCloudSKUs map[CloudSKU]struct{} = map[CloudSKU]struct{}{
-	CloudSKUStarter:      {},
-	CloudSKUProfessional: {},
-	CloudSKUEnterprise:   {},
+var validSKUs map[string]struct{} = map[string]struct{}{
+	LicenseShortSkuProfessional: {},
+	LicenseShortSkuEnterprise:   {},
 }
 
 // These are the features a non admin would typically ping an admin about
@@ -302,20 +293,20 @@ type ProductLimits struct {
 }
 type NotifyAdminToUpgradeRequest struct {
 	TrialNotification bool                  `json:"trial_notification"`
-	RequiredPlan      CloudSKU              `json:"required_plan"`
+	RequiredPlan      string                `json:"required_plan"`
 	RequiredFeature   MattermostPaidFeature `json:"required_feature"`
 }
 
 type NotifyAdminData struct {
 	CreateAt        int64                 `json:"create_at,omitempty"`
 	UserId          string                `json:"user_id"`
-	RequiredPlan    CloudSKU              `json:"required_plan"`
+	RequiredPlan    string                `json:"required_plan"`
 	RequiredFeature MattermostPaidFeature `json:"required_feature"`
 	Trial           bool                  `json:"trial"`
 }
 
 func (nad *NotifyAdminData) IsValid() *AppError {
-	if _, planOk := validCloudSKUs[nad.RequiredPlan]; !planOk {
+	if _, planOk := validSKUs[nad.RequiredPlan]; !planOk {
 		return NewAppError("NotifyAdmin.IsValid", fmt.Sprintf("Invalid plan, %s provided", nad.RequiredPlan), nil, "", http.StatusBadRequest)
 	}
 

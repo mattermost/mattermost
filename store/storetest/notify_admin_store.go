@@ -29,7 +29,7 @@ func tearDown(t *testing.T, ss store.Store) {
 func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	d1 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
@@ -39,7 +39,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	// unknow plan error
 	d2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: "Unknown feature",
 	}
 
@@ -59,7 +59,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 	singleUserId := model.NewId()
 	d5 := &model.NotifyAdminData{
 		UserId:          singleUserId,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 	_, err = ss.NotifyAdmin().Save(d5)
@@ -67,7 +67,7 @@ func testNotifyAdminStoreSave(t *testing.T, ss store.Store) {
 
 	d6 := &model.NotifyAdminData{
 		UserId:          singleUserId,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 	_, err = ss.NotifyAdmin().Save(d6)
@@ -80,7 +80,7 @@ func testGet(t *testing.T, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
@@ -89,7 +89,7 @@ func testGet(t *testing.T, ss store.Store) {
 
 	d1Trial := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-enterprise",
+		RequiredPlan:    model.LicenseShortSkuEnterprise,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
@@ -98,7 +98,7 @@ func testGet(t *testing.T, ss store.Store) {
 
 	d1Trial2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
-		RequiredPlan:    "cloud-enterprise",
+		RequiredPlan:    model.LicenseShortSkuEnterprise,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
@@ -120,7 +120,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
@@ -130,7 +130,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, ss store.Store) {
 	userId2 := model.NewId()
 	d2 := &model.NotifyAdminData{
 		UserId:          userId2,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureCustomUsergroups,
 	}
 
@@ -149,7 +149,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 	userId1 := model.NewId()
 	d1 := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
 
@@ -158,7 +158,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 
 	d1Trial := &model.NotifyAdminData{
 		UserId:          userId1,
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
@@ -167,7 +167,7 @@ func testDeleteBefore(t *testing.T, ss store.Store) {
 
 	d1Trial2 := &model.NotifyAdminData{
 		UserId:          model.NewId(),
-		RequiredPlan:    "cloud-professional",
+		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
 	}
