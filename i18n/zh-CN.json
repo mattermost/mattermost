@@ -9008,10 +9008,6 @@
     "translation": "无法按类型和状态获取所有工作内容。"
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": " 获取该组的用户名失败 "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "无法展现/执行此源类型。"
   },
@@ -9256,10 +9252,6 @@
     "translation": "{{.TeamName}} 的成员已通知您升级此工作区。"
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.usage.get_storage_usage.app_error",
     "translation": "无法获取存储使用情况。"
   },
@@ -9274,10 +9266,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "清除团队成员缓存时出错"
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_threads_for_user_since.app_error",
@@ -9298,21 +9286,5 @@
   {
     "id": "app.last_accessible_post.app_error",
     "translation": "获取最后可访问的帖子时出错"
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
   }
 ]

@@ -9056,14 +9056,6 @@
     "translation": "имя группы не уникально"
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "Ответ SAML слишком длинный"
   },
@@ -9116,14 +9108,6 @@
     "translation": "Гостевой доступ к указанному "
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Максимальная длина MattermostAppID — 32 символа."
   },
@@ -9142,10 +9126,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Недопустимый post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9202,10 +9182,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",

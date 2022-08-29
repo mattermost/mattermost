@@ -8984,14 +8984,6 @@
     "translation": "SAML válasz túl hosszú"
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Nem sikerült dekódolni a teljes rendszerbeszállási kérelmet."
   },
