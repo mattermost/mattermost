@@ -9364,7 +9364,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hallo, ich soll dich an {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} von @{{.Username}} erinnern"
+    "translation": "Hallo, hier ist deine Erinnerung für die Nachricht von @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.post_reminder.app_error",
