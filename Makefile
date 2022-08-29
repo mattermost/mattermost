@@ -160,7 +160,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.2.0
+PLUGIN_PACKAGES += focalboard-v7.2.1
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -330,11 +330,11 @@ app-layers: ## Extract interface from App struct
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@fdf2cd651b261bcd511a32da33dd76febedd44a8
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
 i18n-check: ## Exit on empty translation strings and translation source strings
-	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@v0.0.0-20210721133912-8b250bf4d0f6
+	$(GO) install github.com/mattermost/mattermost-utilities/mmgotool@fdf2cd651b261bcd511a32da33dd76febedd44a8
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 

@@ -1102,10 +1102,10 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	group, err := a.Srv().Store.Group().GetByName(val, model.GroupSearchOpts{})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("", "app.user.get_by_name_failure", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if group != nil {
-		return model.NewAppError("", "app.user.group_name_conflict", nil, "", http.StatusBadRequest)
+		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
 	}
 	return nil
 }
