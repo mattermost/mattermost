@@ -8026,7 +8026,7 @@ func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 		return 0, err
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin", string(nrJSON))
+	r, err := c.DoAPIPost("/users/notify-admin", string(nrJSON))
 	if err != nil {
 		return r.StatusCode, err
 	}
@@ -8042,7 +8042,7 @@ func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, erro
 		return 0, err
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/trigger-notify-admin-posts", string(nrJSON))
+	r, err := c.DoAPIPost("/users/trigger-notify-admin-posts", string(nrJSON))
 	if err != nil {
 		return r.StatusCode, err
 	}

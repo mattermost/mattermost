@@ -50,55 +50,6 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	api.BaseRoutes.Cloud.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
-}
-
-func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
-
-	userId := c.AppContext.Session().UserId
-	appErr := c.App.SaveAdminNotification(userId, notifyAdminRequest)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
-}
-
-func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().ServiceSettings.EnableTesting {
-		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "api.cloud.app_error", nil, "Testing not enabled", http.StatusForbidden)
-		return
-	}
-
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
-
-	// only system admins can manually trigger these notifications
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
-	appErr := c.App.SendNotifyAdminPosts(c.AppContext, "", "", notifyAdminRequest.TrialNotification)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
