@@ -7724,10 +7724,6 @@
     "translation": "Fout bij het verplaatsen van het geüploade bestand."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kan het antwoord niet verwerken."
-  },
-  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Er bestaat al een kanaallid met dat id."
   },
@@ -8911,10 +8907,6 @@
     "translation": " antwoordde op een draadje."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Ongeldig CreateAt veld voor sessie."
   },
@@ -9323,10 +9315,6 @@
     "translation": " "
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
   },
@@ -9369,10 +9357,6 @@
   {
     "id": "app.post_reminder.app_error",
     "translation": " "
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Door de compliance regels die op deze instantie zijn geconfigureerd moet het kanaal eerst worden binnengegaan voordat de berichten kunnen worden gelezen."
   },
   {
     "id": "app.team.clear_cache.app_error",

@@ -2436,10 +2436,6 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
   },
@@ -8911,10 +8907,6 @@
     "translation": " replied to a thread."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
-  },
-  {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Invalid user roles longer than {{.Limit}} characters."
   },
@@ -9259,10 +9251,6 @@
     "translation": "Insights feature is disabled."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Your licence doesn't support the Insights feature."
-  },
-  {
     "id": "api.insights.feature_disabled",
     "translation": "Insights is behind a feature flag which is not enabled."
   },
@@ -9297,10 +9285,6 @@
   {
     "id": "app.post_reminder_dm",
     "translation": "Hello there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Due to the compliance rules configured on this server, the channel must be joined before its posts can be read."
   },
   {
     "id": "app.team.clear_cache.app_error",

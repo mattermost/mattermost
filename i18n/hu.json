@@ -8732,10 +8732,6 @@
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nem sikerült becsomagolni a választ."
-  },
-  {
     "id": "app.export.marshal.app_error",
     "translation": "Nem sikerült becsomagolni a választ."
   },
@@ -8902,10 +8898,6 @@
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
     "translation": "Válasz a közvetlen üzenetben"
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Hiba a mellékletek tömeges importálása közben."
   },
   {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
@@ -9280,10 +9272,6 @@
     "translation": "Áttekintések szolgáltatás le van tiltva."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Az ön licence nem támogatja az áttekintések szolgáltatást."
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Nem lehetséges a bejegyzés lekérése, mivel a felhő csomagjának korlátján túl van."
   },
@@ -9322,9 +9310,5 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Hiba a csapattagok gyorsítótárának törlésében"
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Az ezen a szerveren beállított megfelelési szabályok miatt a csatornához csatlakozni kell, mielőtt a bejegyzések olvashatóak lennének."
   }
 ]
