@@ -5821,7 +5821,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5829,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 12+"
+    "translation": "版本 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 78+"
+    "translation": "版本 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5841,7 +5841,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 89+"
+    "translation": "版本 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9045,7 +9045,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "嗨!打开最重要的事情，以提高您的团队的生产力!"
+    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9077,7 +9077,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的{{ .ChannelName }} 频道"
+    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelName }} 频道"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
@@ -9234,5 +9234,133 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "已通知管理员"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "无效的解码器并发 {{.Value}}。 应该是正数或 -1。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch 批量索引的批量大小必须至少是 {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "无效的超时值 {{.Value}}.应该是一个正数。"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "无法将值：{{.Value}} 解析为 int64"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "{{.TeamName}} 的成员已通知您升级此工作区。"
+  },
+  {
+    "id": "model.github_release_info.is_valid.id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.user.group_name_conflict",
+    "translation": " "
+  },
+  {
+    "id": "app.user.get_by_name_failure",
+    "translation": " "
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "无法获取存储使用情况。"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "无法从上传的数据生成文件信息。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "无法获得团队人数"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "清除团队成员缓存时出错"
+  },
+  {
+    "id": "app.reaction.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.reaction.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "无法为用户获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "无法为团队获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "无法为用户获取顶级 DMs。"
+  },
+  {
+    "id": "app.post.get_new_team_members_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "无法获取帖子，因为它超过了云的计划限制。"
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "获取最后可访问的帖子时出错"
+  },
+  {
+    "id": "app.channel.get_top_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_top_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_post_count_by_day.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_unmarshal.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_set_cache.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_read_all.failure",
+    "translation": " "
+  },
+  {
+    "id": "app.admin.latest_version_external_error.failure",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error.professional_or_enterprise",
+    "translation": " "
+  },
+  {
+    "id": "api.authorization_error.guest",
+    "translation": " "
   }
 ]
