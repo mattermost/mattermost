@@ -7584,10 +7584,6 @@
     "translation": "error al insertar"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Incapaz de ordenar la respuesta."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "el miembro del grupo ya existe"
   },
@@ -7850,10 +7846,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Error al generar la contraseña."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error al procesar archivos adjuntos de importación masiva."
   },
   {
     "id": "app.import.attachment.read_file_data.error",
@@ -9057,10 +9049,6 @@
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
     "translation": " "
   },
   {

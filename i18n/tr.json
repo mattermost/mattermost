@@ -7744,10 +7744,6 @@
     "translation": "İçe aktarılamadı: Dosya bulunamadı."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Yanıt iletilemedi."
-  },
-  {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Yüklenen dosya taşınamadı."
   },
@@ -8911,10 +8907,6 @@
     "translation": " bir konuyu yanıtladı."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Ek dosyalar toplu olarak içe aktarılırken sorun çıktı."
-  },
-  {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Kullanıcı rolleri geçersiz {{.Limit}} karakterden uzun."
   },
@@ -9331,10 +9323,6 @@
     "translation": "İçgörü özelliği devre dışı bırakılmış."
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Lisansınızda içgörü özelliği yok."
-  },
-  {
     "id": "api.cloud.upgrade_plan_bot_message",
     "translation": "{{.TeamName}} takımının bir üyesi bu çalışma alanını üst tarifeye geçirmesi için bilgilendirildi."
   },
@@ -9369,10 +9357,6 @@
   {
     "id": "app.post_reminder.app_error",
     "translation": " "
-  },
-  {
-    "id": "api.post.compliance_enabled.join_channel_to_view_post",
-    "translation": "Bu kopyada yapılandırılmış uyumluluk kuralları nedeniyle, gönderilerinin okunabilmesi için önce kanala katılınması gerekir."
   },
   {
     "id": "app.team.clear_cache.app_error",

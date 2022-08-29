@@ -7772,10 +7772,6 @@
     "translation": "ошибка insert"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Невозможно организовать ответ."
-  },
-  {
     "id": "app.import.attachment.read_file_data.error",
     "translation": "Не удалось прочитать аттачмент при импорте."
   },
@@ -8838,10 +8834,6 @@
   {
     "id": "app.notification.body.dm.subTitle",
     "translation": "Пока вас не было, {{.SenderName}} отправил вам новое личное сообщение."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Ошибка при обработке вложений сгруппированного импорта."
   },
   {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
