@@ -9322,5 +9322,17 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Érvénytelen az időtúllépés értéke {{.Value}}. Pozitív számnak kell lennie."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Üdv, ez egy emlékeztető a @{{.Username}} által írt {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} bejegyzésre"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Hiba a csapattagok gyorsítótárának törlésében"
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "Az ezen a szerveren beállított megfelelési szabályok miatt a csatornához csatlakozni kell, mielőtt a bejegyzések olvashatóak lennének."
   }
 ]
