@@ -584,6 +584,21 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.Nil(t, data)
 }
 
+func TestPluginAPICreatePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	})
+
+	require.Nil(t, err)
+	require.Equal(t, "true", post.GetProp("from_integration"))
+}
+
 func TestPluginAPIGetFileInfos(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

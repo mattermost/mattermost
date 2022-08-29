@@ -304,6 +304,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
+	assert.Contains(t, post.GetProps(), "from_integration", "missing from_integration prop")
 	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
 	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
