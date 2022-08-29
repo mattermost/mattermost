@@ -988,12 +988,14 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		mlog.Debug("Skipping due to prepackaged plugins disabled")
 		return plugin, nil
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
+		mlog.Debug("Skipping due to plugin not enabled", mlog.String("manifestId", plugin.Manifest.Id))
 		return plugin, nil
 	}
 
