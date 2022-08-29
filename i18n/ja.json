@@ -8984,10 +8984,6 @@
     "translation": "オンボーディングの完了リクエストをデコードできませんでした。"
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAMLの応答が長すぎます"
   },
@@ -9048,10 +9044,6 @@
     "translation": "グループ名が重複しています"
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "api.templates.server_inactivity_title",
     "translation": "これらの機能による生産性の向上をアンロックする"
   },
@@ -9108,14 +9100,6 @@
     "translation": "メール送信時にエラーが発生しました"
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppIDの最大文字数は32文字です。"
   },
@@ -9146,10 +9130,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "不正な post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9194,10 +9174,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "電子メールの設定に未設定の値があります。"
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9270,10 +9246,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "インサイト機能は無効化されています。"
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
   },
   {
     "id": "api.cloud.upgrade_plan_bot_message",

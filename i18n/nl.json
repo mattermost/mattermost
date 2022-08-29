@@ -8995,10 +8995,6 @@
     "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
   },
@@ -9053,10 +9049,6 @@
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9127,14 +9119,6 @@
     "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
   },
@@ -9161,10 +9145,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Ongeldig post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9205,10 +9185,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",

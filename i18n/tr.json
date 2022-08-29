@@ -8995,14 +8995,6 @@
     "translation": "Başlamaya hazırlık isteğinin tamamının şifresi çözülemedi."
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Bu ad, var olan bir sistem emojisi adıyla çakışıyor."
   },
@@ -9115,14 +9107,6 @@
     "translation": "Önceden hazırlanmış uygulama eki sürümü işlenemedi."
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppID en fazla 32 karakter uzunluğunda olabilir."
   },
@@ -9187,10 +9171,6 @@
     "translation": "Post_id geçersiz"
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": "Gövde verileri işlenirken sorun çıktı."
   },
@@ -9201,10 +9181,6 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Ambargo uygulanan ülkelerdeki sınırlamalar nedeniyle isteği işleyemedik. [Belgelerimizden ayrıntılı bilgi alın](https://mattermost.com/pl/limitations-for-embargoed-countries) ya da ihracat sınırlamalarıyla ilgili sorularınız için legal@mattermost.com adresine yazın."
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9265,10 +9241,6 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "{{.Value}} kod çözücü eşzamanlılığı geçersiz. Pozitif bir sayı ya da -1 olmalıdır."
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_threads_for_user_since.app_error",

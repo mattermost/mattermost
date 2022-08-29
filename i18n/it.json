@@ -8008,10 +8008,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.no_rows",
     "translation": " "
   },
@@ -8825,10 +8821,6 @@
   },
   {
     "id": "app.notification.footer.infoLogin",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
     "translation": " "
   },
   {
