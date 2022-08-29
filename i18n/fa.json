@@ -6774,10 +6774,6 @@
     "translation": "ویژگی نیاز به ارتقاء به نسخه Enterprise دارد."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "درخواست مجوز آزمایشی امکان پذیر نیست. لطفاً یک URL سایت را در بخش وب سرور سیستم کنسول Mattermost پیکربندی کنید."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "دریافت مجوز آزمایشی امکان پذیر نیست ، لطفاً دوباره امتحان کنید یا با support@mattermost.com تماس بگیرید. تعداد کاربران ثبت شده امکان پذیر نیست."
   },
@@ -7124,10 +7120,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "پرونده بالای حداکثر ابعاد بارگذاری نمی شود: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "بارگذاری پرونده ها امکان پذیر نیست. تعداد پرونده های نادرست مشخص شده است."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",

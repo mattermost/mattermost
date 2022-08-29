@@ -1082,10 +1082,6 @@
     "translation": "Dosyalar yüklenemedi. {{.NumFiles}} dosya için {{.NumClientIds}} istemci kodu var."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Belirtilen dosya sayısı hatalı olduğundan dosyalar yüklenemedi."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Dosya izin verilen en büyük boyutları aştığından yüklenemedi: {{.Filename}}"
   },
@@ -5954,10 +5950,6 @@
   {
     "id": "app.audit.get.finding.app_error",
     "translation": "Denetimler aranırken bir sorun çıktı."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Deneme isteği yapılamadı. Lütfen Mattermost sistem panosundaki web sunucu bölümünden bir site adresi yapılandırın."
   },
   {
     "id": "app.reaction.save.save.app_error",

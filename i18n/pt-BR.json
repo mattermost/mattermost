@@ -1082,10 +1082,6 @@
     "translation": "Não foi possível enviar o(s) arquivo(s). Existem {{.NumClientIds}} client_ids para {{.NumFiles}} arquivos."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Não é possível enviar arquivos. Número incorreto de arquivos especificado."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Arquivo acima das dimensões máximas não pode ser enviado: {{.Filename}}"
   },
@@ -5950,10 +5946,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Não foi possível obter a publicação pendente."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Não foi possível solicitar uma licença de avaliação. Configure a URL do site na seção servidor da web do Mattermost Console do Sistema."
   },
   {
     "id": "api.license.request_trial_license.app_error",

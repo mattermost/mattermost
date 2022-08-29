@@ -1080,10 +1080,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "파일을 업로드 할 수 없습니다. 잘못된 파일 수가 지정되었습니다."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "최대 크기를 초과하는 파일을 업로드 할 수 없습니다: {{.Filename}}"
   },
@@ -6294,10 +6290,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "보류 중인 게시물을 가져올 수 없음."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "평가판 라이선스를 요청할 수 없습니다. Mattermost 시스템 콘솔의 웹 서버 섹션에서 사이트 URL을 구성하십시오."
   },
   {
     "id": "api.license.request_trial_license.app_error",
