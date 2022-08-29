@@ -8995,10 +8995,6 @@
     "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
   },
@@ -9055,23 +9051,11 @@
     "translation": "groepen die fouten tellen"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   },
   {
@@ -9143,15 +9127,7 @@
     "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
     "translation": " "
   },
   {
@@ -9185,10 +9161,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Ongeldig post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.reaction.get_top_for_team_since.app_error",
@@ -9233,10 +9205,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_for_team_since.app_error",
@@ -9311,10 +9279,6 @@
     "translation": "Insights-functionaliteit is uitgeschakeld."
   },
   {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
   },
@@ -9327,20 +9291,12 @@
     "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.cloud.upgrade_plan_bot_message",
     "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Reeds verwittigde admin"
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
   },
   {
     "id": "app.upload.upload_data.gen_info.app_error",
@@ -9355,16 +9311,8 @@
     "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_reminder.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.team.clear_cache.app_error",
     "translation": "Fout bij het wissen van de cache van teamleden"
-  },
-  {
-    "id": "app.post.get_new_team_members_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",
