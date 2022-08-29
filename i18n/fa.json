@@ -2516,10 +2516,6 @@
     "translation": "خواندن نسخه پرونده درون ریزی داده امکان پذیر نیست."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "قادر به پاسخ مارشال نیست."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "تنظیمات برگزیده تیم ذخیره نمی شود"
   },
@@ -2658,10 +2654,6 @@
   {
     "id": "app.import.bulk_import.unsupported_version.error",
     "translation": "نسخه نادرست یا مفقود شده در پرونده واردات داده است. مطمئن شوید نسخه اولین شی در پرونده وارداتی شما است و دوباره امتحان کنید."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "خطا هنگام پردازش پیوست‌های import انبوه."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",

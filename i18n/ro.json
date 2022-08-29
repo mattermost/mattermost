@@ -7612,10 +7612,6 @@
     "translation": "Nu s-a putut muta fișierul încărcat."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nu se poate răspunde."
-  },
-  {
     "id": "app.upload.get.app_error",
     "translation": "Încărcarea nu a reușit."
   },

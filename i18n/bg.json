@@ -6292,10 +6292,6 @@
     "translation": "Не може да се прочете версията на файла за импортиране на данни."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Неуспешно построяване на заявката."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Предпочитанията за тема на екипа не могат да се запазят"
   },
