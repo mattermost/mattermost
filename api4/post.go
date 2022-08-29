@@ -75,10 +75,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	if c.AppContext.Session().IsOAuth {
-		post.AddProp("from_integration", "true")
-	}
-
 	setOnline := r.URL.Query().Get("set_online")
 	setOnlineBool := true // By default, always set online.
 	var err2 error
