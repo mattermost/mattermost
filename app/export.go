@@ -481,7 +481,7 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	return replies, attachments, nil
 }
 
-func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]imports.ReactionImportData, *model.AppError) {
+func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []imports.ReactionImportData
 
 	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
