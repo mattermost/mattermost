@@ -1116,10 +1116,12 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 				ids = append(ids, id)
 			}
 			details := map[string]any{
-				"MissingPostId":    firstPostId,
-				"PostOrder":        postList.Order,
-				"PostIds":          ids,
-				"CollapsedThreads": collapsedThreads,
+				"MissingPostId":             firstPostId,
+				"PostOrder":                 postList.Order,
+				"PostIds":                   ids,
+				"HasNext":                   postList.HasNext,
+				"FirstInAccessiblePostTime": postList.FirstInaccessiblePostTime,
+				"CollapsedThreads":          collapsedThreads,
 			}
 			err := model.NewAppError("GetNextPostIdFromPostList", "app.post.get_posts.app_error", details, "", http.StatusInternalServerError)
 			mlog.Warn("GetNextPostIdFromPostList: first post missing from post list order", mlog.Err(err))
