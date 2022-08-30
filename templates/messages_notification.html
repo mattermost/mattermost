@@ -307,16 +307,35 @@
       padding: 0px 0px 0px 12px !important;
     }
 
-    .slackAttachment {
+    .slackAttachmentContent {
+      padding: 0px;
+      border: 1px solid rgba(63, 67, 80, 0.16);
+      margin-bottom: 20px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .slackAttachmentContent > table {
       font-family: Open Sans, sans-serif;
       text-align: left;
       font-size: 14px;
       line-height: 20px;
       color: #3F4350;
-      padding: 0px;
-      border: 1px solid rgba(63, 67, 80, 0.16);
-      margin-bottom: 20px;
-      border-radius: 0 4px 4px 0;
+    }
+
+    .slackAttachmentContent .attachment__author-icon {
+      width: 14px;
+      height: 14px;
+      margin-right: 5px;
+      border-radius: 50px;
+      vertical-align: middle;
+    }
+
+    .attachment__author-name {
+      opacity: 0.6;
+    }
+
+    .slackAttachmentContent p {
+      margin: 0;
     }
 
     @media all and (min-width: 541px) {
@@ -516,9 +535,22 @@
                             <div class="slackAttachments">
                               {{range .SlackAttachments}}
                               <div class="slackAttachment" style="vertical-align:top;" width="100%">
+                                <div style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
+                                  {{.Pretext}}
+                                </div>
                                 <div class="slackAttachmentContent" style="border-left: 4px solid {{.Color}}; padding: 12px;">
-                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px" width="100%">
                                     <tbody>
+                                    {{if or .AuthorIcon .AuthorName}}
+                                      <tr>
+                                        <td>
+                                          {{if .AuthorLink}}<a href="{{.AuthorLink}}">{{end}}
+                                            {{if .AuthorIcon}}<img class="attachment__author-icon" alt="attachment author icon" src="{{.AuthorIcon}}"/>{{end}}
+                                            {{if .AuthorName}}<span class="attachment__author-name">{{.AuthorName}}</span>{{end}}
+                                          {{if .AuthorLink}}</a>{{end}}
+                                        </td>
+                                      </tr>
+                                    {{end}}
                                     <tr>
                                       <td vertical-align="middle" class="messageButton">
                                         <div>{{.Text}}</div>

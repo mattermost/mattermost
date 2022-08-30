@@ -201,6 +201,13 @@ func truncateUserNames(name string, i int) string {
 	return name
 }
 
+type EmailSlackAttachment struct {
+	model.SlackAttachment
+
+	Pretext template.HTML
+	Text    template.HTML
+}
+
 type postData struct {
 	SenderName               string
 	ChannelName              string
@@ -211,7 +218,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
-	SlackAttachments         []*model.SlackAttachment
+	SlackAttachments         []*EmailSlackAttachment
 }
 
 /**
@@ -246,7 +253,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
-		pData.SlackAttachments = post.Attachments()
+		pData.SlackAttachments = a.processSlackAttachments(post)
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)
@@ -306,6 +313,33 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	}
 
 	return a.Srv().TemplatesContainer().RenderToString("messages_notification", data)
+}
+
+func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment {
+	emailSlackAttachments := []*EmailSlackAttachment{}
+
+	for _, slackAttachment := range post.Attachments() {
+		emailSlackAttachment := &EmailSlackAttachment{
+			SlackAttachment: *slackAttachment,
+			Pretext:         template.HTML(a.prepareTextForEmail(slackAttachment.Pretext)),
+			Text:            template.HTML(a.prepareTextForEmail(slackAttachment.Text)),
+		}
+
+		emailSlackAttachments = append(emailSlackAttachments, emailSlackAttachment)
+	}
+
+	return emailSlackAttachments
+}
+
+func (a *App) prepareTextForEmail(text string) string {
+	escapedText := html.EscapeString(text)
+	markdownText, err := utils.MarkdownToHTML(escapedText)
+	if err != nil {
+		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(err))
+		return text
+	}
+
+	return markdownText
 }
 
 type formattedPostTime struct {
