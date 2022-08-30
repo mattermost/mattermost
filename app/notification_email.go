@@ -211,6 +211,7 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	SlackAttachments         []*model.SlackAttachment
 }
 
 /**
@@ -245,6 +246,7 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
+		pData.SlackAttachments = post.Attachments()
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)

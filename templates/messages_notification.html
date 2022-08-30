@@ -307,6 +307,18 @@
       padding: 0px 0px 0px 12px !important;
     }
 
+    .slackAttachment {
+      font-family: Open Sans, sans-serif;
+      text-align: left;
+      font-size: 14px;
+      line-height: 20px;
+      color: #3F4350;
+      padding: 0px;
+      border: 1px solid rgba(63, 67, 80, 0.16);
+      margin-bottom: 20px;
+      border-radius: 0 4px 4px 0;
+    }
+
     @media all and (min-width: 541px) {
       .emailBody {
         padding: 32px !important;
@@ -500,6 +512,23 @@
                                   </tr>
                                 </tbody>
                               </table>
+                            </div>
+                            <div class="slackAttachments">
+                              {{range .SlackAttachments}}
+                              <div class="slackAttachment" style="vertical-align:top;" width="100%">
+                                <div class="slackAttachmentContent" style="border-left: 4px solid {{.Color}}; padding: 12px;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                    <tbody>
+                                    <tr>
+                                      <td vertical-align="middle" class="messageButton">
+                                        <div>{{.Text}}</div>
+                                      </td>
+                                    </tr>
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              {{end}}
                             </div>
                             <!--[if mso | IE]></td><td style="vertical-align:top;width:552px;" ><![endif]-->
                             <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
