@@ -29,21 +29,21 @@ type channelsWrapper struct {
 }
 
 func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.srv.getDirectChannel(request.EmptyContext(s.srv.GetLogger()), userID1, userID2)
+	return s.srv.getDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
 func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
-	return s.srv.getChannel(request.EmptyContext(s.srv.GetLogger()), channelID)
+	return s.srv.getChannel(request.EmptyContext(s.srv.Log()), channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
 func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return s.srv.getChannelMember(request.EmptyContext(s.srv.GetLogger()), channelID, userID)
+	return s.srv.getChannelMember(request.EmptyContext(s.srv.Log()), channelID, userID)
 }
 
 func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.GetLogger()), teamID, userID, opts)
+	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.Log()), teamID, userID, opts)
 }
 
 // Ensure the wrapper implements the product service.
@@ -3416,7 +3416,7 @@ func (a *App) GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, o
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3428,7 +3428,7 @@ func (a *App) GetTopChannelsForUserSince(c request.CTX, userID, teamID string, o
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3444,7 +3444,30 @@ func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnix
 	}
 	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
 	if err != nil {
-		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("PostCountsByDuration", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return postCountByDay, nil
+}
+
+func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return topChannels, nil
+}
+
+func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return topChannels, nil
 }
