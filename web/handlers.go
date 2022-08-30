@@ -119,6 +119,11 @@ func generateDevCSP(c Context) string {
 			// Honour only supported keys
 			switch devFlagKey {
 			case "unsafe-eval", "unsafe-inline":
+				if model.BuildNumber == "dev" {
+					// These flags are added automatically for dev builds
+					continue
+				}
+
 				devCSP = append(devCSP, "'"+devFlagKey+"'")
 			default:
 				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
@@ -132,7 +137,11 @@ func generateDevCSP(c Context) string {
 		devCSP = append(devCSP, "http://localhost:9006")
 	}
 
-	return strings.Join(devCSP, " ")
+	if len(devCSP) == 0 {
+		return ""
+	}
+
+	return " " + strings.Join(devCSP, " ")
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -233,7 +242,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com %s%s %s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s%s",
 			cloudCSP,
 			h.cspShaDirective,
 			devCSP,
