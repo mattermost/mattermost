@@ -3255,7 +3255,7 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().TeamSettings.EnableOpenServer {
-		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", model.NoTranslation, nil, "TeamSettings.EnableOpenServer is enabled", http.StatusBadRequest)
 		return
 	}
 

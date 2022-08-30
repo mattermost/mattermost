@@ -33,6 +33,7 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
 )
 
 type StringInterface map[string]any
