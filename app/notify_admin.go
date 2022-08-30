@@ -164,7 +164,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
 	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
 	if err != nil {
-		return true // any error should flag as already notified to avoid data corruption like duplicates
+		return false
 	}
 	if len(data) > 0 {
 		return true // if we find data, it means this user already notified on the need for this feature
