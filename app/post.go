@@ -1109,6 +1109,23 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
+
+		if firstPost == nil {
+			ids := make([]string, 0, len(postList.Posts))
+			for id := range postList.Posts {
+				ids = append(ids, id)
+			}
+			details := map[string]any{
+				"MissingPostId":    firstPostId,
+				"PostOrder":        postList.Order,
+				"PostIds":          ids,
+				"CollapsedThreads": collapsedThreads,
+			}
+			err := model.NewAppError("GetNextPostIdFromPostList", "app.post.get_posts.app_error", details, "", http.StatusInternalServerError)
+			mlog.Warn("GetNextPostIdFromPostList: first post missing from post list order", mlog.Err(err))
+			return ""
+		}
+
 		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
