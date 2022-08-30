@@ -2957,16 +2957,23 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return err
 			}
+			// get teamId
+			var teamId string
+			err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", posts[0].ChannelId)
+			if err != nil {
+				return err
+			}
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants)
+				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, TeamId)
 				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants)`, &model.Thread{
+				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
 				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
+				TeamId:       teamId,
 			}); err != nil {
 				return err
 			}
