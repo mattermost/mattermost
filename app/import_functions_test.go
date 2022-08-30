@@ -1976,14 +1976,14 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding an invalid post in dry run mode.
 	data := imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:    &teamName,
 				Channel: &channelName,
 				User:    &username,
 			},
 		},
-		25,
+		LineNumber: 25,
 	}
 	errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 	assert.NotNil(t, err)
@@ -1992,7 +1992,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding a valid post in dry run mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2001,7 +2001,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: ptrInt64(model.GetMillis()),
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 	assert.Nil(t, err)
@@ -2010,7 +2010,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding an invalid post in apply mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2018,7 +2018,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: ptrInt64(model.GetMillis()),
 			},
 		},
-		35,
+		LineNumber: 35,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
@@ -2027,7 +2027,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding a valid post with invalid team in apply mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     ptrStr(NewTestId()),
 				Channel:  &channelName,
@@ -2036,7 +2036,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: ptrInt64(model.GetMillis()),
 			},
 		},
-		10,
+		LineNumber: 10,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
@@ -2047,7 +2047,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding a valid post with invalid channel in apply mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  ptrStr(NewTestId()),
@@ -2056,7 +2056,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: ptrInt64(model.GetMillis()),
 			},
 		},
-		7,
+		LineNumber: 7,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
@@ -2067,7 +2067,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding a valid post with invalid user in apply mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2076,7 +2076,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: ptrInt64(model.GetMillis()),
 			},
 		},
-		2,
+		LineNumber: 2,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
@@ -2088,7 +2088,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Try adding a valid post in apply mode.
 	time := model.GetMillis()
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2097,7 +2097,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &time,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
@@ -2116,7 +2116,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Update the post.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2125,7 +2125,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &time,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
@@ -2145,7 +2145,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Save the post with a different time.
 	newTime := time + 1
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2154,7 +2154,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &newTime,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
@@ -2163,7 +2163,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Save the post with a different message.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2172,7 +2172,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &time,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
@@ -2182,7 +2182,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Test with hashtags
 	hashtagTime := time + 2
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2191,7 +2191,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &hashtagTime,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
@@ -2220,7 +2220,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	flagsTime := hashtagTime + 1
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2233,7 +2233,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -2259,7 +2259,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	reactionPostTime := hashtagTime + 2
 	reactionTime := hashtagTime + 3
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2273,7 +2273,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2300,7 +2300,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	replyPostTime := hashtagTime + 4
 	replyTime := hashtagTime + 5
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2314,7 +2314,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2346,7 +2346,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Update post with replies.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2360,7 +2360,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2370,7 +2370,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create new post with replies based on the previous one.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2384,7 +2384,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2394,7 +2394,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create new reply for existing post with replies.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2408,7 +2408,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2424,7 +2424,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	editedReplyEditTime := hashtagTime + 8
 
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2440,7 +2440,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				}},
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	assert.Nil(t, err, "Expected success.")
@@ -2482,7 +2482,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Try adding two valid posts in apply mode.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2491,10 +2491,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &time,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	data2 := imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName2,
 				Channel:  &channelName,
@@ -2503,7 +2503,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				CreateAt: &time,
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data, data2}, false)
 	assert.Nil(t, err)
@@ -2511,7 +2511,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 
 	// Create a pinned message.
 	data = imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:     &teamName,
 				Channel:  &channelName,
@@ -2521,7 +2521,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 				IsPinned: ptrBool(true),
 			},
 		},
-		1,
+		LineNumber: 1,
 	}
 	errLine, err = th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 	require.Nil(t, err)
@@ -2596,14 +2596,14 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:    &teamName,
 					Channel: &channelName,
 					User:    &username,
 				},
 			},
-			12,
+			LineNumber: 12,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		assert.NotNil(t, err)
@@ -2613,7 +2613,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2622,7 +2622,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		assert.Nil(t, err)
@@ -2632,7 +2632,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2640,7 +2640,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			2,
+			LineNumber: 2,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
@@ -2650,7 +2650,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding a valid post with invalid team in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     ptrStr(NewTestId()),
 					Channel:  &channelName,
@@ -2659,7 +2659,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			7,
+			LineNumber: 7,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
@@ -2669,7 +2669,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding a valid post with invalid channel in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  ptrStr(NewTestId()),
@@ -2678,7 +2678,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			8,
+			LineNumber: 8,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
@@ -2688,7 +2688,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding a valid post with invalid user in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2697,7 +2697,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			9,
+			LineNumber: 9,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
@@ -2707,7 +2707,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2716,7 +2716,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &time,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
@@ -2736,7 +2736,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Update the post", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2745,7 +2745,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &time,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
@@ -2766,7 +2766,7 @@ func TestImportImportPost(t *testing.T) {
 	t.Run("Save the post with a different time", func(t *testing.T) {
 		newTime := time + 1
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2775,7 +2775,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &newTime,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
@@ -2785,7 +2785,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2794,7 +2794,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &time,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
@@ -2804,7 +2804,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Test with hashtag", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2813,7 +2813,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &hashtagTime,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
@@ -2835,7 +2835,7 @@ func TestImportImportPost(t *testing.T) {
 	t.Run("Post with flags", func(t *testing.T) {
 		flagsTime := hashtagTime + 1
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2848,7 +2848,7 @@ func TestImportImportPost(t *testing.T) {
 					},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -2875,7 +2875,7 @@ func TestImportImportPost(t *testing.T) {
 		reactionPostTime := hashtagTime + 2
 		reactionTime := hashtagTime + 3
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2889,7 +2889,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -2915,7 +2915,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Post with reply", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2929,7 +2929,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -2962,7 +2962,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Update post with replies", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -2976,7 +2976,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -2987,7 +2987,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -3001,7 +3001,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -3012,7 +3012,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -3026,7 +3026,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -3037,7 +3037,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Post with Type", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -3047,7 +3047,7 @@ func TestImportImportPost(t *testing.T) {
 					CreateAt: &posttypeTime,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -3069,7 +3069,7 @@ func TestImportImportPost(t *testing.T) {
 
 	t.Run("Post with EditAt", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -3079,7 +3079,7 @@ func TestImportImportPost(t *testing.T) {
 					EditAt:   &editatEditTime,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -3103,7 +3103,7 @@ func TestImportImportPost(t *testing.T) {
 		now := model.GetMillis()
 		before := now - 10
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				Post: &imports.PostImportData{
 					Team:     &teamName,
 					Channel:  &channelName,
@@ -3117,7 +3117,7 @@ func TestImportImportPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultiplePostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -3341,7 +3341,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3351,7 +3351,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			7,
+			LineNumber: 7,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
@@ -3361,7 +3361,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3372,7 +3372,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		require.Nil(t, err)
@@ -3382,7 +3382,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3393,7 +3393,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			9,
+			LineNumber: 9,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
@@ -3403,7 +3403,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3414,7 +3414,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3434,7 +3434,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Import the post again", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3445,7 +3445,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3465,7 +3465,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Save the post with a different time", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3476,7 +3476,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 1),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3486,7 +3486,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3497,7 +3497,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 1),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3507,7 +3507,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with hashtag", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3518,7 +3518,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 2),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3538,7 +3538,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with some flags", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3553,7 +3553,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -3573,7 +3573,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with Type", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3585,7 +3585,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(posttypeDate),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3605,7 +3605,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with EditAt", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3617,7 +3617,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					EditAt:   ptrInt64(editatEditDate),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3639,7 +3639,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		pinnedValue := true
 		creationTime := model.GetMillis()
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3651,7 +3651,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					IsPinned: &pinnedValue,
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3698,7 +3698,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3709,7 +3709,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			4,
+			LineNumber: 4,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
@@ -3719,7 +3719,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3731,7 +3731,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, true)
 		require.Nil(t, err)
@@ -3741,7 +3741,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3754,7 +3754,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			8,
+			LineNumber: 8,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
@@ -3764,7 +3764,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3776,7 +3776,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 10),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3796,7 +3796,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Import the post again", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3808,7 +3808,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 10),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3828,7 +3828,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Save the post with a different time", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3840,7 +3840,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 11),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3850,7 +3850,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3862,7 +3862,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 11),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3872,7 +3872,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with hashtag", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3884,7 +3884,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(initialDate + 12),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err)
@@ -3904,7 +3904,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	t.Run("Test with some flags", func(t *testing.T) {
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3920,7 +3920,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					CreateAt: ptrInt64(model.GetMillis()),
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
@@ -3943,7 +3943,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		reactionPostTime := ptrInt64(initialDate + 22)
 		reactionTime := ptrInt64(initialDate + 23)
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -3960,7 +3960,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -3988,7 +3988,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		replyPostTime := ptrInt64(initialDate + 25)
 		replyTime := ptrInt64(initialDate + 26)
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -4005,7 +4005,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -4040,7 +4040,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		replyPostTime := ptrInt64(initialDate + 25)
 		replyTime := ptrInt64(initialDate + 26)
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -4057,7 +4057,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -4070,7 +4070,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		replyPostTime := ptrInt64(initialDate + 27)
 		replyTime := ptrInt64(initialDate + 28)
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -4087,7 +4087,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -4101,7 +4101,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		replyTime := ptrInt64(initialDate + 30)
 		replyEditTime := ptrInt64(initialDate + 31)
 		data := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						th.BasicUser.Username,
@@ -4120,7 +4120,7 @@ func TestImportImportDirectPost(t *testing.T) {
 					}},
 				},
 			},
-			1,
+			LineNumber: 1,
 		}
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{data}, false)
 		require.Nil(t, err, "Expected success.")
@@ -4284,7 +4284,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:        &teamName,
 				Channel:     &channelName,
@@ -4300,7 +4300,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 				}},
 			},
 		},
-		19,
+		LineNumber: 19,
 	}
 
 	t.Run("import with attachment", func(t *testing.T) {
@@ -4339,7 +4339,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
 		directImportData := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						user3.Username,
@@ -4356,7 +4356,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 					}},
 				},
 			},
-			7,
+			LineNumber: 7,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{directImportData}, false)
@@ -4404,7 +4404,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user2 from database.")
 
 	directImportData := imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			DirectPost: &imports.DirectPostImportData{
 				ChannelMembers: &[]string{
 					user1.Username,
@@ -4416,7 +4416,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 				Attachments: &[]imports.AttachmentImportData{{Path: &testImage}},
 			},
 		},
-		3,
+		LineNumber: 3,
 	}
 
 	t.Run("Regular import of attachment", func(t *testing.T) {
@@ -4441,7 +4441,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 
 	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
 		directImportDataFake := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						user1.Username,
@@ -4453,7 +4453,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImageFake}},
 				},
 			},
-			2,
+			LineNumber: 2,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{directImportDataFake}, false)
@@ -4466,7 +4466,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 
 	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
 		directImportData2 := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						user1.Username,
@@ -4478,7 +4478,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 					Attachments: &[]imports.AttachmentImportData{{Path: &testImage2}},
 				},
 			},
-			2,
+			LineNumber: 2,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{directImportData2}, false)
@@ -4563,7 +4563,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := imports.LineImportWorkerData{
-		imports.LineImportData{
+		LineImportData: imports.LineImportData{
 			Post: &imports.PostImportData{
 				Team:        &teamName,
 				Channel:     &channelName,
@@ -4579,7 +4579,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 				}},
 			},
 		},
-		19,
+		LineNumber: 19,
 	}
 
 	t.Run("import with attachment", func(t *testing.T) {
@@ -4618,7 +4618,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	t.Run("Reply with Attachments in Direct Post", func(t *testing.T) {
 		directImportData := imports.LineImportWorkerData{
-			imports.LineImportData{
+			LineImportData: imports.LineImportData{
 				DirectPost: &imports.DirectPostImportData{
 					ChannelMembers: &[]string{
 						user3.Username,
@@ -4635,7 +4635,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 					}},
 				},
 			},
-			7,
+			LineNumber: 7,
 		}
 
 		errLine, err := th.App.importMultipleDirectPostLines(th.Context, []imports.LineImportWorkerData{directImportData}, false)

@@ -119,40 +119,40 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 		case line.LineImportData.Type == "post":
 			postLines = append(postLines, line)
 			if line.Post == nil {
-				errors <- imports.LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
 				if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
-					errors <- imports.LineImportWorkerError{err, errLine}
+					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
 			}
 		case line.LineImportData.Type == "direct_post":
 			directPostLines = append(directPostLines, line)
 			if line.DirectPost == nil {
-				errors <- imports.LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
 				if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
-					errors <- imports.LineImportWorkerError{err, errLine}
+					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
 			if err := a.importLine(c, line.LineImportData, dryRun); err != nil {
-				errors <- imports.LineImportWorkerError{err, line.LineNumber}
+				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
 	}
 
 	if len(postLines) > 0 {
 		if errLine, err := a.importMultiplePostLines(c, postLines, dryRun); err != nil {
-			errors <- imports.LineImportWorkerError{err, errLine}
+			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
 		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
-			errors <- imports.LineImportWorkerError{err, errLine}
+			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	wg.Done()
@@ -245,7 +245,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		}
 
 		select {
-		case linesChan <- imports.LineImportWorkerData{line, lineNumber}:
+		case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
 		case err := <-errorsChan:
 			if stopOnError(c, err) {
 				close(linesChan)
