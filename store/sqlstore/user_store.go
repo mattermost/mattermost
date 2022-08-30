@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -62,7 +63,11 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 
 func (us SqlUserStore) validateAutoResponderMessageSize(notifyProps model.StringMap) error {
 	if notifyProps != nil {
-		if msg := notifyProps[model.AutoResponderMessageNotifyProp]; utf8.RuneCountInString(msg) > us.Post().GetMaxPostSize() {
+		maxPostSize := us.Post().GetMaxPostSize()
+		msg := notifyProps[model.AutoResponderMessageNotifyProp]
+		msgSize := utf8.RuneCountInString(msg)
+		if msgSize > maxPostSize {
+			mlog.Warn("auto_responder_message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("received_size", msgSize))
 			return errors.New("Auto responder message size can't be more than the allowed Post size")
 		}
 	}
