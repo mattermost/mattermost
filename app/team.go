@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -201,7 +202,57 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 		return nil, err
 	}
 
+	// @TODO: Add A/B test
+	// @TODO: Check if this is the first team of the server
+	// ...... before send the message
+	REMOVEMELogWrap(c, func() {
+		// Get the default channel
+		defaultChannel, err := a.GetChannelByName(c, model.DefaultChannelName, rteam.Id, false)
+		if err != nil {
+			c.Logger().
+				Warn(
+					"unable to get default channel by name",
+					logr.String("default_channel_name", model.DefaultChannelName),
+					logr.Err(err),
+				)
+			return
+		}
+
+		// Post a message for the admin
+		if _, err := a.CreatePost(c, &model.Post{
+			UserId:    user.Id,
+			ChannelId: defaultChannel.Id,
+			Type:      model.PostTypeAdminWelcome,
+		}, defaultChannel, false, false); err != nil {
+			c.Logger().
+				Warn(
+					"unable to post admin welcome message",
+					logr.Err(err),
+				)
+			return
+		}
+	})
+
 	return rteam, nil
+}
+
+func REMOVEMELogWrap(c *request.Context, fn func()) {
+	wrapper := func() {
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+		c.Logger().Warn("================================")
+	}
+
+	wrapper()
+	fn()
+	wrapper()
 }
 
 func (a *App) normalizeDomains(domains string) []string {

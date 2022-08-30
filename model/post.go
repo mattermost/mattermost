@@ -44,6 +44,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeAdminWelcome           = "system_admin_welcome"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -386,6 +387,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
+		PostTypeAdminWelcome,
 		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
