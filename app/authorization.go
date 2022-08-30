@@ -59,6 +59,10 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, p
 
 // SessionHasPermissionToTeams returns true only if user has access to all teams.
 func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, teamIDs []string, permission *model.Permission) bool {
+	if len(teamIDs) == 0 {
+		return true
+	}
+
 	for _, teamID := range teamIDs {
 		if teamID == "" {
 			return false
@@ -126,6 +130,10 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 
 // SessionHasPermissionToChannels returns true only if user has access to all channels.
 func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Session, channelIDs []string, permission *model.Permission) bool {
+	if len(channelIDs) == 0 {
+		return true
+	}
+
 	for _, channelID := range channelIDs {
 		if channelID == "" {
 			return false

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -290,11 +289,11 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
 	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
 	if err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -318,7 +317,7 @@ func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
-	return api.app.UpdateUser(user, true)
+	return api.app.UpdateUser(api.ctx, user, true)
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
@@ -359,11 +358,11 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 }
 
 func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
-	return api.app.SetCustomStatus(userID, customStatus)
+	return api.app.SetCustomStatus(api.ctx, userID, customStatus)
 }
 
 func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
-	return api.app.RemoveCustomStatus(userID)
+	return api.app.RemoveCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
@@ -738,7 +737,7 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 		return err
 	}
 
-	return api.app.SetProfileImageFromFile(userID, bytes.NewReader(data))
+	return api.app.SetProfileImageFromFile(api.ctx, userID, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -853,7 +852,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 	}
 
 	if err := api.app.Srv().EmailService.SendNotificationMail(to, subject, htmlBody); err != nil {
-		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -897,7 +896,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	fileBuffer, err := ioutil.ReadAll(file)
+	fileBuffer, err := io.ReadAll(file)
 	if err != nil {
 		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1029,7 +1028,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	if len(split) != 3 {
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
+			Body:       io.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
 		}
 	}
 	destinationPluginId := split[1]
@@ -1043,7 +1042,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
+			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}

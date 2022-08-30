@@ -4,8 +4,14 @@
 package platform
 
 import (
+	"fmt"
+	"sync"
+	"sync/atomic"
+
+	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // PlatformService is the service for the platform related tasks. It is
@@ -15,7 +21,18 @@ type PlatformService struct {
 	serviceConfig ServiceConfig
 	configStore   *config.Store
 
+	logger              *mlog.Logger
+	notificationsLogger *mlog.Logger
+
 	metrics *platformMetrics
+
+	featureFlagSynchronizerMutex sync.Mutex
+	featureFlagSynchronizer      *featureflag.Synchronizer
+	featureFlagStop              chan struct{}
+	featureFlagStopped           chan struct{}
+
+	licenseValue atomic.Value
+	telemetryId  string
 
 	cluster einterfaces.ClusterInterface
 }
@@ -32,13 +49,40 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 		cluster:       sc.Cluster,
 	}
 
-	ps.metrics = newPlatformMetrics(sc.Metrics, ps.configStore.Get)
+	if err := ps.initLogging(); err != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err)
+	}
+
+	if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
+		return nil, err
+	}
 
 	return ps, nil
 }
 
-func (ps *PlatformService) ShutdownMetrics() {
+func (ps *PlatformService) ShutdownMetrics() error {
 	if ps.metrics != nil {
-		ps.metrics.stopMetricsServer()
+		return ps.metrics.stopMetricsServer()
 	}
+
+	return nil
+}
+
+func (ps *PlatformService) ShutdownConfig() error {
+	if ps.configStore != nil {
+		err := ps.configStore.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close config store: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (ps *PlatformService) SetTelemetryId(id string) {
+	ps.telemetryId = id
+}
+
+func (ps *PlatformService) SetLogger(logger *mlog.Logger) {
+	ps.logger = logger
 }

@@ -167,7 +167,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),
 		LicenseFn:    th.App.ch.srv.License,

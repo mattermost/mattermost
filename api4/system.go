@@ -195,7 +195,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -215,9 +219,9 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -242,9 +246,9 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestSiteURL(siteURL)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.TestSiteURL(siteURL)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -260,9 +264,9 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -271,7 +275,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -309,9 +313,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Srv().InvalidateAllCaches()
-	if err != nil {
-		c.Err = err
+	appErr := c.App.Srv().InvalidateAllCaches()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -335,9 +339,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
-	if err != nil {
-		c.Err = err
+	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -361,7 +365,15 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m := model.MapFromJSON(r.Body)
+	var m map[string]string
+	err := json.NewDecoder(r.Body).Decode(&m)
+	if err != nil {
+		c.Logger.Warn("Error decoding request.", mlog.Err(err))
+	}
+	if m == nil {
+		m = map[string]string{}
+	}
+
 	lvl := m["level"]
 	msg := m["message"]
 
@@ -382,7 +394,10 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m["message"] = msg
-	w.Write([]byte(model.MapToJSON(m)))
+	err = json.NewEncoder(w).Encode(m)
+	if err != nil {
+		c.Logger.Warn("Error while writing response.", mlog.Err(err))
+	}
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -398,9 +413,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := c.App.GetAnalytics(name, teamId)
-	if err != nil {
-		c.Err = err
+	rows, appErr := c.App.GetAnalytics(name, teamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -410,7 +425,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(rows); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -420,15 +435,15 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
-	if err != nil {
-		c.Err = err
+	resp, appErr := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, jsonErr := json.Marshal(resp)
-	if jsonErr != nil {
-		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(jsonErr))
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -451,7 +466,11 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
 	}
@@ -471,9 +490,9 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -481,7 +500,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
+	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -543,9 +562,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("pushNotificationAck",
 			"api.push_notifications_ack.message.parse.app_error",
 			nil,
-			jsonErr.Error(),
+			"",
 			http.StatusBadRequest,
-		)
+		).Wrap(jsonErr)
 		return
 	}
 
@@ -586,7 +605,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err2))
+				c.Logger.Warn("Error while writing response", mlog.Err(err2))
 			}
 		}
 
@@ -776,17 +795,18 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := c.App.GetWarnMetricsStatus()
-	if err != nil {
-		c.Err = err
+	status, appErr := c.App.GetWarnMetricsStatus()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(status)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(status)
+	if err != nil {
+		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -814,7 +834,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var ack model.SendWarnMetricAck
 	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
-		c.SetInvalidParam("ack")
+		c.SetInvalidParamWithErr("ack", jsonErr)
 		return
 	}
 
@@ -871,10 +891,9 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientVersion := r.URL.Query().Get("clientVersion")
 	locale := r.URL.Query().Get("locale")
 
-	notices, err := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
-
-	if err != nil {
-		c.Err = err
+	notices, appErr := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	result, _ := notices.Marshal()
@@ -887,9 +906,9 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	c.LogAudit("attempt")
 
 	ids := model.ArrayFromJSON(r.Body)
-	err := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -910,13 +929,13 @@ func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
 
 	if err != nil {
-		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -931,7 +950,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
@@ -962,9 +981,9 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, jsonErr := json.Marshal(migrations)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(migrations)
+	if err != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

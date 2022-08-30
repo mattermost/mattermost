@@ -5,6 +5,7 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/pprof"
@@ -27,37 +28,46 @@ type platformMetrics struct {
 	server *http.Server
 	router *mux.Router
 	lock   sync.Mutex
+	logger *mlog.Logger
 
 	metricsImpl einterfaces.MetricsInterface
 
 	cfgFn func() *model.Config
 }
 
-func newPlatformMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) *platformMetrics {
+// resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
+func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) error {
 	if !*cfgFn().MetricsSettings.Enable {
+		if ps.metrics != nil {
+			return ps.metrics.stopMetricsServer()
+		}
 		return nil
 	}
 
-	pm := &platformMetrics{
-		cfgFn: cfgFn,
+	if ps.metrics != nil {
+		if err := ps.metrics.stopMetricsServer(); err != nil {
+			return err
+		}
 	}
 
-	pm.stopMetricsServer()
+	ps.metrics = &platformMetrics{
+		cfgFn:       cfgFn,
+		metricsImpl: metricsImpl,
+		logger:      ps.logger,
+	}
 
-	if err := pm.initMetricsRouter(); err != nil {
-		mlog.Error("Error initiating metrics router.", mlog.Err(err))
+	if err := ps.metrics.initMetricsRouter(); err != nil {
+		return err
 	}
 
 	if metricsImpl != nil {
 		metricsImpl.Register()
 	}
 
-	pm.startMetricsServer()
-
-	return pm
+	return ps.metrics.startMetricsServer()
 }
 
-func (pm *platformMetrics) stopMetricsServer() {
+func (pm *platformMetrics) stopMetricsServer() error {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
 
@@ -65,12 +75,17 @@ func (pm *platformMetrics) stopMetricsServer() {
 		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 
-		pm.server.Shutdown(ctx)
-		mlog.Info("Metrics and profiling server is stopping")
+		if err := pm.server.Shutdown(ctx); err != nil {
+			return fmt.Errorf("could not shutdown metrics server: %v", err)
+		}
+
+		pm.logger.Info("Metrics and profiling server is stopped")
 	}
+
+	return nil
 }
 
-func (pm *platformMetrics) startMetricsServer() {
+func (pm *platformMetrics) startMetricsServer() error {
 	var notify chan struct{}
 	pm.lock.Lock()
 	defer func() {
@@ -82,8 +97,7 @@ func (pm *platformMetrics) startMetricsServer() {
 
 	l, err := net.Listen("tcp", *pm.cfgFn().MetricsSettings.ListenAddress)
 	if err != nil {
-		mlog.Error(err.Error())
-		return
+		return err
 	}
 
 	notify = make(chan struct{})
@@ -96,11 +110,12 @@ func (pm *platformMetrics) startMetricsServer() {
 	go func() {
 		close(notify)
 		if err := pm.server.Serve(l); err != nil && err != http.ErrServerClosed {
-			mlog.Critical(err.Error())
+			pm.logger.Critical(err.Error())
 		}
 	}()
 
-	mlog.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+	pm.logger.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+	return nil
 }
 
 func (pm *platformMetrics) initMetricsRouter() error {
@@ -152,11 +167,18 @@ func (pm *platformMetrics) initMetricsRouter() error {
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
-	if ps.metrics.router != nil {
+	if ps.metrics != nil {
 		ps.metrics.router.Handle(route, h)
 	}
 }
 
-func (ps *PlatformService) RestartMetrics() {
-	ps.metrics = newPlatformMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
+func (ps *PlatformService) RestartMetrics() error {
+	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
+}
+
+func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
+	if ps.metrics == nil {
+		return nil
+	}
+	return ps.metrics.metricsImpl
 }

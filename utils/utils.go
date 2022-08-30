@@ -4,7 +4,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"io"
 	"math"
 	"net"
 	"net/http"
@@ -165,7 +165,7 @@ func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 		return nil, errors.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
 	}
 
-	cache.Data, err = ioutil.ReadAll(resp.Body)
+	cache.Data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		cache.Data = nil
 		return nil, err

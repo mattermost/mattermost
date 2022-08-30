@@ -24,30 +24,30 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 
 	file, err := imageData.Open()
 	if err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.open.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer file.Close()
 
 	if err = checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	img, _, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	buf := new(bytes.Buffer)
 	err = a.ch.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.encode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	t := time.Now()
 	a.MoveFile(BrandFilePath+BrandFileName, BrandFilePath+t.Format("2006-01-02T15:04:05")+".png")
 
 	if _, err := a.WriteFile(buf, BrandFilePath+BrandFileName); err != nil {
-		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.save_image.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil

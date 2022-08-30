@@ -25,7 +25,7 @@ func (api *API) InitCompliance() {
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Compliance
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidParam("compliance")
+		c.SetInvalidParamWithErr("compliance", jsonErr)
 		return
 	}
 
@@ -55,7 +55,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rjob); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -76,7 +76,7 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(crs); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -106,7 +106,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("compliance_desc", job.Desc)
 
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

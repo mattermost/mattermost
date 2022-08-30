@@ -82,8 +82,8 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 	if sqlResult, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
-	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return store.NewErrInvalidInput("CommandWebhook", "id", id)
+	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
+		return store.NewErrInvalidInput("CommandWebhook", "id", id).Wrap(err)
 	}
 
 	return nil
