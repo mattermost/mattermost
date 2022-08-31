@@ -581,7 +581,6 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
 	post, ok := list.Posts[c.Params.PostId]
 	if !ok {
 		// e.g. if root post is archived in a cloud plan,
