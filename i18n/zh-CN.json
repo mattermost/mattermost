@@ -7556,10 +7556,6 @@
     "translation": "插入出错"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "无法封装响应。"
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "群组成员已存在"
   },
@@ -8900,10 +8896,6 @@
     "translation": "当您不在时，{{.SenderName}} 回复了您关注的话题。"
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "处理批量导入附件时出错。"
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "解码失败。"
   },
@@ -9222,10 +9214,6 @@
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
     "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": "您的许可证不支持 Insights 功能。"
   },
   {
     "id": "api.file.cloud_upload.app_error",
