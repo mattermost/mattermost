@@ -3584,10 +3584,6 @@
     "translation": "Multi-factor authentication was removed"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
@@ -4794,6 +4790,10 @@
   {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Couldn't retrieve cloud products"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": ""
   },
   {
     "id": "app.cloud.get_subscription.app_error",
