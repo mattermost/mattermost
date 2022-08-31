@@ -104,8 +104,9 @@ type WebConn struct {
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
 	reuseCount   int
+	sessionMutex sync.Mutex
 	sessionToken atomic.Value
-	session      atomic.Value
+	session      *model.Session
 	connectionID atomic.Value
 	endWritePump chan struct{}
 	pumpFinished chan struct{}
@@ -291,8 +292,11 @@ func areAllInactive(conns []*WebConn) bool {
 }
 
 // GetSession returns the session of the connection.
-func (wc *WebConn) GetSession() *model.Session {
-	return wc.session.Load().(*model.Session)
+func (wc *WebConn) WithSession(f func(*model.Session)) {
+	wc.sessionMutex.Lock()
+	defer wc.sessionMutex.Unlock()
+
+	f(wc.session)
 }
 
 // SetSession sets the session of the connection.
@@ -301,13 +305,18 @@ func (wc *WebConn) SetSession(v *model.Session) {
 		v = v.DeepCopy()
 	}
 
-	wc.session.Store(v)
+	wc.sessionMutex.Lock()
+	defer wc.sessionMutex.Unlock()
+
+	wc.session = v
 }
 
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
+	defer wc.WithSession(func(s *model.Session) {
+		wc.App.Srv().userService.ReturnSessionToPool(s)
+	})
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -726,7 +735,9 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+		var userRoles []string
+		wc.WithSession(func(s *model.Session) { userRoles = s.GetUserRoles() })
+		hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(userRoles, model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -736,7 +747,9 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+			wc.WithSession(func(s *model.Session) {
+				hasReadPrivateDataPermission = model.NewBool(wc.App.RolesGrantPermission(s.GetUserRoles(), model.PermissionManageSystem.Id))
+			})
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -789,7 +802,10 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
 	}
 
-	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
+	isGuest := false
+	wc.WithSession(func(s *model.Session) { isGuest = s.Props[model.SessionPropIsGuest] == "true" })
+
+	if isGuest {
 		return wc.shouldSendEventToGuest(msg)
 	}
 
@@ -799,9 +815,10 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 // IsMemberOfTeam returns whether the user of the WebConn
 // is a member of the given teamID or not.
 func (wc *WebConn) isMemberOfTeam(teamID string) bool {
-	currentSession := wc.GetSession()
+	hasNoToken := false
+	wc.WithSession(func(s *model.Session) { hasNoToken = s == nil || s.Token == "" })
 
-	if currentSession == nil || currentSession.Token == "" {
+	if hasNoToken {
 		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
@@ -812,10 +829,11 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			return false
 		}
 		wc.SetSession(session)
-		currentSession = session
 	}
 
-	return currentSession.GetTeamByTeamId(teamID) != nil
+	isInTeam := false
+	wc.WithSession(func(s *model.Session) { isInTeam = s.GetTeamByTeamId(teamID) != nil })
+	return isInTeam
 }
 
 func (wc *WebConn) logSocketErr(source string, err error) {

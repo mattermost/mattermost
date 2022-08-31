@@ -394,3 +394,20 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
 	})
 }
+
+func TestWebConnWithSession(t *testing.T) {
+	t.Run("mutex check", func(t *testing.T) {
+		wc := &WebConn{}
+		wc.SetSession(&model.Session{})
+
+		ch := make(chan struct{})
+		go wc.WithSession(func(s *model.Session) {
+			ch <- struct{}{}
+			<-ch
+		})
+
+		<-ch
+		require.False(t, wc.sessionMutex.TryLock(), "expected the mutex to be locked")
+		ch <- struct{}{} // free the go routine
+	})
+}
