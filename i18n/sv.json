@@ -9341,5 +9341,41 @@
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Har redan notifierat systemadministratören"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Felaktigt timeoutvärde {{.Value}}. Måste vara ett positivt tal."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Kunde inte tolka värdet:{{.Value}} till int64"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kunde inte generera filinformation från det uppladdade datat."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Här är en påminnelse om meddelandet från @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post_reminder.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta inlägget."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fel vid hämtning av det senaste tillgängliga inlägget"
+  },
+  {
+    "id": "api.post.compliance_enabled.join_channel_to_view_post",
+    "translation": "På grund av de efterlevnadsregler som konfigurerats för den här instansen måste du gå med i kanalen innan dess inlägg kan läsas."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
+    "translation": "Kunde inte ladda upp filer. Felaktigt antal filer angivna."
   }
 ]
