@@ -7488,10 +7488,6 @@
     "translation": " "
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": " "
-  },
-  {
     "id": "app.export.zip_create.error",
     "translation": " "
   },
@@ -7673,10 +7669,6 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
     "translation": " "
   },
   {
@@ -9133,10 +9125,6 @@
   },
   {
     "id": "ent.data_retention.policies.internal_error",
-    "translation": " "
-  },
-  {
-    "id": "app.import.marshal.app_error",
     "translation": " "
   },
   {

@@ -7704,10 +7704,6 @@
     "translation": "Não foi possível obter o lote de canais para indexação."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Incapaz de organizar a resposta."
-  },
-  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Já existe um membro do canal com esse ID."
   },
