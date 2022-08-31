@@ -7916,10 +7916,6 @@
     "translation": "이미 관리자에게 통지됨"
   },
   {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
     "id": "Playbooks",
     "translation": "플레이북"
   },
