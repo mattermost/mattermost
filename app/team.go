@@ -210,8 +210,7 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 		if queryErr != nil {
 			c.Logger().
 				Warn(
-					"unable to get default channel by name",
-					logr.String("default_channel_name", model.DefaultChannelName),
+					"unable to get number of teams",
 					logr.Err(err),
 				)
 			return rteam, nil
@@ -240,7 +239,7 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 			}, defaultChannel, false, false); err != nil {
 				c.Logger().
 					Warn(
-						"unable to post admin welcome message",
+						"unable to post welcome message",
 						logr.Err(err),
 					)
 
