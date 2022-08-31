@@ -1940,7 +1940,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID s
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("ChannelMembers").
-		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId")
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId AND GroupMembers.DeleteAt = 0")
 
 	if includeTimezones {
 		query = query.Join("Users ON Users.Id = GroupMembers.UserId")
