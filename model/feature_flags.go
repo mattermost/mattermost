@@ -73,6 +73,9 @@ type FeatureFlags struct {
 	BoardsProduct bool
 
 	PlanUpgradeButtonText string
+
+	// A/B Test on posting a welcome message
+	SendWelcomePost bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -100,6 +103,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.PlanUpgradeButtonText = "upgrade"
+	f.SendWelcomePost = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

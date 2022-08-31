@@ -202,57 +202,54 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 		return nil, err
 	}
 
-	// @TODO: Add A/B test
-	// @TODO: Check if this is the first team of the server
-	// ...... before send the message
-	REMOVEMELogWrap(c, func() {
-		// Get the default channel
-		defaultChannel, err := a.GetChannelByName(c, model.DefaultChannelName, rteam.Id, false)
-		if err != nil {
+	// During the A/B Test, we log but don't handle errors
+	if a.Config().FeatureFlags.SendWelcomePost {
+		nbTeams, queryErr := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{
+			IncludeDeleted: model.NewBool(true),
+		})
+		if queryErr != nil {
 			c.Logger().
 				Warn(
 					"unable to get default channel by name",
 					logr.String("default_channel_name", model.DefaultChannelName),
 					logr.Err(err),
 				)
-			return
+			return rteam, nil
 		}
 
-		// Post a message for the admin
-		if _, err := a.CreatePost(c, &model.Post{
-			UserId:    user.Id,
-			ChannelId: defaultChannel.Id,
-			Type:      model.PostTypeAdminWelcome,
-		}, defaultChannel, false, false); err != nil {
-			c.Logger().
-				Warn(
-					"unable to post admin welcome message",
-					logr.Err(err),
-				)
-			return
+		// check if this is the first team
+		if nbTeams == 1 {
+			// Get the default channel
+			defaultChannel, err := a.GetChannelByName(c, model.DefaultChannelName, rteam.Id, false)
+			if err != nil {
+				c.Logger().
+					Warn(
+						"unable to get default channel by name",
+						logr.String("default_channel_name", model.DefaultChannelName),
+						logr.Err(err),
+					)
+
+				return rteam, nil
+			}
+
+			// Post a message for the admin
+			if _, err := a.CreatePost(c, &model.Post{
+				UserId:    user.Id,
+				ChannelId: defaultChannel.Id,
+				Type:      model.PostTypeWelcomePost,
+			}, defaultChannel, false, false); err != nil {
+				c.Logger().
+					Warn(
+						"unable to post admin welcome message",
+						logr.Err(err),
+					)
+
+				return rteam, nil
+			}
 		}
-	})
-
-	return rteam, nil
-}
-
-func REMOVEMELogWrap(c *request.Context, fn func()) {
-	wrapper := func() {
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
-		c.Logger().Warn("================================")
 	}
 
-	wrapper()
-	fn()
-	wrapper()
+	return rteam, nil
 }
 
 func (a *App) normalizeDomains(domains string) []string {
