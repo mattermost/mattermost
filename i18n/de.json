@@ -8987,10 +8987,6 @@
     "translation": "SAML Antwort ist zu lang"
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "Das Onboarding kann nur von einem Systemadministrator durchgeführt werden."
   },
@@ -9109,10 +9105,6 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",

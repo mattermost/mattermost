@@ -9136,10 +9136,6 @@
     "translation": " "
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": " "
   },
@@ -9200,10 +9196,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "app.insights.feature_disabled",
     "translation": " "
   },
@@ -9217,10 +9209,6 @@
   },
   {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": " "
   },
   {
@@ -9281,10 +9269,6 @@
   },
   {
     "id": "Channels",
-    "translation": " "
-  },
-  {
-    "id": "model.github_release_info.is_valid.id.app_error",
     "translation": " "
   },
   {
