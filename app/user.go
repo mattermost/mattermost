@@ -1102,10 +1102,10 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	group, err := a.Srv().Store.Group().GetByName(val, model.GroupSearchOpts{})
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("", "app.user.get_by_name_failure", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if group != nil {
-		return model.NewAppError("", "app.user.group_name_conflict", nil, "", http.StatusBadRequest)
+		return model.NewAppError("isUniqueToGroupNames", model.NoTranslation, nil, fmt.Sprintf("group name %s exists", val), http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1627,6 +1627,35 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 		}
 	}
 
+	// delete directory containing user's profile image
+	profileImageDirectory := getProfileImageDirectory(user.Id)
+	profileImagePath := getProfileImagePath(user.Id)
+	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
+
+	fileHandlingErrorsFound := false
+
+	if errProfileImageExists != nil {
+		fileHandlingErrorsFound = true
+		mlog.Warn(
+			"Error checking existence of profile image.",
+			mlog.String("path", profileImagePath),
+			mlog.Err(errProfileImageExists),
+		)
+	}
+
+	if resProfileImageExists {
+		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
+
+		if errRemoveDirectory != nil {
+			fileHandlingErrorsFound = true
+			mlog.Warn(
+				"Unable to remove profile image directory",
+				mlog.String("path", profileImageDirectory),
+				mlog.Err(errRemoveDirectory),
+			)
+		}
+	}
+
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1641,6 +1670,12 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 
 	if err := a.Srv().Store.Team().RemoveAllMembersByUser(user.Id); err != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.InvalidateCacheForUser(user.Id)
+
+	if fileHandlingErrorsFound {
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, "Couldn't delete profile image of the user.", http.StatusAccepted)
 	}
 
 	c.Logger().Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
@@ -2611,4 +2646,8 @@ func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *
 
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
+}
+
+func getProfileImageDirectory(userID string) string {
+	return filepath.Join("users", userID)
 }

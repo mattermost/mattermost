@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -113,10 +114,10 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 	var notFoundErr *store.ErrNotFound
 	user, err := a.Srv().Store.User().GetByUsername(val)
 	if err != nil && !errors.As(err, &notFoundErr) {
-		return model.NewAppError("", "app.group.get_by_username_failure", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user != nil {
-		return model.NewAppError("", "app.group.username_conflict", nil, "", http.StatusBadRequest)
+		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, fmt.Sprintf("user name %s exists", val), http.StatusBadRequest)
 	}
 	return nil
 }

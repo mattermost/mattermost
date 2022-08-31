@@ -21,7 +21,6 @@ import (
 type ServiceConfig struct {
 	// Mandatory fields
 	ConfigStore  *config.Store
-	Logger       *mlog.Logger
 	StartMetrics bool // TODO: find an elegant way to start/stop metrics server by default
 	// Optional fields
 	Metrics einterfaces.MetricsInterface
@@ -34,16 +33,6 @@ func (c *ServiceConfig) validate() error {
 		return errors.New("ConfigStore is required")
 	}
 
-	if c.Logger == nil {
-		var err error
-		// If Logger is not set, use a default logger temporarily.
-		// this should be removed once the logger is properly configured with the service config.
-		// MM-45841
-		c.Logger, err = mlog.NewLogger()
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

@@ -21,7 +21,7 @@ func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
 	return &SqlReactionStore{sqlStore}
 }
 
-func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
+func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreSave()
 	if err := reaction.IsValid(); err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 	if reaction.ChannelId == "" {
 		// get channelId, if not already populated
 		var channelIds []string
@@ -58,14 +58,14 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 	return reaction, nil
 }
 
-func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
+func (s *SqlReactionStore) Delete(reaction *model.Reaction) (re *model.Reaction, err error) {
 	reaction.PreUpdate()
 
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
 		return nil, errors.Wrap(err, "deleteReactionAndUpdatePost")
@@ -189,7 +189,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		_, err := s.GetMasterX().Exec(UpdatePostHasReactionsOnDeleteQuery, model.GetMillis(), reaction.PostId, reaction.PostId)
+		_, err := s.GetMasterX().Exec(UpdatePostHasReactionsOnDeleteQuery, now, reaction.PostId, reaction.PostId)
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),

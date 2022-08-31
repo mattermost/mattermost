@@ -27,6 +27,10 @@ func (api *API) InitInsights() {
 	// user DMs
 	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
 
+	// Inactive channels
+	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForUserSince)))).Methods("GET")
+
 	// New teammembers
 	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
 }
@@ -358,6 +362,100 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+// Top Channels
+
+func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
+	topChannels, err := c.App.GetTopInactiveChannelsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// top inactive channels
+
+func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.Params.TeamId = r.URL.Query().Get("team_id")
+
+	// TeamId is an optional parameter
+	if c.Params.TeamId != "" {
+		if !model.IsValidId(c.Params.TeamId) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+
+		team, teamErr := c.App.GetTeam(c.Params.TeamId)
+		if teamErr != nil {
+			c.Err = teamErr
+			return
+		}
+
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
+	topChannels, err := c.App.GetTopInactiveChannelsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // postCountByDurationViewModel expects a list of channels that are pre-authorized for the given user to view.
