@@ -582,15 +582,13 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if list.FirstInaccessiblePostTime != 0 {
-		clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
-		clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		if err := clientPostList.EncodeJSON(w); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+		// e.g. if root post is archived in a cloud plan,
+		// we don't want to display the thread,
+		// but at the same time the request was not bad,
+		// so we return the time of archival and let the client
+		// show an error
+		if err := (&model.PostList{FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
 	}
