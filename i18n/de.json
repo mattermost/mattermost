@@ -1082,10 +1082,6 @@
     "translation": "Konnte Datei(en) nicht hochladen. Haben {{.NumClientIds}} client_ids für {{.NumFiles}} Dateien."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Konnte Dateien nicht hochladen. Falsche Anzahl von Dateien spezifiziert."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Datei über den maximalen Dimensionen konnte nicht hochgeladen werden: {{.Filename}}"
   },
@@ -7246,10 +7242,6 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Kann SAML nicht migrieren."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Konnte keine Test-Lizenz anfragen. Bitte eine Site-URL in der Webserver-Sektion der Mattermost Systemkonsole konfigurieren."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",

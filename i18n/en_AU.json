@@ -5704,10 +5704,6 @@
     "translation": "Failed to marshal."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial licence. Please configure a Site URL in the web server section of the Mattermost System Console."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial licence, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
@@ -5870,10 +5866,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",

@@ -1080,10 +1080,6 @@
     "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "无法上传文件。指定的文件数不匹配。"
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "无法上传超过最大尺寸的文件：{{.Filename}}"
   },
@@ -6158,10 +6154,6 @@
   {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "永久删除团队功能未开启。请联系系统管理员。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "无法请求试用许可证。请在 Mattermost 系统控制台设置站点网址。"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",

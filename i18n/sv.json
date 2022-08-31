@@ -5848,10 +5848,6 @@
     "translation": "Misslyckades att arrangera."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Kunde inte efterfråga en prova-på-licens. Konfigurera en sajt-URL under web-server-delen Mattermost System Console."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Kunde inte få en prova-på-licens, försök igen eller kontakta support@mattermost.com. Kunde inte ta fram antalet registrerade användare."
   },
@@ -6234,10 +6230,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Filen är över maximala dimensioner och kunde inte laddas upp: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Kunde inte ladda upp filer. Felaktigt antal filer angivna."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",

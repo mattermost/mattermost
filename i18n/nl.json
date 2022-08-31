@@ -1082,10 +1082,6 @@
     "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
   },
@@ -5846,10 +5842,6 @@
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Ontbrekende Identity Provider SSO decriptors node in de XML."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
