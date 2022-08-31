@@ -231,7 +231,7 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 				return rteam, nil
 			}
 
-			// Post a message for the admin
+			// Post the welcome message
 			if _, err := a.CreatePost(c, &model.Post{
 				UserId:    user.Id,
 				ChannelId: defaultChannel.Id,
@@ -244,6 +244,13 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 					)
 
 				return rteam, nil
+			}
+			// send a rudder track event about the post
+			ts := a.Srv().GetTelemetryService()
+			if ts != nil {
+				ts.SendTelemetry("welcome-message-sent", map[string]any{
+					"category": "growth",
+				})
 			}
 		}
 	}
