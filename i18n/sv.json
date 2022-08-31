@@ -9067,16 +9067,8 @@
     "translation": "Ogiltig post_id"
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "Misslyckades att få status för slutförandet av onboarding."
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
@@ -9091,10 +9083,6 @@
     "translation": "Det går inte att få fram alla jobb efter typ och status."
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "Det går inte att utföra åtgärden för den källtypen."
   },
@@ -9103,20 +9091,8 @@
     "translation": "gruppnamnet är inte unikt"
   },
   {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Det går inte att få fram antalet filer i kanalen"
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9277,10 +9253,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "Funktionen Insights är inaktiverad."
-  },
-  {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
   },
   {
     "id": "api.cloud.upgrade_plan_bot_message",

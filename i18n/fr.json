@@ -8739,10 +8739,6 @@
     "translation": "Impossible de récupérer les recherches récentes"
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.post.get_top_threads_for_team_since.app_error",
     "translation": "Impossible d'obtenir le fils supérieurs pour l'équipe."
   },
@@ -8767,10 +8763,6 @@
     "translation": "La fonctionnalité des aperçus est désactivée."
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "Impossible de réaliser les opérations pour ce type de source."
   },
@@ -8779,20 +8771,8 @@
     "translation": "le nom du groupe n'est pas unique"
   },
   {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Impossible d'obtenir le nombre de fichiers du canal"
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
