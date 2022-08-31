@@ -9373,9 +9373,5 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Durch Compliance Regeln in dieser Umgebung, muss man Mitglied des Kanals werden, bevor die Kanal-Nachrichten gelesen werden können."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Kann keine Dateien hochladen. Inkorrekte Anzahl an Dateien spezifiziert."
   }
 ]

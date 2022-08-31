@@ -9373,9 +9373,5 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Door de compliance regels die op deze instantie zijn geconfigureerd moet het kanaal eerst worden binnengegaan voordat de berichten kunnen worden gelezen."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Fout bij uploaden van bestanden. Foutief aantal opgegeven bestanden."
   }
 ]
