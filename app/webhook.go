@@ -269,7 +269,6 @@ func (a *App) CreateWebhookPost(c request.CTX, userID string, channel *model.Cha
 
 	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
-	post.AddProp("from_integration", "true")
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)

@@ -612,7 +612,6 @@ func (a *App) HandleCommandResponsePost(c request.CTX, command *model.Command, a
 
 	if isBotPost {
 		post.AddProp("from_webhook", "true")
-		post.AddProp("from_integration", "true")
 	}
 
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.

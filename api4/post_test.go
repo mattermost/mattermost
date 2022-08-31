@@ -246,7 +246,7 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	post, _, err := client.CreatePost(th.BasicPost)
 	require.NoError(t, err)
 
-	require.Equal(t, "true", post.GetProp("from_integration"))
+	require.Equal(t, "true", post.GetProp("from_oauth_app"))
 }
 
 func TestCreatePostEphemeral(t *testing.T) {

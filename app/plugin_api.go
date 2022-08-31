@@ -630,7 +630,7 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post.AddProp("from_integration", "true")
+	post.AddProp("from_plugin", "true")
 
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
 	if post != nil {
