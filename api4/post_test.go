@@ -234,19 +234,29 @@ func TestCreatePostWithOAuthClient(t *testing.T) {
 	require.Nil(t, appErr, "should create an OAuthApp")
 
 	session, appErr := th.App.CreateSession(&model.Session{
-		UserId:  th.SystemAdminUser.Id,
+		UserId:  th.BasicUser.Id,
 		Token:   "token",
 		IsOAuth: true,
 		Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
 	})
 	require.Nil(t, appErr, "should create a session")
 
+	post, _, err := th.Client.CreatePost(&model.Post{
+		ChannelId: th.BasicPost.ChannelId,
+		Message:   "test message",
+	})
+	require.NoError(t, err)
+	assert.NotContains(t, post.GetProps(), "from_oauth_app", "contains from_oauth_app prop when not using OAuth client")
+
 	client := th.CreateClient()
 	client.SetOAuthToken(session.Token)
-	post, _, err := client.CreatePost(th.BasicPost)
-	require.NoError(t, err)
+	post, _, err = client.CreatePost(&model.Post{
+		ChannelId: th.BasicPost.ChannelId,
+		Message:   "test message",
+	})
 
-	require.Equal(t, "true", post.GetProp("from_oauth_app"))
+	require.NoError(t, err)
+	assert.Contains(t, post.GetProps(), "from_oauth_app", "missing from_oauth_app prop when using OAuth client")
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
