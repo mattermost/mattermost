@@ -34,6 +34,19 @@ func (us *UserService) IsFirstUserAccount() bool {
 	return false
 }
 
+func (us *UserService) IsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := us.store.GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
+}
+
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
 func CheckUserDomain(user *model.User, domains string) bool {
 	return CheckEmailDomain(user.Email, domains)

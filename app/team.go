@@ -17,7 +17,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/email"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -200,59 +199,6 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 
 	if _, err = a.JoinUserToTeam(c, rteam, user, ""); err != nil {
 		return nil, err
-	}
-
-	// During the A/B Test, we log but don't handle errors
-	if a.Config().FeatureFlags.SendWelcomePost {
-		nbTeams, queryErr := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{
-			IncludeDeleted: model.NewBool(true),
-		})
-		if queryErr != nil {
-			c.Logger().
-				Warn(
-					"unable to get number of teams",
-					logr.Err(err),
-				)
-			return rteam, nil
-		}
-
-		// check if this is the first team
-		if nbTeams == 1 {
-			// Get the default channel
-			defaultChannel, err := a.GetChannelByName(c, model.DefaultChannelName, rteam.Id, false)
-			if err != nil {
-				c.Logger().
-					Warn(
-						"unable to get default channel by name",
-						logr.String("default_channel_name", model.DefaultChannelName),
-						logr.Err(err),
-					)
-
-				return rteam, nil
-			}
-
-			// Post the welcome message
-			if _, err := a.CreatePost(c, &model.Post{
-				UserId:    user.Id,
-				ChannelId: defaultChannel.Id,
-				Type:      model.PostTypeWelcomePost,
-			}, defaultChannel, false, false); err != nil {
-				c.Logger().
-					Warn(
-						"unable to post welcome message",
-						logr.Err(err),
-					)
-
-				return rteam, nil
-			}
-			// send a rudder track event about the post
-			ts := a.Srv().GetTelemetryService()
-			if ts != nil {
-				ts.SendTelemetry("welcome-message-sent", map[string]any{
-					"category": "growth",
-				})
-			}
-		}
 	}
 
 	return rteam, nil

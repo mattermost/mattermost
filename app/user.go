@@ -209,6 +209,10 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.userService.IsFirstUserAccount()
 }
 
+func (a *App) IsFirstAdmin(user *model.User) bool {
+	return a.ch.srv.userService.IsFirstAdmin(user)
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
