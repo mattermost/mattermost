@@ -5354,10 +5354,6 @@
     "translation": "marshal грешка"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Не може да се поиска пробен лиценз. Моля, конфигурирайте URL адрес на сайта в секцията за уеб сървъра на Mattermost Системна конзола."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Не можете да получите пробен лиценз, моля, опитайте отново или се свържете със support@mattermost.com. Не може да се получи броят на регистрираните потребители."
   },
@@ -5496,10 +5492,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Файл над максималните размери не може да бъде качен: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Невъзможно качването на файл. Зададен е неправилен брой файлове."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",

@@ -1080,10 +1080,6 @@
     "translation": "ファイルをアップロードできませんでした。{{.NumFiles}}ファイルに対して {{.NumClientIds}} 個の client_ids が必要です。"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "ファイルをアップロードできませんでした。指定されたファイル数が正しくありません。"
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
@@ -5938,10 +5934,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "保留中の投稿を取得できませんでした。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "トライアルライセンスをリクエストできませんでした。システムコンソールのWebサーバーセクションにある サイトURL を設定してください。"
   },
   {
     "id": "api.license.request_trial_license.app_error",

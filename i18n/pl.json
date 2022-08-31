@@ -1084,10 +1084,6 @@
     "translation": "Nie można załadować pliku (plików). Mam {{.NumClientIds}} client_ids dla plików {{.NumFiles}}."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Nie można przesłać plików. Podano niepoprawną liczbę plików."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Plik większy od maksymalnego rozmiaru nie został załadowany: {{.Filename}}"
   },
@@ -7334,10 +7330,6 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nie można zamówić licencji próbnej. Proszę skonfigurować adres URL witryny w sekcji serwera WWW w konsoli systemowej Mattermost."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
