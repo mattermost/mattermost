@@ -200,9 +200,9 @@ func stripPassword(dsn, schema string) string {
 	return prefix + dsn[:i+1] + dsn[j:]
 }
 
-func isJSONMap(data string) bool {
+func isJSONMap(data []byte) bool {
 	var m map[string]any
-	return json.Unmarshal([]byte(data), &m) == nil
+	return json.Unmarshal(data, &m) == nil
 }
 
 func GetValueByPath(path []string, obj any) (any, bool) {

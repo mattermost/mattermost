@@ -37,7 +37,7 @@ func TestNewLogConfigSrc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewLogConfigSrc(tt.dsn, tt.configStore)
+			got, err := NewLogConfigSrc([]byte(tt.dsn), tt.configStore)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
