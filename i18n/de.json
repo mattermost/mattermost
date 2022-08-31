@@ -8987,10 +8987,6 @@
     "translation": "SAML Antwort ist zu lang"
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_read_all.failure",
     "translation": " "
   },
@@ -9115,10 +9111,6 @@
     "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.get_by_username_failure",
     "translation": " "
   },
@@ -9171,10 +9163,6 @@
     "translation": "Ungültige post_id"
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} hat dich eingeladen, {{ .ChannelsLen }} Kanälen im Team {{ .TeamDisplayName }} beizutreten"
   },
@@ -9201,10 +9189,6 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Insights wird durch ein Feature-Flag verborgen, das nicht aktiviert ist."
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9265,10 +9249,6 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_threads_for_user_since.app_error",
@@ -9337,10 +9317,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus drei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n**[Boards](/boards)** - Verwalte Projekte und Aufgaben in einer Kanban-Board Struktur um dein Team beim Erreichen von Zielen zu unterstützen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
-  },
-  {
-    "id": "app.channel.get_top_invalid_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.delinquency_90.button",
@@ -9505,5 +9481,41 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Erforderliche Felder für den Versand einer E-Mail über Zahlungsrückstände fehlen."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Dein Mattermost Cloud-Arbeitsbereich wurde herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Zeige Pläne & Kosten"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Das Abonnement ist nicht im Verzug"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Cloud-Abonnement konnten nicht abgerufen werden"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Cloud-Produkte konnten nicht abgerufen werden"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Dein Mattermost-Arbeitsbereich wurde herabgestuft"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Um die Archivierung deiner Daten aufzuheben und bezahlte Funktionen zu erhalten, aktualisiere deine Zahlungsinformationen."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Starter archiviert wurden."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Wenn du die Funktionen von Cloud Professional oder Enterprise für wichtige Geschäftsvorgänge nutzt, stehen diese nicht mehr zur Verfügung und die Leistung wird beeinträchtigt."
   }
 ]
