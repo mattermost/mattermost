@@ -9047,10 +9047,6 @@
     "translation": "Kanalnamnet är inte giltigt"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Namnet krockar med ett befintligt system-emoji-namn."
   },
@@ -9071,20 +9067,12 @@
     "translation": "Ogiltig post_id"
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
     "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "Misslyckades att få status för slutförandet av onboarding."
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.reaction.get_top_for_team_since.app_error",
@@ -9103,10 +9091,6 @@
     "translation": "Det går inte att få fram alla jobb efter typ och status."
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.group.get_by_username_failure",
     "translation": " "
   },
@@ -9119,10 +9103,6 @@
     "translation": "gruppnamnet är inte unikt"
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_top_for_team_since.app_error",
     "translation": " "
   },
@@ -9131,23 +9111,11 @@
     "translation": "Det går inte att få fram antalet filer i kanalen"
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_set_cache.failure",
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   },
   {
@@ -9311,15 +9279,7 @@
     "translation": "Funktionen Insights är inaktiverad."
   },
   {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": " "
   },
   {
@@ -9347,10 +9307,6 @@
     "translation": "Här är en påminnelse om meddelandet från @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_reminder.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Ditt abonnemang begränsar möjligheten att hämta inlägget."
   },
@@ -9361,10 +9317,6 @@
   {
     "id": "app.team.clear_cache.app_error",
     "translation": "Fel vid rensning av cache av teammedlemmar"
-  },
-  {
-    "id": "app.post.get_new_team_members_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",

@@ -8987,23 +8987,11 @@
     "translation": "SAML Antwort ist zu lang"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_unmarshal.failure",
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
   },
   {
@@ -9017,10 +9005,6 @@
   {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Der Name steht im Konflikt mit einem bestehenden System-Emoji-Namen."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -9131,15 +9115,7 @@
     "translation": "Die vorgepackte Plugin-Version konnte nicht geparst werden."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
     "translation": " "
   },
   {
@@ -9195,10 +9171,6 @@
     "translation": "Ungültige post_id"
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.reaction.get_top_for_team_since.app_error",
     "translation": " "
   },
@@ -9229,10 +9201,6 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Insights wird durch ein Feature-Flag verborgen, das nicht aktiviert ist."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_for_team_since.app_error",
@@ -9299,15 +9267,7 @@
     "translation": "Ungültig Decoder Nebenläufigkeit {{.Value}}. Sollte eine positive Zahl oder -1 sein."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": " "
   },
   {
@@ -9355,16 +9315,8 @@
     "translation": "Hallo, hier ist deine Erinnerung für die Nachricht von @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post_reminder.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.team.clear_cache.app_error",
     "translation": "Fehler beim Löschen des Team Mitglieder Cache"
-  },
-  {
-    "id": "app.post.get_new_team_members_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",
@@ -9385,10 +9337,6 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus drei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n**[Boards](/boards)** - Verwalte Projekte und Aufgaben in einer Kanban-Board Struktur um dein Team beim Erreichen von Zielen zu unterstützen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
-  },
-  {
-    "id": "app.channel.get_top_invalid_for_user_since.app_error",
-    "translation": " "
   },
   {
     "id": "app.channel.get_top_invalid_for_team_since.app_error",
