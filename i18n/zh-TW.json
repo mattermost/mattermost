@@ -7258,5 +7258,49 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "無法解析要求本文。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "圖片大小超過上限，圖片解析度過高。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "返回至 {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "頻道"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "雲端 API 請求時發生內部錯誤。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "錯誤 無效快取"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "從 Webhook 更新訂閱時發生錯誤。"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS 處理請求錯誤。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理者"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "您的授權不支援雲端請求。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "無法恢復團隊，已達到團隊數量上限"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "無法建立團隊，已達到團隊數量上限"
   }
 ]
