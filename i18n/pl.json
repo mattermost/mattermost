@@ -9374,9 +9374,5 @@
   {
     "id": "api.post.compliance_enabled.join_channel_to_view_post",
     "translation": "Ze względu na reguły zgodności skonfigurowany na tej instancji kanał musi zostać dołączony, zanim jego posty będą mogły być czytane."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Nie można przesłać plików. Wybrano niepoprawną liczbę plików."
   }
 ]
