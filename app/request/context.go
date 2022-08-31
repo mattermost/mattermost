@@ -22,6 +22,9 @@ type Context struct {
 	logger         mlog.LoggerIFace
 	err            *model.AppError
 
+	// Scopes stores the OAuth application's scopes associated to the session in this context.
+	scopes model.AppScopes
+
 	context context.Context
 }
 
@@ -67,6 +70,9 @@ func (c *Context) UserAgent() string {
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+func (c *Context) Scopes() model.AppScopes {
+	return c.scopes
+}
 
 func (c *Context) Context() context.Context {
 	return c.context
@@ -96,6 +102,9 @@ func (c *Context) SetPath(s string) {
 }
 func (c *Context) SetContext(ctx context.Context) {
 	c.context = ctx
+}
+func (c *Context) SetScopes(scopes model.AppScopes) {
+	c.scopes = scopes
 }
 
 func (c *Context) GetT() i18n.TranslateFunc {

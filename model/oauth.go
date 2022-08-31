@@ -29,6 +29,7 @@ type OAuthApp struct {
 	CallbackUrls    StringArray `json:"callback_urls"`
 	Homepage        string      `json:"homepage"`
 	IsTrusted       bool        `json:"is_trusted"`
+	Scopes          AppScopes   `json:"scopes"`
 	MattermostAppID string      `json:"mattermost_app_id"`
 }
 
@@ -98,6 +99,10 @@ func (a *OAuthApp) IsValid() *AppError {
 		if len(a.IconURL) > 512 || !IsValidHTTPURL(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}
+	}
+
+	if !a.Scopes.Validate() {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.scopes.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
 	if len(a.MattermostAppID) > 32 {

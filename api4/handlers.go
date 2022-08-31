@@ -18,7 +18,10 @@ type handlerFunc func(*Context, http.ResponseWriter, *http.Request)
 
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (api *API) APIHandler(h handlerFunc) http.Handler {
+func (api *API) APIHandler(h handlerFunc, scopes ...model.Scope) http.Handler {
+	// TODO: it is possible that a developer specifies invalid scopes, so we
+	// need to detect that here and handle the possible error - log? panic?
+	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -28,6 +31,7 @@ func (api *API) APIHandler(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: handlerScopes,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -37,7 +41,10 @@ func (api *API) APIHandler(h handlerFunc) http.Handler {
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h handlerFunc) http.Handler {
+func (api *API) APISessionRequired(h handlerFunc, scopes ...model.Scope) http.Handler {
+	// TODO: it is possible that a developer specifies invalid scopes, so we
+	// need to detect that here and handle the possible error - log? panic?
+	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -47,6 +54,7 @@ func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: handlerScopes,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -108,6 +116,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: model.ScopeInternalAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -129,6 +138,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: model.ScopeInternalAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -139,7 +149,10 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h handlerFunc, scopes ...model.Scope) http.Handler {
+	// TODO: it is possible that a developer specifies invalid scopes, so we
+	// need to detect that here and handle the possible error - log? panic?
+	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -149,6 +162,7 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: handlerScopes,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -159,7 +173,10 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, scopes ...model.Scope) http.Handler {
+	// TODO: it is possible that a developer specifies invalid scopes, so we
+	// need to detect that here and handle the possible error - log? panic?
+	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -170,6 +187,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 		IsStatic:        false,
 		IsLocal:         false,
 		DisableWhenBusy: true,
+		RequiredScopes:  handlerScopes,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
