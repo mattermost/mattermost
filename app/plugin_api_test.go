@@ -1389,9 +1389,11 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	channelID := th.BasicChannel.Id
+	userID := th.BasicUser.Id
 	post, err := api.CreatePost(&model.Post{
 		Message:   "test",
 		ChannelId: channelID,
+		UserId:    userID,
 	})
 	require.Nil(t, err)
 
