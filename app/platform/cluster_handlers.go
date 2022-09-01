@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -131,4 +132,22 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	// TODO: platform: license and link cache
 	//linkCache.Purge()
 	//ps.LoadLicense()
+}
+
+func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
+	debug.FreeOSMemory()
+	ps.InvalidateAllCachesSkipSend()
+
+	if ps.clusterIFace != nil {
+
+		msg := &model.ClusterMessage{
+			Event:            model.ClusterEventInvalidateAllCaches,
+			SendType:         model.ClusterSendReliable,
+			WaitForAllToSend: true,
+		}
+
+		ps.clusterIFace.SendClusterMessage(msg)
+	}
+
+	return nil
 }

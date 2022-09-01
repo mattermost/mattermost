@@ -180,5 +180,6 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 	if ps.metrics == nil {
 		return nil
 	}
+
 	return ps.metrics.metricsImpl
 }
