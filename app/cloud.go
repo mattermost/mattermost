@@ -162,7 +162,7 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 
 	planName, err2 := getCurrentPlanName(a)
 	if err2 != nil {
-		return model.NewAppError("SendPaymentFailedEmail", "app.cloud.get_current_plan_name.app_error", nil, err2.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendPaymentFailedEmail", "", nil, err2.Error(), http.StatusInternalServerError)
 	}
 
 	for _, admin := range sysAdmins {
@@ -190,7 +190,7 @@ func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.Ap
 	}
 	planName, err := getCurrentPlanName(a)
 	if err != nil {
-		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_current_plan_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendDelinquencyEmail", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	subscription, err := a.Cloud().GetSubscription("")

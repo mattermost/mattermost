@@ -1,5 +1,9 @@
 [
   {
+    "id": "",
+    "translation": ""
+  },
+  {
     "id": "April",
     "translation": "April"
   },
@@ -4790,10 +4794,6 @@
   {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Couldn't retrieve cloud products"
-  },
-  {
-    "id": "app.cloud.get_current_plan_name.app_error",
-    "translation": ""
   },
   {
     "id": "app.cloud.get_subscription.app_error",
