@@ -201,11 +201,16 @@ func truncateUserNames(name string, i int) string {
 	return name
 }
 
+type FieldRow struct {
+	Cells []*model.SlackAttachmentField
+}
+
 type EmailSlackAttachment struct {
 	model.SlackAttachment
 
-	Pretext template.HTML
-	Text    template.HTML
+	Pretext   template.HTML
+	Text      template.HTML
+	FieldRows []FieldRow
 }
 
 type postData struct {
@@ -323,6 +328,42 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 			SlackAttachment: *slackAttachment,
 			Pretext:         template.HTML(a.prepareTextForEmail(slackAttachment.Pretext)),
 			Text:            template.HTML(a.prepareTextForEmail(slackAttachment.Text)),
+		}
+
+		stripedTitle, err := utils.StripMarkdown(emailSlackAttachment.Title)
+		if err != nil {
+			mlog.Warn("Failed parse to markdown from slackattachment title", mlog.String("post_id", post.Id), mlog.Err(err))
+			stripedTitle = ""
+		}
+
+		emailSlackAttachment.Title = stripedTitle
+
+		shortFieldRow := FieldRow{}
+
+		for i := range slackAttachment.Fields {
+			field := slackAttachment.Fields[i]
+
+			if !field.Short {
+				if len(shortFieldRow.Cells) > 0 {
+					emailSlackAttachment.FieldRows = append(emailSlackAttachment.FieldRows, shortFieldRow)
+					shortFieldRow = FieldRow{}
+				}
+
+				emailSlackAttachment.FieldRows = append(emailSlackAttachment.FieldRows, FieldRow{[]*model.SlackAttachmentField{field}})
+			} else {
+				shortFieldRow.Cells = append(shortFieldRow.Cells, field)
+
+				if len(shortFieldRow.Cells) == 2 {
+					emailSlackAttachment.FieldRows = append(emailSlackAttachment.FieldRows, shortFieldRow)
+					shortFieldRow = FieldRow{}
+				}
+			}
+		}
+
+		// collect any leftover short fields
+		if len(shortFieldRow.Cells) == 2 {
+			emailSlackAttachment.FieldRows = append(emailSlackAttachment.FieldRows, shortFieldRow)
+			shortFieldRow = FieldRow{}
 		}
 
 		emailSlackAttachments = append(emailSlackAttachments, emailSlackAttachment)
