@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package imports
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func validateSchemeImportData(data *SchemeImportData) *model.AppError {
+func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
 
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
@@ -46,37 +46,37 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 	}
 
 	if data.DefaultTeamAdminRole != nil {
-		if err := validateRoleImportData(data.DefaultTeamAdminRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultTeamAdminRole); err != nil {
 			return err
 		}
 	}
 
 	if data.DefaultTeamUserRole != nil {
-		if err := validateRoleImportData(data.DefaultTeamUserRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultTeamUserRole); err != nil {
 			return err
 		}
 	}
 
 	if data.DefaultTeamGuestRole != nil {
-		if err := validateRoleImportData(data.DefaultTeamGuestRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultTeamGuestRole); err != nil {
 			return err
 		}
 	}
 
 	if data.DefaultChannelAdminRole != nil {
-		if err := validateRoleImportData(data.DefaultChannelAdminRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultChannelAdminRole); err != nil {
 			return err
 		}
 	}
 
 	if data.DefaultChannelUserRole != nil {
-		if err := validateRoleImportData(data.DefaultChannelUserRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultChannelUserRole); err != nil {
 			return err
 		}
 	}
 
 	if data.DefaultChannelGuestRole != nil {
-		if err := validateRoleImportData(data.DefaultChannelGuestRole); err != nil {
+		if err := ValidateRoleImportData(data.DefaultChannelGuestRole); err != nil {
 			return err
 		}
 	}
@@ -84,7 +84,7 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 	return nil
 }
 
-func validateRoleImportData(data *RoleImportData) *model.AppError {
+func ValidateRoleImportData(data *RoleImportData) *model.AppError {
 
 	if data.Name == nil || !model.IsValidRoleName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
@@ -117,7 +117,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	return nil
 }
 
-func validateTeamImportData(data *TeamImportData) *model.AppError {
+func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 
 	if data.Name == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "", http.StatusBadRequest)
@@ -152,7 +152,7 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 	return nil
 }
 
-func validateChannelImportData(data *ChannelImportData) *model.AppError {
+func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "", http.StatusBadRequest)
@@ -193,7 +193,7 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
-func validateUserImportData(data *UserImportData) *model.AppError {
+func ValidateUserImportData(data *UserImportData) *model.AppError {
 	if data.ProfileImage != nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
@@ -306,13 +306,13 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if data.Teams != nil {
-		return validateUserTeamsImportData(data.Teams)
+		return ValidateUserTeamsImportData(data.Teams)
 	}
 
 	return nil
 }
 
-func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
+func ValidateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -327,7 +327,7 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 		}
 
 		if tdata.Channels != nil {
-			if err := validateUserChannelsImportData(tdata.Channels); err != nil {
+			if err := ValidateUserChannelsImportData(tdata.Channels); err != nil {
 				return err
 			}
 		}
@@ -343,7 +343,7 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 	return nil
 }
 
-func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppError {
+func ValidateUserChannelsImportData(data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -375,7 +375,7 @@ func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppErr
 	return nil
 }
 
-func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) *model.AppError {
+func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) *model.AppError {
 	if data.User == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
@@ -397,7 +397,7 @@ func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 	return nil
 }
 
-func validateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPostSize int) *model.AppError {
+func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPostSize int) *model.AppError {
 	if data.User == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
@@ -419,7 +419,7 @@ func validateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 	return nil
 }
 
-func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppError {
+func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppError {
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
@@ -447,14 +447,14 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			validateReactionImportData(&reaction, *data.CreateAt)
+			ValidateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
 	}
 
@@ -465,7 +465,7 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	return nil
 }
 
-func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
+func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
 	if data.Members == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "", http.StatusBadRequest)
 	}
@@ -500,7 +500,7 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 	return nil
 }
 
-func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *model.AppError {
+func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *model.AppError {
 	if data.ChannelMembers == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_required.error", nil, "", http.StatusBadRequest)
 	}
@@ -547,23 +547,23 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			validateReactionImportData(&reaction, *data.CreateAt)
+			ValidateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
 	}
 
 	return nil
 }
 
-// validateEmojiImportData validates emoji data and returns if the import name
+// ValidateEmojiImportData validates emoji data and returns if the import name
 // conflicts with a system emoji.
-func validateEmojiImportData(data *EmojiImportData) *model.AppError {
+func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 	if data == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_emoji_import_data.empty.error", nil, "", http.StatusBadRequest)
 	}
