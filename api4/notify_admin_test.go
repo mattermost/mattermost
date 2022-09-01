@@ -108,11 +108,11 @@ func TestNotifyAdmin(t *testing.T) {
 }
 
 func TestTriggerNotifyAdmin(t *testing.T) {
-	t.Run("error when EnableTesting is not true", func(t *testing.T) {
+	t.Run("error when EnableAPITriggerAdminNotifications is not true", func(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = false })
 
 		statusCode, err := th.SystemAdminClient.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
 
@@ -126,7 +126,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		th := Setup(t).InitBasic().InitLogin()
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 
 		statusCode, err := th.Client.TriggerNotifyAdmin(&model.NotifyAdminToUpgradeRequest{})
 
@@ -139,7 +139,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableTesting = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 
 		statusCode, err := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
