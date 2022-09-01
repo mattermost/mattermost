@@ -29,8 +29,8 @@ func handleNotifyAdmin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().ServiceSettings.EnableTesting {
-		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "api.cloud.app_error", nil, "Testing not enabled", http.StatusForbidden)
+	if !*c.App.Config().ServiceSettings.EnableAPITriggerAdminNotifications {
+		c.Err = model.NewAppError("Api4.handleTriggerNotifyAdminPosts", "api.cloud.app_error", nil, "Manual triggering of notifications not allowed", http.StatusForbidden)
 		return
 	}
 
