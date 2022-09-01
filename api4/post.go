@@ -587,7 +587,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		// but at the same time the request was not bad,
 		// so we return the time of archival and let the client
 		// show an error
-		if err := (&model.PostList{FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
+		if err := (&model.PostList{Order: []string{}, FirstInaccessiblePostTime: list.FirstInaccessiblePostTime}).EncodeJSON(w); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
