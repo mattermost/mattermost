@@ -72,6 +72,17 @@ jobs:
           git clone --depth=10 --no-single-branch https://github.com/mattermost/focalboard.git
           cd focalboard
           git checkout $CIRCLE_BRANCH || git checkout main
+          if [[ "<< pipeline.parameters.tbs_server_owner >>" != "mattermost" ]]
+          then
+              if [[ $(git branch –show-current) == "main" ]]
+              then
+                cd ..
+                rm -rf focalboard
+                git clone --depth=1 --no-single-branch https://github.com/mattermost/focalboard.git
+                cd focalboard || exit
+                git checkout main
+              fi
+          fi
           echo $(git rev-parse HEAD)
       - persist_to_workspace:
           root: ~/mattermost
