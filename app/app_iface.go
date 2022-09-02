@@ -205,6 +205,8 @@ type AppIface interface {
 	GetPluginsEnvironment() *plugin.Environment
 	// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
 	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
+	// GetEditHistoryForPost will return the old versions of a Post
+	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
 	// GetPostsUsage returns the total posts count rounded down to the most
 	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
