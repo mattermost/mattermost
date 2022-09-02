@@ -70,6 +70,7 @@ type PlatformService struct {
 
 	clusterLeaderListeners sync.Map
 	clusterIFace           einterfaces.ClusterInterface
+	Busy                   *Busy
 
 	SearchEngine *searchengine.Broker
 
@@ -198,12 +199,19 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
+	if model.BuildEnterpriseReady == "true" {
+		// Dependent on user service
+		ps.LoadLicense()
+	}
+
 	// TODO: platform: remove nil check after store migration completed
 	if ps.store != nil {
 		if err := ps.ensureAsymmetricSigningKey(); err != nil {
 			return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 		}
 	}
+
+	ps.Busy = NewBusy(ps.clusterIFace)
 
 	return ps, nil
 }
