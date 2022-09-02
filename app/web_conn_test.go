@@ -122,10 +122,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true, false},
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
+		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},
 		// needs more cases to get full coverage
 	}
 
-	event := model.NewWebSocketEvent("some_event", "", "", "", nil)
+	event := model.NewWebSocketEvent("some_event", "", "", "", nil, "")
 	for _, c := range cases {
 		t.Run(c.Description, func(t *testing.T) {
 			event = event.SetBroadcast(c.Broadcast)
@@ -178,11 +179,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
 	})
 
-	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil)
+	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil, "")
 	assert.True(t, basicUserWc.shouldSendEvent(event2))
 	assert.True(t, basicUser2Wc.shouldSendEvent(event2))
 
-	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil)
+	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.shouldSendEvent(event3))
 }
 
@@ -368,7 +369,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		defer wc.WebSocket.Close()
 
 		for i := 0; i < limit; i++ {
-			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{})
+			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{}, "")
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)
 		}
