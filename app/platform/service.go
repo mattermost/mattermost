@@ -84,7 +84,7 @@ type PlatformService struct {
 }
 
 // New creates a new PlatformService.
-func New(sc ServiceConfig) (*PlatformService, error) {
+func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if err := sc.validate(); err != nil {
 		return nil, err
 	}
@@ -105,6 +105,12 @@ func New(sc ServiceConfig) (*PlatformService, error) {
 			},
 		},
 		licenseListeners: map[string]func(*model.License, *model.License){},
+	}
+
+	for _, option := range options {
+		if err := option(ps); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
 	}
 
 	if err := ps.initLogging(); err != nil {
