@@ -314,10 +314,6 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.WithSession(func(s *model.Session) {
-		wc.App.Srv().userService.ReturnSessionToPool(s)
-	})
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
