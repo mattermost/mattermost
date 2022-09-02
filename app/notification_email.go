@@ -326,8 +326,8 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 	for _, slackAttachment := range post.Attachments() {
 		emailSlackAttachment := &EmailSlackAttachment{
 			SlackAttachment: *slackAttachment,
-			Pretext:         template.HTML(a.prepareTextForEmail(slackAttachment.Pretext)),
-			Text:            template.HTML(a.prepareTextForEmail(slackAttachment.Text)),
+			Pretext:         a.prepareTextForEmail(slackAttachment.Pretext),
+			Text:            a.prepareTextForEmail(slackAttachment.Text),
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailSlackAttachment.Title)
@@ -342,6 +342,9 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 
 		for i := range slackAttachment.Fields {
 			field := slackAttachment.Fields[i]
+			if stringValue, ok := field.Value.(string); ok {
+				field.Value = a.prepareTextForEmail(stringValue)
+			}
 
 			if !field.Short {
 				if len(shortFieldRow.Cells) > 0 {
@@ -372,15 +375,15 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 	return emailSlackAttachments
 }
 
-func (a *App) prepareTextForEmail(text string) string {
+func (a *App) prepareTextForEmail(text string) template.HTML {
 	escapedText := html.EscapeString(text)
 	markdownText, err := utils.MarkdownToHTML(escapedText)
 	if err != nil {
 		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(err))
-		return text
+		return template.HTML(text)
 	}
 
-	return markdownText
+	return template.HTML(markdownText)
 }
 
 type formattedPostTime struct {
