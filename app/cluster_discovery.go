@@ -35,21 +35,21 @@ func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
 }
 
 func (cds *ClusterDiscoveryService) Start() {
-	err := cds.srv.Store.ClusterDiscovery().Cleanup()
+	err := cds.srv.Store().ClusterDiscovery().Cleanup()
 	if err != nil {
 		mlog.Warn("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
 	}
 
-	exists, err := cds.srv.Store.ClusterDiscovery().Exists(&cds.ClusterDiscovery)
+	exists, err := cds.srv.Store().ClusterDiscovery().Exists(&cds.ClusterDiscovery)
 	if err != nil {
 		mlog.Warn("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
 	} else if exists {
-		if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
+		if _, err := cds.srv.Store().ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
 			mlog.Warn("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
 		}
 	}
 
-	if err := cds.srv.Store.ClusterDiscovery().Save(&cds.ClusterDiscovery); err != nil {
+	if err := cds.srv.Store().ClusterDiscovery().Save(&cds.ClusterDiscovery); err != nil {
 		mlog.Error("ClusterDiscoveryService failed to save", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
 		return
 	}
@@ -59,7 +59,7 @@ func (cds *ClusterDiscoveryService) Start() {
 		ticker := time.NewTicker(DiscoveryServiceWritePing)
 		defer func() {
 			ticker.Stop()
-			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
+			if _, err := cds.srv.Store().ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
 				mlog.Warn("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
 			}
 			mlog.Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id))
@@ -68,7 +68,7 @@ func (cds *ClusterDiscoveryService) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if err := cds.srv.Store.ClusterDiscovery().SetLastPingAt(&cds.ClusterDiscovery); err != nil {
+				if err := cds.srv.Store().ClusterDiscovery().SetLastPingAt(&cds.ClusterDiscovery); err != nil {
 					mlog.Error("ClusterDiscoveryService failed to write ping", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
 				}
 			case <-cds.stop:

@@ -24,7 +24,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 	fakeId := strings.ReplaceAll(model.CloudNotifyAdminInfo, "_", "") + "123456"
 
 	// check if already notified
-	notificationPref, err := a.Srv().Store.Preference().Get(fakeId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
+	notificationPref, err := a.Srv().Store().Preference().Get(fakeId, model.PreferenceCloudUserEphemeralInfo, model.CloudNotifyAdminInfo)
 	if err != nil {
 		mlog.Warn("Unable to get preference cloud_user_ephemeral_info", mlog.Err(err))
 	}
@@ -100,7 +100,7 @@ func (a *App) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID 
 		Value:    string(out),
 	}
 
-	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
+	if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
 		mlog.Warn("Encountered error saving cloud_user_ephemeral_info preference", mlog.Err(err))
 	}
 

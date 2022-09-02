@@ -174,11 +174,11 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
 	var team *model.Team
-	team, err := a.Srv().Store.Team().GetByName(teamArg)
+	team, err := a.Srv().Store().Team().GetByName(teamArg)
 
 	if err != nil {
 		var t *model.Team
-		if t, err = a.Srv().Store.Team().Get(teamArg); err == nil {
+		if t, err = a.Srv().Store().Team().Get(teamArg); err == nil {
 			team = t
 		}
 	}

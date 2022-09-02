@@ -71,11 +71,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
-	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -107,9 +102,9 @@ const (
 )
 
 type Server struct {
-	sqlStore        *sqlstore.SqlStore // TODO: platform: remove
-	Store           store.Store        // TODO: platform: remove
-	WebSocketRouter *WebSocketRouter   // TODO: platform: remove
+	// sqlStore *sqlstore.SqlStore // TODO: platform: remove
+	// Store           store.Store        // TODO: platform: remove
+	WebSocketRouter *WebSocketRouter // TODO: platform: remove
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -200,6 +195,20 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]Product
+}
+
+func (s *Server) Store() store.Store {
+	if s.platform != nil {
+		return s.platform.Store
+	}
+
+	return nil
+}
+
+func (s *Server) SetStore(st store.Store) {
+	if s.platform != nil {
+		s.platform.Store = st
+	}
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -295,52 +304,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Step 6: Store.
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
-	if s.newStore == nil {
-		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.platform.Config().SqlSettings, s.GetMetrics())
-
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(
-				retrylayer.New(s.sqlStore),
-				s.GetMetrics(),
-				s.Cluster,
-				s.CacheProvider,
-			)
-			if err2 != nil {
-				return nil, errors.Wrap(err2, "cannot create local cache layer")
-			}
-
-			searchStore := searchlayer.NewSearchLayer(
-				lcl,
-				s.SearchEngine,
-				s.platform.Config(),
-			)
-
-			s.platform.AddConfigListener(func(prevCfg, cfg *model.Config) {
-				searchStore.UpdateConfig(cfg)
-			})
-
-			s.sqlStore.UpdateLicense(s.License())
-			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-				s.sqlStore.UpdateLicense(newLicense)
-			})
-
-			return timerlayer.New(
-				searchStore,
-				s.GetMetrics(),
-			), nil
-		}
-	}
-
-	s.Store, err = s.newStore()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot create store")
-	}
 
 	// Needed to run before loading license.
 	s.userService, err = users.New(users.ServiceConfig{
-		UserStore:    s.Store.User(),
-		SessionStore: s.Store.Session(),
-		OAuthStore:   s.Store.OAuth(),
+		UserStore:    s.Store().User(),
+		SessionStore: s.Store().Session(),
+		OAuthStore:   s.Store().OAuth(),
 		ConfigFn:     s.platform.Config,
 		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
@@ -382,9 +351,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
+		TeamStore:    s.Store().Team(),
+		ChannelStore: s.Store().Channel(),
+		GroupStore:   s.Store().Group(),
 		Users:        s.userService,
 		WebHub:       s,
 		ConfigFn:     s.platform.Config,
@@ -408,7 +377,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LogKey:           s.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       &kvStoreWrapper{srv: s},
-		StoreKey:         store.NewStoreServiceAdapter(s.Store),
+		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		SystemKey:        &systemServiceAdapter{server: s},
 	}
 
@@ -532,7 +501,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.SearchEngine, s.Log())
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -775,7 +744,7 @@ func (s *Server) Channels() *Channels {
 
 // Return Database type (postgres or mysql) and current version of the schema
 func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
-	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	schemaVersion, _ := s.Store().GetDBSchemaVersion()
 	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
@@ -953,9 +922,9 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	if s.Store != nil {
-		s.Store.Close()
-	}
+	// if s.Store != nil {
+	// 	s.Store().Close()
+	// }
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
@@ -997,7 +966,7 @@ func (s *Server) Restart() error {
 }
 
 func (s *Server) isUpgradedFromTE() bool {
-	val, err := s.Store.System().GetByName(model.SystemUpgradedFromTeId)
+	val, err := s.Store().System().GetByName(model.SystemUpgradedFromTeId)
 	if err != nil {
 		return false
 	}
@@ -1013,7 +982,7 @@ func (s *Server) UpgradeToE0() error {
 		return err
 	}
 	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
-	s.Store.System().Save(upgradedFromTE)
+	s.Store().System().Save(upgradedFromTE)
 	return nil
 }
 
@@ -1104,7 +1073,7 @@ func (s *Server) Start() error {
 		return errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	if err := s.Store.Status().ResetAll(); err != nil {
+	if err := s.Store().Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
@@ -1450,7 +1419,7 @@ func runReportToAWSMeterJob(s *Server) {
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
-	awsMeter := awsmeter.New(s.Store, s.platform.Config())
+	awsMeter := awsmeter.New(s.Store(), s.platform.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
@@ -1470,11 +1439,11 @@ func doTokenCleanup(s *Server) {
 
 	mlog.Debug("Cleaning up token store.")
 
-	s.Store.Token().Cleanup(expiry)
+	s.Store().Token().Cleanup(expiry)
 }
 
 func doCommandWebhookCleanup(s *Server) {
-	s.Store.CommandWebhook().Cleanup()
+	s.Store().CommandWebhook().Cleanup()
 }
 
 const (
@@ -1484,7 +1453,7 @@ const (
 
 func doSessionCleanup(s *Server) {
 	mlog.Debug("Cleaning up session store.")
-	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
+	err := s.Store().Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
@@ -1498,7 +1467,7 @@ func doJobsCleanup(s *Server) {
 
 	dur := time.Duration(*s.platform.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
-	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
+	err := s.Store().Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
@@ -1521,7 +1490,7 @@ func (s *Server) HandleMetrics(route string, h http.Handler) {
 
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
 	key := model.LicenseUpForRenewalEmailSent + license.Id
-	if _, err := s.Store.System().GetByName(key); err == nil {
+	if _, err := s.Store().System().GetByName(key); err == nil {
 		// return early because the key already exists and that means we already executed the code below to send email successfully
 		return nil
 	}
@@ -1557,7 +1526,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		Value: "true",
 	}
 
-	if err := s.Store.System().Save(&system); err != nil {
+	if err := s.Store().System().Save(&system); err != nil {
 		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
 	}
 
@@ -1587,7 +1556,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	users, err := s.Store.User().GetSystemAdminProfiles()
+	users, err := s.Store().User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -1745,7 +1714,7 @@ func (ch *Channels) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s.platform, s.Store, s.GetMetrics())
+	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1780,8 +1749,8 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,
-		migrations.MakeWorker(s.Jobs, s.Store),
-		migrations.MakeScheduler(s.Jobs, s.Store),
+		migrations.MakeWorker(s.Jobs, s.Store()),
+		migrations.MakeScheduler(s.Jobs, s.Store()),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1810,7 +1779,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportDelete,
-		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
 
@@ -1828,19 +1797,19 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeActiveUsers,
-		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		active_users.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
-		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store, s.telemetryService),
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExtractContent,
-		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		nil,
 	)
 
@@ -1867,7 +1836,7 @@ func (s *Server) HTTPService() httpservice.HTTPService {
 // GetStore returns the server's Store. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetStore() store.Store {
-	return s.Store
+	return s.Store()
 }
 
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
@@ -2016,7 +1985,7 @@ func runPostReminderJob(a *App) {
 }
 
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
-	table, err := a.Srv().Store.GetAppliedMigrations()
+	table, err := a.Srv().Store().GetAppliedMigrations()
 	if err != nil {
 		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

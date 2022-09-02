@@ -129,7 +129,7 @@ func (s *Server) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := s.Store.System().Get()
+	props, nErr := s.Store().System().Get()
 	if nErr == nil {
 		licenseId = props[model.SystemActiveLicenseId]
 	}
@@ -147,7 +147,7 @@ func (s *Server) LoadLicense() {
 		}
 	}
 
-	record, nErr := s.Store.License().Get(licenseId)
+	record, nErr := s.Store().License().Get(licenseId)
 	if nErr != nil {
 		mlog.Error("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
 		s.SetLicense(nil)
@@ -169,7 +169,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 		return nil, model.NewAppError("addLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
-	uniqueUserCount, err := s.Store.User().Count(model.UserCountOptions{})
+	uniqueUserCount, err := s.Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -218,7 +218,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, nErr := s.Store.License().Save(record)
+	_, nErr := s.Store().License().Save(record)
 	if nErr != nil {
 		s.RemoveLicense()
 		var appErr *model.AppError
@@ -233,7 +233,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	sysVar := &model.System{}
 	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = license.Id
-	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := s.Store().System().SaveOrUpdate(sysVar); err != nil {
 		s.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -315,7 +315,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = ""
 
-	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := s.Store().System().SaveOrUpdate(sysVar); err != nil {
 		return model.NewAppError("RemoveLicense", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -394,7 +394,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
 	}
 
-	activeUsers, err := s.Store.User().Count(model.UserCountOptions{})
+	activeUsers, err := s.Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)

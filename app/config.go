@@ -81,7 +81,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 
 	var secret *model.SystemPostActionCookieSecret
 
-	value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+	value, err := ch.srv.Store().System().GetByName(model.SystemPostActionCookieSecretKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
@@ -107,7 +107,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = ch.srv.Store.System().Save(system); err != nil {
+		if err = ch.srv.Store().System().Save(system); err != nil {
 			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
@@ -117,7 +117,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		value, err := ch.srv.Store.System().GetByName(model.SystemPostActionCookieSecretKey)
+		value, err := ch.srv.Store().System().GetByName(model.SystemPostActionCookieSecretKey)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (ch *Channels) ensureAsymmetricSigningKey() error {
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := ch.srv.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+	value, err := ch.srv.Store().System().GetByName(model.SystemAsymmetricSigningKeyKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -171,7 +171,7 @@ func (ch *Channels) ensureAsymmetricSigningKey() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = ch.srv.Store.System().Save(system); err != nil {
+		if err = ch.srv.Store().System().Save(system); err != nil {
 			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
@@ -181,7 +181,7 @@ func (ch *Channels) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := ch.srv.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+		value, err := ch.srv.Store().System().GetByName(model.SystemAsymmetricSigningKeyKey)
 		if err != nil {
 			return err
 		}
@@ -216,7 +216,7 @@ func (s *Server) ensureInstallationDate() error {
 		return nil
 	}
 
-	installDate, nErr := s.Store.User().InferSystemInstallDate()
+	installDate, nErr := s.Store().User().InferSystemInstallDate()
 	var installationDate int64
 	if nErr == nil && installDate > 0 {
 		installationDate = installDate
@@ -224,7 +224,7 @@ func (s *Server) ensureInstallationDate() error {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
 
-	if err := s.Store.System().SaveOrUpdate(&model.System{
+	if err := s.Store().System().SaveOrUpdate(&model.System{
 		Name:  model.SystemInstallationDateKey,
 		Value: strconv.FormatInt(installationDate, 10),
 	}); err != nil {
@@ -239,7 +239,7 @@ func (s *Server) ensureFirstServerRunTimestamp() error {
 		return nil
 	}
 
-	if err := s.Store.System().SaveOrUpdate(&model.System{
+	if err := s.Store().System().SaveOrUpdate(&model.System{
 		Name:  model.SystemFirstServerRunTimestampKey,
 		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
 	}); err != nil {
@@ -274,7 +274,7 @@ func (ch *Channels) regenerateClientConfig() {
 	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := ch.srv.Store.TermsOfService().GetLatest(true)
+		termsOfService, err := ch.srv.Store().TermsOfService().GetLatest(true)
 		if err != nil {
 			mlog.Err(err)
 		} else {
@@ -324,7 +324,7 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
-	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
+	if ver, err := a.ch.srv.Store().GetDBSchemaVersion(); err != nil {
 		mlog.Error("Could not get the schema version", mlog.Err(err))
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)

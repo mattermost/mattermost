@@ -44,7 +44,7 @@ func (*JoinProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 		channelName = message[1:]
 	}
 
-	channel, err := a.Srv().Store.Channel().GetByName(args.TeamId, channelName, true)
+	channel, err := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.list.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}

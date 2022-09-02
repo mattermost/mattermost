@@ -118,7 +118,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		auditRec.AddMeta("channels", memberInvite.ChannelIds)
 	}
 
-	team, err := c.App.Srv().Store.Team().Get(c.Params.TeamId)
+	team, err := c.App.Srv().Store().Team().Get(c.Params.TeamId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -134,7 +134,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var channels []*model.Channel
 	if len(memberInvite.ChannelIds) > 0 {
-		channels, err = c.App.Srv().Store.Channel().GetChannelsByIds(memberInvite.ChannelIds, false)
+		channels, err = c.App.Srv().Store().Channel().GetChannelsByIds(memberInvite.ChannelIds, false)
 		if err != nil {
 			c.Err = model.NewAppError("prepareLocalInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

@@ -107,7 +107,7 @@ func (s *Server) HubStart() {
 }
 
 func (a *App) invalidateCacheForWebhook(webhookID string) {
-	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookID)
+	a.Srv().Store().Webhook().InvalidateWebhookCache(webhookID)
 }
 
 // HubStop stops all the hubs.
@@ -216,7 +216,7 @@ func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {
-	a.Srv().Store.Channel().InvalidateChannel(channel.Id)
+	a.Srv().Store().Channel().InvalidateChannel(channel.Id)
 	a.Srv().invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if a.Cluster() != nil {
@@ -238,9 +238,9 @@ func (a *App) invalidateCacheForChannel(channel *model.Channel) {
 }
 
 func (a *App) invalidateCacheForChannelMembers(channelID string) {
-	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelID)
-	a.Srv().Store.Channel().InvalidateMemberCount(channelID)
-	a.Srv().Store.Channel().InvalidateGuestCount(channelID)
+	a.Srv().Store().User().InvalidateProfilesInChannelCache(channelID)
+	a.Srv().Store().Channel().InvalidateMemberCount(channelID)
+	a.Srv().Store().Channel().InvalidateGuestCount(channelID)
 }
 
 func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
@@ -257,8 +257,8 @@ func (a *App) invalidateCacheForChannelMembersNotifyProps(channelID string) {
 }
 
 func (a *App) invalidateCacheForChannelPosts(channelID string) {
-	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelID)
-	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelID)
+	a.Srv().Store().Channel().InvalidatePinnedPostCount(channelID)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channelID)
 }
 
 func (a *App) InvalidateCacheForUser(userID string) {
@@ -269,7 +269,7 @@ func (a *App) InvalidateCacheForUser(userID string) {
 
 func (a *App) invalidateCacheForUserTeams(userID string) {
 	a.Srv().invalidateWebConnSessionCacheForUser(userID)
-	a.Srv().Store.Team().InvalidateAllTeamIdsForUser(userID)
+	a.Srv().Store().Team().InvalidateAllTeamIdsForUser(userID)
 
 	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{

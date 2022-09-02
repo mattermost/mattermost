@@ -15,7 +15,7 @@ import (
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
 	y, m, d := model.GetTimeForMillis(createdAt).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
-	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
+	return a.Srv().Store().Post().HasAutoResponsePostByUserSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
 	)

@@ -16,7 +16,7 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 		return nil, appErr
 	}
 
-	scheme, err := a.Srv().Store.Scheme().Get(id)
+	scheme, err := a.Srv().Store().Scheme().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -34,7 +34,7 @@ func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	scheme, err := a.Srv().Store.Scheme().GetByName(name)
+	scheme, err := a.Srv().Store().Scheme().GetByName(name)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -60,7 +60,7 @@ func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Schem
 		return nil, err
 	}
 
-	scheme, err := s.Store.Scheme().GetAllPage(scope, offset, limit)
+	scheme, err := s.Store().Scheme().GetAllPage(scope, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetSchemes", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -91,7 +91,7 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0
 
-	scheme, err := a.Srv().Store.Scheme().Save(scheme)
+	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -126,7 +126,7 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
-	scheme, err := a.Srv().Store.Scheme().Save(scheme)
+	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -147,7 +147,7 @@ func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 		return nil, err
 	}
 
-	scheme, err := a.Srv().Store.Scheme().Delete(schemeId)
+	scheme, err := a.Srv().Store().Scheme().Delete(schemeId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -173,7 +173,7 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 		return nil, err
 	}
 
-	teams, err := a.Srv().Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
+	teams, err := a.Srv().Store().Team().GetTeamsByScheme(scheme.Id, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsForScheme", "app.team.get_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -193,7 +193,7 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 		return nil, err
 	}
 
-	channelList, nErr := a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+	channelList, nErr := a.Srv().Store().Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 	if nErr != nil {
 		return nil, model.NewAppError("GetChannelsForScheme", "app.channel.get_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -206,7 +206,7 @@ func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
 		return nil
 	}
 
-	if _, err := s.Store.System().GetByName(model.MigrationKeyAdvancedPermissionsPhase2); err != nil {
+	if _, err := s.Store().System().GetByName(model.MigrationKeyAdvancedPermissionsPhase2); err != nil {
 		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 	}
 
@@ -222,7 +222,7 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 func (a *App) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
-		schemes, err := a.Srv().Store.Scheme().GetAllPage(scope, offset, batchSize)
+		schemes, err := a.Srv().Store().Scheme().GetAllPage(scope, offset, batchSize)
 		if err != nil {
 			return []*model.Scheme{}
 		}

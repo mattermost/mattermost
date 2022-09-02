@@ -651,7 +651,7 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	linkMetadata, err := a.Srv().Store.LinkMetadata().Get(requestURL, timestamp)
+	linkMetadata, err := a.Srv().Store().LinkMetadata().Get(requestURL, timestamp)
 	if err != nil {
 		return nil, nil, false
 	}
@@ -684,7 +684,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LinkMetadataTypeNone
 	}
 
-	_, err := a.Srv().Store.LinkMetadata().Save(metadata)
+	_, err := a.Srv().Store().LinkMetadata().Save(metadata)
 	if err != nil {
 		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}

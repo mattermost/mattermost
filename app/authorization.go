@@ -100,7 +100,7 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 		return false
 	}
 
-	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
 	if err == nil {
@@ -144,7 +144,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		return true
 	}
 
-	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
 	uniqueRoles := make(map[string]bool)
@@ -192,7 +192,7 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 }
 
 func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
-	groupMember, err := a.Srv().Store.Group().GetMember(groupID, session.UserId)
+	groupMember, err := a.Srv().Store().Group().GetMember(groupID, session.UserId)
 	// don't reject immediately on ErrNoRows error because there's further authz logic below for non-groupmembers
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return false
@@ -211,14 +211,14 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, session.UserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
 
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
+	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
 		if channel.TeamId != "" {
 			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 		}
@@ -316,13 +316,13 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 }
 
 func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
+	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
 

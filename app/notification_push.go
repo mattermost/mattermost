@@ -230,14 +230,14 @@ func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID,
 		IsCRTEnabled:     a.IsCRTEnabledForUser(c, userID),
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID)
 	if err != nil {
 		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	msg.Badge = int(unreadCount)
 
 	if msg.IsCRTEnabled {
-		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		totalUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
 		if err != nil {
 			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -268,7 +268,7 @@ func (a *App) updateMobileAppBadgeSync(userID string) *model.AppError {
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID)
 	if err != nil {
 		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -473,7 +473,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
-	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userID)
+	sessions, err := a.Srv().Store().Session().GetSessionsWithActiveDeviceIds(userID)
 	if err != nil {
 		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -566,7 +566,7 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 		msg = a.buildFullPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(user.Id)
 	if err != nil {
 		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

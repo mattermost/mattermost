@@ -49,13 +49,13 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		},
 	}
 
-	importer := slackimport.New(a.ch.srv.Store, actions, a.Config())
+	importer := slackimport.New(a.Srv().Store(), actions, a.Config())
 	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)
-	text = replaceUserIds(a.Srv().Store.User(), text)
+	text = replaceUserIds(a.Srv().Store().User(), text)
 
 	return text
 }

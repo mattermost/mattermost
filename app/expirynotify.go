@@ -22,7 +22,7 @@ func (a *App) NotifySessionsExpired() error {
 	}
 
 	// Get all mobile sessions that expired within the last hour.
-	sessions, err := a.ch.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
+	sessions, err := a.ch.srv.Store().Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
 		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -62,7 +62,7 @@ func (a *App) NotifySessionsExpired() error {
 			a.Metrics().IncrementPostSentPush()
 		}
 
-		err = a.ch.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
+		err = a.ch.srv.Store().Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
 			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
 		}

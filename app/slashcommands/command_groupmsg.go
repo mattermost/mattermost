@@ -49,7 +49,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		targetUser, nErr := a.Srv().Store.User().GetByUsername(username)
+		targetUser, nErr := a.Srv().Store().User().GetByUsername(username)
 		if nErr != nil {
 			invalidUsernames = append(invalidUsernames, username)
 			continue

@@ -59,7 +59,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SystemInstallationDateKey)
+	systemData, err := s.Store().System().GetByName(model.SystemInstallationDateKey)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -71,7 +71,7 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
-	systemData, err := s.Store.System().GetByName(model.SystemFirstServerRunTimestampKey)
+	systemData, err := s.Store().System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
 		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -144,14 +144,14 @@ func (a *App) License() *model.License {
 func (a *App) DBHealthCheckWrite() error {
 	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
 
-	return a.Srv().Store.System().SaveOrUpdate(&model.System{
+	return a.Srv().Store().System().SaveOrUpdate(&model.System{
 		Name:  a.dbHealthCheckKey(),
 		Value: currentTime,
 	})
 }
 
 func (a *App) DBHealthCheckDelete() error {
-	_, err := a.Srv().Store.System().PermanentDeleteByName(a.dbHealthCheckKey())
+	_, err := a.Srv().Store().System().PermanentDeleteByName(a.dbHealthCheckKey())
 	return err
 }
 
@@ -160,7 +160,7 @@ func (a *App) dbHealthCheckKey() string {
 }
 
 func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
-	return a.Srv().Store.CheckIntegrity()
+	return a.Srv().Store().CheckIntegrity()
 }
 
 func (a *App) SetChannels(ch *Channels) {
@@ -172,7 +172,7 @@ func (a *App) SetServer(srv *Server) {
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
-	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+	return a.Srv().Store().Status().UpdateExpiredDNDStatuses()
 }
 
 // Ensure system service adapter implements `product.SystemService`

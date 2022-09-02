@@ -110,7 +110,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.Srv().SearchEngine = mainHelper.SearchEngine
 
-	th.App.Srv().Store.MarkSystemRanUnitTests()
+	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 

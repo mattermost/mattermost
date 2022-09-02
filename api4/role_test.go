@@ -19,7 +19,7 @@ func TestGetAllRoles(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	roles, err := th.App.Srv().Store.Role().GetAll()
+	roles, err := th.App.Srv().Store().Role().GetAll()
 	require.NoError(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -49,9 +49,9 @@ func TestGetRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
+	role, err := th.App.Srv().Store().Role().Save(role)
 	require.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		received, _, err := client.GetRole(role.Id)
@@ -88,9 +88,9 @@ func TestGetRoleByName(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv().Store.Role().Save(role)
+	role, err := th.App.Srv().Store().Role().Save(role)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		received, _, err := client.GetRoleByName(role.Name)
@@ -141,17 +141,17 @@ func TestGetRolesByNames(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role1, err := th.App.Srv().Store.Role().Save(role1)
+	role1, err := th.App.Srv().Store().Role().Save(role1)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role1.Id)
+	defer th.App.Srv().Store().Job().Delete(role1.Id)
 
-	role2, err = th.App.Srv().Store.Role().Save(role2)
+	role2, err = th.App.Srv().Store().Role().Save(role2)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role2.Id)
+	defer th.App.Srv().Store().Job().Delete(role2.Id)
 
-	role3, err = th.App.Srv().Store.Role().Save(role3)
+	role3, err = th.App.Srv().Store().Role().Save(role3)
 	assert.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(role3.Id)
+	defer th.App.Srv().Store().Job().Delete(role3.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Check all three roles can be found.
@@ -199,9 +199,9 @@ func TestPatchRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err2 := th.App.Srv().Store.Role().Save(role)
+	role, err2 := th.App.Srv().Store().Role().Save(role)
 	assert.NoError(t, err2)
-	defer th.App.Srv().Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store().Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
 		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
@@ -210,18 +210,18 @@ func TestPatchRole(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 
 		// Cannot edit a system admin
-		adminRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_admin")
+		adminRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_admin")
 		assert.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
+		defer th.App.Srv().Store().Job().Delete(adminRole.Id)
 
 		_, resp, err := client.PatchRole(adminRole.Id, patch)
 		require.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 
 		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
-		systemManager, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_manager")
+		systemManager, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_manager")
 		assert.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
+		defer th.App.Srv().Store().Job().Delete(systemManager.Id)
 
 		patchWriteSystemRoles := &model.RolePatch{
 			Permissions: &[]string{model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
@@ -300,7 +300,7 @@ func TestPatchRole(t *testing.T) {
 			license.Features.GuestAccountsPermissions = model.NewBool(false)
 			th.App.Srv().SetLicense(license)
 
-			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
 			received, resp, err = client.PatchRole(guestRole.Id, patch)
 			require.Error(t, err)
@@ -311,7 +311,7 @@ func TestPatchRole(t *testing.T) {
 			license := model.NewTestLicense()
 			license.Features.GuestAccountsPermissions = model.NewBool(true)
 			th.App.Srv().SetLicense(license)
-			guestRole, err := th.App.Srv().Store.Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
 			require.NoError(t, err)
 			_, _, err = client.PatchRole(guestRole.Id, patch)
 			require.NoError(t, err)

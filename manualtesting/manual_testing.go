@@ -78,7 +78,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TeamOpen,
 		}
 
-		createdTeam, err := c.App.Srv().Store.Team().Save(team)
+		createdTeam, err := c.App.Srv().Store().Team().Save(team)
 		if err != nil {
 			var invErr *store.ErrInvalidInput
 			var appErr *model.AppError
@@ -120,8 +120,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv().Store().Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
@@ -178,7 +178,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
+	channels, err := a.Srv().Store().Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
 		IncludeDeleted: false,
 		LastDeleteAt:   0,
 	})

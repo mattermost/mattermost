@@ -112,7 +112,7 @@ func handleInvitation(s *Server, syncService SharedChannelServiceIFace, event *m
 		return nil
 	}
 
-	rc, err := s.Store.RemoteCluster().Get(*participant.RemoteId)
+	rc, err := s.Store().RemoteCluster().Get(*participant.RemoteId)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}
@@ -126,7 +126,7 @@ func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*mode
 		return nil, fmt.Errorf("received websocket message that is eligible for sending an invitation but message does not have `%s` present", key)
 	}
 
-	user, err := s.Store.User().Get(context.Background(), userID)
+	user, err := s.Store().User().Get(context.Background(), userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't find user for creating shared channel invitation for a DM")
 	}
@@ -135,7 +135,7 @@ func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*mode
 }
 
 func findChannel(server *Server, channelId string) (*model.Channel, error) {
-	channel, err := server.Store.Channel().Get(channelId, true)
+	channel, err := server.Store().Channel().Get(channelId, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "received websocket message that is eligible for shared channel sync but channel does not exist")
 	}

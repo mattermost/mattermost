@@ -141,7 +141,7 @@ func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 }
 
 func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
-	s.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
+	s.Store().Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
 }
 
 func (s *Server) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
@@ -149,11 +149,11 @@ func (s *Server) invalidateCacheForChannelByNameSkipClusterSend(teamID, name str
 		teamID = "dm"
 	}
 
-	s.Store.Channel().InvalidateChannelByName(teamID, name)
+	s.Store().Channel().InvalidateChannelByName(teamID, name)
 }
 
 func (s *Server) invalidateCacheForUserSkipClusterSend(userID string) {
-	s.Store.Channel().InvalidateAllChannelMembersForUser(userID)
+	s.Store().Channel().InvalidateAllChannelMembersForUser(userID)
 	s.invalidateWebConnSessionCacheForUser(userID)
 }
 

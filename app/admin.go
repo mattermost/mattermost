@@ -171,12 +171,12 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
 	s.userService.ClearAllUsersSessionCacheLocal()
 	s.statusCache.Purge()
-	s.Store.Team().ClearCaches()
-	s.Store.Channel().ClearCaches()
-	s.Store.User().ClearCaches()
-	s.Store.Post().ClearCaches()
-	s.Store.FileInfo().ClearCaches()
-	s.Store.Webhook().ClearCaches()
+	s.Store().Team().ClearCaches()
+	s.Store().Channel().ClearCaches()
+	s.Store().User().ClearCaches()
+	s.Store().Post().ClearCaches()
+	s.Store().FileInfo().ClearCaches()
+	s.Store().Webhook().ClearCaches()
 	linkCache.Purge()
 	s.LoadLicense()
 }
@@ -187,7 +187,7 @@ func (a *App) RecycleDatabaseConnection() {
 	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
 	// This allows in gradually closing connections as they expire. In future, we can think
 	// of exposing this as a param from the REST api.
-	a.Srv().Store.RecycleDBConnections(10 * time.Second)
+	a.Srv().Store().RecycleDBConnections(10 * time.Second)
 
 	mlog.Info("Finished recycling database connections.")
 }

@@ -1089,7 +1089,7 @@ func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
 
 func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
 	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
-	return api.app.Srv().Store.Command().GetByTeam(teamID)
+	return api.app.Srv().Store().Command().GetByTeam(teamID)
 }
 
 func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
@@ -1125,7 +1125,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
-	return api.app.Srv().Store.Command().Get(commandID)
+	return api.app.Srv().Store().Command().Get(commandID)
 }
 
 func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
@@ -1145,11 +1145,11 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	return api.app.Srv().Store.Command().Update(updatedCmd)
+	return api.app.Srv().Store().Command().Update(updatedCmd)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) error {
-	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	err := api.app.Srv().Store().Command().Delete(commandID, model.GetMillis())
 	if err != nil {
 		return err
 	}

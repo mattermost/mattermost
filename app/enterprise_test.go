@@ -68,7 +68,7 @@ func TestSAMLSettings(t *testing.T) {
 
 			defer th.TearDown()
 
-			mockStore := th.App.Srv().Store.(*storemocks.Store)
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 			mockPostStore := storemocks.PostStore{}

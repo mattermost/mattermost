@@ -226,7 +226,7 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 }
 
 func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
-	_, err := a.Srv().Store.Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
+	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
 	if err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -243,7 +243,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 		return
 	}
 
-	if err := a.Srv().Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
+	if err := a.Srv().Store().Session().UpdateLastActivityAt(session.Id, now); err != nil {
 		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
@@ -343,7 +343,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	token, nErr = a.Srv().Store.UserAccessToken().Save(token)
+	token, nErr = a.Srv().Store().UserAccessToken().Save(token)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -366,7 +366,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
-	token, nErr := a.Srv().Store.UserAccessToken().GetByToken(tokenString)
+	token, nErr := a.Srv().Store().UserAccessToken().GetByToken(tokenString)
 	if nErr != nil {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "", http.StatusUnauthorized).Wrap(nErr)
 	}
@@ -375,7 +375,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, nErr := a.Srv().Store.User().Get(context.Background(), token.UserId)
+	user, nErr := a.Srv().Store().User().Get(context.Background(), token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -413,7 +413,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	}
 	a.ch.srv.userService.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
 
-	session, nErr = a.Srv().Store.Session().Save(session)
+	session, nErr = a.Srv().Store().Session().Save(session)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -434,7 +434,7 @@ func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.ch.srv.userService.GetSessionContext(context.Background(), token.Token)
 
-	if err := a.Srv().Store.UserAccessToken().Delete(token.Id); err != nil {
+	if err := a.Srv().Store().UserAccessToken().Delete(token.Id); err != nil {
 		return model.NewAppError("RevokeUserAccessToken", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -449,7 +449,7 @@ func (a *App) DisableUserAccessToken(token *model.UserAccessToken) *model.AppErr
 	var session *model.Session
 	session, _ = a.ch.srv.userService.GetSessionContext(context.Background(), token.Token)
 
-	if err := a.Srv().Store.UserAccessToken().UpdateTokenDisable(token.Id); err != nil {
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenDisable(token.Id); err != nil {
 		return model.NewAppError("DisableUserAccessToken", "app.user_access_token.update_token_disable.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -464,7 +464,7 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.ch.srv.userService.GetSessionContext(context.Background(), token.Token)
 
-	err := a.Srv().Store.UserAccessToken().UpdateTokenEnable(token.Id)
+	err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id)
 	if err != nil {
 		return model.NewAppError("EnableUserAccessToken", "app.user_access_token.update_token_enable.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -477,7 +477,7 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 }
 
 func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	tokens, err := a.Srv().Store.UserAccessToken().GetAll(page*perPage, perPage)
+	tokens, err := a.Srv().Store().UserAccessToken().GetAll(page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetUserAccessTokens", "app.user_access_token.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -490,7 +490,7 @@ func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, 
 }
 
 func (a *App) GetUserAccessTokensForUser(userID string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	tokens, err := a.Srv().Store.UserAccessToken().GetByUser(userID, page*perPage, perPage)
+	tokens, err := a.Srv().Store().UserAccessToken().GetByUser(userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetUserAccessTokensForUser", "app.user_access_token.get_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -503,7 +503,7 @@ func (a *App) GetUserAccessTokensForUser(userID string, page, perPage int) ([]*m
 }
 
 func (a *App) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	token, err := a.Srv().Store.UserAccessToken().Get(tokenID)
+	token, err := a.Srv().Store().UserAccessToken().Get(tokenID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -521,7 +521,7 @@ func (a *App) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAcce
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	tokens, err := a.Srv().Store.UserAccessToken().Search(term)
+	tokens, err := a.Srv().Store().UserAccessToken().Search(term)
 	if err != nil {
 		return nil, model.NewAppError("SearchUserAccessTokens", "app.user_access_token.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

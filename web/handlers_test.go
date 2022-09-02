@@ -66,7 +66,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -309,7 +309,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
@@ -630,7 +630,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}

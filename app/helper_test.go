@@ -119,7 +119,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.Srv().SearchEngine = mainHelper.SearchEngine
 
-	th.App.Srv().Store.MarkSystemRanUnitTests()
+	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -179,7 +179,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -194,7 +194,7 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -500,7 +500,7 @@ func (th *TestHelper) CreateGroup() *model.Group {
 }
 
 func (th *TestHelper) CreateEmoji() *model.Emoji {
-	emoji, err := th.App.Srv().Store.Emoji().Save(&model.Emoji{
+	emoji, err := th.App.Srv().Store().Emoji().Save(&model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
@@ -603,13 +603,13 @@ func (*TestHelper) ResetEmojisMigration() {
 }
 
 func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
+	teamCount, err := th.App.Srv().Store().Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+	count, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }

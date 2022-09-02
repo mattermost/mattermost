@@ -73,7 +73,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	// Here we are getting information regarding the database (mysql/postgres + current schema version)
 	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
-	uniqueUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "error while getting user count").Error()
 	}

@@ -129,7 +129,7 @@ func TestCORSRequestHandling(t *testing.T) {
 			defer th.TearDown()
 			licenseStore := mocks.LicenseStore{}
 			licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-			th.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
+			th.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)
 
 			port := th.App.Srv().ListenAddr.Port
 			host := fmt.Sprintf("http://localhost:%v", port)

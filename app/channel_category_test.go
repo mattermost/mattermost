@@ -19,7 +19,7 @@ func TestSidebarCategory(t *testing.T) {
 	basicChannel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	defer th.App.PermanentDeleteChannel(th.Context, basicChannel2)
 	user := th.CreateUser()
-	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(user.Id)
 	th.LinkUserToTeam(user, th.BasicTeam)
 	th.AddUserToChannel(user, basicChannel2)
 
@@ -105,7 +105,7 @@ func TestGetSidebarCategories(t *testing.T) {
 		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
 		// relationship that hasn't been migrated yet
 		team := th.CreateTeam()
-		_, err := th.App.Srv().Store.Team().SaveMember(&model.TeamMember{
+		_, err := th.App.Srv().Store().Team().SaveMember(&model.TeamMember{
 			TeamId:     team.Id,
 			UserId:     th.BasicUser.Id,
 			SchemeUser: true,

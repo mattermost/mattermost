@@ -167,7 +167,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				searchStore.UpdateConfig(cfg)
 			})
 
-			ps.sqlStore.UpdateLicense(ps.License())
+			license := ps.License()
+			ps.sqlStore.UpdateLicense(license)
 			ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				ps.sqlStore.UpdateLicense(newLicense)
 			})

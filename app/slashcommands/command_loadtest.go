@@ -248,7 +248,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, c request.CTX, args *model.Com
 			c.Logger().Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
 		}
 	} else {
-		team, err := a.Srv().Store.Team().Get(args.TeamId)
+		team, err := a.Srv().Store().Team().Get(args.TeamId)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -299,7 +299,7 @@ func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.Com
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
-	team, err := a.Srv().Store.Team().Get(args.TeamId)
+	team, err := a.Srv().Store().Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to add users", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
@@ -328,7 +328,7 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
-	team, err := a.Srv().Store.Team().Get(args.TeamId)
+	team, err := a.Srv().Store().Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
@@ -361,7 +361,7 @@ func (*LoadTestProvider) DMsCommand(a *app.App, c request.CTX, args *model.Comma
 func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store.User().GetProfiles(options); err == nil {
+	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {
@@ -408,7 +408,7 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv().Store.User().GetProfiles(options); err == nil {
+	if profileUsers, err := a.Srv().Store().User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {

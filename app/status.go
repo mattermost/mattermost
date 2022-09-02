@@ -77,7 +77,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppErro
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store().Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -125,7 +125,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store().Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -215,11 +215,11 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
 		if broadcast {
-			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+			if err := a.Srv().Store().Status().SaveOrUpdate(status); err != nil {
 				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		} else {
-			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+			if err := a.Srv().Store().Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
@@ -330,7 +330,7 @@ func (a *App) SetStatusDoNotDisturb(userID string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+	if err := a.Srv().Store().Status().SaveOrUpdate(status); err != nil {
 		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
@@ -375,7 +375,7 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	status, err := a.Srv().Store.Status().Get(userID)
+	status, err := a.Srv().Store().Status().Get(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

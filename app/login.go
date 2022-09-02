@@ -70,7 +70,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
-		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
+		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -88,7 +88,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 				CreateAt: model.GetMillis(),
 				Type:     TokenTypeCWSAccess,
 			}
-			err := a.Srv().Store.Token().Save(token)
+			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
 				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -139,7 +139,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if user, err := a.Srv().Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+	if user, err := a.Srv().Store().User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
 		return user, nil
 	}
 
