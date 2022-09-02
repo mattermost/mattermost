@@ -458,6 +458,15 @@ func (us SqlUserStore) GetAll() ([]*model.User, error) {
 	return data, nil
 }
 
+func (us SqlUserStore) GetNotifyProps(userId string) (map[string]string, error) {
+	user, err := us.Get(context.Background(), userId)
+	if err != nil {
+		return nil, errors.Wrap(err, "get_notify_props")
+	}
+
+	return user.NotifyProps, nil
+}
+
 func (us SqlUserStore) GetAllAfter(limit int, afterId string) ([]*model.User, error) {
 	query := us.usersQuery.
 		Where("Id > ?", afterId).

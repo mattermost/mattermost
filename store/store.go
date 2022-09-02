@@ -418,6 +418,7 @@ type UserStore interface {
 	Get(ctx context.Context, id string) (*model.User, error)
 	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
+	GetNotifyProps(userID string) (map[string]string, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userID string)
 	InvalidateProfilesInChannelCache(channelID string)
@@ -972,7 +973,6 @@ type SharedChannelStore interface {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	Term                     string
 	NotAssociatedToGroup     string

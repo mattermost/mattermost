@@ -49,6 +49,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
+	t.Run("GetNotifyProps", func(t *testing.T) { testUserStoreGetNotifyProps(t, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
@@ -319,6 +320,26 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
 		require.Equal(t, "bot description", actual.BotDescription)
+	})
+}
+
+func testUserStoreGetNotifyProps(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Email: MakeEmail(),
+	}
+	_, err := ss.User().Save(u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	t.Run("fetch empty id", func(t *testing.T) {
+		_, err := ss.User().GetNotifyProps("")
+		require.Error(t, err)
+	})
+
+	t.Run("fetch user 1", func(t *testing.T) {
+		actual, err := ss.User().GetNotifyProps(u1.Id)
+		require.NoError(t, err)
+		require.Equal(t, u1, actual)
 	})
 }
 

@@ -1535,3 +1535,24 @@ func (_m *UserStore) VerifyEmail(userID string, email string) (string, error) {
 
 	return r0, r1
 }
+
+// GetNotifyProps provides a mock function with given field: userID
+func (_m *UserStore) GetNotifyProps(userID string) (map[string]string, error)  {
+	ret := _m.Called(userID)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Get(0).(map[string]string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

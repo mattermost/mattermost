@@ -193,6 +193,10 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 	return users, nil
 }
 
+func (us *UserService) GetUserNotifyProps(userID string) (map[string]string, error) {
+	return us.store.GetNotifyProps(userID)
+}
+
 func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
 	return us.store.Update(user, allowRoleUpdate)
 }
@@ -257,4 +261,23 @@ func (us *UserService) PromoteGuestToUser(user *model.User) error {
 
 func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) {
 	return us.store.DemoteUserToGuest(user.Id)
+}
+
+func (us *UserService) ToggleEmailNotifications(userId string, action string) error {
+	notifyProps, err := us.store.GetNotifyProps(userId)
+	if err != nil {
+		return err
+	}
+
+	if action == "enable" {
+		notifyProps["email"] = "true"
+	} else {
+		notifyProps["email"] = "false"
+	}
+
+	if err = us.store.UpdateNotifyProps(userId, notifyProps); err != nil {
+		return err
+	}
+
+	return nil
 }
