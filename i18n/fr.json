@@ -1082,10 +1082,6 @@
     "translation": "Impossible d'envoyer les fichiers. Il y a {{.NumClientIds}} client_ids pour {{.NumFiles}} fichiers."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Impossible d'envoyer des fichiers. Le nombre de fichiers spécifié est incorrect."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Le fichier est au-dessus des limites de dimensions, il n'a pas pu être envoyé : {{.Filename}}"
   },
@@ -6792,10 +6788,6 @@
     "translation": "Vous devez accepter le contrat d'évaluation du logiciel Mattermost et la politique de confidentialité pour demander une licence."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Impossible de vous octroyer une licence d'évaluation. Merci de configurer l'URL de votre site dans la section Serveur Web de la console système de Mattermost."
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Impossible de vous octroyer une licence d'évaluation, recommencez ou contacter notre support à l'adresse support@mattermost.com."
   },
@@ -7586,10 +7578,6 @@
   {
     "id": "app.insert_error",
     "translation": "erreur d'insertion"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Impossible de préparer la réponse."
   },
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
@@ -8491,10 +8479,6 @@
     "translation": "{{.SenderName}} a répondu à un fil"
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Erreur lors du traitement des fichiers joints lors de l'import en masse."
-  },
-  {
     "id": "api.unmarshal_error",
     "translation": "Erreur lors de la transformation des données (unmarshalling)."
   },
@@ -8707,10 +8691,6 @@
     "translation": "Erreur de mise à jour de l'abonnement à partir du point d'ancrage Web."
   },
   {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
     "id": "app.user.store_is_empty.app_error",
     "translation": "Impossible de vérifier si le magasin de l'utilisateur est vide."
   },
@@ -8723,16 +8703,8 @@
     "translation": "Impossble d'envoyer une réponse automatique à l'utilisateur."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_thread_count_for_user.app_error",
     "translation": "Nous n'avons pas pu obtenir le nombre de fils pour l'utilisateur."
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -8767,14 +8739,6 @@
     "translation": "Impossible de récupérer les recherches récentes"
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.post.get_top_threads_for_team_since.app_error",
     "translation": "Impossible d'obtenir le fils supérieurs pour l'équipe."
   },
@@ -8799,14 +8763,6 @@
     "translation": "La fonctionnalité des aperçus est désactivée."
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "Impossible de réaliser les opérations pour ce type de source."
   },
@@ -8815,40 +8771,8 @@
     "translation": "le nom du groupe n'est pas unique"
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Impossible d'obtenir le nombre de fichiers du canal"
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
@@ -8923,16 +8847,8 @@
     "translation": "Erreur lors de l'envoi du courriel"
   },
   {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
     "id": "api.license_error",
     "translation": "l'API endpoint nécessite une licence"
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": "Votre licence ne prend pas en charge la fonctionnalité d'aperçu."
   },
   {
     "id": "api.insights.feature_disabled",
@@ -9156,10 +9072,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_user_files.error",
-    "translation": " "
-  },
-  {
-    "id": "model.github_release_info.is_valid.id.app_error",
     "translation": " "
   },
   {
