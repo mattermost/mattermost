@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: platform: remove
 func (us *UserService) ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""

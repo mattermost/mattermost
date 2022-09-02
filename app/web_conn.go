@@ -3,6 +3,8 @@
 
 package app
 
+// TODO: platform: remove
+
 import (
 	"bytes"
 	"crypto/tls"

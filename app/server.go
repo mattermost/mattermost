@@ -107,9 +107,9 @@ const (
 )
 
 type Server struct {
-	sqlStore        *sqlstore.SqlStore
-	Store           store.Store
-	WebSocketRouter *WebSocketRouter
+	sqlStore        *sqlstore.SqlStore // TODO: platform: remove
+	Store           store.Store        // TODO: platform: remove
+	WebSocketRouter *WebSocketRouter   // TODO: platform: remove
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -125,7 +125,7 @@ type Server struct {
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
-	Busy        *Busy
+	Busy        *Busy // TODO: platform: remove
 
 	localModeServer *http.Server
 
@@ -136,8 +136,8 @@ type Server struct {
 
 	EmailService email.ServiceInterface
 
-	hubs     []*Hub
-	hashSeed maphash.Seed
+	hubs     []*Hub       // TODO: platform: remove
+	hashSeed maphash.Seed // TODO: platform: remove
 
 	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
@@ -146,21 +146,21 @@ type Server struct {
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
 
-	clusterLeaderListeners sync.Map
-	clusterWrapper         *clusterWrapper
+	clusterLeaderListeners sync.Map        // TODO: platform: remove
+	clusterWrapper         *clusterWrapper // TODO: platform: remove
 
-	licenseValue       atomic.Value
-	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func(*model.License, *model.License)
+	licenseValue       atomic.Value                                    // TODO: platform: remove
+	clientLicenseValue atomic.Value                                    // TODO: platform: remove
+	licenseListeners   map[string]func(*model.License, *model.License) // TODO: platform: remove
 	licenseWrapper     *licenseWrapper
 
 	timezones *timezones.Timezones
 
-	newStore func() (store.Store, error)
+	newStore func() (store.Store, error) // TODO: platform: remove
 
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache
+	statusCache             cache.Cache // TODO: platform: remove
 	openGraphDataCache      cache.Cache
 	configListenerId        string
 	licenseListenerId       string
@@ -171,6 +171,7 @@ type Server struct {
 	filestore               filestore.FileBackend
 
 	platform         *platform.PlatformService
+	platformOptions  []platform.Option
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
@@ -183,18 +184,18 @@ type Server struct {
 
 	Audit *audit.Audit
 
-	joinCluster       bool
-	startMetrics      bool
-	startSearchEngine bool
-	skipPostInit      bool
+	joinCluster  bool
+	startMetrics bool
+	// startSearchEngine bool
+	skipPostInit bool
 
 	SearchEngine *searchengine.Broker
 
-	Cluster        einterfaces.ClusterInterface
+	Cluster        einterfaces.ClusterInterface // TODO: platform: remove
 	Cloud          einterfaces.CloudInterface
-	LicenseManager einterfaces.LicenseInterface
+	LicenseManager einterfaces.LicenseInterface // TODO: platform: remove
 
-	CacheProvider cache.Provider
+	CacheProvider cache.Provider // TODO: platform: remove
 
 	tracer *tracing.Tracer
 
@@ -1022,6 +1023,7 @@ func (s *Server) UpgradeToE0Status() (int64, error) {
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
+// TODO: platform: remove
 func (s *Server) Go(f func()) {
 	atomic.AddInt32(&s.goroutineCount, 1)
 
@@ -1037,6 +1039,7 @@ func (s *Server) Go(f func()) {
 }
 
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
+// TODO: platform: remove
 func (s *Server) WaitForGoroutines() {
 	for atomic.LoadInt32(&s.goroutineCount) != 0 {
 		<-s.goroutineExitSignal
@@ -1169,7 +1172,7 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
-	s.Busy = NewBusy(s.Cluster)
+	s.Busy = NewBusy(s.Cluster) // TODO: platform: remove
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog := s.Log().With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
@@ -1846,6 +1849,8 @@ func (s *Server) initJobs() {
 		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
 	)
+
+	s.platform.Jobs = s.Jobs
 }
 
 func (s *Server) TelemetryId() string {

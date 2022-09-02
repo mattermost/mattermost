@@ -131,6 +131,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 	return nil
 }
 
+// TODO: platform: remove
 // ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
 func (ch *Channels) ensureAsymmetricSigningKey() error {
@@ -267,6 +268,7 @@ func (a *App) PostActionCookieSecret() []byte {
 	return a.ch.PostActionCookieSecret()
 }
 
+// TODO: platform: remove
 func (ch *Channels) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())

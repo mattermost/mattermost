@@ -53,6 +53,7 @@ func (a *App) CompareAndSetPluginKey(pluginID string, key string, oldValue, newV
 	return a.SetPluginKeyWithOptions(pluginID, key, newValue, options)
 }
 
+// TODO: platform: remove
 func (s *Server) setPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
 		mlog.Debug("Failed to set plugin key value with options", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
@@ -109,6 +110,7 @@ func (a *App) CompareAndDeletePluginKey(pluginID string, key string, oldValue []
 	return deleted, nil
 }
 
+// TODO: platform: remove
 func (s *Server) getPluginKey(pluginID string, key string) ([]byte, *model.AppError) {
 	if kv, err := s.Store.Plugin().Get(pluginID, key); err == nil {
 		return kv.Value, nil
@@ -132,6 +134,7 @@ func (a *App) GetPluginKey(pluginID string, key string) ([]byte, *model.AppError
 	return a.Srv().getPluginKey(pluginID, key)
 }
 
+// TODO: platform: remove
 func (s *Server) deletePluginKey(pluginID string, key string) *model.AppError {
 	if err := s.Store.Plugin().Delete(pluginID, getKeyHash(key)); err != nil {
 		mlog.Error("Failed to delete plugin key value", mlog.String("plugin_id", pluginID), mlog.String("key", key), mlog.Err(err))
@@ -173,6 +176,7 @@ func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
 	return nil
 }
 
+// TODO: platform: remove
 func (s *Server) listPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := s.Store.Plugin().List(pluginID, page*perPage, perPage)
 

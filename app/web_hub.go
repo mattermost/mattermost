@@ -3,6 +3,8 @@
 
 package app
 
+// TODO: platform: remove
+
 import (
 	"hash/maphash"
 	"runtime"
@@ -118,6 +120,7 @@ func (s *Server) HubStop() {
 }
 
 // GetHubForUserId returns the hub for a given user id.
+// TODO: platform: remove
 func (s *Server) GetHubForUserId(userID string) *Hub {
 	// TODO: check if caching the userID -> hub mapping
 	// is worth the memory tradeoff.
@@ -156,6 +159,7 @@ func (a *App) HubUnregister(webConn *WebConn) {
 	}
 }
 
+// TODO: platform: remove
 func (s *Server) Publish(message *model.WebSocketEvent) {
 	if s.GetMetrics() != nil {
 		s.GetMetrics().IncrementWebsocketEvent(message.EventType())

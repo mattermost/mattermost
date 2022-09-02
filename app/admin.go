@@ -237,6 +237,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	return nil
 }
 
+// TODO: platform: remove
 // serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
 func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	s.Busy.ClusterEventChanged(sbs)

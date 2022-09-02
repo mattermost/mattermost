@@ -51,7 +51,7 @@ type Channels struct {
 
 	asymmetricSigningKey atomic.Value
 	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
+	clientConfigHash     atomic.Value // TODO: platform: remove
 	limitedClientConfig  atomic.Value
 
 	// cached counts that are used during notice condition validation

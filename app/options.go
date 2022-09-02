@@ -23,6 +23,7 @@ type Option func(s *Server) error
 // The override parameter must be either a store.Store or func(App) store.Store().
 func StoreOverride(override any) Option {
 	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.StoreOverride(override))
 		switch o := override.(type) {
 		case store.Store:
 			s.newStore = func() (store.Store, error) {
@@ -48,6 +49,7 @@ func StoreOverride(override any) Option {
 // config loaded from the dsn on top of the normal defaults
 func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.Config(dsn, readOnly, configDefaults))
 		configStore, err := config.NewStoreFromDSN(dsn, readOnly, configDefaults, true)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
@@ -75,6 +77,7 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.ConfigStore(configStore))
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
 			StartMetrics: s.startMetrics,
@@ -136,21 +139,23 @@ func JoinCluster(s *Server) error {
 }
 
 func StartMetrics(s *Server) error {
+	// s.platformOptions = append(s.platformOptions, platform.StartMetrics(s.platform))
 	s.startMetrics = true
 
 	return nil
 }
 
-func StartSearchEngine(s *Server) error {
-	s.startSearchEngine = true
+// func StartSearchEngine(s *Server) error {
+// 	s.startSearchEngine = true
 
-	return nil
-}
+// 	return nil
+// }
 
 // SetLogger requires platform service to be initialized before calling.
 // If not, logger should be set after platform service are initialized.
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.SetLogger(logger))
 		if s.platform == nil {
 			return errors.New("platform service is not initialized")
 		}

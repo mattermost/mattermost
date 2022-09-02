@@ -3,6 +3,8 @@
 
 package app
 
+// TODO: platform: remove all
+
 import (
 	"fmt"
 

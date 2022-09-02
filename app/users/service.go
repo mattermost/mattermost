@@ -19,8 +19,8 @@ type UserService struct {
 	store        store.UserStore
 	sessionStore store.SessionStore
 	oAuthStore   store.OAuthStore
-	sessionCache cache.Cache
-	sessionPool  sync.Pool
+	sessionCache cache.Cache // TODO: platform: remove
+	sessionPool  sync.Pool   // TODO: platform: remove
 	metrics      einterfaces.MetricsInterface
 	cluster      einterfaces.ClusterInterface
 	config       func() *model.Config
