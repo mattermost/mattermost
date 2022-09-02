@@ -22,6 +22,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
 	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/edit_history", api.APISessionRequired(getEditHistoryForPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods("GET")
@@ -479,6 +480,60 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
+
+	if err := json.NewEncoder(w).Encode(posts); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	msg := "--------------------------"
+	calledMsg := "back end is called"
+
+	c.Logger.Debug(msg)
+	c.Logger.Debug(calledMsg)
+	c.Logger.Debug(msg)
+	c.Logger.Debug(c.Params.PostId)
+
+	// postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
+	// if err != nil {
+	// 	c.Err = err
+	// 	return
+	// }
+
+	var posts = []*model.Post{}
+	// channelMap := make(map[string]*model.Channel)
+
+	// for _, post := range postsList {
+	// 	var channel *model.Channel
+	// 	if val, ok := channelMap[post.ChannelId]; ok {
+	// 		channel = val
+	// 	} else {
+	// 		channel, err = c.App.GetChannel(c.AppContext, post.ChannelId)
+	// 		if err != nil {
+	// 			c.Err = err
+	// 			return
+	// 		}
+	// 		channelMap[channel.Id] = channel
+	// 	}
+
+	// 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel) {
+	// 		if channel.Type != model.ChannelTypeOpen || (channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)) {
+	// 			continue
+	// 		}
+	// 	}
+
+	// 	post = c.App.PreparePostForClient(post, false, false)
+	// 	post.StripActionIntegrations()
+	// 	posts = append(posts, post)
+	// }
+
+	// w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
