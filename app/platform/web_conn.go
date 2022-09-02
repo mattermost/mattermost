@@ -830,10 +830,6 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
 	} else {
-		logFunc := mlog.Debug
-		if e, ok := err.(net.Error); ok && e.Timeout() {
-			logFunc = mlog.Error
-		}
-		logFunc(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 	}
 }
