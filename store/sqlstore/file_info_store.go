@@ -181,6 +181,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 			"Width":           info.Width,
 			"Height":          info.Height,
 			"HasPreviewImage": info.HasPreviewImage,
+			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
 		}).
