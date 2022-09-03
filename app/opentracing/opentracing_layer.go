@@ -1083,6 +1083,23 @@ func (a *OpenTracingAppLayer) BulkImportWithPath(c *request.Context, jsonlReader
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CanNotifyAdmin(trial bool) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CanNotifyAdmin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CanNotifyAdmin(trial)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CancelJob")
@@ -3653,6 +3670,28 @@ func (a *OpenTracingAppLayer) DoAppMigrations() {
 	a.app.DoAppMigrations()
 }
 
+func (a *OpenTracingAppLayer) DoCheckForAdminNotifications(trial bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoCheckForAdminNotifications")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DoCheckForAdminNotifications(trial)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoCommandRequest")
@@ -4360,6 +4399,21 @@ func (a *OpenTracingAppLayer) FindTeamByName(name string) bool {
 	resultVar0 := a.app.FindTeamByName(name)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) FinishSendAdminNotifyPost(trial bool, now int64) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FinishSendAdminNotifyPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.FinishSendAdminNotifyPost(trial, now)
 }
 
 func (a *OpenTracingAppLayer) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
@@ -12507,28 +12561,6 @@ func (a *OpenTracingAppLayer) NotifySharedChannelUserUpdate(user *model.User) {
 	a.app.NotifySharedChannelUserUpdate(user)
 }
 
-func (a *OpenTracingAppLayer) NotifySystemAdminsToUpgrade(c *request.Context, currentUserTeamID string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySystemAdminsToUpgrade")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NotifySystemAdminsToUpgrade(c, currentUserTeamID)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
@@ -14353,6 +14385,50 @@ func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*mode
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAdminNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SaveAdminNotification(userId, notifyData)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAdminNotifyData")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SaveAdminNotifyData(data)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAndBroadcastStatus")
@@ -15209,6 +15285,28 @@ func (a *OpenTracingAppLayer) SendNotifications(c request.CTX, post *model.Post,
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifyAdminPosts")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendNotifyAdminPosts(c, workspaceName, currentSKU, trial)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
@@ -18023,6 +18121,23 @@ func (a *OpenTracingAppLayer) UpsertGroupSyncable(groupSyncable *model.GroupSync
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserAlreadyNotifiedOnRequiredFeature")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UserAlreadyNotifiedOnRequiredFeature(user, feature)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
