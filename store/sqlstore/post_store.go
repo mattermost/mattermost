@@ -2292,7 +2292,7 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 	Select("*").
 	From("Posts").
 	Where(sq.Eq{"Posts.OriginalId": postId}).
-	OrderBy("Posts.UpdateAt", "Id")
+	OrderBy("Posts.EditAt DESC")
 
 	queryString, args, err := builder.ToSql()
 	if err != nil {
