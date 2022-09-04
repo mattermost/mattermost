@@ -100,6 +100,12 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		}
 	}
 
+	if !oldApp.Scopes.IsSuperset(updatedApp.Scopes) {
+		if err := a.RevokeSessionsForOAuthAppId(updatedApp.Id); err != nil {
+			mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
+		}
+	}
+
 	return oauthApp, nil
 }
 
@@ -110,6 +116,10 @@ func (a *App) DeleteOAuthApp(appID string) *model.AppError {
 
 	if err := a.Srv().Store.OAuth().DeleteApp(appID); err != nil {
 		return model.NewAppError("DeleteOAuthApp", "app.oauth.delete_app.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.RevokeSessionsForOAuthAppId(appID); err != nil {
+		mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
 	}
 
 	if err := a.Srv().InvalidateAllCaches(); err != nil {

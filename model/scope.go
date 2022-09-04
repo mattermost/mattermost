@@ -4,6 +4,8 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"sort"
 	"strings"
 
@@ -55,8 +57,29 @@ const (
 	ScopeSearch ScopeOperation = "search"
 )
 
+const (
+	ScopeUsersAny       Scope = "users:*"
+	ScopeUsersCreate    Scope = "users:create"
+	ScopeUsersDelete    Scope = "users:delete"
+	ScopeUsersRead      Scope = "users:read"
+	ScopeUsersSearch    Scope = "users:search"
+	ScopeUsersUpdate    Scope = "users:update"
+	ScopePostsAny       Scope = "posts:*"
+	ScopePostsCreate    Scope = "posts:create"
+	ScopePostsDelete    Scope = "posts:delete"
+	ScopePostsRead      Scope = "posts:read"
+	ScopePostsSearch    Scope = "posts:search"
+	ScopePostsUpdate    Scope = "posts:update"
+	ScopeChannelsAny    Scope = "channels:*"
+	ScopeChannelsCreate Scope = "channels:create"
+	ScopeChannelsDelete Scope = "channels:delete"
+	ScopeChannelsRead   Scope = "channels:read"
+	ScopeChannelsSearch Scope = "channels:search"
+	ScopeChannelsUpdate Scope = "channels:update"
+)
+
 var validScopes = map[ScopeResource][]ScopeOperation{
-	ScopeUsers:    crudScopeOps,
+	ScopeUsers:    append(crudScopeOps, ScopeSearch),
 	ScopeTeams:    append(crudScopeOps, ScopeJoin),
 	ScopeChannels: append(crudScopeOps, ScopeJoin),
 	ScopePosts:    append(crudScopeOps, ScopeSearch),
@@ -107,9 +130,9 @@ var ScopeInternalAPI = APIScopes(nil)
 // OAuth2 clients, regardless of their granted scopes.
 var ScopeUnrestrictedAPI = APIScopes{ScopeAny}
 
-func NormalizeAPIScopes(scopes []Scope) (APIScopes, error) {
-	scopes = normalizeScopes(scopes)
-	for _, s := range scopes {
+func NormalizeAPIScopes(source []Scope) (APIScopes, error) {
+	normal := normalizeScopes(source)
+	for _, s := range normal {
 		res, op, err := parseScope(string(s))
 		if err != nil {
 			return nil, err
@@ -118,7 +141,7 @@ func NormalizeAPIScopes(scopes []Scope) (APIScopes, error) {
 			return nil, errors.Errorf("API scopes cannot contain a wildcard operation: %q", s)
 		}
 	}
-	return APIScopes(scopes), nil
+	return APIScopes(normal), nil
 }
 
 func (ss APIScopes) IsInternal() bool {
@@ -150,14 +173,14 @@ func ParseAppScopes(str string) (AppScopes, error) {
 	return AppScopes(scopes), nil
 }
 
-func (ss AppScopes) Validate() bool {
+func (ss AppScopes) Validate() error {
 	for _, s := range ss {
 		_, _, err := parseScope(string(s))
 		if err != nil {
-			return false
+			return err
 		}
 	}
-	return true
+	return nil
 }
 
 func (ss AppScopes) IsUnrestricted() bool {
@@ -224,7 +247,6 @@ func normalizeScopes(ss []Scope) []Scope {
 	if len(ss) == 0 {
 		return ss
 	}
-
 	sort.Slice(ss, func(i, j int) bool { return ss[i] < ss[j] })
 
 	j := 0
@@ -270,47 +292,48 @@ func normalizeScopes(ss []Scope) []Scope {
 	return ss
 }
 
-// // Value implements driver.Valuer interface for database conversions
-// func (ss Scopes) Value() (driver.Value, error) {
-// 	if ss == nil {
-// 		return nil, nil
-// 	}
+// Value implements driver.Valuer interface for database conversions.
+func (ss AppScopes) Value() (driver.Value, error) {
+	if ss == nil {
+		return nil, nil
+	}
 
-// 	b, err := json.Marshal(ss)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	b, err := json.Marshal(ss)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return string(b), nil
-// }
+	return string(b), nil
+}
 
-// // Scan implements sql.Scanner interface for database conversions
-// func (ss *Scopes) Scan(value interface{}) error {
-// 	if value == nil {
-// 		*ss = nil
-// 		return nil
-// 	}
-// 	sv, err := driver.String.ConvertValue(value)
-// 	if err != nil {
-// 		return err
-// 	}
+// Scan implements sql.Scanner interface for database conversions.
+func (ss *AppScopes) Scan(value interface{}) error {
+	if value == nil {
+		*ss = nil
+		return nil
+	}
+	sv, err := driver.String.ConvertValue(value)
+	if err != nil {
+		return err
+	}
 
-// 	v, ok := sv.(string)
-// 	if !ok {
-// 		// MySQL seems to return this as a []byte
-// 		vb, ok2 := sv.([]byte)
-// 		if !ok2 {
-// 			return errors.New("value cannot be converted to string")
-// 		}
-// 		v = string(vb)
-// 	}
+	// MySQL seems to return this as a []byte.
+	v, ok := sv.([]byte)
+	if !ok {
+		// Otherwise a string.
+		vs, ok2 := sv.(string)
+		if !ok2 {
+			return errors.New("value is neither a string nor bytes")
+		}
+		v = []byte(vs)
+	}
 
-// 	scopes := Scopes{}
-// 	err = json.Unmarshal([]byte(v), &scopes)
-// 	if err != nil {
-// 		return err
-// 	}
+	scopes := AppScopes{}
+	err = json.Unmarshal(v, &scopes)
+	if err != nil {
+		return err
+	}
 
-// 	*ss = scopes
-// 	return nil
-// }
+	*ss = scopes
+	return nil
+}

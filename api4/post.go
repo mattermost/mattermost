@@ -17,7 +17,7 @@ import (
 )
 
 func (api *API) InitPost() {
-	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost, model.ScopePostsCreate)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")

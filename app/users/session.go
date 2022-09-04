@@ -153,6 +153,33 @@ func (us *UserService) RevokeSessionsForDeviceId(userID string, deviceID string,
 	return nil
 }
 
+func (us *UserService) RevokeSessionsForOAuthApp(appID string) error {
+	sessions, err := us.sessionStore.GetSessionsForOAuthApp(appID)
+	if err != nil {
+		return err
+	}
+	tokens := []string{}
+	for _, session := range sessions {
+		tokens = append(tokens, session.Token)
+	}
+
+	defer func() {
+		for _, session := range sessions {
+			us.ClearUserSessionCache(session.UserId)
+		}
+	}()
+
+	if err := us.sessionStore.RemoveSessions(tokens); err != nil {
+		return err
+	}
+
+	if err := us.oAuthStore.RemoveMultipleAccessData(tokens); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (us *UserService) RevokeSession(session *model.Session) error {
 	if session.IsOAuth {
 		if err := us.RevokeAccessToken(session.Token); err != nil {

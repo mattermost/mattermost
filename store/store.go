@@ -493,10 +493,12 @@ type SessionStore interface {
 	Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error)
 	Save(session *model.Session) (*model.Session, error)
 	GetSessions(userID string) ([]*model.Session, error)
+	GetSessionsForOAuthApp(appId string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
+	RemoveSessions(sessionIDs []string) error
 	RemoveAllSessions() error
 	PermanentDeleteSessionsByUser(teamID string) error
 	GetLastSessionRowCreateAt() (int64, error)
@@ -562,6 +564,7 @@ type OAuthStore interface {
 	GetAccessDataByRefreshToken(token string) (*model.AccessData, error)
 	GetPreviousAccessData(userID, clientId string) (*model.AccessData, error)
 	RemoveAccessData(token string) error
+	RemoveMultipleAccessData(tokens []string) error
 	RemoveAllAccessData() error
 }
 

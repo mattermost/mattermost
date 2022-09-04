@@ -291,6 +291,20 @@ func (_m *OAuthStore) RemoveAuthData(code string) error {
 	return r0
 }
 
+// RemoveMultipleAccessData provides a mock function with given fields: tokens
+func (_m *OAuthStore) RemoveMultipleAccessData(tokens []string) error {
+	ret := _m.Called(tokens)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(tokens)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveAccessData provides a mock function with given fields: accessData
 func (_m *OAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	ret := _m.Called(accessData)

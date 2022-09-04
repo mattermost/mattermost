@@ -17,14 +17,14 @@ import (
 )
 
 func (api *API) InitChannel() {
-	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods("GET")
-	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme)).Methods("PUT")
+	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels, model.ScopeChannelsRead)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel, model.ScopeChannelsCreate)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel, model.ScopeChannelsCreate)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels, model.ScopeChannelsSearch)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels, model.ScopeChannelsSearch)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel, model.ScopeChannelsCreate)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.APISessionRequired(viewChannel, model.ScopeChannelsRead)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.APISessionRequired(updateChannelScheme, model.ScopeChannelsUpdate)).Methods("PUT")
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.APISessionRequired(getPublicChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.APISessionRequired(getDeletedChannelsForTeam)).Methods("GET")

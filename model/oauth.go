@@ -101,8 +101,8 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	if !a.Scopes.Validate() {
-		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.scopes.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	if err := a.Scopes.Validate(); err != nil {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.scopes.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if len(a.MattermostAppID) > 32 {

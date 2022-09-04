@@ -123,6 +123,31 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsForOAuthApp(appID string) ([]*model.Session, error) {
+	var sessions []*model.Session
+
+	column := `Props->>'` + model.SessionPropOAuthAppID + `'`
+	if me.DriverName() == model.DatabaseDriverMysql {
+		column = `Props->'$.` + model.SessionPropOAuthAppID + `'`
+	}
+
+	query, args, err := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.Eq{column: appID}).ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create query for Session with appID=%s", appID)
+	}
+
+	fmt.Printf("query: %s", query)
+	if err = me.GetReplicaX().Select(&sessions, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with appID=%s", appID)
+	}
+
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	query :=
 		`SELECT *
@@ -192,6 +217,19 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) error {
 	_, err := me.GetMasterX().Exec("DELETE FROM Sessions WHERE Id = ? Or Token = ?", sessionIdOrToken, sessionIdOrToken)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Session with sessionIdOrToken=%s", sessionIdOrToken)
+	}
+	return nil
+}
+
+func (me SqlSessionStore) RemoveSessions(tokens []string) error {
+	query, args, err := me.getQueryBuilder().Delete("Sessions").Where(sq.Eq{"Token": tokens}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "sessions_tosql")
+	}
+
+	_, err = me.GetMasterX().Exec(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove sessions")
 	}
 	return nil
 }

@@ -4731,6 +4731,22 @@ func (s *TimerLayerOAuthStore) RemoveAuthData(code string) error {
 	return err
 }
 
+func (s *TimerLayerOAuthStore) RemoveMultipleAccessData(tokens []string) error {
+	start := time.Now()
+
+	err := s.OAuthStore.RemoveMultipleAccessData(tokens)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("OAuthStore.RemoveMultipleAccessData", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := time.Now()
 
@@ -6937,6 +6953,22 @@ func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	return result, err
 }
 
+func (s *TimerLayerSessionStore) GetSessionsForOAuthApp(appId string) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetSessionsForOAuthApp(appId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsForOAuthApp", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error) {
 	start := time.Now()
 
@@ -6997,6 +7029,22 @@ func (s *TimerLayerSessionStore) RemoveAllSessions() error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.RemoveAllSessions", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSessionStore) RemoveSessions(sessionIDs []string) error {
+	start := time.Now()
+
+	err := s.SessionStore.RemoveSessions(sessionIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.RemoveSessions", success, elapsed)
 	}
 	return err
 }

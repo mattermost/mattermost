@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -32,9 +33,9 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMasterX().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, Scopes, MattermostAppID)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :Scopes, :MattermostAppID)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -63,7 +64,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMasterX().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID
+			Homepage=:Homepage, IsTrusted=:IsTrusted, Scopes=:Scopes, MattermostAppID=:MattermostAppID
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
@@ -212,6 +213,19 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 func (as SqlOAuthStore) RemoveAccessData(token string) error {
 	if _, err := as.GetMasterX().Exec("DELETE FROM OAuthAccessData WHERE Token = ?", token); err != nil {
 		return errors.Wrapf(err, "failed to delete OAuthAccessData with token=%s", token)
+	}
+	return nil
+}
+
+func (as SqlOAuthStore) RemoveMultipleAccessData(tokens []string) error {
+	query, args, err := as.getQueryBuilder().Delete("OAuthAccessData").Where(sq.Eq{"Token": tokens}).ToSql()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete OAuthAccessData for multiple tokens")
+	}
+
+	_, err = as.GetMasterX().Exec(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete OAuthAccessData for multiple tokens")
 	}
 	return nil
 }
