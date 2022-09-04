@@ -33,6 +33,7 @@ type OpenTracingLayer struct {
 	JobStore                  store.JobStore
 	LicenseStore              store.LicenseStore
 	LinkMetadataStore         store.LinkMetadataStore
+	NotifyAdminStore          store.NotifyAdminStore
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
@@ -112,6 +113,10 @@ func (s *OpenTracingLayer) License() store.LicenseStore {
 
 func (s *OpenTracingLayer) LinkMetadata() store.LinkMetadataStore {
 	return s.LinkMetadataStore
+}
+
+func (s *OpenTracingLayer) NotifyAdmin() store.NotifyAdminStore {
+	return s.NotifyAdminStore
 }
 
 func (s *OpenTracingLayer) OAuth() store.OAuthStore {
@@ -273,6 +278,11 @@ type OpenTracingLayerLicenseStore struct {
 
 type OpenTracingLayerLinkMetadataStore struct {
 	store.LinkMetadataStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerNotifyAdminStore struct {
+	store.NotifyAdminStore
 	Root *OpenTracingLayer
 }
 
@@ -4962,6 +4972,78 @@ func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadat
 
 	defer span.Finish()
 	result, err := s.LinkMetadataStore.Save(linkMetadata)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.DeleteBefore")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.NotifyAdminStore.DeleteBefore(trial, now)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.Get(trial)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndFeature")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.Save(data)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -12387,6 +12469,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.JobStore = &OpenTracingLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &OpenTracingLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &OpenTracingLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
+	newStore.NotifyAdminStore = &OpenTracingLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &OpenTracingLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &OpenTracingLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &OpenTracingLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
