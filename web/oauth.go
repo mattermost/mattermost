@@ -23,8 +23,8 @@ import (
 func (w *Web) InitOAuth() {
 	// API version independent OAuth 2.0 as a service provider endpoints
 	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
-	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods("POST")
-	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp)).Methods("POST")
+	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp, model.ScopeOAuth2Manage)).Methods("POST")
+	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp, model.ScopeOAuth2Manage)).Methods("POST")
 	w.MainRouter.Handle("/oauth/access_token", w.APIHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// API version independent OAuth as a client endpoints
@@ -37,7 +37,7 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
 	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
 	w.MainRouter.Handle("/login/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods("GET")
-	w.MainRouter.Handle("/api/v4/oauth_test", w.APISessionRequired(testHandler)).Methods("GET")
+	w.MainRouter.Handle("/api/v4/oauth_test", w.APISessionRequired(testHandler, model.ScopeOAuth2Manage)).Methods("GET")
 }
 
 func testHandler(c *Context, w http.ResponseWriter, r *http.Request) {

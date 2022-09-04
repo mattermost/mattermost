@@ -46,6 +46,7 @@ const (
 	ScopePosts    ScopeResource = "posts"
 	ScopeTeams    ScopeResource = "teams"
 	ScopeUsers    ScopeResource = "users"
+	ScopeOAuth2   ScopeResource = "oauth2"
 )
 
 const (
@@ -55,6 +56,7 @@ const (
 	ScopeDelete ScopeOperation = "delete"
 	ScopeJoin   ScopeOperation = "join"
 	ScopeSearch ScopeOperation = "search"
+	ScopeManage ScopeOperation = "manage"
 )
 
 const (
@@ -76,6 +78,7 @@ const (
 	ScopeChannelsRead   Scope = "channels:read"
 	ScopeChannelsSearch Scope = "channels:search"
 	ScopeChannelsUpdate Scope = "channels:update"
+	ScopeOAuth2Manage   Scope = "oauth2:manage"
 )
 
 var validScopes = map[ScopeResource][]ScopeOperation{
@@ -84,6 +87,7 @@ var validScopes = map[ScopeResource][]ScopeOperation{
 	ScopeChannels: append(crudScopeOps, ScopeJoin),
 	ScopePosts:    append(crudScopeOps, ScopeSearch),
 	ScopeFiles:    crudScopeOps,
+	ScopeOAuth2:   {ScopeManage},
 }
 
 var crudScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete}

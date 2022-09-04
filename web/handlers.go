@@ -499,6 +499,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -508,7 +509,10 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request), scopes ...model.Scope) http.Handler {
+	// TODO: it is possible that a developer specifies invalid scopes, so we
+	// need to detect that here and handle the possible error - log? panic?
+	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &Handler{
 		Srv:            w.srv,
 		HandleFunc:     h,
@@ -518,6 +522,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: handlerScopes,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
