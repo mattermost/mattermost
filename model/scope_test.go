@@ -55,7 +55,7 @@ func TestScopeParse(t *testing.T) {
 			{"users:bar", `invalid scope "users:bar": invalid operation "bar"`},
 		} {
 			_, _, err := parseScope(tc.scope)
-			require.NotNil(t, err, "scope=%s", tc.scope)
+			require.Error(t, err, "scope=%s", tc.scope)
 			require.Equal(t, tc.expected, err.Error(), "scope=%s", tc.scope)
 		}
 	})

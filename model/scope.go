@@ -88,12 +88,12 @@ var validScopes = map[ScopeResource][]ScopeOperation{
 
 var crudScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete}
 
-func (e ScopeResource) Create() Scope { return e.NewScope(ScopeCreate) }
-func (e ScopeResource) Read() Scope   { return e.NewScope(ScopeRead) }
-func (e ScopeResource) Update() Scope { return e.NewScope(ScopeUpdate) }
-func (e ScopeResource) Delete() Scope { return e.NewScope(ScopeDelete) }
-func (e ScopeResource) Join() Scope   { return e.NewScope(ScopeJoin) }
-func (e ScopeResource) Any() Scope    { return e.NewScope(ScopeAnyOperation) }
+func (r ScopeResource) Create() Scope { return r.NewScope(ScopeCreate) }
+func (r ScopeResource) Read() Scope   { return r.NewScope(ScopeRead) }
+func (r ScopeResource) Update() Scope { return r.NewScope(ScopeUpdate) }
+func (r ScopeResource) Delete() Scope { return r.NewScope(ScopeDelete) }
+func (r ScopeResource) Join() Scope   { return r.NewScope(ScopeJoin) }
+func (r ScopeResource) Any() Scope    { return r.NewScope(ScopeAnyOperation) }
 
 func (r ScopeResource) NewScope(op ScopeOperation) Scope {
 	return Scope(r) + ScopeSeparator + Scope(op)
@@ -221,7 +221,7 @@ func parseScope(str string) (ScopeResource, ScopeOperation, error) {
 		return ScopeAnyResource, ScopeAnyOperation, nil
 	}
 
-	res, op := Scope(s).Split()
+	res, op := s.Split()
 	if res == "" {
 		return "", "", errors.Errorf(`invalid scope %q: missing resource type, e.g. "posts"`, s)
 	}
