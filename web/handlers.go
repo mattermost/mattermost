@@ -65,6 +65,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		TrustRequester: false,
 		RequireMfa:     false,
 		IsStatic:       true,
+		RequiredScopes: model.ScopeUnrestrictedAPI,
 
 		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
@@ -413,7 +414,10 @@ func (h *Handler) checkScopes(c *Context, appID string) model.AppScopes {
 	}
 
 	if !oAuthApp.Scopes.Satisfies(h.RequiredScopes) {
-		c.Err = model.NewAppError("ServeHTTP", "api.context.scope_mismatch.app_error", nil, "", http.StatusUnauthorized)
+		c.Err = model.NewAppError("ServeHTTP", "api.context.scope_mismatch.app_error", map[string]any{
+			"RequiredScopes": h.RequiredScopes,
+			"APIName":        h.HandlerName,
+		}, "", http.StatusUnauthorized)
 		return nil
 	}
 
@@ -479,6 +483,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
+		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

@@ -75,6 +75,7 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		RequireMfa:      false,
 		IsStatic:        false,
 		IsLocal:         false,
+		RequiredScopes:  model.ScopeInternalAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -96,6 +97,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		RequireMfa:                false,
 		IsStatic:                  false,
 		IsLocal:                   false,
+		RequiredScopes:  model.ScopeInternalAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -138,7 +140,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
-		RequiredScopes: model.ScopeInternalAPI,
+		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -210,6 +212,7 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        true,
+		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {

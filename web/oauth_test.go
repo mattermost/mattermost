@@ -216,7 +216,6 @@ func TestOAuthAccessToken(t *testing.T) {
 		Description:  "test",
 		CallbackUrls: []string{"https://nowhere.com"},
 		CreatorId:    th.SystemAdminUser.Id,
-		Scopes:       model.AppScopes{model.ScopeOAuth2Manage},
 	}
 	oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
 	require.Nil(t, appErr)
