@@ -620,7 +620,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open de Mattermost help pagina"
+    "translation": "Toon Mattermost-help bericht"
   },
   {
     "id": "api.command_help.name",
@@ -9289,5 +9289,33 @@
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",
     "translation": "Fout bij het ophalen van de top-privé-berichten voor gebruiker."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Betaling is overtijd voor jouw Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Betaling bijwerken"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "De opdracht marktplaats wordt niet ondersteund op jouw toestel."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marktplaats"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open de Marktplaats"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat drie belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n**[Boards](/borden)** - Beheer projecten en taken in een Kanban-bordstructuur om jouw team te helpen belangrijke mijlpalen te halen.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Verplichte velden ontbreken voor het versturen van een e-mail over wanbetaling."
   }
 ]
