@@ -9259,10 +9259,6 @@
     "translation": "Already notified admin"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "A member of {{.TeamName}} has asked you to upgrade this workspace."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },

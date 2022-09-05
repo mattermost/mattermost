@@ -7904,10 +7904,6 @@
     "translation": "사용자 정의 그룹을 위한 라이선스가 없습니다"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "{{.TeamName}} 팀의 구성원으로부터 이 작업 영역을 업그레이드하라는 통지가 있었습니다."
-  },
-  {
     "id": "api.cloud.subscription.update_error",
     "translation": "웹훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
   },
