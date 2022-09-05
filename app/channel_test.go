@@ -2434,6 +2434,40 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// add an oauth app post to ensure it's not counted
+	_, err = th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from an ouath app",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_oauth_app": true,
+		},
+	})
+	require.NoError(t, err)
+
+	// add a plugin post to ensure it's not counted
+	_, err = th.Server.Store.Post().Save(&model.Post{
+		Message:   "hello from a plugin",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_plugin": true,
+		},
+	})
+	require.NoError(t, err)
+
+	// add a system post to ensure it's not counted
+	_, err = th.Server.Store.Post().Save(&model.Post{
+		Message:   "system message",
+		Type:      "system_join_channel",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_oauth_app": true,
+		},
+	})
+	require.NoError(t, err)
+
 	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
