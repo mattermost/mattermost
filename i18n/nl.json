@@ -9267,10 +9267,6 @@
     "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Reeds verwittigde admin"
   },

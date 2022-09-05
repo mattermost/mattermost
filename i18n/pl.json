@@ -9256,10 +9256,6 @@
     "translation": "Funkcja Insights jest wyłączona."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrator został już powiadomiony"
   },
