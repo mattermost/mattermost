@@ -9505,5 +9505,29 @@
   {
     "id": "api.templates.delinquency_90.subtitle1",
     "translation": "Wenn du die Funktionen von Cloud Professional oder Enterprise für wichtige Geschäftsvorgänge nutzt, stehen diese nicht mehr zur Verfügung und die Leistung wird beeinträchtigt."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Kann Benachrichtigung nicht senden."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Kann Benachrichtigungsdaten nicht speichern."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} Mitglied des {{.WorkspaceName}} Arbeitsbereichs hat ein Arbeitsbereich-Upgrade angefragt für: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} Mitglieder des {{.WorkspaceName}} Arbeitsbereichs haben ein Arbeitsbereich-Upgrade angefragt für: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} Mitglied des {{.WorkspaceName}} Arbeitsbereichs hat den Start des Enterprise-Tests angefragt für Zugriff auf: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} Mitglieder des {{.WorkspaceName}} Arbeitsbereichs haben den Start des Enterprise-Tests angefragt für Zugriff auf: "
   }
 ]
