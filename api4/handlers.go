@@ -97,7 +97,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		RequireMfa:                false,
 		IsStatic:                  false,
 		IsLocal:                   false,
-		RequiredScopes:  model.ScopeInternalAPI,
+		RequiredScopes:            model.ScopeInternalAPI,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
