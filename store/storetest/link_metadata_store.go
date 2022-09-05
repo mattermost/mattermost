@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -205,7 +206,7 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 	t.Run("should save and get opengraph data", func(t *testing.T) {
 		og := &opengraph.OpenGraph{
 			URL: "http://example.com",
-			Images: []*opengraph.Image{
+			Images: []*image.Image{
 				{
 					URL: "http://example.com/image.png",
 				},

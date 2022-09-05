@@ -5,7 +5,6 @@ package product
 
 import (
 	"database/sql"
-	"io"
 
 	"github.com/gorilla/mux"
 
@@ -41,6 +40,7 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }
 
 // ClusterService enables to publish cluster events. In addition to that, It's being used for
@@ -61,6 +61,7 @@ type ChannelService interface {
 	GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError)
 	GetChannelByID(channelID string) (*model.Channel, *model.AppError)
 	GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError)
+	GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
 }
 
 // LicenseService provides license related utilities.
@@ -79,7 +80,7 @@ type LicenseService interface {
 // The service shall be registered via app.UserKey service key.
 type UserService interface {
 	GetUser(userID string) (*model.User, *model.AppError)
-	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
+	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -134,12 +135,7 @@ type HooksService interface {
 //
 // The service shall be registered via app.FilestoreKey service key.
 type FilestoreService interface {
-	Reader(path string) (filestore.ReadCloseSeeker, error)
-	FileExists(path string) (bool, error)
-	CopyFile(oldPath, newPath string) error
-	MoveFile(oldPath, newPath string) error
-	WriteFile(fr io.Reader, path string) (int64, error)
-	RemoveFile(path string) error
+	filestore.FileBackend
 }
 
 // FileInfoStoreService is the API for accessing the file info store.
@@ -182,4 +178,13 @@ type StoreService interface {
 // The service shall be registered via app.SystemKey service key.
 type SystemService interface {
 	GetDiagnosticId() string
+}
+
+// PreferencesService is the API for accessing the Preferences service APIs.
+//
+// The service shall be registered via app.PreferencesKey service key.
+type PreferencesService interface {
+	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
+	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
 }

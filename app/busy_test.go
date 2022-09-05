@@ -24,11 +24,12 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Millisecond * 100)
+	busy.Set(time.Millisecond * 500)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
-	// should automatically expire after 100ms.
-	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*20)
+
+	// should automatically expire after 500ms.
+	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*100)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 

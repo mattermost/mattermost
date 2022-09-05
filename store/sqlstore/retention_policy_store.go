@@ -39,16 +39,16 @@ func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (s
 	return txn.Exec(query, args...)
 }
 
-func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Insert new policy
 	// 2. Insert new channels into policy
 	// 3. Insert new teams into policy
 
-	if err := s.checkTeamsExist(policy.TeamIDs); err != nil {
+	if err = s.checkTeamsExist(policy.TeamIDs); err != nil {
 		return nil, err
 	}
-	if err := s.checkChannelsExist(policy.ChannelIDs); err != nil {
+	if err = s.checkChannelsExist(policy.ChannelIDs); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +82,8 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Create a new policy in RetentionPolicies
 	if _, err = txn.Exec(policyInsertQuery, policyInsertArgs...); err != nil {
 		return nil, err
@@ -195,7 +196,7 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyI
 	return
 }
 
-func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Update policy attributes
 	// 2. Delete existing channels from policy
@@ -204,7 +205,6 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	// 5. Insert new teams into policy
 	// 6. Read new policy
 
-	var err error
 	if err = s.checkTeamsExist(patch.TeamIDs); err != nil {
 		return nil, err
 	}
@@ -277,7 +277,8 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Update the fields of the policy in RetentionPolicies
 	if _, err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
 		return nil, err
@@ -638,7 +639,7 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 }
 
 func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
-	queryString, args, _ := query.ToSql()
+	queryString, args := query.MustSql()
 	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
 	return sq.Expr(subQuery, args...)
 }

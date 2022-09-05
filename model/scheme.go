@@ -39,6 +39,29 @@ type Scheme struct {
 	DefaultRunMemberRole      string `json:"default_run_member_role"`
 }
 
+func (scheme *Scheme) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                           scheme.Id,
+		"name":                         scheme.Name,
+		"display_name":                 scheme.DisplayName,
+		"description":                  scheme.Description,
+		"create_at":                    scheme.CreateAt,
+		"update_at":                    scheme.UpdateAt,
+		"delete_at":                    scheme.DeleteAt,
+		"scope":                        scheme.Scope,
+		"default_team_admin_role":      scheme.DefaultTeamAdminRole,
+		"default_team_user_role":       scheme.DefaultTeamUserRole,
+		"default_channel_admin_role":   scheme.DefaultChannelAdminRole,
+		"default_channel_user_role":    scheme.DefaultChannelUserRole,
+		"default_team_guest_role":      scheme.DefaultTeamGuestRole,
+		"default_channel_guest_role":   scheme.DefaultChannelGuestRole,
+		"default_playbook_admin_role":  scheme.DefaultPlaybookAdminRole,
+		"default_playbook_member_role": scheme.DefaultPlaybookMemberRole,
+		"default_run_admin_role":       scheme.DefaultRunAdminRole,
+		"default_run_member_role":      scheme.DefaultRunMemberRole,
+	}
+}
+
 type SchemePatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`
@@ -91,6 +114,10 @@ type SchemeRoles struct {
 	SchemeAdmin bool `json:"scheme_admin"`
 	SchemeUser  bool `json:"scheme_user"`
 	SchemeGuest bool `json:"scheme_guest"`
+}
+
+func (s *SchemeRoles) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
 }
 
 func (scheme *Scheme) IsValid() bool {
