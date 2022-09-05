@@ -9255,10 +9255,6 @@
     "translation": "Die Insights Funktion ist deaktiviert."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Ein Mitglied von {{.TeamName}} hat dich benachrichtigt den Arbeitsbereich upzugraden."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrator schon benachrichtigt"
   },
