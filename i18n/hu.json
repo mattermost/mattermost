@@ -9354,5 +9354,9 @@
   {
     "id": "api.templates.delinquency_14.button",
     "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
   }
 ]
