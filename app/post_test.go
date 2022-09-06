@@ -609,11 +609,12 @@ func TestMaxPostSize(t *testing.T) {
 			app := App{
 				ch: &Channels{
 					srv: &Server{
-						platform: &platform.PlatformService{},
+						platform: &platform.PlatformService{
+							Store: mockStore,
+						},
 					},
 				},
 			}
-			app.Srv().SetStore(mockStore)
 
 			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
