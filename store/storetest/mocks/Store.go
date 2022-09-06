@@ -411,6 +411,22 @@ func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()
 }
 
+// NotifyAdmin provides a mock function with given fields:
+func (_m *Store) NotifyAdmin() store.NotifyAdminStore {
+	ret := _m.Called()
+
+	var r0 store.NotifyAdminStore
+	if rf, ok := ret.Get(0).(func() store.NotifyAdminStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.NotifyAdminStore)
+		}
+	}
+
+	return r0
+}
+
 // OAuth provides a mock function with given fields:
 func (_m *Store) OAuth() store.OAuthStore {
 	ret := _m.Called()

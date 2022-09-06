@@ -223,7 +223,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		message.Add("config", ps.ClientConfigWithComputed())
 		ps.Go(func() {
@@ -238,7 +238,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		ps.regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
 		ps.Go(func() {
 			ps.Publish(message)

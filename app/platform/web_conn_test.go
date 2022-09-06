@@ -200,7 +200,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		defer wc.WebSocket.Close()
 
 		for i := 0; i < limit; i++ {
-			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{})
+			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{}, "")
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)
 		}

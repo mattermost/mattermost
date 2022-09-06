@@ -668,7 +668,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	ee := wc.Platform.LicenseManager() != nil
 
-	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil, "")
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.Platform.ClientConfigHash(),
