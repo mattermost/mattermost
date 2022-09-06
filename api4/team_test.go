@@ -967,6 +967,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
 
@@ -1403,6 +1404,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 func TestSearchAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	oTeam := th.BasicTeam
