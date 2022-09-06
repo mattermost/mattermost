@@ -662,7 +662,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil, "")
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
@@ -747,6 +747,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event is destined to a specific connection
 	if msg.GetBroadcast().ConnectionId != "" {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
+	}
+
+	// if the connection is omitted don't send the message
+	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
+		return false
 	}
 
 	// If the event is destined to a specific user
