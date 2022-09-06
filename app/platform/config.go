@@ -298,15 +298,15 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 }
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *PlatformService) LimitedClientConfigWithComputed() map[string]string {
+func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range a.LimitedClientConfig() {
+	for k, v := range ps.LimitedClientConfig() {
 		respCfg[k] = v
 	}
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
 
 	return respCfg
 }
