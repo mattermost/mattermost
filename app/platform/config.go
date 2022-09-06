@@ -386,3 +386,8 @@ func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
 	}
 	return value, nil
 }
+
+func (ps *PlatformService) ClientConfig() map[string]string {
+	return ps.clientConfig.Load().(map[string]string)
+
+}

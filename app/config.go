@@ -45,7 +45,7 @@ func (a *App) ReloadConfig() error {
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.ch.clientConfig.Load().(map[string]string)
+	return a.ch.srv.platform.ClientConfig()
 }
 
 func (a *App) ClientConfigHash() string {
@@ -165,10 +165,7 @@ func (s *Server) ensureFirstServerRunTimestamp() error {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (ch *Channels) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	if key := ch.asymmetricSigningKey.Load(); key != nil {
-		return key.(*ecdsa.PrivateKey)
-	}
-	return nil
+	return ch.srv.platform.AsymmetricSigningKey()
 }
 
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
