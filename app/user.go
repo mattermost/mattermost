@@ -210,7 +210,16 @@ func (a *App) IsFirstUserAccount() bool {
 }
 
 func (a *App) IsFirstAdmin(user *model.User) bool {
-	return a.ch.srv.userService.IsFirstAdmin(user)
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := a.Srv().Store.User().GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
