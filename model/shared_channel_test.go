@@ -37,11 +37,11 @@ func TestSharedChannelIsValid(t *testing.T) {
 	}
 
 	for _, item := range data {
-		err := item.sc.IsValid()
+		appErr := item.sc.IsValid()
 		if item.valid {
-			assert.Nil(t, err, item.name)
+			assert.Nil(t, appErr, item.name)
 		} else {
-			assert.NotNil(t, err, item.name)
+			assert.NotNil(t, appErr, item.name)
 		}
 	}
 }

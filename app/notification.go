@@ -257,7 +257,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					var nfErr *store.ErrNotFound
 
 					if err != nil && !errors.As(err, &nfErr) {
-						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+						mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 						return
 					}
 
@@ -280,7 +280,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				}
 				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
-					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
+					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					return
 				}
 
@@ -525,7 +525,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
 
 	// Note that PreparePostForClient should've already been called by this point
 	postJSON, jsonErr := post.ToJSON()
@@ -584,7 +584,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				continue
 			}
 			if a.IsCRTEnabledForUser(c, uid) {
-				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil)
+				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
 					tm, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
@@ -1128,7 +1128,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	if err != nil {
-		return false, model.NewAppError("insertGroupMentions", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("insertGroupMentions", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if mentions.Mentions == nil {

@@ -24,7 +24,7 @@ func (a *App) NotifySessionsExpired() error {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.ch.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
-		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	msg := &model.PushNotification{

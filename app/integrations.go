@@ -38,7 +38,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 
 	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), 0)
+		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, "", 0).Wrap(err)
 	}
 
 	pluginStates := ch.cfgSvc.Config().PluginSettings.PluginStates

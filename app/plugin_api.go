@@ -289,11 +289,11 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
 	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
 	if err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -852,7 +852,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 	}
 
 	if err := api.app.Srv().EmailService.SendNotificationMail(to, subject, htmlBody); err != nil {
-		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -943,7 +943,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
