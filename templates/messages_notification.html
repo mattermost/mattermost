@@ -359,7 +359,8 @@
     }
 
     .attachment__thumb-container {
-      width: 80px;
+      max-width: 80px;
+      width: max-content;
     }
 
     .attachment__body {
@@ -382,33 +383,34 @@
     }
 
     .slackAttachment_title {
-      padding-top: 0.7em;
+      padding-top: 1em;
       font-weight: 600;
+      margin-bottom: 4px;
     }
 
     .pretext h1 {
       font-size: 28px;
-      line-height: 28px;
+      line-height: 32px;
     }
 
     .pretext h2 {
       font-size: 25px;
-      line-height: 25px;
+      line-height: 30px;
     }
 
     .pretext h3 {
       font-size: 22px;
-      line-height: 22px;
+      line-height: 25px;
     }
 
     .pretext h4 {
       font-size: 19px;
-      line-height: 19px;
+      line-height: 24px;
     }
 
     .pretext h5 {
       font-size: 15px;
-      line-height: 15px;
+      line-height: 20px;
     }
 
     .pretext h6 {
@@ -418,6 +420,17 @@
 
     .pretext > * {
       margin-bottom: 16px;
+    }
+
+    .slackAttachments h1, h2, h3, h4, h5, h6 {
+      font-weight: 500;
+    }
+
+    code {
+      padding: 2px 4px;
+      font-size: 90%;
+      background-color: rgba(63, 67, 80, 0.1);
+      border-radius: 4px;
     }
 
     @media all and (min-width: 541px) {
@@ -649,7 +662,7 @@
 
                                   <div style="display: flex; flex-direction: row;">
                                     <div class="attachment__body">
-                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px" width="100%">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; color: #3F4350;" width="100%">
                                         <tbody>
                                         <tr>
                                           <td vertical-align="middle" class="messageButton">
@@ -668,8 +681,12 @@
                                       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em;" width="100%">
                                         {{range .FieldRows}}
                                         <tr class="slackAttachment_row">
+                                          {{ $length := len .Cells }}
                                           {{range .Cells}}
-                                          <td class="slackAttachment_field">
+                                          <td
+                                            class="slackAttachment_field"
+                                            {{ if eq $length 1 }}colspan="2"{{end}}
+                                          >
                                             <div class="slackAttachment_title">{{.Title}}</div>
                                             <div>{{.Value}}</div>
                                           </td>
@@ -679,11 +696,11 @@
                                       </table>
                                     </div>
 
+                                    {{if .ThumbURL}}
                                     <div class="attachment__thumb-container">
-                                      {{if .ThumbURL}}
                                       <img class="attachment__thumb-image" src="{{.ThumbURL}}"/>
-                                      {{end}}
                                     </div>
+                                    {{end}}
                                   </div>
 
                                   {{if .Footer}}
