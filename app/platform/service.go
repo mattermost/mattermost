@@ -214,7 +214,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.LoadLicense()
 	}
 
-	if err := ps.EnsureAsymmetricSigningKey(); err != nil {
+	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
 

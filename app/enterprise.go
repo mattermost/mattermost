@@ -6,19 +6,12 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
 
 func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
-}
-
-var clusterInterface func(*Server) einterfaces.ClusterInterface
-
-func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
-	clusterInterface = f
 }
 
 var complianceInterface func(*App) einterfaces.ComplianceInterface
@@ -31,12 +24,6 @@ var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
 func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
-}
-
-var elasticsearchInterface func(*Server) searchengine.SearchEngineInterface
-
-func RegisterElasticsearchInterface(f func(*Server) searchengine.SearchEngineInterface) {
-	elasticsearchInterface = f
 }
 
 var jobsDataRetentionJobInterface func(*Server) ejobs.DataRetentionJobInterface
@@ -103,12 +90,6 @@ var notificationInterface func(*App) einterfaces.NotificationInterface
 
 func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
 	notificationInterface = f
-}
-
-var licenseInterface func(*Server) einterfaces.LicenseInterface
-
-func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
-	licenseInterface = f
 }
 
 func (s *Server) initEnterprise() {

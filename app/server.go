@@ -315,7 +315,7 @@ func NewServer(options ...Option) (*Server, error) {
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		ClusterKey:       s.platform,
 		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.Log(),
+		LogKey:           s.platform.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       s.platform,
 		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
@@ -585,13 +585,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	return s, nil
-}
-
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func (s *Server) runJobs() {

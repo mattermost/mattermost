@@ -9,13 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
 func CheckUserDomain(user *model.User, domains string) bool {
 	return CheckEmailDomain(user.Email, domains)
