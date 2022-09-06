@@ -103,7 +103,7 @@ func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *mo
 
 	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopReactionsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
@@ -115,7 +115,7 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 
 	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForUserSince", "app.reaction.get_top_for_user_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetTopReactionsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
@@ -161,7 +161,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 
 func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
-	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
+	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
 	if err != nil {
 		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))
