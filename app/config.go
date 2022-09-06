@@ -53,7 +53,7 @@ func (a *App) ClientConfigHash() string {
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.ch.limitedClientConfig.Load().(map[string]string)
+	return a.ch.srv.platform.LimitedClientConfig()
 }
 
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {

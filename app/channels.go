@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 
@@ -48,10 +47,6 @@ type Channels struct {
 	pluginConfigListenerID string
 
 	imageProxy *imageproxy.ImageProxy
-
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	limitedClientConfig  atomic.Value
 
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
