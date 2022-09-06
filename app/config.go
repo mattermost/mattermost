@@ -5,13 +5,8 @@ package app
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/md5"
 	"crypto/rand"
-	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -19,7 +14,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -131,87 +125,8 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 	return nil
 }
 
-// TODO: platform: remove
-// ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
-// AsymmetricSigningKey will always return a valid signing key.
-func (ch *Channels) ensureAsymmetricSigningKey() error {
-	if ch.AsymmetricSigningKey() != nil {
-		return nil
-	}
-
-	var key *model.SystemAsymmetricSigningKey
-
-	value, err := ch.srv.Store().System().GetByName(model.SystemAsymmetricSigningKeyKey)
-	if err == nil {
-		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
-			return err
-		}
-	}
-
-	// If we don't already have a key, try to generate one.
-	if key == nil {
-		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			return err
-		}
-		newKey := &model.SystemAsymmetricSigningKey{
-			ECDSAKey: &model.SystemECDSAKey{
-				Curve: "P-256",
-				X:     newECDSAKey.X,
-				Y:     newECDSAKey.Y,
-				D:     newECDSAKey.D,
-			},
-		}
-		system := &model.System{
-			Name: model.SystemAsymmetricSigningKeyKey,
-		}
-		v, err := json.Marshal(newKey)
-		if err != nil {
-			return err
-		}
-		system.Value = string(v)
-		// If we were able to save the key, use it, otherwise log the error.
-		if err = ch.srv.Store().System().Save(system); err != nil {
-			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
-		} else {
-			key = newKey
-		}
-	}
-
-	// If we weren't able to save a new key above, another server must have beat us to it. Get the
-	// key from the database, and if that fails, error out.
-	if key == nil {
-		value, err := ch.srv.Store().System().GetByName(model.SystemAsymmetricSigningKeyKey)
-		if err != nil {
-			return err
-		}
-
-		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
-			return err
-		}
-	}
-
-	var curve elliptic.Curve
-	switch key.ECDSAKey.Curve {
-	case "P-256":
-		curve = elliptic.P256()
-	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
-	}
-	ch.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: curve,
-			X:     key.ECDSAKey.X,
-			Y:     key.ECDSAKey.Y,
-		},
-		D: key.ECDSAKey.D,
-	})
-	ch.regenerateClientConfig()
-	return nil
-}
-
 func (s *Server) ensureInstallationDate() error {
-	_, appErr := s.getSystemInstallDate()
+	_, appErr := s.platform.GetSystemInstallDate()
 	if appErr == nil {
 		return nil
 	}
@@ -268,33 +183,6 @@ func (a *App) PostActionCookieSecret() []byte {
 	return a.ch.PostActionCookieSecret()
 }
 
-// TODO: platform: remove
-func (ch *Channels) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
-
-	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := ch.srv.Store().TermsOfService().GetLatest(true)
-		if err != nil {
-			mlog.Err(err)
-		} else {
-			clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-			limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-		}
-	}
-
-	if key := ch.AsymmetricSigningKey(); key != nil {
-		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-	}
-
-	clientConfigJSON, _ := json.Marshal(clientConfig)
-	ch.clientConfig.Store(clientConfig)
-	ch.limitedClientConfig.Store(limitedClientConfig)
-	ch.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
-}
-
 func (a *App) GetCookieDomain() string {
 	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
 		if siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL); err == nil {
@@ -306,45 +194,6 @@ func (a *App) GetCookieDomain() string {
 
 func (a *App) GetSiteURL() string {
 	return *a.Config().ServiceSettings.SiteURL
-}
-
-// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range a.ch.clientConfig.Load().(map[string]string) {
-		respCfg[k] = v
-	}
-
-	// These properties are not configurable, but nevertheless represent configuration expected
-	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.ch.srv.userService.IsFirstUserAccount())
-	respCfg["MaxPostSize"] = strconv.Itoa(a.ch.srv.MaxPostSize())
-	respCfg["UpgradedFromTE"] = strconv.FormatBool(a.ch.srv.isUpgradedFromTE())
-	respCfg["InstallationDate"] = ""
-	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
-		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
-	}
-	if ver, err := a.ch.srv.Store().GetDBSchemaVersion(); err != nil {
-		mlog.Error("Could not get the schema version", mlog.Err(err))
-	} else {
-		respCfg["SchemaVersion"] = strconv.Itoa(ver)
-	}
-
-	return respCfg
-}
-
-// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) LimitedClientConfigWithComputed() map[string]string {
-	respCfg := map[string]string{}
-	for k, v := range a.LimitedClientConfig() {
-		respCfg[k] = v
-	}
-
-	// These properties are not configurable, but nevertheless represent configuration expected
-	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
-
-	return respCfg
 }
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.

@@ -382,7 +382,7 @@ func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session,
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	a.ch.srv.userService.AddSessionToCache(session)
+	a.ch.srv.platform.AddSessionToCache(session)
 
 	return session, nil
 }
@@ -521,7 +521,7 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
-	if err := a.ch.srv.userService.RevokeAccessToken(token); err != nil {
+	if err := a.ch.srv.platform.RevokeAccessToken(token); err != nil {
 		switch {
 		case errors.Is(err, users.GetTokenError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)

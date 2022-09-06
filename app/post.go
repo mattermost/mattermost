@@ -468,7 +468,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		team = &model.Team{}
 	}
 
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 	a.invalidateCacheForChannelPosts(channel.Id)
 
 	if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
@@ -1640,17 +1640,8 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 }
 
-func (s *Server) MaxPostSize() int {
-	maxPostSize := s.Store().Post().GetMaxPostSize()
-	if maxPostSize == 0 {
-		return model.PostMessageMaxRunesV1
-	}
-
-	return maxPostSize
-}
-
 func (a *App) MaxPostSize() int {
-	return a.Srv().MaxPostSize()
+	return a.Srv().Platform().MaxPostSize()
 }
 
 // countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
@@ -53,7 +54,7 @@ func TestConfigSave(t *testing.T) {
 	defer th.TearDown()
 
 	cm := &mocks.ClusterInterface{}
-	th.Service.SetCluster(cm)
+	th.Service.clusterIFace = cm
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
@@ -64,6 +65,7 @@ func TestConfigSave(t *testing.T) {
 		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
 
 		cm.On("ConfigChanged", sanitizedOldCfg, sanitizedNewCfg, true).Return(nil)
+		cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
 
 		_, _, appErr := th.Service.SaveConfig(newCfg, true)
 		require.Nil(t, appErr)

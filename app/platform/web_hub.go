@@ -113,7 +113,7 @@ func (ps *PlatformService) HubStart(suite SuiteIFace) {
 }
 
 func (ps *PlatformService) InvalidateCacheForWebhook(webhookID string) {
-	ps.store.Webhook().InvalidateWebhookCache(webhookID)
+	ps.Store.Webhook().InvalidateWebhookCache(webhookID)
 }
 
 // HubStop stops all the hubs.
@@ -142,7 +142,7 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 func (ps *PlatformService) HubRegister(webConn *WebConn) {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
-		if metrics := ps.metrics.metricsImpl; metrics != nil {
+		if metrics := ps.metricsImpl(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
 		hub.Register(webConn)
@@ -153,7 +153,7 @@ func (ps *PlatformService) HubRegister(webConn *WebConn) {
 func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
-		if metrics := ps.metrics.metricsImpl; metrics != nil {
+		if metrics := ps.metricsImpl(); metrics != nil {
 			metrics.DecrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
 		hub.Unregister(webConn)
@@ -161,7 +161,7 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 }
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
-	ps.store.Channel().InvalidateChannel(channel.Id)
+	ps.Store.Channel().InvalidateChannel(channel.Id)
 	ps.invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if ps.clusterIFace != nil {
@@ -183,9 +183,9 @@ func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {
-	ps.store.User().InvalidateProfilesInChannelCache(channelID)
-	ps.store.Channel().InvalidateMemberCount(channelID)
-	ps.store.Channel().InvalidateGuestCount(channelID)
+	ps.Store.User().InvalidateProfilesInChannelCache(channelID)
+	ps.Store.Channel().InvalidateMemberCount(channelID)
+	ps.Store.Channel().InvalidateGuestCount(channelID)
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID string) {
@@ -202,15 +202,15 @@ func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
-	ps.store.Channel().InvalidatePinnedPostCount(channelID)
-	ps.store.Post().InvalidateLastPostTimeCache(channelID)
+	ps.Store.Channel().InvalidatePinnedPostCount(channelID)
+	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 	ps.InvalidateCacheForUserSkipClusterSend(userID)
 
-	ps.store.User().InvalidateProfilesInChannelCacheByUser(userID)
-	ps.store.User().InvalidateProfileCacheForUser(userID)
+	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
+	ps.Store.User().InvalidateProfileCacheForUser(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -224,7 +224,7 @@ func (ps *PlatformService) InvalidateCacheForUser(userID string) {
 
 func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {
 	ps.invalidateWebConnSessionCacheForUser(userID)
-	ps.store.Team().InvalidateAllTeamIdsForUser(userID)
+	ps.Store.Team().InvalidateAllTeamIdsForUser(userID)
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -317,7 +317,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
-		if metrics := h.platform.metrics.metricsImpl; metrics != nil {
+		if metrics := h.platform.metricsImpl(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
@@ -483,7 +483,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
-				if metrics := h.platform.metrics.metricsImpl; metrics != nil {
+				if metrics := h.platform.metricsImpl(); metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
 				msg = msg.PrecomputeJSON()
@@ -491,7 +491,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 					if !connIndex.Has(webConn) {
 						return
 					}
-					if webConn.shouldSendEvent(msg) {
+					if webConn.ShouldSendEvent(msg) {
 						select {
 						case webConn.send <- msg:
 						default:

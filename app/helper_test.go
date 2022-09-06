@@ -22,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -65,16 +64,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	buffer := &mlog.Buffer{}
 
-	options = append(options, ConfigWithStore(configStore, dbStore))
+	options = append(options, ConfigStore(configStore))
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		options = append(options, StoreOverride(func(s *Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.GetMetrics(), s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
-		}))
+		options = append(options, StoreOverrideWithCache(dbStore))
 	} else {
 		options = append(options, StoreOverride(dbStore))
 	}
@@ -207,7 +200,7 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, []Option{setCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, true, true, []Option{SetCluster(cluster)}, tb)
 }
 
 var initBasicOnce sync.Once

@@ -4978,7 +4978,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.SaveAndBroadcastStatus(&model.Status{
+		th.App.Srv().Platform().SaveAndBroadcastStatus(&model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,
@@ -5512,7 +5512,7 @@ func TestPublishUserTyping(t *testing.T) {
 		})
 	})
 
-	th.Server.Busy.Set(time.Second * 10)
+	th.Server.Platform().Busy.Set(time.Second * 10)
 
 	t.Run("should return service unavailable for non-system admin user when triggering a typing event and server busy", func(t *testing.T) {
 		resp, err := th.Client.PublishUserTyping("invalid", tr)

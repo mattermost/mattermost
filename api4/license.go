@@ -106,7 +106,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// skip the restrictions if license is a sanctioned trial
 	if !license.IsSanctionedTrial() && license.IsTrialLicense() {
-		canStartTrialLicense, err := c.App.Srv().LicenseManager.CanStartTrial()
+		canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
 		if err != nil {
 			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
 			return
@@ -180,12 +180,12 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Srv().LicenseManager == nil {
+	if c.App.Srv().Platform().LicenseManager() == nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	canStartTrialLicense, err := c.App.Srv().LicenseManager.CanStartTrial()
+	canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
 	if err != nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.can-start-trial.error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -264,12 +264,12 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPrevTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().LicenseManager == nil {
+	if c.App.Srv().Platform().LicenseManager() == nil {
 		c.Err = model.NewAppError("getPrevTrialLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	license, err := c.App.Srv().LicenseManager.GetPrevTrial()
+	license, err := c.App.Srv().Platform().LicenseManager().GetPrevTrial()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

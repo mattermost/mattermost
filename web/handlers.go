@@ -316,7 +316,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
-	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
 		c.SetServerBusyError()
 	}
 

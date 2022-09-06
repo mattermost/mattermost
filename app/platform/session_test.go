@@ -125,7 +125,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, nErr := th.Service.store.OAuth().SaveAccessData(accessData)
+	_, nErr := th.Service.Store.OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
 	err = th.Service.RevokeAccessToken(accessData.Token)

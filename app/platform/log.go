@@ -82,11 +82,11 @@ func (ps *PlatformService) NotificationsLogger() *mlog.Logger {
 }
 
 func (ps *PlatformService) EnableLoggingMetrics() {
-	if ps.metrics == nil || ps.metrics.metricsImpl == nil {
+	if ps.metrics == nil || ps.metricsImpl() == nil {
 		return
 	}
 
-	ps.logger.SetMetricsCollector(ps.metrics.metricsImpl.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	ps.logger.SetMetricsCollector(ps.metricsImpl().GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := ps.initLogging(); err != nil {

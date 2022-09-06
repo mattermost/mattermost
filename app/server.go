@@ -8,7 +8,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"hash/maphash"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -102,10 +100,6 @@ const (
 )
 
 type Server struct {
-	// sqlStore *sqlstore.SqlStore // TODO: platform: remove
-	// Store           store.Store        // TODO: platform: remove
-	WebSocketRouter *WebSocketRouter // TODO: platform: remove
-
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
 
@@ -120,19 +114,12 @@ type Server struct {
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
-	Busy        *Busy // TODO: platform: remove
 
 	localModeServer *http.Server
 
 	didFinishListen chan struct{}
 
-	goroutineCount      int32
-	goroutineExitSignal chan struct{}
-
 	EmailService email.ServiceInterface
-
-	hubs     []*Hub       // TODO: platform: remove
-	hashSeed maphash.Seed // TODO: platform: remove
 
 	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
@@ -141,24 +128,13 @@ type Server struct {
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
 
-	clusterLeaderListeners sync.Map        // TODO: platform: remove
-	clusterWrapper         *clusterWrapper // TODO: platform: remove
-
-	licenseValue       atomic.Value                                    // TODO: platform: remove
-	clientLicenseValue atomic.Value                                    // TODO: platform: remove
-	licenseListeners   map[string]func(*model.License, *model.License) // TODO: platform: remove
-	licenseWrapper     *licenseWrapper
+	licenseWrapper *licenseWrapper
 
 	timezones *timezones.Timezones
 
-	newStore func() (store.Store, error) // TODO: platform: remove
-
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache // TODO: platform: remove
 	openGraphDataCache      cache.Cache
-	configListenerId        string
-	licenseListenerId       string
 	clusterLeaderListenerId string
 	searchConfigListenerId  string
 	searchLicenseListenerId string
@@ -186,11 +162,7 @@ type Server struct {
 
 	SearchEngine *searchengine.Broker
 
-	Cluster        einterfaces.ClusterInterface // TODO: platform: remove
-	Cloud          einterfaces.CloudInterface
-	LicenseManager einterfaces.LicenseInterface // TODO: platform: remove
-
-	CacheProvider cache.Provider // TODO: platform: remove
+	Cloud einterfaces.CloudInterface
 
 	tracer *tracing.Tracer
 
@@ -216,16 +188,10 @@ func NewServer(options ...Option) (*Server, error) {
 	localRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal: make(chan struct{}, 1),
-		RootRouter:          rootRouter,
-		LocalRouter:         localRouter,
-		WebSocketRouter: &WebSocketRouter{
-			handlers: make(map[string]webSocketHandler),
-		},
-		licenseListeners: map[string]func(*model.License, *model.License){},
-		hashSeed:         maphash.MakeSeed(),
-		timezones:        timezones.New(),
-		products:         make(map[string]Product),
+		RootRouter:  rootRouter,
+		LocalRouter: localRouter,
+		timezones:   timezones.New(),
+		products:    make(map[string]Product),
 	}
 
 	for _, option := range options {
@@ -238,7 +204,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// performed during server bootup. They are sensitive to order
 	// and has dependency requirements with the previous step.
 	//
-	// Step 1: Config.
+	// Step 1: Platform.
 	if s.platform == nil {
 		innerStore, err := config.NewFileStore("config.json", true)
 		if err != nil {
@@ -252,21 +218,16 @@ func NewServer(options ...Option) (*Server, error) {
 		platformCfg := platform.ServiceConfig{
 			ConfigStore:  configStore,
 			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
 		}
 		if metricsInterface != nil {
 			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
 		}
 
-		ps, sErr := platform.New(platformCfg)
+		ps, sErr := platform.New(platformCfg, s.platformOptions...)
 		if sErr != nil {
 			return nil, errors.Wrap(sErr, "failed to initialize platform")
 		}
 		s.platform = ps
-
-		if s.licenseValue.Load() != nil {
-			ps.SetLicense(s.licenseValue.Load().(*model.License)) // in case license is set in server options
-		}
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
@@ -294,14 +255,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	s.initEnterprise()
 
-	// Step 5: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = cache.NewProvider()
-	if err2 := s.CacheProvider.Connect(); err2 != nil {
-		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
-	}
-
 	// Step 6: Store.
 	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 
@@ -312,20 +265,11 @@ func NewServer(options ...Option) (*Server, error) {
 		OAuthStore:   s.Store().OAuth(),
 		ConfigFn:     s.platform.Config,
 		Metrics:      s.GetMetrics(),
-		Cluster:      s.Cluster,
+		Cluster:      s.platform.Cluster(),
 		LicenseFn:    s.License,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	// Needed before loading license
-	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create status cache")
 	}
 
 	if model.BuildEnterpriseReady == "true" {
@@ -346,16 +290,12 @@ func NewServer(options ...Option) (*Server, error) {
 		srv: s,
 	}
 
-	s.clusterWrapper = &clusterWrapper{
-		srv: s,
-	}
-
 	s.teamService, err = teams.New(teams.ServiceConfig{
 		TeamStore:    s.Store().Team(),
 		ChannelStore: s.Store().Channel(),
 		GroupStore:   s.Store().Group(),
 		Users:        s.userService,
-		WebHub:       s,
+		WebHub:       s.platform,
 		ConfigFn:     s.platform.Config,
 		LicenseFn:    s.License,
 	})
@@ -372,11 +312,11 @@ func NewServer(options ...Option) (*Server, error) {
 		LicenseKey:       s.licenseWrapper,
 		FilestoreKey:     s.filestore,
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		ClusterKey:       s.clusterWrapper,
+		ClusterKey:       s.platform,
 		UserKey:          New(ServerConnector(s.Channels())),
 		LogKey:           s.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		KVStoreKey:       &kvStoreWrapper{srv: s},
+		KVStoreKey:       s.platform,
 		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		SystemKey:        &systemServiceAdapter{server: s},
 	}
@@ -391,7 +331,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 9: Hub depends on s.Channels() (step 8)
-	s.HubStart()
+	s.platform.HubStart(New(ServerConnector(s.Channels())))
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -441,12 +381,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
-	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -472,34 +412,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
-
-	s.configListenerId = s.platform.AddConfigListener(func(_, _ *model.Config) {
-		ch := s.Channels()
-		ch.regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
-
-		appInstance := New(ServerConnector(ch))
-		message.Add("config", appInstance.ClientConfigWithComputed())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-		if err = s.platform.ReconfigureLogger(); err != nil {
-			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
-			return
-		}
-	})
-	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.Channels().regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
-		message.Add("license", s.GetSanitizedClientLicense())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-	})
 
 	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.SearchEngine, s.Log())
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
@@ -843,8 +755,6 @@ func (s *Server) Shutdown() {
 
 	defer sentry.Flush(2 * time.Second)
 
-	s.HubStop()
-	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
@@ -881,7 +791,6 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	s.platform.RemoveConfigListener(s.configListenerId)
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()
@@ -892,8 +801,8 @@ func (s *Server) Shutdown() {
 		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
-	if s.Cluster != nil {
-		s.Cluster.StopInterNodeCommunication()
+	if s.platform.Cluster() != nil {
+		s.platform.Cluster().StopInterNodeCommunication()
 	}
 
 	if err = s.platform.ShutdownMetrics(); err != nil {
@@ -922,14 +831,8 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	// if s.Store != nil {
-	// 	s.Store().Close()
-	// }
-
-	if s.CacheProvider != nil {
-		if err = s.CacheProvider.Close(); err != nil {
-			s.Log().Warn("Unable to cleanly shutdown cache", mlog.Err(err))
-		}
+	if err = s.platform.Shutdown(); err != nil {
+		s.Log().Warn("Failed to stop platform", mlog.Err(err))
 	}
 
 	s.Log().Info("Server stopped")
@@ -965,14 +868,6 @@ func (s *Server) Restart() error {
 	return syscall.Exec(argv0, os.Args, os.Environ())
 }
 
-func (s *Server) isUpgradedFromTE() bool {
-	val, err := s.Store().System().GetByName(model.SystemUpgradedFromTeId)
-	if err != nil {
-		return false
-	}
-	return val.Value == "true"
-}
-
 func (s *Server) CanIUpgradeToE0() error {
 	return upgrader.CanIUpgradeToE0()
 }
@@ -992,27 +887,13 @@ func (s *Server) UpgradeToE0Status() (int64, error) {
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
-// TODO: platform: remove
 func (s *Server) Go(f func()) {
-	atomic.AddInt32(&s.goroutineCount, 1)
-
-	go func() {
-		f()
-
-		atomic.AddInt32(&s.goroutineCount, -1)
-		select {
-		case s.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-	}()
+	s.platform.Go(f)
 }
 
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
-// TODO: platform: remove
 func (s *Server) WaitForGoroutines() {
-	for atomic.LoadInt32(&s.goroutineCount) != 0 {
-		<-s.goroutineExitSignal
-	}
+	s.platform.WaitForGoroutines()
 }
 
 var corsAllowedMethods = []string{
@@ -1060,9 +941,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if s.joinCluster && s.Cluster != nil {
+	if s.joinCluster && s.platform.Cluster() != nil {
 		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
+		s.platform.Cluster().StartInterNodeCommunication()
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
@@ -1141,7 +1022,6 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
-	s.Busy = NewBusy(s.Cluster) // TODO: platform: remove
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog := s.Log().With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
@@ -1695,22 +1575,15 @@ func (s *Server) FileBackend() filestore.FileBackend {
 }
 
 func (s *Server) TotalWebsocketConnections() int {
-	// This method is only called after the hub is initialized.
-	// Therefore, no mutex is needed to protect s.hubs.
-	count := int64(0)
-	for _, hub := range s.hubs {
-		count = count + atomic.LoadInt64(&hub.connectionCount)
-	}
-
-	return int(count)
+	return s.Platform().TotalWebsocketConnections()
 }
 
 func (s *Server) ClusterHealthScore() int {
-	return s.Cluster.HealthScore()
+	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
-	return ch.clientConfigHash.Load().(string)
+	return ch.srv.Platform().ClientConfigHash()
 }
 
 func (s *Server) initJobs() {

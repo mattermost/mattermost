@@ -14,6 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -35,8 +36,12 @@ type JWTClaims struct {
 	jwt.StandardClaims
 }
 
-func (ps *PlatformService) GetLicense() *model.License {
-	return ps.License()
+func (ps *PlatformService) LicenseManager() einterfaces.LicenseInterface {
+	return ps.licenseManager
+}
+
+func (ps *PlatformService) SetLicenseManager(impl einterfaces.LicenseInterface) {
+	ps.licenseManager = impl
 }
 
 func (ps *PlatformService) License() *model.License {
@@ -56,7 +61,7 @@ func (ps *PlatformService) LoadLicense() {
 
 		// skip the restrictions if license is a sanctioned trial
 		if !license.IsSanctionedTrial() && license.IsTrialLicense() {
-			canStartTrialLicense, err := ps.LicenseManager.CanStartTrial()
+			canStartTrialLicense, err := ps.licenseManager.CanStartTrial()
 			if err != nil {
 				ps.logger.Error("Failed to validate trial eligibility.", mlog.Err(err))
 				return

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -351,36 +352,6 @@ func (a *OpenTracingAppLayer) AddSessionToCache(session *model.Session) {
 
 	defer span.Finish()
 	a.app.AddSessionToCache(session)
-}
-
-func (a *OpenTracingAppLayer) AddStatusCache(status *model.Status) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddStatusCache")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.AddStatusCache(status)
-}
-
-func (a *OpenTracingAppLayer) AddStatusCacheSkipClusterSend(status *model.Status) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddStatusCacheSkipClusterSend")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.AddStatusCacheSkipClusterSend(status)
 }
 
 func (a *OpenTracingAppLayer) AddTeamMember(c request.CTX, teamID string, userID string) (*model.TeamMember, *model.AppError) {
@@ -936,21 +907,6 @@ func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(teamID string, term string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BroadcastStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.BroadcastStatus(status)
-}
-
 func (a *OpenTracingAppLayer) BuildPostReactions(ctx request.CTX, postID string) (*[]app.ReactionImportData, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPostReactions")
@@ -1452,7 +1408,7 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *app.CheckConnResult {
+func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *platform.CheckConnResult {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckWebConn")
 
@@ -1618,23 +1574,6 @@ func (a *OpenTracingAppLayer) ClientConfigHash() string {
 
 	defer span.Finish()
 	resultVar0 := a.app.ClientConfigHash()
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) ClientConfigWithComputed() map[string]string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClientConfigWithComputed")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.ClientConfigWithComputed()
 
 	return resultVar0
 }
@@ -4594,23 +4533,6 @@ func (a *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllStatuses() map[string]*model.Status {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllStatuses")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.GetAllStatuses()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeams")
@@ -6505,7 +6427,7 @@ func (a *OpenTracingAppLayer) GetGroupsByUserId(userID string) ([]*model.Group, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetHubForUserId(userID string) *app.Hub {
+func (a *OpenTracingAppLayer) GetHubForUserId(userID string) *platform.Hub {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetHubForUserId")
 
@@ -9212,28 +9134,6 @@ func (a *OpenTracingAppLayer) GetStatusFromCache(userID string) *model.Status {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStatusesByIds")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetStatusesByIds(userIDs)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) GetStorageUsage() (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStorageUsage")
@@ -11341,7 +11241,7 @@ func (a *OpenTracingAppLayer) HasSharedChannel(channelID string) (bool, error) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) HubRegister(webConn *app.WebConn) {
+func (a *OpenTracingAppLayer) HubRegister(webConn *platform.WebConn) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubRegister")
 
@@ -11356,7 +11256,7 @@ func (a *OpenTracingAppLayer) HubRegister(webConn *app.WebConn) {
 	a.app.HubRegister(webConn)
 }
 
-func (a *OpenTracingAppLayer) HubUnregister(webConn *app.WebConn) {
+func (a *OpenTracingAppLayer) HubUnregister(webConn *platform.WebConn) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubUnregister")
 
@@ -11889,23 +11789,6 @@ func (a *OpenTracingAppLayer) LimitedClientConfig() map[string]string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) LimitedClientConfigWithComputed() map[string]string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LimitedClientConfigWithComputed")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.LimitedClientConfigWithComputed()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListAllCommands")
@@ -12375,23 +12258,6 @@ func (a *OpenTracingAppLayer) MoveFile(oldPath string, newPath string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewClusterDiscoveryService() *app.ClusterDiscoveryService {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewClusterDiscoveryService")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NewClusterDiscoveryService()
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewPluginAPI")
@@ -12409,7 +12275,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.M
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(cfg *app.WebConnConfig) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(cfg *platform.WebConnConfig) *platform.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
@@ -12908,7 +12774,7 @@ func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamID string) []*model.Comm
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *app.WebConnConfig, seqVal string) (*app.WebConnConfig, error) {
+func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PopulateWebConnConfig")
 
@@ -14329,21 +14195,6 @@ func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*mode
 	resultVar0 := a.app.SanitizeTeams(session, teams)
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAndBroadcastStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SaveAndBroadcastStatus(status)
 }
 
 func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {

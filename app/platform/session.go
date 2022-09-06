@@ -23,7 +23,7 @@ func (ps *PlatformService) ReturnSessionToPool(session *model.Session) {
 func (ps *PlatformService) CreateSession(session *model.Session) (*model.Session, error) {
 	session.Token = ""
 
-	session, err := ps.store.Session().Save(session)
+	session, err := ps.Store.Session().Save(session)
 	if err != nil {
 		return nil, err
 	}
@@ -36,11 +36,11 @@ func (ps *PlatformService) CreateSession(session *model.Session) (*model.Session
 func (ps *PlatformService) GetUserSession(token string) (*model.Session, error) {
 	var session = ps.sessionPool.Get().(*model.Session)
 	if err := ps.sessionCache.Get(token, session); err == nil {
-		if m := ps.metrics.metricsImpl; m != nil {
+		if m := ps.metricsImpl(); m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}
 	} else {
-		if m := ps.metrics.metricsImpl; m != nil {
+		if m := ps.metricsImpl(); m != nil {
 			m.IncrementMemCacheMissCounterSession()
 		}
 	}
@@ -53,11 +53,11 @@ func (ps *PlatformService) GetUserSession(token string) (*model.Session, error) 
 }
 
 func (ps *PlatformService) GetSessionContext(ctx context.Context, token string) (*model.Session, error) {
-	return ps.store.Session().Get(ctx, token)
+	return ps.Store.Session().Get(ctx, token)
 }
 
 func (ps *PlatformService) GetSessions(userID string) ([]*model.Session, error) {
-	return ps.store.Session().GetSessions(userID)
+	return ps.Store.Session().GetSessions(userID)
 }
 
 func (ps *PlatformService) AddSessionToCache(session *model.Session) {
@@ -78,7 +78,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 			if err := ps.sessionCache.Get(key, &session); err == nil {
 				if session.UserId == userID {
 					ps.sessionCache.Remove(key)
-					if m := ps.metrics.metricsImpl; m != nil {
+					if m := ps.metricsImpl(); m != nil {
 						m.IncrementMemCacheInvalidationCounterSession()
 					}
 				}
@@ -116,17 +116,36 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 	}
 }
 
+func (ps *PlatformService) GetSession(token string) (*model.Session, error) {
+	var session = ps.sessionPool.Get().(*model.Session)
+	if err := ps.sessionCache.Get(token, session); err == nil {
+		if m := ps.metricsImpl(); m != nil {
+			m.IncrementMemCacheHitCounterSession()
+		}
+	} else {
+		if m := ps.metricsImpl(); m != nil {
+			m.IncrementMemCacheMissCounterSession()
+		}
+	}
+
+	if session.Id != "" {
+		return session, nil
+	}
+
+	return ps.GetSessionContext(sqlstore.WithMaster(context.Background()), token)
+}
+
 func (ps *PlatformService) GetSessionByID(sessionID string) (*model.Session, error) {
-	return ps.store.Session().Get(context.Background(), sessionID)
+	return ps.Store.Session().Get(context.Background(), sessionID)
 }
 
 func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	// revoke tokens before sessions so they can't be used to relogin
-	nErr := ps.store.OAuth().RemoveAllAccessData()
+	nErr := ps.Store.OAuth().RemoveAllAccessData()
 	if nErr != nil {
 		return fmt.Errorf("%s: %w", nErr.Error(), DeleteAllAccessDataError)
 	}
-	err := ps.store.Session().RemoveAllSessions()
+	err := ps.Store.Session().RemoveAllSessions()
 	if err != nil {
 		return err
 	}
@@ -136,7 +155,7 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 }
 
 func (ps *PlatformService) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) error {
-	sessions, err := ps.store.Session().GetSessions(userID)
+	sessions, err := ps.Store.Session().GetSessions(userID)
 	if err != nil {
 		return err
 	}
@@ -158,7 +177,7 @@ func (ps *PlatformService) RevokeSession(session *model.Session) error {
 			return err
 		}
 	} else {
-		if err := ps.store.Session().Remove(session.Id); err != nil {
+		if err := ps.Store.Session().Remove(session.Id); err != nil {
 			return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
 		}
 	}
@@ -175,15 +194,15 @@ func (ps *PlatformService) RevokeAccessToken(token string) error {
 
 	schan := make(chan error, 1)
 	go func() {
-		schan <- ps.store.Session().Remove(token)
+		schan <- ps.Store.Session().Remove(token)
 		close(schan)
 	}()
 
-	if _, err := ps.store.OAuth().GetAccessData(token); err != nil {
+	if _, err := ps.Store.OAuth().GetAccessData(token); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), GetTokenError)
 	}
 
-	if err := ps.store.OAuth().RemoveAccessData(token); err != nil {
+	if err := ps.Store.OAuth().RemoveAccessData(token); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), DeleteTokenError)
 	}
 
@@ -210,7 +229,7 @@ func (ps *PlatformService) SetSessionExpireInHours(session *model.Session, hours
 }
 
 func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry int64) error {
-	if err := ps.store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
+	if err := ps.Store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
 		return err
 	}
 
@@ -231,7 +250,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(userID string, isGuest bool) er
 
 	for _, session := range sessions {
 		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
-		err := ps.store.Session().UpdateProps(session)
+		err := ps.Store.Session().UpdateProps(session)
 		if err != nil {
 			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
@@ -242,7 +261,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(userID string, isGuest bool) er
 }
 
 func (ps *PlatformService) RevokeAllSessions(userID string) error {
-	sessions, err := ps.store.Session().GetSessions(userID)
+	sessions, err := ps.Store.Session().GetSessions(userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), GetSessionError)
 	}
@@ -250,7 +269,7 @@ func (ps *PlatformService) RevokeAllSessions(userID string) error {
 		if session.IsOAuth {
 			ps.RevokeAccessToken(session.Token)
 		} else {
-			if err := ps.store.Session().Remove(session.Id); err != nil {
+			if err := ps.Store.Session().Remove(session.Id); err != nil {
 				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
 			}
 		}

@@ -39,7 +39,6 @@ type PlatformService struct {
 
 	serviceConfig ServiceConfig
 	configStore   *config.Store
-	store         store.Store
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -64,9 +63,11 @@ type PlatformService struct {
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func(*model.License, *model.License)
-	LicenseManager     einterfaces.LicenseInterface
+	licenseManager     einterfaces.LicenseInterface
 
-	telemetryId string
+	telemetryId       string
+	configListenerId  string
+	licenseListenerId string
 
 	clusterLeaderListeners sync.Map
 	clusterIFace           einterfaces.ClusterInterface
@@ -81,6 +82,8 @@ type PlatformService struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+
+	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 }
 
 // New creates a new PlatformService.
@@ -91,7 +94,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	ps := &PlatformService{
 		serviceConfig:       sc,
-		store:               sc.Store,
+		Store:               sc.Store,
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
@@ -104,7 +107,16 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				return &model.Session{}
 			},
 		},
-		licenseListeners: map[string]func(*model.License, *model.License){},
+		licenseListeners:          map[string]func(*model.License, *model.License){},
+		additionalClusterHandlers: map[model.ClusterEvent]einterfaces.ClusterMessageHandler{},
+	}
+
+	// Step 1: Cache provider.
+	// At the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	ps.cacheProvider = cache.NewProvider()
+	if err2 := ps.cacheProvider.Connect(); err2 != nil {
+		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
 	}
 
 	for _, option := range options {
@@ -134,14 +146,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 4: Init Enterprise
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
-
-	// Step 5: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	ps.cacheProvider = cache.NewProvider()
-	if err2 := ps.cacheProvider.Connect(); err2 != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-	}
 
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
@@ -196,7 +200,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	// TODO: platform: got back from user service
 	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
 		Size:           model.SessionCacheSize,
 		Striped:        true,
@@ -211,14 +214,37 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.LoadLicense()
 	}
 
-	// TODO: platform: remove nil check after store migration completed
-	if ps.store != nil {
-		if err := ps.ensureAsymmetricSigningKey(); err != nil {
-			return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
-		}
+	if err := ps.EnsureAsymmetricSigningKey(); err != nil {
+		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
 
 	ps.Busy = NewBusy(ps.clusterIFace)
+
+	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
+		ps.regenerateClientConfig()
+
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
+
+		message.Add("config", ps.ClientConfigWithComputed())
+		ps.Go(func() {
+			ps.Publish(message)
+		})
+
+		if err = ps.ReconfigureLogger(); err != nil {
+			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			return
+		}
+	})
+	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		ps.regenerateClientConfig()
+
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
+		message.Add("license", ps.GetSanitizedClientLicense())
+		ps.Go(func() {
+			ps.Publish(message)
+		})
+
+	})
 
 	return ps, nil
 }
@@ -232,6 +258,8 @@ func (ps *PlatformService) ShutdownMetrics() error {
 }
 
 func (ps *PlatformService) ShutdownConfig() error {
+	ps.RemoveConfigListener(ps.configListenerId)
+
 	if ps.configStore != nil {
 		err := ps.configStore.Close()
 		if err != nil {
@@ -260,6 +288,48 @@ func (ps *PlatformService) initEnterprise() {
 	}
 
 	if licenseInterface != nil {
-		ps.LicenseManager = licenseInterface(ps)
+		ps.licenseManager = licenseInterface(ps)
 	}
+}
+
+func (ps *PlatformService) TotalWebsocketConnections() int {
+	// This method is only called after the hub is initialized.
+	// Therefore, no mutex is needed to protect s.hubs.
+	count := int64(0)
+	for _, hub := range ps.hubs {
+		count = count + atomic.LoadInt64(&hub.connectionCount)
+	}
+
+	return int(count)
+}
+
+func (ps *PlatformService) Shutdown() error {
+	ps.HubStop()
+
+	ps.RemoveLicenseListener(ps.licenseListenerId)
+
+	if ps.Store != nil {
+		ps.Store.Close()
+	}
+
+	if ps.cacheProvider != nil {
+		if err := ps.cacheProvider.Close(); err != nil {
+			return fmt.Errorf("unable to cleanly shutdown cache: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (ps *PlatformService) CacheProvider() cache.Provider {
+	return ps.cacheProvider
+}
+
+func (ps *PlatformService) StatusCache() cache.Cache {
+	return ps.statusCache
+}
+
+// SetSqlStore is used for plugin testing
+func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
+	ps.sqlStore = s
 }

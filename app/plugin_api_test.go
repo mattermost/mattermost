@@ -1135,7 +1135,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	if settingsSchema != "" {
 		schema = settingsSchema
 	}
-	// th.App.ch.srv.sqlStore = th.GetSqlStore() // TODO: platform: check if necessary
+	th.App.ch.srv.platform.SetSqlStore(th.GetSqlStore()) // TODO: platform: check if necessary
 	setupPluginAPITest(t, code,
 		fmt.Sprintf(`{"id": "%v", "server": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)

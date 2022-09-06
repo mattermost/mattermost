@@ -11,8 +11,8 @@ import (
 
 func (ch *Channels) notifyClusterPluginEvent(event model.ClusterEvent, data model.PluginEventData) {
 	buf, _ := json.Marshal(data)
-	if ch.srv.Cluster != nil {
-		ch.srv.Cluster.SendClusterMessage(&model.ClusterMessage{
+	if ch.srv.platform.Cluster() != nil {
+		ch.srv.platform.Cluster().SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
 			SendType:         model.ClusterSendReliable,
 			WaitForAllToSend: true,

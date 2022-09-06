@@ -1087,7 +1087,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 		ChannelStore: &mockChannelStore,
 		GroupStore:   &mocks.GroupStore{},
 		Users:        th.App.ch.srv.userService,
-		WebHub:       th.App.ch.srv,
+		WebHub:       th.App.ch.srv.platform,
 		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
 	})

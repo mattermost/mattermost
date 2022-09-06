@@ -4,8 +4,6 @@
 package app
 
 import (
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -24,22 +22,14 @@ type Option func(s *Server) error
 func StoreOverride(override any) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.StoreOverride(override))
-		switch o := override.(type) {
-		case store.Store:
-			s.newStore = func() (store.Store, error) {
-				return o, nil
-			}
-			return nil
+		return nil
+	}
+}
 
-		case func(*Server) store.Store:
-			s.newStore = func() (store.Store, error) {
-				return o(s), nil
-			}
-			return nil
-
-		default:
-			return errors.New("invalid StoreOverride")
-		}
+func StoreOverrideWithCache(override store.Store) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.StoreOverrideWithCache(override))
+		return nil
 	}
 }
 
@@ -50,26 +40,6 @@ func StoreOverride(override any) Option {
 func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.Config(dsn, readOnly, configDefaults))
-		configStore, err := config.NewStoreFromDSN(dsn, readOnly, configDefaults, true)
-		if err != nil {
-			return errors.Wrap(err, "failed to apply Config option")
-		}
-
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
-		if sErr != nil {
-			return errors.Wrap(sErr, "failed to initialize platform")
-		}
-		s.platform = ps
-
 		return nil
 	}
 }
@@ -78,43 +48,6 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.ConfigStore(configStore))
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
-		if sErr != nil {
-			return errors.Wrap(sErr, "failed to initialize platform")
-		}
-		s.platform = ps
-
-		return nil
-	}
-}
-
-func ConfigWithStore(configStore *config.Store, st store.Store) Option {
-	return func(s *Server) error {
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-			Store:        st,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
-		if sErr != nil {
-			return errors.Wrap(sErr, "failed to initialize platform")
-		}
-		s.platform = ps
-
 		return nil
 	}
 }
@@ -156,11 +89,6 @@ func StartMetrics(s *Server) error {
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
 		s.platformOptions = append(s.platformOptions, platform.SetLogger(logger))
-		if s.platform == nil {
-			return errors.New("platform service is not initialized")
-		}
-
-		s.platform.SetLogger(logger)
 		return nil
 	}
 }
@@ -182,9 +110,9 @@ func ServerConnector(ch *Channels) AppOption {
 	}
 }
 
-func setCluster(cluster einterfaces.ClusterInterface) Option {
+func SetCluster(impl einterfaces.ClusterInterface) Option {
 	return func(s *Server) error {
-		s.Cluster = cluster
+		s.platformOptions = append(s.platformOptions, platform.SetCluster(impl))
 		return nil
 	}
 }

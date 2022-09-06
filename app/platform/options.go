@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 )
 
 type Option func(ps *PlatformService) error
@@ -39,6 +40,17 @@ func StoreOverride(override any) Option {
 		default:
 			return errors.New("invalid StoreOverride")
 		}
+	}
+}
+
+func StoreOverrideWithCache(override store.Store) Option {
+	return func(ps *PlatformService) error {
+		lcl, err := localcachelayer.NewLocalCacheLayer(override, ps.metricsImpl(), ps.clusterIFace, ps.cacheProvider)
+		if err != nil {
+			return err
+		}
+		ps.Store = lcl
+		return nil
 	}
 }
 
@@ -82,7 +94,7 @@ func SetLogger(logger *mlog.Logger) Option {
 	}
 }
 
-func setCluster(cluster einterfaces.ClusterInterface) Option {
+func SetCluster(cluster einterfaces.ClusterInterface) Option {
 	return func(ps *PlatformService) error {
 		ps.clusterIFace = cluster
 		return nil

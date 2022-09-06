@@ -140,7 +140,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.Srv().getSystemInstallDate()
+	return api.app.Srv().Platform().GetSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -292,7 +292,7 @@ func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *mo
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+	if err := api.app.ch.srv.platform.ExtendSessionExpiry(session, expiresAt); err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

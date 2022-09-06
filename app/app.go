@@ -58,18 +58,6 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
-func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, err := s.Store().System().GetByName(model.SystemInstallationDateKey)
-	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	value, err := strconv.ParseInt(systemData.Value, 10, 64)
-	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return value, nil
-}
-
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store().System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
@@ -99,7 +87,7 @@ func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.ch.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
-	return a.ch.srv.Cluster
+	return a.ch.srv.platform.Cluster()
 }
 func (a *App) Compliance() einterfaces.ComplianceInterface {
 	return a.ch.Compliance

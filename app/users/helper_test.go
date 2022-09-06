@@ -7,14 +7,12 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -73,27 +71,12 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	configStore.Set(config)
 
 	buffer := &bytes.Buffer{}
-	provider := cache.NewProvider()
-	cache, err := provider.NewCache(&cache.CacheOptions{
-		Size:           model.SessionCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	})
-	if err != nil {
-		panic(err)
-	}
 	return &TestHelper{
 		service: &UserService{
 			store:        s.User(),
 			sessionStore: s.Session(),
 			oAuthStore:   s.OAuth(),
-			sessionCache: cache,
 			config:       configStore.Get,
-			sessionPool: sync.Pool{
-				New: func() any {
-					return &model.Session{}
-				},
-			},
 		},
 		Context:     request.EmptyContext(nil),
 		configStore: configStore,

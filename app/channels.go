@@ -51,7 +51,6 @@ type Channels struct {
 
 	asymmetricSigningKey atomic.Value
 	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value // TODO: platform: remove
 	limitedClientConfig  atomic.Value
 
 	// cached counts that are used during notice condition validation
@@ -267,7 +266,8 @@ func (ch *Channels) Start() error {
 
 	})
 
-	if err := ch.ensureAsymmetricSigningKey(); err != nil {
+	// TODO: This should be moved to the platform service.
+	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 

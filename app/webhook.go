@@ -385,7 +385,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	if err != nil {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "app.webhooks.update_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	a.invalidateCacheForWebhook(oldHook.Id)
+	a.Srv().Platform().InvalidateCacheForWebhook(oldHook.Id)
 	return newWebhook, nil
 }
 
@@ -398,7 +398,7 @@ func (a *App) DeleteIncomingWebhook(hookID string) *model.AppError {
 		return model.NewAppError("DeleteIncomingWebhook", "app.webhooks.delete_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.invalidateCacheForWebhook(hookID)
+	a.Srv().Platform().InvalidateCacheForWebhook(hookID)
 
 	return nil
 }

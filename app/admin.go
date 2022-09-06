@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"runtime/debug"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/config"
@@ -28,8 +27,8 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.Cluster.GetMyClusterInfo(); info != nil {
+	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
+		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, info.Hostname)
@@ -47,8 +46,8 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.Cluster.GetLogs(page, perPage)
+	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
+		clines, err := s.platform.Cluster().GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -150,35 +149,12 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 }
 
 func (s *Server) InvalidateAllCaches() *model.AppError {
-	debug.FreeOSMemory()
-	s.InvalidateAllCachesSkipSend()
-
-	if s.Cluster != nil {
-
-		msg := &model.ClusterMessage{
-			Event:            model.ClusterEventInvalidateAllCaches,
-			SendType:         model.ClusterSendReliable,
-			WaitForAllToSend: true,
-		}
-
-		s.Cluster.SendClusterMessage(msg)
-	}
-
-	return nil
+	return s.platform.InvalidateAllCaches()
 }
 
 func (s *Server) InvalidateAllCachesSkipSend() {
-	mlog.Info("Purging all caches")
-	s.userService.ClearAllUsersSessionCacheLocal()
-	s.statusCache.Purge()
-	s.Store().Team().ClearCaches()
-	s.Store().Channel().ClearCaches()
-	s.Store().User().ClearCaches()
-	s.Store().Post().ClearCaches()
-	s.Store().FileInfo().ClearCaches()
-	s.Store().Webhook().ClearCaches()
-	linkCache.Purge()
-	s.LoadLicense()
+	s.platform.InvalidateAllCachesSkipSend()
+
 }
 
 func (a *App) RecycleDatabaseConnection() {
@@ -235,17 +211,6 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	}
 
 	return nil
-}
-
-// TODO: platform: remove
-// serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
-	s.Busy.ClusterEventChanged(sbs)
-	if sbs.Busy {
-		mlog.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
-	} else {
-		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
-	}
 }
 
 func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {

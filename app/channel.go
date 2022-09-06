@@ -651,7 +651,7 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		}
 	}
 
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil)
 	channelJSON, jsonErr := json.Marshal(channel)
@@ -722,7 +722,7 @@ func (a *App) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, use
 		return channel, err
 	}
 
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil)
 	messageWs.Add("channel_id", channel.Id)
@@ -777,7 +777,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	channel.DeleteAt = 0
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -1418,7 +1418,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 		if err := a.Srv().Store().Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			c.Logger().Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
-		a.invalidateCacheForWebhook(hook.Id)
+		a.Srv().Platform().InvalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
@@ -1432,7 +1432,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
 		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -2549,10 +2549,10 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	a.AddStatusCache(status)
+	a.Srv().Platform().AddStatusCache(status)
 
 	if status.Status != oldStatus {
-		a.BroadcastStatus(status)
+		a.Srv().Platform().BroadcastStatus(status)
 	}
 
 	return nil
@@ -2995,7 +2995,7 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.invalidateCacheForChannel(channel)
+	a.Srv().Platform().InvalidateCacheForChannel(channel)
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)

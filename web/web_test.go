@@ -96,7 +96,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
 		var st localcachelayer.LocalCacheStore
-		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Cluster, s.CacheProvider)
+		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider())
 		if err != nil {
 			panic(err)
 		}

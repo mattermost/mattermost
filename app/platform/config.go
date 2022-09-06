@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -189,7 +190,7 @@ func (ps *PlatformService) regenerateClientConfig() {
 	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := ps.store.TermsOfService().GetLatest(true)
+		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)
 		if err != nil {
 			mlog.Err(err)
 		} else {
@@ -218,16 +219,16 @@ func (ps *PlatformService) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return nil
 }
 
-// ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
+// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
-func (ps *PlatformService) ensureAsymmetricSigningKey() error {
+func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 	if ps.AsymmetricSigningKey() != nil {
 		return nil
 	}
 
 	var key *model.SystemAsymmetricSigningKey
 
-	value, err := ps.store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+	value, err := ps.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 	if err == nil {
 		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
@@ -257,7 +258,7 @@ func (ps *PlatformService) ensureAsymmetricSigningKey() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if err = ps.store.System().Save(system); err != nil {
+		if err = ps.Store.System().Save(system); err != nil {
 			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
@@ -267,7 +268,7 @@ func (ps *PlatformService) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		value, err := ps.store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+		value, err := ps.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
 		if err != nil {
 			return err
 		}
@@ -294,4 +295,94 @@ func (ps *PlatformService) ensureAsymmetricSigningKey() error {
 	})
 	ps.regenerateClientConfig()
 	return nil
+}
+
+// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *PlatformService) LimitedClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range a.LimitedClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
+
+	return respCfg
+}
+
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range ps.clientConfig.Load().(map[string]string) {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(ps.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(ps.isUpgradedFromTE())
+	respCfg["InstallationDate"] = ""
+	if installationDate, err := ps.GetSystemInstallDate(); err == nil {
+		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
+	}
+	if ver, err := ps.Store.GetDBSchemaVersion(); err != nil {
+		mlog.Error("Could not get the schema version", mlog.Err(err))
+	} else {
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
+	}
+
+	return respCfg
+}
+
+func (ps *PlatformService) LimitedClientConfig() map[string]string {
+	return ps.limitedClientConfig.Load().(map[string]string)
+}
+
+func (ps *PlatformService) IsFirstUserAccount() bool {
+	cachedSessions, err := ps.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+		if err != nil {
+			return false
+		}
+		if count <= 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ps *PlatformService) MaxPostSize() int {
+	maxPostSize := ps.Store.Post().GetMaxPostSize()
+	if maxPostSize == 0 {
+		return model.PostMessageMaxRunesV1
+	}
+
+	return maxPostSize
+}
+
+func (ps *PlatformService) isUpgradedFromTE() bool {
+	val, err := ps.Store.System().GetByName(model.SystemUpgradedFromTeId)
+	if err != nil {
+		return false
+	}
+	return val.Value == "true"
+}
+
+func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
+	systemData, err := ps.Store.System().GetByName(model.SystemInstallationDateKey)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return value, nil
 }

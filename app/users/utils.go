@@ -16,24 +16,6 @@ func maxInt(a, b int) int {
 	return b
 }
 
-func (us *UserService) IsFirstUserAccount() bool {
-	cachedSessions, err := us.sessionCache.Len()
-	if err != nil {
-		return false
-	}
-	if cachedSessions == 0 {
-		count, err := us.store.Count(model.UserCountOptions{IncludeDeleted: true})
-		if err != nil {
-			return false
-		}
-		if count <= 0 {
-			return true
-		}
-	}
-
-	return false
-}
-
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
 func CheckUserDomain(user *model.User, domains string) bool {
 	return CheckEmailDomain(user.Email, domains)

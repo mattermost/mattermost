@@ -43,9 +43,9 @@ func (a *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$ele
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.{{$index}}")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 	{{range $paramIdx, $param := $element.Params}}

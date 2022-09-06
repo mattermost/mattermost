@@ -411,7 +411,7 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
-			if m := wc.Platform.metrics.metricsImpl; m != nil {
+			if m := wc.Platform.metricsImpl(); m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectFound)
 			}
 		} else if wc.hasMsgLoss() {
@@ -429,11 +429,11 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.sendHello", err)
 				return
 			}
-			if m := wc.Platform.metrics.metricsImpl; m != nil {
+			if m := wc.Platform.metricsImpl(); m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
 			}
 		} else {
-			if m := wc.Platform.metrics.metricsImpl; m != nil {
+			if m := wc.Platform.metricsImpl(); m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectLossless)
 			}
 		}
@@ -490,7 +490,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 
-			if m := wc.Platform.metrics.metricsImpl; m != nil {
+			if m := wc.Platform.metricsImpl(); m != nil {
 				m.IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
@@ -666,8 +666,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	// TODO: platform: handle license
-	ee := true //wc.App.Channels().License() != nil
+	ee := wc.Platform.LicenseManager() != nil
 
 	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
@@ -678,7 +677,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	return msg
 }
 
-func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
+func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	var userID string
 	var canSee bool
 
@@ -705,8 +704,8 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// shouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
+// ShouldSendEvent returns whether the message should be sent or not.
+func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 	if !wc.IsAuthenticated() {
 		return false
@@ -776,7 +775,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if wc.allChannelMembers == nil {
-			result, err := wc.Platform.store.Channel().GetAllChannelMembersForUser(wc.UserId, false, false)
+			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(wc.UserId, false, false)
 			if err != nil {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
@@ -797,7 +796,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
-		return wc.shouldSendEventToGuest(msg)
+		return wc.ShouldSendEventToGuest(msg)
 	}
 
 	return true

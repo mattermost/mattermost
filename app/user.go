@@ -206,7 +206,7 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 }
 
 func (a *App) IsFirstUserAccount() bool {
-	return a.ch.srv.userService.IsFirstUserAccount()
+	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -970,6 +970,12 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, userID := range userIDs {
+		if err := a.Srv().Platform().RevokeAllSessions(userID); err != nil {
+			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	for _, userID := range userIDs {
@@ -2204,7 +2210,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
 		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2249,7 +2255,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	if uErr := a.ch.srv.platform.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 

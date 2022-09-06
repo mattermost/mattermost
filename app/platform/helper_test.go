@@ -107,7 +107,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.Service.store = &emptyMockStore
+	th.Service.Store = &emptyMockStore
 	return th
 }
 

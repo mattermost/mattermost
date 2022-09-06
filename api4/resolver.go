@@ -111,9 +111,9 @@ func (r *resolver) Config(ctx context.Context) (model.StringMap, error) {
 	}
 
 	if c.AppContext.Session().UserId == "" {
-		return c.App.LimitedClientConfigWithComputed(), nil
+		return c.App.Srv().Platform().LimitedClientConfigWithComputed(), nil
 	}
-	return c.App.ClientConfigWithComputed(), nil
+	return c.App.Srv().Platform().ClientConfigWithComputed(), nil
 }
 
 // match with api4.getClientLicense

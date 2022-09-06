@@ -148,7 +148,7 @@ func (ch *Channels) syncPluginsActiveState() {
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
-					ch.srv.Publish(message)
+					ch.srv.platform.Publish(message)
 				}
 			}(plugin)
 		}
@@ -840,9 +840,9 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 
 	var statuses model.PluginStatuses
 
-	if ch.srv.Cluster != nil {
+	if ch.srv.platform.Cluster() != nil {
 		var err *model.AppError
-		statuses, err = ch.srv.Cluster.GetPluginStatuses()
+		statuses, err = ch.srv.platform.Cluster().GetPluginStatuses()
 		if err != nil {
 			return err
 		}
@@ -868,7 +868,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 	// Notify all cluster peer clients.
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil)
 	message.Add("manifest", manifest.ClientManifest())
-	ch.srv.Publish(message)
+	ch.srv.platform.Publish(message)
 
 	return nil
 }

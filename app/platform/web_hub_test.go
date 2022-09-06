@@ -137,7 +137,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 		LastActivityAt: 10000,
 	}
 
-	mockStore := th.Service.store.(*mocks.Store)
+	mockStore := th.Service.Store.(*mocks.Store)
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)

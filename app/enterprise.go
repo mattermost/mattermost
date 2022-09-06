@@ -112,18 +112,6 @@ func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
 }
 
 func (s *Server) initEnterprise() {
-	if clusterInterface != nil && s.Cluster == nil {
-		s.Cluster = clusterInterface(s)
-		s.platform.SetCluster(s.Cluster)
-	}
-	if elasticsearchInterface != nil {
-		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
-	}
-
-	if licenseInterface != nil {
-		s.LicenseManager = licenseInterface(s)
-	}
-
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
 	}
