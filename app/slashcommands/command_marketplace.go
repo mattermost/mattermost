@@ -26,9 +26,15 @@ func (h *MarketplaceProvider) GetTrigger() string {
 }
 
 func (h *MarketplaceProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
+	enabled := false
+	pluginSettings := a.Config().PluginSettings
+	if *pluginSettings.Enable && *pluginSettings.EnableMarketplace {
+		enabled = true
+	}
+
 	return &model.Command{
 		Trigger:          CmdMarketplace,
-		AutoComplete:     true,
+		AutoComplete:     enabled,
 		AutoCompleteDesc: T("api.command_marketplace.desc"),
 		DisplayName:      T("api.command_marketplace.name"),
 	}
