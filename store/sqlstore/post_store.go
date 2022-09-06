@@ -2928,6 +2928,22 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		threadByRoot[thread.PostId] = thread
 	}
 
+	// let's grab all different teamIds from the posts
+	teamIdByChannelId := map[string]string{}
+	for _, posts := range postsByRoot {
+		channelId := posts[0].ChannelId
+		if _, ok := teamIdByChannelId[channelId]; !ok {
+			// get teamId for channel
+			var teamId string
+			err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", channelId)
+			if err != nil {
+				return err
+			}
+
+			teamIdByChannelId[channelId] = teamId
+		}
+	}
+
 	for rootId, posts := range postsByRoot {
 		if thread, found := threadByRoot[rootId]; !found {
 			data := []struct {
@@ -2957,12 +2973,12 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return err
 			}
-			// get teamId
-			var teamId string
-			err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", posts[0].ChannelId)
-			if err != nil {
-				return err
+
+			teamId, ok := teamIdByChannelId[posts[0].ChannelId]
+			if !ok {
+				return errors.Errorf("no team for channel %s", posts[0].ChannelId)
 			}
+
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, TeamId)
