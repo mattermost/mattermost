@@ -2808,6 +2808,13 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			[]*model.User{},
 		},
 		{
+			"escape ( and )",
+			t1id,
+			"ji(bah)",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
 			"wildcard search",
 			t1id,
 			"@",
