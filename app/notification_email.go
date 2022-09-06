@@ -341,7 +341,16 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 		shortFieldRow := FieldRow{}
 
 		for i := range slackAttachment.Fields {
-			field := slackAttachment.Fields[i]
+			// Create a new instance to avoid altering the original pointer reference
+			// We update field value to parse markdown.
+			// If we do that on the original pointer, the rendered text in mattermost
+			// becomes invalid as its no longer a markdown string, but rather an HTML string.
+			field := &model.SlackAttachmentField{
+				Title: slackAttachment.Fields[i].Title,
+				Value: slackAttachment.Fields[i].Value,
+				Short: slackAttachment.Fields[i].Short,
+			}
+
 			if stringValue, ok := field.Value.(string); ok {
 				field.Value = a.prepareTextForEmail(stringValue)
 			}
@@ -364,7 +373,7 @@ func (a *App) processSlackAttachments(post *model.Post) []*EmailSlackAttachment 
 		}
 
 		// collect any leftover short fields
-		if len(shortFieldRow.Cells) == 2 {
+		if len(shortFieldRow.Cells) > 0 {
 			emailSlackAttachment.FieldRows = append(emailSlackAttachment.FieldRows, shortFieldRow)
 			shortFieldRow = FieldRow{}
 		}
