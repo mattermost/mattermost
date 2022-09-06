@@ -9255,10 +9255,6 @@
     "translation": "Funktionen Insights är inaktiverad."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "En medlem av {{.TeamName}} meddelar dig att uppgradera det här arbetsområdet."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Har redan notifierat systemadministratören"
   },
@@ -9309,5 +9305,81 @@
   {
     "id": "api.command_help.success",
     "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanban-struktur för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Filer"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Betalning ej mottagen"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Kontakta din bank eller kortutgivare för att lösa eventuella problem. Uppdatera sedan dina betalningsuppgifter vid behov."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "En nedgraderad arbetsyta kan få negativ påverkan på dina kritiska arbetsflöden, integrationer och andra affärskritiska aktiviteter som utförs på arbetsytan."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Vi har inte kunnat få betalt för utestående fakturor med datum {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "OBS: Din Mattermost {{.Plan}} kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Din arbetsyta kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Du har fortfarande möjlighet att hålla din Mattermost {{.Plan}} aktiv, men du måste lösa problemen med betalning."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Agera för att behålla funktionerna i Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Visa all dokumentation om gränsvärden."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktiva plugins och integrationer"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Meddelandehistorik"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Kort från dina Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
   }
 ]

@@ -417,7 +417,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 		// in case of update_team event - we send the message only to members of that team
 		teamID = team.Id
 	}
-	message := model.NewWebSocketEvent(event, teamID, "", "", nil)
+	message := model.NewWebSocketEvent(event, teamID, "", "", nil, "")
 	teamJSON, jsonErr := json.Marshal(team)
 	if jsonErr != nil {
 		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -568,7 +568,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 }
 
 func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -859,7 +859,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil, "")
 	message.Add("team_id", team.Id)
 	message.Add("user_id", user.Id)
 	a.Publish(message)
@@ -1084,7 +1084,7 @@ func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMe
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 	message.Add("team_id", teamID)
 	message.Add("user_id", userID)
 	a.Publish(message)
@@ -1113,7 +1113,7 @@ func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string
 			Member: teamMember,
 		})
 
-		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 		message.Add("team_id", teamID)
 		message.Add("user_id", userID)
 		a.Publish(message)
@@ -2115,7 +2115,7 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 		for _, teamMember := range teamMembers {
 			a.ClearSessionCacheForUser(teamMember.UserId)
 
-			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", teamMember.UserId, nil, "")
 			tmJSON, jsonErr := json.Marshal(teamMember)
 			if jsonErr != nil {
 				return jsonErr
