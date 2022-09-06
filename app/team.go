@@ -197,7 +197,7 @@ func (a *App) CreateTeamWithUser(c *request.Context, team *model.Team, userID st
 		return nil, err
 	}
 
-	if _, err = a.JoinUserToTeam(c, rteam, user, ""); err != nil {
+	if _, err := a.JoinUserToTeam(c, rteam, user, ""); err != nil {
 		return nil, err
 	}
 
