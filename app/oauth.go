@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -370,7 +370,7 @@ func (a *App) newSession(app *model.OAuthApp, user *model.User) (*model.Session,
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
+	a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	session.AddProp(model.SessionPropPlatform, app.Name)
 	session.AddProp(model.SessionPropOAuthAppID, app.Id)
 	session.AddProp(model.SessionPropMattermostAppID, app.MattermostAppID)
@@ -523,11 +523,11 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 func (a *App) RevokeAccessToken(token string) *model.AppError {
 	if err := a.ch.srv.platform.RevokeAccessToken(token); err != nil {
 		switch {
-		case errors.Is(err, users.GetTokenError):
+		case errors.Is(err, platform.GetTokenError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.Is(err, users.DeleteTokenError):
+		case errors.Is(err, platform.DeleteTokenError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		case errors.Is(err, users.DeleteSessionError):
+		case errors.Is(err, platform.DeleteSessionError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -268,9 +269,9 @@ func TestRequestTrialLicense(t *testing.T) {
 		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		defer func(requestTrialURL string) {
-			app.RequestTrialURL = requestTrialURL
-		}(app.RequestTrialURL)
-		app.RequestTrialURL = testServer.URL
+			platform.RequestTrialURL = requestTrialURL
+		}(platform.RequestTrialURL)
+		platform.RequestTrialURL = testServer.URL
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		require.Error(t, err)

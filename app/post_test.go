@@ -2667,7 +2667,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(th.Context, post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		assert.Len(t, remoteClusterService.channelNotifications, 2)
+		require.Len(t, remoteClusterService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 	})
@@ -2696,7 +2696,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		require.Nil(t, err, "Deleting a post should not error")
 
 		// one creation and two deletes
-		assert.Len(t, remoteClusterService.channelNotifications, 3)
+		require.Len(t, remoteClusterService.channelNotifications, 3)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])

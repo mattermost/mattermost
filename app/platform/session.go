@@ -33,25 +33,6 @@ func (ps *PlatformService) CreateSession(session *model.Session) (*model.Session
 	return session, nil
 }
 
-func (ps *PlatformService) GetUserSession(token string) (*model.Session, error) {
-	var session = ps.sessionPool.Get().(*model.Session)
-	if err := ps.sessionCache.Get(token, session); err == nil {
-		if m := ps.metricsImpl(); m != nil {
-			m.IncrementMemCacheHitCounterSession()
-		}
-	} else {
-		if m := ps.metricsImpl(); m != nil {
-			m.IncrementMemCacheMissCounterSession()
-		}
-	}
-
-	if session.Id != "" {
-		return session, nil
-	}
-
-	return ps.GetSessionContext(sqlstore.WithMaster(context.Background()), token)
-}
-
 func (ps *PlatformService) GetSessionContext(ctx context.Context, token string) (*model.Session, error) {
 	return ps.Store.Session().Get(ctx, token)
 }
@@ -188,7 +169,7 @@ func (ps *PlatformService) RevokeSession(session *model.Session) error {
 }
 
 func (ps *PlatformService) RevokeAccessToken(token string) error {
-	session, _ := ps.GetUserSession(token)
+	session, _ := ps.GetSession(token)
 
 	defer ps.ReturnSessionToPool(session)
 

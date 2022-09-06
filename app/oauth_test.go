@@ -111,7 +111,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
 	session.IsOAuth = true
-	th.App.ch.srv.userService.SetSessionExpireInHours(session, 24)
+	th.App.ch.srv.platform.SetSessionExpireInHours(session, 24)
 
 	session, _ = th.App.CreateSession(session)
 
