@@ -45,11 +45,14 @@ func StoreOverride(override any) Option {
 
 func StoreOverrideWithCache(override store.Store) Option {
 	return func(ps *PlatformService) error {
-		lcl, err := localcachelayer.NewLocalCacheLayer(override, ps.metricsImpl(), ps.clusterIFace, ps.cacheProvider)
-		if err != nil {
-			return err
+		ps.newStore = func() (store.Store, error) {
+			lcl, err := localcachelayer.NewLocalCacheLayer(override, ps.metricsImpl(), ps.clusterIFace, ps.cacheProvider)
+			if err != nil {
+				return nil, err
+			}
+			return lcl, nil
 		}
-		ps.Store = lcl
+
 		return nil
 	}
 }
