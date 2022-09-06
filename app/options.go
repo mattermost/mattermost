@@ -78,11 +78,15 @@ func StartMetrics(s *Server) error {
 	return nil
 }
 
-// func StartSearchEngine(s *Server) error {
-// 	s.startSearchEngine = true
-
-// 	return nil
-// }
+func WithLicense(license *model.License) Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, func(p *platform.PlatformService) error {
+			p.SetLicense(license)
+			return nil
+		})
+		return nil
+	}
+}
 
 // SetLogger requires platform service to be initialized before calling.
 // If not, logger should be set after platform service are initialized.

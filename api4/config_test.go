@@ -542,12 +542,7 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILEENABLED")
 	defer os.Unsetenv("MM_EXPERIMENTALAUDITSETTINGS_FILENAME")
 
-	options := []app.Option{
-		func(s *app.Server) error {
-			s.SetLicense(model.NewTestLicense("advanced_logging"))
-			return nil
-		},
-	}
+	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
 	defer th.TearDown()
 

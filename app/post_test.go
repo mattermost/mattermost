@@ -2639,7 +2639,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
 
-		assert.Len(t, remoteClusterService.channelNotifications, 1)
+		require.Len(t, remoteClusterService.channelNotifications, 1)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 	})
 
