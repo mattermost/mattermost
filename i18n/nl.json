@@ -620,7 +620,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open de Mattermost help pagina"
+    "translation": "Toon Mattermost-help bericht"
   },
   {
     "id": "api.command_help.name",
@@ -1080,10 +1080,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -5848,10 +5844,6 @@
     "translation": "Ontbrekende Identity Provider SSO decriptors node in de XML."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Kan het bestand niet opladen. Foutief kanaal ID: {{.channelId}}"
   },
@@ -7732,10 +7724,6 @@
     "translation": "Fout bij het verplaatsen van het geüploade bestand."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kan het antwoord niet verwerken."
-  },
-  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Er bestaat al een kanaallid met dat id."
   },
@@ -8919,10 +8907,6 @@
     "translation": " antwoordde op een draadje."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Ongeldig CreateAt veld voor sessie."
   },
@@ -9011,14 +8995,6 @@
     "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
   },
@@ -9071,24 +9047,8 @@
     "translation": "groepen die fouten tellen"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9159,22 +9119,6 @@
     "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
   },
@@ -9201,14 +9145,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Ongeldig post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9249,14 +9185,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
@@ -9327,14 +9255,6 @@
     "translation": "Insights-functionaliteit is uitgeschakeld."
   },
   {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
   },
@@ -9347,23 +9267,55 @@
     "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Reeds verwittigde admin"
   },
   {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Ongeldige time-out waarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fout bij het wissen van de cache van teamleden"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Fout bij het ophalen van de top-privé-berichten voor gebruiker."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Betaling is overtijd voor jouw Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Betaling bijwerken"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "De opdracht marktplaats wordt niet ondersteund op jouw toestel."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marktplaats"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open de Marktplaats"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat drie belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n**[Boards](/borden)** - Beheer projecten en taken in een Kanban-bordstructuur om jouw team te helpen belangrijke mijlpalen te halen.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Verplichte velden ontbreken voor het versturen van een e-mail over wanbetaling."
   }
 ]

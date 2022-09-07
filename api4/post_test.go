@@ -2629,6 +2629,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
+	t.Skip("MM-46902")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
