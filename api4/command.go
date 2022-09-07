@@ -17,7 +17,7 @@ import (
 func (api *API) InitCommand() {
 	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(createCommand)).Methods("POST")
 	api.BaseRoutes.Commands.Handle("", api.APISessionRequired(listCommands)).Methods("GET")
-	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/execute", api.APISessionRequired(executeCommand, model.ScopeCommandsExecute)).Methods("POST")
 
 	api.BaseRoutes.Command.Handle("", api.APISessionRequired(getCommand)).Methods("GET")
 	api.BaseRoutes.Command.Handle("", api.APISessionRequired(updateCommand)).Methods("PUT")

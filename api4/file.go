@@ -55,17 +55,17 @@ var MediaContentTypes = [...]string{
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream)).Methods("POST")
-	api.BaseRoutes.Files.Handle("/search", api.APISessionRequired(searchFilesForUser)).Methods("POST")
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods("GET")
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
-	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods("GET")
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods("GET")
-	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods("GET")
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, model.ScopeFilesCreate)).Methods("POST")
+	api.BaseRoutes.Files.Handle("/search", api.APISessionRequired(searchFilesForUser, model.ScopeFilesSearch, model.ScopeUsersRead)).Methods("POST")
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile, model.ScopeFilesRead)).Methods("GET")
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail, model.ScopeFilesRead)).Methods("GET")
+	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink, model.ScopeFilesRead)).Methods("GET")
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview, model.ScopeFilesRead)).Methods("GET")
+	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo, model.ScopeFilesRead)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam, model.ScopeFilesSearch, model.ScopeTeamsRead)).Methods("POST")
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile, model.ScopeFilesRead)).Methods("GET")
 
 }
 

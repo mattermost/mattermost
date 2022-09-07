@@ -17,27 +17,27 @@ import (
 )
 
 func (api *API) InitPost() {
-	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost, model.ScopePostsCreate)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost)).Methods("GET")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds)).Methods("POST")
-	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread)).Methods("GET")
-	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost)).Methods("GET")
-	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel)).Methods("GET")
-	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("", api.APISessionRequired(createPost, model.ScopeCheckedByImplementation...)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost, model.ScopePostsRead)).Methods("GET")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost, model.ScopePostsDelete)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds, model.ScopePostsRead)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost, model.ScopePostsCreateEphemeral)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread, model.ScopePostsRead)).Methods("GET")
+	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost, model.ScopePostsRead, model.ScopeFilesRead)).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel, model.ScopePostsRead, model.ScopeChannelsRead)).Methods("GET")
+	api.BaseRoutes.PostsForUser.Handle("/flagged", api.APISessionRequired(getFlaggedPostsForUser, model.ScopePostsRead, model.ScopeUsersRead)).Methods("GET")
 
-	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread)).Methods("GET")
+	api.BaseRoutes.ChannelForUser.Handle("/posts/unread", api.APISessionRequired(getPostsForChannelAroundLastUnread, model.ScopePostsRead, model.ScopeChannelsRead)).Methods("GET")
 
-	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam)).Methods("POST")
-	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams)).Methods("POST")
-	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost)).Methods("PUT")
-	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost)).Methods("PUT")
-	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread)).Methods("POST")
-	api.BaseRoutes.PostForUser.Handle("/reminder", api.APISessionRequired(setPostReminder)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.APISessionRequiredDisableWhenBusy(searchPostsInTeam, model.ScopePostsSearch, model.ScopeTeamsRead)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchPostsInAllTeams, model.ScopePostsSearch)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.APISessionRequired(updatePost, model.ScopePostsUpdate)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/patch", api.APISessionRequired(patchPost, model.ScopePostsUpdate)).Methods("PUT")
+	api.BaseRoutes.PostForUser.Handle("/set_unread", api.APISessionRequired(setPostUnread, model.ScopePostsUpdate)).Methods("POST")
+	api.BaseRoutes.PostForUser.Handle("/reminder", api.APISessionRequired(setPostReminder, model.ScopePostsUpdate)).Methods("POST")
 
-	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
-	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost, model.ScopePostsRead, model.ScopeChannelsUpdate)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost, model.ScopePostsRead, model.ScopeChannelsUpdate)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {

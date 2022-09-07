@@ -145,12 +145,17 @@ type API struct {
 	srv        *app.Server
 	schema     *graphql.Schema
 	BaseRoutes *Routes
+
+	knownAPIsByScope map[model.Scope][]string
+	knownAPIsByName  map[string]model.APIScopes
 }
 
 func Init(srv *app.Server) (*API, error) {
 	api := &API{
-		srv:        srv,
-		BaseRoutes: &Routes{},
+		srv:              srv,
+		BaseRoutes:       &Routes{},
+		knownAPIsByScope: map[model.Scope][]string{},
+		knownAPIsByName:  map[string]model.APIScopes{},
 	}
 
 	api.BaseRoutes.Root = srv.Router
@@ -321,8 +326,10 @@ func Init(srv *app.Server) (*API, error) {
 
 func InitLocal(srv *app.Server) *API {
 	api := &API{
-		srv:        srv,
-		BaseRoutes: &Routes{},
+		srv:              srv,
+		BaseRoutes:       &Routes{},
+		knownAPIsByScope: map[model.Scope][]string{},
+		knownAPIsByName:  map[string]model.APIScopes{},
 	}
 
 	api.BaseRoutes.Root = srv.LocalRouter

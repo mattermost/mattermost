@@ -19,9 +19,6 @@ type handlerFunc func(*Context, http.ResponseWriter, *http.Request)
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
 func (api *API) APIHandler(h handlerFunc, scopes ...model.Scope) http.Handler {
-	// TODO: it is possible that a developer specifies invalid scopes, so we
-	// need to detect that here and handle the possible error - log? panic?
-	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -31,8 +28,10 @@ func (api *API) APIHandler(h handlerFunc, scopes ...model.Scope) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        false,
-		RequiredScopes: handlerScopes,
+		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -42,9 +41,6 @@ func (api *API) APIHandler(h handlerFunc, scopes ...model.Scope) http.Handler {
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
 func (api *API) APISessionRequired(h handlerFunc, scopes ...model.Scope) http.Handler {
-	// TODO: it is possible that a developer specifies invalid scopes, so we
-	// need to detect that here and handle the possible error - log? panic?
-	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -54,8 +50,10 @@ func (api *API) APISessionRequired(h handlerFunc, scopes ...model.Scope) http.Ha
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
-		RequiredScopes: handlerScopes,
+		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -77,6 +75,8 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		IsLocal:         false,
 		RequiredScopes:  model.ScopeInternalAPI,
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -99,6 +99,8 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		IsLocal:                   false,
 		RequiredScopes:            model.ScopeInternalAPI,
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -120,6 +122,8 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		IsLocal:        false,
 		RequiredScopes: model.ScopeInternalAPI,
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -142,6 +146,8 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -152,9 +158,6 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
 func (api *API) APISessionRequiredTrustRequester(h handlerFunc, scopes ...model.Scope) http.Handler {
-	// TODO: it is possible that a developer specifies invalid scopes, so we
-	// need to detect that here and handle the possible error - log? panic?
-	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -164,8 +167,10 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, scopes ...model.
 		RequireMfa:     true,
 		IsStatic:       false,
 		IsLocal:        false,
-		RequiredScopes: handlerScopes,
+		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -176,9 +181,6 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, scopes ...model.
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
 func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, scopes ...model.Scope) http.Handler {
-	// TODO: it is possible that a developer specifies invalid scopes, so we
-	// need to detect that here and handle the possible error - log? panic?
-	handlerScopes, _ := model.NormalizeAPIScopes(scopes)
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -189,8 +191,10 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, scopes ...model
 		IsStatic:        false,
 		IsLocal:         false,
 		DisableWhenBusy: true,
-		RequiredScopes:  handlerScopes,
+		RequiredScopes:  model.NormalizeAPIScopes(scopes),
 	}
+	api.addScopeStats(handler)
+
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -212,8 +216,9 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 		RequireMfa:     false,
 		IsStatic:       false,
 		IsLocal:        true,
-		RequiredScopes: model.ScopeUnrestrictedAPI,
+		RequiredScopes: model.ScopeInternalAPI,
 	}
+	api.addScopeStats(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -249,5 +254,29 @@ func rejectGuests(f handlerFunc) handlerFunc {
 			return
 		}
 		f(c, w, r)
+	}
+}
+
+func (api *API) addScopeStats(h *web.Handler) {
+	scopes := h.RequiredScopes
+	if h.RequiredScopes.IsInternal() {
+		scopes = model.APIScopes{"internal_api"}
+	}
+
+	for _, s := range scopes {
+		found := false
+		for _, name := range api.knownAPIsByScope[s] {
+			if name == h.HandlerName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			api.knownAPIsByScope[s] = append(api.knownAPIsByScope[s], h.HandlerName)
+		}
+	}
+
+	if !h.RequiredScopes.IsInternal() {
+		api.knownAPIsByName[h.HandlerName] = h.RequiredScopes
 	}
 }

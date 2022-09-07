@@ -44,6 +44,7 @@ import (
 type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
+	API         *API
 	ConfigStore *config.Store
 
 	Context              *request.Context
@@ -179,11 +180,14 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = ":0"
 	})
-	if err := th.Server.Start(); err != nil {
+	if err = th.Server.Start(); err != nil {
 		panic(err)
 	}
 
-	Init(th.App.Srv())
+	th.API, err = Init(th.App.Srv())
+	if err != nil {
+		panic(err)
+	}
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 

@@ -42,55 +42,92 @@ const (
 
 const (
 	ScopeChannels ScopeResource = "channels"
+	ScopeCommands ScopeResource = "commands"
+	ScopeEmojis   ScopeResource = "emojis"
 	ScopeFiles    ScopeResource = "files"
+	ScopeOAuth2   ScopeResource = "oauth2"
 	ScopePosts    ScopeResource = "posts"
 	ScopeTeams    ScopeResource = "teams"
 	ScopeUsers    ScopeResource = "users"
-	ScopeOAuth2   ScopeResource = "oauth2"
 )
 
 const (
-	ScopeRead   ScopeOperation = "read"
-	ScopeUpdate ScopeOperation = "update"
-	ScopeCreate ScopeOperation = "create"
-	ScopeDelete ScopeOperation = "delete"
-	ScopeJoin   ScopeOperation = "join"
-	ScopeSearch ScopeOperation = "search"
-	ScopeManage ScopeOperation = "manage"
+	ScopeCreate          ScopeOperation = "create"
+	ScopeCreateDM        ScopeOperation = "create/dm"
+	ScopeCreateEphemeral ScopeOperation = "create/ephemeral"
+	ScopeDelete          ScopeOperation = "delete"
+	ScopeExecute         ScopeOperation = "execute"
+	ScopeJoin            ScopeOperation = "join"
+	ScopeManage          ScopeOperation = "manage"
+	ScopeRead            ScopeOperation = "read"
+	ScopeSearch          ScopeOperation = "search"
+	ScopeUpdate          ScopeOperation = "update"
 )
 
 const (
-	ScopeUsersAny       Scope = "users:*"
-	ScopeUsersCreate    Scope = "users:create"
-	ScopeUsersDelete    Scope = "users:delete"
-	ScopeUsersRead      Scope = "users:read"
-	ScopeUsersSearch    Scope = "users:search"
-	ScopeUsersUpdate    Scope = "users:update"
-	ScopePostsAny       Scope = "posts:*"
-	ScopePostsCreate    Scope = "posts:create"
-	ScopePostsDelete    Scope = "posts:delete"
-	ScopePostsRead      Scope = "posts:read"
-	ScopePostsSearch    Scope = "posts:search"
-	ScopePostsUpdate    Scope = "posts:update"
 	ScopeChannelsAny    Scope = "channels:*"
 	ScopeChannelsCreate Scope = "channels:create"
 	ScopeChannelsDelete Scope = "channels:delete"
 	ScopeChannelsRead   Scope = "channels:read"
 	ScopeChannelsSearch Scope = "channels:search"
 	ScopeChannelsUpdate Scope = "channels:update"
-	ScopeOAuth2Manage   Scope = "oauth2:manage"
+	ScopeChannelsJoin   Scope = "channels:join"
+
+	ScopeCommandsExecute Scope = "commands:execute"
+
+	ScopeEmojisAny    Scope = "emojis:*"
+	ScopeEmojisCreate Scope = "emojis:create"
+	ScopeEmojisDelete Scope = "emojis:delete"
+	ScopeEmojisRead   Scope = "emojis:read"
+	ScopeEmojisSearch Scope = "emojis:search"
+	ScopeEmojisUpdate Scope = "emojis:update"
+
+	ScopeFilesAny    Scope = "files:*"
+	ScopeFilesCreate Scope = "files:create"
+	ScopeFilesDelete Scope = "files:delete"
+	ScopeFilesRead   Scope = "files:read"
+	ScopeFilesSearch Scope = "files:search"
+	ScopeFilesUpdate Scope = "files:update"
+
+	ScopeOAuth2Manage Scope = "oauth2:manage"
+
+	ScopePostsAny             Scope = "posts:*"
+	ScopePostsCreate          Scope = "posts:create"
+	ScopePostsCreateDM        Scope = "posts:create/dm"
+	ScopePostsCreateEphemeral Scope = "posts:create/ephemeral"
+	ScopePostsDelete          Scope = "posts:delete"
+	ScopePostsRead            Scope = "posts:read"
+	ScopePostsSearch          Scope = "posts:search"
+	ScopePostsUpdate          Scope = "posts:update"
+
+	ScopeTeamsAny    Scope = "teams:*"
+	ScopeTeamsCreate Scope = "teams:create"
+	ScopeTeamsDelete Scope = "teams:delete"
+	ScopeTeamsRead   Scope = "teams:read"
+	ScopeTeamsSearch Scope = "teams:search"
+	ScopeTeamsUpdate Scope = "teams:update"
+	ScopeTeamsJoin   Scope = "teams:join"
+
+	ScopeUsersAny    Scope = "users:*"
+	ScopeUsersCreate Scope = "users:create"
+	ScopeUsersDelete Scope = "users:delete"
+	ScopeUsersRead   Scope = "users:read"
+	ScopeUsersSearch Scope = "users:search"
+	ScopeUsersUpdate Scope = "users:update"
 )
 
 var validScopes = map[ScopeResource][]ScopeOperation{
-	ScopeUsers:    append(crudScopeOps, ScopeSearch),
-	ScopeTeams:    append(crudScopeOps, ScopeJoin),
-	ScopeChannels: append(crudScopeOps, ScopeJoin),
-	ScopePosts:    append(crudScopeOps, ScopeSearch),
-	ScopeFiles:    crudScopeOps,
+	ScopeChannels: append(crudsScopeOps, ScopeJoin),
+	ScopeCommands: {ScopeExecute},
+	ScopeEmojis:   crudsScopeOps,
+	ScopeFiles:    crudsScopeOps,
 	ScopeOAuth2:   {ScopeManage},
+	ScopePosts:    append(crudsScopeOps, ScopeCreateDM, ScopeCreateEphemeral),
+	ScopeTeams:    append(crudsScopeOps, ScopeJoin),
+	ScopeUsers:    crudsScopeOps,
 }
 
-var crudScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete}
+var crudsScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
 
 func (r ScopeResource) Create() Scope { return r.NewScope(ScopeCreate) }
 func (r ScopeResource) Read() Scope   { return r.NewScope(ScopeRead) }
@@ -130,22 +167,31 @@ type APIScopes []Scope
 // ScopeInternalAPI marks an API as internal and therefore not available to OAuth2 clients.
 var ScopeInternalAPI = APIScopes(nil)
 
-// ScopeUnrestricted marks an API as unrestricted and therefore available to
+// ScopeUnrestrictedAPI marks an API as unrestricted and therefore available to
 // OAuth2 clients, regardless of their granted scopes.
 var ScopeUnrestrictedAPI = APIScopes{ScopeAny}
 
-func NormalizeAPIScopes(source []Scope) (APIScopes, error) {
+// ScopeCheckedByImplementation is an alias for ScopeUnrestrictedAPI indicating
+// that the all calls should be passed to the API implementation by the router,
+// and it perform do its own checks.
+var ScopeCheckedByImplementation = ScopeUnrestrictedAPI
+
+// NormalizeAPIScopes checks and normalizes scopes list of an API handler,
+// provided as a ...Scope argument. If an invalid scope is provided the function
+// returns ScopeInternalAPI (nil). The API developers should use tests to assert
+// that the scopes they assign are indeed valid.
+func NormalizeAPIScopes(source []Scope) APIScopes {
 	normal := normalizeScopes(source)
 	for _, s := range normal {
 		res, op, err := parseScope(string(s))
 		if err != nil {
-			return nil, err
+			return nil
 		}
 		if res != ScopeAnyResource && op == ScopeAnyOperation {
-			return nil, errors.Errorf("API scopes cannot contain a wildcard operation: %q", s)
+			return nil
 		}
 	}
-	return APIScopes(normal), nil
+	return APIScopes(normal)
 }
 
 func (ss APIScopes) IsInternal() bool {
