@@ -146,7 +146,7 @@ func (ch *Channels) syncPluginsActiveState() {
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil)
+					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					ch.srv.Publish(message)
 				}
@@ -503,7 +503,7 @@ func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
 		return appErr
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil, "")
 	message.Add("usage", usage)
 	message.GetBroadcast().ContainsSensitiveData = true
 	ch.Publish(message)
@@ -866,7 +866,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil, "")
 	message.Add("manifest", manifest.ClientManifest())
 	ch.srv.Publish(message)
 
