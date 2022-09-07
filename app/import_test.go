@@ -284,8 +284,8 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
-	genAttachments := func() *[]AttachmentImportData {
-		return &[]AttachmentImportData{
+	genAttachments := func() []*AttachmentImportData {
+		return []*AttachmentImportData{
 			{
 				Path: model.NewString("file.jpg"),
 			},

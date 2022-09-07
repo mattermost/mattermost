@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -112,9 +113,14 @@ type UserChannelNotifyPropsImportData struct {
 }
 
 type EmojiImportData struct {
-	Name  *string   `json:"name"`
-	Image *string   `json:"image"`
-	Data  *zip.File `json:"-"`
+	Id        string
+	CreatorId string
+	CreateAt  int64
+	UpdateAt  int64
+	Path      *string
+	Name      *string
+	Image     *string
+	Data      *zip.File
 }
 
 type ReactionImportData struct {
@@ -133,7 +139,7 @@ type ReplyImportData struct {
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
-	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	Attachments []*AttachmentImportData `json:"attachments,omitempty"`
 }
 
 type PostImportData struct {
@@ -150,7 +156,7 @@ type PostImportData struct {
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
-	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	Attachments []*AttachmentImportData `json:"attachments,omitempty"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
@@ -174,7 +180,7 @@ type DirectPostImportData struct {
 	FlaggedBy   *[]string               `json:"flagged_by"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
-	Attachments *[]AttachmentImportData `json:"attachments"`
+	Attachments []*AttachmentImportData `json:"attachments"`
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
@@ -209,11 +215,47 @@ type LineImportWorkerError struct {
 }
 
 type AttachmentImportData struct {
-	Path *string   `json:"path"`
-	Data *zip.File `json:"-"`
+	Id            string
+	CreatorId     string
+	PostId        string
+	ChannelId     string
+	CreateAt      int64
+	UpdateAt      int64
+	Path          *string
+	ThumbnailPath string
+	PreviewPath   string
+	Name          string
+	Extension     string
+	Size          int64
+	MimeType      string
+	Width         int
+	Height        int
+	Data          *zip.File
 }
 
 type ComparablePreference struct {
 	Category string
 	Name     string
+}
+
+type LogFormat struct {
+	Id            string
+	CreatorId     string
+	PostId        string
+	ChannelId     string
+	CreateAt      time.Time
+	UpdateAt      time.Time
+	Path          string
+	ThumbnailPath string
+	PreviewPath   string
+	Name          string
+	Extension     string
+	Size          int64
+	MimeType      string
+	Width         int
+	Height        int
+}
+
+type MissingAttachments struct {
+	MissingAttachments []*LogFormat `json:"missingAttachments"`
 }

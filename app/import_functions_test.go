@@ -4290,12 +4290,12 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 				User:        &username3,
 				Message:     ptrStr("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
-				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Attachments: []*AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
 				Replies: &[]ReplyImportData{{
 					User:        &user4.Username,
 					Message:     ptrStr("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
-					Attachments: &[]AttachmentImportData{{Path: &testImage}},
+					Attachments: []*AttachmentImportData{{Path: &testImage}},
 				}},
 			},
 		},
@@ -4320,7 +4320,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
-		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		data.Post.Attachments = []*AttachmentImportData{{Path: &testImage}}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
@@ -4351,7 +4351,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 						User:        &user2.Username,
 						Message:     ptrStr("Message reply with attachment"),
 						CreateAt:    ptrInt64(model.GetMillis()),
-						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+						Attachments: []*AttachmentImportData{{Path: &testImage}},
 					}},
 				},
 			},
@@ -4412,7 +4412,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 				User:        &user1.Username,
 				Message:     ptrStr("Direct message"),
 				CreateAt:    ptrInt64(model.GetMillis()),
-				Attachments: &[]AttachmentImportData{{Path: &testImage}},
+				Attachments: []*AttachmentImportData{{Path: &testImage}},
 			},
 		},
 		3,
@@ -4449,7 +4449,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 					User:        &user1.Username,
 					Message:     ptrStr("Direct message"),
 					CreateAt:    ptrInt64(model.GetMillis()),
-					Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
+					Attachments: []*AttachmentImportData{{Path: &testImageFake}},
 				},
 			},
 			2,
@@ -4474,7 +4474,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 					User:        &user1.Username,
 					Message:     ptrStr("Direct message"),
 					CreateAt:    ptrInt64(model.GetMillis()),
-					Attachments: &[]AttachmentImportData{{Path: &testImage2}},
+					Attachments: []*AttachmentImportData{{Path: &testImage2}},
 				},
 			},
 			2,
@@ -4569,12 +4569,12 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 				User:        &username3,
 				Message:     ptrStr("Message with reply"),
 				CreateAt:    &attachmentsPostTime,
-				Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
+				Attachments: []*AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
 				Replies: &[]ReplyImportData{{
 					User:        &user4.Username,
 					Message:     ptrStr("Message reply"),
 					CreateAt:    &attachmentsReplyTime,
-					Attachments: &[]AttachmentImportData{{Path: &testImage, Data: imageData}},
+					Attachments: []*AttachmentImportData{{Path: &testImage, Data: imageData}},
 				}},
 			},
 		},
@@ -4599,7 +4599,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
-		data.Post.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		data.Post.Attachments = []*AttachmentImportData{{Path: &testImage}}
 		errLine, err := th.App.importMultiplePostLines(th.Context, []LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
@@ -4630,7 +4630,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 						User:        &user2.Username,
 						Message:     ptrStr("Message reply with attachment"),
 						CreateAt:    ptrInt64(model.GetMillis()),
-						Attachments: &[]AttachmentImportData{{Path: &testImage}},
+						Attachments: []*AttachmentImportData{{Path: &testImage}},
 					}},
 				},
 			},

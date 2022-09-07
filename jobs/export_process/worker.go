@@ -19,7 +19,7 @@ const jobName = "ExportProcess"
 type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, zipWriter, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
 	Log() *mlog.Logger
 }
 
@@ -36,28 +36,43 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		outPath := *app.Config().ExportSettings.Directory
-		exportFilename := job.Id + "_export.zip"
+		id := model.NewId()
+		exportZipFilename := id + "_export.zip"
+		exportLogFilename := id + "_export.log"
+		zipReader, zipWriter := io.Pipe()
+		logReader, logWriter := io.Pipe()
 
-		rd, wr := io.Pipe()
+		errCh := make(chan *model.AppError, 2)
+		defer close(errCh)
 
-		errCh := make(chan *model.AppError, 1)
 		go func() {
-			defer close(errCh)
-			_, appErr := app.WriteFile(rd, filepath.Join(outPath, exportFilename))
+			_, appErr := app.WriteFile(zipReader, filepath.Join(outPath, exportZipFilename))
 			errCh <- appErr
 		}()
 
-		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, opts)
-		if err := wr.Close(); err != nil {
-			mlog.Warn("Worker: error closing writer")
+		go func() {
+			_, appErr := app.WriteFile(logReader, filepath.Join(outPath, exportLogFilename))
+			errCh <- appErr
+		}()
+
+		appErr := app.BulkExport(request.EmptyContext(app.Log()), zipWriter, logWriter, outPath, opts)
+		if err := zipWriter.Close(); err != nil {
+			mlog.Warn("Worker: error closing zip writer")
+		}
+
+		if err := logWriter.Close(); err != nil {
+			mlog.Warn("Worker: error closing log writer")
 		}
 
 		if appErr != nil {
 			return appErr
 		}
 
-		if appErr := <-errCh; appErr != nil {
-			return appErr
+		for i := 0; i < 2; i++ {
+			appErr := <-errCh
+			if appErr != nil {
+				return appErr
+			}
 		}
 		return nil
 	}

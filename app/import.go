@@ -38,18 +38,19 @@ func stopOnError(c request.CTX, err LineImportWorkerError) bool {
 	}
 }
 
-func processAttachmentPaths(files *[]AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
+func processAttachmentPaths(files []*AttachmentImportData, basePath string, filesMap map[string]*zip.File) error {
 	if files == nil {
 		return nil
 	}
 	var ok bool
-	for i, f := range *files {
+	for i, f := range files {
 		if f.Path != nil {
 			path := filepath.Join(basePath, *f.Path)
 			*f.Path = path
 			if len(filesMap) > 0 {
-				if (*files)[i].Data, ok = filesMap[path]; !ok {
-					return fmt.Errorf("attachment %q not found in map", path)
+				if files[i].Data, ok = filesMap[path]; !ok {
+					mlog.Warn(fmt.Sprintf("attachment %s not found and will not be imported", path))
+					continue
 				}
 			}
 		}

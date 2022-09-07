@@ -7,11 +7,13 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -62,7 +64,48 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func GetMissingAttachmentInfo(attachment *AttachmentImportData) *LogFormat {
+	data := LogFormat{
+		Id:            attachment.Id,
+		CreatorId:     attachment.CreatorId,
+		PostId:        attachment.PostId,
+		ChannelId:     attachment.ChannelId,
+		CreateAt:      time.UnixMilli(attachment.CreateAt),
+		UpdateAt:      time.UnixMilli(attachment.UpdateAt),
+		Path:          *attachment.Path,
+		ThumbnailPath: attachment.ThumbnailPath,
+		PreviewPath:   attachment.PreviewPath,
+		Name:          attachment.Name,
+		Extension:     attachment.Extension,
+		Size:          attachment.Size,
+		MimeType:      attachment.MimeType,
+		Width:         attachment.Width,
+		Height:        attachment.Height,
+	}
+
+	return &data
+}
+
+func (a *App) ExportAttachments(attachment *AttachmentImportData, outPath string, zipWr *zip.Writer) (*LogFormat, *model.AppError) {
+	exists, err := a.FileExists(*attachment.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		data := GetMissingAttachmentInfo(attachment)
+		mlog.Warn(fmt.Sprintf("attachment %s not found and will not be exported", *attachment.Path))
+		return data, nil
+	}
+
+	if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
@@ -103,7 +146,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiList, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
@@ -118,26 +161,46 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	if err != nil {
 		return err
 	}
-
+	var missingAttachments []*LogFormat
+	var logData *LogFormat
 	if opts.IncludeAttachments {
-		ctx.Logger().Info("Bulk export: exporting file attachments")
+		mlog.Info("Bulk export: exporting file attachments")
 		for _, attachment := range attachments {
-			if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+			if logData, err = a.ExportAttachments(attachment, outPath, zipWr); err != nil {
 				return err
+			}
+			if logData != nil {
+				missingAttachments = append(missingAttachments, logData)
 			}
 		}
 		for _, attachment := range directAttachments {
-			if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+			if logData, err = a.ExportAttachments(attachment, outPath, zipWr); err != nil {
 				return err
 			}
+			if logData != nil {
+				missingAttachments = append(missingAttachments, logData)
+			}
 		}
-		for _, emojiPath := range emojiPaths {
-			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
+		for _, emoji := range emojiList {
+			if logData, err = a.ExportAttachments(emoji, outPath, zipWr); err != nil {
 				return err
+			}
+			if logData != nil {
+				missingAttachments = append(missingAttachments, logData)
 			}
 		}
 	}
 
+	if logWriter != nil && len(missingAttachments) != 0 {
+		fileData, err := json.MarshalIndent(MissingAttachments{MissingAttachments: missingAttachments}, "", " ")
+		if err != nil {
+			return model.NewAppError("exportLogFile", "Failed to marshal and indent the data", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if _, err := logWriter.Write(fileData); err != nil {
+			return model.NewAppError("exportLogFile", "Failed to write the log file containing the information of missing attachments", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 	return nil
 }
 
@@ -384,8 +447,8 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
-	var attachments []AttachmentImportData
+func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*AttachmentImportData, *model.AppError) {
+	var attachments []*AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 
 	for {
@@ -431,7 +494,7 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 				if err != nil {
 					return nil, err
 				}
-				postLine.Post.Attachments = &postAttachments
+				postLine.Post.Attachments = postAttachments
 
 				if withAttachments && len(postAttachments) > 0 {
 					attachments = append(attachments, postAttachments...)
@@ -445,9 +508,9 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 	}
 }
 
-func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
+func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]ReplyImportData, []*AttachmentImportData, *model.AppError) {
 	var replies []ReplyImportData
-	var attachments []AttachmentImportData
+	var attachments []*AttachmentImportData
 
 	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postID)
 	if nErr != nil {
@@ -468,7 +531,7 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 			if appErr != nil {
 				return nil, nil, appErr
 			}
-			replyImportObject.Attachments = &postAttachments
+			replyImportObject.Attachments = postAttachments
 			if withAttachments && len(postAttachments) > 0 {
 				attachments = append(attachments, postAttachments...)
 			}
@@ -505,22 +568,38 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 
 }
 
-func (a *App) buildPostAttachments(postID string) ([]AttachmentImportData, *model.AppError) {
+func (a *App) buildPostAttachments(postID string) ([]*AttachmentImportData, *model.AppError) {
 	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postID, false, false, false)
 	if nErr != nil {
 		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	attachments := make([]AttachmentImportData, 0, len(infos))
+	attachments := make([]*AttachmentImportData, 0, len(infos))
 	for _, info := range infos {
-		attachments = append(attachments, AttachmentImportData{Path: &info.Path})
+		attachments = append(attachments, &AttachmentImportData{
+			Id:            info.Id,
+			CreatorId:     info.CreatorId,
+			PostId:        info.PostId,
+			ChannelId:     info.ChannelId,
+			CreateAt:      info.CreateAt,
+			UpdateAt:      info.UpdateAt,
+			Path:          &info.Path,
+			ThumbnailPath: info.ThumbnailPath,
+			PreviewPath:   info.PreviewPath,
+			Name:          info.Name,
+			Extension:     info.Extension,
+			Size:          info.Size,
+			MimeType:      info.MimeType,
+			Width:         info.Width,
+			Height:        info.Height,
+		})
 	}
 
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
-	var emojiPaths []string
+func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]*AttachmentImportData, *model.AppError) {
+	var emojiDataList []*AttachmentImportData
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
@@ -553,7 +632,14 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exp
 				}
 			} else {
 				filePath = filepath.Join("emoji", emoji.Id, "image")
-				emojiPaths = append(emojiPaths, filePath)
+				emojiDataList = append(emojiDataList, &AttachmentImportData{
+					Id:        emoji.Id,
+					CreatorId: emoji.CreatorId,
+					CreateAt:  emoji.CreateAt,
+					UpdateAt:  emoji.UpdateAt,
+					Path:      &filePath,
+					Name:      emoji.Name,
+				})
 			}
 
 			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
@@ -563,7 +649,7 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exp
 		}
 	}
 
-	return emojiPaths, nil
+	return emojiDataList, nil
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
@@ -635,8 +721,8 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
-	var attachments []AttachmentImportData
+func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*AttachmentImportData, *model.AppError) {
+	var attachments []*AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	for {
 		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
@@ -657,7 +743,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttach
 			}
 
 			// Handle attachments.
-			var postAttachments []AttachmentImportData
+			var postAttachments []*AttachmentImportData
 			var err *model.AppError
 			if len(post.FileIds) > 0 {
 				postAttachments, err = a.buildPostAttachments(post.Id)
@@ -683,7 +769,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttach
 			postLine := ImportLineForDirectPost(post)
 			postLine.DirectPost.Replies = &replies
 			if len(postAttachments) > 0 {
-				postLine.DirectPost.Attachments = &postAttachments
+				postLine.DirectPost.Attachments = postAttachments
 			}
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err

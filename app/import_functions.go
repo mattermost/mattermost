@@ -1532,21 +1532,16 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []LineImportWorkerDat
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c request.CTX, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(c request.CTX, attachments []*AttachmentImportData, post *model.Post, teamID string) map[string]bool {
 	if attachments == nil {
 		return nil
 	}
 	fileIDs := make(map[string]bool)
-	for _, attachment := range *attachments {
+	for _, attachment := range attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
+		fileInfo, err := a.importAttachment(c, attachment, post, teamID)
 		if err != nil {
-			if attachment.Path != nil {
-				mlog.Warn(
-					"failed to import attachment",
-					mlog.String("path", *attachment.Path),
-					mlog.String("error", err.Error()))
-			} else {
+			if attachment.Path == nil {
 				mlog.Warn("failed to import attachment; path was nil",
 					mlog.String("error", err.Error()))
 			}

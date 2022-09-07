@@ -127,8 +127,8 @@ type Routes struct {
 
 	Imports *mux.Router // 'api/v4/imports'
 
-	Exports *mux.Router // 'api/v4/exports'
-	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
+	Exports    *mux.Router // 'api/v4/exports'
+	ExportFile *mux.Router // 'api/v4/exports/{export_name:.+\\.(?i:)(?:zip|log)$}'
 
 	RemoteCluster  *mux.Router // 'api/v4/remotecluster'
 	SharedChannels *mux.Router // 'api/v4/sharedchannels'
@@ -253,7 +253,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Imports = api.BaseRoutes.APIRoot.PathPrefix("/imports").Subrouter()
 	api.BaseRoutes.Exports = api.BaseRoutes.APIRoot.PathPrefix("/exports").Subrouter()
-	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
+	api.BaseRoutes.ExportFile = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.(?i:)(?:zip|log)$}").Subrouter()
 
 	api.BaseRoutes.RemoteCluster = api.BaseRoutes.APIRoot.PathPrefix("/remotecluster").Subrouter()
 	api.BaseRoutes.SharedChannels = api.BaseRoutes.APIRoot.PathPrefix("/sharedchannels").Subrouter()
@@ -381,8 +381,7 @@ func InitLocal(srv *app.Server) *API {
 
 	api.BaseRoutes.Imports = api.BaseRoutes.APIRoot.PathPrefix("/imports").Subrouter()
 	api.BaseRoutes.Exports = api.BaseRoutes.APIRoot.PathPrefix("/exports").Subrouter()
-	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
-
+	api.BaseRoutes.ExportFile = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.(?i:)(?:zip|log)$}").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
 
 	api.BaseRoutes.SAML = api.BaseRoutes.APIRoot.PathPrefix("/saml").Subrouter()
