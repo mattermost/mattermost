@@ -957,7 +957,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		},
 		{
 			"chId":      channelBuBot.Id,
-			"postCount": 3,
+			"postCount": 4,
 		},
 	}
 
@@ -991,6 +991,13 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		require.Len(t, topDMs.Items, 1)
 		require.Equal(t, topDMs.Items[0].MessageCount, int64(3))
 		require.Equal(t, topDMs.Items[0].SecondParticipant.Id, basicUser1.Id)
+
+		// test pagination
+		topDMsPage0PerPage1, _, topDmsErr := client.GetTopDMsForUserSince("today", 0, 2)
+		require.NoError(t, topDmsErr)
+		require.Len(t, topDMsPage0PerPage1.Items, 1)
+		require.Equal(t, topDMsPage0PerPage1.HasNext, false)
+		require.Equal(t, topDMsPage0PerPage1.Items[0].SecondParticipant.Id, basicUser1.Id)
 	})
 
 	// get top dms for bu1
