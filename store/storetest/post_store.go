@@ -1920,6 +1920,25 @@ func testPostStoreGetPosts(t *testing.T, ss store.Store) {
 		assert.Equal(t, int64(1), postList.Posts[post5.Id].ReplyCount)
 		assert.Equal(t, int64(1), postList.Posts[post6.Id].ReplyCount)
 	})
+
+	t.Run("should return the lasts posts created in channel without include deleted posts", func(t *testing.T) {
+		err := ss.Post().Delete(post6.Id, 1, userId)
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{
+			post4.Id,
+			post3.Id,
+			post2.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 3)
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+		assert.NotNil(t, postList.Posts[post4.Id])
+	})
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
