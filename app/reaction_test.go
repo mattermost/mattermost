@@ -19,7 +19,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -54,7 +54,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 

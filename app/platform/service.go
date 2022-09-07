@@ -84,6 +84,7 @@ type PlatformService struct {
 	goroutineExitSignal chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
+	sharedChannelService      SharedChannelServiceIFace
 }
 
 // New creates a new PlatformService.
@@ -332,4 +333,8 @@ func (ps *PlatformService) StatusCache() cache.Cache {
 // SetSqlStore is used for plugin testing
 func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 	ps.sqlStore = s
+}
+
+func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
+	ps.sharedChannelService = s
 }

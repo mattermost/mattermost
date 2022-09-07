@@ -22,10 +22,10 @@ type TestHelper struct {
 	Service *PlatformService
 	Suite   SuiteIFace
 
-	// BasicTeam    *model.Team
-	BasicUser  *model.User
-	BasicUser2 *model.User
-	// BasicChannel *model.Channel
+	BasicTeam    *model.Team
+	BasicUser    *model.User
+	BasicUser2   *model.User
+	BasicChannel *model.Channel
 	// BasicPost    *model.Post
 
 	SystemAdminUser *model.User
@@ -87,11 +87,11 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
 	mainHelper.GetSQLStore().User().InsertUsers(users)
 
-	// th.BasicTeam = th.CreateTeam()
+	th.BasicTeam = th.CreateTeam()
 
 	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	// th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	// th.BasicChannel = th.CreateChannel(th.Context, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(th.BasicTeam)
 	// th.BasicPost = th.CreatePost(th.BasicChannel)
 	return th
 }
@@ -187,20 +187,44 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 }
 
 func (th *TestHelper) TearDown() {
-	// Add cleaning code here
+	th.Service.ShutdownMetrics()
+	th.Service.Shutdown()
+	th.Service.ShutdownConfig()
+}
+
+func (th *TestHelper) CreateTeam() *model.Team {
+	id := model.NewId()
+
+	team := &model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Email:       "success+" + id + "@simulator.amazonses.com",
+		Type:        model.TeamOpen,
+	}
+
+	var err error
+	if team, err = th.Service.Store.Team().Save(team); err != nil {
+		panic(err)
+	}
+	return team
 }
 
 func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Id:            id,
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
 		Password:      "Password1",
 		EmailVerified: true,
 		Roles:         model.SystemUserRoleId,
+	}
+
+	var err error
+	user, err = th.Service.Store.User().Save(user)
+	if err != nil {
+		panic(err)
 	}
 
 	return user
@@ -210,7 +234,6 @@ func (th *TestHelper) CreateAdmin() *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Id:            id,
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
@@ -219,5 +242,42 @@ func (th *TestHelper) CreateAdmin() *model.User {
 		Roles:         model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
 
+	var err error
+	user, err = th.Service.Store.User().Save(user)
+	if err != nil {
+		panic(err)
+	}
+
 	return user
+}
+
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	id := model.NewId()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Type:        model.ChannelTypeOpen,
+	}
+
+	for _, option := range options {
+		option(channel)
+	}
+
+	var err error
+	channel, err = th.Service.Store.Channel().Save(channel, 999)
+	if err != nil {
+		panic(err)
+	}
+
+	return channel
 }

@@ -150,7 +150,7 @@ type Server struct {
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
-	sharedChannelService SharedChannelServiceIFace
+	sharedChannelService SharedChannelServiceIFace // TODO: platform: move to platform package
 
 	phase2PermissionsMigrationComplete bool
 
@@ -708,6 +708,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	if err != nil {
 		return err
 	}
+	s.platform.SetSharedChannelService(scs)
 
 	if err = scs.Start(); err != nil {
 		return err
@@ -1757,6 +1758,7 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
+	s.platform.SetSharedChannelService(sharedChannelService)
 }
 
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {

@@ -2625,7 +2625,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -2649,7 +2649,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 
@@ -2677,7 +2677,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
 

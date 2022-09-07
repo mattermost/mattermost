@@ -222,9 +222,8 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 		}
 	}
 
-	// TODO: platform: add shared channel support
 	// Notify shared channel sync service
-	// ps.SharedChannelSyncHandler(event)
+	ps.SharedChannelSyncHandler(event)
 }
 
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
