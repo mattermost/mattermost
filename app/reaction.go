@@ -36,7 +36,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppError) {
 	reactions, err := a.Srv().Store.Reaction().GetForPost(postID, true)
 	if err != nil {
-		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return reactions, nil
 }
@@ -73,7 +73,7 @@ func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Re
 
 	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, reaction := range allReactions {
@@ -103,7 +103,7 @@ func (a *App) GetTopReactionsForTeamSince(teamID string, userID string, opts *mo
 
 	topReactionList, err := a.Srv().Store.Reaction().GetTopForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForTeamSince", "app.reaction.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopReactionsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
@@ -115,7 +115,7 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 
 	topReactionList, err := a.Srv().Store.Reaction().GetTopForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopReactionsForUserSince", "app.reaction.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopReactionsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topReactionList, nil
 }
@@ -136,7 +136,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	}
 
 	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
-		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// The post is always modified since the UpdateAt always changes
@@ -161,7 +161,7 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 
 func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
-	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
+	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
 	if err != nil {
 		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))

@@ -21,7 +21,7 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 	sca, err := scs.server.GetStore().SharedChannel().GetAttachment(fi.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error fetching shared channel attachment",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching shared channel attachment",
 				mlog.String("file_id", fi.Id),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
@@ -100,7 +100,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		}
 
 		if !resp.IsSuccess() {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "send file failed",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "send file failed",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.String("err", resp.Err),
@@ -111,7 +111,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		// response payload should be a model.FileInfo.
 		var fi model.FileInfo
 		if err2 := json.Unmarshal(resp.Payload, &fi); err2 != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "invalid file info response after send file",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "invalid file info response after send file",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.Err(err2),
@@ -125,7 +125,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 			RemoteId: rc.RemoteId,
 		}
 		if _, err2 := scs.server.GetStore().SharedChannel().UpsertAttachment(sca); err2 != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.Err(err2),
@@ -133,7 +133,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 			return
 		}
 
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "send file successful",
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "send file successful",
 			mlog.String("remote", rc.DisplayName),
 			mlog.String("uploadId", usResp.Id),
 		)
@@ -157,7 +157,7 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
 	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(scs.server.GetLogger()), &us)
+	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(scs.server.Log()), &us)
 	if appErr != nil {
 		return appErr
 	}

@@ -368,6 +368,9 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 	objSize := -1
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	if isCloud {
+		options.DisableContentSha256 = true
+	}
 	// We pass an object size only in situations where bifrost is not
 	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
 	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
@@ -404,6 +407,9 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	defer cancel2()
 	objSize := -1
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	if isCloud {
+		options.DisableContentSha256 = true
+	}
 	// We pass an object size only in situations where bifrost is not
 	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
 	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
