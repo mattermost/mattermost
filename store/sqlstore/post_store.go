@@ -2919,7 +2919,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	}
 
 	threadsByRoots := []*model.Thread{}
-	if err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
+	err = transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...)
+	if err != nil {
 		return err
 	}
 
@@ -2978,7 +2979,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if !ok {
 				return errors.Errorf("no team for channel %s", posts[0].ChannelId)
 			}
-
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, TeamId)

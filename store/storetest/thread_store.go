@@ -106,8 +106,17 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Equal(t, int64(2), thread.ReplyCount)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		o5 := model.Post{}
-		o5.ChannelId = model.NewId()
+		o5.ChannelId = channel.Id
 		o5.UserId = model.NewId()
 		o5.RootId = newPosts[0].Id
 		o5.Message = NewTestId()
