@@ -9255,10 +9255,6 @@
     "translation": "İçgörü özelliği devre dışı bırakılmış."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "{{.TeamName}} takımının bir üyesi bu çalışma alanını üst tarifeye geçirmesi için bilgilendirildi."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Yönetici zaten bilgilendirilmiş"
   },
@@ -9509,5 +9505,29 @@
   {
     "id": "api.templates.delinquency_14.button",
     "translation": "Ödemeyi güncelle"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Bildirim iletisi gönderilemedi."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Bildirim verileri kaydedilemedi."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
   }
 ]
