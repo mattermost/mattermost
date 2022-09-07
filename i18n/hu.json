@@ -9264,10 +9264,6 @@
     "translation": "Nem sikerült értelmezni az értéket:{{.Value}} mint int64"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "A {{.TeamName}} csapat egy tagja értesítette Önt, hogy ezt a munkaterületet váltsa magasabb előfizetésre."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Már korábban értesítettük a rendszergazdát"
   },
@@ -9306,5 +9302,61 @@
   {
     "id": "api.command_marketplace.name",
     "translation": "marketplace"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Csomagok és árak megtekintése"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "A fizetési művelete nincs befejezve"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "A munkaterülete hamarosan le lesz minősítve"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Üzenet előzmény"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Fájl"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Fizetés nem érkezett meg"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
   }
 ]
