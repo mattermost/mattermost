@@ -108,6 +108,7 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	notifyAdmin          store.NotifyAdminStore
 }
 
 type SqlStore struct {
@@ -212,6 +213,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -914,6 +916,10 @@ func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
 }
 
+func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
+	return ss.stores.notifyAdmin
+}
+
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
 }
@@ -1118,15 +1124,15 @@ func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
 		}
 		majorVer, err2 := strconv.Atoi(versions[0])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		minorVer, err2 := strconv.Atoi(versions[1])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		patchVer, err2 := strconv.Atoi(versions[2])
 		if err2 != nil {
-			return false, fmt.Errorf("cannot parse MySQL DB version: %s", err2)
+			return false, fmt.Errorf("cannot parse MySQL DB version: %w", err2)
 		}
 		intVer := majorVer*1000 + minorVer*100 + patchVer
 		if intVer < minimumRequiredMySQLVersion {
