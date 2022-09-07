@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -47,13 +48,25 @@ func NewLogConfigSrc(dsn json.RawMessage, configStore *Store) (LogConfigSrc, err
 		return nil, errors.New("configStore should not be nil")
 	}
 
+	// check if embedded JSON
 	if isJSONMap(dsn) {
 		return newJSONSrc(dsn)
 	}
 
-	path := strings.TrimSpace(string(dsn))
+	// Now we're treating the DSN as a string which may contain escaped JSON or be a filespec.
+	str := strings.TrimSpace(string(dsn))
+	if s, err := strconv.Unquote(str); err == nil {
+		str = s
+	}
+
+	// check if escaped JSON
+	strBytes := []byte(str)
+	if isJSONMap(strBytes) {
+		return newJSONSrc(strBytes)
+	}
 
 	// If this is a file based config we need the full path so it can be watched.
+	path := str
 	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(path) {
 		configPath := strings.TrimPrefix(configStore.String(), "file://")
 		path = filepath.Join(filepath.Dir(configPath), path)
