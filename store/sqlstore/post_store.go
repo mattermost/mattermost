@@ -3003,7 +3003,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	*/
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		botsFilterExpr = `SPLIT_PART(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
-		AND split_part(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
+		AND SPLIT_PART(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
 		`
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		botsFilterExpr = `SUBSTRING_INDEX(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
