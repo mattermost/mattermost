@@ -898,7 +898,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		if service == model.ServiceGitlab && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
 			url, err := url.Parse(*sso.UserAPIEndpoint)
 			if err != nil {
-				return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "", nil, err.Error(), http.StatusInternalServerError).Wrap(errors.Wrapf(err, "error parsing %s", *sso.UserAPIEndpoint))
+				return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", model.NoTranslation, nil, err.Error() ,http.StatusInternalServerError).Wrap(errors.Wrapf(err, "error parsing %s", *sso.UserAPIEndpoint))
 			}
 			// Return a nicer error when the user hasn't accepted GitLab's terms of service
 			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", map[string]any{"URL": url.Hostname()}, "", http.StatusBadRequest)
