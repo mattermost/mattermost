@@ -154,8 +154,8 @@ require (
 	github.com/segmentio/backo-go v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/splitio/go-split-commons/v3 v3.1.0 // indirect
-	github.com/splitio/go-toolkit/v4 v4.2.0 // indirect
+	github.com/splitio/go-split-commons/v4 v4.1.3 // indirect
+	github.com/splitio/go-toolkit/v5 v5.2.1 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/tidwall/gjson v1.14.3 // indirect
