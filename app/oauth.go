@@ -100,7 +100,9 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 		}
 	}
 
-	if !oldApp.Scopes.IsSuperset(updatedApp.Scopes) {
+	// Invalidate all current sessions unless the scopes are exactly the same.
+	// This is conservative, in case we ever cache OAuth scopes in the session.
+	if _, equals := oldApp.Scopes.Compare(updatedApp.Scopes); !equals {
 		if err := a.RevokeSessionsForOAuthAppId(updatedApp.Id); err != nil {
 			mlog.Warn("error in revoking app sessions after update", mlog.Err(err))
 		}

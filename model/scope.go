@@ -245,24 +245,61 @@ func (ss AppScopes) Satisfies(need APIScopes) bool {
 	if need.IsUnrestricted() || ss.IsUnrestricted() {
 		return true
 	}
-	return ss.IsSuperset(need)
+
+	superset, equals := ss.Compare([]Scope(need))
+	return superset || equals
 }
 
-func (ss AppScopes) IsSuperset(other []Scope) bool {
-	// both ss and other must be already normalized (and sorted).
-	i := 0
-	for _, s := range other {
-		for {
-			if i >= len(ss) {
-				return false
-			}
-			if ss[i].Satisfies(s) {
-				break
-			}
-			i++
-		}
+// Compare compares two sets of scopes and returns whether the first set is a
+// superset of the second, and whether they are identical. Both sets must be
+// normalized and sorted.
+func (ss AppScopes) Compare(sub AppScopes) (isSuperset, equals bool) {
+	super := ss
+	// Nothing is a superset of everything.
+	if sub.IsUnrestricted() {
+		return false, super.IsUnrestricted()
 	}
-	return true
+	// Everything is a superset of non-everything.
+	if super.IsUnrestricted() {
+		return true, false
+	}
+
+	// Now the lists are not empty, and resources are not "*".
+	iSuper, iSub := 0, 0
+	equals = true
+	for {
+		switch {
+		case iSuper == len(super) && iSub == len(sub):
+			// ran out of both at the same time, so super is a superset of sub
+			// (with wildcards) unless they were identical.
+			return !equals, equals
+		case iSuper == len(super):
+			return false, false
+		case iSub == len(sub):
+			return true, false
+		}
+
+		superRes, superOp := super[iSuper].Split()
+		subRes, sub := sub[iSub].Split()
+		if subRes < superRes {
+			return false, false
+		}
+		if superRes < subRes {
+			equals = false
+			iSuper++
+			continue
+		}
+		iSub++
+
+		if superOp == sub {
+			iSuper++
+			continue
+		}
+		if superOp != ScopeAnyOperation {
+			return false, false
+		}
+		equals = false
+	}
 }
 
 func parseScope(str string) (ScopeResource, ScopeOperation, error) {

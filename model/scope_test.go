@@ -188,6 +188,132 @@ func TestScopesSatisfied(t *testing.T) {
 	}
 }
 
+func TestScopesCompare(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		A, B  AppScopes
+		super bool
+		equal bool
+	}{
+		{
+			name:  "nil vs nil",
+			equal: true,
+		},
+		{
+			name:  "nil vs empty",
+			B:     AppScopes{},
+			equal: true,
+		},
+		{
+			name:  "nil vs ANY",
+			B:     ScopeUnrestrictedApp,
+			equal: true,
+		},
+		{
+			name:  "nil vs XYZ",
+			B:     AppScopes{"x:a", "y:b", "z:c"},
+			super: true,
+		},
+		{
+			name:  "empty vs empty",
+			A:     AppScopes{},
+			B:     AppScopes{},
+			equal: true,
+		},
+		{
+			name:  "empty vs ANY",
+			A:     AppScopes{},
+			B:     ScopeUnrestrictedApp,
+			equal: true,
+		},
+		{
+			name:  "empty vs XYZ",
+			A:     AppScopes{},
+			B:     AppScopes{"x:a", "y:b", "z:c"},
+			super: true,
+		},
+		{
+			name:  "ANY vs ANY",
+			A:     ScopeUnrestrictedApp,
+			B:     ScopeUnrestrictedApp,
+			equal: true,
+		},
+		{
+			name:  "ANY vs XYZ",
+			A:     ScopeUnrestrictedApp,
+			B:     AppScopes{"x:a", "y:b", "z:c"},
+			super: true,
+		},
+		{
+			name:  "XYZ vs XYZ",
+			A:     AppScopes{"x:a", "y:b", "z:c"},
+			B:     AppScopes{"x:a", "y:b", "z:c"},
+			equal: true,
+		},
+		{
+			name: "AB vs XY",
+			A:    AppScopes{"a:aa", "b:bb"},
+			B:    AppScopes{"x:xx", "y:yy"},
+		},
+		{
+			name: "AX vs AY",
+			A:    AppScopes{"a", "x"},
+			B:    AppScopes{"a", "y"},
+		},
+		{
+			name: "AX vs BX",
+			A:    AppScopes{"a", "x"},
+			B:    AppScopes{"b", "x"},
+		},
+		{
+			name:  "ABCDE vs BD mixed",
+			A:     AppScopes{"a", "b", "c", "d", "e"},
+			B:     AppScopes{"b", "d"},
+			super: true,
+		},
+		{
+			name:  "ABCDE vs AB prefix",
+			A:     AppScopes{"a", "b", "c", "d", "e"},
+			B:     AppScopes{"a", "b"},
+			super: true,
+		},
+		{
+			name:  "ABCDE vs DE suffix",
+			A:     AppScopes{"a", "b", "c", "d", "e"},
+			B:     AppScopes{"d", "e"},
+			super: true,
+		},
+		{
+			name:  "b:* vs b:read",
+			A:     AppScopes{"a:read", "b:*", "c:*", "d:update"},
+			B:     AppScopes{"a:read", "b:read"},
+			super: true,
+		},
+		{
+			name:  "b* is a superset of b:read b:update",
+			A:     AppScopes{"a:update", "a:read", "b:*", "c:*", "d:update"},
+			B:     AppScopes{"b:read", "b:update", "c:*"},
+			super: true,
+		},
+		{
+			name:  "x:read x:update is a superset of x:read",
+			A:     AppScopes{"x:read", "x:update", "y"},
+			B:     AppScopes{"x:read", "y"},
+			super: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			super, equal := tc.A.Compare(tc.B)
+			require.Equal(t, tc.super, super)
+			require.Equal(t, tc.equal, equal)
+
+			sub, equal := tc.B.Compare(tc.A)
+			require.Equal(t, false, sub)
+			require.Equal(t, tc.equal, equal)
+		})
+	}
+}
+
 // func TestIsPluginScope(t *testing.T) {
 // 	for _, s := range getPredefinedScopes() {
 // 		assert.False(t, s.IsPluginScope(), "Scope %v should not be a plugin scope", s)
