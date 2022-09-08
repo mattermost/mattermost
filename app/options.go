@@ -72,9 +72,7 @@ func JoinCluster(s *Server) error {
 }
 
 func StartMetrics(s *Server) error {
-	// s.platformOptions = append(s.platformOptions, platform.StartMetrics(s.platform))
-	s.startMetrics = true
-
+	s.platformOptions = append(s.platformOptions, platform.StartMetrics())
 	return nil
 }
 

@@ -96,7 +96,7 @@ func (a *App) DataRetention() einterfaces.DataRetentionInterface {
 	return a.ch.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
-	return a.ch.srv.SearchEngine
+	return a.ch.srv.platform.SearchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap

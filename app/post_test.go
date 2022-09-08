@@ -1472,9 +1472,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1499,9 +1499,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1523,9 +1523,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1555,9 +1555,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)

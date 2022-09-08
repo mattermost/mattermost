@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,7 +55,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
@@ -137,8 +135,6 @@ type Server struct {
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
-	searchConfigListenerId  string
-	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	filestore               filestore.FileBackend
 
@@ -156,12 +152,9 @@ type Server struct {
 
 	Audit *audit.Audit
 
-	joinCluster  bool
-	startMetrics bool
+	joinCluster bool
 	// startSearchEngine bool
 	skipPostInit bool
-
-	SearchEngine *searchengine.Broker
 
 	Cloud einterfaces.CloudInterface
 
@@ -217,11 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 
 		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			StartMetrics: s.startMetrics,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
+			ConfigStore: configStore,
 		}
 
 		ps, sErr := platform.New(platformCfg, s.platformOptions...)
@@ -237,27 +226,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
-
 	s.httpService = httpservice.MakeHTTPService(s.platform)
 
-	// Step 3: Search Engine
-	// Depends on Step 1 (config).
-	searchEngine := searchengine.NewBroker(s.platform.Config())
-	bleveEngine := bleveengine.NewBleveEngine(s.platform.Config())
-	if err := bleveEngine.Start(); err != nil {
-		return nil, err
-	}
-	searchEngine.RegisterBleveEngine(bleveEngine)
-	s.SearchEngine = searchEngine
-
-	// Step 4: Init Enterprise
-	// Depends on step 3 (s.SearchEngine must be non-nil)
+	// Step 2: Init Enterprise
+	// Depends on step 1 (s.Platform must be non-nil)
 	s.initEnterprise()
-
-	// Step 6: Store.
-	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 
 	// Needed to run before loading license.
 	s.userService, err = users.New(users.ServiceConfig{
@@ -280,7 +253,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	license := s.License()
 	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	// Step 7: Initialize filestore
+	// Step 3: Initialize filestore
 	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize filebackend")
@@ -322,7 +295,7 @@ func NewServer(options ...Option) (*Server, error) {
 		SystemKey:        &systemServiceAdapter{server: s},
 	}
 
-	// Step 8: Initialize products.
+	// Step 4: Initialize products.
 	// Depends on s.httpService.
 	err = s.initializeProducts(products, serviceMap)
 	if err != nil {
@@ -331,7 +304,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	// Step 9: Hub depends on s.Channels() (step 8)
+	// Step 5: Hub depends on s.Channels() (step 8)
 	s.platform.HubStart(New(ServerConnector(s.Channels())))
 
 	// -------------------------------------------------------------------------
@@ -414,7 +387,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log())
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -495,36 +468,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
 	})
-
-	// Enable developer settings if this is a "dev" build
-	if model.BuildNumber == "dev" {
-		s.platform.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
-	}
-
-	if s.startMetrics {
-		if err := s.platform.RestartMetrics(); err != nil {
-			return nil, errors.Wrap(err, "failed to start metrics")
-		}
-	}
-
-	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
-			return
-		}
-
-		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
-			return
-		}
-
-		if err := s.platform.RestartMetrics(); err != nil {
-			s.Log().Error("Failed to reset metrics server", mlog.Err(err))
-		}
-	})
-
-	s.SearchEngine.UpdateConfig(s.platform.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
-	s.searchConfigListenerId = searchConfigListenerId
-	s.searchLicenseListenerId = searchLicenseListenerId
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
@@ -786,7 +729,7 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	s.stopSearchEngine()
+	s.platform.StopSearchEngine()
 
 	s.Audit.Shutdown()
 
@@ -1487,84 +1430,6 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale
 	return nil
 }
 
-func (s *Server) StartSearchEngine() (string, string) {
-	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-		s.Go(func() {
-			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-				s.Log().Error(err.Error())
-			}
-		})
-	}
-
-	configListenerId := s.platform.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if s.SearchEngine == nil {
-			return
-		}
-		s.SearchEngine.UpdateConfig(newConfig)
-
-		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			s.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
-					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
-					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
-					}
-				}
-			})
-		}
-	})
-
-	licenseListenerId := s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if s.SearchEngine == nil {
-			return
-		}
-		if oldLicense == nil && newLicense != nil {
-			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-				s.Go(func() {
-					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
-					}
-				})
-			}
-		} else if oldLicense != nil && newLicense == nil {
-			if s.SearchEngine.ElasticsearchEngine != nil {
-				s.Go(func() {
-					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
-				})
-			}
-		}
-	})
-
-	return configListenerId, licenseListenerId
-}
-
-func (s *Server) stopSearchEngine() {
-	s.platform.RemoveConfigListener(s.searchConfigListenerId)
-	s.RemoveLicenseListener(s.searchLicenseListenerId)
-	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-		s.SearchEngine.ElasticsearchEngine.Stop()
-	}
-	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
-		s.SearchEngine.BleveEngine.Stop()
-	}
-}
-
 func (s *Server) FileBackend() filestore.FileBackend {
 	return s.filestore
 }
@@ -1611,7 +1476,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
 		nil,
 	)
 

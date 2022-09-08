@@ -254,7 +254,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 	dbName := *a.Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string
-	if engine := a.Srv().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
+	if engine := a.Srv().Platform().SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
 		searchEngineName = engine.ElasticsearchEngine.GetName()
 		searchEngineVersion = engine.ElasticsearchEngine.GetFullVersion()
 	}

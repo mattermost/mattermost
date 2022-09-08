@@ -37,7 +37,7 @@ type PlatformService struct {
 
 	WebSocketRouter *WebSocketRouter
 
-	serviceConfig ServiceConfig
+	serviceConfig *ServiceConfig
 	configStore   *config.Store
 
 	cacheProvider cache.Provider
@@ -73,7 +73,9 @@ type PlatformService struct {
 	clusterIFace           einterfaces.ClusterInterface
 	Busy                   *Busy
 
-	SearchEngine *searchengine.Broker
+	SearchEngine            *searchengine.Broker
+	searchConfigListenerId  string
+	searchLicenseListenerId string
 
 	Jobs *jobs.JobServer
 
@@ -93,8 +95,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, err
 	}
 
+	// Step 0: Create the PlatformService.
+	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
-		serviceConfig:       sc,
+		serviceConfig:       &sc,
 		Store:               sc.Store,
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
@@ -120,22 +124,22 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
 	}
 
+	// Apply options, some of the options overrides the default config actually.
 	for _, option := range options {
 		if err := option(ps); err != nil {
 			return nil, fmt.Errorf("failed to apply option: %w", err)
 		}
 	}
 
+	// Step 2: Start logging.
 	if err := ps.initLogging(); err != nil {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err)
 	}
 
-	if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
-		return nil, err
-	}
+	// This is called after initLogging() to avoid a race condition.
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
-	// Depends on Step 1 (config).
 	searchEngine := searchengine.NewBroker(ps.Config())
 	bleveEngine := bleveengine.NewBleveEngine(ps.Config())
 	if err := bleveEngine.Start(); err != nil {
@@ -148,6 +152,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
+	// Step 5: Store.
+	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
 			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.Metrics())
@@ -211,8 +217,17 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
 		ps.LoadLicense()
+	}
+
+	if metricsInterface != nil {
+		sc.Metrics = metricsInterface(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
+	}
+
+	if ps.serviceConfig.StartMetrics {
+		if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
+			return nil, err
+		}
 	}
 
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
@@ -246,6 +261,30 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		})
 
 	})
+
+	// Enable developer settings if this is a "dev" build
+	if model.BuildNumber == "dev" {
+		ps.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+	}
+
+	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if (oldLicense == nil && newLicense == nil) || !ps.serviceConfig.StartMetrics {
+			return
+		}
+
+		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+			return
+		}
+
+		if err := ps.RestartMetrics(); err != nil {
+			ps.logger.Error("Failed to reset metrics server", mlog.Err(err))
+		}
+	})
+
+	ps.SearchEngine.UpdateConfig(ps.Config())
+	searchConfigListenerId, searchLicenseListenerId := ps.StartSearchEngine()
+	ps.searchConfigListenerId = searchConfigListenerId
+	ps.searchLicenseListenerId = searchLicenseListenerId
 
 	return ps, nil
 }

@@ -74,12 +74,6 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var metricsInterface func(*Server, string, string) einterfaces.MetricsInterface
-
-func RegisterMetricsInterface(f func(*Server, string, string) einterfaces.MetricsInterface) {
-	metricsInterface = f
-}
-
 var samlInterfaceNew func(*App) einterfaces.SamlInterface
 
 func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {

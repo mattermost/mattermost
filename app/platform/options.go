@@ -83,10 +83,11 @@ func ConfigStore(configStore *config.Store) Option {
 	}
 }
 
-func StartMetrics(ps *PlatformService) error {
-	ps.serviceConfig.StartMetrics = true
-
-	return nil
+func StartMetrics() Option {
+	return func(ps *PlatformService) error {
+		ps.serviceConfig.StartMetrics = true
+		return nil
+	}
 }
 
 func SetLogger(logger *mlog.Logger) Option {

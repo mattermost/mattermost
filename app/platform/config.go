@@ -43,10 +43,6 @@ func (c *ServiceConfig) validate() error {
 		return errors.New("ConfigStore is required")
 	}
 
-	// if c.Store == nil {
-	// 	return errors.New("Store is required")
-	// }
-
 	return nil
 }
 

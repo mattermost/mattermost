@@ -101,7 +101,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	th.App.Srv().SearchEngine = mainHelper.SearchEngine
+	th.App.Srv().Platform().SearchEngine = mainHelper.SearchEngine
 
 	th.App.Srv().Store().MarkSystemRanUnitTests()
 

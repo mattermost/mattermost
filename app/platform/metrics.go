@@ -181,7 +181,7 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 }
 
 func (ps *PlatformService) RestartMetrics() error {
-	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
+	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
 }
 
 func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {

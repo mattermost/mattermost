@@ -143,8 +143,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	th.Context.SetLogger(testLogger)
 
-	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.SearchEngine.BleveEngine
+	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
+		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
