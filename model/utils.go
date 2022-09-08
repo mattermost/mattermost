@@ -33,6 +33,7 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
 )
 
 type StringInterface map[string]any
@@ -189,6 +190,10 @@ func (StringInterface) ImplementsGraphQLType(name string) bool {
 	return name == "StringInterface"
 }
 
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
+}
+
 func (si *StringInterface) UnmarshalGraphQL(input any) error {
 	json, ok := input.(map[string]any)
 	if !ok {
@@ -234,12 +239,11 @@ func (er *AppError) Error() string {
 		sb.WriteString(er.DetailedError)
 	}
 
-	// render all wrapped errors
+	// render the wrapped error
 	err := er.wrapped
-	for err != nil {
+	if err != nil {
 		sb.WriteString(", ")
 		sb.WriteString(err.Error())
-		err = errors.Unwrap(err)
 	}
 
 	return sb.String()
@@ -266,8 +270,28 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
+}
+
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
 }
 
 func (er *AppError) Unwrap() error {

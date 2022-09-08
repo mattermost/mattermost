@@ -124,13 +124,13 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 	return apps, nil
 }
 
-func (as SqlOAuthStore) DeleteApp(id string) error {
+func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := as.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := as.deleteApp(transaction, id); err != nil {
 		return err

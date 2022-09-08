@@ -17,6 +17,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -25,7 +26,7 @@ import (
 
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
-var exportablePreferences = map[ComparablePreference]string{{
+var exportablePreferences = map[imports.ComparablePreference]string{{
 	Category: model.PreferenceCategoryTheme,
 	Name:     "",
 }: "Theme", {
@@ -64,8 +65,8 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func GetMissingAttachmentInfo(attachment *AttachmentImportData) *LogFormat {
-	data := LogFormat{
+func GetMissingAttachmentInfo(attachment *imports.AttachmentImportData) *imports.LogFormat {
+	data := imports.LogFormat{
 		Id:            attachment.Id,
 		CreatorId:     attachment.CreatorId,
 		PostId:        attachment.PostId,
@@ -86,7 +87,7 @@ func GetMissingAttachmentInfo(attachment *AttachmentImportData) *LogFormat {
 	return &data
 }
 
-func (a *App) ExportAttachments(attachment *AttachmentImportData, outPath string, zipWr *zip.Writer) (*LogFormat, *model.AppError) {
+func (a *App) ExportAttachments(attachment *imports.AttachmentImportData, outPath string, zipWr *zip.Writer) (*imports.LogFormat, *model.AppError) {
 	exists, err := a.FileExists(*attachment.Path)
 	if err != nil {
 		return nil, err
@@ -161,8 +162,8 @@ func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath s
 	if err != nil {
 		return err
 	}
-	var missingAttachments []*LogFormat
-	var logData *LogFormat
+	var missingAttachments []*imports.LogFormat
+	var logData *imports.LogFormat
 	if opts.IncludeAttachments {
 		mlog.Info("Bulk export: exporting file attachments")
 		for _, attachment := range attachments {
@@ -192,7 +193,7 @@ func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath s
 	}
 
 	if logWriter != nil && len(missingAttachments) != 0 {
-		fileData, err := json.MarshalIndent(MissingAttachments{MissingAttachments: missingAttachments}, "", " ")
+		fileData, err := json.MarshalIndent(imports.MissingAttachments{MissingAttachments: missingAttachments}, "", " ")
 		if err != nil {
 			return model.NewAppError("exportLogFile", "Failed to marshal and indent the data", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -204,7 +205,7 @@ func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath s
 	return nil
 }
 
-func (a *App) exportWriteLine(w io.Writer, line *LineImportData) *model.AppError {
+func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.AppError {
 	b, err := json.Marshal(line)
 	if err != nil {
 		return model.NewAppError("BulkExport", "app.export.export_write_line.json_marshall.error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -219,7 +220,7 @@ func (a *App) exportWriteLine(w io.Writer, line *LineImportData) *model.AppError
 
 func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	version := 1
-	versionLine := &LineImportData{
+	versionLine := &imports.LineImportData{
 		Type:    "version",
 		Version: &version,
 	}
@@ -233,7 +234,7 @@ func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError
 	for {
 		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
 		if err != nil {
-			return nil, model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(teams) == 0 {
@@ -265,7 +266,7 @@ func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *mo
 		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
 
 		if err != nil {
-			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(channels) == 0 {
@@ -300,7 +301,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 		users, err := a.Srv().Store.User().GetAllAfter(1000, afterId)
 
 		if err != nil {
-			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(users) == 0 {
@@ -334,7 +335,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 						pref.Value = ""
 					}
 				}
-				id, ok := exportablePreferences[ComparablePreference{
+				id, ok := exportablePreferences[imports.ComparablePreference{
 					Category: pref.Category,
 					Name:     pref.Name,
 				}]
@@ -369,13 +370,13 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImportData, *model.AppError) {
-	var memberships []UserTeamImportData
+func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.UserTeamImportData, *model.AppError) {
+	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userID)
 
 	if err != nil {
-		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, member := range members {
@@ -406,12 +407,12 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImpo
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]UserChannelImportData, *model.AppError) {
-	var memberships []UserChannelImportData
+func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
+	var memberships []imports.UserChannelImportData
 
 	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userID, teamID)
 	if nErr != nil {
-		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	category := model.PreferenceCategoryFavoriteChannel
@@ -426,7 +427,7 @@ func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]User
 	return &memberships, nil
 }
 
-func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyPropsImportData {
+func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNotifyPropsImportData {
 
 	getProp := func(key string) *string {
 		if v, ok := notifyProps[key]; ok {
@@ -435,7 +436,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 		return nil
 	}
 
-	return &UserNotifyPropsImportData{
+	return &imports.UserNotifyPropsImportData{
 		Desktop:          getProp(model.DesktopNotifyProp),
 		DesktopSound:     getProp(model.DesktopSoundNotifyProp),
 		Email:            getProp(model.EmailNotifyProp),
@@ -447,14 +448,14 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*AttachmentImportData, *model.AppError) {
-	var attachments []*AttachmentImportData
+func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*imports.AttachmentImportData, *model.AppError) {
+	var attachments []*imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 
 	for {
 		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
 		if nErr != nil {
-			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
 		if len(posts) == 0 {
@@ -481,7 +482,7 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 			}
 
 			postLine.Post.Replies = &replies
-			postLine.Post.Reactions = &[]ReactionImportData{}
+			postLine.Post.Reactions = &[]imports.ReactionImportData{}
 			if post.HasReactions {
 				postLine.Post.Reactions, err = a.BuildPostReactions(ctx, post.Id)
 				if err != nil {
@@ -508,13 +509,13 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 	}
 }
 
-func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]ReplyImportData, []*AttachmentImportData, *model.AppError) {
-	var replies []ReplyImportData
-	var attachments []*AttachmentImportData
+func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments bool) ([]imports.ReplyImportData, []*imports.AttachmentImportData, *model.AppError) {
+	var replies []imports.ReplyImportData
+	var attachments []*imports.AttachmentImportData
 
 	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postID)
 	if nErr != nil {
-		return nil, nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	for _, reply := range replyPosts {
@@ -544,11 +545,11 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 }
 
 func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
-	var reactionsOfPost []ReactionImportData
+	var reactionsOfPost []imports.ReactionImportData
 
 	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
 	if nErr != nil {
-		return nil, model.NewAppError("BuildPostReactions", "app.reaction.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BuildPostReactions", "app.reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	for _, reaction := range reactions {
@@ -559,7 +560,7 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 				ctx.Logger().Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
-			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
@@ -568,15 +569,15 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 
 }
 
-func (a *App) buildPostAttachments(postID string) ([]*AttachmentImportData, *model.AppError) {
+func (a *App) buildPostAttachments(postID string) ([]*imports.AttachmentImportData, *model.AppError) {
 	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postID, false, false, false)
 	if nErr != nil {
-		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	attachments := make([]*AttachmentImportData, 0, len(infos))
+	attachments := make([]*imports.AttachmentImportData, 0, len(infos))
 	for _, info := range infos {
-		attachments = append(attachments, &AttachmentImportData{
+		attachments = append(attachments, &imports.AttachmentImportData{
 			Id:            info.Id,
 			CreatorId:     info.CreatorId,
 			PostId:        info.PostId,
@@ -598,8 +599,8 @@ func (a *App) buildPostAttachments(postID string) ([]*AttachmentImportData, *mod
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]*AttachmentImportData, *model.AppError) {
-	var emojiDataList []*AttachmentImportData
+func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]*imports.AttachmentImportData, *model.AppError) {
+	var emojiDataList []*imports.AttachmentImportData
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
@@ -632,7 +633,7 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exp
 				}
 			} else {
 				filePath = filepath.Join("emoji", emoji.Id, "image")
-				emojiDataList = append(emojiDataList, &AttachmentImportData{
+				emojiDataList = append(emojiDataList, &imports.AttachmentImportData{
 					Id:        emoji.Id,
 					CreatorId: emoji.CreatorId,
 					CreateAt:  emoji.CreateAt,
@@ -691,7 +692,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	for {
 		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
 		if err != nil {
-			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(channels) == 0 {
@@ -721,13 +722,13 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*AttachmentImportData, *model.AppError) {
-	var attachments []*AttachmentImportData
+func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]*imports.AttachmentImportData, *model.AppError) {
+	var attachments []*imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	for {
 		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
 		if err != nil {
-			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(posts) == 0 {
@@ -743,7 +744,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttach
 			}
 
 			// Handle attachments.
-			var postAttachments []*AttachmentImportData
+			var postAttachments []*imports.AttachmentImportData
 			var err *model.AppError
 			if len(post.FileIds) > 0 {
 				postAttachments, err = a.buildPostAttachments(post.Id)

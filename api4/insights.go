@@ -21,8 +21,15 @@ func (api *API) InitInsights() {
 	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
 
 	// Threads
-	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForTeamSince))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(requireLicense(getTopThreadsForUserSince))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
+
+	// user DMs
+	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
+
+	// Inactive channels
+	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForTeamSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForUserSince)))).Methods("GET")
 
 	// New teammembers
 	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
@@ -223,9 +230,9 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, err := json.Marshal(topChannels)
-	if err != nil {
-		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	js, jsonErr := json.Marshal(topChannels)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
@@ -245,21 +252,14 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// license check
-	lic := c.App.Srv().License()
-	if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
-		c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
+	// restrict users with no access to team
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	// restrict guests and users with no access to team
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -276,8 +276,8 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, err := json.Marshal(topThreads)
-	if err != nil {
+	js, jsonError := json.Marshal(topThreads)
+	if jsonError != nil {
 		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
@@ -288,10 +288,10 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
-	// restrict guests and users with no access to team
-	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
+	// restrict users with no access to team
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
 		return
 	}
 	// TeamId is an optional parameter
@@ -307,14 +307,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		// license check
-		lic := c.App.Srv().License()
-		if lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise {
-			c.Err = model.NewAppError("", "api.insights.license_error", nil, "", http.StatusNotImplemented)
-			return
-		}
-
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) || user.IsGuest() {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
@@ -332,13 +325,137 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, err := json.Marshal(topThreads)
-	if err != nil {
-		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	js, jsonErr := json.Marshal(topThreads)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		return
 	}
 
 	w.Write(js)
+}
+
+// Top DMs
+func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+
+	topDMs, err := c.App.GetTopDMsForUserSince(user.Id, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	js, jsonErr := json.Marshal(topDMs)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(js)
+}
+
+// Top Channels
+
+func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
+	topChannels, err := c.App.GetTopInactiveChannelsForTeamSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// top inactive channels
+
+func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.Params.TeamId = r.URL.Query().Get("team_id")
+
+	// TeamId is an optional parameter
+	if c.Params.TeamId != "" {
+		if !model.IsValidId(c.Params.TeamId) {
+			c.SetInvalidURLParam("team_id")
+			return
+		}
+
+		team, teamErr := c.App.GetTeam(c.Params.TeamId)
+		if teamErr != nil {
+			c.Err = teamErr
+			return
+		}
+
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	loc := user.GetTimezoneLocation()
+	startTime := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+
+	topChannels, err := c.App.GetTopInactiveChannelsForUserSince(c.AppContext, c.Params.TeamId, c.AppContext.Session().UserId, &model.InsightsOpts{
+		StartUnixMilli: startTime.UnixMilli(),
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+	})
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopInactiveChannelsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // postCountByDurationViewModel expects a list of channels that are pre-authorized for the given user to view.
