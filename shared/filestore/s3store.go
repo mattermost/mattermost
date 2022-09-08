@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -95,6 +96,9 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		skipVerify: settings.SkipVerify,
 		timeout:    timeout,
 	}
+
+	fmt.Println("settings.AmazonS3Endpoint : " + settings.AmazonS3Endpoint)
+
 	cli, err := backend.s3New()
 	if err != nil {
 		return nil, err
@@ -354,6 +358,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 }
 
 func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
+	fmt.Println("AAA")
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); isFileExtImage(ext) {
@@ -364,21 +369,30 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
+
+	fmt.Println("BBB")
+
 	options := s3PutOptions(b.encrypt, contentType)
 
 	objSize := -1
 	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	if isCloud {
+		fmt.Println("CCCC")
 		options.DisableContentSha256 = true
+	} else {
+		fmt.Println("DDD")
 	}
+
 	// We pass an object size only in situations where bifrost is not
 	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
 	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+		fmt.Println("EEE")
 		objSize = buf.Len()
 	}
 
 	info, err := b.client.PutObject(ctx, b.bucket, path, fr, int64(objSize), options)
 	if err != nil {
+		fmt.Println("FFF " + err.Error())
 		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
 

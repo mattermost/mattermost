@@ -5,6 +5,7 @@ package filestore
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -143,6 +144,7 @@ func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
 }
 
 func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
+	fmt.Println("MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST MATTERMOST")
 	return writeFileLocally(fr, filepath.Join(b.directory, path))
 }
 
