@@ -897,7 +897,6 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 }
 
 func TestGetTopDMsForUserSince(t *testing.T) {
-	t.Skip("MM-46911")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
