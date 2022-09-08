@@ -3009,7 +3009,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 	*/
 	botsFilterExpr = fmt.Sprintf(`
 		%s(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
-		AND %s(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
+		AND $s(%s(Channels.Name, '__', 2), '__', -1) NOT IN (SELECT UserId FROM Bots)
 	`, stringSplitKeyword, stringSplitKeyword)
 	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
 		Where(sq.And{
