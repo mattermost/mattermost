@@ -407,7 +407,7 @@ func TestHubConnIndexInactive(t *testing.T) {
 func TestReliableWebSocketSend(t *testing.T) {
 	testCluster := &testlib.FakeClusterInterface{}
 
-	th := SetupWithClusterMock(t, testCluster)
+	th := SetupWithCluster(t, testCluster)
 	defer th.TearDown()
 
 	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")

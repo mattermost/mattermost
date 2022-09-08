@@ -50,11 +50,10 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestConfigSave(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
 	cm := &mocks.ClusterInterface{}
-	th.Service.clusterIFace = cm
+	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
+	th := SetupWithCluster(t, cm)
+	defer th.TearDown()
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
 		oldCfg := th.Service.Config()
@@ -63,9 +62,7 @@ func TestConfigSave(t *testing.T) {
 
 		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
 		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
-
 		cm.On("ConfigChanged", sanitizedOldCfg, sanitizedNewCfg, true).Return(nil)
-		cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
 
 		_, _, appErr := th.Service.SaveConfig(newCfg, true)
 		require.Nil(t, appErr)

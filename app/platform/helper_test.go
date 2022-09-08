@@ -111,7 +111,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
-func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *TestHelper {
+func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
