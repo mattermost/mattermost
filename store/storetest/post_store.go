@@ -4110,6 +4110,7 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		ChannelId: chBot.Id,
 		UserId:    botUser.Id,
 	})
+	require.NoError(t, err)
 
 	// sample post data
 	// for u1
