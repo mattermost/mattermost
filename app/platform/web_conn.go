@@ -760,6 +760,10 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.UserId == msg.GetBroadcast().UserId
 	}
 
+	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
+		return false
+	}
+
 	// if the user is omitted don't send the message
 	if len(msg.GetBroadcast().OmitUsers) > 0 {
 		if _, ok := msg.GetBroadcast().OmitUsers[wc.UserId]; ok {

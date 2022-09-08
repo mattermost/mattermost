@@ -89,7 +89,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	handler.ServeWebSocket(conn, r)
 }
 
-func returnWebSocketError(s *PlatformService, conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+func returnWebSocketError(ps *PlatformService, conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
 	logF := mlog.Error
 	if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 		logF = mlog.Debug
@@ -102,7 +102,7 @@ func returnWebSocketError(s *PlatformService, conn *WebConn, r *model.WebSocketR
 		mlog.Err(err),
 	)
 
-	hub := s.GetHubForUserId(conn.UserId)
+	hub := ps.GetHubForUserId(conn.UserId)
 	if hub == nil {
 		return
 	}

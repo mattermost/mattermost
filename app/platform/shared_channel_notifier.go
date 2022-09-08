@@ -29,13 +29,13 @@ var sharedChannelEventsForInvitation model.StringArray = []string{
 // SharedChannelSyncHandler is called when a websocket event is received by a cluster node.
 // Only on the leader node it will notify the sync service to perform necessary updates to the remote for the given
 // shared channel.
-func (s *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent) {
-	syncService := s.sharedChannelService
+func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent) {
+	syncService := ps.sharedChannelService
 	if syncService == nil {
 		return
 	}
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
-		err := handleContentSync(s, syncService, event)
+		err := handleContentSync(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
@@ -44,7 +44,7 @@ func (s *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent) 
 			)
 		}
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
-		err := handleInvitation(s, syncService, event)
+		err := handleInvitation(ps, syncService, event)
 		if err != nil {
 			mlog.Warn(
 				err.Error(),
@@ -71,8 +71,8 @@ func syncServiceEnabled(syncService SharedChannelServiceIFace) bool {
 		syncService.Active()
 }
 
-func handleContentSync(s *PlatformService, syncService SharedChannelServiceIFace, event *model.WebSocketEvent) error {
-	channel, err := findChannel(s, event.GetBroadcast().ChannelId)
+func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFace, event *model.WebSocketEvent) error {
+	channel, err := findChannel(ps, event.GetBroadcast().ChannelId)
 	if err != nil {
 		return err
 	}
@@ -84,8 +84,8 @@ func handleContentSync(s *PlatformService, syncService SharedChannelServiceIFace
 	return nil
 }
 
-func handleInvitation(s *PlatformService, syncService SharedChannelServiceIFace, event *model.WebSocketEvent) error {
-	channel, err := findChannel(s, event.GetBroadcast().ChannelId)
+func handleInvitation(ps *PlatformService, syncService SharedChannelServiceIFace, event *model.WebSocketEvent) error {
+	channel, err := findChannel(ps, event.GetBroadcast().ChannelId)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func handleInvitation(s *PlatformService, syncService SharedChannelServiceIFace,
 		return nil
 	}
 
-	creator, err := getUserFromEvent(s, event, "creator_id")
+	creator, err := getUserFromEvent(ps, event, "creator_id")
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func handleInvitation(s *PlatformService, syncService SharedChannelServiceIFace,
 		return nil
 	}
 
-	participant, err := getUserFromEvent(s, event, "teammate_id")
+	participant, err := getUserFromEvent(ps, event, "teammate_id")
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func handleInvitation(s *PlatformService, syncService SharedChannelServiceIFace,
 		return nil
 	}
 
-	rc, err := s.Store.RemoteCluster().Get(*participant.RemoteId)
+	rc, err := ps.Store.RemoteCluster().Get(*participant.RemoteId)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("couldn't find remote cluster %s, for creating shared channel invitation for a DM", *participant.RemoteId))
 	}
@@ -123,13 +123,13 @@ func handleInvitation(s *PlatformService, syncService SharedChannelServiceIFace,
 	return syncService.SendChannelInvite(channel, creator.Id, rc, sharedchannel.WithDirectParticipantID(creator.Id), sharedchannel.WithDirectParticipantID(participant.Id))
 }
 
-func getUserFromEvent(s *PlatformService, event *model.WebSocketEvent, key string) (*model.User, error) {
+func getUserFromEvent(ps *PlatformService, event *model.WebSocketEvent, key string) (*model.User, error) {
 	userID, ok := event.GetData()[key].(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("received websocket message that is eligible for sending an invitation but message does not have `%s` present", key)
 	}
 
-	user, err := s.Store.User().Get(context.Background(), userID)
+	user, err := ps.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't find user for creating shared channel invitation for a DM")
 	}
