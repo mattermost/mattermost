@@ -3580,10 +3580,6 @@
     "translation": "Multi-factor authentication was removed"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
@@ -3605,15 +3601,15 @@
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
+    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
+    "translation": "The payment wasn't successful"
   },
   {
     "id": "api.templates.payment_failed_no_card.button",
@@ -4790,6 +4786,10 @@
   {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Couldn't retrieve cloud products"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Unable to get current plan name"
   },
   {
     "id": "app.cloud.get_subscription.app_error",
