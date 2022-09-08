@@ -2288,10 +2288,10 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 
 func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
 	builder := s.getQueryBuilder().
-	Select("*").
-	From("Posts").
-	Where(sq.Eq{"Posts.OriginalId": postId}).
-	OrderBy("Posts.EditAt DESC")
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Posts.OriginalId": postId}).
+		OrderBy("Posts.EditAt DESC")
 
 	queryString, args, err := builder.ToSql()
 	if err != nil {
