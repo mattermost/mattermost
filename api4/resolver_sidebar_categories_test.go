@@ -27,6 +27,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			Sorting     model.SidebarCategorySorting `json:"sorting"`
 			ChannelIDs  []string                     `json:"channelIds"`
 			TeamID      string                       `json:"teamId"`
+			SortOrder   int64                        `json:"sortOrder"`
 		} `json:"sidebarCategories"`
 	}
 
@@ -39,6 +40,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			displayName
 			sorting
 			channelIds
+			sortOrder
 		}
 	}
 	`,
@@ -69,6 +71,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		assert.Equal(t, categories.Categories[i].DisplayName, q.SidebarCategories[i].DisplayName)
 		assert.Equal(t, categories.Categories[i].Sorting, q.SidebarCategories[i].Sorting)
 		assert.Equal(t, categories.Categories[i].ChannelIds(), q.SidebarCategories[i].ChannelIDs)
+		assert.Equal(t, categories.Categories[i].SortOrder, q.SidebarCategories[i].SortOrder)
 	}
 
 	input = graphQLInput{
@@ -80,6 +83,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			displayName
 			sorting
 			channelIds
+			sortOrder
 		}
 	}
 	`,
@@ -114,6 +118,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			sorting
 			channelIds
 			teamId
+			sortOrder
 		}
 	}
 	`,
