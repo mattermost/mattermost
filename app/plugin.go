@@ -93,6 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
+	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -198,6 +199,10 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 
 func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	defer func() {
+		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+	}()
+
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()

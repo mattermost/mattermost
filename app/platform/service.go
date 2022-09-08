@@ -6,6 +6,7 @@ package platform
 import (
 	"fmt"
 	"hash/maphash"
+	"net/http"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
@@ -88,6 +90,8 @@ type PlatformService struct {
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 	sharedChannelService      SharedChannelServiceIFace
+
+	pluginEnv *plugin.Environment
 }
 
 // New creates a new PlatformService.
@@ -377,4 +381,31 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
 	ps.sharedChannelService = s
+}
+
+func (ps *PlatformService) SetPluginsEnvironment(env *plugin.Environment) {
+	ps.pluginEnv = env
+}
+
+// GetPluginStatuses meant to be used by cluster implementation
+func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	if ps.pluginEnv == nil {
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	pluginStatuses, err := ps.pluginEnv.Statuses()
+	if err != nil {
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Add our cluster ID
+	for _, status := range pluginStatuses {
+		if ps.Cluster() != nil {
+			status.ClusterId = ps.Cluster().GetClusterId()
+		} else {
+			status.ClusterId = ""
+		}
+	}
+
+	return pluginStatuses, nil
 }
