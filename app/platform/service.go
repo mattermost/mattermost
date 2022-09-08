@@ -53,7 +53,8 @@ type PlatformService struct {
 	logger              *mlog.Logger
 	notificationsLogger *mlog.Logger
 
-	metrics *platformMetrics
+	startMetrics bool
+	metrics      *platformMetrics
 
 	featureFlagSynchronizerMutex sync.Mutex
 	featureFlagSynchronizer      *featureflag.Synchronizer
@@ -224,8 +225,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		sc.Metrics = metricsInterface(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
-	if ps.serviceConfig.StartMetrics {
-		if err := ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
+	if ps.startMetrics {
+		if err = ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
 			return nil, err
 		}
 	}
@@ -268,7 +269,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !ps.serviceConfig.StartMetrics {
+		if (oldLicense == nil && newLicense == nil) || !ps.startMetrics {
 			return
 		}
 

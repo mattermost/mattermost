@@ -29,9 +29,8 @@ import (
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore  *config.Store
-	Store        store.Store
-	StartMetrics bool // TODO: find an elegant way to start/stop metrics server by default
+	ConfigStore *config.Store
+	Store       store.Store
 	// Optional fields
 	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface
@@ -86,7 +85,7 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if ps.serviceConfig.StartMetrics && *ps.Config().MetricsSettings.Enable {
+	if ps.startMetrics && *ps.Config().MetricsSettings.Enable {
 		ps.RestartMetrics()
 	} else {
 		ps.ShutdownMetrics()

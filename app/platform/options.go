@@ -85,7 +85,7 @@ func ConfigStore(configStore *config.Store) Option {
 
 func StartMetrics() Option {
 	return func(ps *PlatformService) error {
-		ps.serviceConfig.StartMetrics = true
+		ps.startMetrics = true
 		return nil
 	}
 }
