@@ -52,7 +52,7 @@ require (
 	github.com/rudderlabs/analytics-go v3.3.2+incompatible
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/spf13/cobra v1.5.0
-	github.com/splitio/go-client/v6 v6.1.0
+	github.com/splitio/go-client/v6 v6.1.7
 	github.com/stretchr/testify v1.8.0
 	github.com/throttled/throttled v2.2.5+incompatible
 	github.com/tinylib/msgp v1.1.6
