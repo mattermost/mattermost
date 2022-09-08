@@ -20,7 +20,6 @@ type Store struct {
 	TeamStore                 mocks.TeamStore
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
-	// GetEditHistoryForPost			mocks.GetEditHistoryForPost todo sinan update /store/storetest/mocks
 	UserStore                 mocks.UserStore
 	RetentionPolicyStore      mocks.RetentionPolicyStore
 	BotStore                  mocks.BotStore

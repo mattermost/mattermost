@@ -2287,7 +2287,6 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 }
 
 func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
-		
 	builder := s.getQueryBuilder().
 	Select("*").
 	From("Posts").
