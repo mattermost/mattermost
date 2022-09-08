@@ -4106,6 +4106,13 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 		UserId:    u2.Id,
 	})
 	require.NoError(t, err)
+	// create second post for u2: modify create at to a very old date to make sure it isn't counted
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser2.Id,
+		UserId:    u2.Id,
+		CreateAt:  100,
+	})
+	require.NoError(t, err)
 	// for user-u3: 3 posts
 	for i := 0; i < 3; i++ {
 		_, err = ss.Post().Save(&model.Post{
