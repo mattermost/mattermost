@@ -68,7 +68,7 @@ jobs:
           if [[ -f "$FILE_DIST" ]]; then
             mkdir dist && tar -xf $FILE_DIST -C dist --strip-components=1
           else
-            npm ci --silent && make build
+            make dist
           fi
       - persist_to_workspace:
           root: /mnt/ramdisk
