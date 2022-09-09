@@ -126,11 +126,11 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	for i := 0; i < 49; i++ {
