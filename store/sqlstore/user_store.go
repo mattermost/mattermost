@@ -1503,8 +1503,11 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 		var dbSpecificTerm string
 
 		if isPostgreSQL {
-			// Escaping the : in case of a Postgres search.
-			term = strings.ReplaceAll(term, ":", "\\:")
+			// Refer to https://www.postgresql.org/docs/current/functions-textsearch.html for the list of operators.
+			for _, c := range []string{":", "(", ")", "<", "!", "|"} {
+				// Escaping the special chars in case of a Postgres search.
+				term = strings.ReplaceAll(term, c, "\\"+c)
+			}
 		}
 
 		for _, field := range fields {
