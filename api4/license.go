@@ -143,22 +143,22 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("removeLicense", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
-
+	c.Logger.Error("call to removeLicense")
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
 	}
-
+	c.Logger.Error("removeLicense, session has permission to manage license information")
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("removeLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
-
+	c.Logger.Error("removeLicense, not restricted system admin")
 	if err := c.App.Srv().RemoveLicense(); err != nil {
 		c.Err = err
 		return
 	}
-
+	c.Logger.Error("removeLicense, succeeded")
 	auditRec.Success()
 	c.LogAudit("success")
 
