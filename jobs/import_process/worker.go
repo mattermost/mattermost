@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const jobName = "ImportProcess"
@@ -31,7 +32,8 @@ type AppIface interface {
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := request.EmptyContext(nil)
+	logger, _ := mlog.NewLogger()
+	appContext := request.EmptyContext(logger)
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
