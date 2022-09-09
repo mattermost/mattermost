@@ -932,6 +932,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
 		Description: "bot",
+		UserId:      model.NewId(),
 	}
 
 	createdBot, resp, err := th.Client.CreateBot(bot)
