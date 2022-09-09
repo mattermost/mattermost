@@ -2824,11 +2824,11 @@ func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 }
 
 func (s *TimerLayerComplianceStore) BlocksExport(cursor model.BlockExportCursor, limit int) ([]*model.BlockExport, model.BlockExportCursor, error) {
-	start := timemodule.Now()
+	start := time.Now()
 
 	result, resultVar1, err := s.ComplianceStore.BlocksExport(cursor, limit)
 
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if err == nil {
