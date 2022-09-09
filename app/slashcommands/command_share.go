@@ -120,7 +120,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 	}
 }
 
-func (sp *ShareProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
 		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
@@ -323,7 +323,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 }
 
 func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sharedChannel.TeamId, "", "", nil)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sharedChannel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", sharedChannel.ChannelId)
 	a.Publish(messageWs)
 }

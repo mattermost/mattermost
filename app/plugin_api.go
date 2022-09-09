@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -290,11 +289,11 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
 	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
 	if err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
-		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -318,7 +317,7 @@ func (api *PluginAPI) RevokeUserAccessToken(tokenID string) *model.AppError {
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
-	return api.app.UpdateUser(user, true)
+	return api.app.UpdateUser(api.ctx, user, true)
 }
 
 func (api *PluginAPI) UpdateUserActive(userID string, active bool) *model.AppError {
@@ -359,11 +358,11 @@ func (api *PluginAPI) SetUserStatusTimedDND(userID string, endTime int64) (*mode
 }
 
 func (api *PluginAPI) UpdateUserCustomStatus(userID string, customStatus *model.CustomStatus) *model.AppError {
-	return api.app.SetCustomStatus(userID, customStatus)
+	return api.app.SetCustomStatus(api.ctx, userID, customStatus)
 }
 
 func (api *PluginAPI) RemoveUserCustomStatus(userID string) *model.AppError {
-	return api.app.RemoveCustomStatus(userID)
+	return api.app.RemoveCustomStatus(api.ctx, userID)
 }
 
 func (api *PluginAPI) GetUserCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
@@ -513,7 +512,7 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ToSlice(), nil
+	return postList.ForPlugin().ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -547,7 +546,11 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	return api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
+	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
+	if results != nil {
+		results = results.ForPlugin()
+	}
+	return results, appErr
 }
 
 func (api *PluginAPI) AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.AppError) {
@@ -627,7 +630,11 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.CreatePostMissingChannel(api.ctx, post, true)
+	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
+	if post != nil {
+		post = post.ForPlugin()
+	}
+	return post, appErr
 }
 
 func (api *PluginAPI) AddReaction(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -643,11 +650,11 @@ func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.App
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.SendEphemeralPost(api.ctx, userID, post)
+	return api.app.SendEphemeralPost(api.ctx, userID, post).ForPlugin()
 }
 
 func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
-	return api.app.UpdateEphemeralPost(api.ctx, userID, post)
+	return api.app.UpdateEphemeralPost(api.ctx, userID, post).ForPlugin()
 }
 
 func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
@@ -660,31 +667,59 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
+	list, appErr := api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
+	if list != nil {
+		list = list.ForPlugin()
+	}
+	return list, appErr
 }
 
 func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postID, false)
+	post, appErr := api.app.GetSinglePost(postID, false)
+	if post != nil {
+		post = post.ForPlugin()
+	}
+	return post, appErr
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
+	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
+	if list != nil {
+		list = list.ForPlugin()
+	}
+	return list, appErr
 }
 
 func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	if list != nil {
+		list = list.ForPlugin()
+	}
+	return list, appErr
 }
 
 func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	if list != nil {
+		list = list.ForPlugin()
+	}
+	return list, appErr
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
+	if list != nil {
+		list = list.ForPlugin()
+	}
+	return list, appErr
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return api.app.UpdatePost(api.ctx, post, false)
+	post, appErr := api.app.UpdatePost(api.ctx, post, false)
+	if post != nil {
+		post = post.ForPlugin()
+	}
+	return post, appErr
 }
 
 func (api *PluginAPI) GetProfileImage(userID string) ([]byte, *model.AppError) {
@@ -702,7 +737,7 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 		return err
 	}
 
-	return api.app.SetProfileImageFromFile(userID, bytes.NewReader(data))
+	return api.app.SetProfileImageFromFile(api.ctx, userID, bytes.NewReader(data))
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
@@ -817,7 +852,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 	}
 
 	if err := api.app.Srv().EmailService.SendNotificationMail(to, subject, htmlBody); err != nil {
-		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -861,7 +896,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	fileBuffer, err := ioutil.ReadAll(file)
+	fileBuffer, err := io.ReadAll(file)
 	if err != nil {
 		return nil, model.NewAppError("InstallPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -908,7 +943,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
@@ -993,7 +1028,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	if len(split) != 3 {
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
+			Body:       io.NopCloser(bytes.NewBufferString("Not enough URL. Form of URL should be /<pluginid>/*")),
 		}
 	}
 	destinationPluginId := split[1]
@@ -1007,7 +1042,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}
 		return &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(message)),
+			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
 	responseTransfer := &PluginResponseWriter{}

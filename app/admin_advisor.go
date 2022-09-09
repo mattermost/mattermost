@@ -17,7 +17,7 @@ import (
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, nErr := a.Srv().Store.System().Get()
 	if nErr != nil {
-		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
@@ -213,7 +213,7 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 	}
 
 	// Inform client that this metric warning has been acked
-	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil, "")
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
 
@@ -236,7 +236,7 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 		Name:  warnMetricId,
 		Value: status,
 	}); err != nil {
-		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]any{"WarnMetricName": warnMetricId}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]any{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -253,7 +253,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {

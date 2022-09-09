@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -32,8 +31,8 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&frame); err != nil {
+		c.Err = model.NewAppError("remoteClusterPing", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -48,15 +47,15 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
-	if err != nil {
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 
 	var ping model.RemoteClusterPing
-	if jsonErr := json.Unmarshal(frame.Msg.Payload, &ping); jsonErr != nil {
-		c.SetInvalidParam("msg.payload")
+	if err := json.Unmarshal(frame.Msg.Payload, &ping); err != nil {
+		c.SetInvalidParamWithErr("msg.payload", err)
 		return
 	}
 	ping.RecvAt = model.GetMillis()
@@ -65,8 +64,10 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		metrics.IncrementRemoteClusterMsgReceivedCounter(rc.RemoteId)
 	}
 
-	resp, _ := json.Marshal(&ping)
-	w.Write(resp)
+	err := json.NewEncoder(w).Encode(ping)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -78,12 +79,13 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	var frame model.RemoteClusterFrame
-	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&frame); err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
-	if appErr := frame.IsValid(); appErr != nil {
+	appErr = frame.IsValid()
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -98,8 +100,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
-	if err != nil {
+	rc, appErr := c.App.GetRemoteCluster(frame.RemoteId)
+	if appErr != nil {
 		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
@@ -108,11 +110,12 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
 
-	b, errMarshall := json.Marshal(resp)
-	if errMarshall != nil {
-		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, errMarshall.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(b)
 }
 
@@ -125,7 +128,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 
 	var frame model.RemoteClusterFrame
 	if jsonErr := json.NewDecoder(r.Body).Decode(&frame); jsonErr != nil {
-		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -217,12 +220,12 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -270,7 +273,7 @@ func remoteSetProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	imageData := imageArray[0]
-	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}

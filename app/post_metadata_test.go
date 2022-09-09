@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	ogimage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -795,7 +796,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
 		return th
 	}
@@ -1157,7 +1158,7 @@ func TestGetImagesForPost(t *testing.T) {
 						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
-							Images: []*opengraph.Image{
+							Images: []*ogimage.Image{
 								{
 									URL: imageURL,
 								},
@@ -1211,7 +1212,7 @@ func TestGetImagesForPost(t *testing.T) {
 						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
-							Images: []*opengraph.Image{
+							Images: []*ogimage.Image{
 								{
 									SecureURL: imageURL,
 								},
@@ -1264,7 +1265,7 @@ func TestGetImagesForPost(t *testing.T) {
 						Type: model.PostEmbedOpengraph,
 						URL:  ogURL,
 						Data: &opengraph.OpenGraph{
-							Images: []*opengraph.Image{
+							Images: []*ogimage.Image{
 								{
 									URL:       server.URL + "/image.png",
 									SecureURL: imageURL,
@@ -2711,7 +2712,7 @@ func TestSanitizePostMetadataForUserAndChannel(t *testing.T) {
 					Type: model.PostEmbedOpengraph,
 					URL:  "ogURL",
 					Data: &opengraph.OpenGraph{
-						Images: []*opengraph.Image{
+						Images: []*ogimage.Image{
 							{
 								URL: "imageURL",
 							},

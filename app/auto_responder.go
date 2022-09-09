@@ -43,7 +43,7 @@ func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel,
 
 	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
 	if err != nil {
-		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if autoResponded {
 		return false, nil
@@ -98,7 +98,7 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	}
 }
 
-func (a *App) DisableAutoResponder(userID string, asAdmin bool) *model.AppError {
+func (a *App) DisableAutoResponder(c request.CTX, userID string, asAdmin bool) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (a *App) DisableAutoResponder(userID string, asAdmin bool) *model.AppError 
 		patch.NotifyProps = user.NotifyProps
 		patch.NotifyProps[model.AutoResponderActiveNotifyProp] = "false"
 
-		_, err := a.PatchUser(userID, patch, asAdmin)
+		_, err := a.PatchUser(c, userID, patch, asAdmin)
 		if err != nil {
 			return err
 		}

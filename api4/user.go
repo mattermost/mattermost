@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -104,12 +103,15 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThread.Handle("/following", api.APISessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.APISessionRequired(updateReadStateThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/set_unread/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(setUnreadThreadByPostId)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -168,7 +170,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -222,7 +224,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -284,7 +286,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -335,7 +337,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -419,7 +421,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	c.RequireUserId()
 	if c.Err != nil {
@@ -480,7 +482,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageData := imageArray[0]
-	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.AppContext, c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -518,7 +520,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 	auditRec.AddMeta("user", user)
 
-	if err := c.App.SetDefaultProfileImage(user); err != nil {
+	if err := c.App.SetDefaultProfileImage(c.AppContext, user); err != nil {
 		c.Err = err
 		return
 	}
@@ -547,7 +549,7 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -611,7 +613,7 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -623,32 +625,37 @@ func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(c.AppContext, channelIds, c.IsSystemAdmin())
-	if err != nil {
-		c.Err = err
+	usersByChannelId, appErr := c.App.GetUsersByGroupChannelIds(c.AppContext, channelIds, c.IsSystemAdmin())
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, _ := json.Marshal(usersByChannelId)
-	w.Write(b)
+	err := json.NewEncoder(w).Encode(usersByChannelId)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	inTeamId := r.URL.Query().Get("in_team")
-	notInTeamId := r.URL.Query().Get("not_in_team")
-	inChannelId := r.URL.Query().Get("in_channel")
-	inGroupId := r.URL.Query().Get("in_group")
-	notInGroupId := r.URL.Query().Get("not_in_group")
-	notInChannelId := r.URL.Query().Get("not_in_channel")
-	groupConstrained := r.URL.Query().Get("group_constrained")
-	withoutTeam := r.URL.Query().Get("without_team")
-	inactive := r.URL.Query().Get("inactive")
-	active := r.URL.Query().Get("active")
-	role := r.URL.Query().Get("role")
-	sort := r.URL.Query().Get("sort")
-	rolesString := r.URL.Query().Get("roles")
-	channelRolesString := r.URL.Query().Get("channel_roles")
-	teamRolesString := r.URL.Query().Get("team_roles")
+	var (
+		query              = r.URL.Query()
+		inTeamId           = query.Get("in_team")
+		notInTeamId        = query.Get("not_in_team")
+		inChannelId        = query.Get("in_channel")
+		inGroupId          = query.Get("in_group")
+		notInGroupId       = query.Get("not_in_group")
+		notInChannelId     = query.Get("not_in_channel")
+		groupConstrained   = query.Get("group_constrained")
+		withoutTeam        = query.Get("without_team")
+		inactive           = query.Get("inactive")
+		active             = query.Get("active")
+		role               = query.Get("role")
+		sort               = query.Get("sort")
+		rolesString        = query.Get("roles")
+		channelRolesString = query.Get("channel_roles")
+		teamRolesString    = query.Get("team_roles")
+	)
 
 	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidURLParam("team_id")
@@ -675,10 +682,12 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
-	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
-	inactiveBool, _ := strconv.ParseBool(inactive)
-	activeBool, _ := strconv.ParseBool(active)
+	var (
+		withoutTeamBool, _      = strconv.ParseBool(withoutTeam)
+		groupConstrainedBool, _ = strconv.ParseBool(groupConstrained)
+		inactiveBool, _         = strconv.ParseBool(inactive)
+		activeBool, _           = strconv.ParseBool(active)
+	)
 
 	if inactiveBool && activeBool {
 		c.SetInvalidURLParam("inactive")
@@ -710,9 +719,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -737,14 +746,16 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		ViewRestrictions: restrictions,
 	}
 
-	var profiles []*model.User
-	etag := ""
+	var (
+		profiles []*model.User
+		etag     string
+	)
 
 	if inChannelId != "" {
 		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-			channel, appErr := c.App.GetChannel(c.AppContext, inChannelId)
-			if appErr != nil {
-				c.Err = appErr
+			channel, cErr := c.App.GetChannel(c.AppContext, inChannelId)
+			if cErr != nil {
+				c.Err = cErr
 				return
 			}
 			if channel.DeleteAt != 0 {
@@ -761,14 +772,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), notInChannelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if notInTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), notInTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
@@ -780,7 +791,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if inTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), inTeamId, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
@@ -788,15 +799,15 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
@@ -805,11 +816,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else if sort == "admin" {
-			profiles, err = c.App.GetUsersInChannelPageByAdmin(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPageByAdmin(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inGroupId != "" {
 		if gErr := requireGroupAccess(c, inGroupId); gErr != nil {
@@ -818,34 +829,35 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
-		if err != nil {
-			c.Err = err
+		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 	} else if notInGroupId != "" {
-		if gErr := requireGroupAccess(c, notInGroupId); gErr != nil {
-			gErr.Where = "Api.getUsers"
-			c.Err = gErr
+		appErr = requireGroupAccess(c, notInGroupId)
+		if appErr != nil {
+			appErr.Where = "Api.getUsers"
+			c.Err = appErr
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
-		if err != nil {
-			c.Err = err
+		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 	} else {
-		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.AppContext.Session().UserId, userGetOptions)
-		if err != nil {
-			c.Err = err
+		userGetOptions, appErr = c.App.RestrictUsersGetByPermissions(c.AppContext.Session().UserId, userGetOptions)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
-		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -854,9 +866,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -883,10 +895,10 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
-		c.SetInvalidParam("user_ids")
+	var userIDs []string
+	err := json.NewDecoder(r.Body).Decode(&userIDs)
+	if err != nil || len(userIDs) == 0 {
+		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
 
@@ -897,30 +909,30 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, parseError := strconv.ParseInt(sinceString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("since")
+		since, sErr := strconv.ParseInt(sinceString, 10, 64)
+		if sErr != nil {
+			c.SetInvalidParamWithErr("since", sErr)
 			return
 		}
 		options.Since = since
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	options.ViewRestrictions = restrictions
 
-	users, err := c.App.GetUsersByIds(userIds, options)
-	if err != nil {
-		c.Err = err
+	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(users)
+	if err != nil {
+		c.Err = model.NewAppError("getUsersByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -928,28 +940,28 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	usernames := model.ArrayFromJSON(r.Body)
-
-	if len(usernames) == 0 {
-		c.SetInvalidParam("usernames")
+	var usernames []string
+	err := json.NewDecoder(r.Body).Decode(&usernames)
+	if err != nil || len(usernames) == 0 {
+		c.SetInvalidParamWithErr("usernames", err)
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	users, appErr := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(users)
 	if err != nil {
-		c.Err = err
-		return
-	}
-
-	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getUsersByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -957,21 +969,22 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getKnownUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds, err := c.App.GetKnownUsers(c.AppContext.Session().UserId)
-	if err != nil {
-		c.Err = err
+	userIDs, appErr := c.App.GetKnownUsers(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	data, _ := json.Marshal(userIds)
-
-	w.Write(data)
+	err := json.NewEncoder(w).Encode(userIDs)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var props model.UserSearch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("")
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("props", err)
 		return
 	}
 
@@ -990,17 +1003,17 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if gErr := requireGroupAccess(c, props.InGroupId); gErr != nil {
-			gErr.Where = "Api.searchUsers"
-			c.Err = gErr
+		if appErr := requireGroupAccess(c, props.InGroupId); appErr != nil {
+			appErr.Where = "Api.searchUsers"
+			c.Err = appErr
 			return
 		}
 	}
 
 	if props.NotInGroupId != "" {
-		if gErr := requireGroupAccess(c, props.NotInGroupId); gErr != nil {
-			gErr.Where = "Api.searchUsers"
-			c.Err = gErr
+		if appErr := requireGroupAccess(c, props.NotInGroupId); appErr != nil {
+			appErr.Where = "Api.searchUsers"
+			c.Err = appErr
 			return
 		}
 	}
@@ -1049,21 +1062,21 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
-	options, err := c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
-	if err != nil {
-		c.Err = err
+	options, appErr := c.App.RestrictUsersSearchByPermissions(c.AppContext.Session().UserId, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	profiles, err := c.App.SearchUsers(&props, options)
-	if err != nil {
-		c.Err = err
+	profiles, appErr := c.App.SearchUsers(&props, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("searchUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -1157,7 +1170,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1169,7 +1182,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var user model.User
 	if jsonErr := json.NewDecoder(r.Body).Decode(&user); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1228,7 +1241,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.UpdateUserAsUser(&user, c.IsSystemAdmin())
+	ruser, err := c.App.UpdateUserAsUser(c.AppContext, &user, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1239,7 +1252,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1251,7 +1264,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var patch model.UserPatch
 	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1307,7 +1320,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	ruser, err := c.App.PatchUser(c.Params.UserId, &patch, c.IsSystemAdmin())
+	ruser, err := c.App.PatchUser(c.AppContext, c.Params.UserId, &patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
 		return
@@ -1320,7 +1333,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(ruser); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1414,7 +1427,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.UpdateUserRoles(c.Params.UserId, newRoles, true)
+	user, err := c.App.UpdateUserRoles(c.AppContext, c.Params.UserId, newRoles, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -1494,7 +1507,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserActivationStatusChange, "", "", "", nil, "")
 	c.App.Publish(message)
 
 	ReturnStatusOK(w)
@@ -1516,7 +1529,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var userAuth model.UserAuth
 	if jsonErr := json.NewDecoder(r.Body).Decode(&userAuth); jsonErr != nil {
-		c.SetInvalidParam("user")
+		c.SetInvalidParamWithErr("user", jsonErr)
 		return
 	}
 
@@ -1543,7 +1556,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1589,7 +1602,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if err := c.App.UpdateMfa(activate, c.Params.UserId, code); err != nil {
+	if err := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
 		c.Err = err
 		return
 	}
@@ -1628,7 +1641,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 	if err := json.NewEncoder(w).Encode(secret); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1676,9 +1689,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+			err = c.App.UpdatePasswordAsUser(c.AppContext, c.Params.UserId, currentPassword, newPassword)
 		} else if canUpdatePassword {
-			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.AppContext, c.Params.UserId, newPassword, c.AppContext.T("api.user.reset_password.method"))
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		}
@@ -1712,7 +1725,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("token", token)
 	c.LogAudit("attempt - token=" + token)
 
-	if err := c.App.ResetPasswordFromToken(token, newPassword); err != nil {
+	if err := c.App.ResetPasswordFromToken(c.AppContext, token, newPassword); err != nil {
 		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
@@ -1828,7 +1841,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
-		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
+		c.Logger.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
 		if certPem == "" || certEmail == "" {
 			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
@@ -1881,11 +1894,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 
-	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		c.App.AttachCloudSessionCookie(c.AppContext, w, r)
-	}
-
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
@@ -1901,7 +1909,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -1979,9 +1987,9 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessions, err := c.App.GetSessions(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	sessions, appErr := c.App.GetSessions(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1989,11 +1997,12 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		session.Sanitize()
 	}
 
-	js, jsonErr := json.Marshal(sessions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(sessions)
+	if err != nil {
+		c.Err = model.NewAppError("getSessions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -2176,7 +2185,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2192,7 +2201,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("verifyUserEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if err := c.App.VerifyEmailFromToken(token); err != nil {
+	if err := c.App.VerifyEmailFromToken(c.AppContext, token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -2241,7 +2250,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var switchRequest model.SwitchRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&switchRequest); jsonErr != nil {
-		c.SetInvalidParam("switch_request")
+		c.SetInvalidParamWithErr("switch_request", jsonErr)
 		return
 	}
 
@@ -2303,7 +2312,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var accessToken model.UserAccessToken
 	if jsonErr := json.NewDecoder(r.Body).Decode(&accessToken); jsonErr != nil {
-		c.SetInvalidParam("user_access_token")
+		c.SetInvalidParamWithErr("user_access_token", jsonErr)
 		return
 	}
 
@@ -2338,7 +2347,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success - token_id=" + token.Id)
 
 	if err := json.NewEncoder(w).Encode(token); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2349,8 +2358,8 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var props model.UserAccessTokenSearch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&props); jsonErr != nil {
-		c.SetInvalidParam("user_access_token_search")
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("user_access_token_search", err)
 		return
 	}
 
@@ -2359,15 +2368,15 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	accessTokens, err := c.App.SearchUserAccessTokens(props.Term)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.SearchUserAccessTokens(props.Term)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2380,15 +2389,15 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokens, err := c.App.GetUserAccessTokens(c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.GetUserAccessTokens(c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2411,15 +2420,15 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	accessTokens, err := c.App.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	accessTokens, appErr := c.App.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(accessTokens)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(accessTokens)
+	if err != nil {
+		c.Err = model.NewAppError("searchUserAccessTokens", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2437,9 +2446,9 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := c.App.GetUserAccessToken(c.Params.TokenId, true)
-	if err != nil {
-		c.Err = err
+	accessToken, appErr := c.App.GetUserAccessToken(c.Params.TokenId, true)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2449,7 +2458,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(accessToken); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2634,7 +2643,7 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(result); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2734,7 +2743,7 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var typingRequest model.TypingRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&typingRequest); jsonErr != nil {
-		c.SetInvalidParam("typing_request")
+		c.SetInvalidParamWithErr("typing_request", jsonErr)
 		return
 	}
 
@@ -2787,7 +2796,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -2797,9 +2806,9 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2813,9 +2822,9 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.ConvertUserToBot(user)
-	if err != nil {
-		c.Err = err
+	bot, appErr := c.App.ConvertUserToBot(user)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -2823,9 +2832,9 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(bot)
 	auditRec.AddEventObjectType("bot")
 
-	js, jsonErr := json.Marshal(bot)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(bot)
+	if err != nil {
+		c.Err = model.NewAppError("convertUserToBot", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -2845,15 +2854,15 @@ func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	uss, appErr := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(uss)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(uss)
+	if err != nil {
+		c.Err = model.NewAppError("getUploadsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)
@@ -2877,7 +2886,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3020,7 +3029,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3091,7 +3100,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -3119,7 +3128,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3155,7 +3164,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 
 	auditRec.Success()
@@ -3175,11 +3184,6 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.ThreadId, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3254,7 +3258,7 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 
 func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().TeamSettings.EnableOpenServer {
-		c.Err = model.NewAppError("GetUsersWithInvalidEmails", "api.users.invalid_emails.enable_open_server.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("GetUsersWithInvalidEmails", model.NoTranslation, nil, "TeamSettings.EnableOpenServer is enabled", http.StatusBadRequest)
 		return
 	}
 
@@ -3263,14 +3267,16 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	users, err := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	users, appErr := c.App.GetUsersWithInvalidEmails(c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	b, _ := json.Marshal(users)
-	w.Write(b)
+	err := json.NewEncoder(w).Encode(users)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -3291,6 +3297,6 @@ func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

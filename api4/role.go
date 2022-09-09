@@ -32,15 +32,15 @@ func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roles, err := c.App.GetAllRoles()
-	if err != nil {
-		c.Err = err
+	roles, appErr := c.App.GetAllRoles()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(roles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getAllRoles", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(roles)
+	if err != nil {
+		c.Err = model.NewAppError("getAllRoles", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func getRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -77,7 +77,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -95,17 +95,18 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roles, err := c.App.GetRolesByNames(cleanedRoleNames)
-	if err != nil {
-		c.Err = err
+	roles, appErr := c.App.GetRolesByNames(cleanedRoleNames)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(roles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getRolesByNames", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(roles)
+	if err != nil {
+		c.Err = model.NewAppError("getRolesByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -116,8 +117,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var patch model.RolePatch
-	if jsonErr := json.NewDecoder(r.Body).Decode(&patch); jsonErr != nil {
-		c.SetInvalidParam("role")
+	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil {
+		c.SetInvalidParamWithErr("role", err)
 		return
 	}
 
@@ -125,9 +126,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("role_patch", patch)
 	defer c.LogAuditRec(auditRec)
 
-	oldRole, err := c.App.GetRole(c.Params.RoleId)
-	if err != nil {
-		c.Err = err
+	oldRole, appErr := c.App.GetRole(c.Params.RoleId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	auditRec.AddEventPriorState(oldRole)
@@ -203,9 +204,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	role, err := c.App.PatchRole(oldRole, &patch)
-	if err != nil {
-		c.Err = err
+	role, appErr := c.App.PatchRole(oldRole, &patch)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -214,6 +215,6 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	if err := json.NewEncoder(w).Encode(role); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

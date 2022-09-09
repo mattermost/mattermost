@@ -25,7 +25,7 @@ func (api *API) InitCommandLocal() {
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cmd model.Command
 	if jsonErr := json.NewDecoder(r.Body).Decode(&cmd); jsonErr != nil {
-		c.SetInvalidParam("command")
+		c.SetInvalidParamWithErr("command", jsonErr)
 		return
 	}
 
@@ -47,6 +47,6 @@ func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rcmd); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

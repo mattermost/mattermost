@@ -7,8 +7,13 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 )
 
+// ensure cluster service wrapper implements `product.ClusterService`
+var _ product.ClusterService = (*clusterWrapper)(nil)
+
+// clusterWrapper provides an implementation of `product.ClusterService` for use by products.
 type clusterWrapper struct {
 	srv *Server
 }
@@ -43,7 +48,7 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 }
 
 func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil)
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	s.srv.Publish(ev)
 }
@@ -79,7 +84,7 @@ func (s *Server) RemoveClusterLeaderChangedListener(id string) {
 }
 
 func (s *Server) InvokeClusterLeaderChangedListeners() {
-	s.Log.Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
+	s.Log().Info("Cluster leader changed. Invoking ClusterLeaderChanged listeners.")
 	// This needs to be run in a separate goroutine otherwise a recursive lock happens
 	// because the listener function eventually ends up calling .IsLeader().
 	// Fixing this would require the changed event to pass the leader directly, but that

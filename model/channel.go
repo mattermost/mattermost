@@ -156,7 +156,6 @@ type ChannelModeratedRolesPatch struct {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup     string
 	ExcludeDefaultChannels   bool
@@ -225,6 +224,14 @@ func (o *Channel) LastRootPostAt_() float64 {
 	return float64(o.LastRootPostAt)
 }
 
+func (o *Channel) ExtraUpdateAt_() float64 {
+	return float64(o.ExtraUpdateAt)
+}
+
+func (o *Channel) Props_() StringInterface {
+	return StringInterface(o.Props)
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -289,8 +296,9 @@ func (o *Channel) PreSave() {
 
 	o.Name = SanitizeUnicode(o.Name)
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
-
-	o.CreateAt = GetMillis()
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+	}
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
 }

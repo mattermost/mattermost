@@ -381,7 +381,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
@@ -477,8 +477,32 @@ func (u *User) DeleteAt_() float64 {
 	return float64(u.DeleteAt)
 }
 
-func (u *User) LastPictureUpdateAt() float64 {
+func (u *User) UpdateAt_() float64 {
+	return float64(u.UpdateAt)
+}
+
+func (u *User) LastPictureUpdate_() float64 {
 	return float64(u.LastPictureUpdate)
+}
+
+func (u *User) LastPasswordUpdate_() float64 {
+	return float64(u.LastPasswordUpdate)
+}
+
+func (u *User) FailedAttempts_() float64 {
+	return float64(u.FailedAttempts)
+}
+
+func (u *User) LastActivityAt_() float64 {
+	return float64(u.LastActivityAt)
+}
+
+func (u *User) BotLastIconUpdate_() float64 {
+	return float64(u.BotLastIconUpdate)
+}
+
+func (u *User) TermsOfServiceCreateAt_() float64 {
+	return float64(u.TermsOfServiceCreateAt)
 }
 
 // PreUpdate should be run before updating the user in the db.
