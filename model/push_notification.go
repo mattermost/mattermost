@@ -17,6 +17,7 @@ const (
 	PushTypeClear       = "clear"
 	PushTypeUpdateBadge = "update_badge"
 	PushTypeSession     = "session"
+	PushTypeTest        = "test"
 	PushMessageV2       = "v2"
 
 	PushSoundNone = "none"

@@ -11,18 +11,18 @@ import (
 )
 
 func TestPrintMap(t *testing.T) {
-	inputCases := []interface{}{
-		map[string]interface{}{
+	inputCases := []any{
+		map[string]any{
 			"CustomerType": "A9",
 			"SmtpUsername": "",
 			"SmtpPassword": "",
 			"EmailAddress": "",
 		},
-		map[string]interface{}{
+		map[string]any{
 			"EnableExport": false,
 			"ExportFormat": "actiance",
 			"DailyRunTime": "01:00",
-			"GlobalRelaySettings": map[string]interface{}{
+			"GlobalRelaySettings": map[string]any{
 				"CustomerType": "A9",
 				"SmtpUsername": "",
 				"SmtpPassword": "",

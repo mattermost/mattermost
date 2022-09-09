@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -23,60 +23,16 @@ func (s SqlWebhookStore) ClearCaches() {
 }
 
 func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
-	s := &SqlWebhookStore{
+	return &SqlWebhookStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.IncomingWebhook{}, "IncomingWebhooks").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("ChannelId").SetMaxSize(26)
-		table.ColMap("TeamId").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("Description").SetMaxSize(500)
-		table.ColMap("Username").SetMaxSize(255)
-		table.ColMap("IconURL").SetMaxSize(1024)
-
-		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
-		tableo.ColMap("Id").SetMaxSize(26)
-		tableo.ColMap("Token").SetMaxSize(26)
-		tableo.ColMap("CreatorId").SetMaxSize(26)
-		tableo.ColMap("ChannelId").SetMaxSize(26)
-		tableo.ColMap("TeamId").SetMaxSize(26)
-		tableo.ColMap("TriggerWords").SetMaxSize(1024)
-		tableo.ColMap("CallbackURLs").SetMaxSize(1024)
-		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(500)
-		tableo.ColMap("ContentType").SetMaxSize(128)
-		tableo.ColMap("TriggerWhen").SetMaxSize(1)
-		tableo.ColMap("Username").SetMaxSize(64)
-		tableo.ColMap("IconURL").SetMaxSize(1024)
-	}
-
-	return s
-}
-
-func (s SqlWebhookStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_incoming_webhook_user_id", "IncomingWebhooks", "UserId")
-	s.CreateIndexIfNotExists("idx_incoming_webhook_team_id", "IncomingWebhooks", "TeamId")
-	s.CreateIndexIfNotExists("idx_outgoing_webhook_team_id", "OutgoingWebhooks", "TeamId")
-
-	s.CreateIndexIfNotExists("idx_incoming_webhook_update_at", "IncomingWebhooks", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_incoming_webhook_create_at", "IncomingWebhooks", "CreateAt")
-	s.CreateIndexIfNotExists("idx_incoming_webhook_delete_at", "IncomingWebhooks", "DeleteAt")
-
-	s.CreateIndexIfNotExists("idx_outgoing_webhook_update_at", "OutgoingWebhooks", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_outgoing_webhook_create_at", "OutgoingWebhooks", "CreateAt")
-	s.CreateIndexIfNotExists("idx_outgoing_webhook_delete_at", "OutgoingWebhooks", "DeleteAt")
 }
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
-
 	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("IncomingWebhook", "id", webhook.Id)
 	}
@@ -199,7 +155,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 	}
 
 	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find IncomingWebhoook with teamId=%s", teamId)
+		return nil, errors.Wrapf(err, "failed to find IncomingWebhook with teamId=%s", teamId)
 	}
 
 	return webhooks, nil

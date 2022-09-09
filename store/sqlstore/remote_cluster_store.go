@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -19,21 +19,7 @@ type sqlRemoteClusterStore struct {
 }
 
 func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
-	s := &sqlRemoteClusterStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId", "Name")
-		table.ColMap("RemoteId").SetMaxSize(26)
-		table.ColMap("RemoteTeamId").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64)
-		table.ColMap("DisplayName").SetMaxSize(64)
-		table.ColMap("SiteURL").SetMaxSize(512)
-		table.ColMap("Token").SetMaxSize(26)
-		table.ColMap("RemoteToken").SetMaxSize(26)
-		table.ColMap("Topics").SetMaxSize(512)
-		table.ColMap("CreatorId").SetMaxSize(26)
-	}
-	return s
+	return &sqlRemoteClusterStore{sqlStore}
 }
 
 func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.RemoteCluster, error) {
@@ -199,12 +185,4 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 		return errors.Wrap(err, "failed to update RemoteCluster")
 	}
 	return nil
-}
-
-func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
-	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
-	if s.DriverName() == model.DatabaseDriverMysql {
-		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
-	}
-	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 }

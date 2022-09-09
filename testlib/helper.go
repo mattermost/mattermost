@@ -6,7 +6,6 @@ package testlib
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -164,7 +163,7 @@ func (h *MainHelper) PreloadMigrations() {
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "postgres_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
@@ -175,12 +174,12 @@ func (h *MainHelper) PreloadMigrations() {
 		} else {
 			finalPath = filepath.Join("mattermost-server", relPath, "mysql_migration_warmup.sql")
 		}
-		buf, err = ioutil.ReadFile(finalPath)
+		buf, err = os.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	}
-	handle := h.SQLStore.GetMaster()
+	handle := h.SQLStore.GetMasterX()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
@@ -270,8 +269,8 @@ func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
 	return nil
 }
 
-func (h *MainHelper) execOnEachReplica(query string, args ...interface{}) error {
-	for _, replica := range h.SQLStore.Replicas {
+func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
+	for _, replica := range h.SQLStore.ReplicaXs {
 		_, err := replica.Exec(query, args...)
 		if err != nil {
 			return err

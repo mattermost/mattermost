@@ -286,12 +286,12 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, 23, *merged["are belong"]["to us"])
 	})
 
-	t.Run("merge map[string]interface{}", func(t *testing.T) {
-		m1 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+	t.Run("merge map[string]any", func(t *testing.T) {
+		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"base": map[string]*int{"level": newInt(10)}}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": newInt(77)},
+		m2 := map[string]any{"this": map[string]*int{"second": newInt(77)},
 			"patch": map[string]*int{"level": newInt(15)}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": newInt(77)},
+		expected := map[string]any{"this": map[string]*int{"second": newInt(77)},
 			"patch": map[string]*int{"level": newInt(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
@@ -300,10 +300,10 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 	})
 
-	t.Run("merge map[string]interface{}, patch has nil keys -- /do/ overwrite base with nil", func(t *testing.T) {
-		m1 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)}}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": nil}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": nil}}
+	t.Run("merge map[string]any, patch has nil keys -- /do/ overwrite base with nil", func(t *testing.T) {
+		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)}}
+		m2 := map[string]any{"this": map[string]*int{"second": nil}}
+		expected := map[string]any{"this": map[string]*int{"second": nil}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -311,12 +311,12 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 	})
 
-	t.Run("merge map[string]interface{}, patch has nil keys -- /do/ overwrite base with nil (more complex)", func(t *testing.T) {
-		m1 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+	t.Run("merge map[string]any, patch has nil keys -- /do/ overwrite base with nil (more complex)", func(t *testing.T) {
+		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"base": map[string]*int{"level": newInt(10)}}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": nil},
+		m2 := map[string]any{"this": map[string]*int{"second": nil},
 			"base": nil, "patch": map[string]*int{"level": newInt(15)}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": nil},
+		expected := map[string]any{"this": map[string]*int{"second": nil},
 			"base": nil, "patch": map[string]*int{"level": newInt(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
@@ -326,9 +326,9 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]map[string]*int, base has nil vals -- overwrite base with patch", func(t *testing.T) {
-		m1 := map[string]interface{}{"base": nil}
-		m2 := map[string]interface{}{"base": map[string]*int{"level": newInt(10)}}
-		expected := map[string]interface{}{"base": map[string]*int{"level": newInt(10)}}
+		m1 := map[string]any{"base": nil}
+		m2 := map[string]any{"base": map[string]*int{"level": newInt(10)}}
+		expected := map[string]any{"base": map[string]*int{"level": newInt(10)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
 		require.NoError(t, err)
@@ -337,10 +337,10 @@ func TestMergeWithMaps(t *testing.T) {
 	})
 
 	t.Run("merge map[string]map[string]*int, base has nil vals -- overwrite base with patch (more complex)", func(t *testing.T) {
-		m1 := map[string]interface{}{"this": map[string]*int{"second": nil}, "base": nil}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": newInt(77)},
+		m1 := map[string]any{"this": map[string]*int{"second": nil}, "base": nil}
+		m2 := map[string]any{"this": map[string]*int{"second": newInt(77)},
 			"base": map[string]*int{"level": newInt(10)}, "patch": map[string]*int{"level": newInt(15)}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": newInt(77)},
+		expected := map[string]any{"this": map[string]*int{"second": newInt(77)},
 			"base": map[string]*int{"level": newInt(10)}, "patch": map[string]*int{"level": newInt(15)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
@@ -349,12 +349,12 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, expected, merged)
 	})
 
-	t.Run("merge map[string]interface{}, pointers are not copied - changes in base do not affect merged", func(t *testing.T) {
-		m1 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+	t.Run("merge map[string]any, pointers are not copied - changes in base do not affect merged", func(t *testing.T) {
+		m1 := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+		m2 := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+		expected := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"base": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
@@ -375,11 +375,11 @@ func TestMergeWithMaps(t *testing.T) {
 		assert.Equal(t, 23, *merged["are belong"].(map[string]*int)["to us"])
 	})
 
-	t.Run("merge map[string]interface{}, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
-		m1 := map[string]interface{}{"base": map[string]*int{"level": newInt(15)}}
-		m2 := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+	t.Run("merge map[string]any, pointers are not copied - change in patch do not affect merged", func(t *testing.T) {
+		m1 := map[string]any{"base": map[string]*int{"level": newInt(15)}}
+		m2 := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"patch": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
-		expected := map[string]interface{}{"this": map[string]*int{"second": newInt(99)},
+		expected := map[string]any{"this": map[string]*int{"second": newInt(99)},
 			"patch": map[string]*int{"level": newInt(10)}, "are belong": map[string]*int{"to us": newInt(23)}}
 
 		merged, err := mergeInterfaceMap(m1, m2)
@@ -448,7 +448,7 @@ func TestMergeWithSlices(t *testing.T) {
 		assert.Equal(t, expected, merged)
 	})
 
-	t.Run("patch overwites when patch is empty struct", func(t *testing.T) {
+	t.Run("patch overwrites when patch is empty struct", func(t *testing.T) {
 		m1 := []string{"this", "will", "be", "overwritten"}
 		m2 := []string{}
 		expected := []string{}
@@ -1652,12 +1652,12 @@ func mergeMapOfMap(base, patch map[string]map[string]*int) (map[string]map[strin
 	return retTS, nil
 }
 
-func mergeInterfaceMap(base, patch map[string]interface{}) (map[string]interface{}, error) {
+func mergeInterfaceMap(base, patch map[string]any) (map[string]any, error) {
 	ret, err := utils.Merge(base, patch, nil)
 	if err != nil {
 		return nil, err
 	}
-	retTS := ret.(map[string]interface{})
+	retTS := ret.(map[string]any)
 	return retTS, nil
 }
 

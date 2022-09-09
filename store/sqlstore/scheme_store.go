@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -19,50 +19,23 @@ type SqlSchemeStore struct {
 }
 
 func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
-	s := &SqlSchemeStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(model.SchemeNameMaxLength).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(model.SchemeDisplayNameMaxLength)
-		table.ColMap("Description").SetMaxSize(model.SchemeDescriptionMaxLength)
-		table.ColMap("Scope").SetMaxSize(32)
-		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultPlaybookAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultPlaybookMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultRunAdminRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-		table.ColMap("DefaultRunMemberRole").SetMaxSize(64).SetDefaultConstraint(model.NewString(""))
-	}
-
-	return s
+	return &SqlSchemeStore{sqlStore}
 }
 
-func (s SqlSchemeStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
-}
-
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, err := s.createScheme(scheme, transaction)
-		if err != nil {
-			return nil, err
+		newScheme, terr := s.createScheme(scheme, transaction)
+		if terr != nil {
+			return nil, terr
 		}
-		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return newScheme, nil
 	}
@@ -454,7 +427,7 @@ func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes by scope")
+		return 0, errors.Wrap(err, "failed to count Schemes by scope")
 	}
 	return count, nil
 }
@@ -475,7 +448,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	var count int64
 	err := s.GetReplicaX().Get(&count, query)
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes without permission")
+		return 0, errors.Wrap(err, "failed to count Schemes without permission")
 	}
 	return count, nil
 }

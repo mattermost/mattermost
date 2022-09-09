@@ -36,7 +36,8 @@
         "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
-        "SessionLengthSSOInDays": 30,
+        "SessionLengthSSOInDays": -1,
+        "SessionLengthSSOInHours": 720,
         "SessionCacheInMinutes": 10,
         "SessionIdleTimeoutInMinutes": 0,
         "WebsocketSecurePort": 443,
@@ -59,6 +60,7 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "EnableAPITeamDeletion": false,
+        "EnableAPITriggerAdminNotifications": false,
         "ExperimentalEnableHardenedMode": false
     },
     "TeamSettings": {
@@ -164,7 +166,8 @@
         "EmailNotificationContentsType": "full",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonTextColor": "",
+        "EnableInactivityEmail": true
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -180,11 +183,11 @@
         "ShowFullName": true
     },
     "SupportSettings": {
-        "TermsOfServiceLink": "https://about.mattermost.com/default-terms/",
-        "PrivacyPolicyLink": "https://about.mattermost.com/default-privacy-policy/",
-        "AboutLink": "https://about.mattermost.com/default-about/",
-        "HelpLink": "https://about.mattermost.com/default-help/",
-        "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
+        "TermsOfServiceLink": "https://mattermost.com/terms-of-use/",
+        "PrivacyPolicyLink": "https://mattermost.com/privacy-policy/",
+        "AboutLink": "https://mattermost.com/default-about/",
+        "HelpLink": "https://mattermost.com/default-help/",
+        "ReportAProblemLink": "https://mattermost.com/default-report-a-problem/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -292,9 +295,9 @@
         "LoginButtonTextColor": ""
     },
     "NativeAppSettings": {
-        "AppDownloadLink": "https://about.mattermost.com/downloads/",
-        "AndroidAppDownloadLink": "https://about.mattermost.com/mattermost-android-app/",
-        "IosAppDownloadLink": "https://about.mattermost.com/mattermost-ios-app/"
+        "AppDownloadLink": "https://mattermost.com/download/",
+        "AndroidAppDownloadLink": "https://mattermost.com/mattermost-android-app/",
+        "IosAppDownloadLink": "https://mattermost.com/mattermost-ios-app/"
     },
     "ClusterSettings": {
         "Enable": false,
@@ -339,7 +342,7 @@
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
-        "BulkIndexingTimeWindowSeconds": 3600,
+        "BatchSize": 10000,
         "RequestTimeoutSeconds": 30
     },
     "DataRetentionSettings": {

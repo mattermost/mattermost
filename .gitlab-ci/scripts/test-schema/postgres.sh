@@ -33,7 +33,7 @@ docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
   -v "$CI_PROJECT_DIR":/mattermost-server \
   -w /mattermost-server \
   $IMAGE_BUILD_SERVER \
-  bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+  bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 mkdir -p logs
 docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
 docker logs -f $CONTAINER_SERVER

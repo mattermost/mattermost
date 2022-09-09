@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -83,37 +83,27 @@ func (role Role) ToModel() *model.Role {
 }
 
 func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
-	s := &SqlRoleStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(Role{}, "Roles").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(128)
-		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("Permissions")
-	}
-	return s
+	return &SqlRoleStore{sqlStore}
 }
 
-func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
+func (s *SqlRoleStore) Save(role *model.Role) (_ *model.Role, err error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
 	if role.Id == "" {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
-		createdRole, err := s.createRole(role, transaction)
-		if err != nil {
-			_ = transaction.Rollback()
-			return nil, errors.Wrap(err, "unable to create Role")
-		} else if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		defer finalizeTransactionX(transaction, &terr)
+
+		createdRole, terr := s.createRole(role, transaction)
+		if terr != nil {
+			return nil, errors.Wrap(terr, "unable to create Role")
+		} else if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return createdRole, nil
 	}

@@ -33,6 +33,20 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+func (b *Bot) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":          b.UserId,
+		"username":         b.Username,
+		"display_name":     b.DisplayName,
+		"description":      b.Description,
+		"owner_id":         b.OwnerId,
+		"last_icon_update": b.LastIconUpdate,
+		"create_at":        b.CreateAt,
+		"update_at":        b.UpdateAt,
+		"delete_at":        b.DeleteAt,
+	}
+}
+
 // BotPatch is a description of what fields to update on an existing bot.
 type BotPatch struct {
 	Username    *string `json:"username"`
@@ -53,8 +67,8 @@ type BotGetOptions struct {
 type BotList []*Bot
 
 // Trace describes the minimum information required to identify a bot for the purpose of logging.
-func (b *Bot) Trace() map[string]interface{} {
-	return map[string]interface{}{"user_id": b.UserId}
+func (b *Bot) Trace() map[string]any {
+	return map[string]any{"user_id": b.UserId}
 }
 
 // Clone returns a shallow copy of the bot.
@@ -192,7 +206,7 @@ func (l *BotList) Etag() string {
 // MakeBotNotFoundError creates the error returned when a bot does not exist, or when the user isn't allowed to query the bot.
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
-	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {

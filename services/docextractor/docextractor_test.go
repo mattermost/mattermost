@@ -180,7 +180,7 @@ func (te *failingExtractor) Extract(filename string, r io.ReadSeeker) (string, e
 }
 
 func TestExtractWithExtraExtractors(t *testing.T) {
-	t.Run("overrite existing extractor", func(t *testing.T) {
+	t.Run("override existing extractor", func(t *testing.T) {
 		data, err := testutils.ReadTestFile("sample-doc.pdf")
 		require.NoError(t, err)
 

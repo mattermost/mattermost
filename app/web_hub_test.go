@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -101,7 +102,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil, ""))
 		}
 
 		hub.InvalidateUser("userId")
@@ -160,12 +161,13 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	userService, err := users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),
 		LicenseFn:    th.App.ch.srv.License,
@@ -193,7 +195,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil, ""))
 		}
 		close(done)
 	}()
@@ -226,20 +228,24 @@ func TestHubConnIndex(t *testing.T) {
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc1.SetConnectionID(model.NewId())
 
 	// User2
 	wc2 := &WebConn{
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc2.SetConnectionID(model.NewId())
 	wc3 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc3.SetConnectionID(model.NewId())
 	wc4 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc4.SetConnectionID(model.NewId())
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
@@ -281,12 +287,68 @@ func TestHubConnIndex(t *testing.T) {
 	t.Run("RemoveEndUser2", func(t *testing.T) {
 		connIndex.Remove(wc4) // Remove from end from user2
 
-		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
 		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
 		assert.True(t, connIndex.Has(wc2))
 		assert.False(t, connIndex.Has(wc3))
 		assert.False(t, connIndex.Has(wc4))
 		assert.Len(t, connIndex.All(), 1)
+	})
+}
+
+func TestHubConnIndexByConnectionId(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	// User1
+	wc1ID := model.NewId()
+	wc1 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc1.SetConnectionID(wc1ID)
+
+	// User2
+	wc2ID := model.NewId()
+	wc2 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc2.SetConnectionID(wc2ID)
+
+	wc3ID := model.NewId()
+	wc3 := &WebConn{
+		App:    th.App,
+		UserId: wc2.UserId,
+	}
+	wc3.SetConnectionID(wc3ID)
+
+	t.Run("no connections", func(t *testing.T) {
+		assert.False(t, connIndex.Has(wc1))
+		assert.False(t, connIndex.Has(wc2))
+		assert.False(t, connIndex.Has(wc3))
+		assert.Empty(t, connIndex.byConnectionId)
+	})
+
+	t.Run("adding", func(t *testing.T) {
+		connIndex.Add(wc1)
+		connIndex.Add(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 2)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, wc3, connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+	})
+
+	t.Run("removing", func(t *testing.T) {
+		connIndex.Remove(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 1)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
 	})
 }
 
@@ -334,6 +396,40 @@ func TestHubConnIndexInactive(t *testing.T) {
 	assert.False(t, connIndex.Has(wc3))
 	assert.Len(t, connIndex.ForUser(wc2.UserId), 1)
 	assert.Len(t, connIndex.All(), 2)
+}
+
+func TestReliableWebSocketSend(t *testing.T) {
+	testCluster := &testlib.FakeClusterInterface{}
+
+	th := SetupWithClusterMock(t, testCluster)
+	defer th.TearDown()
+
+	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
+	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
+	th.App.Publish(ev)
+	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil, "")
+	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
+		ReliableClusterSend: true,
+	})
+	th.App.Publish(ev2)
+
+	messages := testCluster.GetMessages()
+
+	evJSON, err := ev.ToJSON()
+	require.NoError(t, err)
+	ev2JSON, err := ev2.ToJSON()
+	require.NoError(t, err)
+
+	require.Contains(t, messages, &model.ClusterMessage{
+		Event:    model.ClusterEventPublish,
+		Data:     evJSON,
+		SendType: model.ClusterSendBestEffort,
+	})
+	require.Contains(t, messages, &model.ClusterMessage{
+		Event:    model.ClusterEventPublish,
+		Data:     ev2JSON,
+		SendType: model.ClusterSendReliable,
+	})
 }
 
 func TestHubIsRegistered(t *testing.T) {

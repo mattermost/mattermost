@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -18,20 +18,7 @@ type SqlProductNoticesStore struct {
 }
 
 func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
-	s := SqlProductNoticesStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ProductNoticeViewState{}, "ProductNoticeViewState").SetKeys(false, "UserId", "NoticeId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("NoticeId").SetMaxSize(26)
-	}
-
-	return s
-}
-
-func (s SqlProductNoticesStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_notice_views_timestamp", "ProductNoticeViewState", "Timestamp")
-	s.CreateIndexIfNotExists("idx_notice_views_notice_id", "ProductNoticeViewState", "NoticeId")
+	return &SqlProductNoticesStore{sqlStore}
 }
 
 func (s SqlProductNoticesStore) Clear(notices []string) error {
@@ -62,19 +49,22 @@ func (s SqlProductNoticesStore) ClearOldNotices(currentNotices model.ProductNoti
 	return nil
 }
 
-func (s SqlProductNoticesStore) View(userId string, notices []string) error {
+func (s SqlProductNoticesStore) View(userId string, notices []string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	noticeStates := []model.ProductNoticeViewState{}
-	sql, args, _ := s.getQueryBuilder().
+	sql, args, err := s.getQueryBuilder().
 		Select("*").
 		From("ProductNoticeViewState").
 		Where(sq.And{sq.Eq{"UserId": userId}, sq.Eq{"NoticeId": notices}}).
 		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "View_ToSql")
+	}
 	if err := transaction.Select(&noticeStates, sql, args...); err != nil {
 		return errors.Wrapf(err, "failed to get ProductNoticeViewState with userId=%s", userId)
 	}

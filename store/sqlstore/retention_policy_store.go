@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
 
@@ -24,58 +24,31 @@ type SqlRetentionPolicyStore struct {
 }
 
 func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.RetentionPolicyStore {
-	s := &SqlRetentionPolicyStore{
+	return &SqlRetentionPolicyStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.RetentionPolicy{}, "RetentionPolicies")
-		table.SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(64)
-
-		tableC := db.AddTableWithName(model.RetentionPolicyChannel{}, "RetentionPoliciesChannels")
-		tableC.SetKeys(false, "ChannelId")
-		tableC.ColMap("PolicyId").SetMaxSize(26)
-		tableC.ColMap("ChannelId").SetMaxSize(26)
-
-		tableT := db.AddTableWithName(model.RetentionPolicyTeam{}, "RetentionPoliciesTeams")
-		tableT.SetKeys(false, "TeamId")
-		tableT.ColMap("PolicyId").SetMaxSize(26)
-		tableT.ColMap("TeamId").SetMaxSize(26)
-	}
-
-	return s
-}
-
-func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
-	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
-	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
 }
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
-func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...interface{}) (sql.Result, error) {
+func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
 	}
 	return txn.Exec(query, args...)
 }
 
-func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Insert new policy
 	// 2. Insert new channels into policy
 	// 3. Insert new teams into policy
 
-	if err := s.checkTeamsExist(policy.TeamIDs); err != nil {
+	if err = s.checkTeamsExist(policy.TeamIDs); err != nil {
 		return nil, err
 	}
-	if err := s.checkChannelsExist(policy.ChannelIDs); err != nil {
+	if err = s.checkChannelsExist(policy.ChannelIDs); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +57,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	policyInsertQuery, policyInsertArgs, err := s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
-		Values(policy.ID, policy.DisplayName, policy.PostDuration).
+		Values(policy.ID, policy.DisplayName, policy.PostDurationDays).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -109,7 +82,8 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithTeamAndC
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Create a new policy in RetentionPolicies
 	if _, err = txn.Exec(policyInsertQuery, policyInsertArgs...); err != nil {
 		return nil, err
@@ -196,7 +170,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIDs []string) error 
 	return nil
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyID string, channelIDs []string) (query string, args []interface{}, err error) {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyID string, channelIDs []string) (query string, args []any, err error) {
 	if len(channelIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesChannels").
@@ -209,7 +183,7 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(poli
 	return
 }
 
-func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyID string, teamIDs []string) (query string, args []interface{}, err error) {
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyID string, teamIDs []string) (query string, args []any, err error) {
 	if len(teamIDs) > 0 {
 		builder := s.getQueryBuilder().
 			Insert("RetentionPoliciesTeams").
@@ -222,7 +196,7 @@ func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyI
 	return
 }
 
-func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndChannelIDs) (_ *model.RetentionPolicyWithTeamAndChannelCounts, err error) {
 	// Strategy:
 	// 1. Update policy attributes
 	// 2. Delete existing channels from policy
@@ -231,7 +205,6 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	// 5. Insert new teams into policy
 	// 6. Read new policy
 
-	var err error
 	if err = s.checkTeamsExist(patch.TeamIDs); err != nil {
 		return nil, err
 	}
@@ -240,14 +213,14 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	policyUpdateQuery := ""
-	policyUpdateArgs := []interface{}{}
-	if patch.DisplayName != "" || patch.PostDuration != nil {
+	policyUpdateArgs := []any{}
+	if patch.DisplayName != "" || patch.PostDurationDays != nil {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if patch.DisplayName != "" {
 			builder = builder.Set("DisplayName", patch.DisplayName)
 		}
-		if patch.PostDuration != nil {
-			builder = builder.Set("PostDuration", *patch.PostDuration)
+		if patch.PostDurationDays != nil {
+			builder = builder.Set("PostDuration", *patch.PostDurationDays)
 		}
 		policyUpdateQuery, policyUpdateArgs, err = builder.
 			Where(sq.Eq{"Id": patch.ID}).
@@ -258,9 +231,9 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	channelsDeleteQuery := ""
-	channelsDeleteArgs := []interface{}{}
+	channelsDeleteArgs := []any{}
 	channelsInsertQuery := ""
-	channelsInsertArgs := []interface{}{}
+	channelsInsertArgs := []any{}
 	if patch.ChannelIDs != nil {
 		channelsDeleteQuery, channelsDeleteArgs, err = s.getQueryBuilder().
 			Delete("RetentionPoliciesChannels").
@@ -277,9 +250,9 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	}
 
 	teamsDeleteQuery := ""
-	teamsDeleteArgs := []interface{}{}
+	teamsDeleteArgs := []any{}
 	teamsInsertQuery := ""
-	teamsInsertArgs := []interface{}{}
+	teamsInsertArgs := []any{}
 	if patch.TeamIDs != nil {
 		teamsDeleteQuery, teamsDeleteArgs, err = s.getQueryBuilder().
 			Delete("RetentionPoliciesTeams").
@@ -304,7 +277,8 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	if err != nil {
 		return nil, err
 	}
-	defer finalizeTransactionX(txn)
+	defer finalizeTransactionX(txn, &err)
+
 	// Update the fields of the policy in RetentionPolicies
 	if _, err = executePossiblyEmptyQuery(txn, policyUpdateQuery, policyUpdateArgs...); err != nil {
 		return nil, err
@@ -336,14 +310,14 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithTeamAndC
 	return &newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (string, []interface{}, error) {
+func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (string, []any, error) {
 	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
 // buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
 // policy display name and ID.
-func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (string, []interface{}, error) {
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit int) (string, []any, error) {
 	rpcSubQuery := s.getQueryBuilder().
 		Select("RetentionPolicies.Id, COUNT(RetentionPoliciesChannels.ChannelId) AS Count").
 		From("RetentionPolicies").
@@ -384,7 +358,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset, limit
 		Select(`
 			RetentionPolicies.Id as "Id",
 			RetentionPolicies.DisplayName,
-			RetentionPolicies.PostDuration,
+			RetentionPolicies.PostDuration as "PostDuration",
 			A.Count AS ChannelCount,
 			B.Count AS TeamCount
 	  `).
@@ -419,13 +393,14 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyWithTeam
 	return &policy, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) (policies []*model.RetentionPolicyWithTeamAndChannelCounts, err error) {
+func (s *SqlRetentionPolicyStore) GetAll(offset, limit int) ([]*model.RetentionPolicyWithTeamAndChannelCounts, error) {
+	policies := []*model.RetentionPolicyWithTeamAndChannelCounts{}
 	queryString, args, err := s.buildGetPoliciesQuery("", offset, limit)
 	if err != nil {
-		return
+		return policies, err
 	}
 	err = s.GetReplicaX().Select(&policies, queryString, args...)
-	return
+	return policies, err
 }
 
 func (s *SqlRetentionPolicyStore) GetCount() (int64, error) {
@@ -664,7 +639,7 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 }
 
 func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
-	queryString, args, _ := query.ToSql()
+	queryString, args := query.MustSql()
 	subQuery := fmt.Sprintf("%s IN (SELECT * FROM (%s) AS A)", property, queryString)
 	return sq.Expr(subQuery, args...)
 }
@@ -723,7 +698,7 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 
 func (s *SqlRetentionPolicyStore) GetTeamPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForTeam, error) {
 	query := s.getQueryBuilder().
-		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration`).
+		Select(`Teams.Id AS "Id", RetentionPolicies.PostDuration AS "PostDuration"`).
 		From("Users").
 		InnerJoin("TeamMembers ON Users.Id = TeamMembers.UserId").
 		InnerJoin("Teams ON TeamMembers.TeamId = Teams.Id").
@@ -784,7 +759,7 @@ func (s *SqlRetentionPolicyStore) GetTeamPoliciesCountForUser(userID string) (in
 
 func (s *SqlRetentionPolicyStore) GetChannelPoliciesForUser(userID string, offset, limit int) ([]*model.RetentionPolicyForChannel, error) {
 	query := s.getQueryBuilder().
-		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration`).
+		Select(`Channels.Id as "Id", RetentionPolicies.PostDuration as "PostDuration"`).
 		From("Users").
 		InnerJoin("ChannelMembers ON Users.Id = ChannelMembers.UserId").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").

@@ -5,13 +5,17 @@ package sqlstore
 
 import (
 	"database/sql"
+	"io"
+	"net/url"
 	"strconv"
 	"strings"
 	"unicode"
 
-	"github.com/mattermost/gorp"
-
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/wiggin77/merror"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 var escapeLikeSearchChar = []string{
@@ -31,9 +35,9 @@ func sanitizeSearchTerm(term string, escapeChar string) string {
 
 // Converts a list of strings into a list of query parameters and a named parameter map that can
 // be used as part of a SQL query.
-func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[string]interface{}) {
+func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[string]any) {
 	var keys strings.Builder
-	params := make(map[string]interface{}, len(list))
+	params := make(map[string]any, len(list))
 	for i, entry := range list {
 		if keys.Len() > 0 {
 			keys.WriteString(",")
@@ -47,20 +51,17 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 	return "(" + keys.String() + ")", params
 }
 
-// finalizeTransaction ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransaction(transaction *gorp.Transaction) {
+// finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
+func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	// Rollback returns sql.ErrTxDone if the transaction was already closed.
 	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
-		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+		*perr = merror.Append(*perr, err)
 	}
 }
 
-// finalizeTransactionX ensures a transaction is closed after use, rolling back if not already committed.
-func finalizeTransactionX(transaction *sqlxTxWrapper) {
-	// Rollback returns sql.ErrTxDone if the transaction was already closed.
-	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
-		mlog.Error("Failed to rollback transaction", mlog.Err(err))
-	}
+func deferClose(c io.Closer, perr *error) {
+	err := c.Close()
+	*perr = merror.Append(*perr, err)
 }
 
 // removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain
@@ -88,8 +89,9 @@ func containsAlphaNumericChar(s string) bool {
 }
 
 // isQuotedWord return true if the input string is quoted, false otherwise. Ex :-
-// 		"quoted string"  -  will return true
-// 		unquoted string  -  will return false
+//
+//	"quoted string"  -  will return true
+//	unquoted string  -  will return false
 func isQuotedWord(s string) bool {
 	if len(s) < 2 {
 		return false
@@ -105,37 +107,36 @@ func isQuotedWord(s string) bool {
 // SET Col = JSON_SET(Col, `+argString+`)
 // WHERE Id=?`, args...)
 // after appending the Id param to the args slice.
-func constructMySQLJSONArgs(props map[string]string) ([]interface{}, string) {
+func constructMySQLJSONArgs(props map[string]string) ([]any, string) {
 	if len(props) == 0 {
 		return nil, ""
 	}
 
 	// Unpack the keys and values to pass to MySQL.
-	args := make([]interface{}, 0, len(props))
+	args := make([]any, 0, len(props))
 	for k, v := range props {
-		args = append(args, "$."+k)
-		args = append(args, v)
+		args = append(args, "$."+k, v)
 	}
 
 	// We calculate the number of ? to set in the query string.
 	argString := strings.Repeat("?, ", len(props)*2)
 	// Strip off the trailing comma.
-	argString = strings.TrimSuffix(strings.TrimSpace(argString), ",")
+	argString = strings.TrimSuffix(argString, ", ")
 
 	return args, argString
 }
 
-func makeStringArgs(params []string) []interface{} {
-	args := make([]interface{}, len(params))
+func makeStringArgs(params []string) []any {
+	args := make([]any, len(params))
 	for i, name := range params {
 		args[i] = name
 	}
 	return args
 }
 
-func constructArrayArgs(ids []string) (string, []interface{}) {
+func constructArrayArgs(ids []string) (string, []any) {
 	var placeholder strings.Builder
-	values := make([]interface{}, 0, len(ids))
+	values := make([]any, 0, len(ids))
 	for _, entry := range ids {
 		if placeholder.Len() > 0 {
 			placeholder.WriteString(",")
@@ -146,4 +147,61 @@ func constructArrayArgs(ids []string) (string, []interface{}) {
 	}
 
 	return "(" + placeholder.String() + ")", values
+}
+
+func wrapBinaryParamStringMap(ok bool, props model.StringMap) model.StringMap {
+	if props == nil {
+		props = make(model.StringMap)
+	}
+	props[model.BinaryParamKey] = strconv.FormatBool(ok)
+	return props
+}
+
+// morphWriter is a target to pass to the logger instance of morph.
+// For now, everything is just logged at a debug level. If we need to log
+// errors/warnings from the library also, that needs to be seen later.
+type morphWriter struct {
+}
+
+func (l *morphWriter) Write(in []byte) (int, error) {
+	mlog.Debug(string(in))
+	return len(in), nil
+}
+
+func DSNHasBinaryParam(dsn string) (bool, error) {
+	url, err := url.Parse(dsn)
+	if err != nil {
+		return false, err
+	}
+	return url.Query().Get("binary_parameters") == "yes", nil
+}
+
+// AppendBinaryFlag updates the byte slice to work using binary_parameters=yes.
+func AppendBinaryFlag(buf []byte) []byte {
+	return append([]byte{0x01}, buf...)
+}
+
+// AppendMultipleStatementsFlag attached dsn parameters to MySQL dsn in order to make migrations work.
+func AppendMultipleStatementsFlag(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+
+	if config.Params == nil {
+		config.Params = map[string]string{}
+	}
+
+	config.Params["multiStatements"] = "true"
+	return config.FormatDSN(), nil
+}
+
+// ResetReadTimeout removes the timeout constraint from the MySQL dsn.
+func ResetReadTimeout(dataSource string) (string, error) {
+	config, err := mysql.ParseDSN(dataSource)
+	if err != nil {
+		return "", err
+	}
+	config.ReadTimeout = 0
+	return config.FormatDSN(), nil
 }

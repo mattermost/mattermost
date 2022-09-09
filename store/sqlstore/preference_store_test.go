@@ -58,22 +58,23 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 		ss.Preference().(*SqlPreferenceStore).deleteUnusedFeatures()
 
 		//make sure features with value "false" have actually been deleted from the database
-		if val, err := ss.Preference().(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+		var val int64
+		if err := ss.Preference().(*SqlPreferenceStore).GetReplicaX().Get(&val, `SELECT COUNT(*)
                             FROM Preferences
-                    WHERE Category = :Category
-                    AND Value = :Val
-                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PreferenceCategoryAdvancedSettings, "Val": "false"}); err != nil {
+                    WHERE Category = ?
+                    AND Value = ?
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, model.PreferenceCategoryAdvancedSettings, "false"); err != nil {
 			require.NoError(t, err)
 		} else if val != 0 {
 			require.Fail(t, "Found %d features with value 'false', expected all to be deleted", val)
 		}
 		//
 		// make sure features with value "true" remain saved
-		if val, err := ss.Preference().(*SqlPreferenceStore).GetReplica().SelectInt(`SELECT COUNT(*)
+		if err := ss.Preference().(*SqlPreferenceStore).GetReplicaX().Get(&val, `SELECT COUNT(*)
                             FROM Preferences
-                    WHERE Category = :Category
-                    AND Value = :Val
-                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PreferenceCategoryAdvancedSettings, "Val": "true"}); err != nil {
+                    WHERE Category = ?
+                    AND Value = ?
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, model.PreferenceCategoryAdvancedSettings, "true"); err != nil {
 			require.NoError(t, err)
 		} else if val == 0 {
 			require.Fail(t, "Found %d features with value 'true', expected to find at least %d features", val, 2)

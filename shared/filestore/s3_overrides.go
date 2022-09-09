@@ -15,7 +15,6 @@ import (
 // from multiple Mattermost applications, and the Mattermost service itself does not
 // have any S3 credentials.
 type customTransport struct {
-	base   http.RoundTripper
 	host   string
 	scheme string
 	client http.Client
@@ -23,7 +22,7 @@ type customTransport struct {
 
 // RoundTrip implements the http.Roundtripper interface.
 func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Rountrippers should not modify the original request.
+	// Roundtrippers should not modify the original request.
 	newReq := req.Clone(context.Background())
 	*newReq.URL = *req.URL
 	req.URL.Scheme = t.scheme

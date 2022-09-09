@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
 
@@ -23,53 +23,13 @@ type SqlSharedChannelStore struct {
 }
 
 func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
-	s := &SqlSharedChannelStore{
+	return &SqlSharedChannelStore{
 		SqlStore: sqlStore,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		tableSharedChannels := db.AddTableWithName(model.SharedChannel{}, "SharedChannels").SetKeys(false, "ChannelId")
-		tableSharedChannels.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannels.ColMap("TeamId").SetMaxSize(26)
-		tableSharedChannels.ColMap("CreatorId").SetMaxSize(26)
-		tableSharedChannels.ColMap("ShareName").SetMaxSize(64)
-		tableSharedChannels.SetUniqueTogether("ShareName", "TeamId")
-		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
-		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
-		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
-		tableSharedChannels.ColMap("RemoteId").SetMaxSize(26)
-
-		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
-		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("LastPostId").SetMaxSize(26)
-		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")
-
-		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
-		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
-		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
-		tableSharedChannelUsers.ColMap("RemoteId").SetMaxSize(26)
-		tableSharedChannelUsers.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelUsers.SetUniqueTogether("UserId", "ChannelId", "RemoteId")
-
-		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelAttachment{}, "SharedChannelAttachments").SetKeys(false, "Id")
-		tableSharedChannelFiles.ColMap("Id").SetMaxSize(26)
-		tableSharedChannelFiles.ColMap("FileId").SetMaxSize(26)
-		tableSharedChannelFiles.ColMap("RemoteId").SetMaxSize(26)
-		tableSharedChannelFiles.SetUniqueTogether("FileId", "RemoteId")
-	}
-
-	return s
-}
-
-func (s SqlSharedChannelStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_id", "SharedChannelUsers", "RemoteId")
 }
 
 // Save inserts a new shared channel record.
-func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (sh *model.SharedChannel, err error) {
 	sc.PreSave()
 	if err := sc.IsValid(); err != nil {
 		return nil, err
@@ -85,7 +45,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannels").
 		Columns("ChannelId", "TeamId", "Home", "ReadOnly", "ShareName", "ShareDisplayName", "SharePurpose", "ShareHeader", "CreatorId", "CreateAt", "UpdateAt", "RemoteId").
@@ -286,12 +246,12 @@ func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedCha
 
 // Delete deletes a single shared channel plus associated SharedChannelRemotes.
 // Returns true if shared channel found and deleted, false if not found.
-func (s SqlSharedChannelStore) Delete(channelId string) (bool, error) {
+func (s SqlSharedChannelStore) Delete(channelId string) (ok bool, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	squery, args, err := s.getQueryBuilder().
 		Delete("SharedChannels").
@@ -590,7 +550,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	status := []*model.SharedChannelRemoteStatus{}
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.NextSyncAt, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").
@@ -849,7 +809,7 @@ func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime in
 
 	result, err := s.GetMasterX().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelAttachment")
+		return errors.Wrap(err, "failed to update LastSyncAt for SharedChannelAttachment")
 	}
 
 	count, err := result.RowsAffected()

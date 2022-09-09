@@ -108,8 +108,8 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 
 	p.API.SendEphemeralPost(post.UserId, &model.Post{
 		ChannelId: configuration.channelID,
-		Message:   "You asked for help? Checkout https://about.mattermost.com/help/",
-		Props: map[string]interface{}{
+		Message:   "You asked for help? Checkout https://support.mattermost.com/hc/en-us",
+		Props: map[string]any{
 			"sent_by_plugin": true,
 		},
 	})

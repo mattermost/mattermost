@@ -4,7 +4,7 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -17,11 +17,11 @@ type relationalCheckConfig struct {
 	childIdAttr        string
 	canParentIdBeEmpty bool
 	sortRecords        bool
-	filter             interface{}
+	filter             any
 }
 
 func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.OrphanedRecord, error) {
-	var records []model.OrphanedRecord
+	records := []model.OrphanedRecord{}
 
 	sub := ss.getQueryBuilder().
 		Select("TRUE").
@@ -52,10 +52,12 @@ func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.Orphan
 		main = main.OrderBy("CT." + cfg.parentIdAttr)
 	}
 
-	query, args, _ := main.ToSql()
+	query, args, err := main.ToSql()
+	if err != nil {
+		return nil, err
+	}
 
-	_, err := ss.GetMaster().Select(&records, query, args...)
-
+	err = ss.GetMasterX().Select(&records, query, args...)
 	return records, err
 }
 

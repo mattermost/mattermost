@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -23,18 +23,7 @@ type SqlSystemStore struct {
 }
 
 func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
-	s := &SqlSystemStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.System{}, "Systems").SetKeys(false, "Name")
-		table.ColMap("Name").SetMaxSize(64)
-		table.ColMap("Value").SetMaxSize(1024)
-	}
-
-	return s
-}
-
-func (s SqlSystemStore) createIndexesIfNotExists() {
+	return &SqlSystemStore{sqlStore}
 }
 
 func (s SqlSystemStore) Save(system *model.System) error {
@@ -89,7 +78,7 @@ func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System)
 }
 
 func (s SqlSystemStore) Update(system *model.System) error {
-	query := "UPDATE Systems SET Name=:Name, Value=:Value"
+	query := "UPDATE Systems SET Value=:Value WHERE Name=:Name"
 	if _, err := s.GetMasterX().NamedExec(query, system); err != nil {
 		return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
 	}
@@ -135,14 +124,14 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, error
 
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
-func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+func (s SqlSystemStore) InsertIfExists(system *model.System) (_ *model.System, err error) {
 	tx, err := s.GetMasterX().BeginXWithIsolation(&sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(tx)
+	defer finalizeTransactionX(tx, &err)
 
 	var origSystem model.System
 	if err := tx.Get(&origSystem, `SELECT * FROM Systems

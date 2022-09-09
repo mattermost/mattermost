@@ -27,7 +27,9 @@ const (
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
-	JobTypeFixChannelUnreadsForCRT      = "fix_channel_unreads_for_crt"
+	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
+	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -56,7 +58,7 @@ var AllJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
-	JobTypeFixChannelUnreadsForCRT,
+	JobTypeLastAccessiblePost,
 }
 
 type Job struct {
@@ -71,6 +73,20 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
+func (j *Job) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               j.Id,
+		"type":             j.Type,
+		"priority":         j.Priority,
+		"create_at":        j.CreateAt,
+		"start_at":         j.StartAt,
+		"last_activity_at": j.LastActivityAt,
+		"status":           j.Status,
+		"progress":         j.Progress,
+		"data":             j.Data, // TODO do we want this here
+	}
+}
+
 func (j *Job) IsValid() *AppError {
 	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
@@ -78,30 +94,6 @@ func (j *Job) IsValid() *AppError {
 
 	if j.CreateAt == 0 {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
-	}
-
-	switch j.Type {
-	case JobTypeDataRetention:
-	case JobTypeElasticsearchPostIndexing:
-	case JobTypeElasticsearchPostAggregation:
-	case JobTypeBlevePostIndexing:
-	case JobTypeLdapSync:
-	case JobTypeMessageExport:
-	case JobTypeMigrations:
-	case JobTypePlugins:
-	case JobTypeProductNotices:
-	case JobTypeExpiryNotify:
-	case JobTypeActiveUsers:
-	case JobTypeImportProcess:
-	case JobTypeImportDelete:
-	case JobTypeExportProcess:
-	case JobTypeExportDelete:
-	case JobTypeCloud:
-	case JobTypeResendInvitationEmail:
-	case JobTypeExtractContent:
-	case JobTypeFixChannelUnreadsForCRT:
-	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
 	switch j.Status {
@@ -122,11 +114,10 @@ type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
+	IsEnabled(cfg *Config) bool
 }
 
 type Scheduler interface {
-	Name() string
-	JobType() string
 	Enabled(cfg *Config) bool
 	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
 	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)

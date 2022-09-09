@@ -4,6 +4,8 @@
 package model
 
 import (
+	"encoding/json"
+	"errors"
 	"regexp"
 )
 
@@ -35,12 +37,11 @@ const (
 )
 
 // SidebarCategory represents the corresponding DB table
-// SortOrder is never returned to the user and only used for queries
 type SidebarCategory struct {
 	Id          string                 `json:"id"`
 	UserId      string                 `json:"user_id"`
 	TeamId      string                 `json:"team_id"`
-	SortOrder   int64                  `json:"-"`
+	SortOrder   int64                  `json:"sort_order"`
 	Sorting     SidebarCategorySorting `json:"sorting"`
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`
@@ -52,6 +53,10 @@ type SidebarCategory struct {
 type SidebarCategoryWithChannels struct {
 	SidebarCategory
 	Channels []string `json:"channel_ids"`
+}
+
+func (sc SidebarCategoryWithChannels) ChannelIds() []string {
+	return sc.Channels
 }
 
 type SidebarCategoryOrder []string
@@ -82,4 +87,44 @@ func IsValidCategoryId(s string) bool {
 
 	// Or default categories can follow the pattern {type}_{userID}_{teamID}
 	return categoryIdPattern.MatchString(s)
+}
+
+func (SidebarCategoryType) ImplementsGraphQLType(name string) bool {
+	return name == "SidebarCategoryType"
+}
+
+func (t SidebarCategoryType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(t))
+}
+
+func (t *SidebarCategoryType) UnmarshalGraphQL(input any) error {
+	chType, ok := input.(string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*t = SidebarCategoryType(chType)
+	return nil
+}
+
+func (SidebarCategorySorting) ImplementsGraphQLType(name string) bool {
+	return name == "SidebarCategorySorting"
+}
+
+func (t SidebarCategorySorting) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(t))
+}
+
+func (t *SidebarCategorySorting) UnmarshalGraphQL(input any) error {
+	chType, ok := input.(string)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*t = SidebarCategorySorting(chType)
+	return nil
+}
+
+func (t *SidebarCategory) SortOrder_() float64 {
+	return float64(t.SortOrder)
 }

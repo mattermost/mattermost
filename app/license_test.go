@@ -5,7 +5,6 @@ package app
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,24 +84,6 @@ func TestGenerateRenewalToken(t *testing.T) {
 		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
-
-		customerEmail := th.App.Srv().License().Customer.Email
-		validToken, err := th.App.Srv().renewalTokenValid(token, customerEmail)
-		require.NoError(t, err)
-		require.True(t, validToken)
-	})
-
-	t.Run("only one token should be active", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
-
-		newToken, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.Equal(t, token, newToken)
 	})
 
 	t.Run("return error if there is no active license", func(t *testing.T) {
@@ -110,35 +91,6 @@ func TestGenerateRenewalToken(t *testing.T) {
 		_, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
 		require.NotNil(t, appErr)
 	})
-
-	t.Run("return another token if the license owner change", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
-		setLicense(th, &model.Customer{
-			Name:  "another customer",
-			Email: "another@example.com",
-		})
-		newToken, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEqual(t, token, newToken)
-	})
-
-	t.Run("return another token if the active one has expired", func(t *testing.T) {
-		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(1 * time.Second)
-		require.Nil(t, appErr)
-		require.NotEmpty(t, token)
-		defer th.App.Srv().Store.System().PermanentDeleteByName(model.SystemLicenseRenewalToken)
-		// The small time unit for expiration we're using is seconds
-		time.Sleep(1 * time.Second)
-		newToken, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
-		require.Nil(t, appErr)
-		require.NotEqual(t, token, newToken)
-	})
-
 }
 
 func setLicense(th *TestHelper, customer *model.Customer) {

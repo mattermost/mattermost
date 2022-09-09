@@ -4,7 +4,7 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -18,18 +18,7 @@ type SqlLicenseStore struct {
 }
 
 func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
-	ls := &SqlLicenseStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.LicenseRecord{}, "Licenses").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Bytes").SetMaxSize(10000)
-	}
-
-	return ls
-}
-
-func (ls SqlLicenseStore) createIndexesIfNotExists() {
+	return &SqlLicenseStore{sqlStore}
 }
 
 // Save validates and stores the license instance in the database. The Id

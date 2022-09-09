@@ -9,13 +9,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -54,7 +54,7 @@ func fileBytes(t *testing.T, path string) []byte {
 	f, err := os.Open(path)
 	require.NoError(t, err)
 	defer f.Close()
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 	return bb
 }
@@ -83,7 +83,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 
 	var res model.FileUploadResponse
 	if jsonErr := json.NewDecoder(resp.Body).Decode(&res); jsonErr != nil {
-		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("doUploadFile", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	return &res, model.BuildResponse(resp), nil
 }
@@ -452,6 +452,17 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageMiniPreview: []bool{false},
 			expectedCreatorId:        th.BasicUser.Id,
 		},
+		// Webp image test
+		{
+			title:                    "Webp image",
+			names:                    []string{"testwebp.webp"},
+			expectImage:              true,
+			expectedImageWidths:      []int{128},
+			expectedImageHeights:     []int{256},
+			expectedImageHasPreview:  []bool{true},
+			expectedCreatorId:        th.BasicUser.Id,
+			expectedImageMiniPreview: []bool{true},
+		},
 		// Error cases
 		{
 			title:                 "Error channel_id does not exist",
@@ -500,7 +511,7 @@ func TestUploadFiles(t *testing.T) {
 			client:                th.SystemAdminClient,
 			names:                 []string{"test.png"},
 			skipSuccessValidation: true,
-			checkResponse:         CheckNotImplementedStatus,
+			checkResponse:         CheckForbiddenStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
 				enableFileAttachments := *a.Config().FileSettings.EnableFileAttachments
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
@@ -689,10 +700,10 @@ func TestUploadFiles(t *testing.T) {
 							data, _, err := get(ri.Id)
 							require.NoError(t, err)
 
-							expected, err := ioutil.ReadFile(filepath.Join(testDir, name))
+							expected, err := os.ReadFile(filepath.Join(testDir, name))
 							require.NoError(t, err)
 							if !bytes.Equal(data, expected) {
-								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								tf, err := os.CreateTemp("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.NoError(t, err)
 								defer tf.Close()
 								_, err = io.Copy(tf, bytes.NewReader(data))
@@ -817,7 +828,11 @@ func TestGetFileHeaders(t *testing.T) {
 	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false, false))
 	t.Run("html", testHeaders(data, "test.html", "text/plain", false, false))
 	t.Run("js", testHeaders(data, "test.js", "text/plain", false, false))
-	t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
+	if os.Getenv("IS_CI") == "true" {
+		t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false, false))
+	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		t.Run("go", testHeaders(data, "test.go", "text/x-go; charset=utf-8", false, false))
+	}
 	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false, false))
 	// Not every platform can recognize these
 	//t.Run("exe", testHeaders(data, "test.exe", "application/x-ms", false))
@@ -903,7 +918,7 @@ func TestGetFileLink(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp, err = client.GetFileLink(fileId)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, _, err := client.GetFileLink(fileId)
@@ -1074,7 +1089,7 @@ func TestGetPublicFile(t *testing.T) {
 
 	resp, err = http.Get(link)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusNotImplemented, resp.StatusCode, "should've failed to get image with disabled public link")
+	require.Equal(t, http.StatusForbidden, resp.StatusCode, "should've failed to get image with disabled public link")
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })

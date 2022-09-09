@@ -79,6 +79,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
@@ -131,7 +132,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
-	th.App.SetSessionExpireInDays(session, 1)
+	th.App.SetSessionExpireInHours(session, 24)
 	session, err := th.App.CreateSession(session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -321,6 +322,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
@@ -641,6 +643,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true

@@ -18,44 +18,7 @@ type SqlOAuthStore struct {
 }
 
 func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
-	as := &SqlOAuthStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.OAuthApp{}, "OAuthApps").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("CreatorId").SetMaxSize(26)
-		table.ColMap("ClientSecret").SetMaxSize(128)
-		table.ColMap("Name").SetMaxSize(64)
-		table.ColMap("Description").SetMaxSize(512)
-		table.ColMap("CallbackUrls").SetMaxSize(1024)
-		table.ColMap("Homepage").SetMaxSize(256)
-		table.ColMap("IconURL").SetMaxSize(512)
-
-		tableAuth := db.AddTableWithName(model.AuthData{}, "OAuthAuthData").SetKeys(false, "Code")
-		tableAuth.ColMap("UserId").SetMaxSize(26)
-		tableAuth.ColMap("ClientId").SetMaxSize(26)
-		tableAuth.ColMap("Code").SetMaxSize(128)
-		tableAuth.ColMap("RedirectUri").SetMaxSize(256)
-		tableAuth.ColMap("State").SetMaxSize(1024)
-		tableAuth.ColMap("Scope").SetMaxSize(128)
-
-		tableAccess := db.AddTableWithName(model.AccessData{}, "OAuthAccessData").SetKeys(false, "Token")
-		tableAccess.ColMap("ClientId").SetMaxSize(26)
-		tableAccess.ColMap("UserId").SetMaxSize(26)
-		tableAccess.ColMap("Token").SetMaxSize(26)
-		tableAccess.ColMap("RefreshToken").SetMaxSize(26)
-		tableAccess.ColMap("RedirectUri").SetMaxSize(256)
-		tableAccess.ColMap("Scope").SetMaxSize(128)
-		tableAccess.SetUniqueTogether("ClientId", "UserId")
-	}
-
-	return as
-}
-
-func (as SqlOAuthStore) createIndexesIfNotExists() {
-	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")
-	as.CreateIndexIfNotExists("idx_oauthaccessdata_refresh_token", "OAuthAccessData", "RefreshToken")
+	return &SqlOAuthStore{sqlStore}
 }
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
@@ -69,9 +32,9 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMasterX().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -100,7 +63,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMasterX().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted
+			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
@@ -161,13 +124,13 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 	return apps, nil
 }
 
-func (as SqlOAuthStore) DeleteApp(id string) error {
+func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := as.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := as.deleteApp(transaction, id); err != nil {
 		return err

@@ -5,7 +5,7 @@ package app
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -33,7 +33,7 @@ const (
 )
 
 func (s *Server) DoSecurityUpdateCheck() {
-	if !*s.Config().ServiceSettings.EnableSecurityFixAlert {
+	if !*s.platform.Config().ServiceSettings.EnableSecurityFixAlert {
 		return
 	}
 
@@ -53,7 +53,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		v.Set(PropSecurityID, s.TelemetryId())
 		v.Set(PropSecurityBuild, model.CurrentVersion+"."+model.BuildNumber)
 		v.Set(PropSecurityEnterpriseReady, model.BuildEnterpriseReady)
-		v.Set(PropSecurityDatabase, *s.Config().SqlSettings.DriverName)
+		v.Set(PropSecurityDatabase, *s.platform.Config().SqlSettings.DriverName)
 		v.Set(PropSecurityOS, runtime.GOOS)
 
 		if props[model.SystemRanUnitTests] != "" {
@@ -91,7 +91,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		var bulletins model.SecurityBulletins
 		if jsonErr := json.NewDecoder(res.Body).Decode(&bulletins); jsonErr != nil {
-			mlog.Error("Failed to decode JSON", mlog.Err(jsonErr))
+			s.Log().Error("Failed to decode JSON", mlog.Err(jsonErr))
 			return
 		}
 
@@ -110,7 +110,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 						return
 					}
 
-					body, err := ioutil.ReadAll(resBody.Body)
+					body, err := io.ReadAll(resBody.Body)
 					resBody.Body.Close()
 					if err != nil || resBody.StatusCode != 200 {
 						mlog.Error("Failed to read security bulletin details")
@@ -121,7 +121,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
 						mailConfig := s.MailServiceConfig()
-						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "")
+						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}

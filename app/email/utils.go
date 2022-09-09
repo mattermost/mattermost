@@ -8,9 +8,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func (es *Service) mailServiceConfig() *mail.SMTPConfig {
+func (es *Service) mailServiceConfig(replyToAddress string) *mail.SMTPConfig {
 	emailSettings := es.config().EmailSettings
 	hostname := utils.GetHostnameFromSiteURL(*es.config().ServiceSettings.SiteURL)
+
+	if replyToAddress == "" {
+		replyToAddress = *emailSettings.ReplyToAddress
+	}
+
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
@@ -25,7 +30,7 @@ func (es *Service) mailServiceConfig() *mail.SMTPConfig {
 		SendEmailNotifications:            *emailSettings.SendEmailNotifications,
 		FeedbackName:                      *emailSettings.FeedbackName,
 		FeedbackEmail:                     *emailSettings.FeedbackEmail,
-		ReplyToAddress:                    *emailSettings.ReplyToAddress,
+		ReplyToAddress:                    replyToAddress,
 	}
 	return &cfg
 }

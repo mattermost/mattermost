@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -242,10 +242,10 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	var opts app.BulkExportOpts
+	var opts model.BulkExportOpts
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
-	if err := a.BulkExport(fileWriter, filepath.Dir(outPath), opts); err != nil {
+	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}

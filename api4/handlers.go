@@ -8,14 +8,17 @@ import (
 
 	"github.com/mattermost/gziphandler"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 type Context = web.Context
 
+type handlerFunc func(*Context, http.ResponseWriter, *http.Request)
+
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APIHandler(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -34,7 +37,7 @@ func (api *API) APIHandler(h func(*Context, http.ResponseWriter, *http.Request))
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -53,7 +56,7 @@ func (api *API) APISessionRequired(h func(*Context, http.ResponseWriter, *http.R
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
-func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -73,7 +76,7 @@ func (api *API) CloudAPIKeyRequired(h func(*Context, http.ResponseWriter, *http.
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
-func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:                       api.srv,
 		HandleFunc:                h,
@@ -95,7 +98,7 @@ func (api *API) RemoteClusterTokenRequired(h func(*Context, http.ResponseWriter,
 // APISessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
 // if MFA is enabled, the MFA process is not yet complete, and therefore the requirement to have completed the MFA
 // authentication must be waived.
-func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -116,7 +119,7 @@ func (api *API) APISessionRequiredMfa(h func(*Context, http.ResponseWriter, *htt
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
-func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -136,7 +139,7 @@ func (api *API) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -156,7 +159,7 @@ func (api *API) APISessionRequiredTrustRequester(h func(*Context, http.ResponseW
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -179,7 +182,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h func(*Context, http.Response
 // mode, this is, through a UNIX socket and without an authenticated
 // session, but with one that has no user set and no permission
 // restrictions
-func (api *API) APILocal(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) APILocal(h handlerFunc) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -195,4 +198,35 @@ func (api *API) APILocal(h func(*Context, http.ResponseWriter, *http.Request)) h
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
+}
+
+func requireLicense(f handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		if c.App.Channels().License() == nil {
+			c.Err = model.NewAppError("", "api.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+		f(c, w, r)
+	}
+}
+
+func minimumProfessionalLicense(f handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		lic := c.App.Srv().License()
+		if lic == nil || (lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise) {
+			c.Err = model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
+			return
+		}
+		f(c, w, r)
+	}
+}
+
+func rejectGuests(f handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
+			c.Err = model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
+			return
+		}
+		f(c, w, r)
+	}
 }

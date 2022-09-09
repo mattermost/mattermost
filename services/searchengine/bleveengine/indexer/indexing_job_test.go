@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package ebleveengine
+package indexer
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -33,7 +32,7 @@ func TestBleveIndexer(t *testing.T) {
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
 		mockStore.PostStore.On("GetOldestEntityCreationTime").Return(int64(1), errors.New("")) // intentionally return error to return from function
 
-		tempDir, err := ioutil.TempDir("", "setupConfigFile")
+		tempDir, err := os.MkdirTemp("", "setupConfigFile")
 		require.NoError(t, err)
 
 		t.Cleanup(func() {

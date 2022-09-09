@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
@@ -60,11 +61,11 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SystemInstallationDateKey)
 	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return value, nil
 }
@@ -72,11 +73,11 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	systemData, err := s.Store.System().GetByName(model.SystemFirstServerRunTimestampKey)
 	if err != nil {
-		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return value, nil
 }
@@ -88,10 +89,10 @@ func (a *App) Srv() *Server {
 	return a.ch.srv
 }
 func (a *App) Log() *mlog.Logger {
-	return a.ch.srv.Log
+	return a.ch.srv.Log()
 }
 func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog
+	return a.ch.srv.NotificationsLog()
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
@@ -110,19 +111,19 @@ func (a *App) SearchEngine() *searchengine.Broker {
 	return a.ch.srv.SearchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
-	return a.ch.srv.Ldap
+	return a.ch.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.ch.srv.Metrics
+	return a.ch.srv.GetMetrics()
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
-	return a.ch.srv.Notification
+	return a.ch.Notification
 }
 func (a *App) Saml() einterfaces.SamlInterface {
-	return a.ch.srv.Saml
+	return a.ch.Saml
 }
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
@@ -172,4 +173,16 @@ func (a *App) SetServer(srv *Server) {
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+}
+
+// Ensure system service adapter implements `product.SystemService`
+var _ product.SystemService = (*systemServiceAdapter)(nil)
+
+// systemServiceAdapter provides a collection of system APIs for use by products.
+type systemServiceAdapter struct {
+	server *Server
+}
+
+func (ssa *systemServiceAdapter) GetDiagnosticId() string {
+	return ssa.server.TelemetryId()
 }

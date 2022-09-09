@@ -1,83 +1,79 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package ebleveengine
+package indexer
 
 import (
 	"context"
 	"net/http"
 	"strconv"
+	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/jobs"
-	tjobs "github.com/mattermost/mattermost-server/v6/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
-	BatchSize             = 1000
-	TimeBetweenBatches    = 100
-	EstimatedPostCount    = 10000000
-	EstimatedFilesCount   = 100000
-	EstimatedChannelCount = 100000
-	EstimatedUserCount    = 10000
+	timeBetweenBatches = 100 * time.Millisecond
+
+	estimatedPostCount    = 10000000
+	estimatedFilesCount   = 100000
+	estimatedChannelCount = 100000
+	estimatedUserCount    = 10000
 )
-
-func init() {
-	app.RegisterJobsBleveIndexerInterface(func(s *app.Server) tjobs.IndexerJobInterface {
-		return &BleveIndexerInterfaceImpl{s}
-	})
-}
-
-type BleveIndexerInterfaceImpl struct {
-	Server *app.Server
-}
 
 type BleveIndexerWorker struct {
 	name      string
-	stop      chan bool
+	stop      chan struct{}
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
-
-	engine *bleveengine.BleveEngine
+	engine    *bleveengine.BleveEngine
+	closed    int32
 }
 
-func (bi *BleveIndexerInterfaceImpl) MakeWorker() model.Worker {
-	if bi.Server.SearchEngine.BleveEngine == nil {
+func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
+	if engine == nil {
 		return nil
 	}
 	return &BleveIndexerWorker{
 		name:      "BleveIndexer",
-		stop:      make(chan bool, 1),
+		stop:      make(chan struct{}),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
-		jobServer: bi.Server.Jobs,
-
-		engine: bi.Server.SearchEngine.BleveEngine.(*bleveengine.BleveEngine),
+		jobServer: jobServer,
+		engine:    engine,
 	}
 }
 
 type IndexingProgress struct {
-	Now                time.Time
-	StartAtTime        int64
-	EndAtTime          int64
-	LastEntityTime     int64
-	TotalPostsCount    int64
-	DonePostsCount     int64
-	DonePosts          bool
-	TotalFilesCount    int64
-	DoneFilesCount     int64
-	DoneFiles          bool
+	Now            time.Time
+	StartAtTime    int64
+	EndAtTime      int64
+	LastEntityTime int64
+
+	TotalPostsCount int64
+	DonePostsCount  int64
+	DonePosts       bool
+	LastPostID      string
+
+	TotalFilesCount int64
+	DoneFilesCount  int64
+	DoneFiles       bool
+	LastFileID      string
+
 	TotalChannelsCount int64
 	DoneChannelsCount  int64
 	DoneChannels       bool
-	TotalUsersCount    int64
-	DoneUsersCount     int64
-	DoneUsers          bool
+	LastChannelID      string
+
+	TotalUsersCount int64
+	DoneUsersCount  int64
+	DoneUsers       bool
+	LastUserID      string
 }
 
 func (ip *IndexingProgress) CurrentProgress() int64 {
@@ -92,7 +88,15 @@ func (worker *BleveIndexerWorker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
+func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
+	return true
+}
+
 func (worker *BleveIndexerWorker) Run() {
+	// Set to open if closed before. We are not bothered about multiple opens.
+	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
+		worker.stop = make(chan struct{})
+	}
 	mlog.Debug("Worker Started", mlog.String("workername", worker.name))
 
 	defer func() {
@@ -113,8 +117,12 @@ func (worker *BleveIndexerWorker) Run() {
 }
 
 func (worker *BleveIndexerWorker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+		return
+	}
 	mlog.Debug("Worker Stopping", mlog.String("workername", worker.name))
-	worker.stop <- true
+	close(worker.stop)
 	<-worker.stopped
 }
 
@@ -153,35 +161,34 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
 		if err != nil {
 			mlog.Error("Worker: Failed to parse start_time for job", mlog.String("workername", worker.name), mlog.String("start_time", startString), mlog.String("job_id", job.Id), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_start_time.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_start_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
 		progress.StartAtTime = startInt
-		progress.LastEntityTime = progress.StartAtTime
 	} else {
 		// Set start time to oldest entity in the database.
 		// A user or a channel may be created before any post.
 		oldestEntityCreationTime, err := worker.jobServer.Store.Post().GetOldestEntityCreationTime()
 		if err != nil {
 			mlog.Error("Worker: Failed to fetch oldest entity for job.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("start_time", startString), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
 		progress.StartAtTime = oldestEntityCreationTime
-		progress.LastEntityTime = progress.StartAtTime
 	}
+	progress.LastEntityTime = progress.StartAtTime
 
 	if endString, ok := job.Data["end_time"]; ok {
 		endInt, err := strconv.ParseInt(endString, 10, 64)
 		if err != nil {
 			mlog.Error("Worker: Failed to parse end_time for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("end_time", endString), mlog.Err(err))
-			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_end_time.error", nil, err.Error(), http.StatusInternalServerError)
+			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_end_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
 				mlog.Error("Worker: Failed to set job errorv", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
@@ -190,27 +197,43 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		progress.EndAtTime = endInt
 	}
 
+	if id, ok := job.Data["start_post_id"]; ok {
+		progress.LastPostID = id
+	}
+	if id, ok := job.Data["start_channel_id"]; ok {
+		progress.LastChannelID = id
+	}
+	if id, ok := job.Data["start_user_id"]; ok {
+		progress.LastUserID = id
+	}
+	if id, ok := job.Data["start_file_id"]; ok {
+		progress.LastFileID = id
+	}
+
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
-	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount("", false, false); err != nil {
+	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
 		mlog.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		progress.TotalPostsCount = EstimatedPostCount
+		progress.TotalPostsCount = estimatedPostCount
 	} else {
 		progress.TotalPostsCount = count
 	}
 
 	// Same possible fail as above can happen when counting channels
-	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", "O"); err != nil {
+	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", ""); err != nil {
 		mlog.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		progress.TotalChannelsCount = EstimatedChannelCount
+		progress.TotalChannelsCount = estimatedChannelCount
 	} else {
 		progress.TotalChannelsCount = count
 	}
 
 	// Same possible fail as above can happen when counting users
-	if count, err := worker.jobServer.Store.User().Count(model.UserCountOptions{}); err != nil {
+	if count, err := worker.jobServer.Store.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true, // This actually doesn't join with the bots table
+		// since ExcludeRegularUsers is set to false
+	}); err != nil {
 		mlog.Warn("Worker: Failed to fetch total user count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		progress.TotalUsersCount = EstimatedUserCount
+		progress.TotalUsersCount = estimatedUserCount
 	} else {
 		progress.TotalUsersCount = count
 	}
@@ -219,13 +242,13 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 	if count, err := worker.jobServer.Store.FileInfo().CountAll(); err != nil {
 		mlog.Warn("Worker: Failed to fetch total file info count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		progress.TotalFilesCount = EstimatedFilesCount
+		progress.TotalFilesCount = estimatedFilesCount
 	} else {
 		progress.TotalFilesCount = count
 	}
 
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
-	cancelWatcherChan := make(chan interface{}, 1)
+	cancelWatcherChan := make(chan struct{}, 1)
 	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
 
 	defer cancelCancelWatcher()
@@ -246,7 +269,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 			}
 			return
 
-		case <-time.After(TimeBetweenBatches * time.Millisecond):
+		case <-time.After(timeBetweenBatches):
 			var err *model.AppError
 			if progress, err = worker.IndexBatch(progress); err != nil {
 				mlog.Error("Worker: Failed to index batch for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
@@ -255,6 +278,19 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 				}
 				return
 			}
+
+			// Storing the batch progress in metadata.
+			if job.Data == nil {
+				job.Data = make(model.StringMap)
+			}
+
+			job.Data["start_time"] = strconv.FormatInt(progress.LastEntityTime, 10)
+			job.Data["start_post_id"] = progress.LastPostID
+			job.Data["start_channel_id"] = progress.LastChannelID
+			job.Data["start_user_id"] = progress.LastUserID
+			job.Data["start_file_id"] = progress.LastFileID
+			job.Data["original_start_time"] = strconv.FormatInt(progress.StartAtTime, 10)
+			job.Data["end_time"] = strconv.FormatInt(progress.EndAtTime, 10)
 
 			if err := worker.jobServer.SetJobProgress(job, progress.CurrentProgress()); err != nil {
 				mlog.Error("Worker: Failed to set progress for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
@@ -295,17 +331,15 @@ func (worker *BleveIndexerWorker) IndexBatch(progress IndexingProgress) (Indexin
 }
 
 func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
-	endTime := progress.LastEntityTime + int64(*worker.jobServer.Config().BleveSettings.BulkIndexingTimeWindowSeconds*1000)
-
 	var posts []*model.PostForIndexing
 
 	tries := 0
 	for posts == nil {
 		var err error
-		posts, err = worker.jobServer.Store.Post().GetPostsBatchForIndexing(progress.LastEntityTime, endTime, BatchSize)
+		posts, err = worker.jobServer.Store.Post().GetPostsBatchForIndexing(progress.LastEntityTime, progress.LastPostID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
 
@@ -316,40 +350,34 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 		tries++
 	}
 
-	newLastMessageTime, err := worker.BulkIndexPosts(posts, progress)
+	// Handle zero messages.
+	if len(posts) == 0 {
+		progress.DonePosts = true
+		progress.LastEntityTime = progress.StartAtTime
+		return progress, nil
+	}
+
+	lastPost, err := worker.BulkIndexPosts(posts, progress)
 	if err != nil {
 		return progress, err
 	}
 
-	// Due to the "endTime" parameter in the store query, we might get an incomplete batch before the end. In this
-	// case, set the "newLastMessageTime" to the endTime so we don't get stuck running the same query in a loop.
-	if len(posts) < BatchSize {
-		newLastMessageTime = endTime
-	}
-
-	// When to Stop: we index either until we pass a batch of messages where the last
-	// message is created at or after the specified end time when setting up the batch
-	// index, or until two consecutive full batches have the same end time of their final
-	// messages. This second case is safe as long as the assumption that the database
-	// cannot contain more messages with the same CreateAt time than the batch size holds.
-	if progress.EndAtTime <= newLastMessageTime {
-		progress.DonePosts = true
-		progress.LastEntityTime = progress.StartAtTime
-	} else if progress.LastEntityTime == newLastMessageTime && len(posts) == BatchSize {
-		mlog.Warn("More posts with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastMessageTime), mlog.Int("Batch Size", BatchSize))
+	// Our exit condition is when the last post's createAt reaches the initial endAtTime
+	// set during job creation.
+	if progress.EndAtTime <= lastPost.CreateAt {
 		progress.DonePosts = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
-		progress.LastEntityTime = newLastMessageTime
+		progress.LastEntityTime = lastPost.CreateAt
 	}
 
+	progress.LastPostID = lastPost.Id
 	progress.DonePostsCount += int64(len(posts))
 
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, progress IndexingProgress) (int64, *model.AppError) {
-	lastCreateAt := int64(0)
+func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, progress IndexingProgress) (*model.Post, *model.AppError) {
 	batch := worker.engine.PostIndex.NewBatch()
 
 	for _, post := range posts {
@@ -359,31 +387,27 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 		} else {
 			batch.Delete(post.Id)
 		}
-
-		lastCreateAt = post.CreateAt
 	}
 
 	worker.engine.Mutex.RLock()
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.PostIndex.Batch(batch); err != nil {
-		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_posts.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_posts.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return lastCreateAt, nil
+	return &posts[len(posts)-1].Post, nil
 }
 
 func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
-	endTime := progress.LastEntityTime + int64(*worker.jobServer.Config().BleveSettings.BulkIndexingTimeWindowSeconds*1000)
-
 	var files []*model.FileForIndexing
 
 	tries := 0
 	for files == nil {
 		var err error
-		files, err = worker.jobServer.Store.FileInfo().GetFilesBatchForIndexing(progress.LastEntityTime, endTime, BatchSize)
+		files, err = worker.jobServer.Store.FileInfo().GetFilesBatchForIndexing(progress.LastEntityTime, progress.LastFileID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get files batch for indexing. Retrying.", mlog.Err(err))
 
@@ -394,40 +418,33 @@ func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (In
 		tries++
 	}
 
-	newLastFileTime, err := worker.BulkIndexFiles(files, progress)
+	if len(files) == 0 {
+		progress.DoneFiles = true
+		progress.LastEntityTime = progress.StartAtTime
+		return progress, nil
+	}
+
+	lastFile, err := worker.BulkIndexFiles(files, progress)
 	if err != nil {
 		return progress, err
 	}
 
-	// Due to the "endTime" parameter in the store query, we might get an incomplete batch before the end. In this
-	// case, set the "newLastFileTime" to the endTime so we don't get stuck running the same query in a loop.
-	if len(files) < BatchSize {
-		newLastFileTime = endTime
-	}
-
-	// When to Stop: we index either until we pass a batch of messages where the last
-	// message is created at or after the specified end time when setting up the batch
-	// index, or until two consecutive full batches have the same end time of their final
-	// messages. This second case is safe as long as the assumption that the database
-	// cannot contain more messages with the same CreateAt time than the batch size holds.
-	if progress.EndAtTime <= newLastFileTime {
-		progress.DoneFiles = true
-		progress.LastEntityTime = progress.StartAtTime
-	} else if progress.LastEntityTime == newLastFileTime && len(files) == BatchSize {
-		mlog.Warn("More files with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastFileTime), mlog.Int("Batch Size", BatchSize))
+	// Our exit condition is when the last file's createAt reaches the initial endAtTime
+	// set during job creation.
+	if progress.EndAtTime <= lastFile.CreateAt {
 		progress.DoneFiles = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
-		progress.LastEntityTime = newLastFileTime
+		progress.LastEntityTime = lastFile.CreateAt
 	}
 
+	progress.LastFileID = lastFile.Id
 	progress.DoneFilesCount += int64(len(files))
 
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, progress IndexingProgress) (int64, *model.AppError) {
-	lastCreateAt := int64(0)
+func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, progress IndexingProgress) (*model.FileInfo, *model.AppError) {
 	batch := worker.engine.FileIndex.NewBatch()
 
 	for _, file := range files {
@@ -437,31 +454,27 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 		} else {
 			batch.Delete(file.Id)
 		}
-
-		lastCreateAt = file.CreateAt
 	}
 
 	worker.engine.Mutex.RLock()
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.FileIndex.Batch(batch); err != nil {
-		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return lastCreateAt, nil
+	return &files[len(files)-1].FileInfo, nil
 }
 
 func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
-	endTime := progress.LastEntityTime + int64(*worker.jobServer.Config().BleveSettings.BulkIndexingTimeWindowSeconds*1000)
-
 	var channels []*model.Channel
 
 	tries := 0
 	for channels == nil {
 		var nErr error
-		channels, nErr = worker.jobServer.Store.Channel().GetChannelsBatchForIndexing(progress.LastEntityTime, endTime, BatchSize)
+		channels, nErr = worker.jobServer.Store.Channel().GetChannelsBatchForIndexing(progress.LastEntityTime, progress.LastChannelID, *worker.jobServer.Config().BleveSettings.BatchSize)
 		if nErr != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 
 			mlog.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(nErr))
@@ -472,40 +485,33 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 		tries++
 	}
 
-	newLastChannelTime, err := worker.BulkIndexChannels(channels, progress)
+	if len(channels) == 0 {
+		progress.DoneChannels = true
+		progress.LastEntityTime = progress.StartAtTime
+		return progress, nil
+	}
+
+	lastChannel, err := worker.BulkIndexChannels(channels, progress)
 	if err != nil {
 		return progress, err
 	}
 
-	// Due to the "endTime" parameter in the store query, we might get an incomplete batch before the end. In this
-	// case, set the "newLastChannelTime" to the endTime so we don't get stuck running the same query in a loop.
-	if len(channels) < BatchSize {
-		newLastChannelTime = endTime
-	}
-
-	// When to Stop: we index either until we pass a batch of channels where the last
-	// channel is created at or after the specified end time when setting up the batch
-	// index, or until two consecutive full batches have the same end time of their final
-	// channels. This second case is safe as long as the assumption that the database
-	// cannot contain more channels with the same CreateAt time than the batch size holds.
-	if progress.EndAtTime <= newLastChannelTime {
-		progress.DoneChannels = true
-		progress.LastEntityTime = progress.StartAtTime
-	} else if progress.LastEntityTime == newLastChannelTime && len(channels) == BatchSize {
-		mlog.Warn("More channels with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastChannelTime), mlog.Int("Batch Size", BatchSize))
+	// Our exit condition is when the last channel's createAt reaches the initial endAtTime
+	// set during job creation.
+	if progress.EndAtTime <= lastChannel.CreateAt {
 		progress.DoneChannels = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
-		progress.LastEntityTime = newLastChannelTime
+		progress.LastEntityTime = lastChannel.CreateAt
 	}
 
+	progress.LastChannelID = lastChannel.Id
 	progress.DoneChannelsCount += int64(len(channels))
 
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, progress IndexingProgress) (int64, *model.AppError) {
-	lastCreateAt := int64(0)
+func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, progress IndexingProgress) (*model.Channel, *model.AppError) {
 	batch := worker.engine.ChannelIndex.NewBatch()
 
 	for _, channel := range channels {
@@ -515,14 +521,14 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 			if channel.Type == model.ChannelTypePrivate {
 				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMembersById(channel.Id)
 				if err != nil {
-					return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+					return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 			}
 
 			// Get teamMember ids from channelid
 			teamMemberIDs, err := worker.jobServer.Store.Channel().GetTeamMembersForChannel(channel.Id)
 			if err != nil {
-				return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			searchChannel := bleveengine.BLVChannelFromChannel(channel, userIDs, teamMemberIDs)
@@ -530,29 +536,25 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 		} else {
 			batch.Delete(channel.Id)
 		}
-
-		lastCreateAt = channel.CreateAt
 	}
 
 	worker.engine.Mutex.RLock()
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.ChannelIndex.Batch(batch); err != nil {
-		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return lastCreateAt, nil
+	return channels[len(channels)-1], nil
 }
 
 func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
-	endTime := progress.LastEntityTime + int64(*worker.jobServer.Config().BleveSettings.BulkIndexingTimeWindowSeconds*1000)
-
 	var users []*model.UserForIndexing
 
 	tries := 0
 	for users == nil {
-		if usersBatch, err := worker.jobServer.Store.User().GetUsersBatchForIndexing(progress.LastEntityTime, endTime, BatchSize); err != nil {
+		if usersBatch, err := worker.jobServer.Store.User().GetUsersBatchForIndexing(progress.LastEntityTime, progress.LastUserID, *worker.jobServer.Config().BleveSettings.BatchSize); err != nil {
 			if tries >= 10 {
-				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
 
@@ -565,40 +567,32 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 		tries++
 	}
 
-	newLastUserTime, err := worker.BulkIndexUsers(users, progress)
+	if len(users) == 0 {
+		progress.DoneUsers = true
+		progress.LastEntityTime = progress.StartAtTime
+		return progress, nil
+	}
+
+	lastUser, err := worker.BulkIndexUsers(users, progress)
 	if err != nil {
 		return progress, err
 	}
 
-	// Due to the "endTime" parameter in the store query, we might get an incomplete batch before the end. In this
-	// case, set the "newLastUserTime" to the endTime so we don't get stuck running the same query in a loop.
-	if len(users) < BatchSize {
-		newLastUserTime = endTime
-	}
-
-	// When to Stop: we index either until we pass a batch of users where the last
-	// user is created at or after the specified end time when setting up the batch
-	// index, or until two consecutive full batches have the same end time of their final
-	// users. This second case is safe as long as the assumption that the database
-	// cannot contain more users with the same CreateAt time than the batch size holds.
-	if progress.EndAtTime <= newLastUserTime {
-		progress.DoneUsers = true
-		progress.LastEntityTime = progress.StartAtTime
-	} else if progress.LastEntityTime == newLastUserTime && len(users) == BatchSize {
-		mlog.Warn("More users with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastUserTime), mlog.Int("Batch Size", BatchSize))
+	// Our exit condition is when the last user's createAt reaches the initial endAtTime
+	// set during job creation.
+	if progress.EndAtTime <= lastUser.CreateAt {
 		progress.DoneUsers = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
-		progress.LastEntityTime = newLastUserTime
+		progress.LastEntityTime = lastUser.CreateAt
 	}
-
+	progress.LastUserID = lastUser.Id
 	progress.DoneUsersCount += int64(len(users))
 
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, progress IndexingProgress) (int64, *model.AppError) {
-	lastCreateAt := int64(0)
+func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, progress IndexingProgress) (*model.UserForIndexing, *model.AppError) {
 	batch := worker.engine.UserIndex.NewBatch()
 
 	for _, user := range users {
@@ -608,15 +602,13 @@ func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing,
 		} else {
 			batch.Delete(user.Id)
 		}
-
-		lastCreateAt = user.CreateAt
 	}
 
 	worker.engine.Mutex.RLock()
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.UserIndex.Batch(batch); err != nil {
-		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexUsers", "bleveengine.indexer.do_job.bulk_index_users.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("BleveIndexerWorker.BulkIndexUsers", "bleveengine.indexer.do_job.bulk_index_users.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return lastCreateAt, nil
+	return users[len(users)-1], nil
 }

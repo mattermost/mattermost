@@ -41,7 +41,7 @@ func TestAddRemoteCluster(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
 			Name:         "test2",
-			SiteURL:      "http://www2.exmaple.com:8065",
+			SiteURL:      "http://www2.example.com:8065",
 			Token:        model.NewId(),
 			RemoteToken:  model.NewId(),
 			Topics:       "",
@@ -75,7 +75,7 @@ func TestUpdateRemoteCluster(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{
 			RemoteTeamId: model.NewId(),
 			Name:         "test3",
-			SiteURL:      "http://www3.exmaple.com:8065",
+			SiteURL:      "http://www3.example.com:8065",
 			Token:        model.NewId(),
 			RemoteToken:  model.NewId(),
 			Topics:       "",
