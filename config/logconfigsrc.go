@@ -4,11 +4,9 @@
 package config
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -24,23 +22,16 @@ type LogConfigSrc interface {
 	Get() mlog.LoggerConfiguration
 
 	// Set updates the dsn specifying the source and reloads
-	Set(dsn []byte, configStore *Store) (err error)
+	Set(dsn string, configStore *Store) (err error)
 
 	// Close cleans up resources.
 	Close() error
 }
 
-func IsEmptyDSN(dsn json.RawMessage) bool {
-	if len(dsn) == 0 || bytes.Equal(dsn, []byte("{}")) || bytes.Equal(dsn, []byte("\"\"")) {
-		return true
-	}
-	return false
-}
-
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a
-// file, JSON, or database.
-func NewLogConfigSrc(dsn json.RawMessage, configStore *Store) (LogConfigSrc, error) {
-	if len(dsn) == 0 {
+// file, JSON string, or database.
+func NewLogConfigSrc(dsn string, configStore *Store) (LogConfigSrc, error) {
+	if dsn == "" {
 		return nil, errors.New("dsn should not be empty")
 	}
 
@@ -48,28 +39,17 @@ func NewLogConfigSrc(dsn json.RawMessage, configStore *Store) (LogConfigSrc, err
 		return nil, errors.New("configStore should not be nil")
 	}
 
-	// check if embedded JSON
+	dsn = strings.TrimSpace(dsn)
+
 	if isJSONMap(dsn) {
 		return newJSONSrc(dsn)
 	}
 
-	// Now we're treating the DSN as a string which may contain escaped JSON or be a filespec.
-	str := strings.TrimSpace(string(dsn))
-	if s, err := strconv.Unquote(str); err == nil {
-		str = s
-	}
-
-	// check if escaped JSON
-	strBytes := []byte(str)
-	if isJSONMap(strBytes) {
-		return newJSONSrc(strBytes)
-	}
-
+	path := dsn
 	// If this is a file based config we need the full path so it can be watched.
-	path := str
-	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(path) {
+	if strings.HasPrefix(configStore.String(), "file://") && !filepath.IsAbs(dsn) {
 		configPath := strings.TrimPrefix(configStore.String(), "file://")
-		path = filepath.Join(filepath.Dir(configPath), path)
+		path = filepath.Join(filepath.Dir(configPath), dsn)
 	}
 
 	return newFileSrc(path, configStore)
@@ -83,7 +63,7 @@ type jsonSrc struct {
 	cfg   mlog.LoggerConfiguration
 }
 
-func newJSONSrc(data json.RawMessage) (*jsonSrc, error) {
+func newJSONSrc(data string) (*jsonSrc, error) {
 	src := &jsonSrc{}
 	return src, src.Set(data, nil)
 }
@@ -96,8 +76,8 @@ func (src *jsonSrc) Get() mlog.LoggerConfiguration {
 }
 
 // Set updates the JSON specifying the source and reloads
-func (src *jsonSrc) Set(data []byte, _ *Store) error {
-	cfg, err := logTargetCfgFromJSON(data)
+func (src *jsonSrc) Set(data string, _ *Store) error {
+	cfg, err := logTargetCfgFromJSON([]byte(data))
 	if err != nil {
 		return err
 	}
@@ -132,7 +112,7 @@ func newFileSrc(path string, configStore *Store) (*fileSrc, error) {
 	src := &fileSrc{
 		path: path,
 	}
-	if err := src.Set([]byte(path), configStore); err != nil {
+	if err := src.Set(path, configStore); err != nil {
 		return nil, err
 	}
 	return src, nil
@@ -148,8 +128,8 @@ func (src *fileSrc) Get() mlog.LoggerConfiguration {
 // Set updates the dsn specifying the file source and reloads.
 // The file will be watched for changes and reloaded as needed,
 // and all listeners notified.
-func (src *fileSrc) Set(path []byte, configStore *Store) error {
-	data, err := configStore.GetFile(string(path))
+func (src *fileSrc) Set(path string, configStore *Store) error {
+	data, err := configStore.GetFile(path)
 	if err != nil {
 		return err
 	}

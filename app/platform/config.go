@@ -122,14 +122,14 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
 	var err error
+	dsn := *logSettings.AdvancedLoggingConfig
 	var logConfigSrc config.LogConfigSrc
-
-	if !config.IsEmptyDSN(logSettings.AdvancedLoggingConfig) {
-		logConfigSrc, err = config.NewLogConfigSrc(logSettings.AdvancedLoggingConfig, ps.configStore)
+	if dsn != "" {
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, ps.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid config source for %s, %w", name, err)
 		}
-		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", string(logSettings.AdvancedLoggingConfig)))
+		ps.logger.Info("Loaded configuration for "+name, mlog.String("source", dsn))
 	}
 
 	cfg, err := config.MloggerConfigFromLoggerConfig(logSettings, logConfigSrc, getPath)
