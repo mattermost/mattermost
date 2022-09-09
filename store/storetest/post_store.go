@@ -4067,6 +4067,8 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	u2 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u5 := model.User{Email: MakeEmail(), Username: model.NewId()}
+
 	_, err := ss.User().Save(&user)
 	require.NoError(t, err)
 	_, err = ss.User().Save(&u1)
@@ -4077,6 +4079,17 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, err)
 	_, err = ss.User().Save(&u4)
 	require.NoError(t, err)
+	_, err = ss.User().Save(&u5)
+	require.NoError(t, err)
+	bot := &model.Bot{
+		Username:    "bot_user",
+		Description: "bot",
+		OwnerId:     model.NewId(),
+		UserId:      u5.Id,
+	}
+
+	savedBot, nErr := ss.Bot().Save(bot)
+	require.NoError(t, nErr)
 	// user direct messages
 	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
 	require.NoError(t, nErr)
@@ -4087,6 +4100,17 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	// other user direct message
 	chUser3User4, nErr := ss.Channel().CreateDirectChannel(&u3, &u4)
 	require.NoError(t, nErr)
+
+	// bot direct message - should be ignored by top DMs
+	botUser, err := ss.User().Get(context.Background(), savedBot.UserId)
+	require.NoError(t, err)
+	chBot, nErr := ss.Channel().CreateDirectChannel(&user, botUser)
+	require.NoError(t, nErr)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chBot.Id,
+		UserId:    botUser.Id,
+	})
+	require.NoError(t, err)
 
 	// sample post data
 	// for u1
