@@ -8,7 +8,6 @@ import (
 	"context"
 	b64 "encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -896,8 +896,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		mlog.Error("Error getting OAuth user", mlog.Int("response", resp.StatusCode), mlog.String("body_string", bodyString))
 
 		if service == model.ServiceGitlab && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
+			url, err := url.Parse(*sso.UserAPIEndpoint)
+			if err != nil {
+				return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(errors.Wrapf(err, "error parsing %s", *sso.UserAPIEndpoint))
+			}
 			// Return a nicer error when the user hasn't accepted GitLab's terms of service
-			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", nil, "", http.StatusBadRequest)
+			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", map[string]any{"URL": url.Hostname()}, "", http.StatusBadRequest)
 		}
 
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.response.app_error", nil, "response_body="+bodyString, http.StatusInternalServerError)
