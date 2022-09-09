@@ -897,7 +897,6 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 }
 
 func TestGetTopDMsForUserSince(t *testing.T) {
-	t.Skip("MM-46911")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -933,6 +932,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		Username:    GenerateTestUsername(),
 		DisplayName: "a bot",
 		Description: "bot",
+		UserId:      model.NewId(),
 	}
 
 	createdBot, resp, err := th.Client.CreateBot(bot)
