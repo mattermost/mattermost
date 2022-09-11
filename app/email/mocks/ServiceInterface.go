@@ -463,20 +463,20 @@ func (_m *ServiceInterface) SendPasswordResetEmail(_a0 string, token *model.Toke
 	return r0, r1
 }
 
-// SendPaymentFailedEmail provides a mock function with given fields: _a0, locale, failedPayment, siteURL
-func (_m *ServiceInterface) SendPaymentFailedEmail(_a0 string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error) {
-	ret := _m.Called(_a0, locale, failedPayment, siteURL)
+// SendPaymentFailedEmail provides a mock function with given fields: _a0, locale, failedPayment, planName, siteURL
+func (_m *ServiceInterface) SendPaymentFailedEmail(_a0 string, locale string, failedPayment *model.FailedPayment, planName string, siteURL string) (bool, error) {
+	ret := _m.Called(_a0, locale, failedPayment, planName, siteURL)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, string, *model.FailedPayment, string) bool); ok {
-		r0 = rf(_a0, locale, failedPayment, siteURL)
+	if rf, ok := ret.Get(0).(func(string, string, *model.FailedPayment, string, string) bool); ok {
+		r0 = rf(_a0, locale, failedPayment, planName, siteURL)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, *model.FailedPayment, string) error); ok {
-		r1 = rf(_a0, locale, failedPayment, siteURL)
+	if rf, ok := ret.Get(1).(func(string, string, *model.FailedPayment, string, string) error); ok {
+		r1 = rf(_a0, locale, failedPayment, planName, siteURL)
 	} else {
 		r1 = ret.Error(1)
 	}

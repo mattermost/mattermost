@@ -1230,7 +1230,10 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
-		OrderBy("Posts.CreateAt DESC").ToSql()
+		OrderBy("Posts.CreateAt DESC").
+		Limit(1000).
+		ToSql()
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "getPostsSinceCollapsedThreads_ToSql")
 	}
@@ -3019,10 +3022,27 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	var botsFilterExpr string
+	/*
+		Channel.Name is of the format userId1__userId2.
+		Using this, self dms, and bot dms can be filtered.
+	*/
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		botsFilterExpr = `SPLIT_PART(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+		AND SPLIT_PART(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
+		`
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		botsFilterExpr = `SUBSTRING_INDEX(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+		AND SUBSTRING_INDEX(Channels.Name, '__', -1) NOT IN (SELECT UserId FROM Bots)
+		`
+	}
+
 	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
 		Where(sq.And{
 			sq.Expr("Channels.Type = 'D'"),
 			sq.Eq{"cm.UserId": userID},
+			sq.NotEq{"Channels.Name": fmt.Sprintf("%s__%s", userID, userID)},
+			sq.Expr(botsFilterExpr),
 		})
 	var aggregator string
 
@@ -3032,7 +3052,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 		aggregator = "string_agg(distinct cm.UserId, ',') as Participants"
 	}
 
-	topDMsBuilder := s.getQueryBuilder().Select("vch.TotalMsgCount as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
+	topDMsBuilder := s.getQueryBuilder().Select("count(p.Id) as MessageCount", aggregator, "vch.Id as ChannelId").FromSelect(channelSelector, "vch").
 		Join("ChannelMembers as cm on cm.ChannelId = vch.Id").
 		Join("Posts as p on p.ChannelId = vch.Id").
 		Where(sq.And{
@@ -3042,7 +3062,7 @@ func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset 
 			sq.Eq{
 				"p.DeleteAt": 0,
 			},
-		}).GroupBy("vch.id", "vch.TotalMsgCount")
+		}).GroupBy("vch.id")
 
 	topDMsBuilder = topDMsBuilder.OrderBy("MessageCount DESC").Limit(uint64(limit + 1)).Offset(uint64(offset))
 
@@ -3073,15 +3093,12 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, si
 	for _, topDM := range topDMs {
 		participants := strings.Split(topDM.Participants, ",")
 		var secondParticipantId string
-		if len(participants) == 1 {
-			// channel with self
-			secondParticipantId = "-1"
+		// divide message count by 2, because it's counted twice due to channel memberships being 2 for dms.
+		topDM.MessageCount = topDM.MessageCount / 2
+		if participants[0] == userID {
+			secondParticipantId = participants[1]
 		} else {
-			if participants[0] == userID {
-				secondParticipantId = participants[1]
-			} else {
-				secondParticipantId = participants[0]
-			}
+			secondParticipantId = participants[0]
 		}
 		secondParticipantIds = append(secondParticipantIds, secondParticipantId)
 		channelIds = append(channelIds, topDM.ChannelId)
@@ -3135,12 +3152,9 @@ func postProcessTopDMs(s *SqlPostStore, userID string, topDMs []*model.TopDM, si
 
 	for index, topDM := range topDMs {
 		if secondParticipantIds[index] == "-1" {
-			continue
+			return nil, errors.Wrapf(err, "failed to find second user for topDM: %s", userID)
 		}
 		user := usersMap[secondParticipantIds[index]]
-		if user.IsBot {
-			continue
-		}
 		topDM.SecondParticipant = &model.TopDMInsightUserInformation{
 			InsightUserInformation: model.InsightUserInformation{
 				Id:                user.Id,
