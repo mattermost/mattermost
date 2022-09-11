@@ -687,6 +687,7 @@ func (i *hubConnectionIndex) RemoveInactiveConnections() {
 	now := model.GetMillis()
 	for conn := range i.byConnection {
 		if !conn.active && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
+			conn.App.Srv().userService.ReturnSessionToPool(conn.GetSession())
 			i.Remove(conn)
 		}
 	}
