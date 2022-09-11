@@ -1,46 +1,203 @@
 {{define "email_change_verify_body"}}
 <html>
-<body>
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top: 20px; line-height: 1.7; color: #555;">
-    <tr>
-        <td>
-            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 660px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; background: #FFF;">
-                <tr>
-                    <td style="border: 1px solid #ddd;">
-                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400,500,700&amp;display=swap" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        @import url(https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&amp;display=swap);
+    </style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .emailBody {
+            background: #F3F3F3 !important;
+        }
+        .emailBody a {
+            text-decoration: none !important;
+            color: #1C58D9;
+        }
+        @media all and (max-width: 400px) {
+            .emailBody {
+                padding: 0px !important;
+            }
+        }
+        @media all and (max-width: 540px) and (min-width: 401px) {
+            .emailBody {
+                padding: 16px !important;
+            }
+        }
+        @media all and (min-width: 541px) {
+            .emailBody {
+                padding: 32px !important;
+            }
+        }
+        .mj-outlook-group-fix { width:100% !important; }
+    </style>
+    <style media="screen and (min-width:480px)">
+        .mj-column-per-100 {
+            width: 100% !important;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body style="word-spacing:normal;">
+<div class="emailBody" style="background: #F3F3F3;">
+    <div style="background:#FFFFFF;margin:0px auto;border-radius:8px;max-width:600px;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FFFFFF;width:100%;border-radius:8px;">
+            <tbody>
+            <tr>
+                <td style="direction:ltr;font-size:0px;padding:24px;text-align:center;">
+                    <div style="margin:0px auto;max-width:552px;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                            <tbody>
                             <tr>
-                                <td style="padding: 20px 20px 10px; text-align:left;">
-                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" width="130px" style="opacity: 0.5" alt="">
+                                <td style="direction:ltr;font-size:0px;padding:0px 0px 40px 0px;text-align:center;">
+                                    <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                                            <tbody>
+                                            <tr>
+                                                <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
+                                                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                                        <tbody>
+                                                        <tr>
+                                                            <td style="width:132px;">
+                                                                <img alt height="21" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" style="border:0;display:block;outline:none;text-decoration:none;height:21.76px;width:100%;font-size:13px;" width="132">
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
-                                        <tr>
-                                            <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 10px;">{{.Props.Title}}</h2>
-                                                <p>{{.Props.Info}}</p>
-                                                <p style="margin: 20px 0 15px">
-                                                    <a href="{{.Props.VerifyUrl}}" style="background: #2389D7; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 200px; padding: 15px 25px; font-size: 14px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">{{.Props.VerifyButton}}</a>
-                                                </p>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            {{template "email_info" . }}
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                {{template "email_footer" . }}
-                            </tr>
+                            </tbody>
                         </table>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
+                    </div>
+                    <div style="margin:0px auto;max-width:552px;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                            <tbody>
+                            <tr>
+                                <td style="direction:ltr;font-size:0px;padding:0px 24px 40px 24px;text-align:center;">
+                                    <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                            <tbody>
+                                            <tr>
+                                                <td align="center" class="title" style="font-size:0px;padding:0px;word-break:break-word;">
+                                                    <h2 style="text-align: center; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: Open Sans, sans-serif; margin: 20px 0 16px;">{{.Props.Title}}</h2>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center" class="subTitle" style="font-size:0px;padding:16px 24px 0px 24px;word-break:break-word;">
+                                                    <h5 style="font-family: Open Sans, sans-serif; text-align: center; font-size: 16px; font-weight: 400; line-height: 24px; color: #3F4350">{{.Props.Info}}</h5>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center" vertical-align="middle" class="button" style="font-size:0px;padding:0px;word-break:break-word;">
+                                                    <div style="margin-top: 16px;">
+                                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                                            <tr>
+                                                                <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
+                                                                    <a href="{{.Props.VerifyUrl}}" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 600; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                                                        {{.Props.VerifyButton}}
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin:0px auto;max-width:552px;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                            <tbody>
+                            <tr>
+                                <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                                    <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                            <tbody>
+                                            <tr>
+                                                <td align="center" style="font-size:0px;padding:0px;word-break:break-word;">
+                                                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                                        <tbody>
+                                                        <tr>
+                                                            <td style="width:320px;">
+                                                                <img alt height="auto" src="{{.Props.SiteURL}}/static/images/welcome_illustration_new.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin:0px auto;max-width:552px;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                            <tbody>
+                            <tr>
+                                <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                                    <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                                            <tbody>
+                                            <tr>
+                                                <td align="center" class="info" style="font-size:0px;padding:0px;word-break:break-word;">
+                                                    <p style="font-family: 'Open Sans';font-style: normal;font-weight: 600;font-size: 16px; line-height: 24px; margin-top: 56px; margin-bottom: 2px; color: #3F4350;">{{.Props.QuestionTitle}}</p>
+                                                    <p style="font-family: 'Open Sans';font-style: normal;font-weight: 400;font-size: 14px;line-height: 20px;margin-top: 2px; color: #3F4350;">{{.Props.EmailInfo1}}<a href='mailto:{{.Props.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.Props.SupportEmail}}</a></p>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin:0px auto;max-width:552px;">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                            <tbody>
+                            <tr>
+                                <td style="direction:ltr;font-size:0px;padding:0px;text-align:center;">
+                                    <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                                        <table border="0" cellpadding="0" cellspacing="0"  role="presentation" style="vertical-align:top;" width="100%">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="text-align: center;color: #AAA; font-size: 11px;">
+                                                        <p style="padding: 40px 50px 38px;">
+                                                            {{.Props.FooterV2}}
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 </body>
 </html>
 {{end}}
