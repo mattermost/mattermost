@@ -1670,7 +1670,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
 	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	count := 0
@@ -1697,7 +1697,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
 	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	for _, p := range posts {
@@ -1714,25 +1714,25 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
-func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model.Post) (int, int, *model.AppError) {
+func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model.Post) (int, int, int, *model.AppError) {
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
 	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
-		count, countRoot, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		count, countRoot, urgentCount, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
-			return 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
-		return count, countRoot, nil
+		return count, countRoot, urgentCount, nil
 	}
 
 	channelMember, err := a.GetChannelMember(c, channel.Id, user.Id)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
 	keywords := addMentionKeywordsForUser(
@@ -1750,15 +1750,19 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 
 	thread, err := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, 0, err
 	}
 
 	count := 0
 	countRoot := 0
+	urgentCount := 0
 	if isPostMention(user, post, keywords, thread.Posts, mentionedByThread, checkForCommentMentions) {
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
+			if post.GetProp(model.PostPropsPriority) == model.PostPropsPriorityUrgent {
+				urgentCount += 1
+			}
 		}
 	}
 
@@ -1772,7 +1776,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			PerPage:   perPage,
 		})
 		if err != nil {
-			return 0, 0, err
+			return 0, 0, 0, err
 		}
 
 		for _, postID := range postList.Order {
@@ -1780,6 +1784,10 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				count += 1
 				if postList.Posts[postID].RootId == "" {
 					countRoot += 1
+
+					if postList.Posts[postID].GetProp(model.PostPropsPriority) == model.PostPropsPriorityUrgent {
+						urgentCount += 1
+					}
 				}
 			}
 		}
@@ -1791,7 +1799,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		page += 1
 	}
 
-	return count, countRoot, nil
+	return count, countRoot, urgentCount, nil
 }
 
 func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]*model.Post, mentionedByThread map[string]bool) bool {

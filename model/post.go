@@ -70,6 +70,9 @@ const (
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 
 	PostPropsPreviewedPost = "previewed_post"
+
+	PostPropsPriority       = "priority"
+	PostPropsPriorityUrgent = "urgent"
 )
 
 const (

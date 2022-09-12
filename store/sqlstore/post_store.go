@@ -2960,16 +2960,26 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return err
 			}
+			var priority string
+			if s.DriverName() == model.DatabaseDriverMysql {
+				err = transaction.Get(&priority, "SELECT COALESCE(JSON_EXTRACT(Props, '$.priority'), '') FROM Posts WHERE Posts.Id=?", rootId)
+			} else if s.DriverName() == model.DatabaseDriverPostgres {
+				err = transaction.Get(&priority, "SELECT COALESCE(Props ->> 'priority', '') FROM Posts WHERE Posts.Id=?", rootId)
+			}
+			if err != nil {
+				return err
+			}
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants)
+				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, IsUrgent)
 				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants)`, &model.Thread{
+				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :IsUrgent)`, &model.Thread{
 				PostId:       rootId,
 				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
+				IsUrgent:     priority == model.PostPropsPriorityUrgent,
 			}); err != nil {
 				return err
 			}

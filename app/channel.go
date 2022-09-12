@@ -2589,12 +2589,12 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 		return nil, err
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(c, user, post)
+	unreadMentions, unreadMentionsRoot, urgentMentions, err := a.countMentionsFromPost(c, user, post)
 	if err != nil {
 		return nil, err
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, urgentMentions, true)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -2621,7 +2621,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, appErr := a.countMentionsFromPost(c, user, post)
+	unreadMentions, unreadMentionsRoot, urgentMentions, appErr := a.countMentionsFromPost(c, user, post)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2630,7 +2630,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	// In CRT Supported Client: badge on channel only sums mentions in root posts including and below the post that was marked.
 	// In CRT Unsupported Client: badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
 	if post.RootId == "" {
-		channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
+		channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, urgentMentions, true)
 		if nErr != nil {
 			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -2704,7 +2704,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		}
 	}
 
-	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false)
+	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, 0, false)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -2721,6 +2721,7 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 	}
 	message.Add("mention_count", channelUnread.MentionCount)
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
+	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)

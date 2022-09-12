@@ -364,6 +364,27 @@ func (_m *ThreadStore) GetTotalUnreadThreads(userId string, teamID string, opts 
 	return r0, r1
 }
 
+// GetTotalUnreadUrgentMentions provides a mock function with given fields: userId, teamID, opts
+func (_m *ThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	ret := _m.Called(userId, teamID, opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) int64); ok {
+		r0 = rf(userId, teamID, opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MaintainMembership provides a mock function with given fields: userID, postID, opts
 func (_m *ThreadStore) MaintainMembership(userID string, postID string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
 	ret := _m.Called(userID, postID, opts)

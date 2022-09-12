@@ -684,7 +684,7 @@ func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userID string, te
 	return err
 }
 
-func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
+func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CountPostsAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -693,13 +693,13 @@ func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelID string, timesta
 	}()
 
 	defer span.Finish()
-	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
+	result, resultVar1, resultVar2, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, resultVar1, err
+	return result, resultVar1, resultVar2, err
 }
 
 func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
@@ -1867,7 +1867,7 @@ func (s *OpenTracingLayerChannelStore) GroupSyncedChannelCount() (int64, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error {
+func (s *OpenTracingLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool, isUrgent bool) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.IncrementMentionCount")
 	s.Root.Store.SetContext(newCtx)
@@ -1876,7 +1876,7 @@ func (s *OpenTracingLayerChannelStore) IncrementMentionCount(channelID string, u
 	}()
 
 	defer span.Finish()
-	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot)
+	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot, isUrgent)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2439,7 +2439,7 @@ func (s *OpenTracingLayerChannelStore) UpdateLastViewedAt(channelIds []string, u
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
+func (s *OpenTracingLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateLastViewedAtPost")
 	s.Root.Store.SetContext(newCtx)
@@ -2448,7 +2448,7 @@ func (s *OpenTracingLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
+	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -9972,6 +9972,24 @@ func (s *OpenTracingLayerThreadStore) GetTotalUnreadThreads(userId string, teamI
 
 	defer span.Finish()
 	result, err := s.ThreadStore.GetTotalUnreadThreads(userId, teamID, opts)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetTotalUnreadUrgentMentions")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetTotalUnreadUrgentMentions(userId, teamID, opts)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

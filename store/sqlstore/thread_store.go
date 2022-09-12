@@ -61,6 +61,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
+			"Threads.IsUrgent",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
 		).
 		From("Threads")
@@ -177,6 +178,42 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	return totalUnreadMentions, nil
 }
 
+// GetTotalUnreadUrgentMentions counts the number of unread mentions for the given user, optionally
+// constrained to the given team + DMs/GMs.
+func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
+	var totalUnreadUrgentMentions int64
+
+	query := s.getQueryBuilder().
+		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+		From("ThreadMemberships").
+		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Where(sq.Eq{
+			"ThreadMemberships.UserId":    userId,
+			"ThreadMemberships.Following": true,
+			"Threads.IsUrgent":            true,
+		})
+
+	if teamId != "" {
+		query = query.
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			Where(sq.Or{
+				sq.Eq{"Channels.TeamId": teamId},
+				sq.Eq{"Channels.TeamId": ""},
+			})
+	}
+
+	if !opts.Deleted {
+		query = query.Where(sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0})
+	}
+
+	err := s.GetReplicaX().GetBuilder(&totalUnreadUrgentMentions, query)
+	if err != nil {
+		return 0, errors.Wrapf(err, "failed to count unread urgent mentions for user id=%s", userId)
+	}
+
+	return totalUnreadUrgentMentions, nil
+}
+
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
@@ -190,6 +227,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		LastViewedAt   int64
 		UnreadReplies  int64
 		UnreadMentions int64
+		IsUrgent       bool
 		Participants   model.StringArray
 		ThreadDeleteAt int64
 		model.Post
@@ -307,6 +345,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LastViewedAt:   thread.LastViewedAt,
 			UnreadReplies:  thread.UnreadReplies,
 			UnreadMentions: thread.UnreadMentions,
+			IsUrgent:       thread.IsUrgent,
 			Participants:   threadParticipants,
 			Post:           thread.Post.ToNilIfInvalid(),
 			DeleteAt:       thread.ThreadDeleteAt,
@@ -334,6 +373,10 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		TeamId string
 	}{}
 	unreadMentions := []struct {
+		Count  int64
+		TeamId string
+	}{}
+	unreadUrgentMentions := []struct {
 		Count  int64
 		TeamId string
 	}{}
@@ -376,6 +419,24 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		}
 	}()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		urgentMentionsQuery := s.getQueryBuilder().
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			Where(fetchConditions).
+			Where(sq.Eq{"Threads.IsUrgent": true}).
+			GroupBy("Channels.TeamId")
+
+		err := s.GetReplicaX().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery)
+		if err != nil {
+			err2 = errors.Wrap(err, "failed to get total unread urgent mentions")
+		}
+	}()
+
 	// Wait for them to be over
 	wg.Wait()
 
@@ -400,6 +461,15 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		} else {
 			res[item.TeamId] = &model.TeamUnread{
 				ThreadMentionCount: item.Count,
+			}
+		}
+	}
+	for _, item := range unreadUrgentMentions {
+		if _, ok := res[item.TeamId]; ok {
+			res[item.TeamId].ThreadUrgentMentionCount = item.Count
+		} else {
+			res[item.TeamId] = &model.TeamUnread{
+				ThreadUrgentMentionCount: item.Count,
 			}
 		}
 	}
@@ -447,6 +517,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt   int64
 		UnreadReplies  int64
 		UnreadMentions int64
+		IsUrgent       bool
 		Participants   model.StringArray
 		ThreadDeleteAt int64
 		model.Post
@@ -1015,7 +1086,7 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	var args []any
 
 	// gets all threads within the team which user follows.
-	query := `select 
+	query := `select
 		threads_list.PostId,
 		threads_list.ReplyCount,
 		threads_list.ChannelId,

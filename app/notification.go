@@ -305,7 +305,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
 
-	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", post.GetProp(model.PostPropsPriority) == model.PostPropsPriorityUrgent)
 	if nErr != nil {
 		mlog.Warn(
 			"Failed to update mention count",

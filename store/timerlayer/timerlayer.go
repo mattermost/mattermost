@@ -655,10 +655,10 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
-func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
+func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
+	result, resultVar1, resultVar2, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -668,7 +668,7 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountPostsAfter", success, elapsed)
 	}
-	return result, resultVar1, err
+	return result, resultVar1, resultVar2, err
 }
 
 func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
@@ -1711,10 +1711,10 @@ func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error {
+func (s *TimerLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool, isUrgent bool) error {
 	start := time.Now()
 
-	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot)
+	err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot, isUrgent)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -2248,10 +2248,10 @@ func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userID 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
+func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
+	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8973,6 +8973,22 @@ func (s *TimerLayerThreadStore) GetTotalUnreadThreads(userId string, teamID stri
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadThreads", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTotalUnreadUrgentMentions(userId, teamID, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTotalUnreadUrgentMentions", success, elapsed)
 	}
 	return result, err
 }

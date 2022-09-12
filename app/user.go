@@ -2408,6 +2408,16 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 			return nil
 		})
+
+		eg.Go(func() error {
+			totalUnreadUrgentMentions, err := a.Srv().Store.Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
+			if err != nil {
+				return errors.Wrapf(err, "failed to count urgent mentioned threads for user id=%s", userID)
+			}
+			result.TotalUnreadUrgentMentions = totalUnreadUrgentMentions
+
+			return nil
+		})
 	}
 
 	if !options.TotalsOnly {

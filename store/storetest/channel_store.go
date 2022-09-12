@@ -4701,19 +4701,19 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, userId1)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, userId1)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
@@ -4738,11 +4738,11 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 0, count)
 	})
@@ -4799,19 +4799,19 @@ func testCountPostsAfter(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		count, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
+		count, _, _, err := ss.Channel().CountPostsAfter(channelId, p1.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 3, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p1.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt-1, "")
 		require.NoError(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
+		count, _, _, err = ss.Channel().CountPostsAfter(channelId, p5.CreateAt, "")
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})
@@ -4896,16 +4896,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{m1.UserId}, false, false)
 	require.NoError(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false)
+	err = ss.Channel().IncrementMentionCount("missing id", []string{"missing id"}, false, false)
 	require.NoError(t, err, "failed to update")
 }
 

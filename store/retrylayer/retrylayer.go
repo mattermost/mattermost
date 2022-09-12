@@ -741,21 +741,21 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 
 }
 
-func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
+func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error) {
 
 	tries := 0
 	for {
-		result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
+		result, resultVar1, resultVar2, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
 		if err == nil {
-			return result, resultVar1, nil
+			return result, resultVar1, resultVar2, nil
 		}
 		if !isRepeatableError(err) {
-			return result, resultVar1, err
+			return result, resultVar1, resultVar2, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, resultVar1, err
+			return result, resultVar1, resultVar2, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -2112,11 +2112,11 @@ func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 
 }
 
-func (s *RetryLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error {
+func (s *RetryLayerChannelStore) IncrementMentionCount(channelID string, userIDs []string, isRoot bool, isUrgent bool) error {
 
 	tries := 0
 	for {
-		err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot)
+		err := s.ChannelStore.IncrementMentionCount(channelID, userIDs, isRoot, isUrgent)
 		if err == nil {
 			return nil
 		}
@@ -2706,11 +2706,11 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAt(channelIds []string, userID 
 
 }
 
-func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
+func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, mentionCountRoot int, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, setUnreadCountRoot)
+		result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, mentionCountRoot, urgentMentionCount, setUnreadCountRoot)
 		if err == nil {
 			return result, nil
 		}
@@ -11396,6 +11396,27 @@ func (s *RetryLayerThreadStore) GetTotalUnreadThreads(userId string, teamID stri
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetTotalUnreadThreads(userId, teamID, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetTotalUnreadUrgentMentions(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetTotalUnreadUrgentMentions(userId, teamID, opts)
 		if err == nil {
 			return result, nil
 		}

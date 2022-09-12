@@ -239,9 +239,9 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userID string) error
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
-	IncrementMentionCount(channelID string, userIDs []string, isRoot bool) error
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
+	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error)
+	IncrementMentionCount(channelID string, userIDs []string, isRoot, isUrgent bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
 	GetTeamMembersForChannel(channelID string) ([]string, error)
@@ -321,6 +321,7 @@ type ThreadStore interface {
 	GetTotalUnreadThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalUnreadMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
+	GetTotalUnreadUrgentMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
