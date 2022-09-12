@@ -203,6 +203,7 @@ type SidebarCategory {
 	collapsed: Boolean!
 	teamId: String!
 	channelIds: [String!]!
+	sortOrder: Float!
 }
 
 # Deliberately leaving out teamMembers.
