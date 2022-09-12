@@ -78,15 +78,16 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.Logger.Error("call to removeLicense")
 	auditRec := c.MakeAuditRecord("localRemoveLicense", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
-
+	c.Logger.Error("removeLicense, audit log recorded")
 	if err := c.App.Srv().RemoveLicense(); err != nil {
 		c.Err = err
 		return
 	}
-
+	c.Logger.Error("removeLicense, succeeded")
 	auditRec.Success()
 	c.LogAudit("success")
 
