@@ -7672,10 +7672,6 @@
     "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Los het nu op"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Een of meer van de volgende rechten die je probeert toe te voegen of te verwijderen zijn niet toegestaan"
   },

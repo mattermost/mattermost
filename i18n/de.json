@@ -8027,10 +8027,6 @@
     "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Jetzt beheben"
-  },
-  {
     "id": "api.upload.upload_data.multipart_error",
     "translation": "Verarbeitung der Multipart-Daten fehlgeschlagen."
   },

@@ -5020,10 +5020,6 @@
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
     "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },

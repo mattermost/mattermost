@@ -8168,10 +8168,6 @@
     "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Napraw teraz"
-  },
-  {
     "id": "store.sql_file_info.search.disabled",
     "translation": "Wyszukiwanie plików zostało wyłączone na tym serwerze. Skontaktuj się z Administratorem Systemu."
   },

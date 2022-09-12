@@ -7636,10 +7636,6 @@
     "translation": "Kullanıcı konuları alınamadı"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Şimdi düzelt"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },
