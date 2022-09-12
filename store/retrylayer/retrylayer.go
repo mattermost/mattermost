@@ -12660,11 +12660,11 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 
 }
 
-func (s *RetryLayerUserStore) GetUnreadCount(userID string) (int64, error) {
+func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUnreadCount(userID)
+		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 		if err == nil {
 			return result, nil
 		}

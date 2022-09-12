@@ -6592,6 +6592,10 @@
     "translation": "We encountered an error finding the account."
   },
   {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We could not get the badge count for the user."
+  },
+  {
     "id": "app.user.get_by_auth.missing_account.app_error",
     "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
