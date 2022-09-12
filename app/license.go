@@ -137,7 +137,7 @@ func (s *Server) LoadLicense() {
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.platform.Config().ServiceSettings.LicenseFileLocation)
-
+		mlog.Error("Loaded license from disk", mlog.Err(fmt.Errorf("License: %+v, licenseString: %s", license, string(licenseBytes))))
 		if license != nil {
 			if _, err := s.SaveLicense(licenseBytes); err != nil {
 				mlog.Error("Failed to save license key loaded from disk.", mlog.Err(err))
