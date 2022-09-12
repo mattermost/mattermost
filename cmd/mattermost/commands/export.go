@@ -71,9 +71,13 @@ func init() {
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int("batchSize", -1, "The number of posts to export.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int("batchSize", -1, "The number of posts to export.")
+
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int("batchSize", -1, "The number of posts to export.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
@@ -164,11 +168,16 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
+		batchSize, err := command.Flags().GetInt("batchSize")
+		if err != nil {
+			return errors.New("batchSize flag error")
+		}
+
 		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, batchSize)
 		if appErr != nil {
 			return appErr
 		}
