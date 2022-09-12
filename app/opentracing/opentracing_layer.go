@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -1017,7 +1018,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, zipWriter io.Writer, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -1029,7 +1030,7 @@ func (a *OpenTracingAppLayer) BulkExport(ctx request.CTX, writer io.Writer, logW
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(ctx, writer, logWriter, outPath, opts)
+	resultVar0 := a.app.BulkExport(ctx, zipWriter, logWriter, outPath, opts)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -4064,7 +4065,7 @@ func (a *OpenTracingAppLayer) ExecuteCommand(c request.CTX, args *model.CommandA
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ExportAttachments(attachment *app.AttachmentImportData, outPath string, zipWr *zip.Writer) (*app.LogFormat, *model.AppError) {
+func (a *OpenTracingAppLayer) ExportAttachments(attachment *imports.AttachmentImportData, outPath string, zipWr *zip.Writer) (*imports.LogFormat, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAttachments")
 

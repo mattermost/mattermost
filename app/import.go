@@ -52,7 +52,7 @@ func processAttachmentPaths(files []*imports.AttachmentImportData, basePath stri
 			*f.Path = path
 			if len(filesMap) > 0 {
 				if files[i].Data, ok = filesMap[path]; !ok {
-					mlog.Warn(fmt.Sprintf("attachment %s not found and will not be imported", path))
+					mlog.Warn("Attachment not found and will not be imported", mlog.String("attachmentPath", path))
 					continue
 				}
 			}

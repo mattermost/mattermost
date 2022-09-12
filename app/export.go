@@ -7,7 +7,6 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -95,7 +94,7 @@ func (a *App) ExportAttachments(attachment *imports.AttachmentImportData, outPat
 
 	if !exists {
 		data := GetMissingAttachmentInfo(attachment)
-		mlog.Warn(fmt.Sprintf("attachment %s not found and will not be exported", *attachment.Path))
+		mlog.Warn("Attachment not found and will not be exported", mlog.String("attachmentPath", *attachment.Path))
 		return data, nil
 	}
 
@@ -106,13 +105,13 @@ func (a *App) ExportAttachments(attachment *imports.AttachmentImportData, outPat
 	return nil, nil
 }
 
-func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
+func (a *App) BulkExport(ctx request.CTX, zipWriter, logWriter io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError {
 	var zipWr *zip.Writer
 	if opts.CreateArchive {
 		var err error
-		zipWr = zip.NewWriter(writer)
+		zipWr = zip.NewWriter(zipWriter)
 		defer zipWr.Close()
-		writer, err = zipWr.Create("import.jsonl")
+		zipWriter, err = zipWr.Create("import.jsonl")
 		if err != nil {
 			return model.NewAppError("BulkExport", "app.export.zip_create.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -120,45 +119,45 @@ func (a *App) BulkExport(ctx request.CTX, writer, logWriter io.Writer, outPath s
 	}
 
 	ctx.Logger().Info("Bulk export: exporting version")
-	if err := a.exportVersion(writer); err != nil {
+	if err := a.exportVersion(zipWriter); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting teams")
-	teamNames, err := a.exportAllTeams(writer)
+	teamNames, err := a.exportAllTeams(zipWriter)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(writer, teamNames); err != nil {
+	if err = a.exportAllChannels(zipWriter, teamNames); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(writer); err != nil {
+	if err = a.exportAllUsers(zipWriter); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(ctx, zipWriter, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiList, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiList, err := a.exportCustomEmoji(zipWriter, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(writer); err != nil {
+	if err = a.exportAllDirectChannels(zipWriter); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, writer, opts.IncludeAttachments)
+	directAttachments, err := a.exportAllDirectPosts(ctx, zipWriter, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
