@@ -630,6 +630,8 @@ func (i *hubConnectionIndex) Add(wc *WebConn) {
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
+	wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
+
 	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
@@ -687,7 +689,6 @@ func (i *hubConnectionIndex) RemoveInactiveConnections() {
 	now := model.GetMillis()
 	for conn := range i.byConnection {
 		if !conn.active && now-conn.lastUserActivityAt > i.staleThreshold.Milliseconds() {
-			conn.App.Srv().userService.ReturnSessionToPool(conn.GetSession())
 			i.Remove(conn)
 		}
 	}
