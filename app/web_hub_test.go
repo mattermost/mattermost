@@ -353,26 +353,36 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 }
 
 func TestHubConnIndexInactive(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
 	connIndex := newHubConnectionIndex(2 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
+		App:    th.App,
 		UserId: model.NewId(),
 		active: true,
 	}
 	wc1.SetConnectionID("conn1")
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
+		App:    th.App,
 		UserId: model.NewId(),
 		active: true,
 	}
 	wc2.SetConnectionID("conn2")
+	wc2.SetSession(&model.Session{})
+
 	wc3 := &WebConn{
+		App:    th.App,
 		UserId: wc2.UserId,
 		active: false,
 	}
 	wc3.SetConnectionID("conn3")
+	wc3.SetSession(&model.Session{})
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
