@@ -31,10 +31,10 @@ RUN apt-get update \
   ucf=3.0038+nmu1 \
   openssl=1.1.1n-0+deb10u3 \
   libkeyutils1=1.6-6 \
-  libkrb5support0=1.17-3+deb10u3 \
-  libk5crypto3=1.17-3+deb10u3 \
-  libkrb5-3=1.17-3+deb10u3 \
-  libgssapi-krb5-2=1.17-3+deb10u3 \
+  libkrb5support0=1.17-3+deb10u4 \
+  libk5crypto3=1.17-3+deb10u4 \
+  libkrb5-3=1.17-3+deb10u4 \
+  libgssapi-krb5-2=1.17-3+deb10u4 \
   libnghttp2-14=1.36.0-2+deb10u1 \
   libpsl5=0.20.2-2 \
   librtmp1=2.4+20151223.gitfa8646d.1-2 \
