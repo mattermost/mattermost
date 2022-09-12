@@ -6592,6 +6592,10 @@
     "translation": "We encountered an error finding the account."
   },
   {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We could not get the badge count for the user."
+  },
+  {
     "id": "app.user.get_by_auth.missing_account.app_error",
     "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
@@ -7689,7 +7693,7 @@
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": ""
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
