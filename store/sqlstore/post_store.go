@@ -1230,7 +1230,10 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
-		OrderBy("Posts.CreateAt DESC").ToSql()
+		OrderBy("Posts.CreateAt DESC").
+		Limit(1000).
+		ToSql()
+
 	if err != nil {
 		return nil, errors.Wrapf(err, "getPostsSinceCollapsedThreads_ToSql")
 	}
@@ -2996,21 +2999,21 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 }
 
 func (s *SqlPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
-	var botsFilterExpr, stringSplitKeyword string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		stringSplitKeyword = "split_part"
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		stringSplitKeyword = "SUBSTRING_INDEX"
-	}
-
+	var botsFilterExpr string
 	/*
 		Channel.Name is of the format userId1__userId2.
 		Using this, self dms, and bot dms can be filtered.
 	*/
-	botsFilterExpr = fmt.Sprintf(`
-		%s(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
-		AND %s(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
-	`, stringSplitKeyword, stringSplitKeyword)
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		botsFilterExpr = `SPLIT_PART(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+		AND SPLIT_PART(Channels.Name, '__', 2) NOT IN (SELECT UserId FROM Bots)
+		`
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		botsFilterExpr = `SUBSTRING_INDEX(Channels.Name, '__', 1) NOT IN (SELECT UserId FROM Bots)
+		AND SUBSTRING_INDEX(Channels.Name, '__', -1) NOT IN (SELECT UserId FROM Bots)
+		`
+	}
+
 	channelSelector := s.getQueryBuilder().Select("Id", "TotalMsgCount").From("Channels").Join("ChannelMembers as cm on cm.ChannelId = Channels.Id").
 		Where(sq.And{
 			sq.Expr("Channels.Type = 'D'"),

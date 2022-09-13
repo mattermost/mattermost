@@ -142,7 +142,7 @@ type ServiceInterface interface {
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
-	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error)
+	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error)
 	// Cloud delinquency email sequence
 	SendDelinquencyEmail7(email, locale, siteURL, planName string) error
 	SendDelinquencyEmail14(email, locale, siteURL, planName string) error
