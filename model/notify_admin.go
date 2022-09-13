@@ -22,7 +22,7 @@ const (
 	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeature("mattermost.feature.unlimited_board_cards")
 	PaidFeatureAllProfessionalfeatures = MattermostPaidFeature("mattermost.feature.all_professional")
 	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("mattermost.feature.all_enterprise")
-	UpgradeDowngradeWorkspace          = MattermostPaidFeature("mattermost.feature.upgrade_downgrade_workspace")
+	UpgradeDowngradedWorkspace          = MattermostPaidFeature("mattermost.feature.upgrade_downgraded_workspace")
 )
 
 var validSKUs map[string]struct{} = map[string]struct{}{
