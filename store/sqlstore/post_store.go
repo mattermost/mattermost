@@ -2966,7 +2966,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			} else if s.DriverName() == model.DatabaseDriverPostgres {
 				err = transaction.Get(&priority, "SELECT COALESCE(Props ->> 'priority', '') FROM Posts WHERE Posts.Id=?", rootId)
 			}
-			if err != nil {
+			if err != nil && err != sql.ErrNoRows {
 				return err
 			}
 			// no metadata entry, create one
