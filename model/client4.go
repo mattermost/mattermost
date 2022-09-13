@@ -3643,6 +3643,41 @@ func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, pa
 	return topChannels, BuildResponse(r), nil
 }
 
+// GetTopInactiveChannelsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopInactiveChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/inactive_channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topInactiveChannels *TopInactiveChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopInactiveChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topInactiveChannels, BuildResponse(r), nil
+}
+
+// GetTopInactiveChannelsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopInactiveChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/inactive_channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topInactiveChannels *TopInactiveChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopInactiveChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topInactiveChannels, BuildResponse(r), nil
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
@@ -7986,20 +8021,36 @@ func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 	nrJSON, err := json.Marshal(nr)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
+	r, err := c.DoAPIPost("/users/notify-admin", string(nrJSON))
 	if err != nil {
-		return r.StatusCode
+		return r.StatusCode, err
 	}
 
 	closeBody(r)
 
-	return r.StatusCode
+	return r.StatusCode, nil
+}
+
+func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
+	nrJSON, err := json.Marshal(nr)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := c.DoAPIPost("/users/trigger-notify-admin-posts", string(nrJSON))
+	if err != nil {
+		return r.StatusCode, err
+	}
+
+	closeBody(r)
+
+	return r.StatusCode, nil
 }
 
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {

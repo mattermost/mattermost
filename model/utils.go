@@ -33,6 +33,7 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
 )
 
 type StringInterface map[string]any
@@ -187,6 +188,10 @@ func (si StringInterface) Value() (driver.Value, error) {
 
 func (StringInterface) ImplementsGraphQLType(name string) bool {
 	return name == "StringInterface"
+}
+
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
 }
 
 func (si *StringInterface) UnmarshalGraphQL(input any) error {

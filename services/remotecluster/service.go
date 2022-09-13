@@ -46,7 +46,7 @@ type ServerIface interface {
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
-	GetLogger() mlog.LoggerIFace
+	Log() *mlog.Logger
 	GetMetrics() einterfaces.MetricsInterface
 }
 
@@ -244,7 +244,7 @@ func (rcs *Service) resume() {
 		go rcs.sendLoop(i, rcs.done)
 	}
 
-	rcs.server.GetLogger().Debug("Remote Cluster Service active")
+	rcs.server.Log().Debug("Remote Cluster Service active")
 }
 
 func (rcs *Service) pause() {
@@ -258,5 +258,5 @@ func (rcs *Service) pause() {
 	close(rcs.done)
 	rcs.done = nil
 
-	rcs.server.GetLogger().Debug("Remote Cluster Service inactive")
+	rcs.server.Log().Debug("Remote Cluster Service inactive")
 }

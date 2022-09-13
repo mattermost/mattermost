@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "No se puede encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": "No se puede encontrar los usuarios: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1080,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1352,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": "{{.Count}} archivos enviados: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": "{{.Count}} imágenes enviadas: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -5952,10 +5952,6 @@
     "translation": "No se puede obtener el mensaje pendiente."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "No se puede cargar el archivo. ID de canal incorrecto: {{.channelId}}"
   },
@@ -7592,10 +7588,6 @@
     "translation": "error al insertar"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Incapaz de ordenar la respuesta."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "el miembro del grupo ya existe"
   },
@@ -7670,10 +7662,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Arreglar ahora"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7858,10 +7846,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Error al generar la contraseña."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error al procesar archivos adjuntos de importación masiva."
   },
   {
     "id": "app.import.attachment.read_file_data.error",
@@ -8996,15 +8980,7 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.upload.upload_data.gen_info.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
     "translation": " "
   },
   {
@@ -9044,10 +9020,6 @@
     "translation": " "
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": " "
   },
@@ -9065,14 +9037,6 @@
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
     "translation": " "
   },
   {
@@ -9148,10 +9112,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": " "
   },
@@ -9172,14 +9132,6 @@
     "translation": " "
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": " "
   },
@@ -9196,10 +9148,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": " "
   },
@@ -9213,10 +9161,6 @@
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
     "translation": " "
   },
   {
@@ -9248,14 +9192,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "app.insights.feature_disabled",
     "translation": " "
   },
@@ -9269,14 +9205,6 @@
   },
   {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": " "
   },
   {
@@ -9324,15 +9252,7 @@
     "translation": " "
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
     "id": "api.license.request_trial_license.embargoed",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
     "translation": " "
   },
   {
@@ -9345,18 +9265,6 @@
   },
   {
     "id": "Channels",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
     "translation": " "
   },
   {

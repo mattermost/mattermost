@@ -52,7 +52,7 @@ require (
 	github.com/rudderlabs/analytics-go v3.3.2+incompatible
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/spf13/cobra v1.5.0
-	github.com/splitio/go-client/v6 v6.1.0
+	github.com/splitio/go-client/v6 v6.1.7
 	github.com/stretchr/testify v1.8.0
 	github.com/throttled/throttled v2.2.5+incompatible
 	github.com/tinylib/msgp v1.1.6
@@ -154,8 +154,8 @@ require (
 	github.com/segmentio/backo-go v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/splitio/go-split-commons/v3 v3.1.0 // indirect
-	github.com/splitio/go-toolkit/v4 v4.2.0 // indirect
+	github.com/splitio/go-split-commons/v4 v4.1.3 // indirect
+	github.com/splitio/go-toolkit/v5 v5.2.1 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/tidwall/gjson v1.14.3 // indirect

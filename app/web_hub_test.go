@@ -102,7 +102,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil, ""))
 		}
 
 		hub.InvalidateUser("userId")
@@ -135,7 +135,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -195,7 +195,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil, ""))
 		}
 		close(done)
 	}()
@@ -404,10 +404,10 @@ func TestReliableWebSocketSend(t *testing.T) {
 	th := SetupWithClusterMock(t, testCluster)
 	defer th.TearDown()
 
-	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil)
+	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
 	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
 	th.App.Publish(ev)
-	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil)
+	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil, "")
 	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
 		ReliableClusterSend: true,
 	})

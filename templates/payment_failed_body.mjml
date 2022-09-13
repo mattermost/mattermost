@@ -1,0 +1,41 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/style.mjml" />
+  </mj-head>
+  <mj-body css-class="emailBody" width="660px">
+    <mj-wrapper mj-class="email" border-radius="0">
+      <mj-section padding="24px" border-top="1px solid #E5E5E5" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
+        <mj-column>
+          <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_dark.png" />
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0 60px" border-left="1px solid #E5E5E5" border-right="1px solid #E5E5E5">
+        <mj-column>
+          <mj-text padding-left="25px" align="left" css-class="title" font-family="Open Sans, sans-serif" padding="10px 0px">
+            {{.Props.Title}}
+          </mj-text>
+          <mj-text align="left" padding-bottom="16px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" font-family="Open Sans, sans-serif">
+            {{.Props.SubTitle1}}
+          </mj-text>
+          <mj-text align="left" padding-bottom="16px" padding-top="0px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" font-family="Open Sans, sans-serif">
+            {{.Props.SubTitle2}}<br>{{.Props.FailedReason}}
+          </mj-text>
+          <mj-text align="left" padding-bottom="24px" padding-top="0px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" font-family="Open Sans, sans-serif">
+            {{.Props.SubTitle3}}
+          </mj-text>
+          <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal" padding="0px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
+            {{.Props.Button}}
+          </mj-button>
+          {{if .IncludeSecondaryActionButton}}
+          <mj-button color="#166DE0" align="center" padding-top="12px" font-weight="600" href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal">
+            {{.Props.SecondaryActionButtonText}}
+          </mj-button>
+          {{end}}
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="./partials/cloud_laptop_error.mjml" />
+      <mj-include path="./partials/cloud_questions_hr_email_footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>
