@@ -33,6 +33,7 @@
         {{.Message}}
       </mj-text>
     </mj-column>
+    <mj-include path="./slack_attachment.html" type="html"/>
     <mj-column width=100%>
       <mj-raw>{{if .MessageURL}}</mj-raw>
         <mj-button href="{{.MessageURL}}" padding="16px 0px 0px 0px" css-class="messageButton">{{$.Props.MessageButton}}</mj-button>

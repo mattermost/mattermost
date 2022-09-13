@@ -1,6 +1,7 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/style.mjml" />
+    <mj-include path="./partials/slack_attachment.mjml" />
   </mj-head>
   <mj-body css-class="emailBody">
     <mj-wrapper mj-class="email">
