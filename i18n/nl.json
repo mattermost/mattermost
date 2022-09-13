@@ -9473,5 +9473,17 @@
   {
     "id": "api.templates.delinquency_75.button",
     "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Om jouw gegevens te dearchiveren en betaalde functies te behouden, moet je jouw betalingsinformatie bijwerken."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Als je Cloud Professional- of Enterprise-functies gebruikt voor belangrijke zakelijke activiteiten, zullen deze niet langer beschikbaar zijn en zal je verminderde prestaties ervaren."
   }
 ]
