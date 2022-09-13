@@ -647,6 +647,7 @@
                               </table>
                             </div>
                             <!--[if mso | IE]></td><![endif]-->
+                            {{if .SlackAttachments}}
                             <div class="slackAttachments">
                               {{range .SlackAttachments}}
                               <div class="slackAttachment" style="vertical-align:top;" width="100%">
@@ -733,6 +734,7 @@
                               </div>
                               {{end}}
                             </div>
+                            {{end}}
                             <!--[if mso | IE]><td style="vertical-align:top;width:552px;" ><![endif]-->
                             <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                               <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">

@@ -8,7 +8,13 @@
       <mj-include path="./partials/header.mjml" />
       <mj-raw>{{if .Props.Message}}</mj-raw>
           <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
-            <mj-include path="./partials/card.mjml" />
+            <mj-section css-class="messageCard" padding="0px">
+              <mj-group>
+                <mj-include path="./partials/message_avatar_col.mjml" />
+                <mj-include path="./partials/sender_info_col.mjml" />
+                <mj-include path="./partials/message_button.mjml" />
+              </mj-group>
+            </mj-section>
           <mj-raw></div>{{end}}</mj-raw>
       <mj-raw>{{else}}</mj-raw>
       <mj-section padding="0px 0px 40px 0px">

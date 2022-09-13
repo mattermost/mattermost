@@ -8,7 +8,14 @@
       <mj-include path="./partials/logo.mjml" />
       <mj-include path="./partials/header.mjml" />
       <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
-        <mj-include path="./partials/card.mjml" />
+        <mj-section css-class="messageCard" padding="0px">
+          <mj-group>
+            <mj-include path="./partials/message_avatar_col.mjml" />
+            <mj-include path="./partials/sender_info_col.mjml" />
+            <mj-include path="./partials/slack_attachment.html" type="html" />
+            <mj-include path="./partials/message_button.mjml" />
+          </mj-group>
+        </mj-section>
       <mj-raw></div>{{end}}</mj-raw>
       <mj-section padding="16px 0px 40px 0px">
         <mj-column>
