@@ -4024,10 +4024,6 @@
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Оправи сега"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "Многофакторното удостоверяване бе премахнато"
   },

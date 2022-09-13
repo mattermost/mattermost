@@ -5500,10 +5500,6 @@
     "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Javítás most"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "A többtényezős hitelesítést eltávolítottuk"
   },
