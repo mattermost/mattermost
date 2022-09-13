@@ -2963,6 +2963,34 @@ func TestGetPostsByIds(t *testing.T) {
 	CheckNotFoundStatus(t, response)
 }
 
+func TestGetEditHistoryForPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := th.CreatePost()
+	time.Sleep(1 * time.Millisecond)
+	post.Message = "new message edited"
+
+	// Patch the post
+	_, response, err := client.PatchPost(post.Id, &model.PostPatch{Message: &post.Message})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	post.Message = "new message edited again"
+	_, response2, err2 := client.PatchPost(post.Id, &model.PostPatch{Message: &post.Message})
+	require.NoError(t, err2)
+	CheckOKStatus(t, response2)
+
+	history, response3, err3 := client.GetEditHistoryForPost(post.Id)
+	require.NoError(t, err3)
+	CheckOKStatus(t, response3)
+	
+	require.Len(t, history, 2)
+	require.Equal(t, history[0].Message, "new message edited")
+	require.Equal(t, history[1].Message, "new message")
+}
+
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	th := Setup(t).InitBasic()
 	rpost := th.CreatePost()
