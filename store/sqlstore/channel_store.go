@@ -783,7 +783,7 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 	var unreadChannel model.ChannelUnread
 	err := s.GetReplicaX().Get(&unreadChannel,
 		`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, (Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, ChannelMembers.UrgentMentionCount UrgentMentionCount ChannelMembers.NotifyProps NotifyProps
+				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, (Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, ChannelMembers.UrgentMentionCount UrgentMentionCount, ChannelMembers.NotifyProps NotifyProps
 			FROM
 				Channels, ChannelMembers
 			WHERE

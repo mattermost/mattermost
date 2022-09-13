@@ -21,7 +21,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'SchemeUser'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE Threads ADD COLUMN IsUrgent tinyint(1) DEFAULT FALSE;'
+    'ALTER TABLE Threads ADD COLUMN IsUrgent tinyint(1) DEFAULT 0;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
