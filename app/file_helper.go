@@ -116,7 +116,8 @@ func (a *App) isInaccessibleFile(file *model.FileInfo) (int64, *model.AppError) 
 		FileInfos: map[string]*model.FileInfo{file.Id: file},
 	}
 
-	return fl.FirstInaccessibleFileTime, a.filterInaccessibleFiles(fl, filterFileOptions{assumeSortedCreatedAt: true})
+	appErr := a.filterInaccessibleFiles(fl, filterFileOptions{assumeSortedCreatedAt: true})
+	return fl.FirstInaccessibleFileTime, appErr
 }
 
 // getFilteredAccessibleFiles returns accessible files filtered as per the cloud plan's limit and also indicates if there were any inaccessible files

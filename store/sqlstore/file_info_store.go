@@ -789,7 +789,7 @@ func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
 	}
 
 	var createAt int64
-	if err := fs.GetMasterX().Get(&createAt, query, queryArgs...); err != nil {
+	if err := fs.GetReplicaX().Get(&createAt, query, queryArgs...); err != nil {
 		if err == sql.ErrNoRows {
 			return 0, store.NewErrNotFound("File", "none")
 		}
