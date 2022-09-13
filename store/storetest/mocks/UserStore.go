@@ -960,20 +960,20 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	return r0, r1
 }
 
-// GetUnreadCount provides a mock function with given fields: userID
-func (_m *UserStore) GetUnreadCount(userID string) (int64, error) {
-	ret := _m.Called(userID)
+// GetUnreadCount provides a mock function with given fields: userID, isCRTEnabled
+func (_m *UserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
+	ret := _m.Called(userID, isCRTEnabled)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, bool) int64); ok {
+		r0 = rf(userID, isCRTEnabled)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(userID, isCRTEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}

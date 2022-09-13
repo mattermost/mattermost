@@ -7978,6 +7978,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 		DisplayName: "test_share_flag asdf",
 		Name:        "test_share_flag_public0",
 		Type:        model.ChannelTypeOpen,
+		CreateAt:    1,
 	}
 
 	channelSaved0, err := ss.Channel().Save(channelPublic0, 999)
@@ -7989,6 +7990,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 		DisplayName: "test_share_flag",
 		Name:        "test_share_flag",
 		Type:        model.ChannelTypeOpen,
+		CreateAt:    1,
 	}
 
 	channelSaved1, err := ss.Channel().Save(channelPublic1, 999)
@@ -8001,6 +8003,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	c3.DisplayName = "Channel3" + model.NewId()
 	c3.Name = NewTestId()
 	c3.Type = model.ChannelTypePrivate
+	c3.CreateAt = 1
 	channelPrivate, nErr := ss.Channel().Save(&c3, -1)
 	require.NoError(t, nErr)
 
@@ -8080,7 +8083,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 
 	// for u1
 	t.Run("top inactive channels for team - u1 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u1.Id, 0, 0, 10)
+		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u1.Id, 2, 0, 10)
 		require.NoError(t, err)
 		require.Len(t, topInactiveChannels.Items, 3)
 		require.Equal(t, topInactiveChannels.Items[0].ID, channelSaved0.Id)
@@ -8096,7 +8099,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("top inactive channels for user - u1 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u1.Id, 0, 0, 10)
+		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u1.Id, 2, 0, 10)
 		require.NoError(t, err)
 		require.Len(t, topInactiveChannels.Items, 2)
 		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivate.Id)
@@ -8105,7 +8108,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 
 	// for u2
 	t.Run("top inactive channels for team - u2 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u2.Id, 0, 0, 10)
+		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u2.Id, 2, 0, 10)
 		require.NoError(t, err)
 		require.Len(t, topInactiveChannels.Items, 2)
 		require.Equal(t, topInactiveChannels.Items[0].ID, channelSaved0.Id)
@@ -8114,7 +8117,7 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("top inactive channels for user - u2 ", func(t *testing.T) {
-		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u2.Id, 0, 0, 10)
+		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u2.Id, 2, 0, 10)
 		require.NoError(t, err)
 		require.Len(t, topInactiveChannels.Items, 1)
 		require.Equal(t, topInactiveChannels.Items[0].ID, channelPublic0.Id)
