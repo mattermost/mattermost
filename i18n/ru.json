@@ -7948,10 +7948,6 @@
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Исправить сейчас"
-  },
-  {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Вы были приглашены в качестве гостя в команду"
   },

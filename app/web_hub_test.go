@@ -135,7 +135,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
