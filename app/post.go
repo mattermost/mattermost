@@ -1907,7 +1907,6 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	return posts, firstInaccessiblePostTime, nil
 }
 
-// GetEditHistoryForPost response bool value indicates, if the post is inaccessible due to cloud plan's limit.
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store.Post().GetEditHistoryForPost(postID)
 

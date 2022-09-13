@@ -170,7 +170,7 @@ type AppIface interface {
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
-	// GetEditHistoryForPost response bool value indicates, if the post is inaccessible due to cloud plan's limit.
+	// GetEditHistoryForPost returns the older version of selected post.
 	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
 	// GetEmojiStaticURL returns a relative static URL for system default emojis,
 	// and the API route for custom ones. Errors if not found or if custom and deleted.
