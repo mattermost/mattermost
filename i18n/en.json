@@ -4500,8 +4500,8 @@
     "translation": "Unable to save the bot."
   },
   {
-    "id": "app.bot.toggleemailnotify.internal_error",
-    "translation": "Unable to toggle email notification status for the user."
+    "id": "app.bot.setemailnotificationstate.internal_error",
+    "translation": "Unable to set email notification status for the user."
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",

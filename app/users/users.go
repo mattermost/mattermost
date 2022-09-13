@@ -263,7 +263,7 @@ func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) 
 	return us.store.DemoteUserToGuest(user.Id)
 }
 
-func (us *UserService) ToggleEmailNotifications(userId string, action string) error {
+func (us *UserService) SetEmailNotificationsState(userId string, action string) error {
 	notifyProps, err := us.store.GetNotifyProps(userId)
 	if err != nil {
 		return err

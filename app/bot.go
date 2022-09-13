@@ -132,8 +132,8 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 		}
 	}
 
-	if err := a.ch.srv.userService.ToggleEmailNotifications(user.Id, "disable"); err != nil {
-		return nil, model.NewAppError("ToggleEmailNotifications", "app.bot.toggleemailnotify.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := a.ch.srv.userService.SetEmailNotificationsState(user.Id, "disable"); err != nil {
+		return nil, model.NewAppError("SetEmailNotificationsState", "app.bot.setemailnotificationstate.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	bot.UserId = user.Id
@@ -272,8 +272,8 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 			}
 		}
 
-		if err := a.ch.srv.userService.ToggleEmailNotifications(user.Id, "disable"); err != nil {
-			return nil, model.NewAppError("ToggleEmailNotifications", "app.bot.toggleemailnotify.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err := a.ch.srv.userService.SetEmailNotificationsState(user.Id, "disable"); err != nil {
+			return nil, model.NewAppError("SetEmailNotificationsState", "app.bot.setemailnotificationstate.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		botDef.UserId = user.Id
@@ -665,8 +665,8 @@ func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 		}
 	}
 
-	if err := a.ch.srv.userService.ToggleEmailNotifications(user.Id, "enable"); err != nil {
-		return nil, model.NewAppError("ToggleEmailNotifications", "app.bot.toggleemailnotify.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := a.ch.srv.userService.SetEmailNotificationsState(user.Id, "enable"); err != nil {
+		return nil, model.NewAppError("SetEmailNotificationsState", "app.bot.setemailnotificationstate.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return bot, nil
