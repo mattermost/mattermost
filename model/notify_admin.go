@@ -22,7 +22,7 @@ const (
 	PaidFeatureUnlimitedBoardcards     = MattermostPaidFeature("mattermost.feature.unlimited_board_cards")
 	PaidFeatureAllProfessionalfeatures = MattermostPaidFeature("mattermost.feature.all_professional")
 	PaidFeatureAllEnterprisefeatures   = MattermostPaidFeature("mattermost.feature.all_enterprise")
-	UpgradeDowngradedWorkspace          = MattermostPaidFeature("mattermost.feature.upgrade_downgraded_workspace")
+	UpgradeDowngradedWorkspace         = MattermostPaidFeature("mattermost.feature.upgrade_downgraded_workspace")
 )
 
 var validSKUs map[string]struct{} = map[string]struct{}{
@@ -43,7 +43,7 @@ var paidFeatures map[MattermostPaidFeature]struct{} = map[MattermostPaidFeature]
 	PaidFeatureUnlimitedBoardcards:     {},
 	PaidFeatureAllProfessionalfeatures: {},
 	PaidFeatureAllEnterprisefeatures:   {},
-	UpgradeDowngradeWorkspace:          {},
+	UpgradeDowngradedWorkspace:         {},
 }
 
 type NotifyAdminToUpgradeRequest struct {
