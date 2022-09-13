@@ -296,8 +296,9 @@ func (o *Channel) PreSave() {
 
 	o.Name = SanitizeUnicode(o.Name)
 	o.DisplayName = SanitizeUnicode(o.DisplayName)
-
-	o.CreateAt = GetMillis()
+	if o.CreateAt == 0 {
+		o.CreateAt = GetMillis()
+	}
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
 }

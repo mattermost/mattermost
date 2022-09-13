@@ -4569,7 +4569,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Die Nutzungsbedingungen von GitLab haben sich geändert. Bitte gehe zu gitlab.com um sie zu akzeptieren und versuche dann, dich erneut an Mattermost anzumelden."
+    "translation": "Die Nutzungsbedingungen von GitLab haben sich geändert. Bitte gehe zu {{.URL}} um sie zu akzeptieren und versuche dann, dich erneut an Mattermost anzumelden."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -8008,15 +8008,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Fehlgeschlagene Zahlung"
+    "translation": "Die Zahlung war nicht erfolgreich"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Aktion notwendig: Zahlung für Mattermost Cloud fehlgeschlagen"
+    "translation": "Aktion notwendig: Zahlung für Mattermost {{.Plan}} fehlgeschlagen"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Um einen unterbrechungsfreien Betrieb deines Mattermost Cloud Abonnements zu gewährleisten, kontaktiere bitte dein Finanzinstitut um das Problem zu lösen oder aktualisiere deine Zahlungsinformationen. Sobald die Zahlungsinformationen aktualisiert wurden, wird Mattermost versuchen den Außenstand auszugleichen."
+    "translation": "Um einen unterbrechungsfreien Zugriff auf Mattermost {{.Plan}} zu gewährleisten, kontaktiere bitte dein Finanzinstitut um das Problem zu lösen oder aktualisiere deine Zahlungsinformationen. Sobald die Zahlungsinformationen aktualisiert wurden, wird Mattermost versuchen den Außenstand auszugleichen."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8025,10 +8025,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Dein Finanzinstitut hat ein Zahlung mit deiner {{.CardBrand}} Kreditkarte mit der Nummer ****{{.LastFour}}, die für deinen Mattermost Cloud Arbeitsbereich hinterlegt ist, abgelehnt."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Jetzt beheben"
   },
   {
     "id": "api.upload.upload_data.multipart_error",
@@ -9529,5 +9525,17 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.UsersNum}} Mitglieder des {{.WorkspaceName}} Arbeitsbereichs haben den Start des Enterprise-Tests angefragt für Zugriff auf: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Abrufen des aktuellen Plan Namens nicht möglich"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML konnte das öffentliche Zertifikat des Identity Providers nicht erfolgreich laden. Bitte kontaktiere deinen Systemadmin."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Wir konnten den Nachrichtenzähler für den Benutzer nicht abfragen."
   }
 ]

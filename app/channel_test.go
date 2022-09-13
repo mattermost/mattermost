@@ -2685,12 +2685,29 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel3 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel5 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	th.AddUserToChannel(th.BasicUser, channel2)
+	th.AddUserToChannel(th.BasicUser, channel3)
+	th.AddUserToChannel(th.BasicUser, channel4)
+	th.AddUserToChannel(th.BasicUser, channel5)
+	th.AddUserToChannel(th.BasicUser, channel6)
 
-	// delete offtopic channel - which interferes with 'least' active channel results
+	// delete offtopic, town square, basicChannel channel - which interferes with 'least' active channel results
 	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
 	require.Nil(t, appErr, "Expected nil, didn't receive nil")
 	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
+	require.Nil(t, appErr)
+	townSquareChannel, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, townSquareChannel)
+	require.Nil(t, appErr)
+	basicChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel)
 	require.Nil(t, appErr)
 
 	// add a bot post to ensure it's counted
@@ -2704,8 +2721,6 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-
 	// add a webhook post to ensure it's counted
 	_, err = th.Server.Store.Post().Save(&model.Post{
 		Message:   "hello from a webhook",
@@ -2717,16 +2732,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser, channel2)
-	th.AddUserToChannel(th.BasicUser, channel3)
-	th.AddUserToChannel(th.BasicUser, channel4)
-	th.AddUserToChannel(th.BasicUser, channel5)
-	th.AddUserToChannel(th.BasicUser, channel6)
-
-	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
+	channels := [5]*model.Channel{channel2, channel3, channel4, channel5, channel6}
 
 	i := len(channels)
 	for _, channel := range channels {
@@ -2745,13 +2751,12 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 		{ID: channel4.Id, MessageCount: 3},
 		{ID: channel3.Id, MessageCount: 5},
 		{ID: channel2.Id, MessageCount: 6},
-		{ID: th.BasicChannel.Id, MessageCount: 7},
 	}
 
 	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 6})
+		topChannels, err := th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
 		require.Nil(t, err)
 
 		for i, channel := range topChannels.Items {
@@ -2759,10 +2764,16 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
 
-		topChannels, err = th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
+		topChannels, err = th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 4})
 		require.Nil(t, err)
-		assert.Equal(t, th.BasicChannel.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(7), topChannels.Items[0].MessageCount)
+		assert.Equal(t, channel2.Id, topChannels.Items[0].ID)
+		assert.Equal(t, int64(6), topChannels.Items[0].MessageCount)
+
+		// it simulates channel being created recently
+		_ = th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		topChannels, err = th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 6})
+		require.Nil(t, err)
+		assert.Equal(t, 5, len(topChannels.Items))
 	})
 }
 
@@ -2770,13 +2781,21 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// delete offtopic channel - which interferes with 'least' active channel results
+	// delete offtopic, town-square, th.basicchannel channels - which interferes with 'least' active channel results
 	offTopicChannel, appErr := th.App.GetChannelByName(th.Context, "off-topic", th.BasicTeam.Id, false)
 	require.Nil(t, appErr, "Expected nil, didn't receive nil")
 	appErr = th.App.PermanentDeleteChannel(th.Context, offTopicChannel)
 	require.Nil(t, appErr)
+	townSquareChannel, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, townSquareChannel)
+	require.Nil(t, appErr)
+	basicChannel, appErr := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, appErr, "Expected nil, didn't receive nil")
+	appErr = th.App.PermanentDeleteChannel(th.Context, basicChannel)
+	require.Nil(t, appErr)
 
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 
 	// add a bot post to ensure it's counted
 	_, err := th.Server.Store.Post().Save(&model.Post{
@@ -2789,7 +2808,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 
 	// add a webhook post to ensure it's counted
 	_, err = th.Server.Store.Post().Save(&model.Post{
@@ -2802,16 +2821,16 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	channel5 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	channel4 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel5 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
+	channel6 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 	th.AddUserToChannel(th.BasicUser, channel2)
 	th.AddUserToChannel(th.BasicUser, channel3)
 	th.AddUserToChannel(th.BasicUser, channel4)
 	th.AddUserToChannel(th.BasicUser, channel5)
 	th.AddUserToChannel(th.BasicUser, channel6)
 
-	channels := [6]*model.Channel{th.BasicChannel, channel2, channel3, channel4, channel5, channel6}
+	channels := [5]*model.Channel{channel2, channel3, channel4, channel5, channel6}
 
 	i := len(channels)
 	for _, channel := range channels {
@@ -2830,24 +2849,23 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 		{ID: channel4.Id, MessageCount: 3},
 		{ID: channel3.Id, MessageCount: 5},
 		{ID: channel2.Id, MessageCount: 6},
-		{ID: th.BasicChannel.Id, MessageCount: 7},
 	}
 
 	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
-		topChannels, err := th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
+		topChannels, err := th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 4})
 		require.Nil(t, err)
-		require.Equal(t, len(topChannels.Items), 5)
+		require.Equal(t, len(topChannels.Items), 4)
 		for i, channel := range topChannels.Items {
 			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
 			assert.Equal(t, expectedTopChannels[i].MessageCount, channel.MessageCount)
 		}
 
-		topChannels, err = th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 5})
+		topChannels, err = th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 1, PerPage: 4})
 		require.Nil(t, err)
 		require.Equal(t, len(topChannels.Items), 1)
-		assert.Equal(t, th.BasicChannel.Id, topChannels.Items[0].ID)
-		assert.Equal(t, int64(7), topChannels.Items[0].MessageCount)
+		assert.Equal(t, channel2.Id, topChannels.Items[0].ID)
+		assert.Equal(t, int64(6), topChannels.Items[0].MessageCount)
 	})
 }
