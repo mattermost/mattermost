@@ -7724,10 +7724,6 @@
     "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "今すぐ対応する"
-  },
-  {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "閲覧済みのお知らせを更新できませんでした"
   },
