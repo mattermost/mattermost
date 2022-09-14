@@ -17,7 +17,6 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -29,14 +28,16 @@ import (
 )
 
 const (
-	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS           = "0123456789"
-	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey    = "MM_BINARY_PARAMETERS"
-	NoTranslation     = "<untranslated>"
-	MaxDBValueInBytes = 1024 * 1024
+	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS          = "0123456789"
+	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
+	maxPropSizeBytes = 1024 * 1024
 )
+
+var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
 type StringInterface map[string]any
 type StringArray []string
@@ -82,8 +83,8 @@ func (sa StringArray) Value() (driver.Value, error) {
 	sz := 0
 	for i := range sa {
 		sz += len(sa[i])
-		if sz > MaxDBValueInBytes {
-			return nil, errors.New("Maximum allowed bytes:" + strconv.Itoa(MaxDBValueInBytes))
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
 		}
 	}
 
@@ -141,8 +142,8 @@ func (m StringMap) Value() (driver.Value, error) {
 	sz := 0
 	for k := range m {
 		sz += len(k) + len(m[k])
-		if sz > MaxDBValueInBytes {
-			return nil, errors.New("Maximum allowed bytes:" + strconv.Itoa(MaxDBValueInBytes))
+		if sz > maxPropSizeBytes {
+			return nil, ErrMaxPropSizeExceeded
 		}
 	}
 
@@ -202,8 +203,8 @@ func (si StringInterface) Value() (driver.Value, error) {
 		return nil, err
 	}
 
-	if len(j) > MaxDBValueInBytes {
-		return nil, errors.New("Maximum allowed bytes:" + strconv.Itoa(MaxDBValueInBytes))
+	if len(j) > maxPropSizeBytes {
+		return nil, ErrMaxPropSizeExceeded
 	}
 
 	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
