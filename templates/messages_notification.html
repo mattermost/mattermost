@@ -473,6 +473,10 @@
       margin-bottom: 16px;
     }
 
+    .slackAttachments {
+      margin-top: 22px;
+    }
+
     .slackAttachments h1,
     h2,
     h3,
@@ -648,7 +652,7 @@
                             </div>
                             <!--[if mso | IE]></td><![endif]-->
                             {{if .SlackAttachments}}
-                            <div class="slackAttachments">
+                            <div class="slackAttachments" style="margin-top: 22px;">
                               {{range .SlackAttachments}}
                               <div class="slackAttachment" style="vertical-align:top;" width="100%">
                                 <div class="pretext" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
