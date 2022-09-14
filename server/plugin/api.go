@@ -698,7 +698,7 @@ type API interface {
 	// @tag Post
 	// @tag Channel
 	// Minimum server version: 5.6
-	GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
+	GetPostsSince(channelId string, time int64, page, perPage int) (*model.PostList, *model.AppError)
 
 	// GetPostsAfter gets a page of posts that were posted after the post provided.
 	//

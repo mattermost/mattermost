@@ -4083,6 +4083,8 @@ func (s *apiRPCServer) GetPost(args *Z_GetPostArgs, returns *Z_GetPostReturns) e
 type Z_GetPostsSinceArgs struct {
 	A string
 	B int64
+	C int
+	D int
 }
 
 type Z_GetPostsSinceReturns struct {
@@ -4090,8 +4092,8 @@ type Z_GetPostsSinceReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	_args := &Z_GetPostsSinceArgs{channelId, time}
+func (g *apiRPCClient) GetPostsSince(channelId string, time int64, page, perPage int) (*model.PostList, *model.AppError) {
+	_args := &Z_GetPostsSinceArgs{channelId, time, page, perPage}
 	_returns := &Z_GetPostsSinceReturns{}
 	if err := g.client.Call("Plugin.GetPostsSince", _args, _returns); err != nil {
 		log.Printf("RPC call to GetPostsSince API failed: %s", err.Error())
@@ -4101,9 +4103,9 @@ func (g *apiRPCClient) GetPostsSince(channelId string, time int64) (*model.PostL
 
 func (s *apiRPCServer) GetPostsSince(args *Z_GetPostsSinceArgs, returns *Z_GetPostsSinceReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError)
+		GetPostsSince(channelId string, time int64, page, perPage int) (*model.PostList, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetPostsSince(args.A, args.B)
+		returns.A, returns.B = hook.GetPostsSince(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API GetPostsSince called but not implemented."))
 	}
