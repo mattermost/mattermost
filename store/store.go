@@ -82,6 +82,7 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	NotifyAdmin() NotifyAdminStore
 }
 
 type RetentionPolicyStore interface {
@@ -446,7 +447,7 @@ type UserStore interface {
 	PermanentDelete(userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
-	GetUnreadCount(userID string) (int64, error)
+	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
 	GetRecentlyActiveUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -921,6 +922,13 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error)
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
+}
+
+type NotifyAdminStore interface {
+	Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error)
+	GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error)
+	Get(trial bool) ([]*model.NotifyAdminData, error)
+	DeleteBefore(trial bool, now int64) error
 }
 
 type SharedChannelStore interface {

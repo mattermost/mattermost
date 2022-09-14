@@ -428,6 +428,7 @@ func (ts *TelemetryService) trackConfig() {
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
+		"enable_api_trigger_admin_notification":                   *cfg.ServiceSettings.EnableAPITriggerAdminNotifications,
 		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
 		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
@@ -447,6 +448,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
+		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{

@@ -2213,14 +2213,13 @@ func (s SqlChannelStore) GetFileCount(channelId string) (int64, error) {
 	var count int64
 	err := s.GetReplicaX().Get(&count, `
 		SELECT
-			COUNT(*)
+		    COUNT(*)
 		FROM
-			FileInfo
-                LEFT JOIN Posts as P ON FileInfo.PostId=P.Id
-                LEFT JOIN Channels as C on C.Id=P.ChannelId
+		    FileInfo
 		WHERE
-                        FileInfo.DeleteAt = 0
-			AND C.Id = ?`, channelId)
+		    FileInfo.DeleteAt = 0
+            AND FileInfo.PostId IN (SELECT id FROM Posts WHERE ChannelId = ?)`,
+		channelId)
 	if err != nil {
 		return 0, errors.Wrapf(err, "failed to count files with channelId=%s", channelId)
 	}
@@ -4338,48 +4337,45 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			LastActivityAt
 		FROM
 			((SELECT
-				Posts.ChannelId AS ID,
+				PublicChannels.Id AS ID,
 				'O' AS Type,
 				PublicChannels.DisplayName AS DisplayName,
 				PublicChannels.Name AS Name,
-				count(Posts.Id) AS MessageCount,
-				max(Posts.CreateAt) AS LastActivityAt
+				COALESCE(count(Posts.Id), 0) AS MessageCount,
+				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 			FROM
-				Posts
-				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+				PublicChannels
+				LEFT JOIN Posts on Posts.ChannelId = PublicChannels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
+				LEFT JOIN Channels on Channels.Id = PublicChannels.Id
 			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-				AND PublicChannels.TeamId = ?
+				PublicChannels.TeamId = ?
 				AND PublicChannels.DeleteAt = 0
+				AND Channels.CreateAt < ?
 			GROUP BY
-				Posts.ChannelId,
+				PublicChannels.Id,
 				PublicChannels.DisplayName,
 				PublicChannels.Name,
 				PublicChannels.TeamId)
 		UNION ALL
 			(SELECT
-				Posts.ChannelId AS ID,
+				Channels.Id AS ID,
 				Channels.Type AS Type,
 				Channels.DisplayName AS DisplayName,
 				Channels.Name AS Name,
-				count(Posts.Id) AS MessageCount,
-				max(Posts.CreateAt) AS LastActivityAt
+				COALESCE(count(Posts.Id), 0) AS MessageCount,
+				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 			FROM
-				Posts
-				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+				Channels
+				LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
 				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
 			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-				AND Channels.TeamId = ?
+				Channels.TeamId = ?
+				AND Channels.CreateAt < ?
 				AND Channels.Type = 'P'
 				AND Channels.DeleteAt = 0
 				AND ChannelMembers.UserId = ?
 			GROUP BY
-				Posts.ChannelId,
+				Channels.Id,
 				Channels.Type,
 				Channels.DisplayName,
 				Channels.Name)) AS A
@@ -4388,8 +4384,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			Name ASC
 		LIMIT ?
 		OFFSET ?`
-	args = append(args, since, teamID, since, teamID, userID, limit+1, offset)
-
+	args = append(args, since, teamID, since, since, teamID, since, userID, limit+1, offset)
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
@@ -4412,25 +4407,23 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 
 	query = `
 		SELECT
-			Posts.ChannelId AS ID,
+			Channels.Id AS ID,
 			Channels.Type AS Type,
 			Channels.DisplayName AS DisplayName,
 			Channels.Name AS Name,
-			count(Posts.Id) AS MessageCount,
-			max(Posts.CreateAt) AS LastActivityAt
+			COALESCE(count(Posts.Id), 0) AS MessageCount,
+			COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 		FROM
-			Posts
-			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
+			Channels
+			LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
 			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
 		WHERE
-			Posts.DeleteAt = 0
-			AND Posts.CreateAt > ?
-			AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-			AND Channels.DeleteAt = 0
+			Channels.DeleteAt = 0
+			AND Channels.CreateAt < ?
 			AND (Channels.Type = 'O' OR Channels.Type = 'P')
 			AND ChannelMembers.UserId = ? `
 
-	args = []any{since, userID}
+	args = []any{since, since, userID}
 
 	if teamID != "" {
 		query += `
@@ -4440,7 +4433,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 
 	query += `
 		Group By
-			Posts.ChannelId,
+			Channels.Id,
 			Channels.Type,
 			Channels.DisplayName,
 			Channels.Name

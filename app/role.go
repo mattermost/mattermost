@@ -259,7 +259,7 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
-	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
