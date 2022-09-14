@@ -299,6 +299,8 @@ type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
 	Time                     int64
+	Page                     int
+	PerPage                  int
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
