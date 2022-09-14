@@ -43,7 +43,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -55,7 +55,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		}
 	}()
 
-	if password == "" && !IsCWSLogin(a, cwsToken) {
+	if password == "" && !IsCWSLogin(c, a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -66,13 +66,13 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if IsCWSLogin(a, cwsToken) {
+	if IsCWSLogin(c, a, cwsToken) {
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
 		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
+			c.Logger().Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -90,7 +90,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 			}
 			err := a.Srv().Store.Token().Save(token)
 			if err != nil {
-				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
+				c.Logger().Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -218,7 +218,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.SetSession(session)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
+	if a.Srv().License(c) != nil && *a.Srv().License(c).Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
@@ -345,6 +345,6 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func IsCWSLogin(a *App, token string) bool {
-	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
+func IsCWSLogin(c request.CTX, a *App, token string) bool {
+	return a.Srv().License(c) != nil && *a.Srv().License(c).Features.Cloud && token != ""
 }

@@ -23,12 +23,12 @@ import (
 type PluginAPI struct {
 	id       string
 	app      *App
-	ctx      *request.Context
+	ctx      request.CTX
 	logger   mlog.Sugar
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c *request.Context, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
@@ -127,7 +127,7 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
-	return api.app.Srv().License()
+	return api.app.Srv().License(api.ctx)
 }
 
 func (api *PluginAPI) IsEnterpriseReady() bool {
@@ -757,11 +757,11 @@ func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, 
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileID)
+	return api.app.GetFileInfo(api.ctx, fileID)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfos(page, perPage, opt)
+	return api.app.GetFileInfos(api.ctx, page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
@@ -769,7 +769,7 @@ func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileID)
+	info, err := api.app.GetFileInfo(api.ctx, fileID)
 	if err != nil {
 		return "", err
 	}
@@ -786,7 +786,7 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileID)
+	return api.app.GetFile(api.ctx, fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -820,7 +820,7 @@ func (api *PluginAPI) SetTeamIcon(teamID string, data []byte) *model.AppError {
 }
 
 func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
-	return api.app.OpenInteractiveDialog(dialog)
+	return api.app.OpenInteractiveDialog(api.ctx, dialog)
 }
 
 func (api *PluginAPI) RemoveTeamIcon(teamID string) *model.AppError {
@@ -949,11 +949,11 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any
 }
 
 func (api *PluginAPI) HasPermissionTo(userID string, permission *model.Permission) bool {
-	return api.app.HasPermissionTo(userID, permission)
+	return api.app.HasPermissionTo(api.ctx, userID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool {
-	return api.app.HasPermissionToTeam(userID, teamID, permission)
+	return api.app.HasPermissionToTeam(api.ctx, userID, teamID, permission)
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
@@ -961,7 +961,7 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 }
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
-	return api.app.RolesGrantPermission(roleNames, permissionId)
+	return api.app.RolesGrantPermission(api.ctx, roleNames, permissionId)
 }
 
 func (api *PluginAPI) LogDebug(msg string, keyValuePairs ...any) {
@@ -1175,7 +1175,7 @@ func (api *PluginAPI) UpdateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *mod
 }
 
 func (api *PluginAPI) DeleteOAuthApp(appID string) *model.AppError {
-	return api.app.DeleteOAuthApp(appID)
+	return api.app.DeleteOAuthApp(api.ctx, appID)
 }
 
 // PublishPluginClusterEvent broadcasts a plugin event to all other running instances of

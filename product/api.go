@@ -68,8 +68,8 @@ type ChannelService interface {
 //
 // The service shall be registered via app.LicenseKey service key.
 type LicenseService interface {
-	GetLicense() *model.License
-	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+	GetLicense(c request.CTX) *model.License
+	RequestTrialLicense(c request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
 // UserService provides user related utilities. Initially this was thought to be app/users.UserService
@@ -156,7 +156,7 @@ type CloudService interface {
 //
 // The service shall be registered via app.KVStoreKey service key.
 type KVStoreService interface {
-	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	SetPluginKeyWithOptions(c request.CTX, pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 }
 
 // LogService is the API for accessing the log service APIs.

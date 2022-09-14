@@ -32,7 +32,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		mlog.Error(err.Error())
+		c.Logger().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(err.ToJSON()))
@@ -41,7 +41,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		mlog.Debug("Access to route for non-existent plugin",
+		c.Logger().Debug("Access to route for non-existent plugin",
 			mlog.String("missing_plugin_id", params["plugin_id"]),
 			mlog.String("url", r.URL.String()),
 			mlog.Err(err))
@@ -191,9 +191,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 				}
 
 				if *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-					mlog.Warn(csrfErrorMessage, fields...)
+					c.Logger().Warn(csrfErrorMessage, fields...)
 				} else {
-					mlog.Debug(csrfErrorMessage, fields...)
+					c.Logger().Debug(csrfErrorMessage, fields...)
 					csrfCheckPassed = true
 				}
 			}

@@ -45,7 +45,7 @@ func cleanupVersion(originalVersion string) string {
 	return strings.Join(versionPartsOut, ".")
 }
 
-func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
+func noticeMatchesConditions(c request.CTX, config *model.Config, preferences store.PreferenceStore, userID string,
 	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
 	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer, searchEngineName, searchEngineVer string,
 	notice *model.ProductNotice) (bool, error) {
@@ -97,7 +97,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
-			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
+			c.Logger().Warn("Build number is not in semver format", mlog.String("build_number", version))
 			return false, nil
 		}
 		for _, v := range cnd.ServerVersion {
@@ -230,9 +230,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
+func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := a.SessionHasPermissionTo(c, *c.Session(), model.PermissionManageSystem)
+	isTeamAdmin := a.SessionHasPermissionToTeam(c, *c.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
 	if !*a.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
@@ -250,7 +250,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
-	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+	isCloud := a.Srv().License(c) != nil && *a.Srv().License(c).Features.Cloud
 	dbName := *a.Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string
@@ -284,6 +284,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 			}
 		}
 		result, err := noticeMatchesConditions(
+			c,
 			a.Config(),
 			a.Srv().Store.Preference(),
 			userID,
@@ -327,35 +328,35 @@ func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *mod
 
 // UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
 // user as viewed in order to avoid showing them imminently on first login
-func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
+func (a *App) UpdateViewedProductNoticesForNewUser(c request.CTX, userID string) {
 	var noticeIds []string
 	for _, notice := range a.ch.cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)
 	}
 	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
-		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
+		c.Logger().Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
 	}
 }
 
 // UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
-func (a *App) UpdateProductNotices() *model.AppError {
+func (a *App) UpdateProductNotices(c request.CTX) *model.AppError {
 	url := *a.Config().AnnouncementSettings.NoticesURL
 	skip := *a.Config().AnnouncementSettings.NoticesSkipCache
-	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
+	c.Logger().Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var err error
 	a.ch.cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
-		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
+		c.Logger().Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	a.ch.cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
+		c.Logger().Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	a.ch.cachedDBMSVersion, err = a.Srv().Store.GetDbVersion(false)
 	if err != nil {
-		mlog.Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
+		c.Logger().Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
 	}
 
 	a.ch.cachedDBMSVersion = strings.Split(a.ch.cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version

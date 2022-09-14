@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -29,12 +30,12 @@ var sharedChannelEventsForInvitation model.StringArray = []string{
 // SharedChannelSyncHandler is called when a websocket event is received by a cluster node.
 // Only on the leader node it will notify the sync service to perform necessary updates to the remote for the given
 // shared channel.
-func (s *Server) SharedChannelSyncHandler(event *model.WebSocketEvent) {
+func (s *Server) SharedChannelSyncHandler(c request.CTX, event *model.WebSocketEvent) {
 	syncService := s.GetSharedChannelSyncService()
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
 		err := handleContentSync(s, syncService, event)
 		if err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "content_sync"),
@@ -43,7 +44,7 @@ func (s *Server) SharedChannelSyncHandler(event *model.WebSocketEvent) {
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
 		err := handleInvitation(s, syncService, event)
 		if err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "invitation"),

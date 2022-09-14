@@ -12,6 +12,7 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/html/charset"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -20,7 +21,7 @@ const (
 	openGraphMetadataCacheSize = 10000
 )
 
-func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
+func (a *App) GetOpenGraphMetadata(c request.CTX, requestURL string) ([]byte, error) {
 	var ogJSONGeneric []byte
 	err := a.Srv().openGraphDataCache.Get(requestURL, &ogJSONGeneric)
 	if err == nil {
@@ -33,7 +34,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	}
 	defer res.Body.Close()
 
-	graph := a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+	graph := a.parseOpenGraphMetadata(c, requestURL, res.Body, res.Header.Get("Content-Type"))
 
 	ogJSON, err := graph.ToJSON()
 	if err != nil {
@@ -47,15 +48,15 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 	return ogJSON, nil
 }
 
-func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
+func (a *App) parseOpenGraphMetadata(c request.CTX, requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
-	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
+	body = forceHTMLEncodingToUTF8(c, io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
-		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+		c.Logger().Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 	}
 
-	makeOpenGraphURLsAbsolute(og, requestURL)
+	makeOpenGraphURLsAbsolute(c, og, requestURL)
 
 	openGraphDecodeHTMLEntities(og)
 
@@ -72,19 +73,19 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	return og
 }
 
-func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
+func forceHTMLEncodingToUTF8(c request.CTX, body io.Reader, contentType string) io.Reader {
 	r, err := charset.NewReader(body, contentType)
 	if err != nil {
-		mlog.Warn("forceHTMLEncodingToUTF8 failed to convert", mlog.String("contentType", contentType), mlog.Err(err))
+		c.Logger().Warn("forceHTMLEncodingToUTF8 failed to convert", mlog.String("contentType", contentType), mlog.Err(err))
 		return body
 	}
 	return r
 }
 
-func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
+func makeOpenGraphURLsAbsolute(c request.CTX, og *opengraph.OpenGraph, requestURL string) {
 	parsedRequestURL, err := url.Parse(requestURL)
 	if err != nil {
-		mlog.Warn("makeOpenGraphURLsAbsolute failed to parse url", mlog.String("requestURL", requestURL), mlog.Err(err))
+		c.Logger().Warn("makeOpenGraphURLsAbsolute failed to parse url", mlog.String("requestURL", requestURL), mlog.Err(err))
 		return
 	}
 
@@ -95,7 +96,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 
 		parsedResultURL, err := url.Parse(resultURL)
 		if err != nil {
-			mlog.Warn("makeOpenGraphURLsAbsolute failed to parse result", mlog.String("requestURL", requestURL), mlog.Err(err))
+			c.Logger().Warn("makeOpenGraphURLsAbsolute failed to parse result", mlog.String("requestURL", requestURL), mlog.Err(err))
 			return resultURL
 		}
 

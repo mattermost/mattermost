@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
-	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
+func (a *App) GetComplianceReports(c request.CTX, page, perPage int) (model.Compliances, *model.AppError) {
+	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -26,8 +27,8 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 	return compliances, nil
 }
 
-func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
+func (a *App) SaveComplianceReport(c request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError) {
+	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -48,15 +49,15 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 	a.Srv().Go(func() {
 		err := a.Compliance().RunComplianceJob(jCopy)
 		if err != nil {
-			mlog.Warn("Error running compliance job", mlog.Err(err))
+			c.Logger().Warn("Error running compliance job", mlog.Err(err))
 		}
 	})
 
 	return job, nil
 }
 
-func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
+func (a *App) GetComplianceReport(c request.CTX, reportId string) (*model.Compliance, *model.AppError) {
+	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 

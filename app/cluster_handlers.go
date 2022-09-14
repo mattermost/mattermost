@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -15,7 +16,7 @@ import (
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	var data model.PluginEventData
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
-		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
 	s.Channels().installPluginFromData(data)
 }
@@ -23,7 +24,7 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	var data model.PluginEventData
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
-		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
 	s.Channels().removePluginFromData(data)
 }
@@ -34,20 +35,20 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 	if msg.Props == nil {
-		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
+		s.Log().Warn("ClusterMessage.Props for plugin event should not be nil")
 		return
 	}
 	pluginID := msg.Props["PluginID"]
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
-		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
+		s.Log().Warn("Invalid ClusterMessage.Props values for plugin event",
 			mlog.String("plugin_id", pluginID), mlog.String("event_id", eventID))
 		return
 	}
 
 	hooks, err := env.HooksForPlugin(pluginID)
 	if err != nil {
-		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		s.Log().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return
 	}
 
@@ -80,7 +81,7 @@ func (s *Server) registerClusterHandlers() {
 func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
 	event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 	if err != nil {
-		mlog.Warn("Failed to decode event from JSON", mlog.Err(err))
+		s.Log().Warn("Failed to decode event from JSON", mlog.Err(err))
 		return
 	}
 	s.PublishSkipClusterSend(event)
@@ -89,13 +90,13 @@ func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
 func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
 	var status model.Status
 	if jsonErr := json.Unmarshal(msg.Data, &status); jsonErr != nil {
-		mlog.Warn("Failed to decode status from JSON")
+		s.Log().Warn("Failed to decode status from JSON")
 	}
 	s.statusCache.Set(status.UserId, status)
 }
 
 func (s *Server) clusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
-	s.InvalidateAllCachesSkipSend()
+	s.InvalidateAllCachesSkipSend(request.EmptyContext(s.Log()))
 }
 
 func (s *Server) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
@@ -120,7 +121,7 @@ func (s *Server) clearSessionCacheForUserSkipClusterSend(userID string) {
 }
 
 func (s *Server) clearSessionCacheForAllUsersSkipClusterSend() {
-	mlog.Info("Purging sessions cache")
+	s.Log().Info("Purging sessions cache")
 	s.userService.ClearAllUsersSessionCacheLocal()
 }
 
@@ -135,9 +136,9 @@ func (s *Server) clusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMe
 func (s *Server) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	var sbs model.ServerBusyState
 	if jsonErr := json.Unmarshal(msg.Data, &sbs); jsonErr != nil {
-		mlog.Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
+		s.Log().Warn("Failed to decode server busy state from JSON", mlog.Err(jsonErr))
 	}
-	s.serverBusyStateChanged(&sbs)
+	s.serverBusyStateChanged(request.EmptyContext(s.Log()), &sbs)
 }
 
 func (s *Server) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {

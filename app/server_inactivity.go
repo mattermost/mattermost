@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -15,20 +16,20 @@ import (
 const serverInactivityHours = 100
 const inactivityEmailSent = "INACTIVITY"
 
-func (s *Server) doInactivityCheck() {
+func (s *Server) doInactivityCheck(c request.CTX) {
 
 	if *s.platform.Config().ServiceSettings.EnableDeveloper {
-		mlog.Info("No activity check because developer mode is enabled")
+		c.Logger().Info("No activity check because developer mode is enabled")
 		return
 	}
 
 	if !*s.platform.Config().EmailSettings.EnableInactivityEmail {
-		mlog.Info("No activity check because EnableInactivityEmail is false")
+		c.Logger().Info("No activity check because EnableInactivityEmail is false")
 		return
 	}
 
 	if !s.platform.Config().FeatureFlags.EnableInactivityCheckJob {
-		mlog.Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
+		c.Logger().Info("No activity check because EnableInactivityCheckJob feature flag is disabled")
 		return
 	}
 
@@ -53,7 +54,7 @@ func (s *Server) doInactivityCheck() {
 		posT := time.Unix(lastPostAt/1000, 0)
 		timeForLastPost := time.Since(posT).Hours()
 		if timeForLastPost > inactivityDurationHours {
-			s.takeInactivityAction()
+			s.takeInactivityAction(c)
 		}
 		return
 	}
@@ -63,16 +64,16 @@ func (s *Server) doInactivityCheck() {
 		sesT := time.Unix(lastSessionAt/1000, 0)
 		timeForLastSession := time.Since(sesT).Hours()
 		if timeForLastSession > inactivityDurationHours {
-			s.takeInactivityAction()
+			s.takeInactivityAction(c)
 		}
 		return
 	}
 }
 
-func (s *Server) takeInactivityAction() {
+func (s *Server) takeInactivityAction(c request.CTX) {
 	siteURL := *s.platform.Config().ServiceSettings.SiteURL
 	if siteURL == "" {
-		mlog.Warn("No SiteURL configured")
+		c.Logger().Warn("No SiteURL configured")
 	}
 
 	properties := map[string]any{
@@ -81,7 +82,7 @@ func (s *Server) takeInactivityAction() {
 	s.GetTelemetryService().SendTelemetry("inactive_server", properties)
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
-		mlog.Error("Failed to get system admins for inactivity check from Mattermost.")
+		c.Logger().Error("Failed to get system admins for inactivity check from Mattermost.")
 		return
 	}
 
@@ -91,7 +92,7 @@ func (s *Server) takeInactivityAction() {
 		user := user
 
 		if user.Email == "" {
-			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+			c.Logger().Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
 		}
 
@@ -100,10 +101,10 @@ func (s *Server) takeInactivityAction() {
 			name = user.Username
 		}
 
-		mlog.Debug("Sending inactivity reminder email.", mlog.String("user_email", user.Email))
+		c.Logger().Debug("Sending inactivity reminder email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
 			if err := s.EmailService.SendLicenseInactivityEmail(user.Email, name, user.Locale, siteURL); err != nil {
-				mlog.Error("Error while sending inactivity reminder email.", mlog.String("user_email", user.Email), mlog.Err(err))
+				c.Logger().Error("Error while sending inactivity reminder email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
@@ -111,7 +112,7 @@ func (s *Server) takeInactivityAction() {
 	// Mark that we sent emails.
 	sysVar := &model.System{Name: inactivityEmailSent, Value: "true"}
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to save INACTIVITY", mlog.Err(err))
+		c.Logger().Error("Unable to save INACTIVITY", mlog.Err(err))
 	}
 
 	// do some telemetry about sending the email

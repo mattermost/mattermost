@@ -161,7 +161,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 // SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
-func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
+func (a *App) SetStatusLastActivityAt(c request.CTX, userID string, activityAt int64) {
 	var status *model.Status
 	var err *model.AppError
 	if status, err = a.GetStatus(userID); err != nil {
@@ -171,10 +171,10 @@ func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
 	status.LastActivityAt = activityAt
 
 	a.AddStatusCacheSkipClusterSend(status)
-	a.SetStatusAwayIfNeeded(userID, false)
+	a.SetStatusAwayIfNeeded(c, userID, false)
 }
 
-func (a *App) SetStatusOnline(userID string, manual bool) {
+func (a *App) SetStatusOnline(c request.CTX, userID string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -215,11 +215,11 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
 		if broadcast {
 			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
-				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
+				c.Logger().Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		} else {
 			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
-				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
+				c.Logger().Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
 	}
@@ -240,7 +240,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 	a.Publish(event)
 }
 
-func (a *App) SetStatusOffline(userID string, manual bool) {
+func (a *App) SetStatusOffline(c request.CTX, userID string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -252,10 +252,10 @@ func (a *App) SetStatusOffline(userID string, manual bool) {
 
 	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveAndBroadcastStatus(c, status)
 }
 
-func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
+func (a *App) SetStatusAwayIfNeeded(c request.CTX, userID string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -284,12 +284,12 @@ func (a *App) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.Manual = manual
 	status.ActiveChannel = ""
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveAndBroadcastStatus(c, status)
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+func (a *App) SetStatusDoNotDisturbTimed(c request.CTX, userId string, endtime int64) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -306,10 +306,10 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
 
 	status.DNDEndTime = endtime
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveAndBroadcastStatus(c, status)
 }
 
-func (a *App) SetStatusDoNotDisturb(userID string) {
+func (a *App) SetStatusDoNotDisturb(c request.CTX, userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -323,20 +323,20 @@ func (a *App) SetStatusDoNotDisturb(userID string) {
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveAndBroadcastStatus(c, status)
 }
 
-func (a *App) SaveAndBroadcastStatus(status *model.Status) {
+func (a *App) SaveAndBroadcastStatus(c request.CTX, status *model.Status) {
 	a.AddStatusCache(status)
 
 	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
+		c.Logger().Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)
 }
 
-func (a *App) SetStatusOutOfOffice(userID string) {
+func (a *App) SetStatusOutOfOffice(c request.CTX, userID string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -350,7 +350,7 @@ func (a *App) SetStatusOutOfOffice(userID string) {
 	status.Status = model.StatusOutOfOffice
 	status.Manual = true
 
-	a.SaveAndBroadcastStatus(status)
+	a.SaveAndBroadcastStatus(c, status)
 }
 
 func (a *App) GetStatusFromCache(userID string) *model.Status {
@@ -394,10 +394,10 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
-func (a *App) UpdateDNDStatusOfUsers() {
+func (a *App) UpdateDNDStatusOfUsers(c request.CTX) {
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
-		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
+		c.Logger().Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 		return
 	}
 	for i := range statuses {

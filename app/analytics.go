@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -17,7 +18,7 @@ const (
 	MonthMilliseconds = 31 * DayMilliseconds
 )
 
-func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) GetAnalytics(c request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
 	systemUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
@@ -26,7 +27,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 	}
 
 	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
-		mlog.Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
+		c.Logger().Debug("More than limit users are on the system, intensive queries skipped", mlog.Int("limit", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
 		skipIntensiveQueries = true
 	}
 

@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -32,7 +33,7 @@ const (
 	PropSecurityUnitTests       = "ut"
 )
 
-func (s *Server) DoSecurityUpdateCheck() {
+func (s *Server) DoSecurityUpdateCheck(c request.CTX) {
 	if !*s.platform.Config().ServiceSettings.EnableSecurityFixAlert {
 		return
 	}
@@ -46,7 +47,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 	currentTime := model.GetMillis()
 
 	if (currentTime - lastSecurityTime) > SecurityUpdatePeriod {
-		mlog.Debug("Checking for security update from Mattermost")
+		c.Logger().Debug("Checking for security update from Mattermost")
 
 		v := url.Values{}
 
@@ -83,7 +84,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		res, err := http.Get(PropSecurityURL + "/security?" + v.Encode())
 		if err != nil {
-			mlog.Error("Failed to get security update information from Mattermost.")
+			c.Logger().Error("Failed to get security update information from Mattermost.")
 			return
 		}
 
@@ -91,7 +92,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		var bulletins model.SecurityBulletins
 		if jsonErr := json.NewDecoder(res.Body).Decode(&bulletins); jsonErr != nil {
-			s.Log().Error("Failed to decode JSON", mlog.Err(jsonErr))
+			c.Logger().Error("Failed to decode JSON", mlog.Err(jsonErr))
 			return
 		}
 
@@ -100,26 +101,26 @@ func (s *Server) DoSecurityUpdateCheck() {
 				if props["SecurityBulletin_"+bulletin.Id] == "" {
 					users, userErr := s.Store.User().GetSystemAdminProfiles()
 					if userErr != nil {
-						mlog.Error("Failed to get system admins for security update information from Mattermost.")
+						c.Logger().Error("Failed to get system admins for security update information from Mattermost.")
 						return
 					}
 
 					resBody, err := http.Get(PropSecurityURL + "/bulletins/" + bulletin.Id)
 					if err != nil {
-						mlog.Error("Failed to get security bulletin details")
+						c.Logger().Error("Failed to get security bulletin details")
 						return
 					}
 
 					body, err := io.ReadAll(resBody.Body)
 					resBody.Body.Close()
 					if err != nil || resBody.StatusCode != 200 {
-						mlog.Error("Failed to read security bulletin details")
+						c.Logger().Error("Failed to read security bulletin details")
 						return
 					}
 
 					for _, user := range users {
-						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
-						license := s.License()
+						c.Logger().Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
+						license := s.License(c)
 						mailConfig := s.MailServiceConfig()
 						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 					}

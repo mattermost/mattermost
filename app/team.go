@@ -625,7 +625,7 @@ func (a *App) AddUserToTeam(c request.CTX, teamID string, userID string, userReq
 	return team, teamMember, nil
 }
 
-func (a *App) AddUserToTeamByTeamId(c *request.Context, teamID string, user *model.User) *model.AppError {
+func (a *App) AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError {
 	team, err := a.Srv().Store.Team().Get(teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -723,13 +723,13 @@ func (a *App) AddUserToTeamByToken(c *request.Context, userID string, tokenID st
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(c, user, channel, false)
 			if err != nil {
-				mlog.Warn("Error adding user to channel", mlog.Err(err))
+				c.Logger().Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		mlog.Warn("Error while deleting token", mlog.Err(err))
+		c.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, teamMember, nil
@@ -818,7 +818,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 		ExcludeTeam: false,
 	}
 	if _, err := a.createInitialSidebarCategories(user.Id, opts); err != nil {
-		mlog.Warn(
+		c.Logger().Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -831,7 +831,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(c, team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),
@@ -1092,7 +1092,7 @@ func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMe
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(c *request.Context, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+func (a *App) AddTeamMembers(c request.CTX, teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
 	var membersWithErrors []*model.TeamMemberWithError
 
 	for _, userID := range userIDs {
@@ -1419,7 +1419,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	return user, team, channels, nil
 }
 
-func (a *App) InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
+func (a *App) InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1459,7 +1459,7 @@ func (a *App) InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, t
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		senderProfileImage, _, err := a.GetProfileImage(user)
 		if err != nil {
-			a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+			c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
 		var eErr error
 		var invitesWithErrors2 []*model.EmailInviteWithError
@@ -1556,7 +1556,7 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 	return user, team, channels, nil
 }
 
-func (a *App) InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+func (a *App) InviteGuestsToChannelsGracefully(c request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1585,7 +1585,7 @@ func (a *App) InviteGuestsToChannelsGracefully(teamID string, guestsInvite *mode
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		senderProfileImage, _, err := a.GetProfileImage(user)
 		if err != nil {
-			a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+			c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
 		eErr := a.Srv().EmailService.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message, true)
 		if eErr != nil {
@@ -1911,7 +1911,7 @@ func (a *App) GetTeamStats(teamID string, restrictions *model.ViewUsersRestricti
 	return stats, nil
 }
 
-func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
+func (a *App) GetTeamIdFromQuery(c request.CTX, query url.Values) (string, *model.AppError) {
 	tokenID := query.Get("t")
 	inviteId := query.Get("id")
 
@@ -1940,18 +1940,18 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Warn("Error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
+		c.Logger().Warn("Error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
 	}
 
 	return "", nil
 }
 
-func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam) {
+func (a *App) SanitizeTeam(c request.CTX, session model.Session, team *model.Team) *model.Team {
+	if a.SessionHasPermissionToTeam(c, session, team.Id, model.PermissionManageTeam) {
 		return team
 	}
 
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser) {
+	if a.SessionHasPermissionToTeam(c, session, team.Id, model.PermissionInviteUser) {
 		inviteId := team.InviteId
 		team.Sanitize()
 		team.InviteId = inviteId
@@ -1963,9 +1963,9 @@ func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team 
 	return team
 }
 
-func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+func (a *App) SanitizeTeams(c request.CTX, session model.Session, teams []*model.Team) []*model.Team {
 	for _, team := range teams {
-		a.SanitizeTeam(session, team)
+		a.SanitizeTeam(c, session, team)
 	}
 
 	return teams

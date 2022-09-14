@@ -1187,7 +1187,7 @@ func (a *App) importReplies(c request.CTX, data []imports.ReplyImportData, post 
 	}
 
 	for _, postWithData := range postsWithData {
-		a.updateFileInfoWithPostId(postWithData.post)
+		a.updateFileInfoWithPostId(c, postWithData.post)
 	}
 
 	return nil
@@ -1235,29 +1235,29 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			}
 			// check md5
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.GetFile(oldFile.Id)
+			oldFileData, err := a.GetFile(c, oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
 			oldHash := sha1.Sum(oldFileData)
 
 			if bytes.Equal(oldHash[:], newHash[:]) {
-				mlog.Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
+				c.Logger().Info("Skipping uploading of file because name already exists", mlog.Any("file_name", name))
 				return oldFile, nil
 			}
 		}
 	}
 
-	mlog.Info("Uploading file with name", mlog.String("file_name", name))
+	c.Logger().Info("Uploading file with name", mlog.String("file_name", name))
 
 	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
 	if appErr != nil {
-		mlog.Error("Failed to upload file:", mlog.Err(appErr))
+		c.Logger().Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
-		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
+		a.HandleImages(c, []string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{fileData})
 	}
 
 	return fileInfo, nil
@@ -1527,7 +1527,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 				return postWithData.lineNumber, err
 			}
 		}
-		a.updateFileInfoWithPostId(postWithData.post)
+		a.updateFileInfoWithPostId(c, postWithData.post)
 	}
 	return 0, nil
 }
@@ -1543,12 +1543,12 @@ func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.Attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
 			if attachment.Path != nil {
-				mlog.Warn(
+				c.Logger().Warn(
 					"failed to import attachment",
 					mlog.String("path", *attachment.Path),
 					mlog.String("error", err.Error()))
 			} else {
-				mlog.Warn("failed to import attachment; path was nil",
+				c.Logger().Warn("failed to import attachment; path was nil",
 					mlog.String("error", err.Error()))
 			}
 			continue
@@ -1558,10 +1558,10 @@ func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.Attachment
 	return fileIDs
 }
 
-func (a *App) updateFileInfoWithPostId(post *model.Post) {
+func (a *App) updateFileInfoWithPostId(c request.CTX, post *model.Post) {
 	for _, fileID := range post.FileIds {
 		if err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId); err != nil {
-			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
+			c.Logger().Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
@@ -1836,16 +1836,16 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 			}
 		}
 
-		a.updateFileInfoWithPostId(postWithData.post)
+		a.updateFileInfoWithPostId(c, postWithData.post)
 	}
 	return 0, nil
 }
 
-func (a *App) importEmoji(data *imports.EmojiImportData, dryRun bool) *model.AppError {
+func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun bool) *model.AppError {
 	aerr := imports.ValidateEmojiImportData(data)
 	if aerr != nil {
 		if aerr.Id == "model.emoji.system_emoji_name.app_error" {
-			mlog.Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
+			c.Logger().Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
 			return nil
 		}
 		return aerr

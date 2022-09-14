@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -48,7 +49,7 @@ func (s *Server) TemplatesContainer() *templates.Container {
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
-	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
+	a.Log().Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)
@@ -137,8 +138,8 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
 }
-func (a *App) License() *model.License {
-	return a.Srv().License()
+func (a *App) License(c request.CTX) *model.License {
+	return a.Srv().License(c)
 }
 
 func (a *App) DBHealthCheckWrite() error {

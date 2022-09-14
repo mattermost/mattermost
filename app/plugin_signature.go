@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/openpgp"       //nolint:staticcheck
 	"golang.org/x/crypto/openpgp/armor" //nolint:staticcheck
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -73,10 +74,10 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	return a.ch.verifyPlugin(plugin, signature)
+	return a.ch.verifyPlugin(request.EmptyContext(a.Log()), plugin, signature)
 }
 
-func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (ch *Channels) verifyPlugin(c request.CTX, plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
@@ -84,7 +85,7 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
-			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
+			c.Logger().Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)

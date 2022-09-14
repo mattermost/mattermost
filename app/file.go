@@ -91,8 +91,8 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 	return nil
 }
 
-func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
-	license := a.Srv().License()
+func (a *App) TestFileStoreConnectionWithConfig(c request.CTX, cfg *model.FileSettings) *model.AppError {
+	license := a.Srv().License(c)
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
@@ -226,7 +226,7 @@ func (a *App) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
+func (a *App) getInfoForFilename(c request.CTX, post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
 	name, _ := url.QueryUnescape(filename)
 	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelID, userID, oldId)
 	path := pathPrefix + name
@@ -234,7 +234,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	// Open the file and populate the fields of the FileInfo
 	data, err := a.ReadFile(path)
 	if err != nil {
-		mlog.Error(
+		c.Logger().Error(
 			"File not found when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
@@ -246,7 +246,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 
 	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
-		mlog.Warn(
+		c.Logger().Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
@@ -271,13 +271,13 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 	return info
 }
 
-func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) string {
+func (a *App) findTeamIdForFilename(c request.CTX, post *model.Post, id, filename string) string {
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
 	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
-		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
+		c.Logger().Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
 	}
 
@@ -301,18 +301,18 @@ var fileMigrationLock sync.Mutex
 var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
 // Parse the path from the Filename of the form /{channelID}/{userID}/{uid}/{nameWithExtension}
-func parseOldFilenames(filenames []string, channelID, userID string) [][]string {
+func parseOldFilenames(c request.CTX, filenames []string, channelID, userID string) [][]string {
 	parsed := [][]string{}
 	for _, filename := range filenames {
 		matches := oldFilenameMatchExp.FindStringSubmatch(filename)
 		if len(matches) != 5 {
-			mlog.Error("Failed to parse old Filename", mlog.String("filename", filename))
+			c.Logger().Error("Failed to parse old Filename", mlog.String("filename", filename))
 			continue
 		}
 		if matches[1] != channelID {
-			mlog.Error("ChannelId in Filename does not match", mlog.String("channel_id", channelID), mlog.String("matched", matches[1]))
+			c.Logger().Error("ChannelId in Filename does not match", mlog.String("channel_id", channelID), mlog.String("matched", matches[1]))
 		} else if matches[2] != userID {
-			mlog.Error("UserId in Filename does not match", mlog.String("user_id", userID), mlog.String("matched", matches[2]))
+			c.Logger().Error("UserId in Filename does not match", mlog.String("user_id", userID), mlog.String("matched", matches[2]))
 		} else {
 			parsed = append(parsed, matches[1:])
 		}
@@ -321,9 +321,9 @@ func parseOldFilenames(filenames []string, channelID, userID string) [][]string 
 }
 
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
-func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+func (a *App) MigrateFilenamesToFileInfos(c request.CTX, post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
-		mlog.Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
+		c.Logger().Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
@@ -331,7 +331,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
-		mlog.Error(
+		c.Logger().Error(
 			"Unable to get channel when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
@@ -341,10 +341,10 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	}
 
 	// Parse and validate filenames before further processing
-	parsedFilenames := parseOldFilenames(filenames, post.ChannelId, post.UserId)
+	parsedFilenames := parseOldFilenames(c, filenames, post.ChannelId, post.UserId)
 
 	if len(parsedFilenames) == 0 {
-		mlog.Error("Unable to parse filenames")
+		c.Logger().Error("Unable to parse filenames")
 		return []*model.FileInfo{}
 	}
 
@@ -352,7 +352,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	var teamID string
 	if channel.TeamId == "" {
 		// This post was made in a cross-team DM channel, so we need to find where its files were saved
-		teamID = a.findTeamIdForFilename(post, parsedFilenames[0][2], parsedFilenames[0][3])
+		teamID = a.findTeamIdForFilename(c, post, parsedFilenames[0][2], parsedFilenames[0][3])
 	} else {
 		teamID = channel.TeamId
 	}
@@ -360,14 +360,14 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// Create FileInfo objects for this post
 	infos := make([]*model.FileInfo, 0, len(filenames))
 	if teamID == "" {
-		mlog.Error(
+		c.Logger().Error(
 			"Unable to find team id for files when migrating post to use FileInfos",
 			mlog.String("filenames", strings.Join(filenames, ",")),
 			mlog.String("post_id", post.Id),
 		)
 	} else {
 		for _, parsed := range parsedFilenames {
-			info := a.getInfoForFilename(post, teamID, parsed[0], parsed[1], parsed[2], parsed[3])
+			info := a.getInfoForFilename(c, post, teamID, parsed[0], parsed[1], parsed[2], parsed[3])
 			if info == nil {
 				continue
 			}
@@ -382,7 +382,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
-		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
+		c.Logger().Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
@@ -391,21 +391,21 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		var fileInfos []*model.FileInfo
 		fileInfos, nErr = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if nErr != nil {
-			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(nErr), mlog.String("post_id", post.Id))
+			c.Logger().Error("Unable to get FileInfos for migrated post", mlog.Err(nErr), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
-		mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
+		c.Logger().Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
 		return fileInfos
 	}
 
-	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
+	c.Logger().Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
 
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIDs := make([]string, 0, len(filenames))
 	for _, info := range infos {
 		if _, nErr = a.Srv().Store.FileInfo().Save(info); nErr != nil {
-			mlog.Error(
+			c.Logger().Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
 				mlog.String("file_info_id", info.Id),
@@ -427,7 +427,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Update Posts to clear Filenames and set FileIds
 	if _, nErr = a.Srv().Store.Post().Update(newPost, post); nErr != nil {
-		mlog.Error(
+		c.Logger().Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
 			mlog.String("old_filenames", strings.Join(post.Filenames, ",")),
@@ -470,7 +470,7 @@ func (a *App) UploadFile(c request.CTX, data []byte, channelID string, filename 
 		thumbnailPathList := []string{info.ThumbnailPath}
 		imageDataList := [][]byte{data}
 
-		a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
+		a.HandleImages(c, previewPathList, thumbnailPathList, imageDataList)
 	}
 
 	return info, nil
@@ -630,7 +630,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
-		aerr = t.preprocessImage()
+		aerr = t.preprocessImage(c)
 		if aerr != nil {
 			return t.fileinfo, aerr
 		}
@@ -643,7 +643,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if written > t.maxFileSize {
 		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Error("Failed to remove file", mlog.Err(fileErr))
 		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
@@ -667,7 +667,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 			return nil, aerr
 		}
 		defer file.Close()
-		t.postprocessImage(file)
+		t.postprocessImage(c, file)
 	}
 
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
@@ -683,9 +683,9 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -693,12 +693,12 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 	return t.fileinfo, nil
 }
 
-func (t *UploadFileTask) preprocessImage() *model.AppError {
+func (t *UploadFileTask) preprocessImage(c request.CTX) *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.IsSvg() {
 		svgInfo, err := imaging.ParseSVG(t.teeInput)
 		if err != nil {
-			mlog.Warn("Failed to parse SVG", mlog.Err(err))
+			c.Logger().Warn("Failed to parse SVG", mlog.Err(err))
 		}
 		if svgInfo.Width > 0 && svgInfo.Height > 0 {
 			t.fileinfo.Width = svgInfo.Width
@@ -750,7 +750,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) postprocessImage(file io.Reader) {
+func (t *UploadFileTask) postprocessImage(c request.CTX, file io.Reader) {
 	// don't try to process SVG files
 	if t.fileinfo.IsSvg() {
 		return
@@ -762,7 +762,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		var release func()
 		decoded, imgType, release, err = t.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
-			mlog.Error("Unable to decode image", mlog.Err(err))
+			c.Logger().Error("Unable to decode image", mlog.Err(err))
 			return
 		}
 		defer release()
@@ -783,7 +783,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		go func() {
 			err := t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
 			if err != nil {
-				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
+				c.Logger().Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 				w.CloseWithError(err)
 			} else {
 				w.Close()
@@ -791,7 +791,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		}()
 		_, aerr := t.writeFile(r, path)
 		if aerr != nil {
-			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			c.Logger().Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
 			return
 		}
 	}
@@ -815,7 +815,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		if t.fileinfo.MiniPreview == nil {
 			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
 				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
-				mlog.Info("Unable to generate mini preview image", mlog.Err(err))
+				c.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
 			} else {
 				t.fileinfo.MiniPreview = &miniPreview
 			}
@@ -933,9 +933,9 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}
@@ -943,24 +943,24 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 	return info, data, nil
 }
 
-func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (a *App) HandleImages(c request.CTX, previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData[i]))
+		img, release, err := prepareImage(c, a.ch.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
-			mlog.Debug("Failed to prepare image", mlog.Err(err))
+			c.Logger().Debug("Failed to prepare image", mlog.Err(err))
 			continue
 		}
 		wg.Add(2)
 		go func(img image.Image, path string) {
 			defer wg.Done()
-			a.generateThumbnailImage(img, path)
+			a.generateThumbnailImage(c, img, path)
 		}(img, thumbnailPathList[i])
 
 		go func(img image.Image, path string) {
 			defer wg.Done()
-			a.generatePreviewImage(img, path)
+			a.generatePreviewImage(c, img, path)
 		}(img, previewPathList[i])
 
 		wg.Wait()
@@ -968,7 +968,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	}
 }
 
-func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
+func prepareImage(c request.CTX, imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
 	// Decode image bytes into Image object
 	var imgType string
 	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
@@ -986,54 +986,54 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 	// Flip the image to be upright
 	orientation, err := imaging.GetImageOrientation(imgData)
 	if err != nil {
-		mlog.Debug("GetImageOrientation failed", mlog.Err(err))
+		c.Logger().Debug("GetImageOrientation failed", mlog.Err(err))
 	}
 	img = imaging.MakeImageUpright(img, orientation)
 
 	return img, release, nil
 }
 
-func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
+func (a *App) generateThumbnailImage(c request.CTX, img image.Image, thumbnailPath string) {
 	var buf bytes.Buffer
 	if err := a.ch.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
+		c.Logger().Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 
 	if _, err := a.WriteFile(&buf, thumbnailPath); err != nil {
-		mlog.Error("Unable to upload thumbnail", mlog.String("path", thumbnailPath), mlog.Err(err))
+		c.Logger().Error("Unable to upload thumbnail", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 }
 
-func (a *App) generatePreviewImage(img image.Image, previewPath string) {
+func (a *App) generatePreviewImage(c request.CTX, img image.Image, previewPath string) {
 	var buf bytes.Buffer
 	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
 	if err := a.ch.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
+		c.Logger().Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
 
 	if _, err := a.WriteFile(&buf, previewPath); err != nil {
-		mlog.Error("Unable to upload preview", mlog.Err(err), mlog.String("path", previewPath))
+		c.Logger().Error("Unable to upload preview", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
 }
 
 // generateMiniPreview updates mini preview if needed
 // will save fileinfo with the preview added
-func (a *App) generateMiniPreview(fi *model.FileInfo) {
+func (a *App) generateMiniPreview(c request.CTX, fi *model.FileInfo) {
 	if fi.IsImage() && !fi.IsSvg() && fi.MiniPreview == nil {
 		file, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
-			mlog.Debug("error reading image file", mlog.Err(appErr))
+			c.Logger().Debug("error reading image file", mlog.Err(appErr))
 			return
 		}
 		defer file.Close()
-		img, release, err := prepareImage(a.ch.imgDecoder, file)
+		img, release, err := prepareImage(c, a.ch.imgDecoder, file)
 		if err != nil {
-			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
+			c.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
 			return
@@ -1042,26 +1042,26 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		var miniPreview []byte
 		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
 			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
-			mlog.Info("Unable to generate mini preview image", mlog.Err(err))
+			c.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
 		if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
-			mlog.Debug("creating mini preview failed", mlog.Err(err))
+			c.Logger().Debug("creating mini preview failed", mlog.Err(err))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
 	}
 }
 
-func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
+func (a *App) generateMiniPreviewForInfos(c request.CTX, fileInfos []*model.FileInfo) {
 	wg := new(sync.WaitGroup)
 
 	wg.Add(len(fileInfos))
 	for _, fileInfo := range fileInfos {
 		go func(fi *model.FileInfo) {
 			defer wg.Done()
-			a.generateMiniPreview(fi)
+			a.generateMiniPreview(c, fi)
 		}(fileInfo)
 	}
 	wg.Wait()
@@ -1081,15 +1081,15 @@ func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	return fileInfo, nil
 }
 
-func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model.AppError) {
 	fileInfo, err := a.Srv().getFileInfo(fileID)
 	if err == nil {
-		a.generateMiniPreview(fileInfo)
+		a.generateMiniPreview(c, fileInfo)
 	}
 	return fileInfo, err
 }
 
-func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfos(c request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1104,13 +1104,13 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		}
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(c, fileInfos)
 
 	return fileInfos, nil
 }
 
-func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
-	info, err := a.GetFileInfo(fileID)
+func (a *App) GetFile(c request.CTX, fileID string) ([]byte, *model.AppError) {
+	info, err := a.GetFileInfo(c, fileID)
 	if err != nil {
 		return nil, err
 	}
@@ -1255,7 +1255,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 	return fileInfoSearchResults, nil
 }
 
-func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (a *App) ExtractContentFromFileInfo(c request.CTX, fileInfo *model.FileInfo) error {
 	// We don't process images.
 	if fileInfo.IsImage() {
 		return nil
@@ -1281,7 +1281,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		}
 		reloadFileInfo, storeErr := a.Srv().Store.FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
-			mlog.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+			c.Logger().Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
 		} else {
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}

@@ -138,7 +138,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	return nil
 }
 
-func (a *App) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) checkLdapUserPasswordAndAllCriteria(c request.CTX, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
 	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
@@ -241,8 +241,8 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *App) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	license := a.Srv().License()
+func (a *App) authenticateUser(c request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+	license := a.Srv().License(c)
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.UserAuthServiceLdap {

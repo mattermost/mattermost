@@ -207,7 +207,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.Log().Info(
+	c.Logger().Info(
 		fmt.Sprintf("Permitted admins for %s", syncableType),
 		mlog.String(strings.ToLower(fmt.Sprintf("%s_id", syncableType)), syncableID),
 		mlog.Any("permitted_admins", permittedAdmins),

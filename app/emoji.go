@@ -23,6 +23,7 @@ import (
 	"github.com/disintegration/imaging"
 	_ "golang.org/x/image/webp"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -166,7 +167,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	return appErr
 }
 
-func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
+func (a *App) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
 	if err := a.Srv().Store.Emoji().Delete(emoji, model.GetMillis()); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -177,8 +178,8 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 		}
 	}
 
-	a.deleteEmojiImage(emoji.Id)
-	a.deleteReactionsForEmoji(emoji.Name)
+	a.deleteEmojiImage(c, emoji.Id)
+	a.deleteReactionsForEmoji(c, emoji.Name)
 	return nil
 }
 
@@ -342,14 +343,14 @@ func imageToPaletted(img image.Image) *image.Paletted {
 	return pm
 }
 
-func (a *App) deleteEmojiImage(id string) {
+func (a *App) deleteEmojiImage(c request.CTX, id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		mlog.Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
+		c.Logger().Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }
 
-func (a *App) deleteReactionsForEmoji(emojiName string) {
+func (a *App) deleteReactionsForEmoji(c request.CTX, emojiName string) {
 	if err := a.Srv().Store.Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
-		mlog.Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
+		c.Logger().Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }

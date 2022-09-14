@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -16,21 +17,20 @@ import (
 // SyncLdap starts an LDAP sync job.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) SyncLdap(includeRemovedMembers bool) {
+func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 	a.Srv().Go(func() {
-
-		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
+		if license := a.Srv().License(c); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap(); ldapI != nil {
 				ldapI.StartSynchronizeJob(false, includeRemovedMembers)
 			} else {
-				mlog.Error("Not executing ldap sync because ldap is not available")
+				c.Logger().Error("Not executing ldap sync because ldap is not available")
 			}
 		}
 	})
 }
 
-func (a *App) TestLdap() *model.AppError {
-	license := a.Srv().License()
+func (a *App) TestLdap(c request.CTX) *model.AppError {
+	license := a.Srv().License(c)
 	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
@@ -82,8 +82,8 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	return groups, total, nil
 }
 
-func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
-	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
+	if a.Srv().License(c) != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -111,15 +111,15 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Could not send sign in method changed e-mail", mlog.Err(err))
+			c.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 
 	return "/login?extra=signin_change", nil
 }
 
-func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
-	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPassword string) (string, *model.AppError) {
+	if a.Srv().License(c) != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -157,7 +157,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error("Could not send sign in method changed e-mail", mlog.Err(err))
+			c.Logger().Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 

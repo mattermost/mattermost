@@ -260,6 +260,9 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	// Context for the server startup
+	c := request.EmptyContext(s.Log())
+
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
@@ -267,7 +270,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+	c.Logger().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	s.httpService = httpservice.MakeHTTPService(s.platform)
 
@@ -319,7 +322,7 @@ func NewServer(options ...Option) (*Server, error) {
 				searchStore.UpdateConfig(cfg)
 			})
 
-			s.sqlStore.UpdateLicense(s.License())
+			s.sqlStore.UpdateLicense(s.License(c))
 			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
@@ -344,7 +347,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ConfigFn:     s.platform.Config,
 		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
-		LicenseFn:    s.License,
+		LicenseFn:    func() *model.License { return s.License(c) },
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
@@ -361,10 +364,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if model.BuildEnterpriseReady == "true" {
 		// Dependent on user service
-		s.LoadLicense()
+		s.LoadLicense(c)
 	}
 
-	license := s.License()
+	license := s.License(c)
 	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 7: Initialize filestore
 	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
@@ -388,7 +391,7 @@ func NewServer(options ...Option) (*Server, error) {
 		Users:        s.userService,
 		WebHub:       s,
 		ConfigFn:     s.platform.Config,
-		LicenseFn:    s.License,
+		LicenseFn:    func() *model.License { return s.License(c) },
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
@@ -432,7 +435,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
 		if strings.Contains(SentryDSN, "placeholder") {
-			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
+			c.Logger().Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err2 := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
@@ -452,7 +455,7 @@ func NewServer(options ...Option) (*Server, error) {
 					return sentry.SampledFalse
 				}),
 			}); err2 != nil {
-				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
+				c.Logger().Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
 			}
 		}
 	}
@@ -499,14 +502,14 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Go(func() {
 		for err2 := range errorsChan {
-			mlog.Warn("Server templates error", mlog.Err(err2))
+			c.Logger().Warn("Server templates error", mlog.Err(err2))
 		}
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
 	s.configListenerId = s.platform.AddConfigListener(func(_, _ *model.Config) {
 		ch := s.Channels()
-		ch.regenerateClientConfig()
+		ch.regenerateClientConfig(c)
 
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
@@ -517,12 +520,12 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 
 		if err = s.platform.ReconfigureLogger(); err != nil {
-			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			c.Logger().Error("Error re-configuring logging after config change", mlog.Err(err))
 			return
 		}
 	})
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.Channels().regenerateClientConfig()
+		s.Channels().regenerateClientConfig(c)
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", s.GetSanitizedClientLicense())
@@ -537,7 +540,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
-		LicenseFn:          s.License,
+		LicenseFn:          func() *model.License { return s.License(c) },
 		GoFn:               s.Go,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
@@ -550,12 +553,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.platform.SetupFeatureFlags()
 
-	s.initJobs()
+	s.initJobs(c)
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		c.Logger().Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader(c)))
 		if s.Jobs != nil {
-			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
+			s.Jobs.HandleClusterLeaderChange(s.IsLeader(c))
 		}
 		s.platform.SetupFeatureFlags()
 	})
@@ -569,7 +572,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
+		c.Logger().Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://docs.mattermost.com/configure/configuration-settings.html#site-url")
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -578,7 +581,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
-	mlog.Info(
+	c.Logger().Info(
 		logCurrentVersion,
 		mlog.String("current_version", model.CurrentVersion),
 		mlog.String("build_number", model.BuildNumber),
@@ -587,22 +590,22 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		c.Logger().Info("Enterprise Build", mlog.Bool("enterprise_build", true))
 	} else {
-		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
+		c.Logger().Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
 
 	pwd, _ := os.Getwd()
-	mlog.Info("Printing current working", mlog.String("directory", pwd))
-	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
+	c.Logger().Info("Printing current working", mlog.String("directory", pwd))
+	c.Logger().Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
-			mlog.Error("Error configuring audit", mlog.Err(err))
+		if err = s.configureAudit(c, s.Audit, allowAdvancedLogging); err != nil {
+			c.Logger().Error("Error configuring audit", mlog.Err(err))
 		}
 	}
 
@@ -640,7 +643,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	s.SearchEngine.UpdateConfig(s.platform.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
+	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine(c)
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
@@ -648,8 +651,8 @@ func NewServer(options ...Option) (*Server, error) {
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
 		go func() {
 			appInstance := New(ServerConnector(s.Channels()))
-			if err := appInstance.UpdateProductNotices(); err != nil {
-				mlog.Warn("Failed to perform initial product notices fetch", mlog.Err(err))
+			if err := appInstance.UpdateProductNotices(c); err != nil {
+				c.Logger().Warn("Failed to perform initial product notices fetch", mlog.Err(err))
 			}
 		}()
 	}
@@ -663,7 +666,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if *old.GuestAccountsSettings.Enable && !*new.GuestAccountsSettings.Enable {
 			c := request.EmptyContext(s.Log())
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+				c.Logger().Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
 	})
@@ -673,7 +676,7 @@ func NewServer(options ...Option) (*Server, error) {
 		appInstance := New(ServerConnector(s.Channels()))
 		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
-			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			c.Logger().Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
 
@@ -681,14 +684,14 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
 			s.runLicenseExpirationCheckJob()
-			s.runInactivityCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
+			s.runInactivityCheckJob(c)
+			runDNDStatusExpireJob(c, appInstance)
+			runPostReminderJob(c, appInstance)
 		})
-		s.runJobs()
+		s.runJobs(c)
 	}
 
-	s.doAppMigrations()
+	s.doAppMigrations(c)
 
 	s.initPostMetadata()
 
@@ -712,14 +715,14 @@ func maxInt(a, b int) int {
 	return b
 }
 
-func (s *Server) runJobs() {
+func (s *Server) runJobs(c request.CTX) {
 	s.Go(func() {
 		runSecurityJob(s)
 	})
 	s.Go(func() {
 		firstRun, err := s.getFirstServerRunTimestamp()
 		if err != nil {
-			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+			c.Logger().Warn("Fetching time of first server run failed. Setting to 'now'.")
 			s.ensureFirstServerRunTimestamp()
 			firstRun = utils.MillisFromTime(time.Now())
 		}
@@ -747,17 +750,17 @@ func (s *Server) runJobs() {
 
 	if *s.platform.Config().JobSettings.RunJobs && s.Jobs != nil {
 		if err := s.Jobs.StartWorkers(); err != nil {
-			mlog.Error("Failed to start job server workers", mlog.Err(err))
+			c.Logger().Error("Failed to start job server workers", mlog.Err(err))
 		}
 	}
 	if *s.platform.Config().JobSettings.RunScheduler && s.Jobs != nil {
 		if err := s.Jobs.StartSchedulers(); err != nil {
-			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
+			c.Logger().Error("Failed to start job server schedulers", mlog.Err(err))
 		}
 	}
 
 	if *s.platform.Config().ServiceSettings.EnableAWSMetering {
-		runReportToAWSMeterJob(s)
+		runReportToAWSMeterJob(c, s)
 	}
 }
 
@@ -779,9 +782,9 @@ func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
 	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
-func (s *Server) startInterClusterServices(license *model.License) error {
+func (s *Server) startInterClusterServices(c request.CTX, license *model.License) error {
 	if license == nil {
-		mlog.Debug("No license provided; Remote Cluster services disabled")
+		c.Logger().Debug("No license provided; Remote Cluster services disabled")
 		return nil
 	}
 
@@ -789,19 +792,19 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	// License check
 	if !*license.Features.RemoteClusterService {
-		mlog.Debug("License does not have Remote Cluster services enabled")
+		c.Logger().Debug("License does not have Remote Cluster services enabled")
 		return nil
 	}
 
 	// Config check
 	if !*s.platform.Config().ExperimentalSettings.EnableRemoteClusterService {
-		mlog.Debug("Remote Cluster Service disabled via config")
+		c.Logger().Debug("Remote Cluster Service disabled via config")
 		return nil
 	}
 
 	var err error
 
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	rcs, err := remotecluster.NewRemoteClusterService(c, s)
 	if err != nil {
 		return err
 	}
@@ -818,13 +821,13 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 	// License check
 	if !*license.Features.SharedChannels {
-		mlog.Debug("License does not have shared channels enabled")
+		c.Logger().Debug("License does not have shared channels enabled")
 		return nil
 	}
 
 	// Config check
 	if !*s.platform.Config().ExperimentalSettings.EnableSharedChannels {
-		mlog.Debug("Shared Channels Service disabled via config")
+		c.Logger().Debug("Shared Channels Service disabled via config")
 		return nil
 	}
 
@@ -847,14 +850,14 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 
 const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
-func (s *Server) StopHTTPServer() {
+func (s *Server) StopHTTPServer(c request.CTX) {
 	if s.Server != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
 			if err := s.Server.Shutdown(ctx); err != nil {
-				mlog.Warn("Unable to shutdown server", mlog.Err(err))
+				c.Logger().Warn("Unable to shutdown server", mlog.Err(err))
 			}
 			timer := time.NewTimer(time.Millisecond * 50)
 			select {
@@ -869,7 +872,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() {
+func (s *Server) Shutdown(c request.CTX) {
 	s.Log().Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -903,7 +906,7 @@ func (s *Server) Shutdown() {
 	}
 	s.serviceMux.RUnlock()
 
-	s.StopHTTPServer()
+	s.StopHTTPServer(c)
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
@@ -976,12 +979,12 @@ func (s *Server) Shutdown() {
 	}
 }
 
-func (s *Server) Restart() error {
+func (s *Server) Restart(c request.CTX) error {
 	percentage, err := s.UpgradeToE0Status()
 	if err != nil || percentage != 100 {
 		return errors.Wrap(err, "unable to restart because the system has not been upgraded")
 	}
-	s.Shutdown()
+	s.Shutdown(c)
 
 	argv0, err := exec.LookPath(os.Args[0])
 	if err != nil {
@@ -992,7 +995,7 @@ func (s *Server) Restart() error {
 		return err
 	}
 
-	mlog.Info("Restarting server")
+	c.Logger().Info("Restarting server")
 	return syscall.Exec(argv0, os.Args, os.Environ())
 }
 
@@ -1072,7 +1075,7 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(c request.CTX) error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
 
@@ -1103,12 +1106,12 @@ func (s *Server) Start() error {
 	}
 
 	if err := s.Store.Status().ResetAll(); err != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(err))
+		c.Logger().Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.MailServiceConfig().SendEmailNotifications {
 		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
-			mlog.Error("Mail server connection test failed", mlog.Err(err))
+			c.Logger().Error("Mail server connection test failed", mlog.Err(err))
 		}
 	}
 
@@ -1118,15 +1121,15 @@ func (s *Server) Start() error {
 			err = s.FileBackend().(*filestore.S3FileBackend).MakeBucket()
 		}
 		if err != nil {
-			mlog.Error("Problem with file storage settings", mlog.Err(err))
+			c.Logger().Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
 
-	s.checkPushNotificationServerURL()
+	s.checkPushNotificationServerURL(c)
 
 	s.platform.ReloadConfig()
 
-	mlog.Info("Starting Server...")
+	c.Logger().Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
 
@@ -1160,7 +1163,7 @@ func (s *Server) Start() error {
 	}
 
 	if *s.platform.Config().RateLimitSettings.Enable {
-		mlog.Info("RateLimiter is enabled")
+		c.Logger().Info("RateLimiter is enabled")
 
 		rateLimiter, err2 := NewRateLimiter(&s.platform.Config().RateLimitSettings, s.platform.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err2 != nil {
@@ -1199,7 +1202,7 @@ func (s *Server) Start() error {
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
-	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
+	c.Logger().Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
@@ -1208,7 +1211,7 @@ func (s *Server) Start() error {
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding", mlog.Err(err))
+			c.Logger().Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
 			return fmt.Errorf(i18n.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
@@ -1225,7 +1228,7 @@ func (s *Server) Start() error {
 				go func() {
 					redirectListener, err := net.Listen("tcp", httpListenAddress)
 					if err != nil {
-						mlog.Error("Unable to setup forwarding", mlog.Err(err))
+						c.Logger().Error("Unable to setup forwarding", mlog.Err(err))
 						return
 					}
 					defer redirectListener.Close()
@@ -1278,7 +1281,7 @@ func (s *Server) Start() error {
 					value, ok := model.ServerTLSSupportedCiphers[cipher]
 
 					if !ok {
-						mlog.Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
+						c.Logger().Warn("Unsupported cipher passed", mlog.String("cipher", cipher))
 						continue
 					}
 
@@ -1286,7 +1289,7 @@ func (s *Server) Start() error {
 				}
 
 				if len(cipherSuites) == 0 {
-					mlog.Warn("No supported ciphers passed, fallback to default cipher suite")
+					c.Logger().Warn("No supported ciphers passed, fallback to default cipher suite")
 					cipherSuites = defaultCiphers
 				}
 
@@ -1311,7 +1314,7 @@ func (s *Server) Start() error {
 		}
 
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting server", mlog.Err(err))
+			c.Logger().Critical("Error starting server", mlog.Err(err))
 			time.Sleep(time.Second)
 		}
 
@@ -1319,19 +1322,19 @@ func (s *Server) Start() error {
 	}()
 
 	if *s.platform.Config().ServiceSettings.EnableLocalMode {
-		if err := s.startLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
+		if err := s.startLocalModeServer(c); err != nil {
+			c.Logger().Critical(err.Error())
 		}
 	}
 
-	if err := s.startInterClusterServices(s.License()); err != nil {
-		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	if err := s.startInterClusterServices(c, s.License(c)); err != nil {
+		c.Logger().Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (s *Server) startLocalModeServer() error {
+func (s *Server) startLocalModeServer(c request.CTX) error {
 	s.localModeServer = &http.Server{
 		Handler: s.LocalRouter,
 	}
@@ -1352,7 +1355,7 @@ func (s *Server) startLocalModeServer() error {
 	go func() {
 		err = s.localModeServer.Serve(unixListener)
 		if err != nil && err != http.ErrServerClosed {
-			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+			c.Logger().Critical("Error starting unix socket server", mlog.Err(err))
 		}
 	}()
 	return nil
@@ -1379,24 +1382,24 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 	return nil
 }
 
-func (s *Server) checkPushNotificationServerURL() {
+func (s *Server) checkPushNotificationServerURL(c request.CTX) {
 	notificationServer := *s.platform.Config().EmailSettings.PushNotificationServer
 	if strings.HasPrefix(notificationServer, "http://") {
-		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
+		c.Logger().Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
 }
 
-func runSecurityJob(s *Server) {
-	doSecurity(s)
+func runSecurityJob(c request.CTX, s *Server) {
+	doSecurity(c, s)
 	model.CreateRecurringTask("Security", func() {
-		doSecurity(s)
+		doSecurity(c, s)
 	}, time.Hour*4)
 }
 
-func runTokenCleanupJob(s *Server) {
-	doTokenCleanup(s)
+func runTokenCleanupJob(c request.CTX, s *Server) {
+	doTokenCleanup(c, s)
 	model.CreateRecurringTask("Token Cleanup", func() {
-		doTokenCleanup(s)
+		doTokenCleanup(c, s)
 	}, time.Hour*1)
 }
 
@@ -1407,50 +1410,50 @@ func runCommandWebhookCleanupJob(s *Server) {
 	}, time.Hour*1)
 }
 
-func runSessionCleanupJob(s *Server) {
-	doSessionCleanup(s)
+func runSessionCleanupJob(c request.CTX, s *Server) {
+	doSessionCleanup(c, s)
 	model.CreateRecurringTask("Session Cleanup", func() {
-		doSessionCleanup(s)
+		doSessionCleanup(c, s)
 	}, time.Hour*24)
 }
 
-func runJobsCleanupJob(s *Server) {
-	doJobsCleanup(s)
+func runJobsCleanupJob(c request.CTX, s *Server) {
+	doJobsCleanup(c, s)
 	model.CreateRecurringTask("Job Cleanup", func() {
-		doJobsCleanup(s)
+		doJobsCleanup(c, s)
 	}, time.Hour*24)
 }
 
-func runConfigCleanupJob(s *Server) {
-	doConfigCleanup(s)
+func runConfigCleanupJob(c request.CTX, s *Server) {
+	doConfigCleanup(c, s)
 	model.CreateRecurringTask("Configuration Cleanup", func() {
-		doConfigCleanup(s)
+		doConfigCleanup(c, s)
 	}, time.Hour*24)
 }
 
-func (s *Server) runInactivityCheckJob() {
+func (s *Server) runInactivityCheckJob(c request.CTX) {
 	model.CreateRecurringTask("Server inactivity Check", func() {
-		s.doInactivityCheck()
+		s.doInactivityCheck(c)
 	}, time.Hour*24)
 }
 
-func (s *Server) runLicenseExpirationCheckJob() {
-	s.doLicenseExpirationCheck()
+func (s *Server) runLicenseExpirationCheckJob(c request.CTX) {
+	s.doLicenseExpirationCheck(c)
 	model.CreateRecurringTask("License Expiration Check", func() {
-		s.doLicenseExpirationCheck()
+		s.doLicenseExpirationCheck(c)
 	}, time.Hour*24)
 }
 
-func runReportToAWSMeterJob(s *Server) {
+func runReportToAWSMeterJob(c request.CTX, s *Server) {
 	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
-		doReportUsageToAWSMeteringService(s)
+		doReportUsageToAWSMeteringService(c, s)
 	}, time.Hour*model.AwsMeteringReportInterval)
 }
 
-func doReportUsageToAWSMeteringService(s *Server) {
+func doReportUsageToAWSMeteringService(c request.CTX, s *Server) {
 	awsMeter := awsmeter.New(s.Store, s.platform.Config())
 	if awsMeter == nil {
-		mlog.Error("Cannot obtain instance of AWS Metering Service.")
+		c.Logger().Error("Cannot obtain instance of AWS Metering Service.")
 		return
 	}
 
@@ -1459,14 +1462,14 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-func doSecurity(s *Server) {
-	s.DoSecurityUpdateCheck()
+func doSecurity(c request.CTX, s *Server) {
+	s.DoSecurityUpdateCheck(c)
 }
 
-func doTokenCleanup(s *Server) {
+func doTokenCleanup(c request.CTX, s *Server) {
 	expiry := model.GetMillis() - model.MaxTokenExipryTime
 
-	mlog.Debug("Cleaning up token store.")
+	c.Logger().Debug("Cleaning up token store.")
 
 	s.Store.Token().Cleanup(expiry)
 }
@@ -1480,36 +1483,36 @@ const (
 	jobsCleanupBatchSize     = 1000
 )
 
-func doSessionCleanup(s *Server) {
-	mlog.Debug("Cleaning up session store.")
+func doSessionCleanup(c request.CTX, s *Server) {
+	c.Logger().Debug("Cleaning up session store.")
 	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
-		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
+		c.Logger().Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
 }
 
-func doJobsCleanup(s *Server) {
+func doJobsCleanup(c request.CTX, s *Server) {
 	if *s.platform.Config().JobSettings.CleanupJobsThresholdDays < 0 {
 		return
 	}
-	mlog.Debug("Cleaning up jobs store.")
+	c.Logger().Debug("Cleaning up jobs store.")
 
 	dur := time.Duration(*s.platform.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
 	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
-		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
+		c.Logger().Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
 }
 
-func doConfigCleanup(s *Server) {
+func doConfigCleanup(c request.CTX, s *Server) {
 	if *s.platform.Config().JobSettings.CleanupConfigThresholdDays < 0 || !config.IsDatabaseDSN(s.platform.DescribeConfig()) {
 		return
 	}
-	mlog.Info("Cleaning up configuration store.")
+	c.Logger().Info("Cleaning up configuration store.")
 
 	if err := s.platform.CleanUpConfig(); err != nil {
-		mlog.Warn("Error while cleaning up configurations", mlog.Err(err))
+		c.Logger().Warn("Error while cleaning up configurations", mlog.Err(err))
 	}
 }
 
@@ -1517,7 +1520,7 @@ func (s *Server) HandleMetrics(route string, h http.Handler) {
 	s.platform.HandleMetrics(route, h)
 }
 
-func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+func (s *Server) sendLicenseUpForRenewalEmail(c request.CTX, users map[string]*model.User, license *model.License) *model.AppError {
 	key := model.LicenseUpForRenewalEmailSent + license.Id
 	if _, err := s.Store.System().GetByName(key); err == nil {
 		// return early because the key already exists and that means we already executed the code below to send email successfully
@@ -1526,7 +1529,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 
 	daysToExpiration := license.DaysToExpiration()
 
-	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink(c)
 	if appErr != nil {
 		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -1540,7 +1543,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 			name = user.Username
 		}
 		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration); err != nil {
-			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
+			c.Logger().Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
 			countNotOks++
 		}
 	}
@@ -1556,57 +1559,57 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	}
 
 	if err := s.Store.System().Save(&system); err != nil {
-		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
+		c.Logger().Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (s *Server) doLicenseExpirationCheck() {
-	s.LoadLicense()
+func (s *Server) doLicenseExpirationCheck(c request.CTX) {
+	s.LoadLicense(c)
 
 	// This takes care of a rare edge case reported here https://mattermost.atlassian.net/browse/MM-40962
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
+		c.Logger().Debug("Skipping license expiration check because no license is expected on Team Edition")
 		return
 	}
 
-	license := s.License()
+	license := s.License(c)
 
 	if license == nil {
-		mlog.Debug("License cannot be found.")
+		c.Logger().Debug("License cannot be found.")
 		return
 	}
 
 	if *license.Features.Cloud {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		c.Logger().Debug("Skipping license expiration check for Cloud")
 		return
 	}
 
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
-		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		c.Logger().Error("Failed to get system admins for license expired message from Mattermost.")
 		return
 	}
 
 	if license.IsWithinExpirationPeriod() {
-		appErr := s.sendLicenseUpForRenewalEmail(users, license)
+		appErr := s.sendLicenseUpForRenewalEmail(c, users, license)
 		if appErr != nil {
-			mlog.Debug(appErr.Error())
+			c.Logger().Debug(appErr.Error())
 		}
 		return
 	}
 
 	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
+		c.Logger().Debug("License is not past the grace period.")
 		return
 	}
 
-	renewalLink, _, appErr := s.GenerateLicenseRenewalLink()
+	renewalLink, _, appErr := s.GenerateLicenseRenewalLink(c)
 	if appErr != nil {
-		mlog.Error("Error while sending the license expired email.", mlog.Err(appErr))
+		c.Logger().Error("Error while sending the license expired email.", mlog.Err(appErr))
 		return
 	}
 
@@ -1614,20 +1617,20 @@ func (s *Server) doLicenseExpirationCheck() {
 	for _, user := range users {
 		user := user
 		if user.Email == "" {
-			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+			c.Logger().Error("Invalid system admin email.", mlog.String("user_email", user.Email))
 			continue
 		}
 
-		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
+		c.Logger().Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
 			if err := s.SendRemoveExpiredLicenseEmail(user.Email, renewalLink, user.Locale, *s.platform.Config().ServiceSettings.SiteURL); err != nil {
-				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+				c.Logger().Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	s.RemoveLicense()
+	s.RemoveLicense(c)
 }
 
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
@@ -1641,7 +1644,7 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale
 	return nil
 }
 
-func (s *Server) StartSearchEngine() (string, string) {
+func (s *Server) StartSearchEngine(c request.CTX) (string, string) {
 	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
@@ -1659,23 +1662,23 @@ func (s *Server) StartSearchEngine() (string, string) {
 		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			s.Go(func() {
 				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					mlog.Error(err.Error())
+					c.Logger().Error(err.Error())
 				}
 			})
 		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
 			s.Go(func() {
 				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
+					c.Logger().Error(err.Error())
 				}
 			})
 		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
 			s.Go(func() {
 				if *oldConfig.ElasticsearchSettings.EnableIndexing {
 					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
+						c.Logger().Error(err.Error())
 					}
 					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
+						c.Logger().Error(err.Error())
 					}
 				}
 			})
@@ -1690,7 +1693,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 				s.Go(func() {
 					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
+						c.Logger().Error(err.Error())
 					}
 				})
 			}
@@ -1698,7 +1701,7 @@ func (s *Server) StartSearchEngine() (string, string) {
 			if s.SearchEngine.ElasticsearchEngine != nil {
 				s.Go(func() {
 					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
+						c.Logger().Error(err.Error())
 					}
 				})
 			}
@@ -1742,7 +1745,7 @@ func (ch *Channels) ClientConfigHash() string {
 	return ch.clientConfigHash.Load().(string)
 }
 
-func (s *Server) initJobs() {
+func (s *Server) initJobs(c request.CTX) {
 	s.Jobs = jobs.NewJobServer(s.platform, s.Store, s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
@@ -1844,20 +1847,20 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeLastAccessiblePost,
-		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
+		last_accessible_post.MakeWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
+		last_accessible_post.MakeScheduler(s.Jobs, s.License(c)),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeUpgradeNotifyAdmin,
-		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
+		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(c), model.JobTypeUpgradeNotifyAdmin),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeTrialNotifyAdmin,
-		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
+		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(c), model.JobTypeTrialNotifyAdmin),
 	)
 }
 
@@ -1987,15 +1990,15 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	}
 }
 
-func runDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
+func runDNDStatusExpireJob(c request.CTX, a *App) {
+	if a.IsLeader(c) {
 		withMut(&a.ch.dndTaskMut, func() {
 			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
-		if a.IsLeader() {
+		c.Logger().Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader(c)))
+		if a.IsLeader(c) {
 			withMut(&a.ch.dndTaskMut, func() {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
 			})
@@ -2005,17 +2008,17 @@ func runDNDStatusExpireJob(a *App) {
 	})
 }
 
-func runPostReminderJob(a *App) {
-	if a.IsLeader() {
+func runPostReminderJob(c request.CTX, a *App) {
+	if a.IsLeader(c) {
 		withMut(&a.ch.postReminderMut, func() {
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", func() { a.CheckPostReminders(c) }, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
-		if a.IsLeader() {
+		c.Logger().Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader(c)))
+		if a.IsLeader(c) {
 			withMut(&a.ch.postReminderMut, func() {
-				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", func() { a.CheckPostReminders(c) }, 5*time.Minute)
 			})
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)

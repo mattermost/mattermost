@@ -13,12 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 // extractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
 // a destination string to extract to.
-func extractTarGz(gzipStream io.Reader, dst string) error {
+func extractTarGz(c request.CTX, gzipStream io.Reader, dst string) error {
 	if dst == "" {
 		return errors.New("no destination path provided")
 	}
@@ -45,7 +46,7 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 		case tar.TypeDir:
 		case tar.TypeReg:
 		default:
-			mlog.Warn("skipping unsupported header type on extracting tar file", mlog.String("header_type", string(header.Typeflag)), mlog.String("header_name", header.Name))
+			c.Logger().Warn("skipping unsupported header type on extracting tar file", mlog.String("header_type", string(header.Typeflag)), mlog.String("header_name", header.Name))
 			continue
 		}
 

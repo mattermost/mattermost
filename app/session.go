@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -62,7 +63,7 @@ func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Ses
 	return nil, model.NewAppError("GetRemoteClusterSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
-func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
+func (a *App) GetSession(c request.CTX, token string) (*model.Session, *model.AppError) {
 	var session *model.Session
 	// We intentionally skip the error check here, we only want to check if the token is valid.
 	// If we don't have the session we are going to create one with the token eventually.
@@ -86,7 +87,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 				detailedError = appErr.Error()
 				statusCode = appErr.StatusCode
 			} else {
-				mlog.Warn("Error while creating session for user access token", mlog.Err(appErr))
+				c.Logger().Warn("Error while creating session for user access token", mlog.Err(appErr))
 			}
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": detailedError}, "", statusCode)
 		}
@@ -113,7 +114,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			a.Srv().Go(func() {
 				err := a.RevokeSessionById(session.Id)
 				if err != nil {
-					mlog.Warn("Error while revoking session", mlog.Err(err))
+					c.Logger().Warn("Error while revoking session", mlog.Err(err))
 				}
 			})
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]any{"Token": token, "Error": ""}, "idle timeout", http.StatusUnauthorized)
@@ -234,7 +235,7 @@ func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64)
 	return nil
 }
 
-func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
+func (a *App) UpdateLastActivityAtIfNeeded(c request.CTX, session model.Session) {
 	now := model.GetMillis()
 
 	a.UpdateWebConnUserActivity(session, now)
@@ -244,7 +245,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := a.Srv().Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		c.Logger().Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now
@@ -254,7 +255,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 // ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 // A new ExpiresAt is only written if enough time has elapsed since last update.
 // Returns true only if the session was extended.
-func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+func (a *App) ExtendSessionExpiryIfNeeded(c request.CTX, session *model.Session) bool {
 	if !*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 		return false
 	}
@@ -287,12 +288,12 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 
 	newExpiry := now + sessionLength
 	if err := a.ch.srv.userService.ExtendSessionExpiry(session, newExpiry); err != nil {
-		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		c.Logger().Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
 		return false
 	}
 
-	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
+	c.Logger().Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
 		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
 
 	auditRec.Success()

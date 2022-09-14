@@ -288,7 +288,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		c.Logger().Warn("Encountered error saving user preferences", mlog.Err(err))
 	}
 
-	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
+	go a.UpdateViewedProductNoticesForNewUser(c, ruser.Id)
 
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
 	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil, "")
@@ -308,7 +308,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(c request.CTX, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -849,7 +849,7 @@ func (a *App) SetProfileImageFromFile(c request.CTX, userID string, file io.Read
 	if err := a.Srv().Store.User().UpdateLastPictureUpdate(userID); err != nil {
 		c.Logger().Warn("Error with updating last picture update", mlog.Err(err))
 	}
-	a.invalidateUserCacheAndPublish(userID)
+	a.invalidateUserCacheAndPublish(c, userID)
 	a.onUserProfileChange(userID)
 
 	return nil
@@ -882,7 +882,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 }
 
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
-	a.SetStatusOffline(userID, false)
+	a.SetStatusOffline(c, userID, false)
 
 	user, err := a.GetUser(userID)
 	if err != nil {
@@ -1636,7 +1636,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 
 	if errProfileImageExists != nil {
 		fileHandlingErrorsFound = true
-		mlog.Warn(
+		c.Logger().Warn(
 			"Error checking existence of profile image.",
 			mlog.String("path", profileImagePath),
 			mlog.Err(errProfileImageExists),
@@ -1648,7 +1648,7 @@ func (a *App) PermanentDeleteUser(c *request.Context, user *model.User) *model.A
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true
-			mlog.Warn(
+			c.Logger().Warn(
 				"Unable to remove profile image directory",
 				mlog.String("path", profileImageDirectory),
 				mlog.Err(errRemoveDirectory),
@@ -1757,7 +1757,7 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	if user.Email != tokenData.Email {
 		a.Srv().Go(func() {
 			if err := a.Srv().EmailService.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
-				mlog.Error("Failed to send email change email", mlog.Err(err))
+				c.Logger().Error("Failed to send email change email", mlog.Err(err))
 			}
 		})
 	}
@@ -2037,8 +2037,8 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	return nil
 }
 
-func (a *App) RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+func (a *App) RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -2093,8 +2093,8 @@ func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([
 	return nonMemberIds, nil
 }
 
-func (a *App) RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+func (a *App) RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -2103,12 +2103,12 @@ func (a *App) RestrictUsersSearchByPermissions(userID string, options *model.Use
 	return options, nil
 }
 
-func (a *App) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
+func (a *App) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	if userID == otherUserId {
 		return true, nil
 	}
 
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+	restrictions, err := a.GetViewUsersRestrictions(c, userID)
 	if err != nil {
 		return false, err
 	}
@@ -2149,8 +2149,8 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 	return belongs, nil
 }
 
-func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestrictions, *model.AppError) {
-	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
+func (a *App) GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+	if a.HasPermissionTo(c, userID, model.PermissionViewMembers) {
 		return nil, nil
 	}
 
@@ -2161,7 +2161,7 @@ func (a *App) GetViewUsersRestrictions(userID string) (*model.ViewUsersRestricti
 
 	teamIDsWithPermission := []string{}
 	for _, teamID := range teamIDs {
-		if a.HasPermissionToTeam(userID, teamID, model.PermissionViewMembers) {
+		if a.HasPermissionToTeam(c, userID, teamID, model.PermissionViewMembers) {
 			teamIDsWithPermission = append(teamIDsWithPermission, teamID)
 		}
 	}
@@ -2297,12 +2297,12 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 }
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
-func (a *App) invalidateUserCacheAndPublish(userID string) {
+func (a *App) invalidateUserCacheAndPublish(c request.CTX, userID string) {
 	a.InvalidateCacheForUser(userID)
 
 	user, userErr := a.GetUser(userID)
 	if userErr != nil {
-		mlog.Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
+		c.Logger().Error("Error in getting users profile", mlog.String("user_id", userID), mlog.Err(userErr))
 		return
 	}
 

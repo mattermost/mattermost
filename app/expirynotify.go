@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -16,8 +17,8 @@ const (
 )
 
 // NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
-func (a *App) NotifySessionsExpired() error {
-	if !a.canSendPushNotifications() {
+func (a *App) NotifySessionsExpired(c request.CTX) error {
+	if !a.canSendPushNotifications(c) {
 		return nil
 	}
 

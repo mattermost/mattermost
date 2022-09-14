@@ -12,6 +12,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -24,10 +25,10 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	license := s.License()
+	license := s.License(c)
 	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -36,7 +37,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		} else {
-			mlog.Error("Could not get cluster info")
+			c.Logger().Error("Could not get cluster info")
 		}
 	}
 
@@ -59,8 +60,8 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogs(page, perPage)
+func (a *App) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogs(c, page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
@@ -149,9 +150,9 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (s *Server) InvalidateAllCaches() *model.AppError {
+func (s *Server) InvalidateAllCaches(c request.CTX) *model.AppError {
 	debug.FreeOSMemory()
-	s.InvalidateAllCachesSkipSend()
+	s.InvalidateAllCachesSkipSend(c)
 
 	if s.Cluster != nil {
 
@@ -167,8 +168,8 @@ func (s *Server) InvalidateAllCaches() *model.AppError {
 	return nil
 }
 
-func (s *Server) InvalidateAllCachesSkipSend() {
-	mlog.Info("Purging all caches")
+func (s *Server) InvalidateAllCachesSkipSend(c request.CTX) {
+	c.Logger().Info("Purging all caches")
 	s.userService.ClearAllUsersSessionCacheLocal()
 	s.statusCache.Purge()
 	s.Store.Team().ClearCaches()
@@ -178,18 +179,18 @@ func (s *Server) InvalidateAllCachesSkipSend() {
 	s.Store.FileInfo().ClearCaches()
 	s.Store.Webhook().ClearCaches()
 	linkCache.Purge()
-	s.LoadLicense()
+	s.LoadLicense(c)
 }
 
-func (a *App) RecycleDatabaseConnection() {
-	mlog.Info("Attempting to recycle database connections.")
+func (a *App) RecycleDatabaseConnection(c request.CTX) {
+	c.Logger().Info("Attempting to recycle database connections.")
 
 	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
 	// This allows in gradually closing connections as they expire. In future, we can think
 	// of exposing this as a param from the REST api.
 	a.Srv().Store.RecycleDBConnections(10 * time.Second)
 
-	mlog.Info("Finished recycling database connections.")
+	c.Logger().Info("Finished recycling database connections.")
 }
 
 func (a *App) TestSiteURL(siteURL string) *model.AppError {
@@ -206,7 +207,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
+func (a *App) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.AppError {
 	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
@@ -228,7 +229,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	}
 
 	T := i18n.GetUserTranslations(user.Locale)
-	license := a.Srv().License()
+	license := a.Srv().License(c)
 	mailConfig := a.Srv().MailServiceConfig()
 	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, "", "", "", ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
@@ -238,12 +239,12 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 }
 
 // serverBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
-func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
+func (s *Server) serverBusyStateChanged(c request.CTX, sbs *model.ServerBusyState) {
 	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
-		mlog.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		c.Logger().Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {
-		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
+		c.Logger().Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
 }
 

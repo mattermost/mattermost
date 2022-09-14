@@ -43,9 +43,8 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 	return nil
 }
 
-func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
-	ctx := request.EmptyContext(a.Srv().Log())
-	license := a.Srv().License()
+func (a *App) DoCheckForAdminNotifications(c request.CTX, trial bool) *model.AppError {
+	license := a.Srv().License(c)
 	if license == nil {
 		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "No license found", http.StatusInternalServerError)
 	}
@@ -53,7 +52,7 @@ func (a *App) DoCheckForAdminNotifications(trial bool) *model.AppError {
 	currentSKU := license.SkuShortName
 	workspaceName := ""
 
-	return a.SendNotifyAdminPosts(ctx, workspaceName, currentSKU, trial)
+	return a.SendNotifyAdminPosts(c, workspaceName, currentSKU, trial)
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
@@ -80,8 +79,8 @@ func filterNotificationData(data []*model.NotifyAdminData, test func(*model.Noti
 	return
 }
 
-func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError {
-	if !a.CanNotifyAdmin(trial) {
+func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError {
+	if !a.CanNotifyAdmin(c, trial) {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, "Cannot notify yet", http.StatusForbidden)
 	}
 
@@ -110,7 +109,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 	data = filterNotificationData(data, func(nad *model.NotifyAdminData) bool { return nad.RequiredPlan != currentSKU })
 
 	if len(data) == 0 {
-		mlog.Warn("No notification data available")
+		c.Logger().Warn("No notification data available")
 		return nil
 	}
 
@@ -133,7 +132,7 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 
 		channel, appErr := a.GetOrCreateDirectChannel(c, systemBot.UserId, admin.Id)
 		if appErr != nil {
-			mlog.Warn("Error getting direct channel", mlog.Err(appErr))
+			c.Logger().Warn("Error getting direct channel", mlog.Err(appErr))
 			continue
 		}
 
@@ -151,12 +150,12 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 
 		_, appErr = a.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
-			mlog.Warn("Error creating post", mlog.Err(appErr))
+			c.Logger().Warn("Error creating post", mlog.Err(appErr))
 			continue
 		}
 	}
 
-	a.FinishSendAdminNotifyPost(trial, now)
+	a.FinishSendAdminNotifyPost(c, trial, now)
 
 	return nil
 }
@@ -173,7 +172,7 @@ func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.Ma
 	return false
 }
 
-func (a *App) CanNotifyAdmin(trial bool) bool {
+func (a *App) CanNotifyAdmin(c request.CTX, trial bool) bool {
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -185,13 +184,13 @@ func (a *App) CanNotifyAdmin(trial bool) bool {
 		if errors.As(sysValErr, &nfErr) { // if no timestamps have been recorded before, system is free to notify
 			return true
 		}
-		mlog.Error("Cannot notify", mlog.Err(sysValErr))
+		c.Logger().Error("Cannot notify", mlog.Err(sysValErr))
 		return false
 	}
 
 	lastNotificationTimestamp, err := strconv.ParseFloat(sysVal.Value, 64)
 	if err != nil {
-		mlog.Error("Cannot notify", mlog.Err(err))
+		c.Logger().Error("Cannot notify", mlog.Err(err))
 		return false
 	}
 
@@ -205,7 +204,7 @@ func (a *App) CanNotifyAdmin(trial bool) bool {
 	return timeDiff >= int64(daysToMillis)
 }
 
-func (a *App) FinishSendAdminNotifyPost(trial bool, now int64) {
+func (a *App) FinishSendAdminNotifyPost(c request.CTX, trial bool, now int64) {
 	systemVarName := lastUpgradeNotificationTimeStamp
 	if trial {
 		systemVarName = lastTrialNotificationTimeStamp
@@ -214,12 +213,12 @@ func (a *App) FinishSendAdminNotifyPost(trial bool, now int64) {
 	val := strconv.FormatInt(model.GetMillis(), 10)
 	sysVar := &model.System{Name: systemVarName, Value: val}
 	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
-		mlog.Error("Unable to finish send admin notify post job", mlog.Err(err))
+		c.Logger().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 
 	// all the notifications are now sent in a post and can safely be removed
 	if err := a.Srv().Store.NotifyAdmin().DeleteBefore(trial, now); err != nil {
-		mlog.Error("Unable to finish send admin notify post job", mlog.Err(err))
+		c.Logger().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 
 }

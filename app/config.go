@@ -19,6 +19,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -74,7 +75,7 @@ func (a *App) RemoveConfigListener(id string) {
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
 // and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
-func (ch *Channels) ensurePostActionCookieSecret() error {
+func (ch *Channels) ensurePostActionCookieSecret(c request.CTX) error {
 	if ch.postActionCookieSecret != nil {
 		return nil
 	}
@@ -108,7 +109,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = ch.srv.Store.System().Save(system); err != nil {
-			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
+			c.Logger().Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
 		}
@@ -133,7 +134,7 @@ func (ch *Channels) ensurePostActionCookieSecret() error {
 
 // ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
-func (ch *Channels) ensureAsymmetricSigningKey() error {
+func (ch *Channels) ensureAsymmetricSigningKey(c request.CTX) error {
 	if ch.AsymmetricSigningKey() != nil {
 		return nil
 	}
@@ -171,7 +172,7 @@ func (ch *Channels) ensureAsymmetricSigningKey() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = ch.srv.Store.System().Save(system); err != nil {
-			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
+			c.Logger().Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
 		}
@@ -205,7 +206,7 @@ func (ch *Channels) ensureAsymmetricSigningKey() error {
 		},
 		D: key.ECDSAKey.D,
 	})
-	ch.regenerateClientConfig()
+	ch.regenerateClientConfig(c)
 	return nil
 }
 
@@ -267,9 +268,9 @@ func (a *App) PostActionCookieSecret() []byte {
 	return a.ch.PostActionCookieSecret()
 }
 
-func (ch *Channels) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
+func (ch *Channels) regenerateClientConfig(c request.CTX) {
+	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License(c))
+	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License(c))
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ch.srv.Store.TermsOfService().GetLatest(true)

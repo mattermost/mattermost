@@ -23,14 +23,14 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) canSendPushNotifications() bool {
+func (a *App) canSendPushNotifications(c request.CTX) bool {
 	if !*a.Config().EmailSettings.SendPushNotifications {
 		return false
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-		mlog.Warn("Push notifications have been disabled. Update your license or go to System Console > Environment > Push Notification Server to use a different server")
+	if license := a.Srv().License(c); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		c.Logger().Warn("Push notifications have been disabled. Update your license or go to System Console > Environment > Push Notification Server to use a different server")
 		return false
 	}
 
@@ -193,7 +193,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		go func() {
 			_, err := a.sendOutOfChannelMentions(c, sender, post, channel, mentions.OtherPotentialMentions)
 			if err != nil {
-				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+				c.Logger().Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		}()
 
@@ -307,7 +307,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
 	if nErr != nil {
-		mlog.Warn(
+		c.Logger().Warn(
 			"Failed to update mention count",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
@@ -318,7 +318,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	// Log the problems that might have occurred while auto following the thread
 	for _, mac := range mentionAutofollowChans {
 		if err := <-mac; err != nil {
-			mlog.Warn(
+			c.Logger().Warn(
 				"Failed to update thread autofollow from mention",
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
@@ -362,17 +362,17 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+				c.Logger().Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
 				continue
 			}
 
 			if a.userAllowsEmail(c, profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				senderProfileImage, _, err := a.GetProfileImage(sender)
 				if err != nil {
-					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+					c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
 				}
 				if err := a.sendNotificationEmail(c, notification, profileMap[id], team, senderProfileImage); err != nil {
-					mlog.Warn("Unable to send notification email.", mlog.Err(err))
+					c.Logger().Warn("Unable to send notification email.", mlog.Err(err))
 				}
 			}
 		}
@@ -419,7 +419,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		}
 	}
 
-	if a.canSendPushNotifications() {
+	if a.canSendPushNotifications(c) {
 		for _, id := range mentionedUsersList {
 			if profileMap[id] == nil || notificationsForCRT.Push.Contains(id) {
 				continue
@@ -546,7 +546,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 		var infos []*model.FileInfo
 		if result := <-fchan; result.NErr != nil {
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
+			c.Logger().Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
@@ -638,7 +638,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 					payload, jsonErr := json.Marshal(userThread)
 					if jsonErr != nil {
-						mlog.Warn("Failed to encode thread to JSON")
+						c.Logger().Warn("Failed to encode thread to JSON")
 					}
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
@@ -677,7 +677,7 @@ func (a *App) userAllowsEmail(c request.CTX, user *model.User, channelMemberNoti
 	// Remove the user as recipient when the user has muted the channel.
 	if channelMuted, ok := channelMemberNotificationProps[model.MarkUnreadNotifyProp]; ok {
 		if channelMuted == model.ChannelMarkUnreadMention {
-			mlog.Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
+			c.Logger().Debug("Channel muted for user", mlog.String("user_id", user.Id), mlog.String("channel_mute", channelMuted))
 			userAllowsEmails = false
 		}
 	}
@@ -714,7 +714,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(c request.CTX, sender *model.U
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
 func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
-	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(sender, post, channel, potentialMentions)
+	outOfChannelUsers, outOfGroupsUsers, err := a.filterOutOfChannelMentions(c, sender, post, channel, potentialMentions)
 	if err != nil {
 		return false, err
 	}
@@ -728,10 +728,10 @@ func (a *App) sendOutOfChannelMentions(c request.CTX, sender *model.User, post *
 	return true, nil
 }
 
-func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+func (a *App) FilterUsersByVisible(c request.CTX, viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
 	result := []*model.User{}
 	for _, user := range otherUsers {
-		canSee, err := a.UserCanSeeOtherUser(viewer.Id, user.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, viewer.Id, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -742,7 +742,7 @@ func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User)
 	return result, nil
 }
 
-func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
+func (a *App) filterOutOfChannelMentions(c request.CTX, sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil
 	}
@@ -763,7 +763,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
-	allUsers, appErr := a.FilterUsersByVisible(sender, allUsers)
+	allUsers, appErr := a.FilterUsersByVisible(c, sender, allUsers)
 	if appErr != nil {
 		return nil, nil, appErr
 	}
@@ -1043,7 +1043,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+	if license := a.Srv().License(c); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 

@@ -111,7 +111,7 @@ func (a *App) CreatePostMissingChannel(c request.CTX, post *model.Post, triggerW
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
-func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+func (a *App) deduplicateCreatePost(c request.CTX, post *model.Post) (foundPost *model.Post, err *model.AppError) {
 	// We rely on the client sending the pending post id across "duplicate" requests. If there
 	// isn't one, we can't deduplicate, so allow creation normally.
 	if post.PendingPostId == "" {
@@ -147,13 +147,13 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	mlog.Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
+	c.Logger().Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
 
 	return actualPost, nil
 }
 
 func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
-	foundPost, err := a.deduplicateCreatePost(post)
+	foundPost, err := a.deduplicateCreatePost(c, post)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +328,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if len(post.FileIds) > 0 {
-		if err = a.attachFilesToPost(post); err != nil {
+		if err = a.attachFilesToPost(c, post); err != nil {
 			c.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
@@ -380,12 +380,12 @@ func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
 	return post, nil
 }
 
-func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+func (a *App) attachFilesToPost(c request.CTX, post *model.Post) *model.AppError {
 	var attachedIds []string
 	for _, fileID := range post.FileIds {
 		err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId)
 		if err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
+			c.Logger().Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
@@ -430,7 +430,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 			if mentioned.Type == model.ChannelTypeOpen {
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
-					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					c.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]any{
@@ -448,7 +448,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
-	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if a.Srv().License(c) != nil && *a.Srv().License(c).Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
@@ -479,7 +479,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(c, channel, user, post)
 			if err != nil {
-				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+				c.Logger().Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
 	}
@@ -487,7 +487,7 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if triggerWebhooks {
 		a.Srv().Go(func() {
 			if err := a.handleWebhookEvents(c, post, team, channel, user); err != nil {
-				mlog.Error(err.Error())
+				c.Logger().Error(err.Error())
 			}
 		})
 	}
@@ -516,7 +516,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
 	a.Publish(message)
@@ -538,7 +538,7 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
 	a.Publish(message)
@@ -546,7 +546,7 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userID, postID string) {
+func (a *App) DeleteEphemeralPost(c request.CTX, userID, postID string) {
 	post := &model.Post{
 		Id:       postID,
 		UserId:   userID,
@@ -558,13 +558,13 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil, "")
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
 	a.Publish(message)
 }
 
-func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -719,14 +719,14 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	}
 
 	if !model.IsValidId(previewedPostID) {
-		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
+		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
 		return false, nil
 	}
 
 	previewedPost, err := a.GetSinglePost(previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
+			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
 			return false, nil
 		}
 		return false, err
@@ -740,7 +740,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
-			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			c.Logger().Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
 			return false, nil
 		}
 		return false, err
@@ -763,7 +763,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 
 		postJSON, jsonErr := postForUser.ToJSON()
 		if jsonErr != nil {
-			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+			c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 		}
 		messageCopy.Add("post", postJSON)
 		a.Publish(messageCopy)
@@ -1105,13 +1105,13 @@ func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads
 	return postID, nil
 }
 
-func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
+func (a *App) GetNextPostIdFromPostList(c request.CTX, postList *model.PostList, collapsedThreads bool) string {
 	if len(postList.Order) > 0 {
 		firstPostId := postList.Order[0]
 		firstPost := postList.Posts[firstPostId]
 		nextPostId, err := a.GetPostIdAfterTime(firstPost.ChannelId, firstPost.CreateAt, collapsedThreads)
 		if err != nil {
-			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
+			c.Logger().Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
 
 		return nextPostId
@@ -1120,13 +1120,13 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 	return ""
 }
 
-func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThreads bool) string {
+func (a *App) GetPrevPostIdFromPostList(c request.CTX, postList *model.PostList, collapsedThreads bool) string {
 	if len(postList.Order) > 0 {
 		lastPostId := postList.Order[len(postList.Order)-1]
 		lastPost := postList.Posts[lastPostId]
 		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
 		if err != nil {
-			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
+			c.Logger().Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
 
 		return previousPostId
@@ -1138,7 +1138,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThrea
 // AddCursorIdsForPostList adds NextPostId and PrevPostId as cursor to the PostList.
 // The conditional blocks ensure that it sets those cursor IDs immediately as afterPost, beforePost or empty,
 // and only query to database whenever necessary.
-func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
+func (a *App) AddCursorIdsForPostList(c request.CTX, originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int, collapsedThreads bool) {
 	prevPostIdSet := false
 	prevPostId := ""
 	nextPostIdSet := false
@@ -1168,11 +1168,11 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	}
 
 	if !nextPostIdSet {
-		nextPostId = a.GetNextPostIdFromPostList(originalList, collapsedThreads)
+		nextPostId = a.GetNextPostIdFromPostList(c, originalList, collapsedThreads)
 	}
 
 	if !prevPostIdSet {
-		prevPostId = a.GetPrevPostIdFromPostList(originalList, collapsedThreads)
+		prevPostId = a.GetPrevPostIdFromPostList(c, originalList, collapsedThreads)
 	}
 
 	originalList.NextPostId = nextPostId
@@ -1300,7 +1300,7 @@ func (a *App) deletePostFiles(postID string) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
@@ -1377,7 +1377,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(c request.CTX, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
@@ -1402,8 +1402,8 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 }
 
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
-func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
-	license := a.Srv().License()
+func (a *App) GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError) {
+	license := a.Srv().License(c)
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
@@ -1430,8 +1430,8 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
 // ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 // Use GetLastAccessiblePostTime() to access the result.
-func (a *App) ComputeLastAccessiblePostTime() error {
-	limit, appErr := a.getCloudMessagesHistoryLimit()
+func (a *App) ComputeLastAccessiblePostTime(c request.CTX) error {
+	limit, appErr := a.getCloudMessagesHistoryLimit(c)
 	if appErr != nil {
 		return appErr
 	}
@@ -1456,8 +1456,8 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 	return nil
 }
 
-func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
-	license := a.Srv().License()
+func (a *App) getCloudMessagesHistoryLimit(c request.CTX) (int64, *model.AppError) {
+	license := a.Srv().License(c)
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
@@ -1485,7 +1485,7 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
@@ -1549,7 +1549,7 @@ func (a *App) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *m
 	return searchParams, nil
 }
 
-func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPostWithMigration(c request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -1558,7 +1558,7 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 		close(pchan)
 	}()
 
-	infos, err := a.GetFileInfosForPost(postID, false, includeDeleted)
+	infos, err := a.GetFileInfosForPost(c, postID, false, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1581,20 +1581,20 @@ func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted boo
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, false)
 			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postID, true)
 			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(post)
+			infos = a.MigrateFilenamesToFileInfos(c, post)
 		}
 	}
 
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(c, fileInfos)
 
 	return fileInfos, nil
 }
@@ -1875,7 +1875,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 
 	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
 		if channel.Type == model.ChannelTypeOpen {
-			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
+			if !a.SessionHasPermissionToTeam(c, *session, channel.TeamId, model.PermissionReadPublicChannel) {
 				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
 		} else {
@@ -1950,7 +1950,7 @@ func (a *App) GetTopDMsForUserSince(userID string, opts *model.InsightsOpts) (*m
 	return topDMs, nil
 }
 
-func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.AppError {
+func (a *App) SetPostReminder(c request.CTX, postID, userID string, targetTime int64) *model.AppError {
 	// Store the reminder in the DB
 	reminder := &model.PostReminder{
 		PostId:     postID,
@@ -1995,7 +1995,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 
 	postJSON, jsonErr := ephemeralPost.ToJSON()
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
 	a.Publish(message)
@@ -2003,10 +2003,10 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	return nil
 }
 
-func (a *App) CheckPostReminders() {
+func (a *App) CheckPostReminders(c request.CTX) {
 	systemBot, appErr := a.GetSystemBot()
 	if appErr != nil {
-		mlog.Error("Failed to get system bot", mlog.Err(appErr))
+		c.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
 
@@ -2017,7 +2017,7 @@ func (a *App) CheckPostReminders() {
 	// MM-45595.
 	reminders, err := a.Srv().Store.Post().GetPostReminders(time.Now().UTC().Unix())
 	if err != nil {
-		mlog.Error("Failed to get post reminders", mlog.Err(err))
+		c.Logger().Error("Failed to get post reminders", mlog.Err(err))
 		return
 	}
 
@@ -2035,14 +2035,14 @@ func (a *App) CheckPostReminders() {
 	for userID, postIDs := range groupedReminders {
 		ch, appErr := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
 		if appErr != nil {
-			mlog.Error("Failed to get direct channel", mlog.Err(appErr))
+			c.Logger().Error("Failed to get direct channel", mlog.Err(appErr))
 			return
 		}
 
 		for _, postID := range postIDs {
 			metadata, err := a.Srv().Store.Post().GetPostReminderMetadata(postID)
 			if err != nil {
-				mlog.Error("Failed to get post reminder metadata", mlog.Err(err))
+				c.Logger().Error("Failed to get post reminder metadata", mlog.Err(err))
 				continue
 			}
 
@@ -2063,7 +2063,7 @@ func (a *App) CheckPostReminders() {
 			}
 
 			if _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, false, true); err != nil {
-				mlog.Error("Failed to post reminder message", mlog.Err(err))
+				c.Logger().Error("Failed to post reminder message", mlog.Err(err))
 			}
 		}
 	}
