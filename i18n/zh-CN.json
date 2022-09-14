@@ -7460,10 +7460,6 @@
     "translation": "无法获取帖子的文件信息。"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "立刻修复"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "随时通过电子邮件发送给我们 "
   },
