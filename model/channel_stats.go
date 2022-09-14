@@ -22,3 +22,7 @@ func (o *ChannelStats) GuestCount_() float64 {
 func (o *ChannelStats) PinnedPostCount_() float64 {
 	return float64(o.PinnedPostCount)
 }
+
+func (o *ChannelStats) FilesCount_() float64 {
+	return float64(o.FilesCount)
+}

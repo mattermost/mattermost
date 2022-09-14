@@ -226,4 +226,5 @@ type ChannelStats {
 	memberCount: Float!
 	guestCount: Float!
 	pinnedPostCount: Float!
+	filesCount: Float!
 }

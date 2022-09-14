@@ -53,6 +53,7 @@ func TestGraphQLChannels(t *testing.T) {
 				MemberCount     float64 `json:"memberCount"`
 				GuestCount      float64 `json:"guestCount"`
 				PinnedPostCount float64 `json:"pinnedpostCount"`
+				FilesCount      float64 `json:"filesCount"`
 			} `json:"stats"`
 		} `json:"channels"`
 	}
@@ -396,6 +397,7 @@ func TestGraphQLChannels(t *testing.T) {
 		stats {
 		  channelId
 		  memberCount
+		  filesCount
 		}
 	  }
 	}
@@ -418,7 +420,10 @@ func TestGraphQLChannels(t *testing.T) {
 			require.Equal(t, ch.ID, ch.Stats.ChannelId)
 			count, appErr := th.App.GetChannelMemberCount(th.Context, ch.Stats.ChannelId)
 			require.Nil(t, appErr)
+			fCount, appErr := th.App.GetChannelFileCount(th.Context, ch.Stats.ChannelId)
+			require.Nil(t, appErr)
 			require.Equal(t, float64(count), ch.Stats.MemberCount)
+			require.Equal(t, float64(fCount), ch.Stats.FilesCount)
 		}
 	})
 }
