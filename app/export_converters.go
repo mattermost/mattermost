@@ -79,6 +79,7 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *Lin
 			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
 			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
 			MessageDisplay:     exportedPrefs["MessageDisplay"],
+			ColorizeUsernames:  exportedPrefs["ColorizeUsernames"],
 			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
 			TutorialStep:       exportedPrefs["TutorialStep"],
 			EmailInterval:      exportedPrefs["EmailInterval"],
@@ -155,9 +156,11 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 			Team:     &post.TeamName,
 			Channel:  &post.ChannelName,
 			User:     &post.Username,
+			Type:     &post.Type,
 			Message:  &post.Message,
 			Props:    &post.Props,
 			CreateAt: &post.CreateAt,
+			EditAt:   &post.EditAt,
 		},
 	}
 }
@@ -172,9 +175,11 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 		DirectPost: &DirectPostImportData{
 			ChannelMembers: &channelMembers,
 			User:           &post.User,
+			Type:           &post.Type,
 			Message:        &post.Message,
 			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
+			EditAt:         &post.EditAt,
 		},
 	}
 }
@@ -182,8 +187,10 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	return &ReplyImportData{
 		User:     &post.Username,
+		Type:     &post.Type,
 		Message:  &post.Message,
 		CreateAt: &post.CreateAt,
+		EditAt:   &post.EditAt,
 	}
 }
 

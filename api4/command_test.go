@@ -646,7 +646,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 		rc := &model.CommandResponse{}
 
 		if err := json.NewEncoder(w).Encode(rc); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -717,7 +717,7 @@ func TestExecuteGetCommand(t *testing.T) {
 		Text:         "test get command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -732,7 +732,7 @@ func TestExecuteGetCommand(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -779,7 +779,7 @@ func TestExecutePostCommand(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -792,7 +792,7 @@ func TestExecutePostCommand(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -840,13 +840,13 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -892,13 +892,13 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -951,14 +951,14 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()
@@ -1015,7 +1015,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 		Text:         "test post command response",
 		ResponseType: model.CommandResponseTypeInChannel,
 		Type:         "custom_test",
-		Props:        map[string]interface{}{"someprop": "somevalue"},
+		Props:        map[string]any{"someprop": "somevalue"},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1025,7 +1025,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
 		}
 	}))
 	defer ts.Close()

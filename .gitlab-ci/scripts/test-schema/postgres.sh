@@ -23,8 +23,9 @@ timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isr
 
 echo "Creating databases"
 docker exec $CONTAINER_DB sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test;'
-echo "Importing postgres dump from version 6.0"
-docker exec $CONTAINER_DB psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.sql
+echo "Importing postgres dump from version 6.0.0"
+docker exec -i $CONTAINER_DB psql -U mmuser -d migrated < "$CI_PROJECT_DIR"/scripts/mattermost-postgresql-6.0.0.sql
+docker exec -i $CONTAINER_DB psql -U mmuser -d migrated -c "INSERT INTO Systems (Name, Value) VALUES ('Version', '6.0.0')"
 docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
   --env-file="dotenv/test-schema-validation.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
@@ -32,7 +33,7 @@ docker run -d -it --rm --name $CONTAINER_SERVER --net $DOCKER_NETWORK \
   -v "$CI_PROJECT_DIR":/mattermost-server \
   -w /mattermost-server \
   $IMAGE_BUILD_SERVER \
-  bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+  bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
 mkdir -p logs
 docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs_$COMPOSE_PROJECT_NAME
 docker logs -f $CONTAINER_SERVER

@@ -50,13 +50,13 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(make(model.StringMap), nil)
 	mockLicenseStore := mocks.LicenseStore{}
 	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
@@ -90,6 +90,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"system_user_access_token",
 		"team_post_all",
 		"team_post_all_public",
+		"playbook_admin",
+		"playbook_member",
+		"run_admin",
+		"run_member",
 	}
 
 	roles1, err1 := th.App.GetRolesByNames(roleNames)
@@ -161,6 +165,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionCreateGroupChannel.Id,
 			model.PermissionViewMembers.Id,
 			model.PermissionCreateTeam.Id,
+			model.PermissionCreateCustomGroup.Id,
+			model.PermissionEditCustomGroup.Id,
+			model.PermissionDeleteCustomGroup.Id,
+			model.PermissionManageCustomGroupMembers.Id,
 		},
 		"system_post_all": {
 			model.PermissionCreatePost.Id,
@@ -216,6 +224,10 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	role3, err3 := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
 	assert.Nil(t, err3)
 	expected3 := []string{
+		model.PermissionCreateCustomGroup.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
 		model.PermissionListPublicTeams.Id,
 		model.PermissionJoinPublicTeams.Id,
 		model.PermissionCreateDirectChannel.Id,

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -57,6 +59,7 @@ type WebConnConfig struct {
 	Locale       string
 	ConnectionID string
 	Active       bool
+	ReuseCount   int
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -94,7 +97,13 @@ type WebConn struct {
 	// to this webConn or not.
 	// It is not used as an atomic, because there is no need to.
 	// So do not use this outside the web hub.
-	active       bool
+	active bool
+	// reuseCount indicates how many times this connection has been reused.
+	// This is used to differentiate between a fresh connection and
+	// a reused connection.
+	// It's theoretically possible for this number to wrap around. But we
+	// leave that as an edge-case.
+	reuseCount   int
 	sessionToken atomic.Value
 	session      atomic.Value
 	connectionID atomic.Value
@@ -111,6 +120,7 @@ type CheckConnResult struct {
 	ActiveQueue      chan model.WebSocketMessage
 	DeadQueue        []*model.WebSocketEvent
 	DeadQueuePointer int
+	ReuseCount       int
 }
 
 // PopulateWebConnConfig checks if the connection id already exists in the hub,
@@ -120,8 +130,8 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
-	// TODO: the method should internally forward the request
-	// to the cluster if it does not have it.
+	// This does not handle reconnect requests across nodes in a cluster.
+	// It falls back to the non-reliable case in that scenario.
 	res := a.CheckWebConn(s.UserId, cfg.ConnectionID)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
@@ -133,6 +143,7 @@ func (a *App) PopulateWebConnConfig(s *model.Session, cfg *WebConnConfig, seqVal
 		cfg.deadQueue = res.DeadQueue
 		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
+		cfg.ReuseCount = res.ReuseCount
 		// Now we get the sequence number
 		if seqVal == "" {
 			// Sequence_number must be sent with connection id.
@@ -158,10 +169,18 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	// Disable TCP_NO_DELAY for higher throughput
-	// Unfortunately, it doesn't work for tls.Conn,
-	// and currently, the API doesn't expose the underlying TCP conn.
-	tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
-	if ok {
+	var tcpConn *net.TCPConn
+	switch conn := cfg.WebSocket.UnderlyingConn().(type) {
+	case *net.TCPConn:
+		tcpConn = conn
+	case *tls.Conn:
+		newConn, ok := conn.NetConn().(*net.TCPConn)
+		if ok {
+			tcpConn = newConn
+		}
+	}
+
+	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
 			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
@@ -172,7 +191,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -188,6 +207,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		active:             cfg.Active,
+		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		pluginPosted:       make(chan pluginWSPostedHook, 10),
@@ -287,7 +307,7 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.srv.userService.ReturnSessionToPool(wc.GetSession())
+	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -323,7 +343,9 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
+			return err
+		}
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
@@ -333,9 +355,23 @@ func (wc *WebConn) readPump() {
 	})
 
 	for {
+		msgType, rd, err := wc.WebSocket.NextReader()
+		if err != nil {
+			wc.logSocketErr("websocket.NextReader", err)
+			return
+		}
+
+		var decoder interface {
+			Decode(v any) error
+		}
+		if msgType == websocket.TextMessage {
+			decoder = json.NewDecoder(rd)
+		} else {
+			decoder = msgpack.NewDecoder(rd)
+		}
 		var req model.WebSocketRequest
-		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
+		if err = decoder.Decode(&req); err != nil {
+			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
 
@@ -365,7 +401,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -414,27 +450,6 @@ func (wc *WebConn) writePump() {
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
-			skipSend := false
-			if len(wc.send) >= sendSlowWarn {
-				// When the pump starts to get slow we'll drop non-critical messages
-				switch msg.EventType() {
-				case model.WebsocketEventTyping,
-					model.WebsocketEventStatusChange,
-					model.WebsocketEventChannelViewed:
-					mlog.Warn(
-						"websocket.slow: dropping message",
-						mlog.String("user_id", wc.UserId),
-						mlog.String("type", msg.EventType()),
-						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
-					)
-					skipSend = true
-				}
-			}
-
-			if skipSend {
-				continue
-			}
-
 			buf.Reset()
 			var err error
 			if evtOk {
@@ -462,8 +477,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.srv.Config().ServiceSettings.EnableReliableWebSockets &&
-				evtOk {
+			if evtOk {
 				wc.addToDeadQueue(evt)
 			}
 
@@ -525,12 +539,17 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
 	var index int
+	// deadQueuePointer = 0 means either no msg written or the pointer
+	// has rolled over to its starting position.
 	if wc.deadQueuePointer == 0 {
+		// If last entry is nil, it means no msg is written.
 		if wc.deadQueue[deadQueueSize-1] == nil {
-			return false // No msg written
+			return false
 		}
+		// If it's not nil, that means it has rolled over to start, and we
+		// check the last position.
 		index = deadQueueSize - 1
-	} else {
+	} else { // deadQueuePointer != 0 means it's somewhere in the middle.
 		index = wc.deadQueuePointer - 1
 	}
 
@@ -561,7 +580,7 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 func (wc *WebConn) clearDeadQueue() {
 	for i := 0; i < deadQueueSize; i++ {
 		if wc.deadQueue[i] == nil {
-			return
+			break
 		}
 		wc.deadQueue[i] = nil
 	}
@@ -647,7 +666,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
-		wc.App.Srv().License() != nil))
+		wc.App.Channels().License() != nil))
 	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
@@ -686,6 +705,23 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	// When the pump starts to get slow we'll drop non-critical
+	// messages. We should skip those frames before they are
+	// queued to wc.send buffered channel.
+	if len(wc.send) >= sendSlowWarn {
+		switch msg.EventType() {
+		case model.WebsocketEventTyping,
+			model.WebsocketEventStatusChange,
+			model.WebsocketEventChannelViewed:
+			mlog.Warn(
+				"websocket.slow: dropping message",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("type", msg.EventType()),
+			)
+			return false
+		}
+	}
+
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
@@ -708,6 +744,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
+	// If the event is destined to a specific connection
+	if msg.GetBroadcast().ConnectionId != "" {
+		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
+	}
+
 	// If the event is destined to a specific user
 	if msg.GetBroadcast().UserId != "" {
 		return wc.UserId == msg.GetBroadcast().UserId
@@ -728,7 +769,7 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if wc.allChannelMembers == nil {
-			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
+			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, false, false)
 			if err != nil {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false
@@ -782,6 +823,10 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
 	} else {
-		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		logFunc := mlog.Debug
+		if e, ok := err.(net.Error); ok && e.Timeout() {
+			logFunc = mlog.Error
+		}
+		logFunc(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 	}
 }

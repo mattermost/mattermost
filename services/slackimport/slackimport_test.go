@@ -11,7 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
@@ -117,7 +119,7 @@ func TestSlackParseChannels(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := slackParseChannels(file, "O")
+	channels, err := slackParseChannels(file, model.ChannelTypeOpen)
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(channels))
 }
@@ -127,7 +129,7 @@ func TestSlackParseDirectMessages(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := slackParseChannels(file, "D")
+	channels, err := slackParseChannels(file, model.ChannelTypeDirect)
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(channels))
 }
@@ -137,7 +139,7 @@ func TestSlackParsePrivateChannels(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := slackParseChannels(file, "P")
+	channels, err := slackParseChannels(file, model.ChannelTypePrivate)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(channels))
 }
@@ -147,7 +149,7 @@ func TestSlackParseGroupDirectMessages(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := slackParseChannels(file, "G")
+	channels, err := slackParseChannels(file, model.ChannelTypeGroup)
 	require.NoError(t, err)
 	assert.Equal(t, 3, len(channels))
 }
@@ -325,9 +327,11 @@ func TestOldImportChannel(t *testing.T) {
 	store := &mocks.Store{}
 	config := &model.Config{}
 	config.SetDefaults()
+	ctx := request.EmptyContext(nil)
+	ctx.SetLogger(mlog.CreateConsoleTestLogger(true, mlog.LvlDebug))
 
 	t.Run("No panic on direct channel", func(t *testing.T) {
-		//ch := th.CreateDmChannel(u1)
+		// ch := th.CreateDmChannel(u1)
 		ch := &model.Channel{
 			Type: model.ChannelTypeDirect,
 			Name: "test-channel",
@@ -344,7 +348,7 @@ func TestOldImportChannel(t *testing.T) {
 		actions := Actions{}
 
 		importer := New(store, actions, config)
-		_ = importer.oldImportChannel(ch, sCh, users)
+		_ = importer.oldImportChannel(ctx, ch, sCh, users)
 	})
 
 	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
@@ -364,7 +368,7 @@ func TestOldImportChannel(t *testing.T) {
 		actions := Actions{}
 
 		importer := New(store, actions, config)
-		_ = importer.oldImportChannel(ch, sCh, users)
+		_ = importer.oldImportChannel(ctx, ch, sCh, users)
 	})
 
 	t.Run("No panic on group channel", func(t *testing.T) {
@@ -383,6 +387,6 @@ func TestOldImportChannel(t *testing.T) {
 		actions := Actions{}
 
 		importer := New(store, actions, config)
-		_ = importer.oldImportChannel(ch, sCh, users)
+		_ = importer.oldImportChannel(ctx, ch, sCh, users)
 	})
 }

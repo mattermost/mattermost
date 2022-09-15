@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	LogRotateSize           = 10000
+	LogRotateSizeMB         = 100
 	LogCompress             = true
 	LogRotateMaxAge         = 0
 	LogRotateMaxBackups     = 0
@@ -80,7 +80,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		targetCfg.Levels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
 
 		// apply audit specific formatting
-		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": true, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
+		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
 
 		cfg["_defAudit"] = targetCfg
 	}
@@ -211,6 +211,6 @@ func makePlainFormatOptions(enableColor bool) json.RawMessage {
 
 func makeFileOptions(filename string) json.RawMessage {
 	str := fmt.Sprintf(`{"filename": "%s", "max_size": %d, "max_age": %d, "max_backups": %d, "compress": %t}`,
-		filename, LogRotateSize, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
+		filename, LogRotateSizeMB, LogRotateMaxAge, LogRotateMaxBackups, LogCompress)
 	return json.RawMessage(str)
 }

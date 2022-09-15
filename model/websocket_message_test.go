@@ -56,7 +56,7 @@ func TestWebSocketEventImmutable(t *testing.T) {
 	require.NotEqual(t, m.GetBroadcast(), new.GetBroadcast())
 	require.Equal(t, new.GetBroadcast(), broadcast)
 
-	data := map[string]interface{}{
+	data := map[string]any{
 		"key":  "val",
 		"key2": "val2",
 	}
@@ -85,12 +85,12 @@ func TestWebSocketEventFromJSON(t *testing.T) {
 	require.NotNil(t, ev, "should have parsed")
 	require.Equal(t, ev.EventType(), "test")
 	require.Equal(t, ev.GetSequence(), int64(45))
-	require.Equal(t, ev.data, map[string]interface{}{"key": "val"})
+	require.Equal(t, ev.data, map[string]any{"key": "val"})
 	require.Equal(t, ev.GetBroadcast(), &WebsocketBroadcast{UserId: "userid"})
 }
 
 func TestWebSocketResponse(t *testing.T) {
-	m := NewWebSocketResponse("OK", 1, map[string]interface{}{})
+	m := NewWebSocketResponse("OK", 1, map[string]any{})
 	e := NewWebSocketError(1, &AppError{})
 	m.Add("RootId", NewId())
 	json, err := m.ToJSON()
@@ -156,4 +156,81 @@ func BenchmarkWebSocketEvent_ToJSON(b *testing.B) {
 			stringSink, _ = event.ToJSON()
 		}
 	})
+}
+
+func TestWebsocketBroadcastCopy(t *testing.T) {
+	w := &WebsocketBroadcast{}
+	require.Equal(t, w, w.copy())
+
+	w = nil
+	require.Equal(t, w, w.copy())
+
+	w = &WebsocketBroadcast{
+		OmitUsers: map[string]bool{
+			"aaa": true,
+			"bbb": true,
+			"ccc": false,
+		},
+		UserId:                "aaa",
+		ChannelId:             "bbb",
+		TeamId:                "ccc",
+		ContainsSanitizedData: true,
+		ContainsSensitiveData: true,
+	}
+	require.Equal(t, w, w.copy())
+}
+
+func TestPrecomputedWebSocketEventJSONCopy(t *testing.T) {
+	p := &precomputedWebSocketEventJSON{}
+	require.Equal(t, p, p.copy())
+
+	p = nil
+	require.Equal(t, p, p.copy())
+
+	p = &precomputedWebSocketEventJSON{
+		Event:     []byte{},
+		Data:      []byte{},
+		Broadcast: []byte{},
+	}
+	require.Equal(t, p, p.copy())
+
+	p = &precomputedWebSocketEventJSON{
+		Event:     []byte{'a', 'b', 'c'},
+		Data:      []byte{'d', 'e', 'f'},
+		Broadcast: []byte{'g', 'h', 'i'},
+	}
+	require.Equal(t, p, p.copy())
+}
+
+func TestWebSocketEventDeepCopy(t *testing.T) {
+	omitUsers := map[string]bool{
+		"user1": true,
+		"user2": false,
+	}
+
+	broadcast := &WebsocketBroadcast{
+		OmitUsers:             omitUsers,
+		UserId:                "aaa",
+		ChannelId:             "bbb",
+		TeamId:                "ccc",
+		ContainsSanitizedData: true,
+		ContainsSensitiveData: true,
+	}
+
+	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers)
+
+	ev.Add("post", &Post{})
+	ev.SetBroadcast(broadcast)
+	ev = ev.PrecomputeJSON()
+
+	evCopy := ev.DeepCopy()
+	require.Equal(t, ev, evCopy)
+	require.NotSame(t, ev.data, evCopy.data)
+	require.NotSame(t, ev.broadcast, evCopy.broadcast)
+	require.NotSame(t, ev.precomputedJSON, evCopy.precomputedJSON)
+
+	ev.Add("post", &Post{
+		Id: "test",
+	})
+	require.NotEqual(t, ev.data, evCopy.data)
 }

@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
 )
 
 const (
@@ -38,7 +39,7 @@ type LinkMetadata struct {
 	// - *model.PostImage if the linked content is an image
 	// - *opengraph.OpenGraph if the linked content is an HTML document
 	// - nil if the linked content has no metadata
-	Data interface{}
+	Data any
 }
 
 // truncateText ensure string is 300 chars, truncate and add ellipsis
@@ -50,7 +51,7 @@ func truncateText(original string) string {
 	return original
 }
 
-func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
+func firstNImages(images []*image.Image, maxImages int) []*image.Image {
 	if maxImages < 0 { // don't break stuff, if it's weird, go for sane defaults
 		maxImages = LinkMetadataMaxImages
 	}
@@ -142,7 +143,7 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 		return nil
 	}
 
-	var data interface{}
+	var data any
 	var err error
 
 	switch o.Type {

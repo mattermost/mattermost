@@ -5,7 +5,7 @@ package api4
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -37,7 +37,7 @@ func TestCreateBot(t *testing.T) {
 		defer th.TearDown()
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.Config().ServiceSettings.EnableBotAccountCreation = model.NewBool(false)
 
 		_, _, err := th.Client.CreateBot(&model.Bot{
@@ -55,7 +55,7 @@ func TestCreateBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -81,7 +81,7 @@ func TestCreateBot(t *testing.T) {
 		defer th.TearDown()
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -106,7 +106,7 @@ func TestCreateBot(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		bot, resp, err := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -116,7 +116,7 @@ func TestCreateBot(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(bot.UserId)
-		th.App.UpdateUserRoles(bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		rtoken, _, err := th.Client.CreateUserAccessToken(bot.UserId, "test token")
 		require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -234,7 +234,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -258,7 +258,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -291,7 +291,7 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageRoles.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		resp, err = th.Client.UpdateUserRoles(createdBot.UserId, model.SystemUserRoleId)
 		require.NoError(t, err)
@@ -310,7 +310,7 @@ func TestPatchBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -341,7 +341,7 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -372,7 +372,7 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -408,7 +408,7 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -444,7 +444,7 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -461,7 +461,7 @@ func TestPatchBot(t *testing.T) {
 		r, err := th.Client.DoAPIPut("/bots/"+createdBot.UserId, `{"creator_id":"`+th.BasicUser2.Id+`"}`)
 		require.NoError(t, err)
 		defer func() {
-			_, _ = ioutil.ReadAll(r.Body)
+			_, _ = io.ReadAll(r.Body)
 			_ = r.Body.Close()
 		}()
 		var patchedBot *model.Bot
@@ -513,7 +513,7 @@ func TestGetBot(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
@@ -533,7 +533,7 @@ func TestGetBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, resp, err := th.Client.GetBot(model.NewId(), "")
 		require.Error(t, err)
@@ -545,7 +545,7 @@ func TestGetBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		bot, resp, err := th.Client.GetBot(bot1.UserId, "")
 		require.NoError(t, err)
@@ -561,7 +561,7 @@ func TestGetBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		bot, resp, err := th.Client.GetBot(bot2.UserId, "")
 		require.NoError(t, err)
@@ -579,7 +579,7 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, _, err := th.Client.GetBot(bot1.UserId, "")
 		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
@@ -591,7 +591,7 @@ func TestGetBot(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, _, err := th.Client.GetBot(myBot.UserId, "")
 		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
@@ -602,7 +602,7 @@ func TestGetBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, resp, err := th.Client.GetBot(deletedBot.UserId, "")
 		require.Error(t, err)
@@ -614,7 +614,7 @@ func TestGetBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		bot, resp, err := th.Client.GetBotIncludeDeleted(deletedBot.UserId, "")
 		require.NoError(t, err)
@@ -687,11 +687,11 @@ func TestGetBots(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser2.Id, model.TeamUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.TeamUserRoleId, false)
 	th.LoginBasic2()
 	orphanedBot, resp, err := th.Client.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
-		Description: "an oprphaned bot",
+		Description: "an orphaned bot",
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
@@ -710,7 +710,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot1, bot2, bot3, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -730,7 +730,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot1}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -750,7 +750,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot3, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -770,7 +770,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -790,7 +790,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -810,7 +810,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot1}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -830,7 +830,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{bot2, bot3}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -850,7 +850,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{deletedBot2, orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -870,7 +870,7 @@ func TestGetBots(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		expectedBotList := []*model.Bot{orphanedBot}
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -891,7 +891,7 @@ func TestGetBots(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 
 		_, _, err := th.Client.GetBots(0, 10, "")
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -916,7 +916,7 @@ func TestDisableBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -942,7 +942,7 @@ func TestDisableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -968,7 +968,7 @@ func TestDisableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -1021,7 +1021,7 @@ func TestEnableBot(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -1051,7 +1051,7 @@ func TestEnableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -1081,7 +1081,7 @@ func TestEnableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -1288,7 +1288,7 @@ func TestConvertBotToUser(t *testing.T) {
 	defer th.TearDown()
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})

@@ -64,13 +64,15 @@ type UserImportData struct {
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
-	Theme              *string `json:"theme,omitempty"`
-	UseMilitaryTime    *string `json:"military_time,omitempty"`
-	CollapsePreviews   *string `json:"link_previews,omitempty"`
-	MessageDisplay     *string `json:"message_display,omitempty"`
-	ChannelDisplayMode *string `json:"channel_display_mode,omitempty"`
-	TutorialStep       *string `json:"tutorial_step,omitempty"`
-	EmailInterval      *string `json:"email_interval,omitempty"`
+	Theme               *string `json:"theme,omitempty"`
+	UseMilitaryTime     *string `json:"military_time,omitempty"`
+	CollapsePreviews    *string `json:"link_previews,omitempty"`
+	MessageDisplay      *string `json:"message_display,omitempty"`
+	CollapseConsecutive *string `json:"collapse_consecutive_messages,omitempty"`
+	ColorizeUsernames   *string `json:"colorize_usernames,omitempty"`
+	ChannelDisplayMode  *string `json:"channel_display_mode,omitempty"`
+	TutorialStep        *string `json:"tutorial_step,omitempty"`
+	EmailInterval       *string `json:"email_interval,omitempty"`
 
 	NotifyProps *UserNotifyPropsImportData `json:"notify_props,omitempty"`
 }
@@ -124,8 +126,10 @@ type ReactionImportData struct {
 type ReplyImportData struct {
 	User *string `json:"user"`
 
+	Type     *string `json:"type"`
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
+	EditAt   *int64  `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
@@ -137,14 +141,17 @@ type PostImportData struct {
 	Channel *string `json:"channel"`
 	User    *string `json:"user"`
 
+	Type     *string                `json:"type"`
 	Message  *string                `json:"message"`
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
+	EditAt   *int64                 `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
 	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
 	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -158,14 +165,17 @@ type DirectPostImportData struct {
 	ChannelMembers *[]string `json:"channel_members"`
 	User           *string   `json:"user"`
 
+	Type     *string                `json:"type"`
 	Message  *string                `json:"message"`
 	Props    *model.StringInterface `json:"props"`
 	CreateAt *int64                 `json:"create_at"`
+	EditAt   *int64                 `json:"edit_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
 	Replies     *[]ReplyImportData      `json:"replies"`
 	Attachments *[]AttachmentImportData `json:"attachments"`
+	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 }
 
 type SchemeImportData struct {

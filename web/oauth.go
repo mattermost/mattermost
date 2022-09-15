@@ -48,7 +48,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	var authRequest *model.AuthorizeRequest
 	err := json.NewDecoder(r.Body).Decode(&authRequest)
 	if err != nil || authRequest == nil {
-		c.SetInvalidParam("authorize_request")
+		c.SetInvalidParamWithErr("authorize_request", err)
 		return
 	}
 
@@ -241,7 +241,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(accessRsp); err != nil {
-		mlog.Warn("Error writing response", mlog.Err(err))
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
 
@@ -289,6 +289,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			hasRedirectURL = redirectURL != ""
 		}
 	}
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -341,11 +342,6 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else { // For web
 			c.App.AttachSessionCookies(c.AppContext, w, r)
-
-			// If no redirect url is passed, get the default one
-			if !hasRedirectURL {
-				redirectURL = c.GetSiteURLHeader()
-			}
 		}
 	}
 
@@ -437,4 +433,16 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, authURL, http.StatusFound)
+}
+
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+	parsed, _ := url.Parse(targetURL)
+	if parsed == nil || parsed.Scheme != "" || parsed.Host != "" {
+		return targetURL
+	}
+
+	if targetURL != "" && targetURL[0] != '/' {
+		targetURL = "/" + targetURL
+	}
+	return siteURLPrefix + targetURL
 }

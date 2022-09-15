@@ -8,6 +8,8 @@ import (
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 //nolint:unparam
@@ -73,4 +75,12 @@ func TestParseInvalidSVGData(t *testing.T) {
 			t.Errorf("Should not be able to parse SVG attributes at index %d, but was definitely able to!", index)
 		}
 	}
+}
+
+func TestParseProcInstOnlySVGData(t *testing.T) {
+	svg := strings.NewReader("<?xml version='1.0' encoding='utf-8'?>")
+	svgInfo, err := ParseSVG(svg)
+	require.Error(t, err)
+	require.Equal(t, 0, svgInfo.Width)
+	require.Equal(t, 0, svgInfo.Height)
 }

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -12,6 +13,7 @@ var SysconsoleAncillaryPermissions map[string][]*Permission
 var SystemManagerDefaultPermissions []string
 var SystemUserManagerDefaultPermissions []string
 var SystemReadOnlyAdminDefaultPermissions []string
+var SystemCustomGroupAdminDefaultPermissions []string
 
 var BuiltInSchemeManagedRoleIDs []string
 
@@ -41,6 +43,13 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+
+		CustomGroupUserRoleId,
+
+		PlaybookAdminRoleId,
+		PlaybookMemberRoleId,
+		RunAdminRoleId,
+		RunMemberRoleId,
 	}, NewSystemRoleIDs...)
 
 	// When updating the values here, the values in mattermost-redux must also be updated.
@@ -332,25 +341,34 @@ func init() {
 		PermissionSysconsoleWriteIntegrationsCors.Id,
 	}
 
+	SystemCustomGroupAdminDefaultPermissions = []string{
+		PermissionCreateCustomGroup.Id,
+		PermissionEditCustomGroup.Id,
+		PermissionDeleteCustomGroup.Id,
+		PermissionManageCustomGroupMembers.Id,
+	}
+
 	// Add the ancillary permissions to each system role
 	SystemUserManagerDefaultPermissions = AddAncillaryPermissions(SystemUserManagerDefaultPermissions)
 	SystemReadOnlyAdminDefaultPermissions = AddAncillaryPermissions(SystemReadOnlyAdminDefaultPermissions)
 	SystemManagerDefaultPermissions = AddAncillaryPermissions(SystemManagerDefaultPermissions)
+	SystemCustomGroupAdminDefaultPermissions = AddAncillaryPermissions(SystemCustomGroupAdminDefaultPermissions)
 }
 
 type RoleType string
 type RoleScope string
 
 const (
-	SystemGuestRoleId           = "system_guest"
-	SystemUserRoleId            = "system_user"
-	SystemAdminRoleId           = "system_admin"
-	SystemPostAllRoleId         = "system_post_all"
-	SystemPostAllPublicRoleId   = "system_post_all_public"
-	SystemUserAccessTokenRoleId = "system_user_access_token"
-	SystemUserManagerRoleId     = "system_user_manager"
-	SystemReadOnlyAdminRoleId   = "system_read_only_admin"
-	SystemManagerRoleId         = "system_manager"
+	SystemGuestRoleId            = "system_guest"
+	SystemUserRoleId             = "system_user"
+	SystemAdminRoleId            = "system_admin"
+	SystemPostAllRoleId          = "system_post_all"
+	SystemPostAllPublicRoleId    = "system_post_all_public"
+	SystemUserAccessTokenRoleId  = "system_user_access_token"
+	SystemUserManagerRoleId      = "system_user_manager"
+	SystemReadOnlyAdminRoleId    = "system_read_only_admin"
+	SystemManagerRoleId          = "system_manager"
+	SystemCustomGroupAdminRoleId = "system_custom_group_admin"
 
 	TeamGuestRoleId         = "team_guest"
 	TeamUserRoleId          = "team_user"
@@ -362,6 +380,13 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
+	CustomGroupUserRoleId = "custom_group_user"
+
+	PlaybookAdminRoleId  = "playbook_admin"
+	PlaybookMemberRoleId = "playbook_member"
+	RunAdminRoleId       = "run_admin"
+	RunMemberRoleId      = "run_member"
+
 	RoleNameMaxLength        = 64
 	RoleDisplayNameMaxLength = 128
 	RoleDescriptionMaxLength = 1024
@@ -369,6 +394,7 @@ const (
 	RoleScopeSystem  RoleScope = "System"
 	RoleScopeTeam    RoleScope = "Team"
 	RoleScopeChannel RoleScope = "Channel"
+	RoleScopeGroup   RoleScope = "Group"
 
 	RoleTypeGuest RoleType = "Guest"
 	RoleTypeUser  RoleType = "User"
@@ -388,6 +414,21 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
+func (r *Role) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":             r.Id,
+		"name":           r.Name,
+		"display_name":   r.DisplayName,
+		"description":    r.Description,
+		"create_at":      r.CreateAt,
+		"update_at":      r.UpdateAt,
+		"delete_at":      r.DeleteAt,
+		"permissions":    r.Permissions,
+		"scheme_managed": r.SchemeManaged,
+		"built_in":       r.BuiltIn,
+	}
+}
+
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
@@ -401,6 +442,18 @@ func (r *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		r.Permissions = *patch.Permissions
 	}
+}
+
+func (r *Role) CreateAt_() float64 {
+	return float64(r.CreateAt)
+}
+
+func (r *Role) UpdateAt_() float64 {
+	return float64(r.UpdateAt)
+}
+
+func (r *Role) DeleteAt_() float64 {
+	return float64(r.DeleteAt)
 }
 
 // MergeChannelHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
@@ -548,7 +601,7 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 	return moderatedPermissions
 }
 
-// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatches, roleName is expected to be either "members" or "guests".
 func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
 	permissionsToAddToPatch := make(map[string]bool)
 
@@ -672,6 +725,13 @@ func IsValidRoleName(roleName string) bool {
 
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
+
+	roles[CustomGroupUserRoleId] = &Role{
+		Name:        CustomGroupUserRoleId,
+		DisplayName: fmt.Sprintf("authentication.roles.%s.name", CustomGroupUserRoleId),
+		Description: fmt.Sprintf("authentication.roles.%s.description", CustomGroupUserRoleId),
+		Permissions: []string{},
+	}
 
 	roles[ChannelGuestRoleId] = &Role{
 		Name:        "channel_guest",
@@ -807,6 +867,63 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	roles[PlaybookAdminRoleId] = &Role{
+		Name:        PlaybookAdminRoleId,
+		DisplayName: "authentication.roles.playbook_admin.name",
+		Description: "authentication.roles.playbook_admin.description",
+		Permissions: []string{
+			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageRoles.Id,
+			PermissionPublicPlaybookManageProperties.Id,
+			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageRoles.Id,
+			PermissionPrivatePlaybookManageProperties.Id,
+			PermissionPublicPlaybookMakePrivate.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[PlaybookMemberRoleId] = &Role{
+		Name:        PlaybookMemberRoleId,
+		DisplayName: "authentication.roles.playbook_member.name",
+		Description: "authentication.roles.playbook_member.description",
+		Permissions: []string{
+			PermissionPublicPlaybookView.Id,
+			PermissionPublicPlaybookManageMembers.Id,
+			PermissionPublicPlaybookManageProperties.Id,
+			PermissionPrivatePlaybookView.Id,
+			PermissionPrivatePlaybookManageMembers.Id,
+			PermissionPrivatePlaybookManageProperties.Id,
+			PermissionRunCreate.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[RunAdminRoleId] = &Role{
+		Name:        RunAdminRoleId,
+		DisplayName: "authentication.roles.run_admin.name",
+		Description: "authentication.roles.run_admin.description",
+		Permissions: []string{
+			PermissionRunManageMembers.Id,
+			PermissionRunManageProperties.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[RunMemberRoleId] = &Role{
+		Name:        RunMemberRoleId,
+		DisplayName: "authentication.roles.run_member.name",
+		Description: "authentication.roles.run_member.description",
+		Permissions: []string{
+			PermissionRunView.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
 	roles[SystemGuestRoleId] = &Role{
 		Name:        "system_guest",
 		DisplayName: "authentication.roles.global_guest.name",
@@ -830,6 +947,10 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreateGroupChannel.Id,
 			PermissionViewMembers.Id,
 			PermissionCreateTeam.Id,
+			PermissionCreateCustomGroup.Id,
+			PermissionEditCustomGroup.Id,
+			PermissionDeleteCustomGroup.Id,
+			PermissionManageCustomGroupMembers.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -895,6 +1016,15 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName:   "authentication.roles.system_manager.name",
 		Description:   "authentication.roles.system_manager.description",
 		Permissions:   SystemManagerDefaultPermissions,
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SystemCustomGroupAdminRoleId] = &Role{
+		Name:          "system_custom_group_admin",
+		DisplayName:   "authentication.roles.system_custom_group_admin.name",
+		Description:   "authentication.roles.system_custom_group_admin.description",
+		Permissions:   SystemCustomGroupAdminDefaultPermissions,
 		SchemeManaged: false,
 		BuiltIn:       true,
 	}

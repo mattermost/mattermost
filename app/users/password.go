@@ -39,15 +39,11 @@ func ComparePassword(hash string, password string) error {
 
 func (us *UserService) isPasswordValid(password string) error {
 
-	if *us.config().ServiceSettings.EnableDeveloper {
-		return nil
-	}
-
 	return IsPasswordValidWithSettings(password, &us.config().PasswordSettings)
 }
 
 // IsPasswordValidWithSettings is a utility functions that checks if the given password
-// comforms to the password settings. It returns the error id as error value.
+// conforms to the password settings. It returns the error id as error value.
 func IsPasswordValidWithSettings(password string, settings *model.PasswordSettings) error {
 	id := "model.user.is_valid.pwd"
 	isError := false

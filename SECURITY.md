@@ -17,7 +17,7 @@ Security updates
 
 Mattermost has a mandatory upgrade policy, and updates are only provided for the latest 3 releases and the current Extended Support Release (ESR). Critical updates are delivered as dot releases. Details on security updates are announced 30 days after the availability of the update.
 
-For more details about the security content of past releases, see the [Security Updates](https://mattermost.com/security-updates/) page on the Mattermost website. For timely notifications about new security updates, subscribe to the [Security Bulletins Mailing List](https://about.mattermost.com/security-bulletin).
+For more details about the security content of past releases, see the [Security Updates](https://mattermost.com/security-updates/) page on the Mattermost website. For timely notifications about new security updates, subscribe to the [Security Bulletins Mailing List](https://mattermost.com/security-updates/#sign-up).
 
 Contributing to this policy
 ---------------------------

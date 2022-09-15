@@ -90,7 +90,7 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
-		Name: "Should be able to exclude messages that contain a serch term",
+		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFileInfoFilterFilesWithATerm,
 		Tags: []string{EngineMySql, EnginePostgres},
 	},

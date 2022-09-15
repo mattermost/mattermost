@@ -84,11 +84,11 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &invErr):
-				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case errors.As(err, &appErr):
 				c.Err = appErr
 			default:
-				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return
 		}
@@ -114,7 +114,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			if ok {
 				c.Err = appErr
 			} else {
-				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			return
@@ -133,7 +133,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			if ok {
 				c.Err = appErr
 			} else {
-				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return
 		}
@@ -143,7 +143,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Name:     model.SessionCookieToken,
 			Value:    client.AuthToken,
 			Path:     "/",
-			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,
+			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60,
 			HttpOnly: true,
 		}
 		http.SetCookie(w, sessionCookie)
@@ -178,7 +178,10 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, false, 0)
+	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	})
 	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false

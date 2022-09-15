@@ -52,10 +52,11 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.Equal(t, saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
 	assert.Equal(t, saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
 	assert.NotZero(t, saved.UpdateAt, "should've saved reaction update_at and returned it")
+	assert.Equal(t, saved.ChannelId, post.ChannelId, "should've saved reaction update_at and returned it")
 	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(context.Background(), reaction1.PostId, false, false, false, "")
+	postList, err := ss.Post().Get(context.Background(), reaction1.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
@@ -79,15 +80,22 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction2)
 	require.NoError(t, nErr)
 
-	postList, err = ss.Post().Get(context.Background(), reaction2.PostId, false, false, false, "")
+	postList, err = ss.Post().Get(context.Background(), reaction2.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
 
 	// different post
+	// create post1
+	post1, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err)
+
 	reaction3 := &model.Reaction{
 		UserId:    reaction1.UserId,
-		PostId:    model.NewId(),
+		PostId:    post1.Id,
 		EmojiName: reaction1.EmojiName,
 	}
 	_, nErr = ss.Reaction().Save(reaction3)
@@ -129,7 +137,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		_, nErr := ss.Reaction().Save(reaction)
 		require.NoError(t, nErr)
 
-		result, err := ss.Post().Get(context.Background(), reaction.PostId, false, false, false, "")
+		result, err := ss.Post().Get(context.Background(), reaction.PostId, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
@@ -142,7 +150,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
-		postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+		postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 
 		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
@@ -183,9 +191,21 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
-	postId := model.NewId()
-
 	userId := model.NewId()
+	// create post
+	post, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	require.NoError(t, err)
+	post1, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	require.NoError(t, err)
+
+	postId := post.Id
+	post1Id := post1.Id
 
 	reactions := []*model.Reaction{
 		{
@@ -194,7 +214,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 			EmojiName: "smile",
 		},
 		{
-			UserId:    model.NewId(),
+			UserId:    post1Id,
 			PostId:    postId,
 			EmojiName: "smile",
 		},
@@ -205,13 +225,13 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 		},
 		{
 			UserId:    userId,
-			PostId:    model.NewId(),
+			PostId:    post1Id,
 			EmojiName: "angry",
 		},
 	}
 
 	for _, reaction := range reactions {
-		_, err := ss.Reaction().Save(reaction)
+		_, err = ss.Reaction().Save(reaction)
 		require.NoError(t, err)
 	}
 
@@ -276,9 +296,21 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	now := model.GetMillis()
 	later := now + 1800000 // add 30 minutes
 	remoteId := model.NewId()
-
-	postId := model.NewId()
 	userId := model.NewId()
+
+	// create post
+	post, _ := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	post1, _ := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+
+	postId := post.Id
+	post1Id := post1.Id
+
 	reactions := []*model.Reaction{
 		{
 			UserId:    userId,
@@ -300,7 +332,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 		},
 		{
 			UserId:    userId,
-			PostId:    model.NewId(),
+			PostId:    post1Id,
 			EmojiName: "angry",
 		},
 		{
@@ -383,22 +415,22 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
-	params := map[string]interface{}{
-		"UserId":    reaction.UserId,
-		"PostId":    reaction.PostId,
-		"EmojiName": reaction.EmojiName,
-		"UpdateAt":  updateAt,
+	params := map[string]any{
+		"userid":    reaction.UserId,
+		"postid":    reaction.PostId,
+		"emojiname": reaction.EmojiName,
+		"updateat":  updateAt,
 	}
 
-	sqlResult, err := s.GetMaster().Exec(`
+	sqlResult, err := s.GetMasterX().NamedExec(`
 		UPDATE
 			Reactions
 		SET
-			UpdateAt=:UpdateAt
+			UpdateAt=:updateat
 		WHERE
-			UserId = :UserId AND
-			PostId = :PostId AND
-			EmojiName = :EmojiName`, params,
+			UserId = :userid AND
+			PostId = :postid AND
+			EmojiName = :emojiname`, params,
 	)
 
 	if err != nil {
@@ -417,10 +449,10 @@ func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
 }
 
 func forceNULL(reaction *model.Reaction, s SqlStore) error {
-	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
 		return err
 	}
-	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+	if _, err := s.GetMasterX().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
 		return err
 	}
 	return nil
@@ -507,15 +539,15 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(context.Background(), post.Id, false, false, false, "")
+	postList, err := ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post2.Id, false, false, false, "")
+	postList, err = ss.Post().Get(context.Background(), post2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(context.Background(), post3.Id, false, false, false, "")
+	postList, err = ss.Post().Get(context.Background(), post3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
@@ -591,12 +623,27 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 }
 
 func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
-	postId := model.NewId()
-	post2Id := model.NewId()
-	post3Id := model.NewId()
-	post4Id := model.NewId()
-
 	userId := model.NewId()
+	post, _ := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	postId := post.Id
+	post, _ = ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	post2Id := post.Id
+	post, _ = ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	post3Id := post.Id
+	post, _ = ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    userId,
+	})
+	post4Id := post.Id
 
 	reactions := []*model.Reaction{
 		{
@@ -663,7 +710,12 @@ func testReactionDeadlock(t *testing.T, ss store.Store) {
 		UserId:    model.NewId(),
 	})
 	require.NoError(t, err)
-
+	postId := post.Id
+	post, err = ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.NoError(t, err)
 	reaction1 := &model.Reaction{
 		UserId:    model.NewId(),
 		PostId:    post.Id,
@@ -684,7 +736,7 @@ func testReactionDeadlock(t *testing.T, ss store.Store) {
 	// different post
 	reaction3 := &model.Reaction{
 		UserId:    reaction1.UserId,
-		PostId:    model.NewId(),
+		PostId:    postId,
 		EmojiName: reaction1.EmojiName,
 	}
 	_, nErr = ss.Reaction().Save(reaction3)

@@ -24,32 +24,50 @@ const (
 )
 
 type Team struct {
-	Id                 string  `json:"id"`
-	CreateAt           int64   `json:"create_at"`
-	UpdateAt           int64   `json:"update_at"`
-	DeleteAt           int64   `json:"delete_at"`
-	DisplayName        string  `json:"display_name"`
-	Name               string  `json:"name"`
-	Description        string  `json:"description"`
-	Email              string  `json:"email"`
-	Type               string  `json:"type"`
-	CompanyName        string  `json:"company_name"`
-	AllowedDomains     string  `json:"allowed_domains"`
-	InviteId           string  `json:"invite_id"`
-	AllowOpenInvite    bool    `json:"allow_open_invite"`
-	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
-	SchemeId           *string `json:"scheme_id"`
-	GroupConstrained   *bool   `json:"group_constrained"`
-	PolicyID           *string `json:"policy_id" db:"-"`
+	Id                  string  `json:"id"`
+	CreateAt            int64   `json:"create_at"`
+	UpdateAt            int64   `json:"update_at"`
+	DeleteAt            int64   `json:"delete_at"`
+	DisplayName         string  `json:"display_name"`
+	Name                string  `json:"name"`
+	Description         string  `json:"description"`
+	Email               string  `json:"email"`
+	Type                string  `json:"type"`
+	CompanyName         string  `json:"company_name"`
+	AllowedDomains      string  `json:"allowed_domains"`
+	InviteId            string  `json:"invite_id"`
+	AllowOpenInvite     bool    `json:"allow_open_invite"`
+	LastTeamIconUpdate  int64   `json:"last_team_icon_update,omitempty"`
+	SchemeId            *string `json:"scheme_id"`
+	GroupConstrained    *bool   `json:"group_constrained"`
+	PolicyID            *string `json:"policy_id"`
+	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
+}
+
+func (o *Team) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    o.Id,
+		"create_at":             o.CreateAt,
+		"update_at":             o.UpdateAt,
+		"delete_at":             o.DeleteAt,
+		"type":                  o.Type,
+		"invite_id":             o.InviteId,
+		"allow_open_invite":     o.AllowOpenInvite,
+		"scheme_id":             o.SchemeId,
+		"group_constrained":     o.GroupConstrained,
+		"policy_id":             o.PolicyID,
+		"cloud_limits_archived": o.CloudLimitsArchived,
+	}
 }
 
 type TeamPatch struct {
-	DisplayName      *string `json:"display_name"`
-	Description      *string `json:"description"`
-	CompanyName      *string `json:"company_name"`
-	AllowedDomains   *string `json:"allowed_domains"`
-	AllowOpenInvite  *bool   `json:"allow_open_invite"`
-	GroupConstrained *bool   `json:"group_constrained"`
+	DisplayName         *string `json:"display_name"`
+	Description         *string `json:"description"`
+	CompanyName         *string `json:"company_name"`
+	AllowedDomains      *string `json:"allowed_domains"`
+	AllowOpenInvite     *bool   `json:"allow_open_invite"`
+	GroupConstrained    *bool   `json:"group_constrained"`
+	CloudLimitsArchived *bool   `json:"cloud_limits_archived"`
 }
 
 type TeamForExport struct {
@@ -246,8 +264,39 @@ func (o *Team) Patch(patch *TeamPatch) {
 	if patch.GroupConstrained != nil {
 		o.GroupConstrained = patch.GroupConstrained
 	}
+
+	if patch.CloudLimitsArchived != nil {
+		o.CloudLimitsArchived = *patch.CloudLimitsArchived
+	}
 }
 
 func (o *Team) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
+}
+
+// ShallowCopy returns a shallow copy of team.
+func (o *Team) ShallowCopy() *Team {
+	c := *o
+	return &c
+}
+
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (o *Team) CreateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Team) UpdateAt_() float64 {
+	return float64(o.UpdateAt)
+}
+
+func (o *Team) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
+}
+
+func (o *Team) LastTeamIconUpdate_() float64 {
+	return float64(o.LastTeamIconUpdate)
 }

@@ -31,7 +31,7 @@ func (LogrusAdapter) Error(msg string) {
 }
 
 // Infof - logrus adapter for span info logging
-func (LogrusAdapter) Infof(msg string, args ...interface{}) {
+func (LogrusAdapter) Infof(msg string, args ...any) {
 	// we ignore Info messages from opentracing
 }
 
@@ -62,7 +62,7 @@ func New() (*Tracer, error) {
 	if err != nil {
 		return nil, err
 	}
-	mlog.Info("Opentracing initialzed")
+	mlog.Info("Opentracing initialized")
 	return &Tracer{
 		closer: closer,
 	}, nil

@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
-// CacheOptions contains options for initializaing a cache
+// CacheOptions contains options for initializing a cache
 type CacheOptions struct {
 	Size                   int
 	DefaultExpiry          time.Duration
