@@ -5636,6 +5636,10 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
     "id": "app.last_accessible_post.app_error",
     "translation": "Error fetching last accessible post"
   },
