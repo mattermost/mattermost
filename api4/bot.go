@@ -41,7 +41,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("bot", bot)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateBot) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionCreateBot) {
 		c.SetPermissionError(model.PermissionCreateBot)
 		return
 	}
@@ -93,7 +93,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("id", botUserId)
 	auditRec.AddEventParameter("bot", botPatch)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -128,10 +128,10 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
+	if c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Allow access to any bot.
 	} else if bot.OwnerId == c.AppContext.Session().UserId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
+		if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadBots) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
@@ -159,10 +159,10 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	onlyOrphaned, _ := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
 
 	var OwnerId string
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOthersBots) {
+	if c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadOthersBots) {
 		// Get bots created by any user.
 		OwnerId = ""
-	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadBots) {
+	} else if c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadBots) {
 		// Only get bots created by this user.
 		OwnerId = c.AppContext.Session().UserId
 	} else {
@@ -211,7 +211,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	auditRec.AddEventParameter("id", botUserId)
 	auditRec.AddEventParameter("enable", active)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -245,7 +245,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventParameter("id", botUserId)
 	auditRec.AddEventParameter("user_id", userId)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -299,7 +299,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("userPatch", userPatch)
 	auditRec.AddEventParameter("set_system_admin", systemAdmin)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}

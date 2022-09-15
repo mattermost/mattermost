@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -35,7 +36,7 @@ type postData struct {
 	OtherChannelMembersCount int
 }
 
-func (es *Service) InitEmailBatching() {
+func (es *Service) InitEmailBatching(c request.CTX) {
 	if *es.config().EmailSettings.EnableEmailBatching {
 		if es.EmailBatching == nil {
 			es.EmailBatching = NewEmailBatchingJob(es, *es.config().EmailSettings.EmailBatchingBufferSize)
@@ -43,17 +44,17 @@ func (es *Service) InitEmailBatching() {
 
 		// note that we don't support changing EmailBatchingBufferSize without restarting the server
 
-		es.EmailBatching.Start()
+		es.EmailBatching.Start(c)
 	}
 }
 
-func (es *Service) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
+func (es *Service) AddNotificationEmailToBatch(c request.CTX, user *model.User, post *model.Post, team *model.Team) *model.AppError {
 	if !*es.config().EmailSettings.EnableEmailBatching {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if !es.EmailBatching.Add(user, post, team) {
-		mlog.Error("Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize.")
+		c.Logger().Error("Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize.")
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -85,9 +86,9 @@ func NewEmailBatchingJob(es *Service, bufferSize int) *EmailBatchingJob {
 	}
 }
 
-func (job *EmailBatchingJob) Start() {
-	mlog.Debug("Email batching job starting. Checking for pending emails periodically.", mlog.Int("interval_in_seconds", *job.config().EmailSettings.EmailBatchingInterval))
-	newTask := model.CreateRecurringTask(EmailBatchingTaskName, job.CheckPendingEmails, time.Duration(*job.config().EmailSettings.EmailBatchingInterval)*time.Second)
+func (job *EmailBatchingJob) Start(c request.CTX) {
+	c.Logger().Debug("Email batching job starting. Checking for pending emails periodically.", mlog.Int("interval_in_seconds", *job.config().EmailSettings.EmailBatchingInterval))
+	newTask := model.CreateRecurringTask(EmailBatchingTaskName, func() { job.CheckPendingEmails(c) }, time.Duration(*job.config().EmailSettings.EmailBatchingInterval)*time.Second)
 
 	job.taskMutex.Lock()
 	oldTask := job.task
@@ -115,14 +116,14 @@ func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model
 	}
 }
 
-func (job *EmailBatchingJob) CheckPendingEmails() {
+func (job *EmailBatchingJob) CheckPendingEmails(c request.CTX) {
 	job.handleNewNotifications()
 
 	// it's a bit weird to pass the send email function through here, but it makes it so that we can test
 	// without actually sending emails
-	job.checkPendingNotifications(time.Now(), job.service.sendBatchedEmailNotification)
+	job.checkPendingNotifications(c, time.Now(), job.service.sendBatchedEmailNotification)
 
-	mlog.Debug("Email batching job ran. Some users still have notifications pending.", mlog.Int("number_of_users", len(job.pendingNotifications)))
+	c.Logger().Debug("Email batching job ran. Some users still have notifications pending.", mlog.Int("number_of_users", len(job.pendingNotifications)))
 }
 
 func (job *EmailBatchingJob) handleNewNotifications() {
@@ -145,7 +146,7 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 	}
 }
 
-func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
+func (job *EmailBatchingJob) checkPendingNotifications(c request.CTX, now time.Time, handler func(request.CTX, string, []*batchedNotification)) {
 	for userID, notifications := range job.pendingNotifications {
 		batchStartTime := notifications[0].post.CreateAt
 		inspectedTeamNames := make(map[string]string)
@@ -157,7 +158,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			team, nErr := job.service.store.Team().GetByName(notifications[0].teamName)
 			if nErr != nil {
-				mlog.Error("Unable to find Team id for notification", mlog.Err(nErr))
+				c.Logger().Error("Unable to find Team id for notification", mlog.Err(nErr))
 				continue
 			}
 
@@ -169,13 +170,13 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			// all queued notifications
 			channelMembers, err := job.service.store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userID)
 			if err != nil {
-				mlog.Error("Unable to find ChannelMembers for user", mlog.Err(err))
+				c.Logger().Error("Unable to find ChannelMembers for user", mlog.Err(err))
 				continue
 			}
 
 			for _, channelMember := range channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
-					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
+					c.Logger().Debug("Deleted notifications for user", mlog.String("user_id", userID))
 					delete(job.pendingNotifications, userID)
 					break
 				}
@@ -201,7 +202,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		if len(job.pendingNotifications[userID]) > 0 && now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
 			job.service.goFn(func(userID string, notifications []*batchedNotification) func() {
 				return func() {
-					handler(userID, notifications)
+					handler(c, userID, notifications)
 				}
 			}(userID, job.pendingNotifications[userID]))
 			delete(job.pendingNotifications, userID)
@@ -221,10 +222,10 @@ func truncateUserNames(name string, i int) string {
 	return name
 }
 
-func (es *Service) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
+func (es *Service) sendBatchedEmailNotification(c request.CTX, userID string, notifications []*batchedNotification) {
 	user, err := es.userService.GetUser(userID)
 	if err != nil {
-		mlog.Warn("Unable to find recipient for batched email notification")
+		c.Logger().Warn("Unable to find recipient for batched email notification")
 		return
 	}
 
@@ -255,17 +256,17 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		for i, notification := range notifications {
 			sender, errSender := es.userService.GetUser(notification.post.UserId)
 			if errSender != nil {
-				mlog.Warn("Unable to find sender of post for batched email notification")
+				c.Logger().Warn("Unable to find sender of post for batched email notification")
 			}
 
 			channel, errCh := es.store.Channel().Get(notification.post.ChannelId, true)
 			if errCh != nil {
-				mlog.Warn("Unable to find channel of post for batched email notification")
+				c.Logger().Warn("Unable to find channel of post for batched email notification")
 			}
 
 			senderProfileImage, _, errProfileImage := es.userService.GetProfileImage(sender)
 			if errProfileImage != nil {
-				mlog.Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(errProfileImage))
+				c.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(errProfileImage))
 			}
 
 			senderPhoto := fmt.Sprintf("user-avatar-%d.png", i)
@@ -310,7 +311,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				SenderName:               truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
 				Time:                     t,
 				ChannelName:              channelDisplayName,
-				Message:                  template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				Message:                  template.HTML(es.GetMessageForNotification(c, notification.post, translateFunc)),
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
@@ -341,10 +342,10 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	renderedPage, renderErr := es.templatesContainer.RenderToString("messages_notification", data)
 	if renderErr != nil {
-		mlog.Error("Unable to render email", mlog.Err(renderErr))
+		c.Logger().Error("Unable to render email", mlog.Err(renderErr))
 	}
 
 	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", ""); nErr != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
+		c.Logger().Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }

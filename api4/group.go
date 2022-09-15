@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -108,13 +107,13 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source == model.GroupSourceLdap {
-		if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
+		if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionSysconsoleReadUserManagementGroups) {
 			c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 			return
 		}
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); appErr != nil {
+	if appErr := licensedAndConfiguredForGroupBySource(c, group.Source); appErr != nil {
 		appErr.Where = "Api4.getGroup"
 		c.Err = appErr
 		return
@@ -141,13 +140,13 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, group.Source); appErr != nil {
+	if appErr := licensedAndConfiguredForGroupBySource(c, group.Source); appErr != nil {
 		appErr.Where = "Api4.createGroup"
 		c.Err = appErr
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateCustomGroup) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionCreateCustomGroup) {
 		c.SetPermissionError(model.PermissionCreateCustomGroup)
 		return
 	}
@@ -196,7 +195,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	appErr = licensedAndConfiguredForGroupBySource(c, group.Source)
 	if appErr != nil {
 		appErr.Where = "Api4.patchGroup"
 		c.Err = appErr
@@ -209,7 +208,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		requiredPermission = model.PermissionSysconsoleWriteUserManagementGroups
 	}
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, requiredPermission) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, requiredPermission) {
 		c.SetPermissionError(requiredPermission)
 		return
 	}
@@ -390,7 +389,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -427,7 +426,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
@@ -581,7 +580,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
 			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
@@ -617,14 +616,14 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = licensedAndConfiguredForGroupBySource(c.App, group.Source)
+	appErr = licensedAndConfiguredForGroupBySource(c, group.Source)
 	if appErr != nil {
 		appErr.Where = "Api4.getGroupMembers"
 		c.Err = appErr
 		return
 	}
 
-	if group.Source == model.GroupSourceLdap && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+	if group.Source == model.GroupSourceLdap && !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
@@ -661,7 +660,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
@@ -691,7 +690,7 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if c.AppContext.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -868,7 +867,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If they specify the group_source as custom when the feature is disabled, throw an error
-	if appErr := licensedAndConfiguredForGroupBySource(c.App, source); appErr != nil {
+	if appErr := licensedAndConfiguredForGroupBySource(c, source); appErr != nil {
 		appErr.Where = "Api4.getGroups"
 		c.Err = appErr
 		return
@@ -977,13 +976,13 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if lcErr := licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom); lcErr != nil {
+	if lcErr := licensedAndConfiguredForGroupBySource(c, model.GroupSourceCustom); lcErr != nil {
 		lcErr.Where = "Api4.deleteGroup"
 		c.Err = lcErr
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionDeleteCustomGroup) {
 		c.SetPermissionError(model.PermissionDeleteCustomGroup)
 		return
 	}
@@ -1020,14 +1019,14 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
+	appErr = licensedAndConfiguredForGroupBySource(c, model.GroupSourceCustom)
 	if appErr != nil {
 		appErr.Where = "Api4.deleteGroup"
 		c.Err = appErr
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
 		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
@@ -1074,14 +1073,14 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
+	appErr = licensedAndConfiguredForGroupBySource(c, model.GroupSourceCustom)
 	if appErr != nil {
 		appErr.Where = "Api4.deleteGroup"
 		c.Err = appErr
 		return
 	}
 
-	if !c.App.SessionHasPermissionToGroup(*c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
+	if !c.App.SessionHasPermissionToGroup(c.AppContext, *c.AppContext.Session(), c.Params.GroupId, model.PermissionManageCustomGroupMembers) {
 		c.SetPermissionError(model.PermissionManageCustomGroupMembers)
 		return
 	}
@@ -1118,8 +1117,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 //	err.Where = "Api4.getGroup"
 //
 // Temporarily, this function also checks for the CustomGroups feature flag.
-func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
-	lic := app.Srv().License()
+func licensedAndConfiguredForGroupBySource(c *Context, source model.GroupSource) *model.AppError {
+	lic := c.App.Srv().License(c.AppContext)
 
 	if lic == nil {
 		return model.NewAppError("", "api.license_error", nil, "", http.StatusForbidden)
@@ -1133,7 +1132,7 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	if source == model.GroupSourceCustom && (!app.Config().FeatureFlags.CustomGroups || !*app.Config().ServiceSettings.EnableCustomGroups) {
+	if source == model.GroupSourceCustom && (!c.App.Config().FeatureFlags.CustomGroups || !*c.App.Config().ServiceSettings.EnableCustomGroups) {
 		return model.NewAppError("", "api.custom_groups.feature_disabled", nil, "", http.StatusBadRequest)
 	}
 

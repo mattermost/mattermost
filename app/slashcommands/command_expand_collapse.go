@@ -56,14 +56,14 @@ func (*CollapseProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 }
 
 func (*ExpandProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(a, args, false)
+	return setCollapsePreference(a, c, args, false)
 }
 
 func (*CollapseProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(a, args, true)
+	return setCollapsePreference(a, c, args, true)
 }
 
-func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
+func setCollapsePreference(a *app.App, c request.CTX, args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
 	pref := model.Preference{
 		UserId:   args.UserId,
 		Category: model.PreferenceCategoryDisplaySettings,
@@ -82,7 +82,7 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 		return &model.CommandResponse{Text: args.T("api.marshal_error") + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	socketMessage.Add("preference", string(prefJSON))
-	a.Publish(socketMessage)
+	a.Publish(c, socketMessage)
 
 	var rmsg string
 

@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -87,7 +88,7 @@ func (a *App) TotalWebsocketConnections() int {
 }
 
 // HubStart starts all the hubs.
-func (s *Server) HubStart() {
+func (s *Server) HubStart(c request.CTX) {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	s.Log().Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -97,7 +98,7 @@ func (s *Server) HubStart() {
 	for i := 0; i < numberOfHubs; i++ {
 		hubs[i] = newWebHub(s)
 		hubs[i].connectionIndex = i
-		hubs[i].Start()
+		hubs[i].Start(c)
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
 	// during the start of the program and always read from after that.
@@ -109,8 +110,8 @@ func (a *App) invalidateCacheForWebhook(webhookID string) {
 }
 
 // HubStop stops all the hubs.
-func (s *Server) HubStop() {
-	mlog.Info("stopping websocket hub connections")
+func (s *Server) HubStop(c request.CTX) {
+	c.Logger().Info("stopping websocket hub connections")
 
 	for _, hub := range s.hubs {
 		hub.Stop()
@@ -156,17 +157,17 @@ func (a *App) HubUnregister(webConn *WebConn) {
 	}
 }
 
-func (s *Server) Publish(message *model.WebSocketEvent) {
+func (s *Server) Publish(c request.CTX, message *model.WebSocketEvent) {
 	if s.GetMetrics() != nil {
 		s.GetMetrics().IncrementWebsocketEvent(message.EventType())
 	}
 
-	s.PublishSkipClusterSend(message)
+	s.PublishSkipClusterSend(c, message)
 
 	if s.Cluster != nil {
 		data, err := message.ToJSON()
 		if err != nil {
-			mlog.Warn("Failed to encode message to JSON", mlog.Err(err))
+			c.Logger().Warn("Failed to encode message to JSON", mlog.Err(err))
 		}
 		cm := &model.ClusterMessage{
 			Event:    model.ClusterEventPublish,
@@ -187,15 +188,15 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 	}
 }
 
-func (a *App) Publish(message *model.WebSocketEvent) {
-	a.Srv().Publish(message)
+func (a *App) Publish(c request.CTX, message *model.WebSocketEvent) {
+	a.Srv().Publish(c, message)
 }
 
-func (ch *Channels) Publish(message *model.WebSocketEvent) {
-	ch.srv.Publish(message)
+func (ch *Channels) Publish(c request.CTX, message *model.WebSocketEvent) {
+	ch.srv.Publish(c, message)
 }
 
-func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
+func (s *Server) PublishSkipClusterSend(c request.CTX, event *model.WebSocketEvent) {
 	if event.GetBroadcast().UserId != "" {
 		hub := s.GetHubForUserId(event.GetBroadcast().UserId)
 		if hub != nil {
@@ -208,7 +209,7 @@ func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	}
 
 	// Notify shared channel sync service
-	s.SharedChannelSyncHandler(event)
+	s.SharedChannelSyncHandler(c, event)
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {
@@ -406,13 +407,13 @@ func (h *Hub) Stop() {
 }
 
 // Start starts the hub.
-func (h *Hub) Start() {
+func (h *Hub) Start(c request.CTX) {
 	var doStart func()
 	var doRecoverableStart func()
 	var doRecover func()
 
 	doStart = func() {
-		mlog.Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
+		c.Logger().Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
 
 		ticker := time.NewTicker(inactiveConnReaperInterval)
 		defer ticker.Stop()
@@ -460,7 +461,7 @@ func (h *Hub) Start() {
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
+				if webConn.IsAuthenticated(c) && webConn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
@@ -481,7 +482,7 @@ func (h *Hub) Start() {
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
 					h.srv.Go(func() {
-						appInstance.SetStatusOffline(webConn.UserId, false)
+						appInstance.SetStatusOffline(c, webConn.UserId, false)
 					})
 					continue
 				}
@@ -497,7 +498,7 @@ func (h *Hub) Start() {
 
 				if appInstance.IsUserAway(latestActivity) {
 					h.srv.Go(func() {
-						appInstance.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+						appInstance.SetStatusLastActivityAt(c, webConn.UserId, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:
@@ -520,7 +521,7 @@ func (h *Hub) Start() {
 				select {
 				case directMsg.conn.send <- directMsg.msg:
 				default:
-					mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
+					c.Logger().Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
 					close(directMsg.conn.send)
 					connIndex.Remove(directMsg.conn)
 				}
@@ -533,11 +534,11 @@ func (h *Hub) Start() {
 					if !connIndex.Has(webConn) {
 						return
 					}
-					if webConn.shouldSendEvent(msg) {
+					if webConn.shouldSendEvent(c, msg) {
 						select {
 						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							c.Logger().Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
 							close(webConn.send)
 							connIndex.Remove(webConn)
 						}
@@ -564,7 +565,7 @@ func (h *Hub) Start() {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					appInstance.SetStatusOffline(webConn.UserId, false)
+					appInstance.SetStatusOffline(c, webConn.UserId, false)
 				}
 
 				h.explicitStop = true
@@ -583,12 +584,12 @@ func (h *Hub) Start() {
 	doRecover = func() {
 		if !h.explicitStop {
 			if r := recover(); r != nil {
-				mlog.Error("Recovering from Hub panic.", mlog.Any("panic", r))
+				c.Logger().Error("Recovering from Hub panic.", mlog.Any("panic", r))
 			} else {
-				mlog.Error("Webhub stopped unexpectedly. Recovering.")
+				c.Logger().Error("Webhub stopped unexpectedly. Recovering.")
 			}
 
-			mlog.Error(string(debug.Stack()))
+			c.Logger().Error(string(debug.Stack()))
 
 			go doRecoverableStart()
 		}

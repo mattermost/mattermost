@@ -215,7 +215,7 @@ func (a *App) setWarnMetricsStatusAndNotify(c request.CTX, warnMetricId string) 
 	// Inform client that this metric warning has been acked
 	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil, "")
 	message.Add("warnMetricId", warnMetricId)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }

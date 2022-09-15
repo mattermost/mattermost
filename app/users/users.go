@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mfa"
@@ -23,9 +24,9 @@ type UserCreateOptions struct {
 }
 
 // CreateUser creates a user
-func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
+func (us *UserService) CreateUser(c request.CTX, user *model.User, opts UserCreateOptions) (*model.User, error) {
 	if opts.FromImport {
-		return us.createUser(user)
+		return us.createUser(c, user)
 	}
 
 	user.Roles = model.SystemUserRoleId
@@ -53,10 +54,10 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 
-	return us.createUser(user)
+	return us.createUser(c, user)
 }
 
-func (us *UserService) createUser(user *model.User) (*model.User, error) {
+func (us *UserService) createUser(c request.CTX, user *model.User) (*model.User, error) {
 	user.MakeNonNil()
 
 	if err := us.isPasswordValid(user.Password); user.AuthService == "" && err != nil {
@@ -70,7 +71,7 @@ func (us *UserService) createUser(user *model.User) (*model.User, error) {
 
 	if user.EmailVerified {
 		if err := us.verifyUserEmail(ruser.Id, user.Email); err != nil {
-			mlog.Warn("Failed to set email verified", mlog.Err(err))
+			c.Logger().Warn("Failed to set email verified", mlog.Err(err))
 		}
 	}
 

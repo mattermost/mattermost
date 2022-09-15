@@ -65,7 +65,7 @@ func (a *App) NotifySessionsExpired(c request.CTX) error {
 
 		err = a.ch.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
 		if err != nil {
-			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
+			c.Logger().Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
 		}
 	}
 	return nil

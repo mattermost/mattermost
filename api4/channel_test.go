@@ -488,7 +488,7 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
@@ -622,7 +622,7 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
@@ -3032,7 +3032,7 @@ func TestAddChannelMember(t *testing.T) {
 	client.Logout()
 
 	th.MakeUserChannelAdmin(user, privateChannel)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Username, user.Password)
 	_, _, err = client.AddChannelMember(privateChannel.Id, user3.Id)
@@ -3374,7 +3374,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.LoginBasic()
 	th.UpdateUserToNonTeamAdmin(user1, team)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -3413,7 +3413,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.MakeUserChannelAdmin(user1, privateChannel)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	_, err = client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	require.NoError(t, err)
@@ -3655,7 +3655,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())

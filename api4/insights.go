@@ -49,7 +49,7 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -97,7 +97,7 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
@@ -144,7 +144,7 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -199,7 +199,7 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
@@ -259,7 +259,7 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -307,7 +307,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
@@ -378,7 +378,7 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}
@@ -426,7 +426,7 @@ func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return
 		}
@@ -490,7 +490,7 @@ func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), team.Id, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}

@@ -479,14 +479,14 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("force_download", forceDownload)
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -511,13 +511,13 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -552,14 +552,14 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getFileLink", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 	auditRec.AddMeta("file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -586,13 +586,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -619,13 +619,13 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
+	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), info.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -647,7 +647,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
@@ -741,7 +741,7 @@ func searchFilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}

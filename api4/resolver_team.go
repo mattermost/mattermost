@@ -77,7 +77,7 @@ func getGraphQLTeams(c *web.Context, teamIDs []string) ([]*model.Team, error) {
 	}
 
 	for i, team := range teams {
-		teams[i] = c.App.SanitizeTeam(*c.AppContext.Session(), team)
+		teams[i] = c.App.SanitizeTeam(c.AppContext, *c.AppContext.Session(), team)
 	}
 
 	// The teams need to be in the exact same order as the input slice.

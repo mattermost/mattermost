@@ -179,7 +179,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = ":0"
 	})
-	if err := th.Server.Start(); err != nil {
+	if err := th.Server.Start(th.Context); err != nil {
 		panic(err)
 	}
 
@@ -357,7 +357,7 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 func (th *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
-		th.Server.Shutdown()
+		th.Server.Shutdown(th.Context)
 		close(done)
 	}()
 
@@ -373,7 +373,7 @@ func (th *TestHelper) ShutdownApp() {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches(th.Context)
 	}
 	th.ShutdownApp()
 }

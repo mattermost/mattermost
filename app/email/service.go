@@ -12,6 +12,7 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -64,7 +65,7 @@ type ServiceConfig struct {
 	Store              store.Store
 }
 
-func NewService(config ServiceConfig) (*Service, error) {
+func NewService(c request.CTX, config ServiceConfig) (*Service, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func NewService(config ServiceConfig) (*Service, error) {
 	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err
 	}
-	service.InitEmailBatching()
+	service.InitEmailBatching(c)
 	return service, nil
 }
 

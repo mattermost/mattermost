@@ -121,7 +121,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 }
 
 func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
+	if !a.HasPermissionTo(c, args.UserId, model.PermissionManageSharedChannels) {
 		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
@@ -143,7 +143,7 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	case "share":
 		return sp.doShareChannel(a, c, args, margs)
 	case "unshare":
-		return sp.doUnshareChannel(a, args, margs)
+		return sp.doUnshareChannel(a, c, args, margs)
 	case "invite":
 		return sp.doInviteRemote(a, c, args, margs)
 	case "uninvite":
@@ -198,12 +198,12 @@ func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.C
 		return responsef(args.T("api.command_share.share_channel.error", map[string]any{"Error": err.Error()}))
 	}
 
-	notifyClientsForChannelUpdate(a, sc)
+	notifyClientsForChannelUpdate(a, c, sc)
 
 	return responsef("##### " + args.T("api.command_share.channel_shared"))
 }
 
-func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+func (sp *ShareProvider) doUnshareChannel(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	sc, appErr := a.GetSharedChannel(args.ChannelId)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]any{"Error": appErr.Error()}))
@@ -217,7 +217,7 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 		return responsef(args.T("api.command_share.not_shared_channel_unshare"))
 	}
 
-	notifyClientsForChannelUpdate(a, sc)
+	notifyClientsForChannelUpdate(a, c, sc)
 
 	return responsef("##### " + args.T("api.command_share.shared_channel_unavailable"))
 }
@@ -322,8 +322,8 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 	return responsef(sb.String())
 }
 
-func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {
+func notifyClientsForChannelUpdate(a *app.App, c request.CTX, sharedChannel *model.SharedChannel) {
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sharedChannel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", sharedChannel.ChannelId)
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 }

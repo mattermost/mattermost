@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type groupmsgProvider struct {
@@ -55,7 +54,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 			continue
 		}
 
-		canSee, err := a.UserCanSeeOtherUser(args.UserId, targetUser.Id)
+		canSee, err := a.UserCanSeeOtherUser(c, args.UserId, targetUser.Id)
 		if err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
@@ -109,10 +108,10 @@ func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	var groupChannel *model.Channel
 	var channelErr *model.AppError
 
-	if a.HasPermissionTo(args.UserId, model.PermissionCreateGroupChannel) {
+	if a.HasPermissionTo(c, args.UserId, model.PermissionCreateGroupChannel) {
 		groupChannel, channelErr = a.CreateGroupChannel(c, targetUsersSlice, args.UserId)
 		if channelErr != nil {
-			mlog.Error(channelErr.Error())
+			c.Logger().Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {

@@ -20,7 +20,7 @@ func Test_getCloudLimits(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 

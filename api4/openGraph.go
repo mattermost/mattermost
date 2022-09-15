@@ -29,7 +29,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buf, err := c.App.GetOpenGraphMetadata(url)
+	buf, err := c.App.GetOpenGraphMetadata(c.AppContext, url)
 	if err != nil {
 		mlog.Warn("GetOpenGraphMetadata request failed",
 			mlog.String("requestURL", url),

@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type RemoveProvider struct {
@@ -110,7 +109,7 @@ func doCommand(a *app.App, c request.CTX, args *model.CommandArgs, message strin
 
 	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		c.Logger().Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.CommandResponseTypeEphemeral,

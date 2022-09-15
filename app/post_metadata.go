@@ -72,7 +72,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
-func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
+func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
@@ -92,17 +92,17 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	if emojiURL, err := a.GetEmojiStaticURL(emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		c.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	a.OverrideIconURLIfEmoji(post)
+	a.OverrideIconURLIfEmoji(c, post)
 	if post.Metadata == nil {
 		post.Metadata = &model.PostMetadata{}
 	}
@@ -116,7 +116,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
-		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
 		post.Metadata.Reactions = reactions
@@ -124,7 +124,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 
 	// Files
 	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
-		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
@@ -133,7 +133,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 }
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
-	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost)
 	post = a.getEmbedsAndImages(c, post, isNewPost)
 	return post
 }
@@ -155,7 +155,7 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 		// Ignore NotFound errors.
 		if !isNotFound {
-			mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			c.Logger().Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	} else if embed != nil {
 		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
@@ -309,7 +309,7 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
 			if !ok {
-				mlog.Warn("Could not read the image data: the data could not be casted to OpenGraph",
+				c.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id), mlog.String("data type", fmt.Sprintf("%t", embed.Data)))
 				continue
 			}
@@ -341,7 +341,7 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 			// Ignore NotFound errors.
 			if !isNotFound {
-				mlog.Debug("Failed to get dimensions of an image in a post",
+				c.Logger().Debug("Failed to get dimensions of an image in a post",
 					mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
 			}
 		} else if image != nil {
@@ -496,11 +496,11 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 	return images
 }
 
-func looksLikeAPermalink(url, siteURL string) bool {
+func looksLikeAPermalink(c request.CTX, url, siteURL string) bool {
 	expression := fmt.Sprintf(`^(%s).*(/pl/)[a-z0-9]{26}$`, siteURL)
 	matched, err := regexp.MatchString(expression, strings.TrimSpace(url))
 	if err != nil {
-		mlog.Warn("error matching regex", mlog.Err(err))
+		c.Logger().Warn("error matching regex", mlog.Err(err))
 	}
 	return matched
 }
@@ -668,7 +668,7 @@ func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*
 	}
 }
 
-func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
+func (a *App) saveLinkMetadataToDatabase(c request.CTX, requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
 	metadata := &model.LinkMetadata{
 		URL:       requestURL,
 		Timestamp: timestamp,
@@ -686,7 +686,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 
 	_, err := a.Srv().Store.LinkMetadata().Save(metadata)
 	if err != nil {
-		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
+		c.Logger().Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -406,7 +407,7 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+func (es *Service) SendInviteEmails(c request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -416,7 +417,7 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		c.Logger().Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -459,18 +460,18 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 			}
 
 			if err := es.sendMail(invite, subject, body); err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 				if errorWhenNotSent {
 					return SendMailError
 				}
@@ -480,7 +481,7 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+func (es *Service) SendGuestInviteEmails(c request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -490,7 +491,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		c.Logger().Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
@@ -538,13 +539,13 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			tokenData := model.MapToJSON(tokenProps)
 
 			if err := es.store.Token().Save(token); err != nil {
-				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
-				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
+				c.Logger().Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
 			}
 
 			senderPhoto := ""
@@ -568,11 +569,11 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
-				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
+				c.Logger().Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 
 			if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
-				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+				c.Logger().Error("Failed to send invite email successfully", mlog.Err(nErr))
 				if errorWhenNotSent {
 					return SendMailError
 				}
@@ -583,6 +584,7 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 }
 
 func (es *Service) SendInviteEmailsToTeamAndChannels(
+	c request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -603,7 +605,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+		c.Logger().Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return nil, RateLimitExceededError
 	}
@@ -687,7 +689,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 		tokenData := model.MapToJSON(tokenProps)
 
 		if err := es.store.Token().Save(token); err != nil {
-			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+			c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 			continue
 		}
 		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
@@ -712,11 +714,11 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 
 		body, err := es.templatesContainer.RenderToString("invite_body", data)
 		if err != nil {
-			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+			c.Logger().Error("Failed to send invite email successfully ", mlog.Err(err))
 		}
 
 		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", ""); nErr != nil {
-			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
+			c.Logger().Error("Failed to send invite email successfully", mlog.Err(nErr))
 			if errorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
 					Email: invite,

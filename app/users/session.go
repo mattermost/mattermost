@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
@@ -136,16 +137,16 @@ func (us *UserService) RevokeSessionsFromAllUsers() error {
 	return nil
 }
 
-func (us *UserService) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) error {
+func (us *UserService) RevokeSessionsForDeviceId(c request.CTX, userID string, deviceID string, currentSessionId string) error {
 	sessions, err := us.sessionStore.GetSessions(userID)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
 		if session.DeviceId == deviceID && session.Id != currentSessionId {
-			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			c.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := us.RevokeSession(session); err != nil {
-				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+				c.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
 		}
 	}
@@ -224,7 +225,7 @@ func (us *UserService) ExtendSessionExpiry(session *model.Session, newExpiry int
 	return nil
 }
 
-func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error {
+func (us *UserService) UpdateSessionsIsGuest(c request.CTX, userID string, isGuest bool) error {
 	sessions, err := us.GetSessions(userID)
 	if err != nil {
 		return err
@@ -234,7 +235,7 @@ func (us *UserService) UpdateSessionsIsGuest(userID string, isGuest bool) error 
 		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
 		err := us.sessionStore.UpdateProps(session)
 		if err != nil {
-			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
+			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		us.AddSessionToCache(session)

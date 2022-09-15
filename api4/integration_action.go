@@ -49,7 +49,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -84,7 +84,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.OpenInteractiveDialog(dialog); appErr != nil {
+	if appErr := c.App.OpenInteractiveDialog(c.AppContext, dialog); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -113,7 +113,7 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), submit.TeamId, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), submit.TeamId, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return
 	}

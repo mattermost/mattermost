@@ -308,7 +308,7 @@ func (a *App) GetSiteURL() string {
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithComputed() map[string]string {
+func (a *App) ClientConfigWithComputed(c request.CTX) map[string]string {
 	respCfg := map[string]string{}
 	for k, v := range a.ch.clientConfig.Load().(map[string]string) {
 		respCfg[k] = v
@@ -324,7 +324,7 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
-		mlog.Error("Could not get the schema version", mlog.Err(err))
+		c.Logger().Error("Could not get the schema version", mlog.Err(err))
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}

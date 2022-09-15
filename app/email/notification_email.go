@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (es *Service) GetMessageForNotification(c request.CTX, post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if strings.TrimSpace(post.Message) != "" || len(post.FileIds) == 0 {
 		return post.Message
 	}
@@ -21,7 +22,7 @@ func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18
 	// extract the filenames from their paths and determine what type of files are attached
 	infos, err := es.store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
-		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
 
 	filenames := make([]string, len(infos))

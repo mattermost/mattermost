@@ -47,7 +47,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := a.GetPluginKey(productID, botUserKey)
+	botIDBytes, err := a.GetPluginKey(c, productID, botUserKey)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
-			if appErr := a.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
+			if appErr := a.SetPluginKey(c, productID, botUserKey, []byte(user.Id)); appErr != nil {
 				return "", fmt.Errorf("failed to set plugin key: %w", err)
 			}
 		} else {
@@ -95,7 +95,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return "", fmt.Errorf("failed to create bot: %w", err)
 	}
 
-	if appErr := a.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
+	if appErr := a.SetPluginKey(c, productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
 		return "", fmt.Errorf("failed to set plugin key: %w", err)
 	}
 

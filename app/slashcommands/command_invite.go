@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type InviteProvider struct {
@@ -52,7 +51,7 @@ func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 
 	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		c.Logger().Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
 			ResponseType: model.CommandResponseTypeEphemeral,

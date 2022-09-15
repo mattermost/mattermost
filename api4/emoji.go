@@ -59,10 +59,10 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateEmojis) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionCreateEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionCreateEmojis) {
+			if c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), membership.TeamId, model.PermissionCreateEmojis) {
 				hasPermission = true
 				break
 			}
@@ -151,10 +151,10 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteEmojis) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionDeleteEmojis) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteEmojis) {
+			if c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), membership.TeamId, model.PermissionDeleteEmojis) {
 				hasPermission = true
 				break
 			}
@@ -166,10 +166,10 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.AppContext.Session().UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDeleteOthersEmojis) {
+		if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionDeleteOthersEmojis) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), membership.TeamId, model.PermissionDeleteOthersEmojis) {
+				if c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), membership.TeamId, model.PermissionDeleteOthersEmojis) {
 					hasPermission = true
 					break
 				}
@@ -182,7 +182,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = c.App.DeleteEmoji(emoji)
+	err = c.App.DeleteEmoji(c.AppContext, emoji)
 	if err != nil {
 		c.Err = err
 		return
