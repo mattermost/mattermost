@@ -8007,6 +8007,16 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	channelPrivate, nErr := ss.Channel().Save(&c3, -1)
 	require.NoError(t, nErr)
 
+	// create private channel with post
+	c3NoPost := model.Channel{}
+	c3NoPost.TeamId = team.Id
+	c3NoPost.DisplayName = "Channel3" + model.NewId()
+	c3NoPost.Name = NewTestId()
+	c3NoPost.Type = model.ChannelTypePrivate
+	c3NoPost.CreateAt = 1
+	channelPrivateNoPost, nErr := ss.Channel().Save(&c3NoPost, -1)
+	require.NoError(t, nErr)
+
 	// create dm channel
 	u1 := model.User{}
 	u1.Email = MakeEmail()
@@ -8028,6 +8038,9 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 
 	cm1 := &model.ChannelMember{ChannelId: channelPrivate.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
 	_, err = ss.Channel().SaveMember(cm1)
+	require.NoError(t, err)
+	cm1NoPost := &model.ChannelMember{ChannelId: channelPrivateNoPost.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
+	_, err = ss.Channel().SaveMember(cm1NoPost)
 	require.NoError(t, err)
 	cm1Public := &model.ChannelMember{ChannelId: channelPublic1.Id, UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
 	_, err = ss.Channel().SaveMember(cm1Public)
@@ -8085,25 +8098,27 @@ func testGetTopInactiveChannels(t *testing.T, ss store.Store) {
 	t.Run("top inactive channels for team - u1 ", func(t *testing.T) {
 		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForTeamSince(team.Id, u1.Id, 2, 0, 10)
 		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 3)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelSaved0.Id)
-		require.Equal(t, topInactiveChannels.Items[0].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
-		require.Equal(t, topInactiveChannels.Items[1].ID, channelPrivate.Id)
-		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
+		require.Len(t, topInactiveChannels.Items, 4)
+		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivateNoPost.Id)
+		require.Equal(t, topInactiveChannels.Items[1].ID, channelSaved0.Id)
+		require.Equal(t, topInactiveChannels.Items[1].LastActivityAt, postToCheckLastUpdateAt.CreateAt)
+		require.Equal(t, topInactiveChannels.Items[2].ID, channelPrivate.Id)
+		require.Equal(t, topInactiveChannels.Items[3].ID, channelPublic1.Id)
 		// test bot posts are counted
-		require.Equal(t, topInactiveChannels.Items[2].MessageCount, int64(4))
+		require.Equal(t, topInactiveChannels.Items[3].MessageCount, int64(4))
 
 		// participants
-		require.Equal(t, topInactiveChannels.Items[1].Participants[0], u1.Id)
 		require.Equal(t, topInactiveChannels.Items[2].Participants[0], u1.Id)
+		require.Equal(t, topInactiveChannels.Items[3].Participants[0], u1.Id)
 	})
 
 	t.Run("top inactive channels for user - u1 ", func(t *testing.T) {
 		topInactiveChannels, err := ss.Channel().GetTopInactiveChannelsForUserSince(team.Id, u1.Id, 2, 0, 10)
 		require.NoError(t, err)
-		require.Len(t, topInactiveChannels.Items, 2)
-		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivate.Id)
-		require.Equal(t, topInactiveChannels.Items[1].ID, channelPublic1.Id)
+		require.Len(t, topInactiveChannels.Items, 3)
+		require.Equal(t, topInactiveChannels.Items[0].ID, channelPrivateNoPost.Id)
+		require.Equal(t, topInactiveChannels.Items[1].ID, channelPrivate.Id)
+		require.Equal(t, topInactiveChannels.Items[2].ID, channelPublic1.Id)
 	})
 
 	// for u2
