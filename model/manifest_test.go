@@ -184,6 +184,13 @@ func TestSettingIsValid(t *testing.T) {
 			},
 			false,
 		},
+		"Placeholder is allowed for custom settings": {
+			PluginSetting{
+				Type:        "custom",
+				Placeholder: "some Text",
+			},
+			false,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			err := test.Setting.isValid()

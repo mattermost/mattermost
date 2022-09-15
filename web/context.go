@@ -105,7 +105,7 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
+		mlog.String("error", err.Error()),
 	}
 	switch {
 	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||

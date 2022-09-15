@@ -90,7 +90,7 @@ func (a *App) TotalWebsocketConnections() int {
 func (s *Server) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
-	s.Log.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
+	s.Log().Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
 
@@ -630,6 +630,8 @@ func (i *hubConnectionIndex) Add(wc *WebConn) {
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
+	wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
+
 	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
