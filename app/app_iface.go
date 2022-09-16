@@ -170,8 +170,6 @@ type AppIface interface {
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
-	// GetEditHistoryForPost returns the older version of selected post.
-	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
 	// GetEmojiStaticURL returns a relative static URL for system default emojis,
 	// and the API route for custom ones. Errors if not found or if custom and deleted.
 	GetEmojiStaticURL(emojiName string) (string, *model.AppError)
@@ -629,6 +627,7 @@ type AppIface interface {
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
+	GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 	GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)

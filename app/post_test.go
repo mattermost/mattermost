@@ -3068,9 +3068,9 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "new message",
-			UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
 	}
 
 	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
