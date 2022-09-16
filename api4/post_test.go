@@ -2969,19 +2969,19 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	client := th.Client
 
 	post := &model.Post{
- 		ChannelId: th.BasicChannel.Id,
- 		Message: "new message",
- 		UserId: th.BasicUser.Id,
- 	}
-	
+		ChannelId: th.BasicChannel.Id,
+		Message:   "new message",
+		UserId:    th.BasicUser.Id,
+	}
+
 	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
- 	require.Nil(t, err)
-	
+	require.Nil(t, err)
+
 	time.Sleep(1 * time.Millisecond)
 	// update the post message
- 	patch := &model.PostPatch{
- 		Message: model.NewString("new message edited"),
- 	}
+	patch := &model.PostPatch{
+		Message: model.NewString("new message edited"),
+	}
 
 	// Patch the post
 	_, response1, err1 := client.PatchPost(rpost.Id, patch)
@@ -2989,9 +2989,9 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	CheckOKStatus(t, response1)
 
 	// update the post message again
- 	patch = &model.PostPatch{
- 		Message: model.NewString("new message edited again"),
- 	}
+	patch = &model.PostPatch{
+		Message: model.NewString("new message edited again"),
+	}
 
 	_, response2, err2 := client.PatchPost(rpost.Id, patch)
 	require.NoError(t, err2)
@@ -3000,7 +3000,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
 	require.NoError(t, err3)
 	CheckOKStatus(t, response3)
-	
+
 	require.Len(t, history, 2)
 	require.Equal(t, history[0].Message, "new message edited")
 	require.Equal(t, history[1].Message, "new message")
