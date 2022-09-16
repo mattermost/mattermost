@@ -274,6 +274,6 @@ type Hooks interface {
 
 	// UserHasBeenDeactivated is invoked when a user is made inactive.
 	//
-	// Minimum server version:
-	UserHasBeenDeactivated(userID string)
+	// Minimum server version: 7.4
+	UserHasBeenDeactivated(c *Context, user *model.User)
 }

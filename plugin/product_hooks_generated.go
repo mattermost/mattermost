@@ -115,7 +115,7 @@ type OnCloudLimitsUpdatedIFace interface {
 }
 
 type UserHasBeenDeactivatedIFace interface {
-	UserHasBeenDeactivated(userID string)
+	UserHasBeenDeactivated(c *Context, user *model.User)
 }
 
 type hooksAdapter struct {
@@ -592,11 +592,11 @@ func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 
 }
 
-func (a *hooksAdapter) UserHasBeenDeactivated(userID string) {
+func (a *hooksAdapter) UserHasBeenDeactivated(c *Context, user *model.User) {
 	if _, ok := a.implemented[UserHasBeenDeactivatedID]; !ok {
 		panic("product hooks must implement UserHasBeenDeactivated")
 	}
 
-	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(userID)
+	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(c, user)
 
 }

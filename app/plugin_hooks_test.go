@@ -799,14 +799,14 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 
 		import (
 			"github.com/mattermost/mattermost-server/v6/plugin"
+			"github.com/mattermost/mattermost-server/v6/model"
 		)
 
 		type MyPlugin struct {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) UserHasBeenDeactivated(userID string) {
-			user, _ := p.API.GetUser(userID)
+		func (p *MyPlugin) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
 			user.Nickname = "plugin-callback-success"
 			p.API.UpdateUser(user)
 		}
@@ -818,11 +818,10 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	defer tearDown()
 
 	user := &model.User{
-		Email:       model.NewId() + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
 	}
 
 	_, err := th.App.CreateUser(th.Context, user)
@@ -868,11 +867,10 @@ func TestUserHasBeenCreated(t *testing.T) {
 	defer tearDown()
 
 	user := &model.User{
-		Email:       model.NewId() + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
 	}
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
@@ -1053,11 +1051,10 @@ func TestActiveHooks(t *testing.T) {
 
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
-			AuthService: "",
+			Email:    "success+test@example.com",
+			Nickname: "testnickname",
+			Username: "testusername",
+			Password: "testpassword",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
@@ -1159,10 +1156,10 @@ func TestHookMetrics(t *testing.T) {
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Email:       "success+test@example.com",
+			Nickname:    "testnickname",
+			Username:    "testusername",
+			Password:    "testpassword",
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
