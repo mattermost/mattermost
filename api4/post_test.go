@@ -2968,21 +2968,36 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := th.CreatePost()
+	post := &model.Post{
+ 		ChannelId: th.BasicChannel.Id,
+ 		Message:   "new message",
+ 		UserId:    th.BasicUser.Id,
+ 	}
+	
+	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+ 	require.Nil(t, err)
+	
 	time.Sleep(1 * time.Millisecond)
-	post.Message = "new message edited"
+	// update the post message
+ 	patch := &model.PostPatch{
+ 			Message: model.NewString("new message edited"),
+ 	}
 
 	// Patch the post
-	_, response, err := client.PatchPost(post.Id, &model.PostPatch{Message: &post.Message})
-	require.NoError(t, err)
-	CheckOKStatus(t, response)
+	_, response1, err1 := client.PatchPost(rpost.Id, patch)
+	require.NoError(t, err1)
+	CheckOKStatus(t, response1)
 
-	post.Message = "new message edited again"
-	_, response2, err2 := client.PatchPost(post.Id, &model.PostPatch{Message: &post.Message})
+	// update the post message again
+ 	patch = &model.PostPatch{
+ 		Message: model.NewString("new message edited again"),
+ 	}
+
+	_, response2, err2 := client.PatchPost(rpost.Id, patch)
 	require.NoError(t, err2)
 	CheckOKStatus(t, response2)
 
-	history, response3, err3 := client.GetEditHistoryForPost(post.Id)
+	history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
 	require.NoError(t, err3)
 	CheckOKStatus(t, response3)
 	

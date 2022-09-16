@@ -3972,7 +3972,7 @@ func (c *Client4) GetEditHistoryForPost(postId string) ([]*Post, *Response, erro
 	if err != nil {
 		return nil, nil, NewAppError("GetEditHistoryForPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/edit_history", string(js))
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/edit_history", string(js))
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
