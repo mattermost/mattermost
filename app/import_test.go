@@ -6,7 +6,6 @@ package app
 import (
 	"archive/zip"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
@@ -84,7 +84,7 @@ func TestImportImportLine(t *testing.T) {
 	defer th.TearDown()
 
 	// Try import line with an invalid type.
-	line := LineImportData{
+	line := imports.LineImportData{
 		Type: "gibberish",
 	}
 
@@ -128,29 +128,32 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestStopOnError(t *testing.T) {
-	assert.True(t, stopOnError(LineImportWorkerError{
-		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
-		1,
+	th := Setup(t)
+	defer th.TearDown()
+
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
 	}))
 
-	assert.True(t, stopOnError(LineImportWorkerError{
-		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
-		1,
+	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
-		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
-		1,
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
-		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
-		1,
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
 	}))
 
-	assert.False(t, stopOnError(LineImportWorkerError{
-		model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
-		1,
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
 	}))
 }
 
@@ -244,7 +247,7 @@ func TestImportBulkImport(t *testing.T) {
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
-	data := LineImportData{
+	data := imports.LineImportData{
 		Type:    "version",
 		Version: ptrInt(1),
 	}
@@ -282,8 +285,8 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 }
 
 func TestProcessAttachments(t *testing.T) {
-	genAttachments := func() *[]AttachmentImportData {
-		return &[]AttachmentImportData{
+	genAttachments := func() *[]imports.AttachmentImportData {
+		return &[]imports.AttachmentImportData{
 			{
 				Path: model.NewString("file.jpg"),
 			},
@@ -293,36 +296,36 @@ func TestProcessAttachments(t *testing.T) {
 		}
 	}
 
-	line := LineImportData{
+	line := imports.LineImportData{
 		Type: "post",
-		Post: &PostImportData{
+		Post: &imports.PostImportData{
 			Attachments: genAttachments(),
 		},
 	}
 
-	line2 := LineImportData{
+	line2 := imports.LineImportData{
 		Type: "direct_post",
-		DirectPost: &DirectPostImportData{
+		DirectPost: &imports.DirectPostImportData{
 			Attachments: genAttachments(),
 		},
 	}
 
-	userLine := LineImportData{
+	userLine := imports.LineImportData{
 		Type: "user",
-		User: &UserImportData{
+		User: &imports.UserImportData{
 			ProfileImage: model.NewString("profile.jpg"),
 		},
 	}
 
-	emojiLine := LineImportData{
+	emojiLine := imports.LineImportData{
 		Type: "emoji",
-		Emoji: &EmojiImportData{
+		Emoji: &imports.EmojiImportData{
 			Image: model.NewString("emoji.png"),
 		},
 	}
 
 	t.Run("empty path", func(t *testing.T) {
-		expected := &[]AttachmentImportData{
+		expected := &[]imports.AttachmentImportData{
 			{
 				Path: model.NewString("file.jpg"),
 			},
@@ -339,7 +342,7 @@ func TestProcessAttachments(t *testing.T) {
 	})
 
 	t.Run("valid path", func(t *testing.T) {
-		expected := &[]AttachmentImportData{
+		expected := &[]imports.AttachmentImportData{
 			{
 				Path: model.NewString("/tmp/file.jpg"),
 			},
@@ -439,7 +442,7 @@ func BenchmarkBulkImport(b *testing.B) {
 	info, err := importFile.Stat()
 	require.NoError(b, err)
 
-	dir, err := ioutil.TempDir("", "testimport")
+	dir, err := os.MkdirTemp("", "testimport")
 	require.NoError(b, err)
 	defer os.RemoveAll(dir)
 

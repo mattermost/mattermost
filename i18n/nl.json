@@ -1082,10 +1082,6 @@
     "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
   },
@@ -5848,10 +5844,6 @@
     "translation": "Ontbrekende Identity Provider SSO decriptors node in de XML."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Kan het bestand niet opladen. Foutief kanaal ID: {{.channelId}}"
   },
@@ -7732,10 +7724,6 @@
     "translation": "Fout bij het verplaatsen van het geüploade bestand."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kan het antwoord niet verwerken."
-  },
-  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "Er bestaat al een kanaallid met dat id."
   },
@@ -8668,22 +8656,6 @@
     "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigt binnenkort"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 30-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud proefperiode eindigt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Betalingsmethode toevoegen"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Een weergavenaam voor de beveiligde verbinding"
   },
@@ -8694,22 +8666,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kan geen automatisch antwoord van gebruiker sturen."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 30-dagen proefperiode van Mattermost eindigde"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, jouw 30-daagse gratis proefperiode van Mattermost Cloud Enterprise is beëindigd op {{.TodayDate}}. We hopen dat je genoot van ons flexibel en veilig samenwerkingsplatform. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven samenwerken met Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud proefperiode is afgelopen"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start abonnement"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -8951,10 +8907,6 @@
     "translation": " antwoordde op een draadje."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Ongeldig CreateAt veld voor sessie."
   },
@@ -9043,14 +8995,6 @@
     "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
   },
@@ -9103,24 +9047,8 @@
     "translation": "groepen die fouten tellen"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9191,22 +9119,6 @@
     "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_file_count.app_error",
     "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
   },
@@ -9233,14 +9145,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Ongeldig post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9281,14 +9185,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
@@ -9359,11 +9255,43 @@
     "translation": "Insights-functionaliteit is uitgeschakeld."
   },
   {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
+    "id": "common.parse_error_int64",
+    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
   },
   {
-    "id": "api.insights.license_error",
-    "translation": "Jouw licentie ondersteunt deze Insights-functie niet."
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Kan het bericht niet ophalen omdat het de limiet van het cloud plan overschreden is."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
+  },
+  {
+    "id": "api.cloud.upgrade_plan_bot_message",
+    "translation": "Een lid van {{.TeamName}} verwittigde je om deze werkruimte te upgraden."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Reeds verwittigde admin"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Ongeldige time-out waarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fout bij het wissen van de cache van teamleden"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Fout bij het ophalen van de top-privé-berichten voor gebruiker."
   }
 ]

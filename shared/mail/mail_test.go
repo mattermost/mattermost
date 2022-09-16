@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -195,12 +194,12 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	DeleteMailBox("test2@example.com")
 
 	// create two files with the same name that will both be attached to the email
-	file1, err := ioutil.TempFile("", "*")
+	file1, err := os.CreateTemp("", "*")
 	require.NoError(t, err)
 	defer os.Remove(file1.Name())
 	file1.Write([]byte("hello world"))
 	file1.Close()
-	file2, err := ioutil.TempFile("", "*")
+	file2, err := os.CreateTemp("", "*")
 
 	require.NoError(t, err)
 	defer os.Remove(file2.Name())
@@ -326,7 +325,7 @@ func (m *mockMailer) Write(p []byte) (int, error) {
 func (m *mockMailer) Close() error { return nil }
 
 func TestSendMail(t *testing.T) {
-	dir, err := ioutil.TempDir(".", "mail-test-")
+	dir, err := os.MkdirTemp(".", "mail-test-")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	mocm := &mockMailer{}

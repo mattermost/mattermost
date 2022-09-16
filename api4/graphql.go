@@ -48,7 +48,7 @@ func (api *API) InitGraphQL() error {
 	var err error
 	opts := []graphql.SchemaOpt{
 		graphql.UseFieldResolvers(),
-		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log)),
+		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log())),
 		graphql.MaxParallelism(loaderBatchCapacity), // This is dangerous if the query
 		// uses any non-dataloader backed object. So we need to be a bit careful here.
 	}
@@ -78,7 +78,7 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if response != nil {
 			if err := json.NewEncoder(w).Encode(response); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 		}
 	}()

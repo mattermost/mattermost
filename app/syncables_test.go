@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -114,7 +113,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	if err != nil {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
-	_, err = th.App.GetChannelMember(context.Background(), practiceChannel.Id, singer1.Id)
+	_, err = th.App.GetChannelMember(th.Context, practiceChannel.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("error retrieving channel member: %s", err.Error())
 	}
@@ -129,7 +128,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("expected %d team members but got %d", expected, actual)
 	}
 
-	cMembersCount, err := th.App.GetChannelMemberCount(practiceChannel.Id)
+	cMembersCount, err := th.App.GetChannelMemberCount(th.Context, practiceChannel.Id)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -143,7 +142,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(th.Context, experimentsChannel.Id, scientist1.Id)
 	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
@@ -158,7 +157,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("expected %d team members but got %d", expected, actual)
 	}
 
-	cMembersCount, err = th.App.GetChannelMemberCount(experimentsChannel.Id)
+	cMembersCount, err = th.App.GetChannelMemberCount(th.Context, experimentsChannel.Id)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -185,7 +184,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
 
-	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(th.Context, experimentsChannel.Id, scientist1.Id)
 	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
@@ -201,7 +200,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	expected = 0
-	cMembersCount, err = th.App.GetChannelMemberCount(experimentsChannel.Id)
+	cMembersCount, err = th.App.GetChannelMemberCount(th.Context, experimentsChannel.Id)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -223,7 +222,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	expected = 1
-	cMembersCount, err = th.App.GetChannelMemberCount(experimentsChannel.Id)
+	cMembersCount, err = th.App.GetChannelMemberCount(th.Context, experimentsChannel.Id)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -256,7 +255,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Error("expected team member to remain deleted")
 	}
 
-	_, err = th.App.GetChannelMember(context.Background(), practiceChannel.Id, singer1.Id)
+	_, err = th.App.GetChannelMember(th.Context, practiceChannel.Id, singer1.Id)
 	if err == nil {
 		t.Error("Expected channel member to remain deleted")
 	}
@@ -311,7 +310,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
 
-	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(th.Context, experimentsChannel.Id, scientist1.Id)
 	if err == nil {
 		t.Error("Expected channel member to remain deleted")
 	}
@@ -330,7 +329,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Channel member is re-added.
-	_, err = th.App.GetChannelMember(context.Background(), experimentsChannel.Id, scientist1.Id)
+	_, err = th.App.GetChannelMember(th.Context, experimentsChannel.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("expected channel member: %s", err.Error())
 	}
@@ -338,7 +337,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	t.Run("Team with restricted domains skips over members that do not match the allowed domains", func(t *testing.T) {
 		restrictedUser := th.CreateUser()
 		restrictedUser.Email = "restricted@mattermost.org"
-		_, err = th.App.UpdateUser(restrictedUser, false)
+		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
 		_, err = th.App.UpsertGroupMember(scienceGroup.Id, restrictedUser.Id)
 		require.Nil(t, err)
@@ -368,7 +367,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		require.NoError(t, pErr)
 
 		// Ensure only the restricted user was added to both the team and channel
-		cMembersCount, err = th.App.GetChannelMemberCount(restrictedChannel.Id)
+		cMembersCount, err = th.App.GetChannelMemberCount(th.Context, restrictedChannel.Id)
 		require.Nil(t, err)
 		require.Equal(t, cMembersCount, int64(1))
 		tmembers, err := th.App.GetTeamMembers(restrictedTeam.Id, 0, 100, nil)
@@ -406,7 +405,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	// make channel group-constrained
 	channel := th.BasicChannel
 	channel.GroupConstrained = model.NewBool(true)
-	channel, err = th.App.UpdateChannel(channel)
+	channel, err = th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 	require.True(t, *channel.GroupConstrained)
 
@@ -421,7 +420,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, tmembers, 3)
 
-	cmemberCount, err := th.App.GetChannelMemberCount(th.BasicChannel.Id)
+	cmemberCount, err := th.App.GetChannelMemberCount(th.Context, th.BasicChannel.Id)
 	require.Nil(t, err)
 	require.Equal(t, 3, int(cmemberCount))
 
@@ -439,7 +438,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Len(t, tmembers, 1)
 	require.Equal(t, th.SystemAdminUser.Id, tmembers[0].UserId)
 
-	cmembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 99)
+	cmembers, err := th.App.GetChannelMembersPage(th.Context, channel.Id, 0, 99)
 	require.Nil(t, err)
 	require.Len(t, cmembers, 1)
 	require.Equal(t, th.SystemAdminUser.Id, cmembers[0].UserId)
@@ -451,9 +450,9 @@ func TestSyncSyncableRoles(t *testing.T) {
 
 	team := th.CreateTeam()
 
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 	channel.GroupConstrained = model.NewBool(true)
-	channel, err := th.App.UpdateChannel(channel)
+	channel, err := th.App.UpdateChannel(th.Context, channel)
 	require.Nil(t, err)
 
 	user1 := th.CreateUser()
@@ -506,7 +505,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, tm.SchemeAdmin)
 
-		cm, err := th.App.GetChannelMember(context.Background(), channel.Id, user.Id)
+		cm, err := th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, cm.SchemeAdmin)
 	}

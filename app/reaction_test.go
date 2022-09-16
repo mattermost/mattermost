@@ -25,7 +25,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -60,7 +60,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -90,8 +90,8 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.Server.platform.SetConfigReadOnlyFF(false)
+	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
 	userId := th.BasicUser.Id
 	user2Id := th.BasicUser2.Id
@@ -261,8 +261,8 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.Server.configStore.SetReadOnlyFF(false)
-	defer th.Server.configStore.SetReadOnlyFF(true)
+	th.Server.platform.SetConfigReadOnlyFF(false)
+	defer th.Server.platform.SetConfigReadOnlyFF(true)
 
 	userId := th.BasicUser.Id
 
