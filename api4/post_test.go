@@ -2970,8 +2970,8 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	post := &model.Post{
  		ChannelId: th.BasicChannel.Id,
- 		Message:   "new message",
- 		UserId:    th.BasicUser.Id,
+ 		Message: "new message",
+ 		UserId: th.BasicUser.Id,
  	}
 	
 	rpost, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
@@ -2980,7 +2980,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	time.Sleep(1 * time.Millisecond)
 	// update the post message
  	patch := &model.PostPatch{
- 			Message: model.NewString("new message edited"),
+ 		Message: model.NewString("new message edited"),
  	}
 
 	// Patch the post

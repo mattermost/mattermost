@@ -3078,7 +3078,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	// update the post message
 	patch := &model.PostPatch{
-			Message: model.NewString("new message edited"),
+		Message: model.NewString("new message edited"),
 	}
 	_, err1 := th.App.PatchPost(th.Context, rpost.Id, patch)
 	require.Nil(t, err1)
