@@ -4,10 +4,12 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 func (api *API) InitElasticsearch() {
@@ -16,9 +18,23 @@ func (api *API) InitElasticsearch() {
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding config.", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	// we set BulkIndexingTimeWindowSeconds to a random value to avoid failing on the nil check
+	// TODO: remove this hack once we remove BulkIndexingTimeWindowSeconds from the config.
+	if cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds == nil {
+		cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = model.NewInt(0)
+	}
+	if checkHasNilFields(&cfg.ElasticsearchSettings) {
+		c.Err = model.NewAppError("testElasticsearch", "api.elasticsearch.test_elasticsearch_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	// PERMISSION_TEST_ELASTICSEARCH is an ancillary permission of PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT_ELASTICSEARCH,

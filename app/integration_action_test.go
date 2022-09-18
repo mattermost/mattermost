@@ -6,7 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -140,7 +140,7 @@ func TestPostAction(t *testing.T) {
 			user1 := th.CreateUser()
 			user2 := th.CreateUser()
 
-			return th.CreateGroupChannel(user1, user2)
+			return th.CreateGroupChannel(th.Context, user1, user2)
 		}},
 	}
 
@@ -501,7 +501,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 		TeamId:     th.BasicTeam.Id,
 		CallbackId: "someid",
 		State:      "somestate",
-		Submission: map[string]interface{}{
+		Submission: map[string]any{
 			"name1": "value1",
 		},
 	}
@@ -1079,47 +1079,47 @@ func TestDoPluginRequest(t *testing.T) {
 	resp, err := th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	assert.Equal(t, "could not find param abc=xyz", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz", nil, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple should have 3 values", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin",
 		url.Values{"abc": []string{"xyz"}, "multiple": []string{"1 first", "2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first",
 		url.Values{"multiple": []string{"2 second", "3 third"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?abc=xyz&multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"2 second"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "OK", string(body))
 
 	resp, err = th.App.doPluginRequest(th.Context, "GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
 		url.Values{"multiple": []string{"4 fourth"}, "abc": []string{"xyz"}}, nil)
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 	assert.Equal(t, "param multiple not correct", string(body))
 }

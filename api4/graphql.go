@@ -14,13 +14,27 @@ import (
 	gqlerrors "github.com/graph-gophers/graphql-go/errors"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/web"
 )
 
 type graphQLInput struct {
-	Query         string                 `json:"query"`
-	OperationName string                 `json:"operationName"`
-	Variables     map[string]interface{} `json:"variables"`
+	Query         string         `json:"query"`
+	OperationName string         `json:"operationName"`
+	Variables     map[string]any `json:"variables"`
 }
+
+// Unique type to hold our context.
+type ctxKey int
+
+const (
+	webCtx            ctxKey = 0
+	rolesLoaderCtx    ctxKey = 1
+	channelsLoaderCtx ctxKey = 2
+	teamsLoaderCtx    ctxKey = 3
+	usersLoaderCtx    ctxKey = 4
+)
+
+const loaderBatchCapacity = web.PerPageMaximum
 
 //go:embed schema.graphqls
 var schemaRaw string
@@ -34,8 +48,9 @@ func (api *API) InitGraphQL() error {
 	var err error
 	opts := []graphql.SchemaOpt{
 		graphql.UseFieldResolvers(),
-		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log)),
-		graphql.MaxParallelism(5),
+		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log())),
+		graphql.MaxParallelism(loaderBatchCapacity), // This is dangerous if the query
+		// uses any non-dataloader backed object. So we need to be a bit careful here.
 	}
 
 	if isProd() {
@@ -58,24 +73,12 @@ func (api *API) InitGraphQL() error {
 	return nil
 }
 
-// Unique type to hold our context.
-type ctxKey int
-
-const (
-	webCtx            ctxKey = 0
-	rolesLoaderCtx    ctxKey = 1
-	channelsLoaderCtx ctxKey = 2
-	teamsLoaderCtx    ctxKey = 3
-)
-
-const loaderBatchCapacity = 200
-
 func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	var response *graphql.Response
 	defer func() {
 		if response != nil {
 			if err := json.NewEncoder(w).Encode(response); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 		}
 	}()
@@ -98,6 +101,8 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.GraphQLOperationName = params.OperationName
+
 	// Populate the context with required info.
 	reqCtx := r.Context()
 	reqCtx = context.WithValue(reqCtx, webCtx, c)
@@ -110,6 +115,9 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamsLoader := dataloader.NewBatchedLoader(graphQLTeamsLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
 	reqCtx = context.WithValue(reqCtx, teamsLoaderCtx, teamsLoader)
+
+	usersLoader := dataloader.NewBatchedLoader(graphQLUsersLoader, dataloader.WithBatchCapacity(loaderBatchCapacity))
+	reqCtx = context.WithValue(reqCtx, usersLoaderCtx, usersLoader)
 
 	response = api.schema.Exec(reqCtx,
 		params.Query,
@@ -141,12 +149,12 @@ var graphiqlPage = []byte(`
 <html>
 	<head>
 		<title>GraphiQL editor | Mattermost</title>
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.css" rel="stylesheet" />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.css" integrity="sha256-gSgd+on4bTXigueyd/NSRNAy4cBY42RAVNaXnQDjOW8=" crossorigin="anonymous"/>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js" integrity="sha256-OI3N9zCKabDov2rZFzl8lJUXCcP7EmsGcGoP6DMXQCo=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js" integrity="sha256-aB35laj7IZhLTx58xw/Gm1EKOoJJKZt6RY+bH1ReHxs=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.2.0/umd/react.production.min.js" integrity="sha256-wouRkivKKXA3y6AuyFwcDcF50alCNV8LbghfYCH6Z98=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.2.0/umd/react-dom.production.min.js" integrity="sha256-9hrJxD4IQsWHdNpzLkJKYGiY/SEZFJJSUqyeZPNKd8g=" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.11.11/graphiql.min.js" integrity="sha256-oeWyQyKKUurcnbFRsfeSgrdOpXXiRYopnPjTVZ+6UmI=" crossorigin="anonymous"></script>
 	</head>
 	<body style="width: 100%; height: 100%; margin: 0; overflow: hidden;">
 		<div id="graphiql" style="height: 100vh;">Loading...</div>

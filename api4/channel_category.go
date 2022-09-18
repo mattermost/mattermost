@@ -23,15 +23,15 @@ func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	categories, err := c.App.GetSidebarCategories(c.Params.UserId, c.Params.TeamId)
-	if err != nil {
-		c.Err = err
+	categories, appErr := c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("getCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -52,27 +52,27 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryCreateRequest *model.SidebarCategoryWithChannels
+	var categoryCreateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryCreateRequest)
 	if err != nil || c.Params.UserId != categoryCreateRequest.UserId || c.Params.TeamId != categoryCreateRequest.TeamId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryCreateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryCreateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest)
+	category, appErr := c.App.CreateSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, &categoryCreateRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	categoryJSON, jsonErr := json.Marshal(category)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoryJSON, err := json.Marshal(category)
+	if err != nil {
+		c.Err = model.NewAppError("createCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -92,13 +92,16 @@ func getCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	order, err := c.App.GetSidebarCategoryOrder(c.Params.UserId, c.Params.TeamId)
-	if err != nil {
-		c.Err = err
+	order, appErr := c.App.GetSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.ArrayToJSON(order)))
+	err := json.NewEncoder(w).Encode(order)
+	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -118,13 +121,13 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	categoryOrder := model.ArrayFromJSON(r.Body)
 
 	for _, categoryId := range categoryOrder {
-		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
+		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
 			c.SetInvalidParam("category")
 			return
 		}
 	}
 
-	err := c.App.UpdateSidebarCategoryOrder(c.Params.UserId, c.Params.TeamId, categoryOrder)
+	err := c.App.UpdateSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId, categoryOrder)
 	if err != nil {
 		c.Err = err
 		return
@@ -140,20 +143,20 @@ func getCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	categories, err := c.App.GetSidebarCategory(c.Params.CategoryId)
-	if err != nil {
-		c.Err = err
+	categories, appErr := c.App.GetSidebarCategory(c.AppContext, c.Params.CategoryId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("getCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -177,12 +180,12 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoriesUpdateRequest)
 	if err != nil {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
 	for _, category := range categoriesUpdateRequest {
-		if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, category.Id) {
+		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, category.Id) {
 			c.SetInvalidParam("category")
 			return
 		}
@@ -193,15 +196,15 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
+	categories, appErr := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	categoriesJSON, jsonErr := json.Marshal(categories)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoriesJSON, err := json.Marshal(categories)
+	if err != nil {
+		c.Err = model.NewAppError("updateCategoriesForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -210,21 +213,21 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func validateSidebarCategory(c *Context, teamId, userId string, category *model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, &model.ChannelSearchOpts{
+	channels, appErr := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
-	if err != nil {
-		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
+	if appErr != nil {
+		return model.NewAppError("validateSidebarCategory", "api.invalid_channel", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 
-	category.Channels = validateSidebarCategoryChannels(userId, category.Channels, channels)
+	category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 
 	return nil
 }
 
 func validateSidebarCategories(c *Context, teamId, userId string, categories []*model.SidebarCategoryWithChannels) *model.AppError {
-	channels, err := c.App.GetChannelsForTeamForUser(teamId, userId, &model.ChannelSearchOpts{
+	channels, err := c.App.GetChannelsForTeamForUser(c.AppContext, teamId, userId, &model.ChannelSearchOpts{
 		IncludeDeleted: true,
 		LastDeleteAt:   0,
 	})
@@ -233,13 +236,13 @@ func validateSidebarCategories(c *Context, teamId, userId string, categories []*
 	}
 
 	for _, category := range categories {
-		category.Channels = validateSidebarCategoryChannels(userId, category.Channels, channels)
+		category.Channels = validateSidebarCategoryChannels(c, userId, category.Channels, channels)
 	}
 
 	return nil
 }
 
-func validateSidebarCategoryChannels(userId string, channelIds []string, channels model.ChannelList) []string {
+func validateSidebarCategoryChannels(c *Context, userId string, channelIds []string, channels model.ChannelList) []string {
 	var filtered []string
 
 	for _, channelId := range channelIds {
@@ -254,7 +257,7 @@ func validateSidebarCategoryChannels(userId string, channelIds []string, channel
 		if found {
 			filtered = append(filtered, channelId)
 		} else {
-			mlog.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
+			c.Logger.Info("Stopping user from adding channel to their sidebar when they are not a member", mlog.String("user_id", userId), mlog.String("channel_id", channelId))
 		}
 	}
 
@@ -267,7 +270,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -275,29 +278,29 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	var categoryUpdateRequest *model.SidebarCategoryWithChannels
+	var categoryUpdateRequest model.SidebarCategoryWithChannels
 	err := json.NewDecoder(r.Body).Decode(&categoryUpdateRequest)
 	if err != nil || categoryUpdateRequest.TeamId != c.Params.TeamId || categoryUpdateRequest.UserId != c.Params.UserId {
-		c.SetInvalidParam("category")
+		c.SetInvalidParamWithErr("category", err)
 		return
 	}
 
-	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, categoryUpdateRequest); appErr != nil {
+	if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, &categoryUpdateRequest); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	categoryUpdateRequest.Id = c.Params.CategoryId
 
-	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{categoryUpdateRequest})
+	categories, appErr := c.App.UpdateSidebarCategories(c.AppContext, c.Params.UserId, c.Params.TeamId, []*model.SidebarCategoryWithChannels{&categoryUpdateRequest})
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	categoryJSON, jsonErr := json.Marshal(categories[0])
-	if jsonErr != nil {
-		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	categoryJSON, err := json.Marshal(categories[0])
+	if err != nil {
+		c.Err = model.NewAppError("updateCategoryForTeamForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -311,7 +314,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToCategory(*c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+	if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -319,7 +322,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	appErr := c.App.DeleteSidebarCategory(c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
+	appErr := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
 	if appErr != nil {
 		c.Err = appErr
 		return

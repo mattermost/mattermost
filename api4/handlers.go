@@ -209,3 +209,24 @@ func requireLicense(f handlerFunc) handlerFunc {
 		f(c, w, r)
 	}
 }
+
+func minimumProfessionalLicense(f handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		lic := c.App.Srv().License()
+		if lic == nil || (lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise) {
+			c.Err = model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
+			return
+		}
+		f(c, w, r)
+	}
+}
+
+func rejectGuests(f handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
+			c.Err = model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
+			return
+		}
+		f(c, w, r)
+	}
+}

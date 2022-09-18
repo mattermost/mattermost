@@ -176,14 +176,14 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 
 	emailList, err := rseworker.cleanEmailData(emailListData)
 	if err != nil {
-		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 		mlog.Error("Worker: Failed to clean emails string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
 	}
 
 	channelList, err := rseworker.cleanChannelsData(channelListData)
 	if err != nil {
-		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("worker: "+rseworker.name, "job_id: "+job.Id, nil, "", http.StatusInternalServerError).Wrap(err)
 		mlog.Error("Worker: Failed to clean channel string data", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
 	}
@@ -203,5 +203,5 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
 	}
-	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]interface{}{interval: interval})
+	rseworker.telemetryService.SendTelemetry("track_invite_email_resend", map[string]any{interval: interval})
 }

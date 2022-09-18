@@ -41,14 +41,14 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CustomStatusProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !*a.Config().TeamSettings.EnableCustomUserStatuses {
 		return nil
 	}
 
 	message = strings.TrimSpace(message)
 	if message == CmdCustomStatusClear {
-		if err := a.RemoveCustomStatus(args.UserId); err != nil {
+		if err := a.RemoveCustomStatus(c, args.UserId); err != nil {
 			mlog.Debug(err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
@@ -61,14 +61,14 @@ func (*CustomStatusProvider) DoCommand(a *app.App, c *request.Context, args *mod
 
 	customStatus := GetCustomStatus(message)
 	customStatus.PreSave()
-	if err := a.SetCustomStatus(args.UserId, customStatus); err != nil {
+	if err := a.SetCustomStatus(c, args.UserId, customStatus); err != nil {
 		mlog.Debug(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	return &model.CommandResponse{
 		ResponseType: model.CommandResponseTypeEphemeral,
-		Text: args.T("api.command_custom_status.success", map[string]interface{}{
+		Text: args.T("api.command_custom_status.success", map[string]any{
 			"EmojiName":     ":" + customStatus.Emoji + ":",
 			"StatusMessage": customStatus.Text,
 		}),

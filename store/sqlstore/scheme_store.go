@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -22,20 +22,20 @@ func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 	return &SqlSchemeStore{sqlStore}
 }
 
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, err := s.createScheme(scheme, transaction)
-		if err != nil {
-			return nil, err
+		newScheme, terr := s.createScheme(scheme, transaction)
+		if terr != nil {
+			return nil, terr
 		}
-		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return newScheme, nil
 	}
@@ -427,7 +427,7 @@ func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes by scope")
+		return 0, errors.Wrap(err, "failed to count Schemes by scope")
 	}
 	return count, nil
 }
@@ -448,7 +448,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	var count int64
 	err := s.GetReplicaX().Get(&count, query)
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes without permission")
+		return 0, errors.Wrap(err, "failed to count Schemes without permission")
 	}
 	return count, nil
 }

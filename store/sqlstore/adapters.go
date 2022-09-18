@@ -25,16 +25,17 @@ func (a jsonArray) Value() (driver.Value, error) {
 		if _, err := out.WriteString(strconv.Quote(item)); err != nil {
 			return nil, err
 		}
+
 		// Skip the last element.
 		if i < len(a)-1 {
-			out.WriteByte(',')
+			if err := out.WriteByte(','); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	if err := out.WriteByte(']'); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
+	err := out.WriteByte(']')
+	return out.Bytes(), err
 }
 
 type jsonStringVal string
@@ -51,7 +52,7 @@ func (str jsonKeyPath) Value() (driver.Value, error) {
 
 type TraceOnAdapter struct{}
 
-func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
+func (t *TraceOnAdapter) Printf(format string, v ...any) {
 	originalString := fmt.Sprintf(format, v...)
 	newString := strings.ReplaceAll(originalString, "\n", " ")
 	newString = strings.ReplaceAll(newString, "\t", " ")

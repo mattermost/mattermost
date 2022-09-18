@@ -6,7 +6,6 @@ package filestore
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -88,7 +87,7 @@ func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, error) {
-	f, err := ioutil.ReadFile(filepath.Join(b.directory, path))
+	f, err := os.ReadFile(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}

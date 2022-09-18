@@ -10,12 +10,13 @@ import (
 
 // ErrInvalidInput indicates an error that has occurred due to an invalid input.
 type ErrInvalidInput struct {
-	Entity string      // The entity which was sent as the input.
-	Field  string      // The field of the entity which was invalid.
-	Value  interface{} // The actual value of the field.
+	Entity  string // The entity which was sent as the input.
+	Field   string // The field of the entity which was invalid.
+	Value   any    // The actual value of the field.
+	wrapped error  // The original error
 }
 
-func NewErrInvalidInput(entity, field string, value interface{}) *ErrInvalidInput {
+func NewErrInvalidInput(entity, field string, value any) *ErrInvalidInput {
 	return &ErrInvalidInput{
 		Entity: entity,
 		Field:  field,
@@ -24,10 +25,23 @@ func NewErrInvalidInput(entity, field string, value interface{}) *ErrInvalidInpu
 }
 
 func (e *ErrInvalidInput) Error() string {
+	if e.wrapped != nil {
+		return fmt.Sprintf("invalid input: entity: %s field: %s value: %s error: %s", e.Entity, e.Field, e.Value, e.wrapped)
+	}
+
 	return fmt.Sprintf("invalid input: entity: %s field: %s value: %s", e.Entity, e.Field, e.Value)
 }
 
-func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value interface{}) {
+func (e *ErrInvalidInput) Wrap(err error) *ErrInvalidInput {
+	e.wrapped = err
+	return e
+}
+
+func (e *ErrInvalidInput) Unwrap() error {
+	return e.wrapped
+}
+
+func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value any) {
 	entity = e.Entity
 	field = e.Field
 	value = e.Value
@@ -89,6 +103,7 @@ func (e *ErrConflict) IsErrConflict() bool {
 type ErrNotFound struct {
 	resource string
 	ID       string
+	wrapped  error
 }
 
 func NewErrNotFound(resource, id string) *ErrNotFound {
@@ -98,8 +113,17 @@ func NewErrNotFound(resource, id string) *ErrNotFound {
 	}
 }
 
+func (e *ErrNotFound) Wrap(err error) *ErrNotFound {
+	e.wrapped = err
+	return e
+}
+
 func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.ID
+	if e.wrapped != nil {
+		return fmt.Sprintf("resource: %s id: %s error: %s", e.resource, e.ID, e.wrapped)
+	}
+
+	return fmt.Sprintf("resource: %s id: %s", e.resource, e.ID)
 }
 
 // IsErrNotFound allows easy type assertion without adding store as a dependency.
@@ -142,8 +166,8 @@ type ErrUniqueConstraint struct {
 //
 // Examples:
 //
-//  store.NewErrUniqueConstraint("DisplayName") // single column constraint
-//  store.NewErrUniqueConstraint("Name", "Source") // multi-column constraint
+//	store.NewErrUniqueConstraint("DisplayName") // single column constraint
+//	store.NewErrUniqueConstraint("Name", "Source") // multi-column constraint
 func NewErrUniqueConstraint(columns ...string) *ErrUniqueConstraint {
 	return &ErrUniqueConstraint{
 		Columns: columns,

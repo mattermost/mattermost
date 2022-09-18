@@ -4,9 +4,15 @@
 package filestore
 
 import (
+	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -61,14 +67,16 @@ func TestMakeBucket(t *testing.T) {
 	bucketName = strings.Replace(bucketName, "/", "", -1)
 
 	cfg := FileBackendSettings{
-		DriverName:              ImageDriverS3,
-		AmazonS3AccessKeyId:     MinioAccessKey,
-		AmazonS3SecretAccessKey: MinioSecretKey,
-		AmazonS3Bucket:          bucketName,
-		AmazonS3Endpoint:        s3Endpoint,
-		AmazonS3Region:          "",
-		AmazonS3PathPrefix:      "",
-		AmazonS3SSL:             false,
+		DriverName:                         ImageDriverS3,
+		AmazonS3AccessKeyId:                MinioAccessKey,
+		AmazonS3SecretAccessKey:            MinioSecretKey,
+		AmazonS3Bucket:                     bucketName,
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3Region:                     "",
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		SkipVerify:                         false,
+		AmazonS3RequestTimeoutMilliseconds: 5000,
 	}
 
 	fileBackend, err := NewS3FileBackend(cfg)
@@ -76,4 +84,115 @@ func TestMakeBucket(t *testing.T) {
 
 	err = fileBackend.MakeBucket()
 	require.NoError(t, err)
+}
+
+func TestTimeout(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	// Generate a random bucket name
+	b := make([]byte, 30)
+	rand.Read(b)
+	bucketName := base64.StdEncoding.EncodeToString(b)
+	bucketName = strings.ToLower(bucketName)
+	bucketName = strings.Replace(bucketName, "+", "", -1)
+	bucketName = strings.Replace(bucketName, "/", "", -1)
+
+	cfg := FileBackendSettings{
+		DriverName:                         ImageDriverS3,
+		AmazonS3AccessKeyId:                MinioAccessKey,
+		AmazonS3SecretAccessKey:            MinioSecretKey,
+		AmazonS3Bucket:                     bucketName,
+		AmazonS3Endpoint:                   s3Endpoint,
+		AmazonS3Region:                     "",
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		SkipVerify:                         false,
+		AmazonS3RequestTimeoutMilliseconds: 0,
+	}
+
+	fileBackend, err := NewS3FileBackend(cfg)
+	require.NoError(t, err)
+
+	err = fileBackend.MakeBucket()
+	require.True(t, errors.Is(err, context.DeadlineExceeded))
+
+	path := "tests/" + randomString() + ".png"
+	_, err = fileBackend.WriteFile(bytes.NewReader([]byte("testimage")), path)
+	require.True(t, errors.Is(err, context.DeadlineExceeded))
+}
+
+func TestInsecureMakeBucket(t *testing.T) {
+	s3Host := os.Getenv("CI_MINIO_HOST")
+	if s3Host == "" {
+		s3Host = "localhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9000"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	proxySelfSignedHTTPS := newTLSProxyServer(&url.URL{Scheme: "http", Host: s3Endpoint})
+	defer proxySelfSignedHTTPS.Close()
+
+	enableInsecure, secure := true, false
+
+	testCases := []struct {
+		description     string
+		skipVerify      bool
+		expectedAllowed bool
+	}{
+		{"allow self-signed HTTPS when insecure enabled", enableInsecure, true},
+		{"reject self-signed HTTPS when secured", secure, false},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			// Generate a random bucket name
+			b := make([]byte, 30)
+			rand.Read(b)
+			bucketName := base64.StdEncoding.EncodeToString(b)
+			bucketName = strings.ToLower(bucketName)
+			bucketName = strings.Replace(bucketName, "+", "", -1)
+			bucketName = strings.Replace(bucketName, "/", "", -1)
+
+			cfg := FileBackendSettings{
+				DriverName:                         ImageDriverS3,
+				AmazonS3AccessKeyId:                MinioAccessKey,
+				AmazonS3SecretAccessKey:            MinioSecretKey,
+				AmazonS3Bucket:                     bucketName,
+				AmazonS3Endpoint:                   proxySelfSignedHTTPS.URL[8:],
+				AmazonS3Region:                     "",
+				AmazonS3PathPrefix:                 "",
+				AmazonS3SSL:                        true,
+				SkipVerify:                         testCase.skipVerify,
+				AmazonS3RequestTimeoutMilliseconds: 5000,
+			}
+
+			fileBackend, err := NewS3FileBackend(cfg)
+			require.NoError(t, err)
+
+			err = fileBackend.MakeBucket()
+			if testCase.expectedAllowed {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}
+func newTLSProxyServer(backend *url.URL) *httptest.Server {
+	return httptest.NewTLSServer(httputil.NewSingleHostReverseProxy(backend))
 }
