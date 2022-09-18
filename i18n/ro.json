@@ -7284,10 +7284,6 @@
     "translation": "Eroare internă la solicitarea api cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Repară acum"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Trimiteți-ne un e-mail oricând la "
   },

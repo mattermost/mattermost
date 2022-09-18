@@ -371,6 +371,7 @@ type ServiceSettings struct {
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
+	PostPriority                                      *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -841,6 +842,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableCustomGroups == nil {
 		s.EnableCustomGroups = NewBool(true)
+	}
+
+	if s.PostPriority == nil {
+		s.PostPriority = NewBool(false)
 	}
 }
 
