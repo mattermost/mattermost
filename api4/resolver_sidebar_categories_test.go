@@ -27,6 +27,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			Sorting     model.SidebarCategorySorting `json:"sorting"`
 			ChannelIDs  []string                     `json:"channelIds"`
 			TeamID      string                       `json:"teamId"`
+			SortOrder   int64                        `json:"sortOrder"`
 		} `json:"sidebarCategories"`
 	}
 
@@ -39,6 +40,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			displayName
 			sorting
 			channelIds
+			sortOrder
 		}
 	}
 	`,
@@ -69,6 +71,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 		assert.Equal(t, categories.Categories[i].DisplayName, q.SidebarCategories[i].DisplayName)
 		assert.Equal(t, categories.Categories[i].Sorting, q.SidebarCategories[i].Sorting)
 		assert.Equal(t, categories.Categories[i].ChannelIds(), q.SidebarCategories[i].ChannelIDs)
+		assert.Equal(t, categories.Categories[i].SortOrder, q.SidebarCategories[i].SortOrder)
 	}
 
 	input = graphQLInput{
@@ -80,6 +83,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			displayName
 			sorting
 			channelIds
+			sortOrder
 		}
 	}
 	`,
@@ -101,8 +105,8 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 	th.LinkUserToTeam(th.BasicUser, myTeam)
-	th.App.AddUserToChannel(th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 
 	input = graphQLInput{
 		OperationName: "sidebarCategories",
@@ -114,6 +118,7 @@ func TestGraphQLSidebarCategories(t *testing.T) {
 			sorting
 			channelIds
 			teamId
+			sortOrder
 		}
 	}
 	`,

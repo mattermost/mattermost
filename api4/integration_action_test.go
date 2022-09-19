@@ -5,7 +5,7 @@ package api4
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +21,7 @@ type testHandler struct {
 }
 
 func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	bb, err := ioutil.ReadAll(r.Body)
+	bb, err := io.ReadAll(r.Body)
 	assert.NoError(th.t, err)
 	assert.NotEmpty(th.t, string(bb))
 	var poir model.PostActionIntegrationRequest

@@ -103,7 +103,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 
 	// Create another channel with just BasicUser (implicitly) and SystemAdminUser to test channel broadcast
-	channel2 := th.CreateChannel(th.BasicTeam)
+	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 	th.AddUserToChannel(th.SystemAdminUser, channel2)
 
 	cases := []struct {
@@ -122,10 +122,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to admin", &model.WebsocketBroadcast{ContainsSensitiveData: true}, false, false, true, false},
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
+		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},
 		// needs more cases to get full coverage
 	}
 
-	event := model.NewWebSocketEvent("some_event", "", "", "", nil)
+	event := model.NewWebSocketEvent("some_event", "", "", "", nil, "")
 	for _, c := range cases {
 		t.Run(c.Description, func(t *testing.T) {
 			event = event.SetBroadcast(c.Broadcast)
@@ -178,11 +179,11 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
 	})
 
-	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil)
+	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil, "")
 	assert.True(t, basicUserWc.shouldSendEvent(event2))
 	assert.True(t, basicUser2Wc.shouldSendEvent(event2))
 
-	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil)
+	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
 	assert.False(t, basicUserWc.shouldSendEvent(event3))
 }
 
@@ -276,6 +277,26 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 	assert.False(t, wc.hasMsgLoss())
 }
 
+func TestWebConnClearDeadQueue(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	wc := th.App.NewWebConn(&WebConnConfig{
+		WebSocket: &websocket.Conn{},
+	})
+
+	var i int
+	for ; i < 2; i++ {
+		msg := &model.WebSocketEvent{}
+		msg = msg.SetSequence(int64(i))
+		wc.addToDeadQueue(msg)
+	}
+
+	wc.clearDeadQueue()
+
+	assert.Equal(t, 0, wc.deadQueuePointer)
+}
+
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -348,7 +369,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		defer wc.WebSocket.Close()
 
 		for i := 0; i < limit; i++ {
-			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{})
+			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{}, "")
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)
 		}

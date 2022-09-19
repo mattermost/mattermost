@@ -24,8 +24,8 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 	th.LinkUserToTeam(th.BasicUser, myTeam)
-	th.App.AddUserToChannel(th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 
 	// Creating some msgcount
 	th.CreateMessagePostWithClient(th.Client, th.BasicChannel, "basic post")
@@ -66,6 +66,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 			MsgCount         float64         `json:"msgCount"`
 			MentionCount     float64         `json:"mentionCount"`
 			MentionCountRoot float64         `json:"mentionCountRoot"`
+			MsgCountRoot     float64         `json:"msgCountRoot"`
 			NotifyProps      model.StringMap `json:"notifyProps"`
 			SchemeGuest      bool            `json:"schemeGuest"`
 			SchemeUser       bool            `json:"schemeUser"`
@@ -100,6 +101,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	  	msgCount
 	  	mentionCount
 	  	mentionCountRoot
+		msgCountRoot
 	  	schemeGuest
 	  	schemeUser
 	  	schemeAdmin

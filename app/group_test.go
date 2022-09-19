@@ -93,7 +93,6 @@ func TestCreateGroup(t *testing.T) {
 	}
 	g, err = th.App.CreateGroup(usernameGroup)
 	require.NotNil(t, err)
-	require.Equal(t, "app.group.username_conflict", err.Id)
 	require.Nil(t, g)
 }
 
@@ -111,7 +110,6 @@ func TestUpdateGroup(t *testing.T) {
 	g.Name = &user.Username
 	g, err = th.App.UpdateGroup(g)
 	require.NotNil(t, err)
-	require.Equal(t, "app.group.username_conflict", err.Id)
 	require.Nil(t, g)
 }
 
@@ -200,7 +198,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)

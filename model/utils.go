@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/mail"
@@ -34,6 +33,7 @@ const (
 	NUMBERS          = "0123456789"
 	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 	BinaryParamKey   = "MM_BINARY_PARAMETERS"
+	NoTranslation    = "<untranslated>"
 )
 
 type StringInterface map[string]any
@@ -186,6 +186,24 @@ func (si StringInterface) Value() (driver.Value, error) {
 	return string(j), err
 }
 
+func (StringInterface) ImplementsGraphQLType(name string) bool {
+	return name == "StringInterface"
+}
+
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
+}
+
+func (si *StringInterface) UnmarshalGraphQL(input any) error {
+	json, ok := input.(map[string]any)
+	if !ok {
+		return errors.New("wrong type")
+	}
+
+	*si = json
+	return nil
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 
@@ -204,10 +222,31 @@ type AppError struct {
 	Where         string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	IsOAuth       bool   `json:"is_oauth,omitempty"`    // Whether the error is OAuth specific
 	params        map[string]any
+	wrapped       error
 }
 
 func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
+	var sb strings.Builder
+
+	// render the error information
+	sb.WriteString(er.Where)
+	sb.WriteString(": ")
+	sb.WriteString(er.Message)
+
+	// only render the detailed error when it's present
+	if er.DetailedError != "" {
+		sb.WriteString(", ")
+		sb.WriteString(er.DetailedError)
+	}
+
+	// render the wrapped error
+	err := er.wrapped
+	if err != nil {
+		sb.WriteString(", ")
+		sb.WriteString(err.Error())
+	}
+
+	return sb.String()
 }
 
 func (er *AppError) Translate(T i18n.TranslateFunc) {
@@ -231,14 +270,43 @@ func (er *AppError) SystemMessage(T i18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJSON() string {
+	// turn the wrapped error into a detailed message
+	detailed := er.DetailedError
+	defer func() {
+		er.DetailedError = detailed
+	}()
+
+	er.wrappedToDetailed()
+
 	b, _ := json.Marshal(er)
 	return string(b)
+}
+
+func (er *AppError) wrappedToDetailed() {
+	if er.wrapped == nil {
+		return
+	}
+
+	if er.DetailedError != "" {
+		er.DetailedError += ", "
+	}
+
+	er.DetailedError += er.wrapped.Error()
+}
+
+func (er *AppError) Unwrap() error {
+	return er.wrapped
+}
+
+func (er *AppError) Wrap(err error) *AppError {
+	er.wrapped = err
+	return er
 }
 
 // AppErrorFromJSON will decode the input and return an AppError
 func AppErrorFromJSON(data io.Reader) *AppError {
 	str := ""
-	bytes, rerr := ioutil.ReadAll(data)
+	bytes, rerr := io.ReadAll(data)
 	if rerr != nil {
 		str = rerr.Error()
 	} else {
@@ -249,20 +317,21 @@ func AppErrorFromJSON(data io.Reader) *AppError {
 	var er AppError
 	err := decoder.Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
+		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
 	}
 	return &er
 }
 
 func NewAppError(where string, id string, params map[string]any, details string, status int) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = status
-	ap.IsOAuth = false
+	ap := &AppError{
+		Id:            id,
+		params:        params,
+		Message:       id,
+		Where:         where,
+		DetailedError: details,
+		StatusCode:    status,
+		IsOAuth:       false,
+	}
 	ap.Translate(translateFunc)
 	return ap
 }
@@ -356,23 +425,25 @@ func MapBoolToJSON(objmap map[string]bool) string {
 
 // MapFromJSON will decode the key/value pair map
 func MapFromJSON(data io.Reader) map[string]string {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]string)
 	}
+
 	return objmap
 }
 
 // MapFromJSON will decode the key/value pair map
 func MapBoolFromJSON(data io.Reader) map[string]bool {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]bool
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]bool)
 	}
+
 	return objmap
 }
 
@@ -382,12 +453,13 @@ func ArrayToJSON(objmap []string) string {
 }
 
 func ArrayFromJSON(data io.Reader) []string {
-	decoder := json.NewDecoder(data)
-
 	var objmap []string
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make([]string, 0)
 	}
+
 	return objmap
 }
 
@@ -414,12 +486,13 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 }
 
 func StringInterfaceFromJSON(data io.Reader) map[string]any {
-	decoder := json.NewDecoder(data)
-
 	var objmap map[string]any
-	if err := decoder.Decode(&objmap); err != nil {
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
 		return make(map[string]any)
 	}
+
 	return objmap
 }
 

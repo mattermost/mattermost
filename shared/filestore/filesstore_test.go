@@ -6,7 +6,6 @@ package filestore
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -38,7 +37,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	mlog.InitGlobalLogger(logger)
 
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -73,15 +72,16 @@ func runBackendTest(t *testing.T, encrypt bool) {
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
-			DriverName:              driverS3,
-			AmazonS3AccessKeyId:     "minioaccesskey",
-			AmazonS3SecretAccessKey: "miniosecretkey",
-			AmazonS3Bucket:          "mattermost-test",
-			AmazonS3Region:          "",
-			AmazonS3Endpoint:        s3Endpoint,
-			AmazonS3PathPrefix:      "",
-			AmazonS3SSL:             false,
-			AmazonS3SSE:             encrypt,
+			DriverName:                         driverS3,
+			AmazonS3AccessKeyId:                "minioaccesskey",
+			AmazonS3SecretAccessKey:            "miniosecretkey",
+			AmazonS3Bucket:                     "mattermost-test",
+			AmazonS3Region:                     "",
+			AmazonS3Endpoint:                   s3Endpoint,
+			AmazonS3PathPrefix:                 "",
+			AmazonS3SSL:                        false,
+			AmazonS3SSE:                        encrypt,
+			AmazonS3RequestTimeoutMilliseconds: 5000,
 		},
 	})
 }
@@ -500,15 +500,16 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 
 func BenchmarkS3WriteFile(b *testing.B) {
 	settings := FileBackendSettings{
-		DriverName:              driverS3,
-		AmazonS3AccessKeyId:     "minioaccesskey",
-		AmazonS3SecretAccessKey: "miniosecretkey",
-		AmazonS3Bucket:          "mattermost-test",
-		AmazonS3Region:          "",
-		AmazonS3Endpoint:        "localhost:9000",
-		AmazonS3PathPrefix:      "",
-		AmazonS3SSL:             false,
-		AmazonS3SSE:             false,
+		DriverName:                         driverS3,
+		AmazonS3AccessKeyId:                "minioaccesskey",
+		AmazonS3SecretAccessKey:            "miniosecretkey",
+		AmazonS3Bucket:                     "mattermost-test",
+		AmazonS3Region:                     "",
+		AmazonS3Endpoint:                   "localhost:9000",
+		AmazonS3PathPrefix:                 "",
+		AmazonS3SSL:                        false,
+		AmazonS3SSE:                        false,
+		AmazonS3RequestTimeoutMilliseconds: 20000,
 	}
 
 	backend, err := NewFileBackend(settings)
@@ -527,7 +528,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 		written, err := backend.WriteFile(bytes.NewReader(data), path)
 		defer backend.RemoveFile(path)
 		require.NoError(b, err)
-		require.Equal(b, len(data), int(written))
+		require.Len(b, data, int(written))
 	}
 
 	b.StopTimer()

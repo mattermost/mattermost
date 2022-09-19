@@ -10,8 +10,8 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -580,7 +580,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(getPluginPackageDir(), "client_rpc_generated.go"), formatted, 0664); err != nil {
+	if err := os.WriteFile(filepath.Join(getPluginPackageDir(), "client_rpc_generated.go"), formatted, 0664); err != nil {
 		panic(err)
 	}
 }
@@ -613,7 +613,7 @@ func generateProductHooksInterfaces(info *PluginInterfaceInfo) {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(getPluginPackageDir(), "product_hooks_generated.go"), formatted, 0664); err != nil {
+	if err := os.WriteFile(filepath.Join(getPluginPackageDir(), "product_hooks_generated.go"), formatted, 0664); err != nil {
 		panic(err)
 	}
 }
@@ -667,7 +667,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 			panic(err)
 		}
 
-		if err := ioutil.WriteFile(filepath.Join(getPluginPackageDir(), fileName), formatted, 0664); err != nil {
+		if err := os.WriteFile(filepath.Join(getPluginPackageDir(), fileName), formatted, 0664); err != nil {
 			panic(err)
 		}
 	}

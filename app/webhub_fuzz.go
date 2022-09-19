@@ -6,7 +6,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -230,7 +229,7 @@ func Fuzz(data []byte) int {
 					msg := model.NewWebSocketEvent(input.event,
 						input.selectTeamID,
 						input.selectChannelID,
-						input.createUserID, nil)
+						input.createUserID, nil, "")
 					for k, v := range input.attachment {
 						msg.Add(k, v)
 					}
@@ -273,7 +272,7 @@ func generateInitialCorpus() error {
 		if err != nil {
 			return err
 		}
-		err = ioutil.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
+		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err
 		}
