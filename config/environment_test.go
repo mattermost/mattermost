@@ -31,15 +31,54 @@ func TestRemoveEnvOverrides(t *testing.T) {
 		expectedConfig *model.Config
 	}{
 		{
-			name: "basic override",
+			name: "config override",
 			inputConfig: modifiedDefault(func(in *model.Config) {
 				*in.ServiceSettings.TLSMinVer = "1.4"
+				in.PluginSettings.PluginStates = map[string]*model.PluginState{
+					"plugin1": {
+						Enable: false,
+					},
+				}
+				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+					"com.mattermost.plugin-1": {
+						"key1": "value1",
+					},
+					"com_mattermost_plugin-2": {
+						"key2": "value2",
+					},
+				}
 			}),
 			env: map[string]string{
 				"MM_SERVICESETTINGS_TLSMINVER": "1.5",
+				"MM_PLUGINSETTINGS_PLUGINSTATES": `{
+					"plugin1": {
+						"Enable": true
+					}
+				}`,
+				"MM_PLUGINSETTINGS_PLUGINS": `{
+					"com.mattermost.plugin-1": {
+						"key1": "other-value"
+					},
+					"com_mattermost_plugin-2": {
+						"key2": "other-value"
+					}
+				}`,
 			},
 			expectedConfig: modifiedDefault(func(in *model.Config) {
 				*in.ServiceSettings.TLSMinVer = "1.5"
+				in.PluginSettings.PluginStates = map[string]*model.PluginState{
+					"plugin1": {
+						Enable: true,
+					},
+				}
+				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+					"com.mattermost.plugin-1": {
+						"key1": "other-value",
+					},
+					"com_mattermost_plugin-2": {
+						"key2": "other-value",
+					},
+				}
 			}),
 		},
 		{
@@ -100,6 +139,41 @@ func TestRemoveEnvOverrides(t *testing.T) {
 			},
 			expectedConfig: modifiedDefault(func(in *model.Config) {
 				in.SqlSettings.DataSourceReplicas = []string{"otherthing", "alsothis"}
+			}),
+		},
+		{
+			name: "complex env settings",
+			inputConfig: modifiedDefault(func(in *model.Config) {
+			}),
+			env: map[string]string{
+				"MM_PLUGINSETTINGS_PLUGINSTATES": `{
+					"com.mattermost.plugin-1": {
+						"enable": true
+					}
+				}`,
+				"MM_PLUGINSETTINGS_PLUGINS": `{
+					"com.mattermost.plugin-1": {
+						"key": {
+							"key":  "(?P<key>KEY)-(?P<id>\\d{1,6})(?P<comma>[,;]*)",
+							"value": "[$key-$id](https://example.com/?$project-$id)$comma"
+						}
+					}
+				}`,
+			},
+			expectedConfig: modifiedDefault(func(in *model.Config) {
+				in.PluginSettings.PluginStates = map[string]*model.PluginState{
+					"com.mattermost.plugin-1": {
+						Enable: true,
+					},
+				}
+				in.PluginSettings.Plugins = map[string]map[string]interface{}{
+					"com.mattermost.plugin-1": {
+						"key": map[string]interface{}{
+							"key":   "(?P<key>KEY)-(?P<id>\\d{1,6})(?P<comma>[,;]*)",
+							"value": "[$key-$id](https://example.com/?$project-$id)$comma",
+						},
+					},
+				}
 			}),
 		},
 		{
