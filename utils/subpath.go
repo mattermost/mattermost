@@ -46,7 +46,7 @@ func GetSubpathScriptHash(subpath string) string {
 
 // UpdateAssetsSubpathInDir rewrites assets in the given directory to assume the application is
 // hosted at the given subpath instead of at the root. No changes are written unless necessary.
-func UpdateAssetsSubpathInDir(subpath, directory string) error {
+func UpdateAssetsSubpathInDir(subpath, siteName, directory string) error {
 	if subpath == "" {
 		subpath = "/"
 	}
@@ -83,6 +83,15 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	mlog.Debug("Rewriting static assets", mlog.String("from_subpath", oldSubpath), mlog.String("to_subpath", subpath))
 
 	newRootHTML := string(oldRootHTML)
+
+	if model.TeamSettingsDefaultSiteName != siteName {
+		mmTitle := fmt.Sprintf("<title>%s</title>", model.TeamSettingsDefaultSiteName)
+		siteNameTitle := fmt.Sprintf("<title>%s</title>", siteName)
+		reCSP := regexp.MustCompile(mmTitle)
+		if results := reCSP.FindAllString(newRootHTML, -1); len(results) > 0 {
+			newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, siteNameTitle)
+		}
+	}
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
@@ -140,8 +149,8 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
-func UpdateAssetsSubpath(subpath string) error {
-	return UpdateAssetsSubpathInDir(subpath, model.ClientDir)
+func UpdateAssetsSubpath(subpath string, siteName string) error {
+	return UpdateAssetsSubpathInDir(subpath, siteName, model.ClientDir)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.
@@ -164,7 +173,22 @@ func UpdateAssetsSubpathFromConfig(config *model.Config) error {
 		return err
 	}
 
-	return UpdateAssetsSubpath(subpath)
+	siteName, err := GetSitenameFromConfig(config)
+	if err != nil {
+		return err
+	}
+
+	return UpdateAssetsSubpath(subpath, siteName)
+}
+
+func GetSitenameFromConfig(config *model.Config) (string, error) {
+	if config == nil {
+		return "", errors.New("no config provided")
+	} else if config.TeamSettings.SiteName == nil {
+		return model.TeamSettingsDefaultSiteName, nil
+	}
+
+	return *config.TeamSettings.SiteName, nil
 }
 
 func GetSubpathFromConfig(config *model.Config) (string, error) {
