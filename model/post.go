@@ -49,6 +49,7 @@ const (
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
 	PostTypeReminder               = "reminder"
+	PostTypeVoice                  = "voice"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
