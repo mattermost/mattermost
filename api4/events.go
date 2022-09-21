@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -87,14 +89,14 @@ func getSchema(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	topic := getTopicByIdFromTopics(topicId, topics)
 
-	if _, err := w.Write(topic.Schema); err != nil {
+	if _, err := w.Write([]byte(topic.Schema)); err != nil {
 		c.Err = model.NewAppError("getTopics", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func getTopicByIdFromTopics(topicId string, topics []*eventbus.EventType) *eventBus.EventType {
-	var topic eventbus.EventType
+func getTopicByIdFromTopics(topicId string, topics []*eventbus.EventType) *eventbus.EventType {
+	var topic *eventbus.EventType
 	for _, t := range topics {
 		if t.Topic == topicId {
 			topic = t
