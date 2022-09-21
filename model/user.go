@@ -62,6 +62,7 @@ const (
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
+	UserBioMaxRunes       = 320
 )
 
 //msgp:tuple User
@@ -103,6 +104,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	Bio                    string    `json:"bio"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -134,6 +136,7 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_id":        u.TermsOfServiceId,
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
+		"bio":                        u.Bio,
 	}
 }
 
@@ -163,6 +166,7 @@ type UserPatch struct {
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
 	RemoteId    *string   `json:"remote_id"`
+	Bio         *string   `json:"bio"`
 }
 
 func (u *UserPatch) Auditable() map[string]interface{} {
@@ -178,6 +182,7 @@ func (u *UserPatch) Auditable() map[string]interface{} {
 		"locale":       u.Locale,
 		"timezone":     u.Timezone,
 		"remote_id":    u.RemoteId,
+		"bio":          u.Bio,
 	}
 }
 
@@ -392,6 +397,10 @@ func (u *User) IsValid() *AppError {
 			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
+	if utf8.RuneCountInString(u.Bio) > UserBioMaxRunes {
+		return InvalidUserError("bio", u.Id)
+	}
+
 	return nil
 }
 
@@ -432,6 +441,7 @@ func (u *User) PreSave() {
 	u.FirstName = SanitizeUnicode(u.FirstName)
 	u.LastName = SanitizeUnicode(u.LastName)
 	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.Bio = SanitizeUnicode(u.Bio)
 
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
@@ -512,6 +522,7 @@ func (u *User) PreUpdate() {
 	u.LastName = SanitizeUnicode(u.LastName)
 	u.Nickname = SanitizeUnicode(u.Nickname)
 	u.BotDescription = SanitizeUnicode(u.BotDescription)
+	u.Bio = SanitizeUnicode(u.Bio)
 
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
@@ -630,6 +641,10 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.RemoteId != nil {
 		u.RemoteId = patch.RemoteId
+	}
+
+	if patch.Bio != nil {
+		u.Bio = *patch.Bio
 	}
 }
 
@@ -904,6 +919,7 @@ func (u *User) ToPatch() *UserPatch {
 		Position: &u.Position, Email: &u.Email,
 		Props: u.Props, NotifyProps: u.NotifyProps,
 		Locale: &u.Locale, Timezone: u.Timezone,
+		Bio: &u.Bio,
 	}
 }
 
@@ -921,6 +937,8 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 		u.Position = &fieldValue
 	case "Username":
 		u.Username = &fieldValue
+	case "Bio":
+		u.Bio = &fieldValue
 	}
 }
 

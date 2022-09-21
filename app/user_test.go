@@ -185,14 +185,22 @@ func TestUpdateUser(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	user := th.CreateUser()
-	group := th.CreateGroup()
-
 	t.Run("fails if the username matches a group name", func(t *testing.T) {
+		user := th.CreateUser()
+		group := th.CreateGroup()
 		user.Username = *group.Name
 		u, err := th.App.UpdateUser(th.Context, user, false)
 		require.NotNil(t, err)
 		require.Nil(t, u)
+	})
+
+	t.Run("Update bio", func(t *testing.T) {
+		user := th.CreateUser()
+		bio := "this is bio"
+		user.Bio = bio
+		u, err := th.App.UpdateUser(th.Context, user, false)
+		require.Nil(t, err)
+		require.Equal(t, bio, u.Bio)
 	})
 }
 
@@ -1670,6 +1678,19 @@ func TestPatchUser(t *testing.T) {
 
 		require.Nil(t, err)
 	})
+
+	t.Run("Patch username with bio", func(t *testing.T) {
+		bio := "this is a bio"
+		_, err := th.App.PatchUser(th.Context, testUser.Id, &model.UserPatch{
+			Bio: model.NewString(bio),
+		}, true)
+
+		require.Nil(t, err)
+		user, err := th.App.GetUser(testUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, bio, user.Bio)
+	})
+
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
