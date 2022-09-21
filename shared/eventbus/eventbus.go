@@ -26,27 +26,29 @@ type EventType struct {
 	Schema      string `json:"schema,omitempty"`
 }
 
-type Subscriber struct {
+type subscriber struct {
 	id      string
 	handler Handler
 }
 
 type BrokerService struct {
-	queueLimit     int
-	goroutineLimit int
-	subscribers    map[string][]Subscriber
-	subMutex       *sync.Mutex
-	channel        chan Event
-	eventTypes     map[string]EventType
+	queueLimit      int
+	goroutineLimit  int
+	subscribers     map[string][]subscriber
+	subscriberMutex *sync.Mutex
+	channel         chan Event
+	eventTypes      map[string]EventType
+	eventMutex      *sync.Mutex
 }
 
 func NewBroker(queueLimit, goroutineLimit int) *BrokerService {
 	return &BrokerService{
-		queueLimit:     queueLimit,
-		goroutineLimit: goroutineLimit,
-		subscribers:    map[string][]Subscriber{},
-		subMutex:       &sync.Mutex{},
-		channel:        make(chan Event, queueLimit),
+		queueLimit:      queueLimit,
+		goroutineLimit:  goroutineLimit,
+		subscribers:     map[string][]subscriber{},
+		subscriberMutex: &sync.Mutex{},
+		channel:         make(chan Event, queueLimit),
+		eventMutex:      &sync.Mutex{},
 	}
 }
 
@@ -63,6 +65,8 @@ func (b *BrokerService) Register(topic, description string, typ any) error {
 		Schema:      string(buf),
 	}
 
+	b.eventMutex.Lock()
+	defer b.eventMutex.Unlock()
 	b.eventTypes[topic] = evT
 	return nil
 }
@@ -93,23 +97,24 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 }
 
 func (b *BrokerService) Subscribe(topic string, handler Handler) (string, error) {
-	b.subMutex.Lock()
-	defer b.subMutex.Unlock()
+	b.subscriberMutex.Lock()
+	defer b.subscriberMutex.Unlock()
 
 	if _, ok := b.eventTypes[topic]; !ok {
 		return "", errors.New("topic does not exist")
 	}
 
 	id := model.NewId()
-	b.subscribers[topic] = append(b.subscribers[topic], Subscriber{
+	b.subscribers[topic] = append(b.subscribers[topic], subscriber{
 		id:      id,
 		handler: handler,
 	})
 	return id, nil
 }
+
 func (b *BrokerService) Unsubscribe(topic, id string) error {
-	b.subMutex.Lock()
-	defer b.subMutex.Unlock()
+	b.subscriberMutex.Lock()
+	defer b.subscriberMutex.Unlock()
 
 	if _, ok := b.eventTypes[topic]; !ok {
 		return errors.New("topic does not exist")
@@ -126,9 +131,8 @@ func (b *BrokerService) Unsubscribe(topic, id string) error {
 	return errors.New("id was not found")
 }
 
-func (b *BrokerService) Start() error {
+func (b *BrokerService) Start() {
 	go b.runHandlers()
-	return nil
 }
 
 func (b *BrokerService) runHandlers() {
