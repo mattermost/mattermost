@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -306,7 +307,10 @@ func testCreatePostWithOutgoingHook(
 		if requestContentType == "application/json" {
 			decoder := json.NewDecoder(r.Body)
 			o := &model.OutgoingWebhookPayload{}
-			decoder.Decode(&o)
+			err := decoder.Decode(&o)
+			if err != nil {
+				th.TestLogger.Warn("Error decoding body", mlog.Err(err))
+			}
 
 			if !reflect.DeepEqual(expectedPayload, o) {
 				t.Logf("JSON payload is %+v, should be %+v", o, expectedPayload)
@@ -448,7 +452,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -461,7 +465,7 @@ func TestCreatePostPublic(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -498,7 +502,7 @@ func TestCreatePostAll(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
 	th.App.Srv().InvalidateAllCaches()
 
 	client.Login(user.Email, user.Password)
@@ -514,7 +518,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, _, err = client.CreatePost(post)
 	require.NoError(t, err)
 
-	th.App.UpdateUserRoles(ruser.Id, model.SystemUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
@@ -546,7 +550,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 	inChannelUser := th.CreateUser()
 	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
-	th.App.AddUserToChannel(inChannelUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, inChannelUser, th.BasicChannel, false)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
 	_, resp, err := client.CreatePost(post1)
@@ -586,7 +590,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 			err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &wpost)
 			require.NoError(t, err)
 
-			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PropsAddChannelMember).(map[string]any)
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -924,7 +928,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := client.DoAPIPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body., ")
+		require.EqualError(t, err, ": Invalid or missing post in request body., invalid character 'g' looking for beginning of value")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
@@ -2113,14 +2117,14 @@ func TestDeletePostEvent(t *testing.T) {
 func TestDeletePostMessage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.SystemAdminUser, th.BasicChannel, false)
 
 	defer th.TearDown()
 
 	testCases := []struct {
 		description string
 		client      *model.Client4
-		delete_by   interface{}
+		delete_by   any
 	}{
 		{"Do not send delete_by to regular user", th.Client, nil},
 		{"Send delete_by to system admin user", th.SystemAdminClient, th.SystemAdminUser.Id},
@@ -2469,8 +2473,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	th.LinkUserToTeam(user, th.BasicTeam)
-	th.App.AddUserToChannel(user, th.BasicChannel, false)
-	th.App.AddUserToChannel(user, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, user, th.BasicChannel2, false)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)
@@ -2623,6 +2627,39 @@ func TestGetFileInfosForPost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	// Delete post
+	th.SystemAdminClient.DeletePost(post.Id)
+
+	// Normal client should get 404 when trying to access deleted post normally
+	_, resp, err = client.GetFileInfosForPost(post.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// Normal client should get unauthorized when trying to access deleted post
+	_, resp, err = client.GetFileInfosForPostIncludeDeleted(post.Id, "")
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	// System client should get 404 when trying to access deleted post normally
+	_, resp, err = th.SystemAdminClient.GetFileInfosForPost(post.Id, "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, resp)
+
+	// System client should be able to access deleted post with include_deleted param
+	infos, _, err = th.SystemAdminClient.GetFileInfosForPostIncludeDeleted(post.Id, "")
+	require.NoError(t, err)
+
+	require.Len(t, infos, 3, "missing file infos")
+
+	found = false
+	for _, info := range infos {
+		if info.Id == fileIds[0] {
+			found = true
+		}
+	}
+
+	require.True(t, found, "missing file info")
+
 	client.Logout()
 	_, resp, err = client.GetFileInfosForPost(model.NewId(), "")
 	require.Error(t, err)
@@ -2653,15 +2690,15 @@ func TestSetChannelUnread(t *testing.T) {
 	require.NotNil(t, pp2)
 
 	// Ensure that post have been read
-	unread, err := th.App.GetChannelUnread(c1.Id, u1.Id)
+	unread, err := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(4), unread.MsgCount)
-	unread, appErr := th.App.GetChannelUnread(c1.Id, u2.Id)
+	unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(4), unread.MsgCount)
-	_, appErr = th.App.ViewChannel(c1toc2, u2.Id, s2.Id, false)
+	_, appErr = th.App.ViewChannel(th.Context, c1toc2, u2.Id, s2.Id, false)
 	require.Nil(t, appErr)
-	unread, appErr = th.App.GetChannelUnread(c1.Id, u2.Id)
+	unread, appErr = th.App.GetChannelUnread(th.Context, c1.Id, u2.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, int64(0), unread.MsgCount)
 
@@ -2669,7 +2706,7 @@ func TestSetChannelUnread(t *testing.T) {
 		r, err := th.Client.SetPostUnread(u1.Id, p2.Id, true)
 		require.NoError(t, err)
 		CheckOKStatus(t, r)
-		unread, appErr := th.App.GetChannelUnread(c1.Id, u1.Id)
+		unread, appErr := th.App.GetChannelUnread(th.Context, c1.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
@@ -2684,32 +2721,32 @@ func TestSetChannelUnread(t *testing.T) {
 		require.NotNil(t, p1)
 
 		// Ensure that post have been read
-		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err := th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr := th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr := th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
 		r, _ := th.Client.SetPostUnread(u1.Id, p.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(3), unread.MsgCount)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 
 		r, _ = th.Client.SetPostUnread(u1.Id, p1.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(1), unread.MsgCount)
 	})
@@ -2726,36 +2763,36 @@ func TestSetChannelUnread(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Ensure that post have been read
-		unread, err := th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err := th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 		cv := &model.ChannelView{ChannelId: dc.Id}
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
 		r, _ := th.Client.SetPostUnread(u1.Id, rootPost.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), unread.MsgCount)
 		require.Equal(t, int64(1), unread.MsgCountRoot)
 
 		// Ensure that post have been read
-		_, appErr = th.App.ViewChannel(cv, u1.Id, s2.Id, false)
+		_, appErr = th.App.ViewChannel(th.Context, cv, u1.Id, s2.Id, false)
 		require.Nil(t, appErr)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(0), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
 
 		r, _ = th.Client.SetPostUnread(u1.Id, reply2.Id, false)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, err = th.App.GetChannelUnread(dc.Id, u1.Id)
+		unread, err = th.App.GetChannelUnread(th.Context, dc.Id, u1.Id)
 		require.Nil(t, err)
 		require.Equal(t, int64(2), unread.MsgCount)
 		require.Equal(t, int64(0), unread.MsgCountRoot)
@@ -2764,12 +2801,12 @@ func TestSetChannelUnread(t *testing.T) {
 	t.Run("Unread on a private channel", func(t *testing.T) {
 		r, _ := th.Client.SetPostUnread(u1.Id, pp2.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, appErr := th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		unread, appErr := th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(1), unread.MsgCount)
 		r, _ = th.Client.SetPostUnread(u1.Id, pp1.Id, true)
 		assert.Equal(t, 200, r.StatusCode)
-		unread, appErr = th.App.GetChannelUnread(th.BasicPrivateChannel.Id, u1.Id)
+		unread, appErr = th.App.GetChannelUnread(th.Context, th.BasicPrivateChannel.Id, u1.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, int64(2), unread.MsgCount)
 	})
@@ -2843,7 +2880,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 
 		_, err = th.Client.SetPostUnread(th.BasicUser.Id, replyPost1.Id, false)
 		require.NoError(t, err)
-		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(3), channelUnread.MentionCount)
@@ -2857,7 +2894,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 		// test websocket event for marking post as unread
 		var caught bool
 		var exit bool
-		var data map[string]interface{}
+		var data map[string]any
 		for {
 			select {
 			case ev := <-userWSClient.EventChannel:
@@ -2891,7 +2928,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 	t.Run("Mark root post as unread", func(t *testing.T) {
 		_, err := th.Client.SetPostUnread(th.BasicUser.Id, rootPost1.Id, false)
 		require.NoError(t, err)
-		channelUnread, appErr := th.App.GetChannelUnread(th.BasicChannel.Id, th.BasicUser.Id)
+		channelUnread, appErr := th.App.GetChannelUnread(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Equal(t, int64(4), channelUnread.MentionCount)
@@ -3105,7 +3142,7 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 					Name: "test-name",
 					Integration: &model.PostActionIntegration{
 						URL: "https://test.test/action",
-						Context: map[string]interface{}{
+						Context: map[string]any{
 							"test-ctx": "some-value",
 						},
 					},
@@ -3120,14 +3157,74 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 
 	actualPost, _, err := client.GetPost(rpost.Id, "")
 	require.NoError(t, err)
-	attachments, _ := actualPost.Props["attachments"].([]interface{})
+	attachments, _ := actualPost.Props["attachments"].([]any)
 	require.Equal(t, 1, len(attachments))
-	att, _ := attachments[0].(map[string]interface{})
+	att, _ := attachments[0].(map[string]any)
 	require.NotNil(t, att)
-	actions, _ := att["actions"].([]interface{})
+	actions, _ := att["actions"].([]any)
 	require.Equal(t, 1, len(actions))
-	action, _ := actions[0].(map[string]interface{})
+	action, _ := actions[0].(map[string]any)
 	require.NotNil(t, action)
 	// integration must be omitted
 	require.Nil(t, action["integration"])
+}
+
+func TestPostReminder(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.Client
+	userWSClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer userWSClient.Close()
+	userWSClient.Listen()
+
+	targetTime := time.Now().UTC().Unix()
+	resp, err := client.SetPostReminder(&model.PostReminder{
+		TargetTime: targetTime,
+		PostId:     th.BasicPost.Id,
+		UserId:     th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	post, _, err := client.GetPost(th.BasicPost.Id, "")
+	require.NoError(t, err)
+
+	user, _, err := client.GetUser(post.UserId, "")
+	require.NoError(t, err)
+
+	var caught bool
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				if ev.EventType() == model.WebsocketEventEphemeralMessage {
+					caught = true
+					data := ev.GetData()
+
+					post, ok := data["post"].(string)
+					require.True(t, ok)
+
+					var parsedPost model.Post
+					err := json.Unmarshal([]byte(post), &parsedPost)
+					require.NoError(t, err)
+
+					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+					assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
+					assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
+
+					require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+					require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
+					require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
+					return
+				}
+			case <-time.After(1 * time.Second):
+				return
+			}
+		}
+	}()
+
+	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
 }

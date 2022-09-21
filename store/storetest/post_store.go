@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -57,6 +58,10 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetForThread", func(t *testing.T) { testPostStoreGetForThread(t, ss) })
 	t.Run("HasAutoResponsePostByUserSince", func(t *testing.T) { testHasAutoResponsePostByUserSince(t, ss) })
 	t.Run("GetPostsSinceForSync", func(t *testing.T) { testGetPostsSinceForSync(t, ss, s) })
+	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, ss, s) })
+	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, ss, s) })
+	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, ss, s) })
+	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -563,6 +568,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
+		t.Skip("MM-46134")
 		o1, err := ss.Post().Save(&model.Post{ChannelId: model.NewId(), UserId: model.NewId(), Message: NewTestId()})
 		require.NoError(t, err)
 		_, err = ss.Post().Save(&model.Post{ChannelId: o1.ChannelId, UserId: model.NewId(), Message: NewTestId(), RootId: o1.Id})
@@ -638,7 +644,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.True(t, r1.HasNext)
 
 		lastPostID = r1.Order[len(r1.Order)-1]
@@ -670,7 +676,7 @@ func testPostStoreGetForThread(t *testing.T, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
-		assert.Len(t, r1.Order, 3) // including the root post
+		assert.Len(t, r1.Order, 2) // including the root post
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, firstPostCreateAt)
 		assert.False(t, r1.HasNext)
 
@@ -973,6 +979,74 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		// Verify other root posts remain undeleted.
 		_, err = ss.Post().Get(context.Background(), rootPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
+	})
+
+	t.Run("thread with multiple replies, update thread last reply at", func(t *testing.T) {
+		// Create a root post
+		rootPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post
+		replyPost1, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a second time
+		replyPost2, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		// Reply to that root post a third time
+		replyPost3, err := ss.Post().Save(&model.Post{
+			ChannelId: rootPost1.ChannelId,
+			UserId:    model.NewId(),
+			Message:   NewTestId(),
+			RootId:    rootPost1.Id,
+		})
+		require.NoError(t, err)
+
+		thread, err := ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+
+		// Delete the reply previous to last
+		err = ss.Post().Delete(replyPost2.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should be unchanged
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
+
+		// Delete the last reply
+		err = ss.Post().Delete(replyPost3.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should have changed
+		require.Equal(t, replyPost1.CreateAt, thread.LastReplyAt)
+
+		// Delete the last reply
+		err = ss.Post().Delete(replyPost1.Id, model.GetMillis(), "")
+		require.NoError(t, err)
+
+		thread, err = ss.Thread().Get(rootPost1.Id)
+		require.NoError(t, err)
+		// last reply at should be 0
+		require.Equal(t, int64(0), thread.LastReplyAt)
 	})
 }
 
@@ -3755,6 +3829,130 @@ func testGetPostsSinceForSync(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
+func testSetPostReminder(t *testing.T, ss store.Store, s SqlStore) {
+	// Basic
+	userID := NewTestId()
+
+	p1 := &model.Post{
+		UserId:    userID,
+		ChannelId: NewTestId(),
+		Message:   "hi there",
+		Type:      model.PostTypeDefault,
+	}
+	p1, err := ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	reminder := &model.PostReminder{
+		TargetTime: 1234,
+		PostId:     p1.Id,
+		UserId:     userID,
+	}
+
+	require.NoError(t, ss.Post().SetPostReminder(reminder))
+
+	out := model.PostReminder{}
+	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	assert.Equal(t, reminder, &out)
+
+	reminder.PostId = "notfound"
+	err = ss.Post().SetPostReminder(reminder)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
+	// Upsert
+	reminder = &model.PostReminder{
+		TargetTime: 12345,
+		PostId:     p1.Id,
+		UserId:     userID,
+	}
+
+	require.NoError(t, ss.Post().SetPostReminder(reminder))
+	require.NoError(t, s.GetMasterX().Get(&out, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId=? AND UserId=?`, reminder.PostId, reminder.UserId))
+	assert.Equal(t, reminder, &out)
+}
+
+func testGetPostReminders(t *testing.T, ss store.Store, s SqlStore) {
+	times := []int64{100, 101, 102}
+	for _, tt := range times {
+		userID := NewTestId()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestId(),
+			Message:   "hi there",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(p1)
+		require.NoError(t, err)
+
+		reminder := &model.PostReminder{
+			TargetTime: tt,
+			PostId:     p1.Id,
+			UserId:     userID,
+		}
+
+		require.NoError(t, ss.Post().SetPostReminder(reminder))
+	}
+
+	reminders, err := ss.Post().GetPostReminders(102)
+	require.NoError(t, err)
+	require.Len(t, reminders, 2)
+
+	// assert one reminder is left
+	reminders, err = ss.Post().GetPostReminders(103)
+	require.NoError(t, err)
+	require.Len(t, reminders, 1)
+
+	// assert everything is deleted.
+	reminders, err = ss.Post().GetPostReminders(103)
+	require.NoError(t, err)
+	require.Len(t, reminders, 0)
+}
+
+func testGetPostReminderMetadata(t *testing.T, ss store.Store, s SqlStore) {
+	team := &model.Team{
+		Name:        "teamname",
+		DisplayName: "display",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	ch := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "channeldisplay",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	ch, err = ss.Channel().Save(ch, -1)
+	require.NoError(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+		Locale:   "es",
+	}
+
+	u1, err = ss.User().Save(u1)
+	require.NoError(t, err)
+
+	p1 := &model.Post{
+		UserId:    u1.Id,
+		ChannelId: ch.Id,
+		Message:   "hi there",
+		Type:      model.PostTypeDefault,
+	}
+	p1, err = ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	meta, err := ss.Post().GetPostReminderMetadata(p1.Id)
+	require.NoError(t, err)
+	assert.Equal(t, meta.ChannelId, ch.Id)
+	assert.Equal(t, meta.TeamName, team.Name)
+	assert.Equal(t, meta.Username, u1.Username)
+	assert.Equal(t, meta.UserLocale, u1.Locale)
+}
+
 func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 	ids := make([]string, 0, len(posts)+len(morePosts))
 	for _, p := range posts {
@@ -3764,4 +3962,99 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 		ids = append(ids, p.Id)
 	}
 	return ids
+}
+
+func testGetNthRecentPostTime(t *testing.T, ss store.Store) {
+	_, err := ss.Post().GetNthRecentPostTime(0)
+	assert.Error(t, err)
+	_, err = ss.Post().GetNthRecentPostTime(-1)
+	assert.Error(t, err)
+
+	diff := int64(10000)
+	now := utils.MillisFromTime(time.Now()) + diff
+
+	p1 := &model.Post{}
+	p1.ChannelId = model.NewId()
+	p1.UserId = model.NewId()
+	p1.Message = "test"
+	p1.CreateAt = now
+	p1, err = ss.Post().Save(p1)
+	require.NoError(t, err)
+
+	p2 := &model.Post{}
+	p2.ChannelId = p1.ChannelId
+	p2.UserId = p1.UserId
+	p2.Message = p1.Message
+	now = now + diff
+	p2.CreateAt = now
+	p2, err = ss.Post().Save(p2)
+	require.NoError(t, err)
+
+	bot1 := &model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     model.NewId(),
+		UserId:      model.NewId(),
+	}
+	_, err = ss.Bot().Save(bot1)
+	require.NoError(t, err)
+
+	b1 := &model.Post{}
+	b1.Message = "bot test"
+	b1.ChannelId = p1.ChannelId
+	b1.UserId = bot1.UserId
+	now = now + diff
+	b1.CreateAt = now
+	_, err = ss.Post().Save(b1)
+	require.NoError(t, err)
+
+	p3 := &model.Post{}
+	p3.ChannelId = p1.ChannelId
+	p3.UserId = p1.UserId
+	p3.Message = p1.Message
+	now = now + diff
+	p3.CreateAt = now
+	p3, err = ss.Post().Save(p3)
+	require.NoError(t, err)
+
+	s1 := &model.Post{}
+	s1.Type = model.PostTypeJoinChannel
+	s1.ChannelId = p1.ChannelId
+	s1.UserId = model.NewId()
+	s1.Message = "system_join_channel message"
+	now = now + diff
+	s1.CreateAt = now
+	_, err = ss.Post().Save(s1)
+	require.NoError(t, err)
+
+	p4 := &model.Post{}
+	p4.ChannelId = p1.ChannelId
+	p4.UserId = p1.UserId
+	p4.Message = p1.Message
+	now = now + diff
+	p4.CreateAt = now
+	p4, err = ss.Post().Save(p4)
+	require.NoError(t, err)
+
+	r, err := ss.Post().GetNthRecentPostTime(1)
+	assert.NoError(t, err)
+	assert.Equal(t, p4.CreateAt, r)
+
+	// Skip system post
+	r, err = ss.Post().GetNthRecentPostTime(2)
+	assert.NoError(t, err)
+	assert.Equal(t, p3.CreateAt, r)
+
+	// Skip system & bot post
+	r, err = ss.Post().GetNthRecentPostTime(3)
+	assert.NoError(t, err)
+	assert.Equal(t, p2.CreateAt, r)
+
+	r, err = ss.Post().GetNthRecentPostTime(4)
+	assert.NoError(t, err)
+	assert.Equal(t, p1.CreateAt, r)
+
+	_, err = ss.Post().GetNthRecentPostTime(10000)
+	assert.Error(t, err)
+	assert.IsType(t, &store.ErrNotFound{}, err)
 }

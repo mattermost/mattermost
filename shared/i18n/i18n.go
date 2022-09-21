@@ -6,8 +6,8 @@ package i18n
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -20,7 +20,7 @@ import (
 const defaultLocale = "en"
 
 // TranslateFunc is the type of the translate functions
-type TranslateFunc func(translationID string, args ...interface{}) string
+type TranslateFunc func(translationID string, args ...any) string
 
 // T is the translate function using the default server language as fallback language
 var T TranslateFunc
@@ -59,7 +59,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 }
 
 func initTranslationsWithDir(dir string) error {
-	files, _ := ioutil.ReadDir(dir)
+	files, _ := os.ReadDir(dir)
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
@@ -135,7 +135,7 @@ func GetSupportedLocales() map[string]string {
 
 func tfuncWithFallback(pref string) TranslateFunc {
 	t, _ := i18n.Tfunc(pref)
-	return func(translationID string, args ...interface{}) string {
+	return func(translationID string, args ...any) string {
 		if translated := t(translationID, args...); translated != translationID {
 			return translated
 		}
@@ -147,21 +147,21 @@ func tfuncWithFallback(pref string) TranslateFunc {
 
 // TranslateAsHTML translates the translationID provided and return a
 // template.HTML object
-func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]any) template.HTML {
 	message := t(translationID, escapeForHTML(args))
 	message = strings.Replace(message, "[[", "<strong>", -1)
 	message = strings.Replace(message, "]]", "</strong>", -1)
 	return template.HTML(message)
 }
 
-func escapeForHTML(arg interface{}) interface{} {
+func escapeForHTML(arg any) any {
 	switch typedArg := arg.(type) {
 	case string:
 		return template.HTMLEscapeString(typedArg)
 	case *string:
 		return template.HTMLEscapeString(*typedArg)
-	case map[string]interface{}:
-		safeArg := make(map[string]interface{}, len(typedArg))
+	case map[string]any:
+		safeArg := make(map[string]any, len(typedArg))
 		for key, value := range typedArg {
 			safeArg[key] = escapeForHTML(value)
 		}
@@ -179,7 +179,7 @@ func escapeForHTML(arg interface{}) interface{} {
 // IdentityTfunc returns a translation function that don't translate, only
 // returns the same id
 func IdentityTfunc() TranslateFunc {
-	return func(translationID string, args ...interface{}) string {
+	return func(translationID string, args ...any) string {
 		return translationID
 	}
 }

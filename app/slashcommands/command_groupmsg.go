@@ -39,7 +39,7 @@ func (*groupmsgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*groupmsgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	targetUsers := map[string]*model.User{}
 	targetUsersSlice := []string{args.UserId}
 	invalidUsernames := []string{}
@@ -73,7 +73,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(invalidUsernames) > 0 {
-		invalidUsersString := map[string]interface{}{
+		invalidUsersString := map[string]any{
 			"Users": "@" + strings.Join(invalidUsernames, ", @"),
 		}
 		return &model.CommandResponse{
@@ -87,7 +87,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(targetUsersSlice) < model.ChannelGroupMinUsers {
-		minUsers := map[string]interface{}{
+		minUsers := map[string]any{
 			"MinUsers": model.ChannelGroupMinUsers - 1,
 		}
 		return &model.CommandResponse{
@@ -97,7 +97,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	}
 
 	if len(targetUsersSlice) > model.ChannelGroupMaxUsers {
-		maxUsers := map[string]interface{}{
+		maxUsers := map[string]any{
 			"MaxUsers": model.ChannelGroupMaxUsers - 1,
 		}
 		return &model.CommandResponse{
@@ -110,13 +110,13 @@ func (*groupmsgProvider) DoCommand(a *app.App, c *request.Context, args *model.C
 	var channelErr *model.AppError
 
 	if a.HasPermissionTo(args.UserId, model.PermissionCreateGroupChannel) {
-		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)
+		groupChannel, channelErr = a.CreateGroupChannel(c, targetUsersSlice, args.UserId)
 		if channelErr != nil {
 			mlog.Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
-		groupChannel, channelErr = a.GetGroupChannel(targetUsersSlice)
+		groupChannel, channelErr = a.GetGroupChannel(c, targetUsersSlice)
 		if channelErr != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}

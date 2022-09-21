@@ -16,7 +16,7 @@ const (
 
 type productA struct{}
 
-func newProductA(s *Server, m map[ServiceKey]interface{}) (Product, error) {
+func newProductA(s *Server, m map[ServiceKey]any) (Product, error) {
 	m[testSrvKey1] = nil
 	return &productA{}, nil
 }
@@ -26,7 +26,7 @@ func (p *productA) Stop() error  { return nil }
 
 type productB struct{}
 
-func newProductB(s *Server, m map[ServiceKey]interface{}) (Product, error) {
+func newProductB(s *Server, m map[ServiceKey]any) (Product, error) {
 	m[testSrvKey2] = nil
 	return &productB{}, nil
 }
@@ -36,7 +36,7 @@ func (p *productB) Stop() error  { return nil }
 
 func TestInitializeProducts(t *testing.T) {
 	t.Run("2 products and no circular dependency", func(t *testing.T) {
-		serviceMap := map[ServiceKey]interface{}{
+		serviceMap := map[ServiceKey]any{
 			ConfigKey:    nil,
 			LicenseKey:   nil,
 			FilestoreKey: nil,
@@ -73,7 +73,7 @@ func TestInitializeProducts(t *testing.T) {
 	})
 
 	t.Run("2 products and circular dependency", func(t *testing.T) {
-		serviceMap := map[ServiceKey]interface{}{
+		serviceMap := map[ServiceKey]any{
 			ConfigKey:    nil,
 			LicenseKey:   nil,
 			FilestoreKey: nil,
@@ -110,7 +110,7 @@ func TestInitializeProducts(t *testing.T) {
 	})
 
 	t.Run("2 products and one w/o any dependency", func(t *testing.T) {
-		serviceMap := map[ServiceKey]interface{}{
+		serviceMap := map[ServiceKey]any{
 			ConfigKey:    nil,
 			LicenseKey:   nil,
 			FilestoreKey: nil,

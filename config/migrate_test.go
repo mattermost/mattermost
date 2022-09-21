@@ -4,7 +4,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -39,7 +38,7 @@ func TestMigrate(t *testing.T) {
 		os.Clearenv()
 		t.Helper()
 
-		tempDir, err := ioutil.TempDir("", "TestMigrate")
+		tempDir, err := os.MkdirTemp("", "TestMigrate")
 		require.NoError(t, err)
 		t.Cleanup(func() {
 			os.RemoveAll(tempDir)

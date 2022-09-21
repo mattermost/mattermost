@@ -332,10 +332,10 @@ func validateUserTeamsImportData(data *[]UserTeamImportData) *model.AppError {
 			}
 		}
 
-		if tdata.Theme != nil && 0 < len(strings.Trim(*tdata.Theme, " \t\r")) {
+		if tdata.Theme != nil && strings.Trim(*tdata.Theme, " \t\r") != "" {
 			var unused map[string]string
 			if err := json.NewDecoder(strings.NewReader(*tdata.Theme)).Decode(&unused); err != nil {
-				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_team_theme.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -492,7 +492,7 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]interface{}{"Username": favoriter}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]any{"Username": favoriter}, "", http.StatusBadRequest)
 			}
 		}
 	}
@@ -539,7 +539,7 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 				}
 			}
 			if !found {
-				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]interface{}{"Username": flagger}, "", http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]any{"Username": flagger}, "", http.StatusBadRequest)
 			}
 		}
 	}

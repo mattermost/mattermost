@@ -365,7 +365,7 @@ type ServiceSettings struct {
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts,write_restrictable,cloud_restrictable"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
@@ -1401,29 +1401,30 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments      *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
-	EnableMobileUpload         *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
-	EnableMobileDownload       *bool   `access:"site_file_sharing_and_downloads,cloud_restrictable"`
-	MaxFileSize                *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageResolution         *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxImageDecoderConcurrency *int64  `access:"environment_file_storage,cloud_restrictable"`
-	DriverName                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	Directory                  *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	EnablePublicLink           *bool   `access:"site_public_links,cloud_restrictable"`
-	ExtractContent             *bool   `access:"environment_file_storage,write_restrictable"`
-	ArchiveRecursion           *bool   `access:"environment_file_storage,write_restrictable"`
-	PublicLinkSalt             *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
-	InitialFont                *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
-	AmazonS3AccessKeyId        *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SecretAccessKey    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Bucket             *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3PathPrefix         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Region             *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3Endpoint           *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	AmazonS3SSL                *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SignV2             *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3SSE                *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	AmazonS3Trace              *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	EnableFileAttachments              *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
+	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
+	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
+	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
+	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
+	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
+	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
+	AmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1527,6 +1528,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
 	}
+
+	if s.AmazonS3RequestTimeoutMilliseconds == nil {
+		s.AmazonS3RequestTimeoutMilliseconds = NewInt64(30000)
+	}
 }
 
 func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool, skipVerify bool) filestore.FileBackendSettings {
@@ -1537,18 +1542,19 @@ func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool, skipV
 		}
 	}
 	return filestore.FileBackendSettings{
-		DriverName:              *s.DriverName,
-		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
-		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
-		AmazonS3Bucket:          *s.AmazonS3Bucket,
-		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
-		AmazonS3Region:          *s.AmazonS3Region,
-		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
-		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
-		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
-		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
-		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
-		SkipVerify:              skipVerify,
+		DriverName:                         *s.DriverName,
+		AmazonS3AccessKeyId:                *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey:            *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:                     *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:                 *s.AmazonS3PathPrefix,
+		AmazonS3Region:                     *s.AmazonS3Region,
+		AmazonS3Endpoint:                   *s.AmazonS3Endpoint,
+		AmazonS3SSL:                        s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:                     s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:                        s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:                      s.AmazonS3Trace != nil && *s.AmazonS3Trace,
+		AmazonS3RequestTimeoutMilliseconds: *s.AmazonS3RequestTimeoutMilliseconds,
+		SkipVerify:                         skipVerify,
 	}
 }
 
@@ -1787,7 +1793,7 @@ type SupportSettings struct {
 	TermsOfServiceLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	PrivacyPolicyLink                      *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	AboutLink                              *string `access:"site_customization,write_restrictable,cloud_restrictable"`
-	HelpLink                               *string `access:"site_customization,write_restrictable,cloud_restrictable"`
+	HelpLink                               *string `access:"site_customization"`
 	ReportAProblemLink                     *string `access:"site_customization,write_restrictable,cloud_restrictable"`
 	SupportEmail                           *string `access:"site_notifications"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance_custom_terms_of_service"`
@@ -2736,21 +2742,21 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins,write_restrictable"`
-	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	AllowInsecureDownloadURL    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
-	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
-	Plugins                     map[string]map[string]interface{} `access:"plugins"`                                       // telemetry: none
-	PluginStates                map[string]*PluginState           `access:"plugins"`                                       // telemetry: none
-	EnableMarketplace           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	MarketplaceURL              *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
-	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable,cloud_restrictable"`
-	ChimeraOAuthProxyURL        *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
+	Enable                      *bool                     `access:"plugins,write_restrictable"`
+	EnableUploads               *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	AllowInsecureDownloadURL    *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	EnableHealthCheck           *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	Directory                   *string                   `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	ClientDirectory             *string                   `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	Plugins                     map[string]map[string]any `access:"plugins"`                                       // telemetry: none
+	PluginStates                map[string]*PluginState   `access:"plugins"`                                       // telemetry: none
+	EnableMarketplace           *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	EnableRemoteMarketplace     *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	AutomaticPrepackagedPlugins *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	RequirePluginSignature      *bool                     `access:"plugins,write_restrictable,cloud_restrictable"`
+	MarketplaceURL              *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
+	SignaturePublicKeyFiles     []string                  `access:"plugins,write_restrictable,cloud_restrictable"`
+	ChimeraOAuthProxyURL        *string                   `access:"plugins,write_restrictable,cloud_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2779,7 +2785,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 
 	if s.Plugins == nil {
-		s.Plugins = make(map[string]map[string]interface{})
+		s.Plugins = make(map[string]map[string]any)
 	}
 
 	if s.PluginStates == nil {
@@ -3072,19 +3078,20 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // environment with ExperimentalSettings.RestrictedSystemAdmin set to true.
 //
 // Example:
-//  type HairSettings struct {
-//      // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
-//      // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
-//      // PermissionManageSystem grants read and write access.
-//      Colour string `access:"reporting,user_management_groups"`
 //
-//      // Length is only readable and writable via PermissionManageSystem.
-//      Length string
+//	type HairSettings struct {
+//	    // Colour is writeable with either PermissionSysconsoleWriteReporting or PermissionSysconsoleWriteUserManagementGroups.
+//	    // It is readable by PermissionSysconsoleReadReporting and PermissionSysconsoleReadUserManagementGroups permissions.
+//	    // PermissionManageSystem grants read and write access.
+//	    Colour string `access:"reporting,user_management_groups"`
 //
-//      // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
-//      // PermissionManageSystem can always read the value.
-//      Product bool `access:write_restrictable`
-//  }
+//	    // Length is only readable and writable via PermissionManageSystem.
+//	    Length string
+//
+//	    // Product is only writeable by PermissionManageSystem if ExperimentalSettings.RestrictSystemAdmin is false.
+//	    // PermissionManageSystem can always read the value.
+//	    Product bool `access:write_restrictable`
+//	}
 type Config struct {
 	ServiceSettings           ServiceSettings
 	TeamSettings              TeamSettings
@@ -3129,6 +3136,12 @@ type Config struct {
 	ExportSettings            ExportSettings
 }
 
+func (o *Config) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		// TODO
+	}
+}
+
 func (o *Config) Clone() *Config {
 	buf, err := json.Marshal(o)
 	if err != nil {
@@ -3145,7 +3158,7 @@ func (o *Config) Clone() *Config {
 func (o *Config) ToJSONFiltered(tagType, tagValue string) ([]byte, error) {
 	filteredConfigMap := structToMapFilteredByTag(*o, tagType, tagValue)
 	for key, value := range filteredConfigMap {
-		v, ok := value.(map[string]interface{})
+		v, ok := value.(map[string]any)
 		if ok && len(v) == 0 {
 			delete(filteredConfigMap, key)
 		}
@@ -3250,72 +3263,72 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := o.TeamSettings.isValid(); err != nil {
-		return err
+	if appErr := o.TeamSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SqlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SqlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.FileSettings.isValid(); err != nil {
-		return err
+	if appErr := o.FileSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.EmailSettings.isValid(); err != nil {
-		return err
+	if appErr := o.EmailSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LdapSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LdapSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.SamlSettings.isValid(); err != nil {
-		return err
+	if appErr := o.SamlSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
-		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]interface{}{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
-	if err := o.RateLimitSettings.isValid(); err != nil {
-		return err
+	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ServiceSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ServiceSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ElasticsearchSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ElasticsearchSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.BleveSettings.isValid(); err != nil {
-		return err
+	if appErr := o.BleveSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DataRetentionSettings.isValid(); err != nil {
-		return err
+	if appErr := o.DataRetentionSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.LocalizationSettings.isValid(); err != nil {
-		return err
+	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.MessageExportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.MessageExportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.DisplaySettings.isValid(); err != nil {
-		return err
+	if appErr := o.DisplaySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImageProxySettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImageProxySettings.isValid(); appErr != nil {
+		return appErr
 	}
 
-	if err := o.ImportSettings.isValid(); err != nil {
-		return err
+	if appErr := o.ImportSettings.isValid(); appErr != nil {
+		return appErr
 	}
 	return nil
 }
@@ -3342,7 +3355,7 @@ func (s *TeamSettings) isValid() *AppError {
 	}
 
 	if len(*s.SiteName) > SitenameMaxLength {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]any{"MaxLength": SitenameMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -3402,7 +3415,11 @@ func (s *FileSettings) isValid() *AppError {
 	}
 
 	if *s.MaxImageDecoderConcurrency < -1 || *s.MaxImageDecoderConcurrency == 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.image_decoder_concurrency.app_error", map[string]interface{}{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.image_decoder_concurrency.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
+	}
+
+	if *s.AmazonS3RequestTimeoutMilliseconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.amazons3_timeout.app_error", map[string]any{"Value": *s.MaxImageDecoderConcurrency}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -3484,19 +3501,19 @@ func (s *LdapSettings) isValid() *AppError {
 
 		if *s.UserFilter != "" {
 			if _, err := ldap.CompileFilter(*s.UserFilter); err != nil {
-				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 
 		if *s.GuestFilter != "" {
 			if _, err := ldap.CompileFilter(*s.GuestFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 
 		if *s.AdminFilter != "" {
 			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -3605,7 +3622,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	if len(s.TLSOverwriteCiphers) > 0 {
 		for _, cipher := range s.TLSOverwriteCiphers {
 			if _, ok := ServerTLSSupportedCiphers[cipher]; !ok {
-				return NewAppError("Config.IsValid", "model.config.is_valid.tls_overwrite_cipher.app_error", map[string]interface{}{"name": cipher}, "", http.StatusBadRequest)
+				return NewAppError("Config.IsValid", "model.config.is_valid.tls_overwrite_cipher.app_error", map[string]any{"name": cipher}, "", http.StatusBadRequest)
 			}
 		}
 	}
@@ -3628,13 +3645,13 @@ func (s *ServiceSettings) isValid() *AppError {
 
 	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
 	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -3690,7 +3707,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	}
 
 	if _, err := time.Parse("15:04", *s.PostsAggregatorJobStartTime); err != nil {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if *s.LiveIndexingBatchSize < 1 {
@@ -3699,7 +3716,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	minBatchSize := 1
 	if *s.BatchSize < minBatchSize {
-		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error", map[string]any{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	if *s.RequestTimeoutSeconds < 1 {
@@ -3724,7 +3741,7 @@ func (bs *BleveSettings) isValid() *AppError {
 	}
 	minBatchSize := 1
 	if *bs.BatchSize < minBatchSize {
-		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]interface{}{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error", map[string]any{"BatchSize": minBatchSize}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -3740,7 +3757,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
-		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	return nil
@@ -3766,7 +3783,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 		} else if s.DailyRunTime == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
 		} else if _, err := time.Parse("15:04", *s.DailyRunTime); err != nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		} else if s.BatchSize == nil || *s.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
 		} else if s.ExportFormat == nil || (*s.ExportFormat != ComplianceExportTypeActiance && *s.ExportFormat != ComplianceExportTypeGlobalrelay && *s.ExportFormat != ComplianceExportTypeCsv) {
@@ -3801,7 +3818,7 @@ func (s *DisplaySettings) isValid() *AppError {
 				return NewAppError(
 					"Config.IsValid",
 					"model.config.is_valid.display.custom_url_schemes.app_error",
-					map[string]interface{}{"Scheme": scheme},
+					map[string]any{"Scheme": scheme},
 					"",
 					http.StatusBadRequest,
 				)
@@ -3911,7 +3928,7 @@ func (o *Config) Sanitize() {
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
-func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
+func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any {
 	defer func() {
 		if r := recover(); r != nil {
 			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
@@ -3925,7 +3942,7 @@ func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[st
 		return nil
 	}
 
-	out := map[string]interface{}{}
+	out := map[string]any{}
 
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
@@ -3936,7 +3953,7 @@ func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[st
 			continue
 		}
 
-		var value interface{}
+		var value any
 
 		switch field.Kind() {
 		case reflect.Struct:

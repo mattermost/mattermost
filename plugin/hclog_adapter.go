@@ -19,7 +19,7 @@ type hclogAdapter struct {
 	extrasKey     string
 }
 
-func (h *hclogAdapter) Log(level hclog.Level, msg string, args ...interface{}) {
+func (h *hclogAdapter) Log(level hclog.Level, msg string, args ...any) {
 	switch level {
 	case hclog.Trace:
 		h.Trace(msg, args...)
@@ -37,7 +37,7 @@ func (h *hclogAdapter) Log(level hclog.Level, msg string, args ...interface{}) {
 	}
 }
 
-func (h *hclogAdapter) Trace(msg string, args ...interface{}) {
+func (h *hclogAdapter) Trace(msg string, args ...any) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
@@ -46,7 +46,7 @@ func (h *hclogAdapter) Trace(msg string, args ...interface{}) {
 	}
 }
 
-func (h *hclogAdapter) Debug(msg string, args ...interface{}) {
+func (h *hclogAdapter) Debug(msg string, args ...any) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Debug(msg, mlog.String(h.extrasKey, extras))
@@ -55,7 +55,7 @@ func (h *hclogAdapter) Debug(msg string, args ...interface{}) {
 	}
 }
 
-func (h *hclogAdapter) Info(msg string, args ...interface{}) {
+func (h *hclogAdapter) Info(msg string, args ...any) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Info(msg, mlog.String(h.extrasKey, extras))
@@ -64,7 +64,7 @@ func (h *hclogAdapter) Info(msg string, args ...interface{}) {
 	}
 }
 
-func (h *hclogAdapter) Warn(msg string, args ...interface{}) {
+func (h *hclogAdapter) Warn(msg string, args ...any) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Warn(msg, mlog.String(h.extrasKey, extras))
@@ -73,7 +73,7 @@ func (h *hclogAdapter) Warn(msg string, args ...interface{}) {
 	}
 }
 
-func (h *hclogAdapter) Error(msg string, args ...interface{}) {
+func (h *hclogAdapter) Error(msg string, args ...any) {
 	extras := strings.TrimSpace(fmt.Sprint(args...))
 	if extras != "" {
 		h.wrappedLogger.Error(msg, mlog.String(h.extrasKey, extras))
@@ -102,7 +102,7 @@ func (h *hclogAdapter) IsError() bool {
 	return true
 }
 
-func (h *hclogAdapter) With(args ...interface{}) hclog.Logger {
+func (h *hclogAdapter) With(args ...any) hclog.Logger {
 	return h
 }
 
@@ -124,8 +124,8 @@ func (h *hclogAdapter) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writ
 
 func (h *hclogAdapter) SetLevel(hclog.Level) {}
 
-func (h *hclogAdapter) ImpliedArgs() []interface{} {
-	return []interface{}{}
+func (h *hclogAdapter) ImpliedArgs() []any {
+	return []any{}
 }
 
 func (h *hclogAdapter) Name() string {

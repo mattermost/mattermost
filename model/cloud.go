@@ -3,7 +3,11 @@
 
 package model
 
-import "strings"
+import (
+	"os"
+	"strconv"
+	"strings"
+)
 
 const (
 	EventTypeFailedPayment                = "failed-payment"
@@ -11,8 +15,6 @@ const (
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
-	EventTypeTrialWillEnd                 = "trial-will-end"
-	EventTypeTrialEnded                   = "trial-ended"
 )
 
 var MockCWS string
@@ -39,6 +41,9 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
+const defaultCloudNotifyAdminCoolOffDays = 30
+const CloudNotifyAdminInfo = "cloud_notify_admin_info"
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID                string             `json:"id"`
@@ -51,6 +56,13 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
+}
+
+type UserFacingProduct struct {
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	SKU          string  `json:"sku"`
+	PricePerSeat float64 `json:"price_per_seat"`
 }
 
 // AddOn represents an addon to a product.
@@ -93,6 +105,10 @@ type ValidateBusinessEmailRequest struct {
 	Email string `json:"email"`
 }
 
+type ValidateBusinessEmailResponse struct {
+	IsValid bool `json:"is_valid"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name             string `json:"name"`
@@ -124,20 +140,21 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID          string   `json:"id"`
-	CustomerID  string   `json:"customer_id"`
-	ProductID   string   `json:"product_id"`
-	AddOns      []string `json:"add_ons"`
-	StartAt     int64    `json:"start_at"`
-	EndAt       int64    `json:"end_at"`
-	CreateAt    int64    `json:"create_at"`
-	Seats       int      `json:"seats"`
-	Status      string   `json:"status"`
-	DNS         string   `json:"dns"`
-	IsPaidTier  string   `json:"is_paid_tier"`
-	LastInvoice *Invoice `json:"last_invoice"`
-	IsFreeTrial string   `json:"is_free_trial"`
-	TrialEndAt  int64    `json:"trial_end_at"`
+	ID              string   `json:"id"`
+	CustomerID      string   `json:"customer_id"`
+	ProductID       string   `json:"product_id"`
+	AddOns          []string `json:"add_ons"`
+	StartAt         int64    `json:"start_at"`
+	EndAt           int64    `json:"end_at"`
+	CreateAt        int64    `json:"create_at"`
+	Seats           int      `json:"seats"`
+	Status          string   `json:"status"`
+	DNS             string   `json:"dns"`
+	IsPaidTier      string   `json:"is_paid_tier"`
+	LastInvoice     *Invoice `json:"last_invoice"`
+	IsFreeTrial     string   `json:"is_free_trial"`
+	TrialEndAt      int64    `json:"trial_end_at"`
+	DelinquentSince *int64   `json:"delinquent_since"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -163,13 +180,13 @@ type Invoice struct {
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 type InvoiceLineItem struct {
-	PriceID      string                 `json:"price_id"`
-	Total        int64                  `json:"total"`
-	Quantity     float64                `json:"quantity"`
-	PricePerUnit int64                  `json:"price_per_unit"`
-	Description  string                 `json:"description"`
-	Type         string                 `json:"type"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	PriceID      string         `json:"price_id"`
+	Total        int64          `json:"total"`
+	Quantity     float64        `json:"quantity"`
+	PricePerUnit int64          `json:"price_per_unit"`
+	Description  string         `json:"description"`
+	Type         string         `json:"type"`
+	Metadata     map[string]any `json:"metadata"`
 }
 
 type CWSWebhookPayload struct {
@@ -222,4 +239,24 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
+}
+
+type NotifyAdminToUpgradeRequest struct {
+	CurrentTeamId string `json:"current_team_id"`
+}
+
+type AdminNotificationUserInfo struct {
+	LastUserIDToNotify        string
+	LastNotificationTimestamp int64
+}
+
+func CanNotify(lastNotificationTimestamp int64) bool {
+	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
+	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
+	if parseError != nil {
+		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
+	}
+	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
+	timeDiff := GetMillis() - lastNotificationTimestamp
+	return timeDiff >= int64(daysToMillis)
 }

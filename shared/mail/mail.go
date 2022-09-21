@@ -52,10 +52,12 @@ type mailData struct {
 	htmlBody      string
 	embeddedFiles map[string]io.Reader
 	mimeHeaders   map[string]string
+	messageID     string
+	inReplyTo     string
+	references    string
 }
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
-//
 type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error
@@ -230,7 +232,7 @@ func TestConnection(config *SMTPConfig) error {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string) error {
 	fromMail := mail.Address{Name: config.FeedbackName, Address: config.FeedbackEmail}
 	replyTo := mail.Address{Name: config.FeedbackName, Address: config.ReplyToAddress}
 
@@ -243,13 +245,16 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		subject:       subject,
 		htmlBody:      htmlBody,
 		embeddedFiles: embeddedFiles,
+		messageID:     messageID,
+		inReplyTo:     inReplyTo,
+		references:    references,
 	}
 
 	return sendMailUsingConfigAdvanced(mail, config)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
+func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, messageID string, inReplyTo string, references string, ccMail string) error {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, messageID, inReplyTo, references, ccMail)
 }
 
 // allows for sending an email with differing MIME/SMTP recipients
@@ -306,6 +311,18 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 
 	if mail.cc != "" {
 		headers["CC"] = []string{mail.cc}
+	}
+
+	if mail.messageID != "" {
+		headers["Message-ID"] = []string{mail.messageID}
+	}
+
+	if mail.inReplyTo != "" {
+		headers["In-Reply-To"] = []string{mail.inReplyTo}
+	}
+
+	if mail.references != "" {
+		headers["References"] = []string{mail.references}
 	}
 
 	for k, v := range mail.mimeHeaders {

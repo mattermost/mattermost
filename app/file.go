@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/docextractor"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -47,6 +47,18 @@ const (
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
 
+// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
+var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
+
+// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
+type fileInfoWrapper struct {
+	srv *Server
+}
+
+func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return f.srv.getFileInfo(fileID)
+}
+
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore
 }
@@ -55,7 +67,7 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 	fileBackendSettings := settings.ToFileBackendSettings(false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return nil
 }
@@ -63,11 +75,11 @@ func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppErr
 func connectionTestErrorToAppError(connTestErr error) *model.AppError {
 	switch err := connTestErr.(type) {
 	case *filestore.S3FileBackendAuthError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	case *filestore.S3FileBackendNoBucketError:
-		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestConnection", "api.file.test_connection_s3_bucket_does_not_exist.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	default:
-		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, connTestErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, "", http.StatusInternalServerError).Wrap(connTestErr)
 	}
 }
 
@@ -84,7 +96,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
-		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	nErr := backend.TestConnection()
 	if nErr != nil {
@@ -100,7 +112,7 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 func (s *Server) fileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
 	result, nErr := s.FileBackend().Reader(path)
 	if nErr != nil {
-		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
@@ -117,7 +129,7 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 func (s *Server) fileExists(path string) (bool, *model.AppError) {
 	result, nErr := s.FileBackend().FileExists(path)
 	if nErr != nil {
-		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
@@ -125,7 +137,7 @@ func (s *Server) fileExists(path string) (bool, *model.AppError) {
 func (a *App) FileSize(path string) (int64, *model.AppError) {
 	size, nErr := a.FileBackend().FileSize(path)
 	if nErr != nil {
-		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return size, nil
 }
@@ -133,7 +145,7 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
 	modTime, nErr := a.FileBackend().FileModTime(path)
 	if nErr != nil {
-		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return modTime, nil
@@ -142,7 +154,7 @@ func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	nErr := a.FileBackend().MoveFile(oldPath, newPath)
 	if nErr != nil {
-		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return nil
 }
@@ -154,7 +166,7 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 	result, nErr := s.FileBackend().WriteFile(fr, path)
 	if nErr != nil {
-		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
@@ -162,7 +174,7 @@ func (s *Server) writeFile(fr io.Reader, path string) (int64, *model.AppError) {
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 	result, nErr := a.FileBackend().AppendFile(fr, path)
 	if nErr != nil {
-		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
@@ -174,7 +186,7 @@ func (a *App) RemoveFile(path string) *model.AppError {
 func (s *Server) removeFile(path string) *model.AppError {
 	nErr := s.FileBackend().RemoveFile(path)
 	if nErr != nil {
-		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return nil
 }
@@ -199,7 +211,7 @@ func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.Ap
 	}
 
 	if nErr != nil {
-		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return paths, nil
@@ -208,7 +220,7 @@ func (s *Server) listDirectory(path string, recursion bool) ([]string, *model.Ap
 func (a *App) RemoveDirectory(path string) *model.AppError {
 	nErr := a.FileBackend().RemoveDirectory(path)
 	if nErr != nil {
-		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return nil
@@ -440,82 +452,12 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(c *request.Context, teamID string, channelID string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	files := make([]io.ReadCloser, len(fileHeaders))
-	filenames := make([]string, len(fileHeaders))
-
-	for i, fileHeader := range fileHeaders {
-		file, fileErr := fileHeader.Open()
-		if fileErr != nil {
-			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.read_request.app_error",
-				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
-		}
-
-		// Will be closed after UploadFiles returns
-		defer file.Close()
-
-		files[i] = file
-		filenames[i] = fileHeader.Filename
-	}
-
-	return a.UploadFiles(c, teamID, channelID, userID, files, filenames, clientIds, now)
-}
-
-// Uploads some files to the given team and channel as the given user. files and filenames should have
-// the same length. clientIds should either not be provided or have the same length as files and filenames.
-// The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(c *request.Context, teamID string, channelID string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	if len(filenames) != len(files) || (len(clientIds) > 0 && len(clientIds) != len(files)) {
-		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.incorrect_number_of_files.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	resStruct := &model.FileUploadResponse{
-		FileInfos: []*model.FileInfo{},
-		ClientIds: []string{},
-	}
-
-	previewPathList := []string{}
-	thumbnailPathList := []string{}
-	imageDataList := [][]byte{}
-
-	for i, file := range files {
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, file)
-		data := buf.Bytes()
-
-		info, data, err := a.DoUploadFileExpectModification(c, now, teamID, channelID, userID, filenames[i], data)
-		if err != nil {
-			return nil, err
-		}
-
-		if info.PreviewPath != "" || info.ThumbnailPath != "" {
-			previewPathList = append(previewPathList, info.PreviewPath)
-			thumbnailPathList = append(thumbnailPathList, info.ThumbnailPath)
-			imageDataList = append(imageDataList, data)
-		}
-
-		resStruct.FileInfos = append(resStruct.FileInfos, info)
-
-		if len(clientIds) > 0 {
-			resStruct.ClientIds = append(resStruct.ClientIds, clientIds[i])
-		}
-	}
-
-	a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
-
-	return resStruct, nil
-}
-
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *App) UploadFile(c *request.Context, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	_, err := a.GetChannel(channelID)
+func (a *App) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	_, err := a.GetChannel(c, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
-			map[string]interface{}{"channelId": channelID}, "", http.StatusBadRequest)
+			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
 	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
@@ -534,7 +476,7 @@ func (a *App) UploadFile(c *request.Context, data []byte, channelID string, file
 	return info, nil
 }
 
-func (a *App) DoUploadFile(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
@@ -734,7 +676,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -890,8 +832,8 @@ func (t UploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interface{}) *model.AppError {
-	params := map[string]interface{}{
+func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *model.AppError {
+	params := map[string]any{
 		"Name":          t.Name,
 		"Filename":      t.Name,
 		"ChannelId":     t.ChannelId,
@@ -911,7 +853,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...interfac
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -940,7 +882,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 
 	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, limitErr.Error(), http.StatusBadRequest)
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, "", http.StatusBadRequest).Wrap(limitErr)
 			return nil, data, err
 		}
 
@@ -984,7 +926,7 @@ func (a *App) DoUploadFileExpectModification(c *request.Context, now time.Time, 
 		case errors.As(err, &appErr):
 			return nil, data, appErr
 		default:
-			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1125,20 +1067,26 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg.Wait()
 }
 
-func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
+func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := s.Store.FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
-
-	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
+}
+
+func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := a.Srv().getFileInfo(fileID)
+	if err == nil {
+		a.generateMiniPreview(fileInfo)
+	}
+	return fileInfo, err
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
@@ -1148,11 +1096,11 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		var ltErr *store.ErrLimitExceeded
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &ltErr):
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1186,9 +1134,9 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -1204,7 +1152,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 			case errors.As(err, &appErr):
 				return nil, appErr
 			default:
-				return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 
@@ -1300,7 +1248,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -1308,6 +1256,11 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+	// We don't process images.
+	if fileInfo.IsImage() {
+		return nil
+	}
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")

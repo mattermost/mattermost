@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -44,7 +44,7 @@ type testTelemetryPayload struct {
 		UserId     string
 		Event      string
 		Timestamp  time.Time
-		Properties map[string]interface{}
+		Properties map[string]any
 	}
 	Context struct {
 		Library struct {
@@ -59,10 +59,10 @@ type testBatch struct {
 	UserId     string
 	Event      string
 	Timestamp  time.Time
-	Properties map[string]interface{}
+	Properties map[string]any
 }
 
-func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]interface{}) {
+func assertPayload(t *testing.T, actual testTelemetryPayload, event string, properties map[string]any) {
 	t.Helper()
 	assert.NotEmpty(t, actual.MessageId)
 	assert.False(t, actual.SentAt.IsZero())
@@ -108,7 +108,7 @@ func makeTelemetryServiceAndReceiver(t *testing.T, cloudLicense bool) (*Telemetr
 
 	pchan := make(chan testTelemetryPayload, 100)
 	receiver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
 
 		var p testTelemetryPayload
@@ -154,8 +154,8 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("Config").Return(cfg)
 	serverIfaceMock.On("IsLeader").Return(true)
 
-	pluginDir, _ := ioutil.TempDir("", "")
-	webappPluginDir, _ := ioutil.TempDir("", "")
+	pluginDir, _ := os.MkdirTemp("", "")
+	webappPluginDir, _ := os.MkdirTemp("", "")
 	cleanUp := func() {
 		os.RemoveAll(pluginDir)
 		os.RemoveAll(webappPluginDir)
@@ -179,6 +179,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user_manager").Return(&model.Role{Permissions: []string{"sum-test1", "sum-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_manager").Return(&model.Role{Permissions: []string{"sm-test1", "sm-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_read_only_admin").Return(&model.Role{Permissions: []string{"sra-test1", "sra-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", context.Background(), "system_custom_group_admin").Return(&model.Role{Permissions: []string{"scga-test1", "scga-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "team_admin").Return(&model.Role{Permissions: []string{"ta-test1", "ta-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "team_user").Return(&model.Role{Permissions: []string{"tu-test1", "tu-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "team_guest").Return(&model.Role{Permissions: []string{"tg-test1", "tg-test2"}}, nil)
@@ -204,6 +205,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemManagerRoleId}}).Return(int64(5), nil)
 	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemUserManagerRoleId}}).Return(int64(10), nil)
 	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemReadOnlyAdminRoleId}}).Return(int64(15), nil)
+	userStore.On("Count", model.UserCountOptions{Roles: []string{model.SystemCustomGroupAdminRoleId}}).Return(int64(15), nil)
 	userStore.On("AnalyticsGetGuestCount").Return(int64(11), nil)
 	userStore.On("AnalyticsActiveCount", mock.Anything, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(5), nil)
 	userStore.On("AnalyticsGetInactiveUsersCount").Return(int64(8), nil)
@@ -352,7 +354,7 @@ func TestEnsureTelemetryID(t *testing.T) {
 
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
-		Plugins: map[string]map[string]interface{}{
+		Plugins: map[string]map[string]any{
 			"test": {
 				"foo": "bar",
 			},
@@ -436,12 +438,12 @@ func TestRudderTelemetry(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		service.SendTelemetry("Testing Telemetry", map[string]interface{}{
+		service.SendTelemetry("Testing Telemetry", map[string]any{
 			"hey": testValue,
 		})
 		select {
 		case result := <-pchan:
-			assertPayload(t, result, "Testing Telemetry", map[string]interface{}{
+			assertPayload(t, result, "Testing Telemetry", map[string]any{
 				"hey": testValue,
 			})
 		case <-time.After(time.Second * 1):
