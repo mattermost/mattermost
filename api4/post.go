@@ -38,6 +38,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+
+	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -922,6 +924,48 @@ func pinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
+}
+
+func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// If there are no configured PermittedWranglerUsers, skip the check
+	userHasRole := false || len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0
+	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
+		if user.IsInRole(role) {
+			userHasRole = true
+			break
+		}
+	}
+
+	if !userHasRole {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+		return
+	}
+
+	userHasEmailDomain := false || len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
+	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
+		if user.EmailDomain() == domain {
+			userHasEmailDomain = true
+			break
+		}
+	}
+
+	if !userHasEmailDomain {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
