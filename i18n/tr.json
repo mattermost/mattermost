@@ -9529,5 +9529,13 @@
   {
     "id": "app.cloud.get_current_plan_name.app_error",
     "translation": "Geçerli tarifenin adı alınamadı"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML, herkese açık kimlik hizmeti sağlayıcı sertifikasını yükleyemedi. Lütfen sistem yöneticinizle görüşün."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Kullanıcının nişan sayısını alamadık."
   }
 ]
