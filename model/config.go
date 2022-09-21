@@ -120,7 +120,8 @@ const (
 
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
-	FileSettingsDefaultDirectory = "./data/"
+	FileSettingsDefaultDirectory   = "./data/"
+	FileSettingsDefaultMaxFileSize = 100 * 1024 * 1024
 
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
@@ -1420,6 +1421,7 @@ type FileSettings struct {
 	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
 	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
 	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxVoiceMessagesFileSize           *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
@@ -1456,7 +1458,11 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(100 * 1024 * 1024) // 100MB (IEC)
+		s.MaxFileSize = NewInt64(FileSettingsDefaultMaxFileSize) // 100MB (IEC)
+	}
+
+	if s.MaxVoiceMessagesFileSize == nil {
+		s.MaxVoiceMessagesFileSize = NewInt64(*s.MaxFileSize)
 	}
 
 	if s.MaxImageResolution == nil {
@@ -3415,6 +3421,14 @@ func (s *SqlSettings) isValid() *AppError {
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxVoiceMessagesFileSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxVoiceMessagesFileSize > *s.MaxFileSize {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size_too_big.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
