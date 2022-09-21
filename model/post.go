@@ -157,6 +157,10 @@ type PostReminder struct {
 	UserId string `json:",omitempty"`
 }
 
+type MoveThreadParams struct {
+	ChannelId string `json:"channel_id"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
