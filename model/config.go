@@ -2887,6 +2887,43 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 }
 
+type WranglerSettings struct {
+	PermittedWranglerUsers                   []string
+	AllowedEmailDomain                       []string
+	MoveThreadMaxCount                       int64
+	MoveThreadToAnotherTeamEnable            bool
+	MoveThreadFromPrivateChannelEnable       bool
+	MoveThreadFromDirectMessageChannelEnable bool
+	MoveThreadFromGroupMessageChannelEnable  bool
+}
+
+func (w *WranglerSettings) SetDefaults() {
+	if w.PermittedWranglerUsers == nil {
+		permittedWranglerUsers := []string{}
+		w.PermittedWranglerUsers = permittedWranglerUsers
+	}
+	if w.AllowedEmailDomain == nil {
+		allowedEmailDomains := []string{}
+		w.AllowedEmailDomain = allowedEmailDomains
+	}
+	w.MoveThreadMaxCount = 100
+	w.MoveThreadToAnotherTeamEnable = true
+	w.MoveThreadFromPrivateChannelEnable = true
+	w.MoveThreadFromDirectMessageChannelEnable = true
+	w.MoveThreadFromGroupMessageChannelEnable = true
+}
+
+func (w *WranglerSettings) IsValid() *AppError {
+	validDomainRegex := regexp.MustCompile(`^(((?!\-))(xn\-\-)?[a-z0-9\-_]{0,61}[a-z0-9]{1,1}\.)*(xn\-\-)?([a-z0-9\-]{1,61}|[a-z0-9\-]{1,30})\.[a-z]{2,}$`)
+	for _, domain := range w.AllowedEmailDomain {
+		if !validDomainRegex.MatchString(domain) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.wrangler_settings.domain_invalid.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type MessageExportSettings struct {
 	EnableExport          *bool   `access:"compliance_compliance_export"`
 	ExportFormat          *string `access:"compliance_compliance_export"`
@@ -3144,6 +3181,7 @@ type Config struct {
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
+	WranglerSettings          WranglerSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3258,6 +3296,7 @@ func (o *Config) SetDefaults() {
 	}
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
+	o.WranglerSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3338,6 +3377,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ImportSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 	return nil
