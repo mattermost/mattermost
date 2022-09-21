@@ -38,6 +38,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+
+	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -922,6 +924,15 @@ func pinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
+}
+
+func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
