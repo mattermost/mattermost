@@ -16,7 +16,8 @@ type Broker interface {
 }
 
 type Register interface {
-	Register(topic, description string, data any) error
+	Register(topic, description string, typ any) error
+	EventTypes() ([]eventbus.EventType, error)
 }
 
 type Publisher interface {
@@ -24,6 +25,6 @@ type Publisher interface {
 }
 
 type Subscriber interface {
-	Subscribe(topic string, handler eventbus.Handler) error
-	Unsubscribe(topic string) error
+	Subscribe(topic string, handler eventbus.Handler) (string, error)
+	Unsubscribe(topic, id string) error
 }

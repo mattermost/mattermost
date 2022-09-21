@@ -15,6 +15,12 @@ type Event struct {
 
 type Handler func(ev Event) error
 
+type EventType struct {
+	Topic       string `json:"topic"`
+	Description string `json:"description"`
+	Schema      string `json:"schema,omitempty"`
+}
+
 type BrokerService struct {
 	QueueLimit     int
 	GoroutineLimit int
@@ -27,16 +33,20 @@ func NewBroker(queueLimit, goroutineLimit int) *BrokerService {
 	}
 }
 
-func (b *BrokerService) Register(topic, description string, data any) error {
+func (b *BrokerService) Register(topic, description string, typ any) error {
 	return nil
 }
+func (b *BrokerService) EventTypes() ([]EventType, error) {
+	return nil, nil
+}
+
 func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 	return nil
 }
-func (b *BrokerService) Subscribe(topic string, handler Handler) error {
-	return nil
+func (b *BrokerService) Subscribe(topic string, handler Handler) (string, error) {
+	return "", nil
 }
-func (b *BrokerService) Unsubscribe(topic string) error {
+func (b *BrokerService) Unsubscribe(topic, id string) error {
 	return nil
 }
 func (b *BrokerService) Start() error {
