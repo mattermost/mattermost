@@ -4,7 +4,10 @@
 package web
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -73,7 +76,22 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
 	staticDir, _ := fileutils.FindDir(model.ClientDir)
-	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
+	contents, err := os.ReadFile(filepath.Join(staticDir, "root.html"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	siteName := c.App.Srv().Config().TeamSettings.SiteName
+	if siteName != nil && model.TeamSettingsDefaultSiteName != *siteName {
+		titleTemplate := "<title>%s</title>"
+		siteNameTitle := fmt.Sprintf(titleTemplate, *siteName)
+		defaultSiteName := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
+		contents = bytes.ReplaceAll(contents, []byte(defaultSiteName), []byte(siteNameTitle))
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(contents)
 }
 
 func staticFilesHandler(handler http.Handler) http.Handler {
