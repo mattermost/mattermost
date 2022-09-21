@@ -2899,8 +2899,8 @@ type WranglerSettings struct {
 
 func (w *WranglerSettings) SetDefaults() {
 	if w.PermittedWranglerUsers == nil {
-		permittedWranglerUsers := []string{}
-		w.PermittedWranglerUsers = permittedWranglerUsers
+
+		w.PermittedWranglerUsers = w.PermittedWranglerUsers = make([]string, 0)
 	}
 	if w.AllowedEmailDomain == nil {
 		allowedEmailDomains := []string{}
