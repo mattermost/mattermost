@@ -1226,3 +1226,15 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
 }
+
+func (api *PluginAPI) RegisterEvent(topic string, schema any) error {
+	//return api.app.eventbus.Register(topic, schema)
+}
+
+func (api *PluginAPI) SubscribeToEvent(topic string, handler func(*model.Event)) error {
+	//return api.app.eventbus.Subscribe(topic, handler)
+}
+
+func (api *PluginAPI) PublishEvent(topic string, data any) error {
+	//return api.app.eventbus.Publish(topic, api.ctx, data)
+}

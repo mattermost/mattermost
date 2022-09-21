@@ -2881,6 +2881,20 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
+// PublishEvent provides a mock function with given fields: topic, data
+func (_m *API) PublishEvent(topic string, data interface{}) error {
+	ret := _m.Called(topic, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(topic, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublishPluginClusterEvent provides a mock function with given fields: ev, opts
 func (_m *API) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
 	ret := _m.Called(ev, opts)
@@ -2948,6 +2962,20 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.Command) error); ok {
 		r0 = rf(command)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterEvent provides a mock function with given fields: topic, schema
+func (_m *API) RegisterEvent(topic string, schema interface{}) error {
+	ret := _m.Called(topic, schema)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(topic, schema)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3325,6 +3353,20 @@ func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Statu
 	}
 
 	return r0, r1
+}
+
+// SubscribeToEvent provides a mock function with given fields: topic, handler
+func (_m *API) SubscribeToEvent(topic string, handler func(*model.Event)) error {
+	ret := _m.Called(topic, handler)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, func(*model.Event)) error); ok {
+		r0 = rf(topic, handler)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UnregisterCommand provides a mock function with given fields: teamID, trigger

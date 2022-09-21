@@ -5708,3 +5708,93 @@ func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_Ensur
 	}
 	return nil
 }
+
+type Z_RegisterEventArgs struct {
+	A string
+	B any
+}
+
+type Z_RegisterEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterEvent(topic string, schema any) error {
+	_args := &Z_RegisterEventArgs{topic, schema}
+	_returns := &Z_RegisterEventReturns{}
+	if err := g.client.Call("Plugin.RegisterEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterEvent(args *Z_RegisterEventArgs, returns *Z_RegisterEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterEvent(topic string, schema any) error
+	}); ok {
+		returns.A = hook.RegisterEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SubscribeToEventArgs struct {
+	A string
+	B func(*model.Event)
+}
+
+type Z_SubscribeToEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) SubscribeToEvent(topic string, handler func(*model.Event)) error {
+	_args := &Z_SubscribeToEventArgs{topic, handler}
+	_returns := &Z_SubscribeToEventReturns{}
+	if err := g.client.Call("Plugin.SubscribeToEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to SubscribeToEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SubscribeToEvent(args *Z_SubscribeToEventArgs, returns *Z_SubscribeToEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		SubscribeToEvent(topic string, handler func(*model.Event)) error
+	}); ok {
+		returns.A = hook.SubscribeToEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API SubscribeToEvent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishEventArgs struct {
+	A string
+	B any
+}
+
+type Z_PublishEventReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) PublishEvent(topic string, data any) error {
+	_args := &Z_PublishEventArgs{topic, data}
+	_returns := &Z_PublishEventReturns{}
+	if err := g.client.Call("Plugin.PublishEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishEvent API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishEvent(args *Z_PublishEventArgs, returns *Z_PublishEventReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishEvent(topic string, data any) error
+	}); ok {
+		returns.A = hook.PublishEvent(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API PublishEvent called but not implemented."))
+	}
+	return nil
+}

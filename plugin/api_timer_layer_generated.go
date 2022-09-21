@@ -1239,3 +1239,24 @@ func (api *apiTimerLayer) EnsureBotUser(bot *model.Bot) (string, error) {
 	api.recordTime(startTime, "EnsureBotUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) RegisterEvent(topic string, schema any) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEvent(topic, schema)
+	api.recordTime(startTime, "RegisterEvent", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) SubscribeToEvent(topic string, handler func(*model.Event)) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.SubscribeToEvent(topic, handler)
+	api.recordTime(startTime, "SubscribeToEvent", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) PublishEvent(topic string, data any) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PublishEvent(topic, data)
+	api.recordTime(startTime, "PublishEvent", _returnsA == nil)
+	return _returnsA
+}
