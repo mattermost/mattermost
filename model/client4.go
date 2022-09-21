@@ -4116,7 +4116,7 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 func (c *Client4) MoveThread(postId string, params *MoveThreadParams) (*Response, error) {
 	js, err := json.Marshal(params)
 	if err != nil {
-		return nil, nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	r, err := c.DoAPIPost(c.postRoute(postId)+"/move", string(js))
