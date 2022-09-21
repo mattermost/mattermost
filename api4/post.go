@@ -927,7 +927,7 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 }
 
 func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
-	c.RequirePostId().RequireChannelId()
+	c.RequirePostId()
 	if c.Err != nil {
 		return
 	}
