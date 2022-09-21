@@ -5,7 +5,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'Bio'
     ),
-    'ALTER TABLE Users ADD COLUMN Bio varchar(320) DEFAULT NULL;',
+    'ALTER TABLE Users ADD COLUMN Bio varchar(320) NOT NULL DEFAULT "";',
     'SELECT 1;'
 ));
 
