@@ -2089,38 +2089,27 @@ func makePostLink(siteURL, teamName, postID string) string {
 	return fmt.Sprintf("%s/%s/pl/%s", siteURL, teamName, postID)
 }
 
-func getConfiguration() *model.Config {
-	p.configurationLock.RLock()
-	defer p.configurationLock.RUnlock()
-
-	if p.configuration == nil {
-		return &configuration{}
-	}
-
-	return p.configuration
-}
-
 // validateMoveOrCopy performs validation on a provided post list to determine
 // if all permissions are in place to allow the for the posts to be moved or
 // copied.
-func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, extra *model.CommandArgs) error {
+func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
 	if wpl.NumPosts() == 0 {
 		return errors.New("The wrangler post list contains no posts")
 	}
 
-	config := getConfiguration()
+	config := a.Config().WranglerSettings
 
 	switch originalChannel.Type {
 	case model.ChannelTypePrivate:
-		if !config.MoveThreadFromPrivateChannelEnable {
+		if !*config.MoveThreadFromPrivateChannelEnable {
 			return errors.New("Wrangler is currently configured to not allow moving posts from private channels")
 		}
 	case model.ChannelTypeDirect:
-		if !config.MoveThreadFromDirectMessageChannelEnable {
+		if !*config.MoveThreadFromDirectMessageChannelEnable {
 			return errors.New("Wrangler is currently configured to not allow moving posts from direct message channels")
 		}
 	case model.ChannelTypeGroup:
-		if !config.MoveThreadFromGroupMessageChannelEnable {
+		if !*config.MoveThreadFromGroupMessageChannelEnable {
 			return errors.New("Wrangler is currently configured to not allow moving posts from group message channels")
 		}
 	}
@@ -2128,27 +2117,27 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 	if !originalChannel.IsGroupOrDirect() {
 		// DM and GM channels are "teamless" so it doesn't make sense to check
 		// the MoveThreadToAnotherTeamEnable config when dealing with those.
-		if !config.MoveThreadToAnotherTeamEnable && targetChannel.TeamId != originalChannel.TeamId {
+		if !*config.MoveThreadToAnotherTeamEnable && targetChannel.TeamId != originalChannel.TeamId {
 			return errors.New("Wrangler is currently configured to not allow moving messages to different teams")
 		}
 	}
 
-	if config.MaxThreadCountMoveSizeInt() != 0 && config.MaxThreadCountMoveSizeInt() < wpl.NumPosts() {
-		return errors.New(fmt.Sprintf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MaxThreadCountMoveSizeInt()))
+	if *config.MoveThreadMaxCount != int64(0) && *config.MoveThreadMaxCount < int64(wpl.NumPosts()) {
+		return errors.New(fmt.Sprintf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MoveThreadMaxCount))
 	}
 
-	if wpl.RootPost().ChannelId != extra.ChannelId {
+	if wpl.RootPost().ChannelId != originalChannel.Id {
 		return errors.New("Error: this command must be run from the channel containing the post")
 	}
 
-	_, appErr := a.GetChannelMember(c, targetChannel.Id, extra.UserId)
+	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
 	if appErr != nil {
 		return errors.New(fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id))
 	}
 
-	if extra.RootId == wpl.RootPost().Id || extra.ParentId == wpl.RootPost().Id {
-		return errors.New("Error: this command cannot be run from inside the thread; please run directly in the channel containing the thread")
-	}
+	// if extra.RootId == wpl.RootPost().Id || extra.ParentId == wpl.RootPost().Id {
+	// 	return errors.New("Error: this command cannot be run from inside the thread; please run directly in the channel containing the thread")
+	// }
 
 	return nil
 }
@@ -2196,7 +2185,7 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 		var reactions []*model.Reaction
 
 		// Store reactions to be reapplied later.
-		reactions, appErr = p.API.GetReactions(post.Id)
+		reactions, appErr = a.GetReactionsForPost(post.Id)
 		if appErr != nil {
 			// Reaction-based errors are logged, but do not cause the plugin to
 			// abort the move thread process.
@@ -2208,15 +2197,14 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 		newPost.ChannelId = targetChannel.Id
 
 		if i == 0 {
-			newPost, err = p.createPostWithRetries(newPost, 200*time.Millisecond, 3)
+			newPost, err = a.CreatePost(c, newPost, targetChannel, false, false)
 			if err != nil {
 				return nil, model.NewAppError("GetFileInfo", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to create new root post", http.StatusBadRequest)
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost.ParentId = newRootPost.Id
-			newPost, err = p.createPostWithRetries(newPost, 200*time.Millisecond, 3)
+			newPost, err = a.CreatePost(c, newPost, targetChannel, false, false)
 			if err != nil {
 				return nil, model.NewAppError("createPostWithRetries", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to create new post", http.StatusBadRequest)
 			}
@@ -2224,7 +2212,7 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 
 		for _, reaction := range reactions {
 			reaction.PostId = newPost.Id
-			_, appErr = p.API.AddReaction(reaction)
+			_, appErr = a.SaveReactionForPost(c, reaction)
 			if appErr != nil {
 				// Reaction-based errors are logged, but do not cause the plugin to
 				// abort the move thread process.
@@ -2244,48 +2232,66 @@ func getMoveThreadFlagSet() *pflag.FlagSet {
 	return flagSet
 }
 
-func parseMoveThreadFlagArgs(args []string) (bool, bool, error) {
-	flagSet := getMoveThreadFlagSet()
-	err := flagSet.Parse(args)
-	if err != nil {
-		return false, false, errors.Wrap(err, "unable to parse move thread flag args")
-	}
-
-	showMessageSummary, _ := flagSet.GetBool(flagMoveThreadShowMessageSummary)
-	silent, _ := flagSet.GetBool(flagMoveThreadSilent)
-
-	return showMessageSummary, silent, nil
+func quoteBlock(in string) string {
+	return fmt.Sprintf("> %s", in)
 }
 
-func (a *App) runMoveThreadCommand(c *request.Context, postID string, channelID string, extra *model.CommandArgs) *model.AppError {
+func cleanAndTrimMessage(message string, trimLength int) string {
+	return trimMessage(cleanMessage(message), trimLength)
+}
 
-	showRootMessageInSummary, silent, err := parseMoveThreadFlagArgs([]string{postID, channelID})
-	if err != nil {
-		return model.NewAppError("parseMoveThreadFlagArgs", "app.post.run_move_thread_command.request_error", nil, "postID="+postID+", "+"UserId="+extra.UserId+"", http.StatusBadRequest)
+func cleanMessage(message string) string {
+	// Remove any leading whitespace and header markdown.
+	message = strings.TrimLeft(message, " ")
+	message = strings.TrimLeft(message, "#")
+	message = strings.TrimLeft(message, " ")
+
+	// Remove all code block markdown.
+	message = strings.Replace(message, "```", "", -1)
+
+	// Replace all newlines to keep summary condensed.
+	message = strings.Replace(message, "\n", " | ", -1)
+
+	return message
+}
+
+// func cleanMessageJSON(message string) string {
+// 	message = strings.TrimLeft(message, " ")
+// 	message = strings.ReplaceAll(message, "\\n", "\n")
+// 	return message
+// }
+
+func trimMessage(message string, trimLength int) string {
+	if len(message) <= trimLength {
+		return message
 	}
 
-	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, extra.UserId)
+	return fmt.Sprintf("%s...", message[:trimLength])
+}
+
+func (a *App) MoveThread(c *request.Context, postID string, channelID string, user *model.User) *model.AppError {
+	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getPostThread", "app.post.run_move_thread_command.request_error", nil, "postID="+postID+", "+"UserId="+extra.UserId+"", http.StatusBadRequest)
+		return model.NewAppError("getPostThread", "app.post.run_move_thread_command.request_error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 
-	originalChannel, appErr := a.GetChannel(c, extra.ChannelId)
+	originalChannel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
-		return model.NewAppError("getOriginalChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+extra.ChannelId+"", http.StatusBadRequest)
+		return model.NewAppError("getOriginalChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+"", http.StatusBadRequest)
 	}
-	_, appErr = a.GetChannelMember(c, channelID, extra.UserId)
+	_, appErr = a.GetChannelMember(c, channelID, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getChannelMember", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+extra.ChannelId+", "+"UserId="+extra.UserId+"", http.StatusBadRequest)
+		return model.NewAppError("getChannelMember", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
 	}
 	targetChannel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
-		return model.NewAppError("getChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+extra.ChannelId+"", http.StatusBadRequest)
+		return model.NewAppError("getChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+"", http.StatusBadRequest)
 	}
 
-	err = a.ValidateMoveOrCopy(c, wpl, originalChannel, targetChannel, extra)
+	err := a.ValidateMoveOrCopy(c, wpl, originalChannel, targetChannel, user)
 	if err != nil {
-		return model.NewAppError("validateMoveOrCopy", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"OriginalChannelId="+extra.ChannelId+"", http.StatusBadRequest)
+		return model.NewAppError("validateMoveOrCopy", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"OriginalChannelId="+channelID+"", http.StatusBadRequest)
 	}
 
 	targetTeam, appErr := a.GetTeam(targetChannel.TeamId)
@@ -2294,7 +2300,7 @@ func (a *App) runMoveThreadCommand(c *request.Context, postID string, channelID 
 	}
 
 	// Begin creating the new thread.
-	c.Logger().Info("Wrangler is moving a thread", mlog.String("user_id", extra.UserId), mlog.String("original_post_id", wpl.RootPost().Id), mlog.String("original_channel_id", originalChannel.Id))
+	c.Logger().Info("Wrangler is moving a thread", mlog.String("user_id", user.Id), mlog.String("original_post_id", wpl.RootPost().Id), mlog.String("original_channel_id", originalChannel.Id))
 
 	// To simulate the move, we first copy the original messages(s) to the
 	// new channel and later delete the original messages(s).
@@ -2303,62 +2309,55 @@ func (a *App) runMoveThreadCommand(c *request.Context, postID string, channelID 
 		return model.NewAppError("copyWranglerPostlist", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
 	}
 
-	if !silent {
-		_, appErr = a.CreatePost(c, &model.Post{
-			UserId:    p.BotUserID,
-			RootId:    newRootPost.Id,
-			ParentId:  newRootPost.Id,
-			ChannelId: channelID,
-			Message:   "This thread was moved from another channel",
-		}, false, false)
-		if appErr != nil {
-			return model.NewAppError("CreatePost", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
-		}
+	_, appErr = a.CreatePost(c, &model.Post{
+		// TODO: Make this the System user, not the calling user.
+		UserId:    user.Id,
+		RootId:    newRootPost.Id,
+		ChannelId: channelID,
+		Message:   "This thread was moved from another channel",
+	}, targetChannel, false, false)
+	if appErr != nil {
+		return model.NewAppError("CreatePost", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
 	}
-
 	// Cleanup is handled by simply deleting the root post. Any comments/replies
 	// are automatically marked as deleted for us.
-	_, appErr = a.DeletePost(c, wpl.RootPost().Id, extra.UserId)
+	_, appErr = a.DeletePost(c, wpl.RootPost().Id, user.Id)
 	if appErr != nil {
-		return model.NewAppError("DeletePost", "app.post.run_move_thread_command.request_error", nil, "UserID="+extra.UserId+"", http.StatusBadRequest)
+		return model.NewAppError("DeletePost", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
 	}
 
-	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", extra.UserId), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
+	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
 
-	newPostLink := makePostLink(*p.API.GetConfig().ServiceSettings.SiteURL, targetTeam.Name, newRootPost.Id)
+	newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetTeam.Name, newRootPost.Id)
 
-	if silent {
-		c.Logger().Info("A thread with %d message(s) has been silently moved: %s\n", wpl.NumPosts(), newPostLink)
-	}
+	// executor, execError := a.GetUser(user.Id)
+	// if execError != nil {
+	// 	return model.NewAppError("GetUser", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
+	// }
 
-	executor, execError := a.GetUser(extra.UserId)
-	if execError != nil {
-		return model.NewAppError("GetUser", "app.post.run_move_thread_command.request_error", nil, "UserID="+extra.UserId+"", http.StatusBadRequest)
-	}
-
-	if extra.UserId != wpl.RootPost().UserId {
+	if user.Id != wpl.RootPost().UserId {
 		// The wrangled thread was not started by the user running the command.
 		// Send a DM to the user who created the root message to let them know.
-		err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
-		if err != nil {
-			p.API.LogError("Unable to send move-thread DM to user",
-				"error", err.Error(),
-				"user_id", wpl.RootPost().UserId,
-			)
-		}
+
+		// TODO: Implement
+		// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
+		// if err != nil {
+		// 	p.API.LogError("Unable to send move-thread DM to user",
+		// 		"error", err.Error(),
+		// 		"user_id", wpl.RootPost().UserId,
+		// 	)
+		// }
 	}
 
 	msg := fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
 	if wpl.NumPosts() == 1 {
 		msg = fmt.Sprintf("A message has been moved: %s\n", newPostLink)
 	}
-	if showRootMessageInSummary {
-		msg += fmt.Sprintf("Original Thread Root Message:\n%s\n",
-			quoteBlock(cleanAndTrimMessage(
-				wpl.RootPost().Message, 500),
-			),
-		)
-	}
+	msg += fmt.Sprintf("Original Thread Root Message:\n%s\n",
+		quoteBlock(cleanAndTrimMessage(
+			wpl.RootPost().Message, 500),
+		),
+	)
 
 	c.Logger().Info(msg)
 	return nil

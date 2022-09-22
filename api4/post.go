@@ -927,9 +927,15 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
 }
 
-func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
+func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
+		return
+	}
+
+	var moveThreadParams model.MoveThreadParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&moveThreadParams); jsonErr != nil {
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -966,6 +972,8 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
 		return
 	}
+
+	c.App.MoveThread(c.AppContext, c.Params.PostId, moveThreadParams.ChannelId, user)
 
 	ReturnStatusOK(w)
 }

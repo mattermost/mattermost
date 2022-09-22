@@ -392,6 +392,10 @@ type AppIface interface {
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	// validateMoveOrCopy performs validation on a provided post list to determine
+	// if all permissions are in place to allow the for the posts to be moved or
+	// copied.
+	ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
@@ -473,6 +477,7 @@ type AppIface interface {
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
 	CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError)
+	CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError)
 	CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
@@ -904,6 +909,7 @@ type AppIface interface {
 	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
+	MoveThread(c *request.Context, postID string, channelID string, user *model.User) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
 	NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
