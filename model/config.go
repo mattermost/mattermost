@@ -2908,16 +2908,16 @@ func (w *WranglerSettings) SetDefaults() {
 		w.MoveThreadMaxCount = NewInt64(100)
 	}
 	if w.MoveThreadToAnotherTeamEnable == nil {
-		w.MoveThreadToAnotherTeamEnable = NewBool(false)
+		w.MoveThreadToAnotherTeamEnable = NewBool(true)
 	}
 	if w.MoveThreadFromPrivateChannelEnable == nil {
-		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
+		w.MoveThreadFromPrivateChannelEnable = NewBool(true)
 	}
 	if w.MoveThreadFromDirectMessageChannelEnable == nil {
-		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(true)
 	}
 	if w.MoveThreadFromGroupMessageChannelEnable == nil {
-		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(true)
 	}
 }
 
