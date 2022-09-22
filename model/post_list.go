@@ -194,7 +194,7 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	return true
 }
 
-func (o *PostList) buildWranglerPostList() *WranglerPostList {
+func (o *PostList) BuildWranglerPostList() *WranglerPostList {
 	wpl := &WranglerPostList{}
 
 	o.UniqueOrder()
