@@ -13280,7 +13280,7 @@ func (a *OpenTracingAppLayer) Publish(message *model.WebSocketEvent) {
 	a.app.Publish(message)
 }
 
-func (a *OpenTracingAppLayer) PublishEvent(topic string, ctx request.CTX, data any) error {
+func (a *OpenTracingAppLayer) PublishEvent(topic string, ctx request.CTX, data interface{}) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PublishEvent")
 
