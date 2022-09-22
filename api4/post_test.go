@@ -3318,17 +3318,17 @@ func TestMovePost(t *testing.T) {
 		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 1", RootId: th.BasicPost.Id}
 		_, resp, err := client.CreatePost(reply1)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 2", RootId: th.BasicPost.Id}
 		_, resp, err = client.CreatePost(reply2)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 3", RootId: th.BasicPost.Id}
 		_, resp, err = client.CreatePost(reply3)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		resp, err = client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
@@ -3395,17 +3395,17 @@ func TestMovePost(t *testing.T) {
 		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 1", RootId: th.BasicPost.Id}
 		_, resp, err := client.CreatePost(reply1)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 2", RootId: th.BasicPost.Id}
 		_, resp, err = client.CreatePost(reply2)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 3", RootId: th.BasicPost.Id}
 		_, resp, err = client.CreatePost(reply3)
 		require.NoError(t, err)
-		CheckOKStatus(t, resp)
+		CheckCreatedStatus(t, resp)
 
 		resp, err = client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
