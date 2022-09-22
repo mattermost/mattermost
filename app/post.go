@@ -2126,9 +2126,9 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 		return errors.New(fmt.Sprintf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MoveThreadMaxCount))
 	}
 
-	if wpl.RootPost().ChannelId != originalChannel.Id {
-		return errors.New("Error: this command must be run from the channel containing the post")
-	}
+	// if wpl.RootPost().ChannelId != originalChannel.Id {
+	// 	return errors.New("Error: this command must be run from the channel containing the post")
+	// }
 
 	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
 	if appErr != nil {
@@ -2143,7 +2143,6 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 }
 
 func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError) {
-	var err error
 	var appErr *model.AppError
 	var newRootPost *model.Post
 
@@ -2163,15 +2162,15 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 			for _, fileID := range post.FileIds {
 				oldFileInfo, appErr = a.GetFileInfo(fileID)
 				if appErr != nil {
-					return nil, model.NewAppError("GetFileInfo", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to lookup file info to re-upload: fileID="+fileID+"", http.StatusBadRequest)
+					return nil, appErr
 				}
 				fileBytes, appErr = a.GetFile(fileID)
 				if appErr != nil {
-					return nil, model.NewAppError("GetFile", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to get file bytes to re-upload: fileID="+fileID+"", http.StatusBadRequest)
+					return nil, appErr
 				}
 				newFileInfo, appErr = a.UploadFile(c, fileBytes, targetChannel.Id, oldFileInfo.Name)
 				if appErr != nil {
-					return nil, model.NewAppError("UploadFile", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to re-upload file: targetChannelId="+targetChannel.Id+"", http.StatusBadRequest)
+					return nil, appErr
 				}
 
 				newFileIDs = append(newFileIDs, newFileInfo.Id)
@@ -2197,16 +2196,16 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 		newPost.ChannelId = targetChannel.Id
 
 		if i == 0 {
-			newPost, err = a.CreatePost(c, newPost, targetChannel, false, false)
-			if err != nil {
-				return nil, model.NewAppError("GetFileInfo", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to create new root post", http.StatusBadRequest)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			if appErr != nil {
+				return nil, appErr
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost, err = a.CreatePost(c, newPost, targetChannel, false, false)
-			if err != nil {
-				return nil, model.NewAppError("createPostWithRetries", "app.post.copy_wrangler_postlist_command.request_error", nil, "unable to create new post", http.StatusBadRequest)
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			if appErr != nil {
+				return nil, appErr
 			}
 		}
 
@@ -2278,25 +2277,25 @@ func (a *App) MoveThread(c *request.Context, postID string, channelID string, us
 
 	originalChannel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
-		return model.NewAppError("getOriginalChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+"", http.StatusBadRequest)
+		return appErr
 	}
 	_, appErr = a.GetChannelMember(c, channelID, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getChannelMember", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
+		return appErr
 	}
 	targetChannel, appErr := a.GetChannel(c, channelID)
 	if appErr != nil {
-		return model.NewAppError("getChannel", "app.post.run_move_thread_command.request_error", nil, "ChannelId="+channelID+"", http.StatusBadRequest)
+		return appErr
 	}
 
 	err := a.ValidateMoveOrCopy(c, wpl, originalChannel, targetChannel, user)
 	if err != nil {
-		return model.NewAppError("validateMoveOrCopy", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"OriginalChannelId="+channelID+"", http.StatusBadRequest)
+		return model.NewAppError("validateMoveOrCopy", "app.post.run_move_thread_command.request_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	targetTeam, appErr := a.GetTeam(targetChannel.TeamId)
 	if appErr != nil {
-		return model.NewAppError("getTeam", "app.post.run_move_thread_command.request_error", nil, "TeamID="+targetChannel.TeamId+"", http.StatusBadRequest)
+		return appErr
 	}
 
 	// Begin creating the new thread.
@@ -2304,9 +2303,9 @@ func (a *App) MoveThread(c *request.Context, postID string, channelID string, us
 
 	// To simulate the move, we first copy the original messages(s) to the
 	// new channel and later delete the original messages(s).
-	newRootPost, err := a.CopyWranglerPostlist(c, wpl, targetChannel)
-	if err != nil {
-		return model.NewAppError("copyWranglerPostlist", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
+	newRootPost, appErr := a.CopyWranglerPostlist(c, wpl, targetChannel)
+	if appErr != nil {
+		return appErr
 	}
 
 	_, appErr = a.CreatePost(c, &model.Post{
@@ -2317,13 +2316,13 @@ func (a *App) MoveThread(c *request.Context, postID string, channelID string, us
 		Message:   "This thread was moved from another channel",
 	}, targetChannel, false, false)
 	if appErr != nil {
-		return model.NewAppError("CreatePost", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
+		return appErr
 	}
 	// Cleanup is handled by simply deleting the root post. Any comments/replies
 	// are automatically marked as deleted for us.
 	_, appErr = a.DeletePost(c, wpl.RootPost().Id, user.Id)
 	if appErr != nil {
-		return model.NewAppError("DeletePost", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
+		return appErr
 	}
 
 	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
