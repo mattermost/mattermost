@@ -1106,6 +1106,7 @@ func TestGetChannelsForUser(t *testing.T) {
 
 func TestGetAllChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
 
@@ -1473,6 +1474,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 func TestSearchAllChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
 

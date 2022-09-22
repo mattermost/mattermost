@@ -388,7 +388,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline' http://localhost:9006"}, response.Header()["Content-Security-Policy"])
 	})
 
 }
@@ -411,9 +411,9 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
-
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline' http://localhost:9006", devCSP)
 	})
+
 	t.Run("allowed dev flags", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -436,7 +436,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+		assert.Equal(t, " 'unsafe-inline' 'unsafe-eval'", devCSP)
 	})
 
 	t.Run("partial dev flags", func(t *testing.T) {

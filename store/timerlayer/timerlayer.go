@@ -9983,10 +9983,10 @@ func (s *TimerLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetUnreadCount(userID string) (int64, error) {
+func (s *TimerLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetUnreadCount(userID)
+	result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
