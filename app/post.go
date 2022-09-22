@@ -293,7 +293,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if post.Type == model.PostTypeVoice {
-		if err := a.validateVoiceMessage(post); err != nil {
+		if err = a.validateVoiceMessage(post); err != nil {
 			return nil, err
 		}
 	}
