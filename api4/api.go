@@ -308,7 +308,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitExport()
 	api.InitInsights()
 	api.InitUsage()
-
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
 	}
