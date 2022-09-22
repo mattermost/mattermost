@@ -5777,6 +5777,7 @@ func (s *apiRPCServer) RegisterEvent(args *Z_RegisterEventArgs, returns *Z_Regis
 
 type Z_SubscribeToEventArgs struct {
 	A string
+	B string
 }
 
 type Z_SubscribeToEventReturns struct {
@@ -5784,8 +5785,8 @@ type Z_SubscribeToEventReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) SubscribeToEvent(topic string) (string, error) {
-	_args := &Z_SubscribeToEventArgs{topic}
+func (g *apiRPCClient) SubscribeToEvent(topic, handlerId string) (string, error) {
+	_args := &Z_SubscribeToEventArgs{topic, handlerId}
 	_returns := &Z_SubscribeToEventReturns{}
 	if err := g.client.Call("Plugin.SubscribeToEvent", _args, _returns); err != nil {
 		log.Printf("RPC call to SubscribeToEvent API failed: %s", err.Error())
@@ -5795,9 +5796,9 @@ func (g *apiRPCClient) SubscribeToEvent(topic string) (string, error) {
 
 func (s *apiRPCServer) SubscribeToEvent(args *Z_SubscribeToEventArgs, returns *Z_SubscribeToEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		SubscribeToEvent(topic string) (string, error)
+		SubscribeToEvent(topic, handlerId string) (string, error)
 	}); ok {
-		returns.A, returns.B = hook.SubscribeToEvent(args.A)
+		returns.A, returns.B = hook.SubscribeToEvent(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API SubscribeToEvent called but not implemented."))

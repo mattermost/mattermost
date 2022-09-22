@@ -3355,20 +3355,20 @@ func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Statu
 	return r0, r1
 }
 
-// SubscribeToEvent provides a mock function with given fields: topic
-func (_m *API) SubscribeToEvent(topic string) (string, error) {
-	ret := _m.Called(topic)
+// SubscribeToEvent provides a mock function with given fields: topic, handlerId
+func (_m *API) SubscribeToEvent(topic string, handlerId string) (string, error) {
+	ret := _m.Called(topic, handlerId)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(topic)
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(topic, handlerId)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(topic)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(topic, handlerId)
 	} else {
 		r1 = ret.Error(1)
 	}

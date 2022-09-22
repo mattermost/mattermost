@@ -1247,9 +1247,9 @@ func (api *apiTimerLayer) RegisterEvent(topic, description string, typ any) erro
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SubscribeToEvent(topic string) (string, error) {
+func (api *apiTimerLayer) SubscribeToEvent(topic, handlerId string) (string, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SubscribeToEvent(topic)
+	_returnsA, _returnsB := api.apiImpl.SubscribeToEvent(topic, handlerId)
 	api.recordTime(startTime, "SubscribeToEvent", _returnsB == nil)
 	return _returnsA, _returnsB
 }

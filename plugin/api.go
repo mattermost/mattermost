@@ -1166,7 +1166,7 @@ type API interface {
 	// SubscribeToEvent registers an event handler that will fire when an event is emitted
 	//
 	// Minimum server version: 7.4
-	SubscribeToEvent(topic string) (string, error)
+	SubscribeToEvent(topic, handlerId string) (string, error)
 
 	// UnsubscribeToEvent unregisters the event handler for the given id and topic
 	//
