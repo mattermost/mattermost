@@ -292,6 +292,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
 	}
 
+	if post.Type == model.PostTypeVoice {
+		if err := a.validateVoiceMessage(post); err != nil {
+			return nil, err
+		}
+	}
+
 	rpost, nErr := a.Srv().Store.Post().Save(post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -367,6 +373,32 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	return rpost, nil
+}
+
+func (a *App) validateVoiceMessage(post *model.Post) *model.AppError {
+	fileIds := post.FileIds
+	nbFiles := len(fileIds)
+	if nbFiles == 0 {
+		return model.NewAppError("valiteVoicePost", "api.post.validate_voice_post.no_file.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+	}
+
+	if nbFiles > 1 {
+		return model.NewAppError("valiteVoicePost", "api.post.validate_voice_post.too_many_files.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+	}
+
+	fileInfo, err := a.GetFileInfo(fileIds[0])
+	if err != nil {
+		return model.NewAppError("valiteVoicePost", "api.post.validate_voice_post.unable_get_file_info.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusInternalServerError).Wrap(err)
+	}
+	if fileInfo == nil {
+		return model.NewAppError("valiteVoicePost", "api.post.validate_voice_post.file_not_found.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+	}
+
+	if fileInfo.Size > *a.Config().FileSettings.MaxVoiceMessagesFileSize {
+		return model.NewAppError("valiteVoicePost", "api.post.validate_voice_post.file_too_big.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
