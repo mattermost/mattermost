@@ -43,6 +43,7 @@ type Group struct {
 	HasSyncables   bool        `db:"-" json:"has_syncables"`
 	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
 	AllowReference bool        `json:"allow_reference"`
+	MemberIDs      []string    `db:"-" json:"member_ids"`
 }
 
 func (group *Group) Auditable() map[string]interface{} {
@@ -57,11 +58,6 @@ func (group *Group) Auditable() map[string]interface{} {
 		"member_count":    group.MemberCount,
 		"allow_reference": group.AllowReference,
 	}
-}
-
-type GroupWithUserIds struct {
-	Group
-	UserIds []string `json:"user_ids"`
 }
 
 type GroupWithSchemeAdmin struct {
@@ -99,6 +95,7 @@ type GroupSearchOpts struct {
 	NotAssociatedToTeam    string
 	NotAssociatedToChannel string
 	IncludeMemberCount     bool
+	IncludeMemberIDs       bool
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
@@ -117,6 +114,7 @@ type GroupSearchOpts struct {
 
 type GetGroupOpts struct {
 	IncludeMemberCount bool
+	IncludeMemberIDs   bool
 }
 
 type PageOpts struct {

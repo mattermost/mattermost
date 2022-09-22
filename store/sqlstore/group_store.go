@@ -81,7 +81,7 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.Group, err error) {
+func (s *SqlGroupStore) CreateWithUserIds(g *model.Group) (_ *model.Group, err error) {
 	if g.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", g.Id)
 	}
@@ -92,7 +92,7 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.G
 	}
 
 	// Check Users exist
-	if err = s.checkUsersExist(g.UserIds); err != nil {
+	if err = s.checkUsersExist(g.MemberIDs); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.G
 		return nil, err
 	}
 
-	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(g.Id, g.UserIds)
+	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(g.Id, g.MemberIDs)
 	if err != nil {
 		return nil, err
 	}

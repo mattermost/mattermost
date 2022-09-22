@@ -3864,7 +3864,7 @@ func (s *OpenTracingLayerGroupStore) CreateGroupSyncable(groupSyncable *model.Gr
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+func (s *OpenTracingLayerGroupStore) CreateWithUserIds(group *model.Group) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CreateWithUserIds")
 	s.Root.Store.SetContext(newCtx)

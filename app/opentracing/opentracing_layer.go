@@ -2134,7 +2134,7 @@ func (a *OpenTracingAppLayer) CreateGroupChannel(c request.CTX, userIDs []string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateGroupWithUserIds(group *model.Group) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGroupWithUserIds")
 

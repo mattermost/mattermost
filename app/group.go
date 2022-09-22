@@ -25,6 +25,17 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 		}
 	}
 
+	if opts != nil && opts.IncludeMemberIDs {
+		users, err := a.Srv().Store.Group().GetMemberUsers(id)
+		if err != nil {
+			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range users {
+			group.MemberIDs = append(group.MemberIDs, user.Id)
+		}
+	}
+
 	if opts != nil && opts.IncludeMemberCount {
 		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
 		if err != nil {
@@ -122,7 +133,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 	return nil
 }
 
-func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+func (a *App) CreateGroupWithUserIds(group *model.Group) (*model.Group, *model.AppError) {
 	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
 		appErr.Where = "CreateGroupWithUserIds"
 		return nil, appErr
@@ -583,6 +594,19 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetGroups", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if opts.IncludeMemberIDs {
+		for _, group := range groups {
+			users, err := a.Srv().Store.Group().GetMemberUsers(group.Id)
+			if err != nil {
+				return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			for _, user := range users {
+				group.MemberIDs = append(group.MemberIDs, user.Id)
+			}
+		}
 	}
 
 	return groups, nil

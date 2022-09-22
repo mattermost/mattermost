@@ -1555,11 +1555,9 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
+		MemberIDs:   []string{user1.Id, user2.Id},
 	}
-	group, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
-		Group:   *g,
-		UserIds: []string{user1.Id, user2.Id},
-	})
+	group, err := th.App.CreateGroupWithUserIds(g)
 	assert.Nil(t, err)
 
 	members := &model.GroupModifyMembers{
@@ -1603,11 +1601,9 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + ldapId,
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user1.Id, user2.Id},
 	}
-	ldapGroup, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
-		Group:   *g1,
-		UserIds: []string{user1.Id, user2.Id},
-	})
+	ldapGroup, err := th.App.CreateGroupWithUserIds(g1)
 	assert.Nil(t, err)
 
 	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(ldapGroup.Id, members)

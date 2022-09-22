@@ -101,6 +101,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeMemberIDs:   c.Params.IncludeMemberIDs,
 	})
 	if appErr != nil {
 		c.Err = appErr
@@ -130,7 +131,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	var group *model.GroupWithUserIds
+	var group *model.Group
 	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
 		c.SetInvalidParamWithErr("group", err)
 		return
@@ -882,6 +883,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
+		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
 		FilterAllowReference:      c.Params.FilterAllowReference,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,

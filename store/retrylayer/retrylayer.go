@@ -4341,7 +4341,7 @@ func (s *RetryLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyn
 
 }
 
-func (s *RetryLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+func (s *RetryLayerGroupStore) CreateWithUserIds(group *model.Group) (*model.Group, error) {
 
 	tries := 0
 	for {

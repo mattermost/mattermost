@@ -3525,7 +3525,7 @@ func (s *TimerLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyn
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) CreateWithUserIds(group *model.GroupWithUserIds) (*model.Group, error) {
+func (s *TimerLayerGroupStore) CreateWithUserIds(group *model.Group) (*model.Group, error) {
 	start := time.Now()
 
 	result, err := s.GroupStore.CreateWithUserIds(group)

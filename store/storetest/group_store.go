@@ -219,22 +219,18 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceCustom,
 		Description: model.NewId(),
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user1.Id, user2.Id},
 	}
 
 	// Save a new group
-	guids1 := &model.GroupWithUserIds{
-		Group:   *g1,
-		UserIds: []string{user1.Id, user2.Id},
-	}
-
 	// Happy path
-	d1, err := ss.Group().CreateWithUserIds(guids1)
+	d1, err := ss.Group().CreateWithUserIds(g1)
 	require.NoError(t, err)
 	require.Len(t, d1.Id, 26)
-	require.Equal(t, *guids1.Name, *d1.Name)
-	require.Equal(t, guids1.DisplayName, d1.DisplayName)
-	require.Equal(t, guids1.Description, d1.Description)
-	require.Equal(t, guids1.RemoteId, d1.RemoteId)
+	require.Equal(t, *g1.Name, *d1.Name)
+	require.Equal(t, g1.DisplayName, d1.DisplayName)
+	require.Equal(t, g1.Description, d1.Description)
+	require.Equal(t, g1.RemoteId, d1.RemoteId)
 	require.NotZero(t, d1.CreateAt)
 	require.NotZero(t, d1.UpdateAt)
 	require.Zero(t, d1.DeleteAt)
@@ -248,13 +244,9 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceCustom,
 		Description: model.NewId(),
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user1.Id, user2.Id},
 	}
-
-	guids2 := &model.GroupWithUserIds{
-		Group:   *g2,
-		UserIds: []string{user1.Id, user2.Id},
-	}
-	data, err := ss.Group().CreateWithUserIds(guids2)
+	data, err := ss.Group().CreateWithUserIds(g2)
 	require.Nil(t, data)
 	require.Error(t, err)
 	var appErr *model.AppError
@@ -267,24 +259,18 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceCustom,
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user1.Id, user2.Id},
 	}
-	guids4 := &model.GroupWithUserIds{
-		Group:   *g4,
-		UserIds: []string{user1.Id, user2.Id},
-	}
-	_, err = ss.Group().CreateWithUserIds(guids4)
+	_, err = ss.Group().CreateWithUserIds(g4)
 	require.NoError(t, err)
 	g4b := &model.Group{
 		Name:        g4.Name,
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceCustom,
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user1.Id},
 	}
-	guids4b := &model.GroupWithUserIds{
-		Group:   *g4b,
-		UserIds: []string{user1.Id},
-	}
-	data, err = ss.Group().CreateWithUserIds(guids4b)
+	data, err = ss.Group().CreateWithUserIds(g4b)
 	require.Nil(t, data)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unique constraint: Name")
@@ -297,25 +283,22 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceCustom,
 		RemoteId:    model.NewString(model.NewId()),
 	}
-	guids5 := &model.GroupWithUserIds{
-		Group: *g5,
-	}
-	require.Nil(t, guids5.IsValidForCreate())
+	require.Nil(t, g5.IsValidForCreate())
 
-	guids5.Name = model.NewString(*guids5.Name + "x")
-	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
-	guids5.Name = model.NewString(model.NewId())
-	require.Nil(t, guids5.IsValidForCreate())
+	g5.Name = model.NewString(*g5.Name + "x")
+	require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
+	g5.Name = model.NewString(model.NewId())
+	require.Nil(t, g5.IsValidForCreate())
 
-	guids5.DisplayName = guids5.DisplayName + "x"
-	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.display_name.app_error")
-	guids5.DisplayName = model.NewId()
-	require.Nil(t, guids5.IsValidForCreate())
+	g5.DisplayName = g5.DisplayName + "x"
+	require.Equal(t, g5.IsValidForCreate().Id, "model.group.display_name.app_error")
+	g5.DisplayName = model.NewId()
+	require.Nil(t, g5.IsValidForCreate())
 
-	guids5.Description = guids5.Description + "x"
-	require.Equal(t, guids5.IsValidForCreate().Id, "model.group.description.app_error")
-	guids5.Description = model.NewId()
-	require.Nil(t, guids5.IsValidForCreate())
+	g5.Description = g5.Description + "x"
+	require.Equal(t, g5.IsValidForCreate().Id, "model.group.description.app_error")
+	g5.Description = model.NewId()
+	require.Nil(t, g5.IsValidForCreate())
 
 	// Must use a valid type
 	g6 := &model.Group{
@@ -325,10 +308,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Source:      model.GroupSource("fake"),
 		RemoteId:    model.NewString(model.NewId()),
 	}
-	guids6 := &model.GroupWithUserIds{
-		Group: *g6,
-	}
-	require.Equal(t, guids6.IsValidForCreate().Id, "model.group.source.app_error")
+	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
 
 	//must use valid characters
 	g7 := &model.Group{
@@ -338,10 +318,7 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceCustom,
 		RemoteId:    model.NewString(model.NewId()),
 	}
-	guids7 := &model.GroupWithUserIds{
-		Group: *g7,
-	}
-	require.Equal(t, guids7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
+	require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
 
 	// Invalid user ids
 	g8 := &model.Group{
@@ -350,12 +327,9 @@ func testGroupCreateWithUserIds(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Source:      model.GroupSourceCustom,
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{"1234uid"},
 	}
-	guids8 := &model.GroupWithUserIds{
-		Group:   *g8,
-		UserIds: []string{"1234uid"},
-	}
-	data, err = ss.Group().CreateWithUserIds(guids8)
+	data, err = ss.Group().CreateWithUserIds(g8)
 	require.Nil(t, data)
 	require.Error(t, err)
 	require.Equal(t, store.NewErrNotFound("User", "1234uid"), err)
@@ -1279,12 +1253,9 @@ func testGroupDeleteMembers(t *testing.T, ss store.Store) {
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewString(model.NewId()),
+		MemberIDs:   []string{user.Id},
 	}
-	guids := &model.GroupWithUserIds{
-		Group:   *g1,
-		UserIds: []string{user.Id},
-	}
-	group, err := ss.Group().CreateWithUserIds(guids)
+	group, err := ss.Group().CreateWithUserIds(g1)
 	require.NoError(t, err)
 
 	// Happy path
