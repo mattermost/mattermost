@@ -2969,13 +2969,13 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
-// RegisterEvent provides a mock function with given fields: topic, schema
-func (_m *API) RegisterEvent(topic string, schema interface{}) error {
-	ret := _m.Called(topic, schema)
+// RegisterEvent provides a mock function with given fields: topic, description, typ
+func (_m *API) RegisterEvent(topic string, description string, typ interface{}) error {
+	ret := _m.Called(topic, description, typ)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
-		r0 = rf(topic, schema)
+	if rf, ok := ret.Get(0).(func(string, string, interface{}) error); ok {
+		r0 = rf(topic, description, typ)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3355,18 +3355,25 @@ func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Statu
 	return r0, r1
 }
 
-// SubscribeToEvent provides a mock function with given fields: topic, handler
-func (_m *API) SubscribeToEvent(topic string, handler func(*model.Event)) error {
-	ret := _m.Called(topic, handler)
+// SubscribeToEvent provides a mock function with given fields: topic
+func (_m *API) SubscribeToEvent(topic string) (string, error) {
+	ret := _m.Called(topic)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, func(*model.Event)) error); ok {
-		r0 = rf(topic, handler)
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(topic)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(topic)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UnregisterCommand provides a mock function with given fields: teamID, trigger
@@ -3376,6 +3383,20 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(teamID, trigger)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnsubscribeToEvent provides a mock function with given fields: topic, id
+func (_m *API) UnsubscribeToEvent(topic string, id string) error {
+	ret := _m.Called(topic, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(topic, id)
 	} else {
 		r0 = ret.Error(0)
 	}

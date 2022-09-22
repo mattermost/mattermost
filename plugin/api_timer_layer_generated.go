@@ -1240,17 +1240,24 @@ func (api *apiTimerLayer) EnsureBotUser(bot *model.Bot) (string, error) {
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) RegisterEvent(topic string, schema any) error {
+func (api *apiTimerLayer) RegisterEvent(topic, description string, typ any) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RegisterEvent(topic, schema)
+	_returnsA := api.apiImpl.RegisterEvent(topic, description, typ)
 	api.recordTime(startTime, "RegisterEvent", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SubscribeToEvent(topic string, handler func(*model.Event)) error {
+func (api *apiTimerLayer) SubscribeToEvent(topic string) (string, error) {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.SubscribeToEvent(topic, handler)
-	api.recordTime(startTime, "SubscribeToEvent", _returnsA == nil)
+	_returnsA, _returnsB := api.apiImpl.SubscribeToEvent(topic)
+	api.recordTime(startTime, "SubscribeToEvent", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UnsubscribeToEvent(topic, id string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnsubscribeToEvent(topic, id)
+	api.recordTime(startTime, "UnsubscribeToEvent", _returnsA == nil)
 	return _returnsA
 }
 

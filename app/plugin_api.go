@@ -16,6 +16,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -1227,14 +1229,26 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	return limits, err
 }
 
-func (api *PluginAPI) RegisterEvent(topic string, schema any) error {
-	//return api.app.eventbus.Register(topic, schema)
+func (api *PluginAPI) RegisterEvent(topic, description string, typ any) error {
+	return api.app.eventbus.Register(topic, description, typ)
 }
 
-func (api *PluginAPI) SubscribeToEvent(topic string, handler func(*model.Event)) error {
-	//return api.app.eventbus.Subscribe(topic, handler)
+func (api *PluginAPI) SubscribeToEvent(topic, handlerId string) (string, error) {
+	id, err := api.app.eventbus.Subscribe(topic, func(ev eventbus.Event) error {
+		pluginsEnvironment := api.app.ch.pluginsEnvironment
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.OnPluginReceiveEvent(handlerId, ev)
+			return true
+		}, plugin.OnPluginReceiveEventID)
+		return nil
+	})
+	return id, err
+}
+
+func (api *PluginAPI) UnsubscribeToEvent(topic, id string) error {
+	return api.app.eventbus.Unsubscribe(topic, id)
 }
 
 func (api *PluginAPI) PublishEvent(topic string, data any) error {
-	//return api.app.eventbus.Publish(topic, api.ctx, data)
+	return api.app.eventbus.Publish(topic, api.ctx, data)
 }

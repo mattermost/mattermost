@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 )
 
 // These assignments are part of the wire protocol used to trigger hook events in plugins.
@@ -43,6 +44,7 @@ const (
 	OnInstallID                     = 25
 	OnSendDailyTelemetryID          = 26
 	OnCloudLimitsUpdatedID          = 27
+	OnPluginReceiveEventID          = 28
 	TotalHooksID                    = iota
 )
 
@@ -270,4 +272,7 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
+
+	// OnPluginReceiveEvent is invoked when the event bus sends an event to the plugins
+	OnPluginReceiveEvent(handlerId string, event eventbus.Event)
 }

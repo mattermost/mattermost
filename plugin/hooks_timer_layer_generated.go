@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 )
 
 type hooksTimerLayer struct {
@@ -211,4 +212,10 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	startTime := timePkg.Now()
 	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
+}
+
+func (hooks *hooksTimerLayer) OnPluginReceiveEvent(handlerId string, event eventbus.Event) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnPluginReceiveEvent(handlerId, event)
+	hooks.recordTime(startTime, "OnPluginReceiveEvent", true)
 }

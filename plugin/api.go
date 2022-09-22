@@ -1161,12 +1161,17 @@ type API interface {
 	// RegisterEvent registers a new event to the event bus schema
 	//
 	// Minimum server version: 7.4
-	RegisterEvent(topic string, schema any) error
+	RegisterEvent(topic, description string, typ any) error
 
 	// SubscribeToEvent registers an event handler that will fire when an event is emitted
 	//
 	// Minimum server version: 7.4
-	SubscribeToEvent(topic string, handler func(*model.Event)) error
+	SubscribeToEvent(topic string) (string, error)
+
+	// UnsubscribeToEvent unregisters the event handler for the given id and topic
+	//
+	// Minimum server version: 7.4
+	UnsubscribeToEvent(topic, id string) error
 
 	// PublishEvent fires an event on the specific topic to the event bus
 	//
