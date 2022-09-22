@@ -336,6 +336,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
+		if post.Type == model.PostTypeVoice {
+			a.Metrics().IncrementVoiceMessageCreate()
+		}
 	}
 
 	if len(post.FileIds) > 0 {

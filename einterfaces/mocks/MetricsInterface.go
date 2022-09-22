@@ -207,6 +207,11 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 	_m.Called()
 }
 
+// IncrementVoiceMessageCreate provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementVoiceMessageCreate() {
+	_m.Called()
+}
+
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
 	_m.Called(eventType)

@@ -12,6 +12,7 @@ type MetricsInterface interface {
 	Register()
 
 	IncrementPostCreate()
+	IncrementVoiceMessageCreate()
 	IncrementWebhookPost()
 	IncrementPostSentEmail()
 	IncrementPostSentPush()
