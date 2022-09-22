@@ -1910,6 +1910,10 @@
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
   },
   {
+    "id": "api.get_events_topics.permission_error",
+    "translation": "User doesn't have permission to check events."
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
