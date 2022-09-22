@@ -44,3 +44,7 @@ func (a *App) SubscribeTopic(topic string, handler eventbus.Handler) (string, er
 func (a *App) UnsubscribeTopic(topic, id string) error {
 	return a.Srv().bus.Unsubscribe(topic, id)
 }
+
+func (a *App) RegisterTopic(topic, description string, typ any) error {
+	return a.Srv().bus.Register(topic, description, typ)
+}
