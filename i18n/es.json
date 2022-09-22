@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "No se puede encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": "No se puede encontrar los usuarios: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1348,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": "{{.Count}} archivos enviados: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": "{{.Count}} imágenes enviadas: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -7660,10 +7664,6 @@
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Arreglar ahora"
-  },
-  {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirigiéndote de nuevo a la aplicación."
   },
@@ -9037,10 +9037,6 @@
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
     "translation": " "
   },
   {

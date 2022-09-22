@@ -5500,10 +5500,6 @@
     "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Javítás most"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "A többtényezős hitelesítést eltávolítottuk"
   },
@@ -9264,10 +9260,6 @@
     "translation": "Nem sikerült értelmezni az értéket:{{.Value}} mint int64"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "A {{.TeamName}} csapat egy tagja értesítette Önt, hogy ezt a munkaterületet váltsa magasabb előfizetésre."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Már korábban értesítettük a rendszergazdát"
   },
@@ -9358,5 +9350,9 @@
   {
     "id": "api.templates.delinquency_14.button",
     "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
   }
 ]
