@@ -101,6 +101,7 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 	if _, ok := b.eventTypes[topic]; !ok {
 		return errors.New("topic does not exist")
 	}
+
 	ev := Event{
 		Topic:     topic,
 		Context:   ctx,
