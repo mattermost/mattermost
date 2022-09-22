@@ -940,7 +940,7 @@ type AppIface interface {
 	PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
-	PublishEvent(topic string, ctx request.CTX, data any) error
+	PublishEvent(topic string, ctx request.CTX, data interface{}) error
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError

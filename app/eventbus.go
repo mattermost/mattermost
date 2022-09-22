@@ -33,7 +33,7 @@ func (a *App) EventBroker() Broker {
 	return a.Srv().bus
 }
 
-func (a *App) PublishEvent(topic string, ctx request.CTX, data any) error {
+func (a *App) PublishEvent(topic string, ctx request.CTX, data interface{}) error {
 	return a.Srv().bus.Publish(topic, ctx, data)
 }
 
