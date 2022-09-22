@@ -28,3 +28,19 @@ type Subscriber interface {
 	Subscribe(topic string, handler eventbus.Handler) (string, error)
 	Unsubscribe(topic, id string) error
 }
+
+func (a *App) EventBroker() Broker {
+	return a.Srv().bus
+}
+
+func (a *App) PublishEvent(topic string, ctx request.CTX, data any) error {
+	return a.Srv().bus.Publish(topic, ctx, data)
+}
+
+func (a *App) SubscribeTopic(topic string, handler eventbus.Handler) (string, error) {
+	return a.Srv().bus.Subscribe(topic, handler)
+}
+
+func (a *App) UnsubscribeTopic(topic, id string) error {
+	return a.Srv().bus.Unsubscribe(topic, id)
+}
