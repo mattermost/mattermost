@@ -8397,11 +8397,7 @@
   },
   {
     "id": "model.config.is_valid.max_voice_messages_file_size.app_error",
-    "translation": ""
-  },
-  {
-    "id": "model.config.is_valid.max_voice_messages_file_size_too_big.app_error",
-    "translation": ""
+    "translation": "Invalid maximum voice message file size. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",

@@ -3427,10 +3427,6 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxVoiceMessagesFileSize > *s.MaxFileSize {
-		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size_too_big.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
