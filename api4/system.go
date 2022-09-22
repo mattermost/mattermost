@@ -1019,6 +1019,10 @@ func checkHasNilFields(value any) bool {
 
 func getEventsTopics(c *Context, w http.ResponseWriter, r *http.Request) {
 	// parameter withSchema is to be parsed
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+	}
 	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
 
 	topics := c.App.EventBroker().EventTypes()
@@ -1037,6 +1041,10 @@ func getEventsTopics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEventsTopic(c *Context, w http.ResponseWriter, r *http.Request) {
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+	}
 	c.RequireTopicId()
 	if c.Err != nil {
 		return
@@ -1064,8 +1072,13 @@ func getEventsTopic(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEventsSchema(c *Context, w http.ResponseWriter, r *http.Request) {
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+	}
 	// calls broker to get a list of topics
 	// parameter topicId
+	c.RequireTopicId()
 	topicId := c.Params.TopicId
 
 	topics := c.App.EventBroker().EventTypes()
