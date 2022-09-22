@@ -2914,7 +2914,7 @@ func (w *WranglerSettings) SetDefaults() {
 func (w *WranglerSettings) IsValid() *AppError {
 	validDomainRegex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
 	for _, domain := range w.AllowedEmailDomain {
-		if !validDomainRegex.MatchString(domain) {
+		if !validDomainRegex.MatchString(domain) && domain != "localhost" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.wrangler_settings.domain_invalid.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -947,7 +948,8 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	if !userHasRole {
+	// Sysadmins are always permitted
+	if !userHasRole && !user.IsSystemAdmin() {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
 		return
 	}
@@ -960,8 +962,8 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	if !userHasEmailDomain {
-		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+	if !userHasEmailDomain && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
 		return
 	}
 
