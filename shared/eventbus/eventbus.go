@@ -85,6 +85,7 @@ func (b *BrokerService) EventTypes() []EventType {
 }
 
 func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
+	// there's really no race condition here so no mutex required
 	if _, ok := b.eventTypes[topic]; !ok {
 		return errors.New("topic does not exist")
 	}
@@ -95,10 +96,12 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 		createAt: model.GetMillis(),
 	}
 
-	// run async not to block a caller
-	go func() {
-		b.channel <- ev
-	}()
+	select {
+	case b.channel <- ev:
+		// do nothing
+	case <-ctx.Context().Done():
+		return nil
+	}
 	return nil
 }
 
