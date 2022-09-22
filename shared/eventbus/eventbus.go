@@ -4,6 +4,7 @@
 package eventbus
 
 import (
+	"sort"
 	"sync"
 
 	"github.com/invopop/jsonschema"
@@ -13,9 +14,10 @@ import (
 )
 
 type Event struct {
-	Context request.CTX // request information
-	Topic   string      // topic name
-	Message any         // actual event data
+	Context  request.CTX // request information
+	Topic    string      // topic name
+	Message  any         // actual event data
+	createAt int64
 }
 
 type Handler func(ev Event) error
@@ -76,6 +78,9 @@ func (b *BrokerService) EventTypes() []EventType {
 	for _, event := range b.eventTypes {
 		types = append(types, event)
 	}
+	sort.Slice(types, func(i, j int) bool {
+		return types[i].Topic < types[j].Topic
+	})
 	return types
 }
 
@@ -84,9 +89,10 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 		return errors.New("topic does not exist")
 	}
 	ev := Event{
-		Topic:   topic,
-		Context: ctx,
-		Message: data,
+		Topic:    topic,
+		Context:  ctx,
+		Message:  data,
+		createAt: model.GetMillis(),
 	}
 
 	// run async not to block a caller
