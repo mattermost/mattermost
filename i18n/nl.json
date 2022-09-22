@@ -4321,7 +4321,7 @@
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
-    "translation": "Ongeldige kanaal id"
+    "translation": "Ongeldige kanaal id."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -4569,7 +4569,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's gebruiksvoorwaarden zijn bijgewerkt. Ga naar gitlab.com om deze te aanvaarden probeer opnieuw in te loggen op Mattermost."
+    "translation": "GitLab's gebruiksvoorwaarden zijn bijgewerkt. Ga naar {{.URL}} om deze te aanvaarden probeer opnieuw in te loggen op Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -7653,15 +7653,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Mislukte betaling"
+    "translation": "De betaling is niet gelukt"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Actie vereist: Betaling mislukt voor Mattermost Cloud"
+    "translation": "Actie vereist: Betaling mislukt voor Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Om een ononderbroken abonnement op Mattermost Cloud te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
+    "translation": "Om een ononderbroken toegang op Mattermost {{.Plan}} te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -9485,5 +9485,57 @@
   {
     "id": "api.templates.delinquency_90.subtitle1",
     "translation": "Als je Cloud Professional- of Enterprise-functies gebruikt voor belangrijke zakelijke activiteiten, zullen deze niet langer beschikbaar zijn en zal je verminderde prestaties ervaren."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML kon het Identity Provider Public Certificate niet succesvol laden, neem contact op met jouw systeembeheerder."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We konden het aantal badges van de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Kon geen kennisgevingsbericht verzenden."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Kon geen notificatie-data opslaan."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} lid van de {{.WorkspaceName}} werkruimte heeft een werkruimte upgrade aangevraagd voor: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} leden van de {{.WorkspaceName}} werkruimte hebben een werkruimte upgrade aangevraagd voor: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} lid van de {{.WorkspaceName}} werkruimte heeft gevraagd om de Enterprise-proefperiode te starten om toegang te krijgen tot: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} leden van de {{.WorkspaceName}} werkruimte hebben gevraagd om de Enterprise-proefperiode te starten om toegang te krijgen tot: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Abonnement is niet vervallen"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Kon het cloud abonnement niet ophalen"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Kan huidige plannaam niet ophalen"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Kon cloud producten niet ophalen"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Jouw Mattermost-werkruimte werd gedowngraded"
   }
 ]
