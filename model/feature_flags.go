@@ -75,6 +75,9 @@ type FeatureFlags struct {
 	PlanUpgradeButtonText string
 
 	PostPriority bool
+
+	// Enable WYSIWYG text editor
+	WysiwygEditor bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -103,6 +106,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsProduct = false
 	f.PlanUpgradeButtonText = "upgrade"
 	f.PostPriority = false
+	f.WysiwygEditor = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
