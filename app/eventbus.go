@@ -12,12 +12,12 @@ type Broker interface {
 	Publisher
 	Subscriber
 	Register
-	Start() error
+	Start()
 }
 
 type Register interface {
 	Register(topic, description string, typ any) error
-	EventTypes() ([]eventbus.EventType, error)
+	EventTypes() []eventbus.EventType
 }
 
 type Publisher interface {
