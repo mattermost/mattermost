@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package eventbus
+package eventbus_helper
 
 import (
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 )
 
@@ -19,13 +20,13 @@ func HandleEvent(handlerId string, event eventbus.Event) {
 	pluginEventListeners[handlerId].EventListener(event)
 }
 
-func SubscribeToEvent(p *PluginAPI, topic string, handler eventbus.Handler) (string, error) {
+func SubscribeToEvent(p plugin.API, topic string, handler eventbus.Handler) (string, error) {
 	if pluginEventListeners == nil {
 		pluginEventListeners = make(map[string]*PluginEventListener)
 	}
 
 	handlerId := model.NewId()
-	receivedId, err := p.API.SubscribeToEvent(topic, handlerId)
+	receivedId, err := p.SubscribeToEvent(topic, handlerId)
 	if err != nil {
 		return "", err
 	}
