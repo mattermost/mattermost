@@ -13,6 +13,7 @@ type Broker interface {
 	Subscriber
 	Register
 	Start()
+	Stop() error
 }
 
 type Register interface {

@@ -706,7 +706,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	s.bus = eventbus.NewBroker(10000, 1000)
+	s.bus = eventbus.NewBroker(10000, 1000, 5*time.Second)
 	s.bus.Start()
 
 	return s, nil

@@ -6,6 +6,8 @@ package eventbus
 import (
 	"sort"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/invopop/jsonschema"
 	"github.com/mattermost/mattermost-server/v6/app/request"
@@ -14,10 +16,11 @@ import (
 )
 
 type Event struct {
-	Context  request.CTX // request information
-	Topic    string      // topic name
-	Message  any         // actual event data
-	createAt int64
+	Context   request.CTX // request information
+	Topic     string      // topic name
+	Message   any         // actual event data
+	createAt  int64
+	requestID string
 }
 
 type Handler func(ev Event) error
@@ -34,23 +37,32 @@ type subscriber struct {
 }
 
 type BrokerService struct {
-	queueLimit      int
-	goroutineLimit  int
-	subscribers     map[string][]subscriber
-	subscriberMutex *sync.Mutex
-	channel         chan Event
-	eventTypes      map[string]EventType
-	eventMutex      *sync.Mutex
+	queueLimit            int
+	goroutineLimit        int
+	onStopTimeout         time.Duration
+	subscribers           map[string][]subscriber
+	subscriberMutex       *sync.Mutex
+	channel               chan Event
+	eventTypes            map[string]EventType
+	eventMutex            *sync.Mutex
+	goroutineCount        int32
+	goroutineExitSignal   chan struct{}
+	goroutineLimitChannel chan struct{}
 }
 
-func NewBroker(queueLimit, goroutineLimit int) *BrokerService {
+func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *BrokerService {
 	return &BrokerService{
-		queueLimit:      queueLimit,
-		goroutineLimit:  goroutineLimit,
-		subscribers:     map[string][]subscriber{},
-		subscriberMutex: &sync.Mutex{},
-		channel:         make(chan Event, queueLimit),
-		eventMutex:      &sync.Mutex{},
+		queueLimit:            queueLimit,
+		goroutineLimit:        goroutineLimit,
+		onStopTimeout:         onStopTimeout,
+		subscribers:           map[string][]subscriber{},
+		subscriberMutex:       &sync.Mutex{},
+		channel:               make(chan Event, queueLimit),
+		eventMutex:            &sync.Mutex{},
+		eventTypes:            map[string]EventType{},
+		goroutineCount:        0,
+		goroutineExitSignal:   make(chan struct{}, 1),
+		goroutineLimitChannel: make(chan struct{}, goroutineLimit),
 	}
 }
 
@@ -90,10 +102,11 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 		return errors.New("topic does not exist")
 	}
 	ev := Event{
-		Topic:    topic,
-		Context:  ctx,
-		Message:  data,
-		createAt: model.GetMillis(),
+		Topic:     topic,
+		Context:   ctx,
+		Message:   data,
+		createAt:  model.GetMillis(),
+		requestID: ctx.RequestId(),
 	}
 
 	select {
@@ -148,7 +161,44 @@ func (b *BrokerService) runHandlers() {
 	for {
 		ev := <-b.channel
 		for _, subscriber := range b.subscribers[ev.Topic] {
-			go subscriber.handler(ev)
+			b.runGoroutine(func() { subscriber.handler(ev) })
 		}
+	}
+}
+
+// runGoroutine creates a goroutine, but maintains a record of it to ensure that execution completes before
+// the server is shutdown.
+func (b *BrokerService) runGoroutine(f func()) {
+	b.goroutineLimitChannel <- struct{}{}
+	atomic.AddInt32(&b.goroutineCount, 1)
+
+	go func() {
+		f()
+		<-b.goroutineLimitChannel
+
+		atomic.AddInt32(&b.goroutineCount, -1)
+		select {
+		case b.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+	}()
+}
+
+// Stop blocks until all goroutines created by runGoroutine are finish or exists
+// when time is out.
+func (b *BrokerService) Stop() error {
+	done := make(chan struct{}, 1)
+	go func() {
+		for atomic.LoadInt32(&b.goroutineCount) != 0 {
+			<-b.goroutineExitSignal
+		}
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(b.onStopTimeout):
+		return errors.Errorf("not able to finish all handlers in %d seconds", b.onStopTimeout)
 	}
 }
