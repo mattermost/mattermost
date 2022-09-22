@@ -2298,7 +2298,7 @@ func (a *App) runMoveThreadCommand(c *request.Context, postID string, channelID 
 
 	// To simulate the move, we first copy the original messages(s) to the
 	// new channel and later delete the original messages(s).
-	newRootPost, err := a.copyWranglerPostlist(c, wpl, targetChannel)
+	newRootPost, err := a.CopyWranglerPostlist(c, wpl, targetChannel)
 	if err != nil {
 		return model.NewAppError("copyWranglerPostlist", "app.post.run_move_thread_command.request_error", nil, "TargetChannelID="+channelID+"", http.StatusBadRequest)
 	}
