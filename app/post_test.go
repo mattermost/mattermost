@@ -941,6 +941,45 @@ func TestCreatePost(t *testing.T) {
 
 		wg.Wait()
 	})
+
+	t.Run("should successfully create a voice post", func(t *testing.T) {
+		// feature flag setup
+		ffInitialValue := os.Getenv("MM_FEATUREFLAGS_EnableVoiceMessages")
+		os.Setenv("MM_FEATUREFLAGS_EnableVoiceMessages", "true")
+		defer func() {
+			os.Setenv("MM_FEATUREFLAGS_EnableVoiceMessages", ffInitialValue)
+		}()
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ExperimentalSettings.EnableVoiceMessages = model.NewBool(true)
+		})
+
+		nowMillis := time.Now().UnixMilli()
+		fileInfo, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: th.BasicUser.Id,
+			Path:      "/path/to/file.mp3",
+			Size:      *th.App.Config().FileSettings.MaxVoiceMessagesFileSize - 1,
+			CreateAt:  nowMillis,
+			UpdateAt:  nowMillis,
+		})
+		require.NoError(t, err)
+
+		voicePost, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeVoice,
+			FileIds:   []string{fileInfo.Id},
+		}, th.BasicChannel, false, false)
+		require.Nil(t, err)
+
+		require.Equal(t, model.PostTypeVoice, voicePost.Type)
+		require.Len(t, voicePost.Metadata.Files, 1)
+		require.Equal(t, fileInfo.Id, voicePost.Metadata.Files[0].Id)
+	})
 }
 
 func TestValidateVoiceMessage(t *testing.T) {
