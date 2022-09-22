@@ -2250,6 +2250,10 @@
     "translation": "Invalid RootId parameter."
   },
   {
+    "id": "api.post.create_post.voice_messages_disabled.app_error",
+    "translation": "The voice message feature is not active."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
