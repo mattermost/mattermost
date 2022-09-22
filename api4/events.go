@@ -26,11 +26,7 @@ func getTopics(c *Context, w http.ResponseWriter, r *http.Request) {
 	// parameter withSchema is to be parsed
 	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
 
-	topics, err := c.App.EventBroker().EventTypes()
-	if err != nil {
-		c.Err = model.NewAppError("getTopics", "app.broker_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
+	topics := c.App.EventBroker().EventTypes()
 
 	if !withSchema {
 		for i := range topics {
@@ -57,11 +53,7 @@ func getTopic(c *Context, w http.ResponseWriter, r *http.Request) {
 	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
 	topicId := c.Params.TopicId
 
-	topics, err := c.App.EventBroker().EventTypes()
-	if err != nil {
-		c.Err = model.NewAppError("getTopics", "app.broker_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
+	topics := c.App.EventBroker().EventTypes()
 
 	topic := getTopicByIdFromTopics(topicId, topics)
 
@@ -81,11 +73,7 @@ func getSchema(c *Context, w http.ResponseWriter, r *http.Request) {
 	// parameter topicId
 	topicId := c.Params.TopicId
 
-	topics, err := c.App.EventBroker().EventTypes()
-	if err != nil {
-		c.Err = model.NewAppError("getTopics", "app.broker_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
+	topics := c.App.EventBroker().EventTypes()
 
 	topic := getTopicByIdFromTopics(topicId, topics)
 
@@ -95,8 +83,8 @@ func getSchema(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getTopicByIdFromTopics(topicId string, topics []*eventbus.EventType) *eventbus.EventType {
-	var topic *eventbus.EventType
+func getTopicByIdFromTopics(topicId string, topics []eventbus.EventType) eventbus.EventType {
+	var topic eventbus.EventType
 	for _, t := range topics {
 		if t.Topic == topicId {
 			topic = t
