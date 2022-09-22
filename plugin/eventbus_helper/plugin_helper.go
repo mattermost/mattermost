@@ -15,13 +15,15 @@ type PluginEventListener struct {
 
 var pluginEventListeners map[string]*PluginEventListener
 
-func InitializePluginHelper() {
-	pluginEventListeners = make(map[string]*PluginEventListener)
-
-	// TODO: Receive from hooks and do call the handler the good
+func HandleEvent(handlerId string, event eventbus.Event) {
+	pluginEventListeners[handlerId].EventListener(event)
 }
 
 func SubscribeToEvent(p *PluginAPI, topic string, handler eventbus.Handler) (string, error) {
+	if pluginEventListeners == nil {
+		pluginEventListeners = make(map[string]*PluginEventListener)
+	}
+
 	handlerId := model.NewId()
 	receivedId, err := p.API.SubscribeToEvent(topic, handlerId)
 	if err != nil {
