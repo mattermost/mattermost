@@ -13515,7 +13515,7 @@ func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginID string, command *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RegisterTopic(topic string, description string, typ app.any) error {
+func (a *OpenTracingAppLayer) RegisterTopic(topic string, description string, typ interface{}) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterTopic")
 
