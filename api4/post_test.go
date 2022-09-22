@@ -3443,6 +3443,8 @@ func TestMovePost(t *testing.T) {
 			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin"}
 		})
 
+		th.LoginBasicWithClient(th.Client)
+
 		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
 		})
@@ -3455,6 +3457,8 @@ func TestMovePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin", "system_user"}
 		})
+
+		th.LoginBasicWithClient(th.Client)
 
 		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
