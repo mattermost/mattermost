@@ -2890,11 +2890,11 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 type WranglerSettings struct {
 	PermittedWranglerUsers                   []string
 	AllowedEmailDomain                       []string
-	MoveThreadMaxCount                       int64
-	MoveThreadToAnotherTeamEnable            bool
-	MoveThreadFromPrivateChannelEnable       bool
-	MoveThreadFromDirectMessageChannelEnable bool
-	MoveThreadFromGroupMessageChannelEnable  bool
+	MoveThreadMaxCount                       *int64
+	MoveThreadToAnotherTeamEnable            *bool
+	MoveThreadFromPrivateChannelEnable       *bool
+	MoveThreadFromDirectMessageChannelEnable *bool
+	MoveThreadFromGroupMessageChannelEnable  *bool
 }
 
 func (w *WranglerSettings) SetDefaults() {
@@ -2904,11 +2904,21 @@ func (w *WranglerSettings) SetDefaults() {
 	if w.AllowedEmailDomain == nil {
 		w.AllowedEmailDomain = make([]string, 0)
 	}
-	w.MoveThreadMaxCount = 100
-	w.MoveThreadToAnotherTeamEnable = true
-	w.MoveThreadFromPrivateChannelEnable = true
-	w.MoveThreadFromDirectMessageChannelEnable = true
-	w.MoveThreadFromGroupMessageChannelEnable = true
+	if w.MoveThreadMaxCount == nil {
+		w.MoveThreadMaxCount = NewInt64(100)
+	}
+	if w.MoveThreadToAnotherTeamEnable == nil {
+		w.MoveThreadToAnotherTeamEnable = NewBool(false)
+	}
+	if w.MoveThreadFromPrivateChannelEnable == nil {
+		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromDirectMessageChannelEnable == nil {
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromGroupMessageChannelEnable == nil {
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
+	}
 }
 
 func (w *WranglerSettings) IsValid() *AppError {
