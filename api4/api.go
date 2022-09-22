@@ -139,8 +139,6 @@ type Routes struct {
 	InsightsForUser *mux.Router // 'api/v4/users/me/top'
 
 	Usage *mux.Router // 'api/v4/usage'
-
-	Events *mux.Router // 'api/v4/events'
 }
 
 type API struct {
@@ -267,8 +265,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
 
-	api.BaseRoutes.Events = api.BaseRoutes.APIRoot.PathPrefix("/events").Subrouter()
-
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -312,7 +308,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitExport()
 	api.InitInsights()
 	api.InitUsage()
-	api.InitEvents()
 
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
