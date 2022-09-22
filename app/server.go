@@ -66,6 +66,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -201,6 +202,7 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]Product
+	bus      *eventbus.BrokerService
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -703,6 +705,9 @@ func NewServer(options ...Option) (*Server, error) {
 			s.openGraphDataCache.Purge()
 		}
 	})
+
+	s.bus = eventbus.NewBroker(10000, 1000)
+	s.bus.Start()
 
 	return s, nil
 }
