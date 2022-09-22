@@ -968,13 +968,13 @@ func TestCreatePost(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		voicePost, err := th.App.CreatePost(th.Context, &model.Post{
+		voicePost, appErr := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Type:      model.PostTypeVoice,
 			FileIds:   []string{fileInfo.Id},
 		}, th.BasicChannel, false, false)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
 		require.Equal(t, model.PostTypeVoice, voicePost.Type)
 		require.Len(t, voicePost.Metadata.Files, 1)
