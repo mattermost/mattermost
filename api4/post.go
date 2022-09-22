@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -929,6 +930,40 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// If there are no configured PermittedWranglerUsers, skip the check
+	userHasRole := false || len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0
+	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
+		if user.IsInRole(role) {
+			userHasRole = true
+			break
+		}
+	}
+
+	// Sysadmins are always permitted
+	if !userHasRole && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+		return
+	}
+
+	userHasEmailDomain := false || len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
+	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
+		if user.EmailDomain() == domain {
+			userHasEmailDomain = true
+			break
+		}
+	}
+
+	if !userHasEmailDomain && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
 		return
 	}
 

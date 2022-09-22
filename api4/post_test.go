@@ -3437,4 +3437,88 @@ func TestMovePost(t *testing.T) {
 		}()
 		require.Equalf(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 	})
+
+	t.Run("Users with role not in PermittedWranglerUsers aren't allowed to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin"}
+		})
+
+		th.LoginBasicWithClient(th.Client)
+
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Users with role in PermittedWranglerUsers are able to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin", "system_user"}
+		})
+
+		th.LoginBasicWithClient(th.Client)
+
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("System admins with role not in PermittedWranglerUsers are allowed to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.PermittedWranglerUsers = []string{"random_role"}
+		})
+
+		th.LoginSystemAdminWithClient(th.Client)
+
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("Users with email address in AllowedEmailDomain are able to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.AllowedEmailDomain = []string{"localhost"}
+		})
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("Users with email address not in AllowedEmailDomain aren't allowed to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.AllowedEmailDomain = []string{"example.com"}
+		})
+
+		th.LoginBasicWithClient(th.Client)
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("System Admin with email address not in AllowedEmailDomains are allowed to move posts", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.WranglerSettings.AllowedEmailDomain = []string{"example.com"}
+		})
+		th.LoginSystemAdminWithClient(th.Client)
+		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
+			ChannelId: th.BasicChannel2.Id,
+		})
+
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
