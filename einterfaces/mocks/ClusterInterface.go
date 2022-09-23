@@ -88,15 +88,15 @@ func (_m *ClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.App
 }
 
 // GetLogs provides a mock function with given fields: page, perPage
-func (_m *ClusterInterface) GetLogs(page int, perPage int) ([]string, *model.AppError) {
+func (_m *ClusterInterface) GetLogs(page int, perPage int) (map[string][]string, *model.AppError) {
 	ret := _m.Called(page, perPage)
 
-	var r0 []string
-	if rf, ok := ret.Get(0).(func(int, int) []string); ok {
+	var r0 map[string][]string
+	if rf, ok := ret.Get(0).(func(int, int) map[string][]string); ok {
 		r0 = rf(page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
+			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 

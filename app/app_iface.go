@@ -668,6 +668,7 @@ type AppIface interface {
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError)
 	GetLogs(page, perPage int) (map[string][]string, *model.AppError)
+	GetLogsOld(page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)
 	GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string

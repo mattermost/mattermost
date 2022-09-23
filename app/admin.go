@@ -24,6 +24,41 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
+func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
+	var lines []string
+
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
+		if info := s.Cluster.GetMyClusterInfo(); info != nil {
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, info.Hostname)
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		} else {
+			mlog.Error("Could not get cluster info")
+		}
+	}
+
+	melines, err := s.GetLogsSkipSend(page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	lines = append(lines, melines...)
+
+	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
+		clines, err := s.Cluster.GetLogs(page, perPage)
+		if err != nil {
+			return nil, err
+		}
+
+		lines = append(lines, clines...)
+	}
+
+	return lines, nil
+}
+
 func (s *Server) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
@@ -63,6 +98,10 @@ func (s *Server) GetLogs(page, perPage int) (map[string][]string, *model.AppErro
 
 func (a *App) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return a.Srv().GetLogs(page, perPage)
+}
+
+func (a *App) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogsOld(page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {

@@ -46,7 +46,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("POST")
+	api.BaseRoutes.APIRoot.Handle("/logs/old", api.APISessionRequired(getLogsOld)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
@@ -362,6 +363,32 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write(model.ToJSON(logsJSON))
+}
+
+func getLogsOld(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("getLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionGetLogs) {
+		c.SetPermissionError(model.PermissionGetLogs)
+		return
+	}
+
+	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("logs_per_page", c.Params.LogsPerPage)
+
+	w.Write([]byte(model.ArrayToJSON(lines)))
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
