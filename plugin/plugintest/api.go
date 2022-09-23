@@ -2881,6 +2881,20 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
+// PublishEvent provides a mock function with given fields: topic, data
+func (_m *API) PublishEvent(topic string, data interface{}) error {
+	ret := _m.Called(topic, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+		r0 = rf(topic, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // PublishPluginClusterEvent provides a mock function with given fields: ev, opts
 func (_m *API) PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error {
 	ret := _m.Called(ev, opts)
@@ -2948,6 +2962,20 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*model.Command) error); ok {
 		r0 = rf(command)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RegisterEvent provides a mock function with given fields: topic, description, typ
+func (_m *API) RegisterEvent(topic string, description string, typ interface{}) error {
+	ret := _m.Called(topic, description, typ)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, interface{}) error); ok {
+		r0 = rf(topic, description, typ)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3327,6 +3355,27 @@ func (_m *API) SetUserStatusTimedDND(userId string, endtime int64) (*model.Statu
 	return r0, r1
 }
 
+// SubscribeToEvent provides a mock function with given fields: topic, handlerId
+func (_m *API) SubscribeToEvent(topic string, handlerId string) (string, error) {
+	ret := _m.Called(topic, handlerId)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(topic, handlerId)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(topic, handlerId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UnregisterCommand provides a mock function with given fields: teamID, trigger
 func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	ret := _m.Called(teamID, trigger)
@@ -3334,6 +3383,20 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(teamID, trigger)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnsubscribeFromEvent provides a mock function with given fields: topic, id
+func (_m *API) UnsubscribeFromEvent(topic string, id string) error {
+	ret := _m.Called(topic, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(topic, id)
 	} else {
 		r0 = ret.Error(0)
 	}

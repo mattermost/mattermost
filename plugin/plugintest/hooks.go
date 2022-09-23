@@ -5,8 +5,11 @@
 package plugintest
 
 import (
-	io "io"
 	http "net/http"
+
+	eventbus "github.com/mattermost/mattermost-server/v6/shared/eventbus"
+
+	io "io"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -216,6 +219,11 @@ func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error 
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
 func (_m *Hooks) OnPluginClusterEvent(c *plugin.Context, ev model.PluginClusterEvent) {
 	_m.Called(c, ev)
+}
+
+// OnPluginReceiveEvent provides a mock function with given fields: handlerId, event
+func (_m *Hooks) OnPluginReceiveEvent(handlerId string, event eventbus.Event) {
+	_m.Called(handlerId, event)
 }
 
 // OnSendDailyTelemetry provides a mock function with given fields:

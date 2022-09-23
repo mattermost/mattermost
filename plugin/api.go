@@ -1157,6 +1157,26 @@ type API interface {
 	//
 	// Minimum server version: 7.1
 	EnsureBotUser(bot *model.Bot) (string, error)
+
+	// RegisterEvent registers a new event to the event bus schema
+	//
+	// Minimum server version: 7.4
+	RegisterEvent(topic, description string, typ any) error
+
+	// SubscribeToEvent registers an event handler that will fire when an event is emitted
+	//
+	// Minimum server version: 7.4
+	SubscribeToEvent(topic, handlerId string) (string, error)
+
+	// UnsubscribeFromEvent unregisters the event handler for the given id and topic
+	//
+	// Minimum server version: 7.4
+	UnsubscribeFromEvent(topic, id string) error
+
+	// PublishEvent fires an event on the specific topic to the event bus
+	//
+	// Minimum server version: 7.4
+	PublishEvent(topic string, data any) error
 }
 
 var handshake = plugin.HandshakeConfig{
