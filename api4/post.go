@@ -734,6 +734,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Voice posts cannot be edited
+	if post.IsVoiceMessage() {
+		c.Err = model.NewAppError("updatePost", "api.update_post.cant_update_voice_message.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)

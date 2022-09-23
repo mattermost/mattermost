@@ -292,7 +292,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
 	}
 
-	if post.Type == model.PostTypeVoice {
+	if post.IsVoiceMessage() {
 		// make sure voice messages are allowed
 		if a.Config().FeatureFlags.EnableVoiceMessages && *a.Config().ExperimentalSettings.EnableVoiceMessages {
 			if err = a.validateVoiceMessage(post); err != nil {
@@ -336,7 +336,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
-		if post.Type == model.PostTypeVoice {
+		if post.IsVoiceMessage() {
 			a.Metrics().IncrementVoiceMessageCreate()
 		}
 	}

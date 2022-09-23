@@ -769,3 +769,7 @@ func (o *Post) GetPreviewedPostProp() string {
 	}
 	return ""
 }
+
+func (o *Post) IsVoiceMessage() bool {
+	return o.Type == PostTypeVoice
+}

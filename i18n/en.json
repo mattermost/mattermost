@@ -3892,6 +3892,10 @@
     "translation": "Failed to unmarshal."
   },
   {
+    "id": "api.update_post.cant_update_voice_message.app_error",
+    "translation": "You can not uodate a voice message."
+  },
+  {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
