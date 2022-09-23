@@ -24,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
 )
 
 const (
@@ -2215,14 +2214,6 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 	return newRootPost, nil
 }
 
-func getMoveThreadFlagSet() *pflag.FlagSet {
-	flagSet := pflag.NewFlagSet("move thread", pflag.ContinueOnError)
-	flagSet.Bool(flagMoveThreadShowMessageSummary, true, "Show the root message in the post-move summary")
-	flagSet.Bool(flagMoveThreadSilent, false, "Silence all Wrangler summary messages and user DMs when moving the thread")
-
-	return flagSet
-}
-
 func quoteBlock(in string) string {
 	return fmt.Sprintf("> %s", in)
 }
@@ -2322,19 +2313,19 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	// 	return model.NewAppError("GetUser", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
 	// }
 
-	if user.Id != wpl.RootPost().UserId {
-		// The wrangled thread was not started by the user running the command.
-		// Send a DM to the user who created the root message to let them know.
+	// if user.Id != wpl.RootPost().UserId {
+	// The wrangled thread was not started by the user running the command.
+	// Send a DM to the user who created the root message to let them know.
 
-		// TODO: Implement
-		// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
-		// if err != nil {
-		// 	p.API.LogError("Unable to send move-thread DM to user",
-		// 		"error", err.Error(),
-		// 		"user_id", wpl.RootPost().UserId,
-		// 	)
-		// }
-	}
+	// TODO: Implement
+	// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
+	// if err != nil {
+	// 	p.API.LogError("Unable to send move-thread DM to user",
+	// 		"error", err.Error(),
+	// 		"user_id", wpl.RootPost().UserId,
+	// 	)
+	// }
+	// }
 
 	msg := fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
 	if wpl.NumPosts() == 1 {
