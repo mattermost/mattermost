@@ -205,3 +205,27 @@ func TestGetInfoForFile(t *testing.T) {
 		})
 	}
 }
+
+func TestFileInfo_CanBeUsedForVoiceMessage(t *testing.T) {
+	tests := []struct {
+		name     string
+		mimeType string
+		want     bool
+	}{
+		// TODO: Add test cases.
+		{"works with audio/mpeg", "audio/mpeg", true},
+		{"works with audio/mp3", "audio/mp3", true},
+		{"is case insensitive", "AuDio/MpEG", true},
+		{"fails for other type", "audio/wav", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &FileInfo{
+				MimeType: tt.mimeType,
+			}
+			if got := o.CanBeUsedForVoiceMessage(); got != tt.want {
+				t.Errorf("FileInfo.CanBeUsedForVoiceMessage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
