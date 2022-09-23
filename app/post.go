@@ -2126,18 +2126,10 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 		return errors.New(fmt.Sprintf("Error: the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), config.MoveThreadMaxCount))
 	}
 
-	// if wpl.RootPost().ChannelId != originalChannel.Id {
-	// 	return errors.New("Error: this command must be run from the channel containing the post")
-	// }
-
 	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
 	if appErr != nil {
 		return errors.New(fmt.Sprintf("Error: channel with ID %s doesn't exist or you are not a member", targetChannel.Id))
 	}
-
-	// if extra.RootId == wpl.RootPost().Id || extra.ParentId == wpl.RootPost().Id {
-	// 	return errors.New("Error: this command cannot be run from inside the thread; please run directly in the channel containing the thread")
-	// }
 
 	return nil
 }
@@ -2254,12 +2246,6 @@ func cleanMessage(message string) string {
 	return message
 }
 
-// func cleanMessageJSON(message string) string {
-// 	message = strings.TrimLeft(message, " ")
-// 	message = strings.ReplaceAll(message, "\\n", "\n")
-// 	return message
-// }
-
 func trimMessage(message string, trimLength int) string {
 	if len(message) <= trimLength {
 		return message
@@ -2311,6 +2297,7 @@ func (a *App) MoveThread(c *request.Context, postID string, channelID string, us
 	_, appErr = a.CreatePost(c, &model.Post{
 		// TODO: Make this the System user, not the calling user.
 		UserId:    user.Id,
+		Type:      model.PostTypeSystemGeneric,
 		RootId:    newRootPost.Id,
 		ChannelId: channelID,
 		Message:   "This thread was moved from another channel",
