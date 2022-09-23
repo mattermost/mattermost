@@ -2308,6 +2308,10 @@
     "translation": "Link previews have been disabled by the system administrator."
   },
   {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
+  },
+  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -6058,6 +6062,10 @@
   {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
   },
   {
     "id": "app.post.overwrite.app_error",

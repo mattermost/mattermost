@@ -2216,7 +2216,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
-		return model.NewAppError("getPostThread", "app.post.run_move_thread_command.request_error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
+		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 
@@ -2235,7 +2235,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 
 	err := a.ValidateMoveOrCopy(c, wpl, originalChannel, targetChannel, user)
 	if err != nil {
-		return model.NewAppError("validateMoveOrCopy", "app.post.run_move_thread_command.request_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	targetTeam, appErr := a.GetTeam(targetChannel.TeamId)
