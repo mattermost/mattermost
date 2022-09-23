@@ -6,6 +6,7 @@ import (
 
 	fbClient "github.com/mattermost/focalboard/server/client"
 	fbModel "github.com/mattermost/focalboard/server/model"
+	fbUtils "github.com/mattermost/focalboard/server/utils"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/app"
@@ -53,6 +54,10 @@ func (ap *AgendaProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (ap *AgendaProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	if a.Config().ServiceSettings.SiteURL != nil {
+		return responsef("SiteURL must be set to use the agenda command")
+	}
+
 	split := strings.Fields(message)
 
 	if len(split) <= 2 {
@@ -68,7 +73,7 @@ func (ap *AgendaProvider) DoCommand(a *app.App, c request.CTX, args *model.Comma
 		return ap.executeQueueCommand(a, c, args, topic)
 
 	case "list":
-		return ap.executeListCommand(args)
+		return ap.executeListCommand(a, args)
 	}
 
 	return &model.CommandResponse{}
@@ -103,23 +108,26 @@ func (ap *AgendaProvider) executeQueueCommand(a *app.App, c request.CTX, args *m
 	return &model.CommandResponse{}
 }
 
-func (ap *AgendaProvider) executeListCommand(args *model.CommandArgs) *model.CommandResponse {
-
+func (ap *AgendaProvider) executeListCommand(app *app.App, args *model.CommandArgs) *model.CommandResponse {
 	fmt.Println("Listing agenda items here")
 
-	// Pass params here from the command as needed
+	// get agenda board for current channel
+
+	// make card link for every "up next" card
+
+	// post ephemeral message for each card link; unfurl will display the card for user.
+
 	return &model.CommandResponse{}
 }
 
 func (ap *AgendaProvider) addCardToBoard(a *app.App, c request.CTX, channel *model.Channel, userID, title, usersession string) (string, error) {
-	if *&a.Config().ServiceSettings.SiteURL != nil {
+	if a.Config().ServiceSettings.SiteURL != nil {
 		return "", errors.New("SiteURL must be set to create a card in the agenda board")
 	}
 
 	// We are connecting to the Focalboard API directly
 	// while it is brought in as part of the multi-product architecture
-	fbUrl := fmt.Sprintf("%s/plugins/focalboard", *&a.Config().ServiceSettings.SiteURL)
-	fbClient := fbClient.NewClient(fbUrl, usersession)
+	fbClient := getBoardsClient(a, usersession)
 
 	board, err := ap.getOrCreateBoardForChannel(channel.Id, userID, fbClient, a, c)
 	if err != nil {
@@ -178,9 +186,7 @@ func (ap *AgendaProvider) addCardToBoard(a *app.App, c request.CTX, channel *mod
 		return "", errors.New("blocks not inserted correctly to board created")
 	}
 
-	defaultBoardView := "0"
-	cardUrl := fmt.Sprintf("%s/boards/team/%s/%s/%s/%s", *&a.Config().ServiceSettings.SiteURL, channel.TeamId, board.ID, defaultBoardView, blocks[0].ID)
-
+	cardUrl := fbUtils.MakeCardLink(*a.Config().ServiceSettings.SiteURL, channel.TeamId, board.ID, blocks[0].ID)
 	return cardUrl, err
 }
 
@@ -216,7 +222,7 @@ func (ap *AgendaProvider) getOrCreateBoardForChannel(channelID, creatorUserID st
 	propSearchId := "agenda-" + channelID
 
 	board := &fbModel.Board{
-		ID:        model.NewId(),
+		ID:        fbUtils.NewID(fbUtils.IDTypeBoard),
 		TeamID:    channel.TeamId,
 		ChannelID: channel.Id,
 		Type:      fbModel.BoardTypeOpen,
@@ -350,4 +356,9 @@ func getPropertyOptionByValue(property map[string]interface{}, value string) map
 	}
 
 	return nil
+}
+
+func getBoardsClient(app *app.App, userSession string) *fbClient.Client {
+	fbUrl := fmt.Sprintf("%s/plugins/focalboard", *app.Config().ServiceSettings.SiteURL)
+	return fbClient.NewClient(fbUrl, userSession)
 }
