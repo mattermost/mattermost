@@ -2335,6 +2335,16 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		),
 	)
 
+	_, appErr = a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		Type:      model.PostTypeSystemGeneric,
+		ChannelId: originalChannel.Id,
+		Message:   msg,
+	}, originalChannel, false, false)
+	if appErr != nil {
+		return appErr
+	}
+
 	c.Logger().Info(msg)
 	return nil
 }
