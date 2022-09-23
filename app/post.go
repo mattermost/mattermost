@@ -2212,37 +2212,6 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 	return newRootPost, nil
 }
 
-func quoteBlock(in string) string {
-	return fmt.Sprintf("> %s", in)
-}
-
-func cleanAndTrimMessage(message string, trimLength int) string {
-	return trimMessage(cleanMessage(message), trimLength)
-}
-
-func cleanMessage(message string) string {
-	// Remove any leading whitespace and header markdown.
-	message = strings.TrimLeft(message, " ")
-	message = strings.TrimLeft(message, "#")
-	message = strings.TrimLeft(message, " ")
-
-	// Remove all code block markdown.
-	message = strings.Replace(message, "```", "", -1)
-
-	// Replace all newlines to keep summary condensed.
-	message = strings.Replace(message, "\n", " | ", -1)
-
-	return message
-}
-
-func trimMessage(message string, trimLength int) string {
-	if len(message) <= trimLength {
-		return message
-	}
-
-	return fmt.Sprintf("%s...", message[:trimLength])
-}
-
 func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
 
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
