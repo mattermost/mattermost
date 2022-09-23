@@ -146,6 +146,7 @@ type API struct {
 	schema     *graphql.Schema
 	BaseRoutes *Routes
 
+	// The following are used for testing purposes only
 	knownAPIsByScope map[model.Scope][]string
 	knownAPIsByName  map[string]model.APIScopes
 }
