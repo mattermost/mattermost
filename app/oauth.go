@@ -39,6 +39,7 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 	}
 
 	app.ClientSecret = model.NewId()
+	app.Scopes = model.AppScopes(model.NormalizeScopes(app.Scopes))
 
 	oauthApp, err := a.Srv().Store.OAuth().SaveApp(app)
 	if err != nil {
@@ -85,6 +86,9 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreatorId = oldApp.CreatorId
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
+
+	// Make sure the new app's scopes are normalized.
+	updatedApp.Scopes = model.AppScopes(model.NormalizeScopes(updatedApp.Scopes))
 
 	oauthApp, err := a.Srv().Store.OAuth().UpdateApp(updatedApp)
 	if err != nil {

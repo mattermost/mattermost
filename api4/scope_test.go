@@ -4,19 +4,33 @@
 package api4
 
 import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func TestAPIScopeAssignemt(t *testing.T) {
-	th := SetupEnterprise(t)
+func TestScopes(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("by name", func(t *testing.T) {
+	// This test verifies that each API is assigned correct scopes. It needs to
+	// be updated when APIs are added/removed, or change their scope
+	// requirements.
+	t.Run("required scopes by API name", func(t *testing.T) {
 		expected := map[string]model.APIScopes{
 			"addChannelMember":                     {model.ScopeChannelsJoin},
 			"addTeamMember":                        {model.ScopeTeamsJoin},
@@ -182,7 +196,10 @@ func TestAPIScopeAssignemt(t *testing.T) {
 		require.EqualValues(t, expected, th.API.knownAPIsByName)
 	})
 
-	t.Run("by scope", func(t *testing.T) {
+	// This test verifies that each API is assigned correct scopes. It needs to
+	// be updated when APIs are added/removed, or change their scope
+	// requirements.
+	t.Run("APIs by scope name", func(t *testing.T) {
 		expected := map[model.Scope][]string{
 			"*:*": {
 				"login",
@@ -711,5 +728,195 @@ func TestAPIScopeAssignemt(t *testing.T) {
 		}
 
 		require.EqualValues(t, normalize(expected), normalize(th.API.knownAPIsByScope))
+	})
+
+	// Test that the API and plugin scope restrictions actually work.
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	th = th.InitBasic()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	// install the test plugin
+	pluginID := "testpluginhttp"
+	pluginDir := *th.App.Config().PluginSettings.Directory
+	pluginWebappDir := *th.App.Config().PluginSettings.ClientDirectory
+	code := `
+	package main
+
+	import (
+		"net/http"
+
+		"github.com/mattermost/mattermost-server/v6/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, req *http.Request) {
+		_, _ = w.Write([]byte(req.Header.Get("Mattermost-Scopes")))
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	`
+	pluginServer := filepath.Join(pluginDir, pluginID, pluginID)
+	utils.CompileGo(t, code, pluginServer)
+	manifest := fmt.Sprintf(`{"id": "%s", "server": {"executable": "%s"}}`, pluginID, pluginID)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(manifest), 0600)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
+			Enable: true,
+		}
+	})
+
+	th.App.InitPlugins(th.Context, pluginDir, pluginWebappDir)
+
+	pr, _, err := th.SystemAdminClient.GetPlugins()
+	require.NoError(t, err)
+	require.Len(t, pr.Active, 1)
+	require.Equal(t, pluginID, pr.Active[0].Id)
+	require.Len(t, pr.Inactive, 0)
+
+	// setupTestAppClient sets up a test OAuth app with specified scopes, and obtains a client for it.
+	setupTestAppClient := func(scopes model.AppScopes) (*model.OAuthApp, *model.Client4) {
+		oauthApp := &model.OAuthApp{
+			Name:         "OAuthScopedApp" + model.NewId(),
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://nowhere.com"},
+			CreatorId:    th.SystemAdminUser.Id,
+			Scopes:       scopes,
+		}
+		oauthApp, appErr := th.App.CreateOAuthApp(oauthApp)
+		require.Nil(t, appErr)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     oauthApp.Id,
+			RedirectURI:  oauthApp.CallbackUrls[0],
+			Scope:        "all",
+			State:        "123",
+		}
+
+		redirect, _, err := th.SystemAdminClient.AuthorizeOAuthApp(authRequest)
+		require.NoError(t, err)
+		rurl, _ := url.Parse(redirect)
+		data := url.Values{
+			"grant_type":    []string{model.AccessTokenGrantType},
+			"client_id":     []string{oauthApp.Id},
+			"client_secret": []string{oauthApp.ClientSecret},
+			"code":          []string{rurl.Query().Get("code")},
+			"redirect_uri":  []string{oauthApp.CallbackUrls[0]},
+		}
+
+		client := model.NewAPIv4Client(th.Client.URL)
+		rsp, _, err := client.GetOAuthAccessToken(data)
+		require.NoError(t, err)
+		require.NotEmpty(t, rsp.AccessToken, "access token not returned")
+		token := rsp.AccessToken
+		require.Equal(t, rsp.TokenType, model.AccessTokenType, "access token type incorrect")
+		client.SetOAuthToken(token)
+
+		return oauthApp, client
+	}
+
+	t.Run("GetUser", func(t *testing.T) {
+		for _, tc := range []struct {
+			name          string
+			scopes        model.AppScopes
+			expectFailure bool
+		}{
+			{
+				name:   "matching scope",
+				scopes: model.AppScopes{"users:read"},
+			},
+			{
+				name:   "broader scope",
+				scopes: model.AppScopes{"users:read", "channels:read"},
+			},
+			{
+				name: "legacy app no scopes",
+			},
+			{
+				name:          "mismatched scope",
+				scopes:        model.AppScopes{"users:update", "channels:read"},
+				expectFailure: true,
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, client := setupTestAppClient(tc.scopes)
+
+				user, resp, err := client.GetUser(th.BasicUser.Id, "")
+				if !tc.expectFailure {
+					require.NoError(t, err)
+					require.Equal(t, th.BasicUser.Id, user.Id, "should have returned the user")
+					require.Equal(t, http.StatusOK, resp.StatusCode, "should have returned a 200 status code")
+				} else {
+					require.Error(t, err)
+					require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+				}
+			})
+		}
+	})
+
+	t.Run("plugin access", func(t *testing.T) {
+		for _, tc := range []struct {
+			name          string
+			scopes        model.AppScopes
+			expectFailure bool
+		}{
+			{
+				name:   "matching scope",
+				scopes: model.AppScopes{"plugins:testpluginhttp/apipath"},
+			},
+			{
+				name:   "matching pluginid only",
+				scopes: model.AppScopes{"plugins:testpluginhttp"},
+			},
+			{
+				name:   "broader scope",
+				scopes: model.AppScopes{"plugins:testpluginhttp/apipath", "users:read", "channels:read"},
+			},
+			{
+				name: "legacy app no scopes",
+			},
+			{
+				name:          "mismatched scope",
+				scopes:        model.AppScopes{"users:update", "channels:read", "plugins:otherplugin"},
+				expectFailure: true,
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				tc.scopes = model.NormalizeScopes(tc.scopes)
+				_, client := setupTestAppClient(tc.scopes)
+
+				resp, err := client.DoAPIRequest(http.MethodPost, client.URL+"/plugins/testpluginhttp/apipath", "", "")
+				if !tc.expectFailure {
+					require.NoError(t, err)
+					require.Equal(t, http.StatusOK, resp.StatusCode)
+					body, ioerr := io.ReadAll(resp.Body)
+					require.NoError(t, ioerr)
+					require.Equal(t, tc.scopes.String(), string(body))
+				} else {
+					require.Error(t, err)
+					require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+				}
+			})
+		}
 	})
 }

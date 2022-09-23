@@ -49,6 +49,7 @@ const (
 	ScopePosts    ScopeResource = "posts"
 	ScopeTeams    ScopeResource = "teams"
 	ScopeUsers    ScopeResource = "users"
+	ScopePlugins  ScopeResource = "plugins"
 )
 
 const (
@@ -181,9 +182,9 @@ var ScopeCheckedByImplementation = ScopeUnrestrictedAPI
 // returns ScopeInternalAPI (nil). The API developers should use tests to assert
 // that the scopes they assign are indeed valid.
 func NormalizeAPIScopes(source []Scope) APIScopes {
-	normal := normalizeScopes(source)
+	normal := NormalizeScopes(source)
 	for _, s := range normal {
-		res, op, err := parseScope(string(s))
+		res, op, err := parseScope(s)
 		if err != nil {
 			return nil
 		}
@@ -213,19 +214,19 @@ var ScopeUnrestrictedApp = AppScopes{ScopeAny}
 func ParseAppScopes(str string) (AppScopes, error) {
 	scopes := []Scope{}
 	for _, s := range strings.Fields(str) {
-		res, op, err := parseScope(s)
+		res, op, err := parseScope(Scope(s))
 		if err != nil {
 			return nil, err
 		}
 		scopes = append(scopes, res.NewScope(op))
 	}
-	scopes = normalizeScopes(scopes)
+	scopes = NormalizeScopes(scopes)
 	return AppScopes(scopes), nil
 }
 
 func (ss AppScopes) Validate() error {
 	for _, s := range ss {
-		_, _, err := parseScope(string(s))
+		_, _, err := parseScope(s)
 		if err != nil {
 			return err
 		}
@@ -248,6 +249,33 @@ func (ss AppScopes) Satisfies(need APIScopes) bool {
 
 	superset, equals := ss.Compare([]Scope(need))
 	return superset || equals
+}
+
+func (ss AppScopes) SatisfiesPluginRequest(pluginID, path string) error {
+	if ss.IsUnrestricted() {
+		return nil
+	}
+	for _, s := range ss {
+		res, op, err := parseScope(s)
+		if err != nil {
+			return err
+		}
+		if res == ScopePlugins {
+			if op == ScopeAnyOperation {
+				return nil
+			}
+			parts := strings.SplitN(string(op), "/", 2)
+			if len(parts) > 0 && parts[0] == pluginID {
+				if len(parts) == 1 {
+					return nil
+				}
+				if len(parts) == 2 && strings.HasPrefix(path, "/"+parts[1]) {
+					return nil
+				}
+			}
+		}
+	}
+	return errors.Errorf("insufficient scope, need %s:%s%s", ScopePlugins, pluginID, path)
 }
 
 // Compare compares two sets of scopes and returns whether the first set is a
@@ -302,8 +330,7 @@ func (ss AppScopes) Compare(sub AppScopes) (isSuperset, equals bool) {
 	}
 }
 
-func parseScope(str string) (ScopeResource, ScopeOperation, error) {
-	s := Scope(str)
+func parseScope(s Scope) (ScopeResource, ScopeOperation, error) {
 	if s == "" || s == ScopeAny {
 		return ScopeAnyResource, ScopeAnyOperation, nil
 	}
@@ -311,6 +338,13 @@ func parseScope(str string) (ScopeResource, ScopeOperation, error) {
 	res, op := s.Split()
 	if res == "" {
 		return "", "", errors.Errorf(`invalid scope %q: missing resource type, e.g. "posts"`, s)
+	}
+
+	if res == ScopePlugins {
+		if op == "" {
+			return "", "", errors.Errorf(`invalid scope %q: missing plugin ID, e.g. "com.mattermost.example"`, s)
+		}
+		return res, op, nil
 	}
 
 	validOps, ok := validScopes[res]
@@ -330,7 +364,7 @@ func parseScope(str string) (ScopeResource, ScopeOperation, error) {
 }
 
 // Normalize removes all repeated scopes from a list of Scopes.
-func normalizeScopes(ss []Scope) []Scope {
+func NormalizeScopes(ss []Scope) []Scope {
 	if len(ss) == 0 {
 		return ss
 	}
@@ -423,4 +457,12 @@ func (ss *AppScopes) Scan(value interface{}) error {
 
 	*ss = scopes
 	return nil
+}
+
+func (ss AppScopes) String() string {
+	sss := []string{}
+	for _, s := range ss {
+		sss = append(sss, string(s))
+	}
+	return strings.Join(sss, " ")
 }
