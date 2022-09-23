@@ -2347,17 +2347,35 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 		),
 	)
 
-	// _, appErr = a.CreatePost(c, &model.Post{
-	// 	UserId:    user.Id,
-	// 	Type:      model.PostTypeSystemGeneric,
-	// 	RootId:    postID,
-	// 	ChannelId: originalChannel.Id,
-	// 	Message:   msg,
-	// }, originalChannel, false, false)
-	// if appErr != nil {
-	// 	return appErr
-	// }
+	_, appErr = a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		Type:      model.PostTypeSystemGeneric,
+		ChannelId: originalChannel.Id,
+		Message:   msg,
+	}, originalChannel, false, false)
+	if appErr != nil {
+		return appErr
+	}
 
 	c.Logger().Info(msg)
 	return nil
 }
+
+// curl 'http://localhost:8065/api/v4/posts/75wgo6t1jpgtmnerjx9myeh8ye/move' \
+//   -H 'Accept: */*' \
+//   -H 'Accept-Language: en' \
+//   -H 'Connection: keep-alive' \
+//   -H 'Content-Type: application/json' \
+//   -H 'Cookie: MMAUTHTOKEN=s7gmhmx7gtn8jnnwa9wnce7dma; MMUSERID=4w8m899pp3b3id6qrethnkdebc; MMCSRF=edgkcwuk57n8m86fao9c8ayhwh; SPLIT_ID_COOKIE=6b32e070-b7b2-4e3d-a7cf-29776274fc32; CWSAUTHTOKEN=6rdj1sgbifyb9q6mekz1k3y89w; CWSCSRF=w6j63jjo37bqtn4kn9gzqwitzw; CWSUSERID=7zfanbn8s7rgtc69ecn4dpgodc' \
+//   -H 'Origin: http://localhost:8065' \
+//   -H 'Sec-Fetch-Dest: empty' \
+//   -H 'Sec-Fetch-Mode: cors' \
+//   -H 'Sec-Fetch-Site: same-origin' \
+//   -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36' \
+//   -H 'X-CSRF-Token: edgkcwuk57n8m86fao9c8ayhwh' \
+//   -H 'X-Requested-With: XMLHttpRequest' \
+//   -H 'sec-ch-ua: "Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"' \
+//   -H 'sec-ch-ua-mobile: ?0' \
+//   -H 'sec-ch-ua-platform: "macOS"' \
+//   --data-raw '{"channel_id":"mdpfjzm7oid6zmnzgtfmcte7io"}' \
+//   --compressed
