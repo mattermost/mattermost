@@ -53,16 +53,14 @@ const (
 )
 
 const (
-	ScopeCreate          ScopeOperation = "create"
-	ScopeCreateDM        ScopeOperation = "create/dm"
-	ScopeCreateEphemeral ScopeOperation = "create/ephemeral"
-	ScopeDelete          ScopeOperation = "delete"
-	ScopeExecute         ScopeOperation = "execute"
-	ScopeJoin            ScopeOperation = "join"
-	ScopeManage          ScopeOperation = "manage"
-	ScopeRead            ScopeOperation = "read"
-	ScopeSearch          ScopeOperation = "search"
-	ScopeUpdate          ScopeOperation = "update"
+	ScopeCreate  ScopeOperation = "create"
+	ScopeDelete  ScopeOperation = "delete"
+	ScopeExecute ScopeOperation = "execute"
+	ScopeJoin    ScopeOperation = "join"
+	ScopeManage  ScopeOperation = "manage"
+	ScopeRead    ScopeOperation = "read"
+	ScopeSearch  ScopeOperation = "search"
+	ScopeUpdate  ScopeOperation = "update"
 )
 
 const (
@@ -92,14 +90,12 @@ const (
 
 	ScopeOAuth2Manage Scope = "oauth2:manage"
 
-	ScopePostsAny             Scope = "posts:*"
-	ScopePostsCreate          Scope = "posts:create"
-	ScopePostsCreateDM        Scope = "posts:create/dm"
-	ScopePostsCreateEphemeral Scope = "posts:create/ephemeral"
-	ScopePostsDelete          Scope = "posts:delete"
-	ScopePostsRead            Scope = "posts:read"
-	ScopePostsSearch          Scope = "posts:search"
-	ScopePostsUpdate          Scope = "posts:update"
+	ScopePostsAny    Scope = "posts:*"
+	ScopePostsCreate Scope = "posts:create"
+	ScopePostsDelete Scope = "posts:delete"
+	ScopePostsRead   Scope = "posts:read"
+	ScopePostsSearch Scope = "posts:search"
+	ScopePostsUpdate Scope = "posts:update"
 
 	ScopeTeamsAny    Scope = "teams:*"
 	ScopeTeamsCreate Scope = "teams:create"
@@ -123,19 +119,12 @@ var validScopes = map[ScopeResource][]ScopeOperation{
 	ScopeEmojis:   crudsScopeOps,
 	ScopeFiles:    crudsScopeOps,
 	ScopeOAuth2:   {ScopeManage},
-	ScopePosts:    append(crudsScopeOps, ScopeCreateDM, ScopeCreateEphemeral),
+	ScopePosts:    crudsScopeOps,
 	ScopeTeams:    append(crudsScopeOps, ScopeJoin),
 	ScopeUsers:    crudsScopeOps,
 }
 
 var crudsScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
-
-func (r ScopeResource) Create() Scope { return r.NewScope(ScopeCreate) }
-func (r ScopeResource) Read() Scope   { return r.NewScope(ScopeRead) }
-func (r ScopeResource) Update() Scope { return r.NewScope(ScopeUpdate) }
-func (r ScopeResource) Delete() Scope { return r.NewScope(ScopeDelete) }
-func (r ScopeResource) Join() Scope   { return r.NewScope(ScopeJoin) }
-func (r ScopeResource) Any() Scope    { return r.NewScope(ScopeAnyOperation) }
 
 func (r ScopeResource) NewScope(op ScopeOperation) Scope {
 	return Scope(r) + ScopeSeparator + Scope(op)

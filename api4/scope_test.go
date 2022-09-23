@@ -41,10 +41,10 @@ func TestScopes(t *testing.T) {
 			"autocompleteUsers":                    {model.ScopeUsersSearch},
 			"connectWebSocket":                     model.ScopeUnrestrictedAPI,
 			"createChannel":                        {model.ScopeChannelsCreate},
-			"createDirectChannel":                  {model.ScopePostsCreateDM},
+			"createDirectChannel":                  {model.ScopeChannelsCreate},
 			"createEmoji":                          {model.ScopeEmojisCreate},
-			"createEphemeralPost":                  {model.ScopePostsCreateEphemeral},
-			"createPost":                           model.ScopeCheckedByImplementation,
+			"createEphemeralPost":                  {model.ScopePostsCreate},
+			"createPost":                           {model.ScopePostsCreate},
 			"createTeam":                           {model.ScopeTeamsCreate},
 			"createUpload":                         {model.ScopeFilesCreate},
 			"createUser":                           {model.ScopeUsersCreate},
@@ -197,13 +197,13 @@ func TestScopes(t *testing.T) {
 				"login",
 				"loginCWS",
 				"logout",
-				"createPost",
 				"getSupportedTimezones",
 				"getBrandImage",
 				"connectWebSocket",
 			},
 			"channels:create": {
 				"createChannel",
+				"createDirectChannel",
 			},
 			"channels:delete": {
 				"deleteChannel",
@@ -564,10 +564,8 @@ func TestScopes(t *testing.T) {
 				"verifyUserEmail",
 				"verifyUserEmailWithoutToken",
 			},
-			"posts:create/dm": {
-				"createDirectChannel",
-			},
-			"posts:create/ephemeral": {
+			"posts:create": {
+				"createPost",
 				"createEphemeralPost",
 			},
 			"posts:delete": {

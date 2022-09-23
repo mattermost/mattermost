@@ -19,7 +19,7 @@ import (
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels, model.ScopeChannelsRead)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel, model.ScopeChannelsCreate)).Methods("POST")
-	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel, model.ScopePostsCreateDM)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/direct", api.APISessionRequired(createDirectChannel, model.ScopeChannelsCreate)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchAllChannels, model.ScopeChannelsSearch)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group/search", api.APISessionRequiredDisableWhenBusy(searchGroupChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.APISessionRequired(createGroupChannel)).Methods("POST")
