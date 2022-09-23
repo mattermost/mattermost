@@ -1245,7 +1245,7 @@ func (api *PluginAPI) SubscribeToEvent(topic, handlerId string) (string, error) 
 	return id, err
 }
 
-func (api *PluginAPI) UnsubscribeToEvent(topic, id string) error {
+func (api *PluginAPI) UnsubscribeFromEvent(topic, id string) error {
 	return api.app.UnsubscribeTopic(topic, id)
 }
 
