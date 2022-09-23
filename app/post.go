@@ -2329,11 +2329,6 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	if wpl.NumPosts() == 1 {
 		msg = fmt.Sprintf("A message has been moved: %s\n", newPostLink)
 	}
-	msg += fmt.Sprintf("Original Thread Root Message:\n%s\n",
-		quoteBlock(cleanAndTrimMessage(
-			wpl.RootPost().Message, 500),
-		),
-	)
 
 	_, appErr = a.CreatePost(c, &model.Post{
 		UserId:    user.Id,
