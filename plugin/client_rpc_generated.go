@@ -5806,32 +5806,32 @@ func (s *apiRPCServer) SubscribeToEvent(args *Z_SubscribeToEventArgs, returns *Z
 	return nil
 }
 
-type Z_UnsubscribeToEventArgs struct {
+type Z_UnsubscribeFromEventArgs struct {
 	A string
 	B string
 }
 
-type Z_UnsubscribeToEventReturns struct {
+type Z_UnsubscribeFromEventReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) UnsubscribeToEvent(topic, id string) error {
-	_args := &Z_UnsubscribeToEventArgs{topic, id}
-	_returns := &Z_UnsubscribeToEventReturns{}
-	if err := g.client.Call("Plugin.UnsubscribeToEvent", _args, _returns); err != nil {
-		log.Printf("RPC call to UnsubscribeToEvent API failed: %s", err.Error())
+func (g *apiRPCClient) UnsubscribeFromEvent(topic, id string) error {
+	_args := &Z_UnsubscribeFromEventArgs{topic, id}
+	_returns := &Z_UnsubscribeFromEventReturns{}
+	if err := g.client.Call("Plugin.UnsubscribeFromEvent", _args, _returns); err != nil {
+		log.Printf("RPC call to UnsubscribeFromEvent API failed: %s", err.Error())
 	}
 	return _returns.A
 }
 
-func (s *apiRPCServer) UnsubscribeToEvent(args *Z_UnsubscribeToEventArgs, returns *Z_UnsubscribeToEventReturns) error {
+func (s *apiRPCServer) UnsubscribeFromEvent(args *Z_UnsubscribeFromEventArgs, returns *Z_UnsubscribeFromEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		UnsubscribeToEvent(topic, id string) error
+		UnsubscribeFromEvent(topic, id string) error
 	}); ok {
-		returns.A = hook.UnsubscribeToEvent(args.A, args.B)
+		returns.A = hook.UnsubscribeFromEvent(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API UnsubscribeToEvent called but not implemented."))
+		return encodableError(fmt.Errorf("API UnsubscribeFromEvent called but not implemented."))
 	}
 	return nil
 }

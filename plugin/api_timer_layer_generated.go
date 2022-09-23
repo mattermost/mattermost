@@ -1254,10 +1254,10 @@ func (api *apiTimerLayer) SubscribeToEvent(topic, handlerId string) (string, err
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UnsubscribeToEvent(topic, id string) error {
+func (api *apiTimerLayer) UnsubscribeFromEvent(topic, id string) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UnsubscribeToEvent(topic, id)
-	api.recordTime(startTime, "UnsubscribeToEvent", _returnsA == nil)
+	_returnsA := api.apiImpl.UnsubscribeFromEvent(topic, id)
+	api.recordTime(startTime, "UnsubscribeFromEvent", _returnsA == nil)
 	return _returnsA
 }
 

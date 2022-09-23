@@ -1168,10 +1168,10 @@ type API interface {
 	// Minimum server version: 7.4
 	SubscribeToEvent(topic, handlerId string) (string, error)
 
-	// UnsubscribeToEvent unregisters the event handler for the given id and topic
+	// UnsubscribeFromEvent unregisters the event handler for the given id and topic
 	//
 	// Minimum server version: 7.4
-	UnsubscribeToEvent(topic, id string) error
+	UnsubscribeFromEvent(topic, id string) error
 
 	// PublishEvent fires an event on the specific topic to the event bus
 	//

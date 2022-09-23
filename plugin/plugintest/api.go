@@ -3390,8 +3390,8 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 	return r0
 }
 
-// UnsubscribeToEvent provides a mock function with given fields: topic, id
-func (_m *API) UnsubscribeToEvent(topic string, id string) error {
+// UnsubscribeFromEvent provides a mock function with given fields: topic, id
+func (_m *API) UnsubscribeFromEvent(topic string, id string) error {
 	ret := _m.Called(topic, id)
 
 	var r0 error
