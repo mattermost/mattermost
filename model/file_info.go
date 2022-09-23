@@ -190,6 +190,6 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 	return Etag(infos[0].PostId, maxUpdateAt)
 }
 
-func (o *FileInfo) CanBeUsedForVoiceMessage() bool {
+func (fi *FileInfo) CanBeUsedForVoiceMessage() bool {
 	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(o.MimeType))
 }
