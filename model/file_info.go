@@ -191,5 +191,5 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 }
 
 func (fi *FileInfo) CanBeUsedForVoiceMessage() bool {
-	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(o.MimeType))
+	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(fi.MimeType))
 }
