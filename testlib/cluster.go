@@ -55,7 +55,11 @@ func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.
 	return nil, nil
 }
 
-func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (c *FakeClusterInterface) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return make(map[string][]string), nil
+}
+
+func (c *FakeClusterInterface) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	return []string{}, nil
 }
 

@@ -112,6 +112,31 @@ func (_m *ClusterInterface) GetLogs(page int, perPage int) (map[string][]string,
 	return r0, r1
 }
 
+// GetLogsOld provides a mock function with given fields: page, perPage
+func (_m *ClusterInterface) GetLogsOld(page int, perPage int) ([]string, *model.AppError) {
+	ret := _m.Called(page, perPage)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(int, int) []string); ok {
+		r0 = rf(page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetMyClusterInfo provides a mock function with given fields:
 func (_m *ClusterInterface) GetMyClusterInfo() *model.ClusterInfo {
 	ret := _m.Called()

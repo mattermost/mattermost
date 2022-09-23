@@ -340,7 +340,14 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logs, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	var logFilter *model.LogFilter
+	err := json.NewDecoder(r.Body).Decode(&logFilter)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	logs, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage, &logFilter)
 	if err != nil {
 		c.Err = err
 		return

@@ -48,7 +48,7 @@ func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	lines = append(lines, melines...)
 
 	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.Cluster.GetLogs(page, perPage)
+		clines, err := s.Cluster.GetLogsOld(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (s *Server) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
+func (s *Server) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -96,8 +96,8 @@ func (s *Server) GetLogs(page, perPage int) (map[string][]string, *model.AppErro
 	return logData, nil
 }
 
-func (a *App) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
-	return a.Srv().GetLogs(page, perPage)
+func (a *App) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	return a.Srv().GetLogs(page, perPage, logFilter)
 }
 
 func (a *App) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
