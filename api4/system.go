@@ -73,11 +73,11 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
 	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 
-	// GET /api/v4/events/topics
+	// GET /api/v4/system/events/topics
 	api.BaseRoutes.System.Handle("/events/topics", api.APISessionRequired(getEventsTopics)).Methods("GET")
-	// GET /api/v4/events/topics/<topicId>
+	// GET /api/v4/system/events/topics/<topicId>
 	api.BaseRoutes.System.Handle("/events/topics/{topic_id}", api.APISessionRequired(getEventsTopic)).Methods("GET")
-	// GET /api/v4/events/schemas/<topicId>
+	// GET /api/v4/system/events/schemas/<topicId>
 	api.BaseRoutes.System.Handle("/events/schemas/{topic_id}", api.APISessionRequired(getEventsSchema)).Methods("GET")
 }
 
@@ -1021,7 +1021,7 @@ func getEventsTopics(c *Context, w http.ResponseWriter, r *http.Request) {
 	// parameter withSchema is to be parsed
 	// restrict only for admins
 	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
 	}
 	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
 
@@ -1043,7 +1043,7 @@ func getEventsTopics(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEventsTopic(c *Context, w http.ResponseWriter, r *http.Request) {
 	// restrict only for admins
 	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
 	}
 	c.RequireTopicId()
 	if c.Err != nil {
@@ -1074,7 +1074,7 @@ func getEventsTopic(c *Context, w http.ResponseWriter, r *http.Request) {
 func getEventsSchema(c *Context, w http.ResponseWriter, r *http.Request) {
 	// restrict only for admins
 	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
 	}
 	// calls broker to get a list of topics
 	// parameter topicId
