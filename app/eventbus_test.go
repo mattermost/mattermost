@@ -23,7 +23,7 @@ func TestEventBus(t *testing.T) {
 
 	t.Run("subscribe to a topic", func(t *testing.T) {
 		err := th.App.RegisterTopic("test-topic", "test description", &testEvent{}) // Register a topic
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		rcv := make(chan any)
 		id, err := th.App.SubscribeTopic("test-topic", func(event eventbus.Event) error {
@@ -31,22 +31,22 @@ func TestEventBus(t *testing.T) {
 			return nil
 		})
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, id)
 
 		err = th.App.PublishEvent("test-topic", request.EmptyContext(th.App.Srv().Log()), &testEvent{ID: "1", Message: "test message"}) // Publish an event
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		select {
 		case <-rcv:
 		case <-time.After(2 * time.Second):
-			t.Fatal("event receive timeout")
+			require.Fail(t, "event receive timeout")
 		}
 	})
 
 	t.Run("unsubscribe from the event", func(t *testing.T) {
 		err := th.App.RegisterTopic("test-topic", "test description", &testEvent{}) // Register a topic
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		rcv := make(chan any)
 		id, err := th.App.SubscribeTopic("test-topic", func(event eventbus.Event) error {
@@ -54,27 +54,27 @@ func TestEventBus(t *testing.T) {
 			return nil
 		})
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, id)
 
 		err = th.App.PublishEvent("test-topic", request.EmptyContext(th.App.Srv().Log()), &testEvent{ID: "1", Message: "test message"}) // Publish an event
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		select {
 		case <-rcv:
 		case <-time.After(time.Second):
-			t.Fatal("event receive timeout")
+			require.Fail(t, "event receive timeout")
 		}
 
 		err = th.App.UnsubscribeTopic("test-topic", id) // Unsubscribe from the event
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		err = th.App.PublishEvent("test-topic", request.EmptyContext(th.App.Srv().Log()), &testEvent{ID: "1", Message: "test message"}) // Publish an event
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		select {
 		case <-rcv:
-			t.Fatal("event received after unsubscribe")
+			require.Fail(t, "event received after unsubscribe")
 		case <-time.After(time.Second):
 		}
 	})
