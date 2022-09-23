@@ -30,9 +30,9 @@ var rateMap = map[int]int{
 }
 
 type ParseInfo struct {
-	sampleRate int
-	duration   float64
-	channels   int
+	SampleRate int
+	Duration   float64
+	Channels   int
 }
 
 type Header struct {
@@ -117,11 +117,11 @@ func Parse(rd io.ReadSeeker) (ParseInfo, error) {
 		discardLen := 1
 		if hdr, ok := parseHeader(hdrData); ok {
 			if frames == 0 {
-				info.sampleRate = hdr.sampleRate
+				info.SampleRate = hdr.sampleRate
 				if hdr.channelMode == 3 {
-					info.channels = 1
+					info.Channels = 1
 				} else {
-					info.channels = 2
+					info.Channels = 2
 				}
 			}
 			frames++
@@ -136,12 +136,12 @@ func Parse(rd io.ReadSeeker) (ParseInfo, error) {
 		}
 	}
 
-	if info.sampleRate == 0 {
+	if info.SampleRate == 0 {
 		return ParseInfo{}, fmt.Errorf("missing samplerate")
 	}
 
-	duration := float64(frames*frameLength) / float64(info.sampleRate)
-	info.duration = math.Round(duration*1000) / 1000
+	duration := float64(frames*frameLength) / float64(info.SampleRate)
+	info.Duration = math.Round(duration*1000) / 1000
 
 	return info, nil
 }
