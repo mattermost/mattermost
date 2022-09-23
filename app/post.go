@@ -24,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/pkg/errors"
-	"github.com/spf13/pflag"
 )
 
 const (
@@ -2215,14 +2214,6 @@ func (a *App) CopyWranglerPostlist(c *request.Context, wpl *model.WranglerPostLi
 	return newRootPost, nil
 }
 
-func getMoveThreadFlagSet() *pflag.FlagSet {
-	flagSet := pflag.NewFlagSet("move thread", pflag.ContinueOnError)
-	flagSet.Bool(flagMoveThreadShowMessageSummary, true, "Show the root message in the post-move summary")
-	flagSet.Bool(flagMoveThreadSilent, false, "Silence all Wrangler summary messages and user DMs when moving the thread")
-
-	return flagSet
-}
-
 func quoteBlock(in string) string {
 	return fmt.Sprintf("> %s", in)
 }
@@ -2306,7 +2297,10 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	if appErr != nil {
 		return appErr
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/feature-wrangler
 	// Cleanup is handled by simply deleting the root post. Any comments/replies
 	// are automatically marked as deleted for us.
 	_, appErr = a.DeletePost(c, wpl.RootPost().Id, user.Id)
@@ -2323,19 +2317,19 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	// 	return model.NewAppError("GetUser", "app.post.run_move_thread_command.request_error", nil, "UserID="+user.Id+"", http.StatusBadRequest)
 	// }
 
-	if user.Id != wpl.RootPost().UserId {
-		// The wrangled thread was not started by the user running the command.
-		// Send a DM to the user who created the root message to let them know.
+	// if user.Id != wpl.RootPost().UserId {
+	// The wrangled thread was not started by the user running the command.
+	// Send a DM to the user who created the root message to let them know.
 
-		// TODO: Implement
-		// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
-		// if err != nil {
-		// 	p.API.LogError("Unable to send move-thread DM to user",
-		// 		"error", err.Error(),
-		// 		"user_id", wpl.RootPost().UserId,
-		// 	)
-		// }
-	}
+	// TODO: Implement
+	// err := p.postMoveThreadBotDM(wpl.RootPost().UserId, newPostLink, executor.Username)
+	// if err != nil {
+	// 	p.API.LogError("Unable to send move-thread DM to user",
+	// 		"error", err.Error(),
+	// 		"user_id", wpl.RootPost().UserId,
+	// 	)
+	// }
+	// }
 
 	msg := fmt.Sprintf("A thread with %d messages has been moved: %s\n", wpl.NumPosts(), newPostLink)
 	if wpl.NumPosts() == 1 {
@@ -2361,21 +2355,3 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	return nil
 }
 
-// curl 'http://localhost:8065/api/v4/posts/75wgo6t1jpgtmnerjx9myeh8ye/move' \
-//   -H 'Accept: */*' \
-//   -H 'Accept-Language: en' \
-//   -H 'Connection: keep-alive' \
-//   -H 'Content-Type: application/json' \
-//   -H 'Cookie: MMAUTHTOKEN=s7gmhmx7gtn8jnnwa9wnce7dma; MMUSERID=4w8m899pp3b3id6qrethnkdebc; MMCSRF=edgkcwuk57n8m86fao9c8ayhwh; SPLIT_ID_COOKIE=6b32e070-b7b2-4e3d-a7cf-29776274fc32; CWSAUTHTOKEN=6rdj1sgbifyb9q6mekz1k3y89w; CWSCSRF=w6j63jjo37bqtn4kn9gzqwitzw; CWSUSERID=7zfanbn8s7rgtc69ecn4dpgodc' \
-//   -H 'Origin: http://localhost:8065' \
-//   -H 'Sec-Fetch-Dest: empty' \
-//   -H 'Sec-Fetch-Mode: cors' \
-//   -H 'Sec-Fetch-Site: same-origin' \
-//   -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36' \
-//   -H 'X-CSRF-Token: edgkcwuk57n8m86fao9c8ayhwh' \
-//   -H 'X-Requested-With: XMLHttpRequest' \
-//   -H 'sec-ch-ua: "Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"' \
-//   -H 'sec-ch-ua-mobile: ?0' \
-//   -H 'sec-ch-ua-platform: "macOS"' \
-//   --data-raw '{"channel_id":"mdpfjzm7oid6zmnzgtfmcte7io"}' \
-//   --compressed
