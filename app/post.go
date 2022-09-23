@@ -402,6 +402,10 @@ func (a *App) validateVoiceMessage(post *model.Post) *model.AppError {
 		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.file_not_found.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
 	}
 
+	if fileInfo.CanBeUsedForVoiceMessage() {
+		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.invalid_file_type.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+	}
+
 	if fileInfo.Size > *a.Config().FileSettings.MaxVoiceMessagesFileSize {
 		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.file_too_big.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
 	}

@@ -2392,6 +2392,7 @@
     "translation": "Your voice message file size is too big."
   },
   {
+    "id": "api.post.validate_voice_post.invalid_file_type.app_error",
     "id": "api.post.validate_voice_post.no_file.app_error",
     "translation": "Voice message not found."
   },
