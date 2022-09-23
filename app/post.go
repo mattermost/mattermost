@@ -323,6 +323,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		})
 	}
 
+	a.PublishEvent("post_created", c, &model.PostCreatedEvent{
+		PostId:  rpost.Id,
+		Message: rpost.Message,
+	})
+
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}

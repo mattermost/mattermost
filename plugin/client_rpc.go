@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -166,6 +167,8 @@ func init() {
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
+	gob.Register(&request.Context{})
+	gob.Register(&model.PostCreatedEvent{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

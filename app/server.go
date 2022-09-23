@@ -709,6 +709,9 @@ func NewServer(options ...Option) (*Server, error) {
 	s.bus = eventbus.NewBroker(10000, 1000)
 	s.bus.Start()
 
+	// TODO: move this into somewhere more appropriate
+	s.bus.Register("post_created", "an event created when a post is created", &model.PostCreatedEvent{})
+
 	return s, nil
 }
 
