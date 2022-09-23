@@ -40,7 +40,7 @@ func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 		}
 	}
 
-	melines, err := s.GetLogsSkipSend(page, perPage)
+	melines, err := s.GetLogsSkipSend(page, perPage, &model.LogFilter{})
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +73,16 @@ func (s *Server) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[str
 		}
 	}
 
-	currentServerLogs, err := s.GetLogsSkipSend(page, perPage)
-	if err != nil {
-		return nil, err
+	serverNames := logFilter.ServerNames
+	if len(serverNames) > 0 {
+		for _, nodeName := range serverNames {
+			if nodeName == "default" {
+				AddLocalLogs(s, page, perPage, logData, nodeName, logFilter)
+			}
+		}
+	} else {
+		AddLocalLogs(s, page, perPage, logData, serverName, logFilter)
 	}
-
-	logData[serverName] = currentServerLogs
 
 	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		clusterLogs, err := s.Cluster.GetLogs(page, perPage)
@@ -87,13 +91,39 @@ func (s *Server) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[str
 		}
 
 		if clusterLogs != nil {
-			for nodeName, logs := range clusterLogs {
-				logData[nodeName] = logs
+			if len(serverNames) > 0 {
+				for _, filteredNodeName := range serverNames {
+					for nodeName, logs := range clusterLogs {
+						if nodeName == filteredNodeName {
+							logData[nodeName] = logs
+						}
+					}
+				}
+			} else {
+				for nodeName, logs := range clusterLogs {
+					logData[nodeName] = logs
+				}
 			}
 		}
 	}
 
 	return logData, nil
+}
+
+func AddLocalLogs(s *Server, page, perPage int, logData map[string][]string, serverName string, logFilter *model.LogFilter) *model.AppError {
+	currentServerLogs, err := s.GetLogsSkipSend(page, perPage, logFilter)
+	if err != nil {
+		return err
+	}
+
+	logData[serverName] = currentServerLogs
+	return nil
+}
+
+func AddClusterLogs(clusterLogs map[string][]string, logData map[string][]string) {
+	for nodeName, logs := range clusterLogs {
+		logData[nodeName] = logs
+	}
 }
 
 func (a *App) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
@@ -104,7 +134,7 @@ func (a *App) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	return a.Srv().GetLogsOld(page, perPage)
 }
 
-func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
 	var lines []string
 
 	if *s.platform.Config().LogSettings.EnableFile {
@@ -153,7 +183,63 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 					if err != nil {
 						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
-					lines = append(lines, string(line))
+
+					filtered := false
+
+					logLevels := logFilter.LogLevels
+					if len(logLevels) > 0 {
+						filtered = true
+						var entry *model.LogEntry
+						err := json.Unmarshal(line, &entry)
+						if err != nil {
+							mlog.Debug("Failed to parse line, skipping")
+							filtered = false
+						} else {
+							for _, level := range logLevels {
+								if entry.Level == level {
+									filtered = false
+								}
+							}
+						}
+					}
+
+					if logFilter.DateFrom != "" || logFilter.DateTo != "" {
+						dateFrom, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateFrom)
+						if err != nil {
+							dateFrom = time.Time{}
+						}
+						dateTo, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateTo)
+						if err != nil {
+							dateTo = time.Now()
+						}
+						filtered = true
+						var entry *model.LogEntry
+						err = json.Unmarshal(line, &entry)
+						if err != nil {
+							mlog.Debug("Failed to parse line, skipping")
+							filtered = false
+						} else {
+							mlog.Debug(entry.Timestamp)
+							timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
+							if err != nil {
+								mlog.Debug("Cannot parse timestamp, skipping")
+								filtered = false
+							} else {
+								if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
+									filtered = false
+								}
+								if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
+									filtered = false
+								}
+							}
+						}
+					}
+
+					if filtered {
+						lineCount--
+					} else {
+						lines = append(lines, string(line))
+					}
 				}
 				if pos == 0 {
 					break
@@ -176,8 +262,8 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	return lines, nil
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogsSkipSend(page, perPage)
+func (a *App) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
+	return a.Srv().GetLogsSkipSend(page, perPage, logFilter)
 }
 
 func (a *App) GetClusterStatus() []*model.ClusterInfo {

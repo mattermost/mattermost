@@ -186,3 +186,8 @@ type LogFilter struct {
 	DateFrom    string   `json:"date_from"`
 	DateTo      string   `json:"date_to"`
 }
+
+type LogEntry struct {
+	Timestamp string
+	Level     string
+}

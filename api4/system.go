@@ -343,13 +343,13 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("getLogs", "Invalid log filter", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	logs, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage, &logFilter)
+	logs, logerr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if err != nil {
-		c.Err = err
+		c.Err = logerr
 		return
 	}
 
@@ -386,7 +386,7 @@ func getLogsOld(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	lines, appErr := c.App.GetLogsOld(c.Params.Page, c.Params.LogsPerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
