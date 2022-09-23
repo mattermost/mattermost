@@ -3231,214 +3231,16 @@ func TestPostReminder(t *testing.T) {
 }
 
 func TestMovePost(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	client := th.Client
-	userWSClient, err := th.CreateWebSocketClient()
-	require.NoError(t, err)
-	defer userWSClient.Close()
-	userWSClient.Listen()
-
-	t.Run("Users should receive post deleted event for the root post being moved", func(t *testing.T) {
-		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
-			ChannelId: th.BasicChannel2.Id,
-		})
-
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		var caught bool
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventPostDeleted {
-						caught = true
-						data := ev.GetData()
-
-						post, ok := data["post"].(string)
-						require.True(t, ok)
-
-						var parsedPost model.Post
-						err := json.Unmarshal([]byte(post), &parsedPost)
-						require.NoError(t, err)
-
-						assert.Equal(t, th.BasicPost.Id, parsedPost.Id)
-						assert.NotEqual(t, 0, parsedPost.DeleteAt)
-						return
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
-	})
-
-	t.Run("Users should receive a single posted event when a post with no replies is being moved", func(t *testing.T) {
-		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
-			ChannelId: th.BasicChannel2.Id,
-		})
-
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		var caught bool
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventPosted {
-						caught = true
-						data := ev.GetData()
-
-						post, ok := data["post"].(string)
-						require.True(t, ok)
-
-						var parsedPost model.Post
-						err := json.Unmarshal([]byte(post), &parsedPost)
-						require.NoError(t, err)
-
-						assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
-						assert.Equal(t, th.BasicPost.Message, parsedPost.Message)
-						assert.Equal(t, th.BasicChannel2.Id, parsedPost.ChannelId)
-						assert.NotEqual(t, th.BasicPost.Id, parsedPost.Id)
-						return
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventPosted)
-	})
-
-	t.Run("Users should receive multiple posted events when a root post with replies is being moved", func(t *testing.T) {
-		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 1", RootId: th.BasicPost.Id}
-		_, resp, err := client.CreatePost(reply1)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 2", RootId: th.BasicPost.Id}
-		_, resp, err = client.CreatePost(reply2)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 3", RootId: th.BasicPost.Id}
-		_, resp, err = client.CreatePost(reply3)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		resp, err = client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
-			ChannelId: th.BasicChannel2.Id,
-		})
-
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		var caught int
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventPosted {
-						caught++
-						data := ev.GetData()
-
-						post, ok := data["post"].(string)
-						require.True(t, ok)
-
-						var parsedPost model.Post
-						err := json.Unmarshal([]byte(post), &parsedPost)
-						require.NoError(t, err)
-
-						assert.Equal(t, th.BasicChannel2.Id, parsedPost.ChannelId)
-						return
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Equal(t, 4, caught, "User should have received $d %s events", 4, model.WebsocketEventPosted)
-	})
-
-	t.Run("Users should not receive a thread updated event when a single post is being moved", func(t *testing.T) {
-		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
-			ChannelId: th.BasicChannel2.Id,
-		})
-
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		var caught bool
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadUpdated {
-						caught = true
-						return
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Truef(t, !caught, "User should not have received %s event", model.WebsocketEventThreadUpdated)
-	})
-
-	t.Run("Users should receive thread updated events when a root post with replies is being moved", func(t *testing.T) {
-		client := th.Client
-
-		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 1", RootId: th.BasicPost.Id}
-		_, resp, err := client.CreatePost(reply1)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 2", RootId: th.BasicPost.Id}
-		_, resp, err = client.CreatePost(reply2)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "reply 3", RootId: th.BasicPost.Id}
-		_, resp, err = client.CreatePost(reply3)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		resp, err = client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
-			ChannelId: th.BasicChannel2.Id,
-		})
-
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		var caught int
-		func() {
-			for {
-				select {
-				case ev := <-userWSClient.EventChannel:
-					if ev.EventType() == model.WebsocketEventThreadUpdated {
-						caught++
-						var parsedThread model.ThreadResponse
-						data := ev.GetData()
-						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &parsedThread)
-						require.NoError(t, jsonErr)
-
-						require.EqualValues(t, th.BasicChannel2, parsedThread.Post.ChannelId)
-						require.EqualValues(t, caught, parsedThread.ReplyCount)
-						return
-					}
-				case <-time.After(1 * time.Second):
-					return
-				}
-			}
-		}()
-		require.Equalf(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
-	})
 
 	t.Run("Users with role not in PermittedWranglerUsers aren't allowed to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin"}
 		})
@@ -3454,6 +3256,14 @@ func TestMovePost(t *testing.T) {
 	})
 
 	t.Run("Users with role in PermittedWranglerUsers are able to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.PermittedWranglerUsers = []string{"system_admin", "system_user"}
 		})
@@ -3469,11 +3279,21 @@ func TestMovePost(t *testing.T) {
 	})
 
 	t.Run("System admins with role not in PermittedWranglerUsers are allowed to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.PermittedWranglerUsers = []string{"random_role"}
 		})
 
 		th.LoginSystemAdminWithClient(th.Client)
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
 
 		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
@@ -3484,9 +3304,19 @@ func TestMovePost(t *testing.T) {
 	})
 
 	t.Run("Users with email address in AllowedEmailDomain are able to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.AllowedEmailDomain = []string{"localhost"}
 		})
+
+		th.LoginBasicWithClient(th.Client)
 		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
 		})
@@ -3496,8 +3326,17 @@ func TestMovePost(t *testing.T) {
 	})
 
 	t.Run("Users with email address not in AllowedEmailDomain aren't allowed to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.AllowedEmailDomain = []string{"example.com"}
+			cfg.WranglerSettings.PermittedWranglerUsers = []string{}
 		})
 
 		th.LoginBasicWithClient(th.Client)
@@ -3510,10 +3349,20 @@ func TestMovePost(t *testing.T) {
 	})
 
 	t.Run("System Admin with email address not in AllowedEmailDomains are allowed to move posts", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		client := th.Client
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.WranglerSettings.AllowedEmailDomain = []string{"example.com"}
 		})
 		th.LoginSystemAdminWithClient(th.Client)
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel2)
 		resp, err := client.MoveThread(th.BasicPost.Id, &model.MoveThreadParams{
 			ChannelId: th.BasicChannel2.Id,
 		})

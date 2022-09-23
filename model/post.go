@@ -771,3 +771,11 @@ func (o *Post) GetPreviewedPostProp() string {
 	}
 	return ""
 }
+
+func (o *Post) CleanPost() *Post {
+	o.Id = ""
+	o.CreateAt = 0
+	o.UpdateAt = 0
+	o.EditAt = 0
+	return o
+}

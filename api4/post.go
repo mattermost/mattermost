@@ -927,9 +927,15 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
 }
 
-func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
+func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
+		return
+	}
+
+	var moveThreadParams model.MoveThreadParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&moveThreadParams); jsonErr != nil {
+		c.SetInvalidParamWithErr("post", jsonErr)
 		return
 	}
 
@@ -940,7 +946,7 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 	}
 
 	// If there are no configured PermittedWranglerUsers, skip the check
-	userHasRole := false || len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0
+	userHasRole := false || (len(c.App.Config().WranglerSettings.PermittedWranglerUsers) == 0)
 	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerUsers {
 		if user.IsInRole(role) {
 			userHasRole = true
@@ -954,7 +960,7 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	userHasEmailDomain := false || len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
+	userHasEmailDomain := false || (len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0)
 	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
 		if user.EmailDomain() == domain {
 			userHasEmailDomain = true
@@ -964,6 +970,24 @@ func moveThread(c *Context, w http.ResponseWriter, _ *http.Request) {
 
 	if !userHasEmailDomain && !user.IsSystemAdmin() {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
+		return
+	}
+
+	sourcePost, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+
+		// Post is inaccessible due to cloud plan's limit.
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+
+		return
+	}
+
+	err = c.App.MoveThread(c.AppContext, c.Params.PostId, sourcePost.ChannelId, moveThreadParams.ChannelId, user)
+	if err != nil {
+		c.Err = err
 		return
 	}
 

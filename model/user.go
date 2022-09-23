@@ -315,7 +315,7 @@ func (u *User) DeepCopy() *User {
 }
 
 func (u *User) EmailDomain() string {
-	return strings.Split(u.Email, "@")[0]
+	return strings.Split(u.Email, "@")[1]
 }
 
 // IsValid validates the user and returns an error if it isn't configured
