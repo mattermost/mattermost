@@ -46,8 +46,11 @@ type BrokerService struct {
 	eventTypes            map[string]EventType
 	eventMutex            *sync.Mutex
 	goroutineCount        int32
+	eventCount            int32
 	goroutineExitSignal   chan struct{}
 	goroutineLimitChannel chan struct{}
+	stopping              bool
+	stoppedChannel        chan struct{}
 }
 
 func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *BrokerService {
@@ -61,8 +64,11 @@ func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *Bro
 		eventMutex:            &sync.Mutex{},
 		eventTypes:            map[string]EventType{},
 		goroutineCount:        0,
+		eventCount:            0,
 		goroutineExitSignal:   make(chan struct{}, 1),
 		goroutineLimitChannel: make(chan struct{}, goroutineLimit),
+		stopping:              false,
+		stoppedChannel:        make(chan struct{}, 1),
 	}
 }
 
@@ -97,6 +103,13 @@ func (b *BrokerService) EventTypes() []EventType {
 }
 
 func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
+	// no need for mutex since no race condition here
+	// this is done not to receive events after Stop() was called
+	// Since here we have not global mutex(for performance reasons) "couple of"
+	// events might pass through even after calling Stop(), but it should be Ok.
+	if b.stopping {
+		return errors.New("event bus was stopped")
+	}
 	// there's really no race condition here so no mutex required
 	if _, ok := b.eventTypes[topic]; !ok {
 		return errors.New("topic does not exist")
@@ -112,7 +125,7 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 
 	select {
 	case b.channel <- ev:
-		// do nothing
+		atomic.AddInt32(&b.eventCount, 1)
 	case <-ctx.Context().Done():
 		return nil
 	}
@@ -159,7 +172,16 @@ func (b *BrokerService) Start() {
 }
 
 func (b *BrokerService) runHandlers() {
-	for ev := range b.channel {
+	for {
+		// checks whether the event bus was stopped
+		select {
+		case <-b.stoppedChannel:
+			return
+		default:
+		}
+
+		ev := <-b.channel
+		atomic.AddInt32(&b.eventCount, -1)
 		for _, subscriber := range b.subscribers[ev.Topic] {
 			b.runGoroutine(func() { subscriber.handler(ev) })
 		}
@@ -187,9 +209,11 @@ func (b *BrokerService) runGoroutine(f func()) {
 // Stop blocks until all goroutines created by runGoroutine are finish or exists
 // when time is out.
 func (b *BrokerService) Stop() error {
+	b.stopping = true
 	done := make(chan struct{}, 1)
 	go func() {
-		for atomic.LoadInt32(&b.goroutineCount) != 0 {
+		// We are waiting for all goroutines to be finished and all published events to be handled
+		for atomic.LoadInt32(&b.goroutineCount) != 0 || atomic.LoadInt32(&b.eventCount) != 0 {
 			<-b.goroutineExitSignal
 		}
 		done <- struct{}{}
@@ -197,6 +221,7 @@ func (b *BrokerService) Stop() error {
 
 	select {
 	case <-done:
+		b.stoppedChannel <- struct{}{}
 		return nil
 	case <-time.After(b.onStopTimeout):
 		return errors.Errorf("not able to finish all handlers in %d seconds", b.onStopTimeout)
