@@ -2306,6 +2306,7 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 	if appErr != nil {
 		return appErr
 	}
+
 	// Cleanup is handled by simply deleting the root post. Any comments/replies
 	// are automatically marked as deleted for us.
 	_, appErr = a.DeletePost(c, wpl.RootPost().Id, user.Id)
@@ -2345,6 +2346,17 @@ func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, cha
 			wpl.RootPost().Message, 500),
 		),
 	)
+
+	// _, appErr = a.CreatePost(c, &model.Post{
+	// 	UserId:    user.Id,
+	// 	Type:      model.PostTypeSystemGeneric,
+	// 	RootId:    postID,
+	// 	ChannelId: originalChannel.Id,
+	// 	Message:   msg,
+	// }, originalChannel, false, false)
+	// if appErr != nil {
+	// 	return appErr
+	// }
 
 	c.Logger().Info(msg)
 	return nil
