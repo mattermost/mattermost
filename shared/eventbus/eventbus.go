@@ -159,8 +159,7 @@ func (b *BrokerService) Start() {
 }
 
 func (b *BrokerService) runHandlers() {
-	for {
-		ev := <-b.channel
+	for ev := range b.channel {
 		for _, subscriber := range b.subscribers[ev.Topic] {
 			b.runGoroutine(func() { subscriber.handler(ev) })
 		}
