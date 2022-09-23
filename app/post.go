@@ -27,11 +27,9 @@ import (
 )
 
 const (
-	PendingPostIDsCacheSize          = 25000
-	PendingPostIDsCacheTTL           = 30 * time.Second
-	PageDefault                      = 0
-	flagMoveThreadShowMessageSummary = "show-root-message-in-summary"
-	flagMoveThreadSilent             = "silent"
+	PendingPostIDsCacheSize = 25000
+	PendingPostIDsCacheTTL  = 30 * time.Second
+	PageDefault             = 0
 )
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
