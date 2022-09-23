@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -3358,6 +3359,7 @@ func TestMovePost(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
+					log.Printf("HELLO WORLD")
 					if ev.EventType() == model.WebsocketEventPosted {
 						caught++
 						data := ev.GetData()

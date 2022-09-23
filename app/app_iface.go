@@ -909,7 +909,7 @@ type AppIface interface {
 	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
-	MoveThread(c *request.Context, postID string, channelID string, user *model.User) *model.AppError
+	MoveThread(c *request.Context, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
 	NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface

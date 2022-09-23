@@ -2254,14 +2254,15 @@ func trimMessage(message string, trimLength int) string {
 	return fmt.Sprintf("%s...", message[:trimLength])
 }
 
-func (a *App) MoveThread(c *request.Context, postID string, channelID string, user *model.User) *model.AppError {
+func (a *App) MoveThread(c *request.Context, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
+
 	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
 	if appErr != nil {
 		return model.NewAppError("getPostThread", "app.post.run_move_thread_command.request_error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
 	}
 	wpl := postListResponse.BuildWranglerPostList()
 
-	originalChannel, appErr := a.GetChannel(c, channelID)
+	originalChannel, appErr := a.GetChannel(c, sourceChannelID)
 	if appErr != nil {
 		return appErr
 	}

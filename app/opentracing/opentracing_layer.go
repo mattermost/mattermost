@@ -12451,7 +12451,7 @@ func (a *OpenTracingAppLayer) MoveFile(oldPath string, newPath string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MoveThread(c *request.Context, postID string, channelID string, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) MoveThread(c *request.Context, postID string, sourceChannelID string, channelID string, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveThread")
 
@@ -12463,7 +12463,7 @@ func (a *OpenTracingAppLayer) MoveThread(c *request.Context, postID string, chan
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MoveThread(c, postID, channelID, user)
+	resultVar0 := a.app.MoveThread(c, postID, sourceChannelID, channelID, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
