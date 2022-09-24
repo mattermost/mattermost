@@ -114,8 +114,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	}
 
 	templateString := "<%s@" + a.Srv().MailServiceConfig().Hostname + ">"
-	randomStringLength := 16
-	messageID := fmt.Sprintf(templateString, model.NewRandomString(randomStringLength)+"-"+time.Now().String())
+	messageID := ""
 	inReplyTo := ""
 	references := ""
 
