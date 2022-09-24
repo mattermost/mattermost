@@ -113,8 +113,9 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
-	templateString := "<%s@mattermost.com>"
-	messageID := ""
+	templateString := "<%s@" + a.Srv().MailServiceConfig().Hostname + ">"
+	randomStringLength := 16
+	messageID := fmt.Sprintf(templateString, model.NewRandomString(randomStringLength)+"-"+time.Now().String())
 	inReplyTo := ""
 	references := ""
 
