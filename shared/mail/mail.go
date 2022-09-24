@@ -6,6 +6,7 @@ package mail
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -282,10 +284,10 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	defer c.Quit()
 	defer c.Close()
 
-	return SendMail(c, mail, time.Now())
+	return SendMail(c, mail, time.Now(), config)
 }
 
-func SendMail(c smtpClient, mail mailData, date time.Time) error {
+func SendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
@@ -315,6 +317,13 @@ func SendMail(c smtpClient, mail mailData, date time.Time) error {
 
 	if mail.messageID != "" {
 		headers["Message-ID"] = []string{mail.messageID}
+	} else {
+		templateString := "<%s@" + config.Hostname + ">"
+		randomStringLength := 16
+		randomString := model.NewRandomString(randomStringLength)
+		timestamp := fmt.Sprint(time.Now().Unix())
+		messageID := fmt.Sprintf(templateString, randomString+"-"+timestamp)
+		headers["Message-ID"] = []string{messageID}
 	}
 
 	if mail.inReplyTo != "" {
