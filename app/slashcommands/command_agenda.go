@@ -69,7 +69,7 @@ func (ap *AgendaProvider) DoCommand(a *app.App, c request.CTX, args *model.Comma
 
 	switch action {
 	case "queue":
-		topic := strings.Join(split[2:], " ")
+		topic := strings.Join(split[1:], " ")
 
 		return ap.executeQueueCommand(a, c, args, topic)
 
@@ -91,7 +91,7 @@ func (ap *AgendaProvider) executeQueueCommand(a *app.App, c request.CTX, args *m
 
 	cardLink, err := ap.addCardToBoard(a, c, channel, args.UserId, topic, userSession)
 	if err != nil {
-		return responsef("Error creating board card")
+		return responsef("Error creating board card: " + err.Error())
 	}
 
 	cardAddedPost := &model.Post{
@@ -161,21 +161,16 @@ func (ap *AgendaProvider) executeListCommand(app *app.App, c request.CTX, args *
 			ChannelId: args.ChannelId,
 			RootId:    args.RootId,
 			Message:   link,
-			Type:      model.PostTypeEphemeral,
 		}
 		_, appErr := app.CreatePost(c, post, channel, false, true)
 		if appErr != nil {
-			return responsef("Error creating post")
+			return responsef("Error creating post: " + appErr.Error())
 		}
 	}
 	return &model.CommandResponse{}
 }
 
 func (ap *AgendaProvider) addCardToBoard(a *app.App, c request.CTX, channel *model.Channel, userID, title, usersession string) (string, error) {
-	if a.Config().ServiceSettings.SiteURL != nil {
-		return "", errors.New("SiteURL must be set to create a card in the agenda board")
-	}
-
 	// We are connecting to the Focalboard API directly
 	// while it is brought in as part of the multi-product architecture
 	fbClient := getBoardsClient(a, usersession)
