@@ -284,10 +284,10 @@ func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig) error {
 	defer c.Quit()
 	defer c.Close()
 
-	return SendMail(c, mail, time.Now(), config)
+	return sendMail(c, mail, time.Now(), config)
 }
 
-func SendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
+func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody

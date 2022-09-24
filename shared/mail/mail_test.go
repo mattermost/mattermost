@@ -409,7 +409,7 @@ func TestSendMail(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references}
 			cfg := getConfig()
-			err = SendMail(mocm, mail, time.Now(), cfg)
+			err = sendMail(mocm, mail, time.Now(), cfg)
 			require.NoError(t, err)
 			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
