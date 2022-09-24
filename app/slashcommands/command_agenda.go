@@ -154,7 +154,7 @@ func (ap *AgendaProvider) executeListCommand(app *app.App, c request.CTX, args *
 		cardLinks = append(cardLinks, link)
 	}
 
-	// post ephemeral message for each card link; unfurl will display the card for user.
+	// post message for each card link; unfurl will display the card for user.
 	for _, link := range cardLinks {
 		post := &model.Post{
 			UserId:    args.UserId,
@@ -232,7 +232,7 @@ func (ap *AgendaProvider) addCardToBoard(a *app.App, c request.CTX, channel *mod
 		return "", errors.New("blocks not inserted correctly to board created")
 	}
 
-	cardUrl := fbUtils.MakeCardLink(*a.Config().ServiceSettings.SiteURL, channel.TeamId, board.ID, blocks[0].ID)
+	cardUrl := makeCardLink(a, channel.TeamId, board.ID, blocks[0].ID)
 	return cardUrl, err
 }
 
