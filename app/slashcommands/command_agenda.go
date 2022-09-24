@@ -19,9 +19,10 @@ const (
 	AgendaCommands       = "queue, list"
 	CommandTriggerAgenda = "agenda"
 
-	StatusUpNext  = "Up Next"
-	StatusDone    = "Done"
-	StatusRevisit = "Revisit"
+	StatusPropName = "Status"
+	StatusUpNext   = "Up Next"
+	StatusDone     = "Done"
+	StatusRevisit  = "Revisit"
 )
 
 type AgendaProvider struct{}
@@ -54,17 +55,17 @@ func (ap *AgendaProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (ap *AgendaProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if a.Config().ServiceSettings.SiteURL != nil {
+	if a.Config().ServiceSettings.SiteURL == nil {
 		return responsef("SiteURL must be set to use the agenda command")
 	}
 
 	split := strings.Fields(message)
 
-	if len(split) <= 2 {
-		return responsef("Missing command. You can try queue, list, help")
+	if len(split) < 1 {
+		return responsef("Missing command. You can try queue, list, help: " + message)
 	}
 
-	action := split[1]
+	action := split[0]
 
 	switch action {
 	case "queue":
@@ -73,7 +74,7 @@ func (ap *AgendaProvider) DoCommand(a *app.App, c request.CTX, args *model.Comma
 		return ap.executeQueueCommand(a, c, args, topic)
 
 	case "list":
-		return ap.executeListCommand(a, args)
+		return ap.executeListCommand(a, c, args)
 	}
 
 	return &model.CommandResponse{}
@@ -108,15 +109,65 @@ func (ap *AgendaProvider) executeQueueCommand(a *app.App, c request.CTX, args *m
 	return &model.CommandResponse{}
 }
 
-func (ap *AgendaProvider) executeListCommand(app *app.App, args *model.CommandArgs) *model.CommandResponse {
+func (ap *AgendaProvider) executeListCommand(app *app.App, c request.CTX, args *model.CommandArgs) *model.CommandResponse {
 	fmt.Println("Listing agenda items here")
 
+	client := getBoardsClient(app, args.Session.Token)
+
+	channel, appErr := app.GetChannel(c, args.ChannelId)
+	if appErr != nil || channel == nil {
+		return responsef("Error fetching channel")
+	}
+
 	// get agenda board for current channel
+	// ToDo:  don't create missing board for list action
+	board, err := ap.getOrCreateBoardForChannel(args.ChannelId, args.UserId, client, app, c)
+	if err != nil {
+		return responsef("Error fetching agenda board")
+	}
 
 	// make card link for every "up next" card
+	cards, resp := client.GetCards(board.ID, 0, 100)
+	if resp.Error != nil {
+		return responsef("Error fetching agenda cards")
+	}
+
+	if len(cards) == 0 {
+		return responsef("No agenda items found")
+	}
+
+	cardLinks := make([]string, 0, len(cards))
+
+	statusProp := getCardPropertyByName(board, StatusPropName)
+	statusPropID := statusProp["id"].(string)
+	statusOpt := getPropertyOptionByValue(statusProp, StatusUpNext)
+	statusUpNextID := statusOpt["id"]
+
+	for _, card := range cards {
+		// look for "Up Next" value in "Status" prop
+		val, ok := card.Properties[statusPropID]
+		if !ok || val != statusUpNextID {
+			continue
+		}
+
+		link := fmt.Sprintf("[%s](%s)", card.Title, makeCardLink(app, args.TeamId, board.ID, card.ID))
+		cardLinks = append(cardLinks, link)
+	}
 
 	// post ephemeral message for each card link; unfurl will display the card for user.
-
+	for _, link := range cardLinks {
+		post := &model.Post{
+			UserId:    args.UserId,
+			ChannelId: args.ChannelId,
+			RootId:    args.RootId,
+			Message:   link,
+			Type:      model.PostTypeEphemeral,
+		}
+		_, appErr := app.CreatePost(c, post, channel, false, true)
+		if appErr != nil {
+			return responsef("Error creating post")
+		}
+	}
 	return &model.CommandResponse{}
 }
 
@@ -135,7 +186,7 @@ func (ap *AgendaProvider) addCardToBoard(a *app.App, c request.CTX, channel *mod
 		return "", err
 	}
 
-	statusProp := getCardPropertyByName(board, "Status")
+	statusProp := getCardPropertyByName(board, StatusPropName)
 	if statusProp == nil {
 		return "", errors.New("status card property not found on board")
 	}
@@ -241,7 +292,7 @@ func (ap *AgendaProvider) getOrCreateBoardForChannel(channelID, creatorUserID st
 			},
 			{
 				"id":   model.NewId(),
-				"name": "Status",
+				"name": StatusPropName,
 				"type": "select",
 				"options": []map[string]interface{}{
 					{
@@ -361,4 +412,8 @@ func getPropertyOptionByValue(property map[string]interface{}, value string) map
 func getBoardsClient(app *app.App, userSession string) *fbClient.Client {
 	fbUrl := fmt.Sprintf("%s/plugins/focalboard", *app.Config().ServiceSettings.SiteURL)
 	return fbClient.NewClient(fbUrl, userSession)
+}
+
+func makeCardLink(app *app.App, teamID, boardID, cardID string) string {
+	return fbUtils.MakeCardLink(*app.Config().ServiceSettings.SiteURL+"/boards", teamID, boardID, cardID)
 }
