@@ -74,6 +74,7 @@ func TestScopes(t *testing.T) {
 			"getChannelsForUser":                   {model.ScopeChannelsRead, model.ScopeUsersRead},
 			"getChannelStats":                      {model.ScopeChannelsRead},
 			"getChannelUnread":                     {model.ScopeChannelsRead},
+			"getClientConfig":                      model.ScopeUnrestrictedAPI,
 			"getDefaultProfileImage":               {model.ScopeUsersRead},
 			"getDeletedChannelsForTeam":            {model.ScopeChannelsRead, model.ScopeTeamsRead},
 			"getEmoji":                             {model.ScopeEmojisRead},
@@ -197,15 +198,16 @@ func TestScopes(t *testing.T) {
 	t.Run("APIs by scope name", func(t *testing.T) {
 		expected := map[model.Scope][]string{
 			"*:*": {
+				"connectWebSocket",
+				"doPostAction",
+				"getBrandImage",
+				"getClientConfig",
+				"getSupportedTimezones",
 				"login",
 				"loginCWS",
 				"logout",
-				"getSupportedTimezones",
-				"getBrandImage",
-				"connectWebSocket",
 				"openDialog",
 				"submitDialog",
-				"doPostAction",
 			},
 			"channels:create": {
 				"createChannel",
@@ -374,7 +376,6 @@ func TestScopes(t *testing.T) {
 				"getChannelPoliciesForUser",
 				"getChannelsForPolicy",
 				"getChannelsForScheme",
-				"getClientConfig",
 				"getClientLicense",
 				"getCloudCustomer",
 				"getCloudLimits",
