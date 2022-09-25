@@ -2,11 +2,14 @@ package eventbus
 
 import (
 	"context"
+	"fmt"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/invopop/jsonschema"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
@@ -210,6 +213,137 @@ func TestBrokerSubscribePublish(t *testing.T) {
 		// wait some time to handle already published events
 		time.Sleep(5 * time.Second)
 		require.Equal(t, requestIdsExpected, requestIdsActual)
+	})
+}
+
+func TestSubscribeUnsubscribe(t *testing.T) {
+	t.Run("subscribe/unsubscribe race condition", func(t *testing.T) {
+		bs := NewBroker(10, 4, 3*time.Second)
+		bs.Register("topic", "description", struct{}{})
+		bs.Start()
+
+		var numEvents int32
+		var mu sync.Mutex
+		subscribersIds := make([]string, 0)
+		// run Subscribe from multiple goroutines
+		numGoroutines := 10
+		numSubscribers := 100
+		for i := 0; i < numGoroutines; i++ {
+			go func() {
+				for j := 0; j < numSubscribers; j++ {
+					handler := func(ev Event) error {
+						atomic.AddInt32(&numEvents, 1)
+						return nil
+					}
+					id, err := bs.Subscribe("topic", handler)
+					require.NoError(t, err)
+					mu.Lock()
+					subscribersIds = append(subscribersIds, id)
+					mu.Unlock()
+				}
+			}()
+		}
+
+		// wait some time to finish subscribing process
+		time.Sleep(2 * time.Second)
+		bs.Publish("topic", request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil), nil)
+
+		// wait some time so event is processed by handlers
+		time.Sleep(2 * time.Second)
+		require.Equal(t, int32(1000), numEvents)
+
+		// run Unsubscribe from multiple goroutines
+		for i := 0; i < numGoroutines; i++ {
+			iCopy := i
+			go func() {
+				for j := 0; j < numSubscribers; j++ {
+					err := bs.Unsubscribe("topic", subscribersIds[iCopy*numSubscribers+j])
+					require.NoError(t, err)
+				}
+			}()
+		}
+
+		// wait some time to finish subscribing process
+		time.Sleep(2 * time.Second)
+		numEvents = 0
+		bs.Publish("topic", request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil), nil)
+		time.Sleep(time.Second)
+		require.Equal(t, int32(0), numEvents)
+	})
+
+	t.Run("subscribe on topic that is not registered", func(t *testing.T) {
+		bs := NewBroker(2, 1, time.Second)
+		bs.Register("topic", "description", struct{}{})
+		_, err := bs.Subscribe("invalid topic", func(ev Event) error { return nil })
+		require.Error(t, err)
+	})
+
+	t.Run("unsubscribe with incorrect id", func(t *testing.T) {
+		bs := NewBroker(2, 9, time.Second)
+		bs.Register("topic", "description", struct{}{})
+		id, err := bs.Subscribe("topic", func(ev Event) error { return nil })
+		require.NoError(t, err)
+		err = bs.Unsubscribe("topic", "invalid id")
+		require.Error(t, err)
+		err = bs.Unsubscribe("topic", id)
+		require.NoError(t, err)
+	})
+
+	t.Run("unsubscribe with incorrect topic", func(t *testing.T) {
+		bs := NewBroker(2, 9, time.Second)
+		bs.Register("topic", "description", struct{}{})
+		id, err := bs.Subscribe("topic", func(ev Event) error { return nil })
+		require.NoError(t, err)
+		err = bs.Unsubscribe("incorrect topic", id)
+		require.Error(t, err)
+	})
+}
+
+func TestRegistration(t *testing.T) {
+	t.Run("register race condition", func(t *testing.T) {
+		bs := NewBroker(100, 80, 3*time.Second)
+		bs.Start()
+
+		schema := jsonschema.Reflect(struct{}{})
+		buf, _ := schema.MarshalJSON()
+		schemaJSON := string(buf)
+
+		numGoroutines := 10
+		numTopics := 2
+		topicsExpected := make([]EventType, 0)
+		for i := 0; i < numGoroutines; i++ {
+			for j := 0; j < numTopics; j++ {
+				id := i*numTopics + j
+				topicName := fmt.Sprintf("topic %d", id)
+				topicDescription := fmt.Sprintf("description %d", id)
+
+				topicsExpected = append(topicsExpected, EventType{
+					Topic:       topicName,
+					Description: topicDescription,
+					Schema:      schemaJSON,
+				})
+			}
+		}
+		sort.Slice(topicsExpected, func(i, j int) bool {
+			return topicsExpected[i].Topic < topicsExpected[j].Topic
+		})
+
+		for i := 0; i < numGoroutines; i++ {
+			iCopy := i
+			go func() {
+				for j := 0; j < numTopics; j++ {
+					index := iCopy*numTopics + j
+					err := bs.Register(topicsExpected[index].Topic, topicsExpected[index].Description, struct{}{})
+					require.NoError(t, err)
+				}
+			}()
+		}
+
+		// wait some time to finish registration process
+		time.Sleep(2 * time.Second)
+
+		topicsActual := bs.EventTypes()
+		require.Equal(t, topicsExpected, topicsActual)
 	})
 }
 
