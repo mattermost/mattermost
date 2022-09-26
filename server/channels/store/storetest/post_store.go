@@ -2064,7 +2064,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 
 func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	t.Run("should return error if negative Page/PerPage options are passed", func(t *testing.T) {
-		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{Page: 1, PerPage: 0}, false, map[string]bool{})
+		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{Page: 1, PerPage: -1}, false, map[string]bool{})
 		assert.Nil(t, postList)
 		assert.Error(t, err)
 		assert.IsType(t, &store.ErrInvalidInput{}, err)
@@ -2156,7 +2156,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		assert.NotNil(t, postList.Posts[post5.Id])
 		assert.NotNil(t, postList.Posts[post6.Id])
 
-		t.Run("should limit posts", func(t *testing.T) {
+		t.Run("should limit posts when PerPage is greater than 0", func(t *testing.T) {
 			postList, err = ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post3.UpdateAt, PerPage: 2}, false, map[string]bool{})
 			require.NoError(t, err)
 			assert.Len(t, postList.Posts, 2)
@@ -2166,6 +2166,25 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 			}, postList.Order)
 			assert.NotNil(t, postList.Posts[post6.Id])
 			assert.NotNil(t, postList.Posts[post5.Id])
+		})
+
+		t.Run("should return all posts when PerPage is 0", func(t *testing.T) {
+			postList, err = ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post3.UpdateAt, PerPage: 0}, false, map[string]bool{})
+			require.NoError(t, err)
+			assert.Equal(t, []string{
+				post6.Id,
+				post5.Id,
+				post4.Id,
+				post3.Id,
+				post1.Id,
+			}, postList.Order)
+
+			assert.Len(t, postList.Posts, 5)
+			assert.NotNil(t, postList.Posts[post1.Id], "should return the parent post")
+			assert.NotNil(t, postList.Posts[post3.Id])
+			assert.NotNil(t, postList.Posts[post4.Id])
+			assert.NotNil(t, postList.Posts[post5.Id])
+			assert.NotNil(t, postList.Posts[post6.Id])
 		})
 	})
 

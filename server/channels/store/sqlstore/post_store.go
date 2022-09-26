@@ -1254,8 +1254,12 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
 	}
-	if options.PerPage < 1 {
+	if options.PerPage < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
+	}
+	// Add original limit of 1000 to maintain backwards compatibility with mobile and plugins.
+	if options.PerPage == 0 {
+		options.PerPage = 1000
 	}
 
 	if options.CollapsedThreads {

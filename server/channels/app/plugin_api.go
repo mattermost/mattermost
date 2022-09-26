@@ -684,11 +684,8 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	return post, appErr
 }
 
-func (api *PluginAPI) GetPostsSince(channelID string, time int64, page, perPage int) (*model.PostList, *model.AppError) {
-	if perPage == 0 {
-		perPage = 60
-	}
-	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
+	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
 	}

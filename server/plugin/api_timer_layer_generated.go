@@ -762,9 +762,9 @@ func (api *apiTimerLayer) GetPost(postId string) (*model.Post, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPostsSince(channelId string, time int64, page, perPage int) (*model.PostList, *model.AppError) {
+func (api *apiTimerLayer) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetPostsSince(channelId, time, page, perPage)
+	_returnsA, _returnsB := api.apiImpl.GetPostsSince(channelId, time)
 	api.recordTime(startTime, "GetPostsSince", _returnsB == nil)
 	return _returnsA, _returnsB
 }
