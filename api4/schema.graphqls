@@ -113,6 +113,7 @@ type User {
 	locale: String!
 	timezone: StringMap!
 	position: String!
+	bio: String!
 	mfaActive: Boolean!
 	allowMarketing: Boolean!
 	remoteId: String
