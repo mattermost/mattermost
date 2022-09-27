@@ -9530,5 +9530,9 @@
   {
     "id": "app.cloud.get_current_plan_name.app_error",
     "translation": "現在のプラン名を取得できませんでした"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "ジョブ実行中にエラーが発生しました。"
   }
 ]
