@@ -7664,10 +7664,6 @@
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Arreglar ahora"
-  },
-  {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirigiéndote de nuevo a la aplicación."
   },

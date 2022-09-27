@@ -1371,9 +1371,18 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	return v, nil
 }
 
-func (us SqlUserStore) GetUnreadCount(userId string) (int64, error) {
+func (us SqlUserStore) GetUnreadCount(userId string, isCRTEnabled bool) (int64, error) {
+	var totalMsgCountColumn = "c.TotalMsgCount"
+	var msgCountColumn = "cm.MsgCount"
+	var mentionCountColumn = "cm.MentionCount"
+	if isCRTEnabled {
+		totalMsgCountColumn = "c.TotalMsgCountRoot"
+		msgCountColumn = "cm.MsgCountRoot"
+		mentionCountColumn = "cm.MentionCountRoot"
+	}
+
 	query := `
-		SELECT SUM(CASE WHEN c.Type = ? THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END)
+		SELECT SUM(CASE WHEN c.Type = ? THEN (` + totalMsgCountColumn + ` - ` + msgCountColumn + `) ELSE ` + mentionCountColumn + ` END)
 		FROM Channels c
 		INNER JOIN ChannelMembers cm
 			ON cm.ChannelId = c.Id

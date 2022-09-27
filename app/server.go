@@ -134,6 +134,7 @@ type Server struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+	goroutineBuffered   chan struct{}
 
 	EmailService email.ServiceInterface
 
@@ -208,6 +209,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
+		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		WebSocketRouter: &WebSocketRouter{
@@ -1034,6 +1036,26 @@ func (s *Server) Go(f func()) {
 		case s.goroutineExitSignal <- struct{}{}:
 		default:
 		}
+	}()
+}
+
+// GoBuffered acts like a semaphore which creates a goroutine, but maintains a record of it
+// to ensure that execution completes before the server is shutdown.
+func (s *Server) GoBuffered(f func()) {
+	s.goroutineBuffered <- struct{}{}
+
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+
+		<-s.goroutineBuffered
 	}()
 }
 

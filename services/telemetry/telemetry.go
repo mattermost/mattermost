@@ -448,6 +448,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
+		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
