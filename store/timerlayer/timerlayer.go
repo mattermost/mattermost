@@ -3909,10 +3909,10 @@ func (s *TimerLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3925,10 +3925,10 @@ func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *TimerLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

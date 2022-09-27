@@ -616,7 +616,7 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 }
 
 func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
 
 	return users, err
 }

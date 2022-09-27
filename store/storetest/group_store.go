@@ -836,25 +836,25 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Check returns members
-	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(groupMembers))
 
 	// Check page 1
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
 	require.Equal(t, user3.Id, groupMembers[0].Id)
 	require.Equal(t, user2.Id, groupMembers[1].Id)
 
 	// Check page 2
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.Equal(t, user1.Id, groupMembers[0].Id)
 
 	// Check madeup id
-	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
+	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(groupMembers))
 
@@ -863,7 +863,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Should not return deleted members
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
 }
@@ -5048,7 +5048,7 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	_, nErr = ss.User().Save(u2)
 	require.NoError(t, nErr)
 
-	users, err := ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
+	users, err := ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000, nil)
 	require.NoError(t, err)
 
 	originalLen := len(users)
@@ -5056,11 +5056,11 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.NoError(t, err)
 
-	users, err = ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
+	users, err = ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000, nil)
 	require.NoError(t, err)
 	require.Len(t, users, originalLen-1)
 
-	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000)
+	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000, nil)
 	require.Error(t, err)
 	require.Nil(t, users)
 }

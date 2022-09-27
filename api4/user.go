@@ -829,7 +829,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -842,7 +842,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if appErr != nil {
 			c.Err = appErr
 			return

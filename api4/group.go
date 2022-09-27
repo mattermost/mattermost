@@ -629,7 +629,13 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -927,10 +933,26 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	groups, appErr := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
-	if appErr != nil {
-		c.Err = appErr
-		return
+	var (
+		groups      = []*model.Group{}
+		canSee bool = true
+		appErr *model.AppError
+	)
+
+	if opts.FilterHasMember != "" {
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if canSee {
+		groups, appErr = c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	var (

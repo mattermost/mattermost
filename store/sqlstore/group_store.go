@@ -401,58 +401,57 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = ?
-		ORDER BY
-			GroupMembers.CreateAt DESC
-		LIMIT
-			?
-		OFFSET
-			?`
+	query := s.getQueryBuilder().
+		Select("u.*").
+		From("GroupMembers").
+		Join("Users u ON u.Id = GroupMembers.UserId").
+		Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"GroupId": groupID}).
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage))
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
 	if err := s.GetReplicaX().Get(&model.Group{}, "SELECT * FROM UserGroups WHERE Id = ?", groupID); err != nil {
 		return nil, errors.Wrap(err, "GetNonMemberUsersPage")
 	}
 
-	query := `
-	SELECT 
-		Users.*
-	FROM
-		Users
-	LEFT JOIN 
-		GroupMembers ON (GroupMembers.UserId = Users.Id AND GroupMembers.GroupId = ?)
-	WHERE
-		Users.DeleteAt = 0
-		AND ( GroupMembers.UserId IS NULL OR GroupMembers.DeleteAt != 0)
-	ORDER BY
-		GroupMembers.CreateAt DESC
-	LIMIT
-		?
-	OFFSET
-		?`
+	query := s.getQueryBuilder().
+		Select("u.*").
+		From("Users u").
+		LeftJoin("GroupMembers ON (GroupMembers.UserId = u.Id AND GroupMembers.GroupId = ?)", groupID).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where("(GroupMembers.UserID IS NULL OR GroupMembers.DeleteAt != 0)").
+		Limit(uint64(perPage)).
+		Offset(uint64(page * perPage))
 
-	if err := s.GetReplicaX().Select(&groupMembers, query, groupID, perPage, page*perPage); err != nil {
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+
+	if err := s.GetReplicaX().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find member Users for Group with id=%s", groupID)
 	}
 

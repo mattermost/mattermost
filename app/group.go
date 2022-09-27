@@ -235,8 +235,8 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 	return users, nil
 }
 
-func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage)
+func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -247,8 +247,8 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	}
 	return a.sanitizeProfiles(members, false), int(count), nil
 }
-func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
+func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

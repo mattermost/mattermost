@@ -829,10 +829,10 @@ type GroupStore interface {
 	Delete(groupID string) (*model.Group, error)
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
-	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetMemberCount(groupID string) (int64, error)
 
-	GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+	GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 
 	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error)
 	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error)
@@ -972,7 +972,6 @@ type SharedChannelStore interface {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	Term                     string
 	NotAssociatedToGroup     string

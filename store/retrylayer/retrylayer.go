@@ -4845,11 +4845,11 @@ func (s *RetryLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 
 }
 
-func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+		result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}
@@ -4866,11 +4866,11 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 
 }
 
-func (s *RetryLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *RetryLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+		result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}

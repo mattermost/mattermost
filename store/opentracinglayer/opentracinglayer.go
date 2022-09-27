@@ -4296,7 +4296,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersNotInChannel(groupID string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersPage")
 	s.Root.Store.SetContext(newCtx)
@@ -4305,7 +4305,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4314,7 +4314,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *OpenTracingLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetNonMemberUsersPage")
 	s.Root.Store.SetContext(newCtx)
@@ -4323,7 +4323,7 @@ func (s *OpenTracingLayerGroupStore) GetNonMemberUsersPage(groupID string, page 
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
