@@ -9457,11 +9457,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 102+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
