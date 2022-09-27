@@ -559,7 +559,8 @@ func TestCreatePostAll(t *testing.T) {
 
 	post.ChannelId = th.BasicPrivateChannel.Id
 	_, _, err = client.CreatePost(post)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 
 	post.ChannelId = directChannel.Id
 	_, _, err = client.CreatePost(post)
@@ -567,6 +568,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
+	th.App.AddUserToChannel(th.Context, ruser, th.BasicPrivateChannel, false)
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches()
 

@@ -11981,6 +11981,40 @@ func (a *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) IsSessionMemberOfChannel(c request.CTX, session model.Session, channelID string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsSessionMemberOfChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsSessionMemberOfChannel(c, session, channelID)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) IsUserAway(lastActivityAt int64) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUserAway")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsUserAway(lastActivityAt)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) IsUserSignUpAllowed() *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUserSignUpAllowed")

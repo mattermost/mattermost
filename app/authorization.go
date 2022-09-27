@@ -14,6 +14,16 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
+func (a *App) IsSessionMemberOfChannel(c request.CTX, session model.Session, channelID string) bool {
+	if ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true); err == nil {
+		if _, ok := ids[channelID]; ok {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
 	permissionsStr := "permission="
 	for _, permission := range permissions {

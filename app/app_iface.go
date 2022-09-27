@@ -889,6 +889,8 @@ type AppIface interface {
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
 	IsPhase2MigrationCompleted() *model.AppError
+	IsSessionMemberOfChannel(c request.CTX, session model.Session, channelID string) bool
+	IsUserAway(lastActivityAt int64) bool
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
