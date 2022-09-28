@@ -4,6 +4,8 @@
 package jobs
 
 import (
+	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -389,6 +391,26 @@ func TestSetJobError(t *testing.T) {
 
 			err := jobServer.SetJobError(job, jobError)
 			require.Nil(t, err)
+		})
+
+		t.Run("error message set correctly", func(t *testing.T) {
+			jobServer, mockStore, _ := makeJobServer(t)
+
+			jobError := model.NewAppError("anywhere", "not.a.valid.id", nil, "details", http.StatusTeapot).Wrap(errors.New("wrapped"))
+
+			job := &model.Job{
+				Id:       "job_id",
+				Type:     "job_type",
+				Progress: -1,
+				Data:     map[string]string{},
+			}
+
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(false, nil)
+			mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusCancelRequested).Return(true, nil)
+
+			err := jobServer.SetJobError(job, jobError)
+			require.Nil(t, err)
+			require.Equal(t, "not.a.valid.id — details — wrapped", job.Data["error"])
 		})
 	})
 }
