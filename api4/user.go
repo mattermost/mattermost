@@ -655,6 +655,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		rolesString        = query.Get("roles")
 		channelRolesString = query.Get("channel_roles")
 		teamRolesString    = query.Get("team_roles")
+		includeTotalCount  = query.Get("include_total_count")
+		excludeBots        = query.Get("exclude_bots")
 	)
 
 	if notInChannelId != "" && inTeamId == "" {
@@ -683,10 +685,12 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		withoutTeamBool, _      = strconv.ParseBool(withoutTeam)
-		groupConstrainedBool, _ = strconv.ParseBool(groupConstrained)
-		inactiveBool, _         = strconv.ParseBool(inactive)
-		activeBool, _           = strconv.ParseBool(active)
+		withoutTeamBool, _       = strconv.ParseBool(withoutTeam)
+		groupConstrainedBool, _  = strconv.ParseBool(groupConstrained)
+		inactiveBool, _          = strconv.ParseBool(inactive)
+		activeBool, _            = strconv.ParseBool(active)
+		includeTotalCountBool, _ = strconv.ParseBool(includeTotalCount)
+		excludeBotsBool, _       = strconv.ParseBool(excludeBots)
 	)
 
 	if inactiveBool && activeBool {
@@ -726,24 +730,26 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userGetOptions := &model.UserGetOptions{
-		InTeamId:         inTeamId,
-		InChannelId:      inChannelId,
-		NotInTeamId:      notInTeamId,
-		NotInChannelId:   notInChannelId,
-		InGroupId:        inGroupId,
-		NotInGroupId:     notInGroupId,
-		GroupConstrained: groupConstrainedBool,
-		WithoutTeam:      withoutTeamBool,
-		Inactive:         inactiveBool,
-		Active:           activeBool,
-		Role:             role,
-		Roles:            roles,
-		ChannelRoles:     channelRoles,
-		TeamRoles:        teamRoles,
-		Sort:             sort,
-		Page:             c.Params.Page,
-		PerPage:          c.Params.PerPage,
-		ViewRestrictions: restrictions,
+		InTeamId:          inTeamId,
+		InChannelId:       inChannelId,
+		NotInTeamId:       notInTeamId,
+		NotInChannelId:    notInChannelId,
+		InGroupId:         inGroupId,
+		NotInGroupId:      notInGroupId,
+		GroupConstrained:  groupConstrainedBool,
+		WithoutTeam:       withoutTeamBool,
+		Inactive:          inactiveBool,
+		Active:            activeBool,
+		Role:              role,
+		Roles:             roles,
+		ChannelRoles:      channelRoles,
+		TeamRoles:         teamRoles,
+		Sort:              sort,
+		Page:              c.Params.Page,
+		PerPage:           c.Params.PerPage,
+		ViewRestrictions:  restrictions,
+		ExcludeBots:       excludeBotsBool,
+		IncludeTotalCount: includeTotalCountBool,
 	}
 
 	var (
@@ -807,7 +813,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin()) // ensure this accepts new options
 		}
 	} else if inChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
@@ -853,7 +859,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin()) // ensure this accepts new options
 	}
 
 	if appErr != nil {
@@ -1052,6 +1058,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Roles:            props.Roles,
 		ChannelRoles:     props.ChannelRoles,
 		TeamRoles:        props.TeamRoles,
+		ExcludeBots:      props.ExcludeBots,
 	}
 
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {

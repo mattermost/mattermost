@@ -36,7 +36,8 @@ type SqlUserStore struct {
 	metrics einterfaces.MetricsInterface
 
 	// usersQuery is a starting point for all queries that return one or more Users.
-	usersQuery sq.SelectBuilder
+	usersQuery      sq.SelectBuilder
+	usersCountQuery sq.SelectBuilder
 }
 
 func (us *SqlUserStore) ClearCaches() {}
@@ -53,6 +54,11 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	us.usersQuery = us.getQueryBuilder().
 		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
 			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId").
+		From("Users u").
+		LeftJoin("Bots b ON ( b.UserId = u.Id )")
+
+	us.usersCountQuery = us.getQueryBuilder().
+		Select("COUNT(u.*)").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -486,11 +492,52 @@ func (us SqlUserStore) GetEtagForAllProfiles() string {
 	return fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 }
 
-func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+// GetAllProfiles returns a list of users based on the options,
+// and an optional total count (irrespective of the pagination limit and offset).
+func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
+
+	query := us.getAllProfilesSelectBuilder(options, false)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, 0, errors.Wrap(err, "get_all_profiles_tosql")
+	}
+
+	users := []*model.User{}
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
+		return nil, 0, errors.Wrap(err, "failed to get User profiles")
+	}
+
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+
+	var totalCount int64
+	if options.IncludeTotalCount {
+		countQuery := us.getAllProfilesSelectBuilder(options, true)
+		countQueryString, countArgs, err := countQuery.ToSql()
+		if err != nil {
+			return nil, 0, errors.Wrap(err, "get_all_profiles_tosql")
+		}
+		if err := us.GetReplicaX().Get(&totalCount, countQueryString, countArgs...); err != nil {
+			return nil, 0, errors.Wrap(err, "failed to get the total count of user profiles")
+		}
+	}
+
+	return users, totalCount, nil
+}
+
+func (us SqlUserStore) getAllProfilesSelectBuilder(options *model.UserGetOptions, totalCountOnly bool) sq.SelectBuilder {
 	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
-	query := us.usersQuery.
-		OrderBy("u.Username ASC").
-		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+	var query sq.SelectBuilder
+	if totalCountOnly {
+		query = us.usersCountQuery
+	} else {
+		query = us.usersQuery.
+			OrderBy("u.Username ASC").
+			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+	}
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
@@ -503,21 +550,11 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 		query = query.Where("u.DeleteAt = 0")
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_all_profiles_tosql")
+	if options.ExcludeBots {
+		query = query.Where(sq.Eq{"b.UserId": nil})
 	}
 
-	users := []*model.User{}
-	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get User profiles")
-	}
-
-	for _, u := range users {
-		u.Sanitize(map[string]bool{})
-	}
-
-	return users, nil
+	return query
 }
 
 func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.SelectBuilder {
@@ -1425,6 +1462,11 @@ func (us SqlUserStore) Search(teamId string, term string, options *model.UserSea
 	if teamId != "" {
 		query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
 	}
+
+	if options.ExcludeBots {
+		query = query.Where(sq.Eq{"b.UserId": nil})
+	}
+
 	return us.performSearch(query, term, options)
 }
 

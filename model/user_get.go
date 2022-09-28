@@ -39,7 +39,9 @@ type UserGetOptions struct {
 	// Page
 	Page int
 	// Page size
-	PerPage int
+	PerPage           int
+	ExcludeBots       bool
+	IncludeTotalCount bool
 }
 
 type UserGetByIdsOptions struct {

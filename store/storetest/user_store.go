@@ -458,7 +458,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 	t.Run("get offset 0, limit 100", func(t *testing.T) {
 		options := &model.UserGetOptions{Page: 0, PerPage: 100}
-		actual, userErr := ss.User().GetAllProfiles(options)
+		actual, _, userErr := ss.User().GetAllProfiles(options)
 		require.NoError(t, userErr)
 
 		require.Equal(t, []*model.User{
@@ -473,7 +473,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset 0, limit 1", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 1,
 		})
@@ -512,7 +512,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Role:    "system_admin",
@@ -525,7 +525,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role, inactive", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Role:     "system_admin",
@@ -538,7 +538,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to inactive", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
@@ -551,7 +551,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to active", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Active:  true,
@@ -567,7 +567,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("try to filter to active and inactive", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
@@ -608,7 +608,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u10.Id)) }()
 
 	t.Run("filter by system_user_manager role", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Roles:   []string{"system_user_manager"},
@@ -620,7 +620,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter by multiple system roles", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Roles:   []string{"system_manager", "system_user_manager", "system_read_only_admin", "system_admin"},
@@ -636,7 +636,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter by system_user only", func(t *testing.T) {
-		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, _, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Roles:   []string{"system_user"},

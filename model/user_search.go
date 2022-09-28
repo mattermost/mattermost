@@ -23,6 +23,7 @@ type UserSearch struct {
 	ChannelRoles     []string `json:"channel_roles"`
 	TeamRoles        []string `json:"team_roles"`
 	NotInGroupId     string   `json:"not_in_group_id"`
+	ExcludeBots      bool     `json:"exclude_bots"`
 }
 
 // UserSearchOptions captures internal parameters derived from the user's permissions and a
@@ -52,4 +53,5 @@ type UserSearchOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 	// List of allowed channels
 	ListOfAllowedChannels []string
+	ExcludeBots           bool
 }

@@ -10600,7 +10600,7 @@ func (s *OpenTracingLayerUserStore) GetAllNotInAuthService(authServices []string
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetAllProfiles")
 	s.Root.Store.SetContext(newCtx)
@@ -10609,13 +10609,13 @@ func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetAllProfiles(options)
+	result, resultVar1, err := s.UserStore.GetAllProfiles(options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {

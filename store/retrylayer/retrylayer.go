@@ -12117,21 +12117,21 @@ func (s *RetryLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*
 
 }
 
-func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetAllProfiles(options)
+		result, resultVar1, err := s.UserStore.GetAllProfiles(options)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

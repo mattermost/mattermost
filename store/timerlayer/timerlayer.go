@@ -9535,10 +9535,10 @@ func (s *TimerLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetAllProfiles(options)
+	result, resultVar1, err := s.UserStore.GetAllProfiles(options)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9548,7 +9548,7 @@ func (s *TimerLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetAllProfiles", success, elapsed)
 	}
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {

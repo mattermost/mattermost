@@ -109,7 +109,7 @@ func (us *UserService) GetUserByAuth(authData *string, authService string) (*mod
 	return us.store.GetByAuth(authData, authService)
 }
 
-func (us *UserService) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, error) {
+func (us *UserService) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, int64, error) {
 	return us.store.GetAllProfiles(options)
 }
 
@@ -118,7 +118,7 @@ func (us *UserService) GetUsersByUsernames(usernames []string, options *model.Us
 }
 
 func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
-	users, err := us.GetUsersFromProfiles(options)
+	users, _, err := us.GetUsersFromProfiles(options)
 	if err != nil {
 		return nil, err
 	}
