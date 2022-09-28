@@ -531,6 +531,7 @@ type AppIface interface {
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	DeletePreferences(userID string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
+	DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteRetentionPolicy(policyID string) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)

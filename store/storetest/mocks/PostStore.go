@@ -125,6 +125,20 @@ func (_m *PostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
+// DeleteRecentSearchForUser provides a mock function with given fields: userID, searchQuery
+func (_m *PostStore) DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) error {
+	ret := _m.Called(userID, searchQuery)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, *model.SearchParams) error); ok {
+		r0 = rf(userID, searchQuery)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: ctx, id, opts, userID, sanitizeOptions
 func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(ctx, id, opts, userID, sanitizeOptions)

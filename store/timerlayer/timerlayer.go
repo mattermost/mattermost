@@ -5124,6 +5124,22 @@ func (s *TimerLayerPostStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerPostStore) DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) error {
+	start := time.Now()
+
+	err := s.PostStore.DeleteRecentSearchForUser(userID, searchQuery)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteRecentSearchForUser", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
