@@ -92,6 +92,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(getRecentSearches)).Methods("GET")
+	api.BaseRoutes.User.Handle("/recent_searches", api.APISessionRequiredDisableWhenBusy(deleteRecentSearch)).Methods("DELETE")
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods("GET")
 
@@ -3298,5 +3299,28 @@ func getRecentSearches(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(searchParams); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deleteRecentSearch(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	var params model.SearchParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
+		c.Err = model.NewAppError("deleteRecentSearch", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	}
+
+	if err := c.App.DeleteRecentSearchForUser(c.Params.UserId, &params); err != nil {
+		c.Err = err
+		return
 	}
 }

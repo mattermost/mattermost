@@ -1549,6 +1549,14 @@ func (a *App) GetRecentSearchesForUser(userID string) ([]*model.SearchParams, *m
 	return searchParams, nil
 }
 
+func (a *App) DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) *model.AppError {
+	err := a.Srv().Store.Post().DeleteRecentSearchForUser(userID, searchQuery)
+	if err != nil {
+		return model.NewAppError("DeleteRecentSearchForUser", "app.recent_searches.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
 func (a *App) GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 
 	pchan := make(chan store.StoreResult, 1)

@@ -389,6 +389,7 @@ type PostStore interface {
 	GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetRecentSearchesForUser(userID string) ([]*model.SearchParams, error)
+	DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) error
 	LogRecentSearch(userID string, searchQuery []byte, createAt int64) error
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)

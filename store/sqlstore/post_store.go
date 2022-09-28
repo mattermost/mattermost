@@ -2764,6 +2764,17 @@ func (s *SqlPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchP
 	return res, nil
 }
 
+func (s *SqlPostStore) DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) error {
+	searchQueryJSON, err := json.Marshal(searchQuery)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling job data")
+	}
+	if _, err := s.GetReplicaX().Exec("DELETE FROM RecentSearches WHERE userid = ? AND query = ?", userID, string(searchQueryJSON)); err != nil {
+		return errors.Wrap(err, "failed to delete RecentSearch")
+	}
+	return nil
+}
+
 func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	query := s.getQueryBuilder().Select("MIN(min_createat) min_createat").
 		Suffix(`FROM (
