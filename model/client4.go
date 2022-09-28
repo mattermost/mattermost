@@ -35,6 +35,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	STATUS                          = "status"
 	StatusOk                        = "OK"
