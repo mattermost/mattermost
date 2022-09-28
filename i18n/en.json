@@ -5612,6 +5612,10 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
     "id": "app.job.get.app_error",
     "translation": "Unable to get the job."
   },

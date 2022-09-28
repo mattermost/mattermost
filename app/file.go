@@ -684,7 +684,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.Srv().Go(func() {
+		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
@@ -934,7 +934,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.Srv().Go(func() {
+		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
