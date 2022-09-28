@@ -5608,6 +5608,10 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
     "id": "app.job.get.app_error",
     "translation": "Unable to get the job."
   },
@@ -6590,6 +6594,10 @@
   {
     "id": "app.user.get.app_error",
     "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We could not get the badge count for the user."
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
@@ -7686,6 +7694,10 @@
   {
     "id": "ent.saml.build_request.encoding.app_error",
     "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",

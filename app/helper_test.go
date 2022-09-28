@@ -327,12 +327,18 @@ func WithShared(v bool) ChannelOption {
 	}
 }
 
+func WithCreateAt(v int64) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.CreateAt = *model.NewInt64(v)
+	}
+}
+
 func (th *TestHelper) CreateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
 	return th.createChannel(c, team, model.ChannelTypeOpen, options...)
 }
 
-func (th *TestHelper) CreatePrivateChannel(c request.CTX, team *model.Team) *model.Channel {
-	return th.createChannel(c, team, model.ChannelTypePrivate)
+func (th *TestHelper) CreatePrivateChannel(c request.CTX, team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(c, team, model.ChannelTypePrivate, options...)
 }
 
 func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType model.ChannelType, options ...ChannelOption) *model.Channel {
