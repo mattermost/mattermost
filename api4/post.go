@@ -492,6 +492,17 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	if err != nil {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	if c.AppContext.Session().UserId != originalPost.UserId {
+		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionEditPost) {
 		c.SetPermissionError(model.PermissionEditPost)
 		return

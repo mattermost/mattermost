@@ -2978,6 +2978,14 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(1 * time.Millisecond)
+
+	t.Run("undedited post", func(t *testing.T) {
+		history, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Len(t, history, 0)
+	})
+
 	// update the post message
 	patch := &model.PostPatch{
 		Message: model.NewString("new message edited"),
@@ -2997,13 +3005,29 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	require.NoError(t, err2)
 	CheckOKStatus(t, response2)
 
-	history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
-	require.NoError(t, err3)
-	CheckOKStatus(t, response3)
+	t.Run("update history correctly", func(t *testing.T) {
+		history, response3, err3 := client.GetEditHistoryForPost(rpost.Id)
+		require.NoError(t, err3)
+		CheckOKStatus(t, response3)
 
-	require.Len(t, history, 2)
-	require.Equal(t, history[0].Message, "new message edited")
-	require.Equal(t, history[1].Message, "new message")
+		require.Len(t, history, 2)
+		require.Equal(t, history[0].Message, "new message edited")
+		require.Equal(t, history[1].Message, "new message")
+	})
+
+	t.Run("logged out", func(t *testing.T) {
+		client.Logout()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("different user", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp, err := client.GetEditHistoryForPost(rpost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestCreatePostNotificationsWithCRT(t *testing.T) {
