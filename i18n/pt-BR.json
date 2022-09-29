@@ -7664,10 +7664,6 @@
     "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{.LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Corrigir Agora"
-  },
-  {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Valor inválido para RetentionDays. O valor é muito baixo."
   },
