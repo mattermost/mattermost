@@ -3104,7 +3104,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	t.Run("should return an error if the post is not found", func(t *testing.T) {
 		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
 		require.NotNil(t, err)
-		require.Nil(t, edits)
+		require.Empty(t, edits)
 	})
 }
 
