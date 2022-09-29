@@ -28,6 +28,7 @@ const (
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
 	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeLastAccessibleFile           = "last_accessible_file"
 	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 
@@ -59,6 +60,7 @@ var AllJobTypes = [...]string{
 	JobTypeCloud,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
+	JobTypeLastAccessibleFile,
 }
 
 type Job struct {

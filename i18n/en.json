@@ -4988,6 +4988,10 @@
     "translation": "Failed to add file to zip archive during export."
   },
   {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Can not fetch the file as it is past the cloud plan's limit."
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
@@ -5608,6 +5612,10 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
     "id": "app.job.get.app_error",
     "translation": "Unable to get the job."
   },
@@ -5634,6 +5642,10 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -8630,6 +8642,10 @@
   {
     "id": "model.group.name.invalid_length.app_error",
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
   },
   {
     "id": "model.group.remote_id.app_error",
