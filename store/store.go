@@ -701,6 +701,8 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
+	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
+	GetUptoNSizeFileTime(n int64) (int64, error)
 }
 
 type UploadSessionStore interface {

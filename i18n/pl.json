@@ -9538,5 +9538,9 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "Nie mogliśmy uzyskać liczby odznak dla użytkownika."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Błąd podczas wykonywania zadania."
   }
 ]
