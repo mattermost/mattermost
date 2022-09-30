@@ -126,11 +126,11 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	for i := 0; i < 49; i++ {
@@ -2440,13 +2440,22 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
-	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
+
+	// Increment root mentions by 1
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true)
+	require.NoError(t, nErr)
+
+	// CRT is enabled, only root mentions are counted
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message with CRT")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)
@@ -2804,6 +2813,20 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			"escape :",
 			t1id,
 			"ji:m",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
+			"escape ( and )",
+			t1id,
+			"ji(bah)",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
+			"escape <",
+			t1id,
+			"ji(bah<",
 			&model.UserSearchOptions{},
 			[]*model.User{},
 		},

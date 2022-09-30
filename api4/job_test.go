@@ -16,6 +16,7 @@ import (
 
 func TestCreateJob(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -127,6 +128,7 @@ func TestGetJobs(t *testing.T) {
 
 func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
@@ -191,6 +193,7 @@ func TestGetJobsByType(t *testing.T) {
 
 func TestDownloadJob(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	jobName := model.NewId()
 	job := &model.Job{

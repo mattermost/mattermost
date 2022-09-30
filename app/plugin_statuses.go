@@ -99,7 +99,7 @@ func (ch *Channels) notifyPluginStatusesChanged() error {
 	}
 
 	// Notify any system admins.
-	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
 	ch.srv.Publish(message)

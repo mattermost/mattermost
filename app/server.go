@@ -46,8 +46,10 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
+	"github.com/mattermost/mattermost-server/v6/jobs/notify_admin"
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -133,6 +135,7 @@ type Server struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+	goroutineBuffered   chan struct{}
 
 	EmailService email.ServiceInterface
 
@@ -207,6 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
+		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		WebSocketRouter: &WebSocketRouter{
@@ -507,7 +511,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ch := s.Channels()
 		ch.regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		appInstance := New(ServerConnector(ch))
 		message.Add("config", appInstance.ClientConfigWithComputed())
@@ -523,7 +527,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.Channels().regenerateClientConfig()
 
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
 			s.Publish(message)
@@ -1033,6 +1037,26 @@ func (s *Server) Go(f func()) {
 		case s.goroutineExitSignal <- struct{}{}:
 		default:
 		}
+	}()
+}
+
+// GoBuffered acts like a semaphore which creates a goroutine, but maintains a record of it
+// to ensure that execution completes before the server is shutdown.
+func (s *Server) GoBuffered(f func()) {
+	s.goroutineBuffered <- struct{}{}
+
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+
+		<-s.goroutineBuffered
 	}()
 }
 
@@ -1845,6 +1869,24 @@ func (s *Server) initJobs() {
 		model.JobTypeLastAccessiblePost,
 		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeLastAccessibleFile,
+		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeUpgradeNotifyAdmin,
+		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeTrialNotifyAdmin,
+		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
 	)
 }
 

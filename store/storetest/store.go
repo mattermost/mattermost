@@ -55,6 +55,7 @@ type Store struct {
 	SharedChannelStore        mocks.SharedChannelStore
 	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
+	NotifyAdminStore          mocks.NotifyAdminStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -95,6 +96,7 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
+func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdminStore }
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
 func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
@@ -154,5 +156,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ThreadStore,
 		&s.ProductNoticesStore,
 		&s.SharedChannelStore,
+		&s.NotifyAdminStore,
 	)
 }

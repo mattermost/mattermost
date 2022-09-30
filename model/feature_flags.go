@@ -73,6 +73,8 @@ type FeatureFlags struct {
 	BoardsProduct bool
 
 	PlanUpgradeButtonText string
+
+	PostPriority bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -100,6 +102,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.PlanUpgradeButtonText = "upgrade"
+	f.PostPriority = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

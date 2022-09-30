@@ -291,7 +291,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
-	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil, "")
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
 
@@ -785,7 +785,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 	options := a.Config().GetSanitizeOptions()
 	updatedUser.SanitizeProfile(options)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", updatedUser)
 	a.Publish(message)
 
@@ -981,7 +981,7 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	a.Srv().Store.Channel().ClearCaches()
 	a.Srv().Store.User().ClearCaches()
 
-	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil, "")
 	a.Publish(message)
 
 	return nil
@@ -1078,19 +1078,19 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	unsanitizedCopyOfUser := user.DeepCopy()
 
 	a.SanitizeProfile(adminCopyOfUser, true)
-	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
+	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
 	// send unsanitized user to event creator
-	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil)
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil, "")
 	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
 	a.Publish(sourceUserMessage)
 }
@@ -1526,7 +1526,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
-		message := model.NewWebSocketEvent(model.WebsocketEventUserRoleUpdated, "", "", user.Id, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventUserRoleUpdated, "", "", user.Id, nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("roles", newRoles)
 		a.Publish(message)
@@ -2225,7 +2225,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
+			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -2270,7 +2270,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 		for _, member := range channelMembers {
 			a.invalidateCacheForChannelMembers(member.ChannelId)
 
-			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil)
+			evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", user.Id, nil, "")
 			memberJSON, jsonErr := json.Marshal(member)
 			if jsonErr != nil {
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
@@ -2288,7 +2288,7 @@ func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppEr
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
 
-	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers)
+	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers, "")
 	event.Add("parent_id", parentId)
 	event.Add("user_id", userID)
 	a.Publish(event)
@@ -2309,7 +2309,7 @@ func (a *App) invalidateUserCacheAndPublish(userID string) {
 	options := a.Config().GetSanitizeOptions()
 	user.SanitizeProfile(options)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", user)
 	a.Publish(message)
 }
@@ -2467,7 +2467,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
 	a.Publish(message)
 	return nil
 }
@@ -2492,7 +2492,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	if thread != nil {
 		replyCount = thread.ReplyCount
 	}
-	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil, "")
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
@@ -2531,7 +2531,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
 	userThread, err := a.Srv().Store.Thread().GetThreadForUser(teamID, tm, true)
 	if err != nil {
 		var errNotFound *store.ErrNotFound
@@ -2623,7 +2623,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		a.clearPushNotification(currentSessionId, userID, post.ChannelId, threadID)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
 	message.Add("unread_mentions", membership.UnreadMentions)

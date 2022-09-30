@@ -1084,10 +1084,6 @@
     "translation": "Imposibil de a încărca fișier(e). Aveți {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Imposibil de încărcat fișiere. Număr incorect de fișiere specificate."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Fişier dimensiunile maxime de mai sus nu ar putea fi încărcate: {{.Filename}}"
   },
@@ -5952,10 +5948,6 @@
     "translation": "Nu puteți obține postarea în așteptare."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nu se poate solicita o licență de încercare. Vă rugăm să configurați o adresă URL a site-ului în secțiunea server web din cea mai importantă consolă de sistem."
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Nu se poate obține o licență de încercare, încercați din nou sau contactați la adresa support@mattermost.com."
   },
@@ -7292,10 +7284,6 @@
     "translation": "Eroare internă la solicitarea api cloud."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Repară acum"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
@@ -7618,10 +7606,6 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Nu s-a putut muta fișierul încărcat."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nu se poate răspunde."
   },
   {
     "id": "app.upload.get.app_error",
