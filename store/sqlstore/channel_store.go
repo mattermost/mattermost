@@ -4159,8 +4159,8 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
 	var args []any
-	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
-	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 
 	query := `
 		SELECT
@@ -4263,9 +4263,9 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 
 	var propsQuery string
 	if s.DriverName() == model.DatabaseDriverMysql {
-		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
 	}
 
 	query = `
@@ -4519,14 +4519,14 @@ func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMill
 		} else {
 			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
 		}
-		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if duration == model.PostsByDay {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
 		} else {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
 		}
-		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
 	}
 	query := sq.
 		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").
