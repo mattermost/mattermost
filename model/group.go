@@ -113,6 +113,9 @@ type GroupSearchOpts struct {
 	// FilterHasMember filters the groups to the intersect of the
 	// set returned by the query and those that have the given user as a member.
 	FilterHasMember string
+
+	IncludeChannelMemberCount string
+	IncludeTimezones          bool
 }
 
 type GetGroupOpts struct {
