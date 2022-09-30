@@ -955,7 +955,6 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
@@ -976,10 +975,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.CloudBilling == nil {
-		s.CloudBilling = NewBool(false)
 	}
 
 	if s.UseNewSAMLLibrary == nil {
