@@ -30,7 +30,7 @@ func (api *API) APIHandler(h handlerFunc, scopes ...model.Scope) http.Handler {
 		IsLocal:        false,
 		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -52,7 +52,7 @@ func (api *API) APISessionRequired(h handlerFunc, scopes ...model.Scope) http.Ha
 		IsLocal:        false,
 		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -75,7 +75,7 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		IsLocal:         false,
 		RequiredScopes:  model.ScopeInternalAPI,
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -99,7 +99,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		IsLocal:                   false,
 		RequiredScopes:            model.ScopeInternalAPI,
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -122,7 +122,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		IsLocal:        false,
 		RequiredScopes: model.ScopeInternalAPI,
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -146,7 +146,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -169,7 +169,7 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, scopes ...model.
 		IsLocal:        false,
 		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -193,7 +193,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, scopes ...model
 		DisableWhenBusy: true,
 		RequiredScopes:  model.NormalizeAPIScopes(scopes),
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -218,7 +218,7 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 		IsLocal:        true,
 		RequiredScopes: model.ScopeInternalAPI,
 	}
-	api.addScopeStats(handler)
+	api.addTestAPIScopeMapping(handler)
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -257,7 +257,9 @@ func rejectGuests(f handlerFunc) handlerFunc {
 	}
 }
 
-func (api *API) addScopeStats(h *web.Handler) {
+// addTestAPIScopeMapping is used to generate and test the API scope
+// assignments, see scope_test.go. It serves no other purpose.
+func (api *API) addTestAPIScopeMapping(h *web.Handler) {
 	scopes := h.RequiredScopes
 	if h.RequiredScopes.IsInternal() {
 		scopes = model.APIScopes{"internal_api"}
