@@ -11,9 +11,12 @@ import (
 )
 
 const (
+	DayInSeconds      = 24 * 60 * 60
+	DayInMilliseconds = DayInSeconds * 1000
+
 	ExpiredLicenseError = "api.license.add_license.expired.app_error"
 	InvalidLicenseError = "api.license.add_license.invalid.app_error"
-	LicenseGracePeriod  = 1000 * 60 * 60 * 24 * 10 //10 days
+	LicenseGracePeriod  = DayInMilliseconds * 10 //10 days
 	LicenseRenewalLink  = "https://mattermost.com/renew/"
 
 	LicenseShortSkuE10          = "E10"
@@ -108,8 +111,8 @@ type Features struct {
 	FutureFeatures *bool `json:"future_features"`
 }
 
-func (f *Features) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (f *Features) ToMap() map[string]any {
+	return map[string]any{
 		"ldap":                        *f.LDAP,
 		"ldap_groups":                 *f.LDAPGroups,
 		"mfa":                         *f.MFA,
@@ -307,7 +310,7 @@ func (l *License) HasEnterpriseMarketplacePlugins() bool {
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
-		ExpiresAt: GetMillis() + 90*24*60*60*1000,
+		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
 		Customer:  &Customer{},
 		Features:  &Features{},
 	}

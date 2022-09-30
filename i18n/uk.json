@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
+    "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) для ідентифікаціі каналів. "
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1082,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не вдається завантажити файли. Неправильне число вказаних файлів."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2648,10 +2644,6 @@
     "translation": "Відсутня необхідна властивість Реакція: користувач."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Відповідь властивості CreateAt має бути більшим, ніж батьківський запис CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Відсутня необхідна відповідь властивість: created_at."
   },
@@ -3164,10 +3156,6 @@
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не вдалося підключитися до сервера Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch відключений."
   },
@@ -3540,10 +3528,6 @@
     "translation": "Невірне ім'я користувача."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Ім'я повинно складатися з 2 або більше малих літер і цифр"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"Створити в\" повинно бути коректним часом"
   },
@@ -3758,10 +3742,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Параметр Elasticsearch AggregatePostsAfterDays повинен бути числом, більшим або рівним 1"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4620,18 +4600,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Неможливо перетворити StringArray в * string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Неможливо перетворити StringInterface в * string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Неможливо перетворити StringMap в * string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -4974,10 +4942,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -6838,10 +6802,6 @@
   {
     "id": "api.license.request-trial.bad-request",
     "translation": "Кількість запитаних користувачів невірна."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Оновити"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",

@@ -6,7 +6,6 @@ package mlog_test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -99,7 +98,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 		t.Run(testCase.description, func(t *testing.T) {
 			var filePath string
 			if testCase.cfg.Type == "file" {
-				tempDir, err := ioutil.TempDir(os.TempDir(), "TestLoggingAfterInitialized")
+				tempDir, err := os.MkdirTemp(os.TempDir(), "TestLoggingAfterInitialized")
 				require.NoError(t, err)
 				defer os.Remove(tempDir)
 
@@ -122,18 +121,18 @@ func TestLoggingAfterInitialized(t *testing.T) {
 			logger.Shutdown()
 
 			if testCase.cfg.Type == "file" {
-				logs, err := ioutil.ReadFile(filePath)
+				logs, err := os.ReadFile(filePath)
 				require.NoError(t, err)
 
 				actual := strings.TrimSpace(string(logs))
 
 				if testCase.cfg.Format == "json" {
-					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\:\sZ]+"`)
+					reTs := regexp.MustCompile(`"timestamp":"[0-9\.\-\+\:\sZ]+"`)
 					reCaller := regexp.MustCompile(`"caller":"([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, `"timestamp":0`)
 					actual = reCaller.ReplaceAllString(actual, `"caller":"$1:0"`)
 				} else {
-					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-Z]+\]`)
+					reTs := regexp.MustCompile(`\[\d\d\d\d-\d\d-\d\d\s[0-9\:\.\s\-\+Z]+\]`)
 					reCaller := regexp.MustCompile(`caller="([^"]+):[0-9\.]+"`)
 					actual = reTs.ReplaceAllString(actual, "TIME")
 					actual = reCaller.ReplaceAllString(actual, `caller="$1:0"`)

@@ -63,15 +63,6 @@ func (us *UserService) createUser(user *model.User) (*model.User, error) {
 		return nil, err
 	}
 
-	if us.config().FeatureFlags.NewAccountNoisy {
-		user.SetDefaultNotifications()
-		user.NotifyProps[model.DesktopNotifyProp] = model.UserNotifyAll
-		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
-		user.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
-		user.NotifyProps[model.MentionKeysNotifyProp] = user.Username
-		user.NotifyProps[model.FirstNameNotifyProp] = "true"
-	}
-
 	ruser, err := us.store.Save(user)
 	if err != nil {
 		return nil, err
@@ -102,6 +93,10 @@ func (us *UserService) GetUser(userID string) (*model.User, error) {
 	return us.store.Get(context.Background(), userID)
 }
 
+func (us *UserService) GetUsers(userIDs []string) ([]*model.User, error) {
+	return us.store.GetMany(context.Background(), userIDs)
+}
+
 func (us *UserService) GetUserByUsername(username string) (*model.User, error) {
 	return us.store.GetByUsername(username)
 }
@@ -114,7 +109,7 @@ func (us *UserService) GetUserByAuth(authData *string, authService string) (*mod
 	return us.store.GetByAuth(authData, authService)
 }
 
-func (us *UserService) GetUsers(options *model.UserGetOptions) ([]*model.User, error) {
+func (us *UserService) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	return us.store.GetAllProfiles(options)
 }
 
@@ -123,7 +118,7 @@ func (us *UserService) GetUsersByUsernames(usernames []string, options *model.Us
 }
 
 func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
-	users, err := us.GetUsers(options)
+	users, err := us.GetUsersFromProfiles(options)
 	if err != nil {
 		return nil, err
 	}

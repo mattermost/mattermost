@@ -77,6 +77,7 @@ func TestSAMLSettings(t *testing.T) {
 			mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+			mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 			mockStore.On("User").Return(&mockUserStore)
 			mockStore.On("Post").Return(&mockPostStore)

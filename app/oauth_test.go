@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -79,7 +79,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
-	th.App.SetSessionExpireInDays(session, 1)
+	th.App.SetSessionExpireInHours(session, 24)
 
 	var err *model.AppError
 	session, err = th.App.CreateSession(session)
@@ -111,7 +111,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
 	session.IsOAuth = true
-	th.App.ch.srv.userService.SetSessionExpireInDays(session, 1)
+	th.App.ch.srv.userService.SetSessionExpireInHours(session, 24)
 
 	session, _ = th.App.CreateSession(session)
 
@@ -210,7 +210,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
-		assert.NotEqual(t, "", err.DetailedError)
+		assert.Error(t, err.Unwrap())
 	})
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
@@ -517,7 +517,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				body, receivedTeamId, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(&recorder, request, model.ServiceGitlab, "", state, "")
 
 				require.NotNil(t, body)
-				bodyBytes, bodyErr := ioutil.ReadAll(body)
+				bodyBytes, bodyErr := io.ReadAll(body)
 				require.NoError(t, bodyErr)
 				assert.Equal(t, userData, string(bodyBytes))
 

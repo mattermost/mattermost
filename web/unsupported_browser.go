@@ -47,7 +47,7 @@ type SystemBrowser struct {
 func renderUnsupportedBrowser(ctx *request.Context, r *http.Request) templates.Data {
 
 	data := templates.Data{
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"DownloadAppOrUpgradeBrowserString": ctx.T("web.error.unsupported_browser.download_app_or_upgrade_browser"),
 			"LearnMoreString":                   ctx.T("web.error.unsupported_browser.learn_more"),
 		},

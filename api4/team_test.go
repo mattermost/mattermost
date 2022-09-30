@@ -17,7 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -67,27 +69,71 @@ func TestCreateTeam(t *testing.T) {
 		assert.Equal(t, *rteam.GroupConstrained, *groupConstrainedTeam.GroupConstrained, "GroupConstrained flags do not match")
 	})
 
-	th.Client.Logout()
+	t.Run("unauthenticated receives 403", func(t *testing.T) {
+		th.Client.Logout()
 
-	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
-	_, resp, err := th.Client.CreateTeam(team)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
+		_, resp, err := th.Client.CreateTeam(team)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+		th.LoginBasic()
 
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
+		// Check the appropriate permissions are enforced.
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
 
-	th.RemovePermissionFromRole(model.PermissionCreateTeam.Id, model.SystemUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(model.PermissionCreateTeam.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionCreateTeam.Id, model.SystemAdminRoleId)
 
-	_, resp, err = th.Client.CreateTeam(team)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		_, resp, err = th.Client.CreateTeam(team)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cloud limit reached returns 400", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(1),
+			},
+		}, nil).Once()
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
+		_, resp, err := th.Client.CreateTeam(team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cloud below limit returns 200", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(200),
+			},
+		}, nil).Once()
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TeamOpen}
+		_, resp, err := th.Client.CreateTeam(team)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
@@ -578,6 +624,50 @@ func TestRestoreTeam(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
+
+	t.Run("cloud limit reached returns 400", func(t *testing.T) {
+		// Create an archived team to be restored later
+		team := createTeam(t, true, model.TeamOpen)
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(1),
+			},
+		}, nil).Once()
+
+		_, resp, err := client.RestoreTeam(team.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cloud below limit returns 200", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Teams: &model.TeamsLimits{
+				Active: model.NewInt(200),
+			},
+		}, nil).Twice()
+		team := createTeam(t, true, model.TeamOpen)
+		_, resp, err := client.RestoreTeam(team.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestPatchTeamSanitization(t *testing.T) {
@@ -877,6 +967,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
 
@@ -1066,8 +1157,8 @@ func TestGetAllTeams(t *testing.T) {
 	// Now actually create the policy and assign the team to it
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -1313,6 +1404,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 func TestSearchAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	oTeam := th.BasicTeam
@@ -1379,8 +1471,8 @@ func TestSearchAllTeams(t *testing.T) {
 	// Now actually create the policy and assign the team to it
 	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		TeamIDs: []string{policyTeam.Id},
 	})
@@ -2936,7 +3028,7 @@ func TestImportTeam(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
 
-		posts, _, err := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false)
+		posts, _, err := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false, false)
 		require.NoError(t, err)
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
@@ -2982,7 +3074,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	user1 := th.GenerateTestEmail()
 	user2 := th.GenerateTestEmail()
 
-	emailList := []string{user1, user2}
+	memberInvite := &model.MemberInvite{Emails: []string{user1, user2}}
+	emailList := memberInvite.Emails
 
 	//Delete all the messages before check the sample email
 	mail.DeleteMailBox(user1)
@@ -3018,7 +3111,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 				require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
 				resultsEmail, err := mail.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
 				if err == nil {
-					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
+					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, \nactual: %s, \nexpected: %s", resultsEmail.Subject, expectedSubject)
 				}
 			}
 		}
@@ -3029,8 +3122,20 @@ func TestInviteUsersToTeam(t *testing.T) {
 	require.NoError(t, err)
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_subject",
-		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
+
+	// Test the invite to team and channel
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
+	_, _, err = th.SystemAdminClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
+	require.NoError(t, err)
+	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"ChannelName":     th.BasicChannel.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
 
@@ -3039,8 +3144,20 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, err = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_subject",
-		map[string]interface{}{"SenderName": "Administrator",
+		map[string]any{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
+
+	// Test the invite local to team and channel
+	mail.DeleteMailBox(user1)
+	mail.DeleteMailBox(user2)
+	_, _, err = th.LocalClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
+	require.NoError(t, err)
+	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
+		map[string]any{"SenderName": "Administrator",
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"ChannelName":     th.BasicChannel.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
 
@@ -3162,7 +3279,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_guest_subject",
-		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 

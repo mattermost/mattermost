@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -30,13 +29,18 @@ const (
 
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
+	Trace(string, ...Field)
 	Debug(string, ...Field)
 	Info(string, ...Field)
 	Warn(string, ...Field)
 	Error(string, ...Field)
 	Critical(string, ...Field)
+	Fatal(string, ...Field)
 	Log(Level, string, ...Field)
 	LogM([]Level, string, ...Field)
+	With(fields ...Field) *Logger
+	Flush() error
+	StdLogger(level Level) *log.Logger
 }
 
 // Type and function aliases from Logr to limit the spread of dependencies.
@@ -176,12 +180,14 @@ func NewLogger(options ...Option) (*Logger, error) {
 
 // Configure provides a new configuration for this logger.
 // Zero or more sources of config can be provided:
-//   cfgFile    - path to file containing JSON
-//   cfgEscaped - JSON string probably from ENV var
+//
+//	cfgFile    - path to file containing JSON
+//	cfgEscaped - JSON string probably from ENV var
 //
 // For each case JSON containing log targets is provided. Target name collisions are resolved
 // using the following precedence:
-//     cfgFile > cfgEscaped
+//
+//	cfgFile > cfgEscaped
 //
 // An optional set of factories can be provided which will be called to create any target
 // types or formatters not built-in.
@@ -194,7 +200,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factori
 
 	// Add config from file
 	if cfgFile != "" {
-		b, err := ioutil.ReadFile(cfgFile)
+		b, err := os.ReadFile(cfgFile)
 		if err != nil {
 			return fmt.Errorf("error reading logger config file %s: %w", cfgFile, err)
 		}

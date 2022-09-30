@@ -774,6 +774,39 @@ func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["OnCloudLimitsUpdated"] = OnCloudLimitsUpdatedID
+}
+
+type Z_OnCloudLimitsUpdatedArgs struct {
+	A *model.ProductLimits
+}
+
+type Z_OnCloudLimitsUpdatedReturns struct {
+}
+
+func (g *hooksRPCClient) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	_args := &Z_OnCloudLimitsUpdatedArgs{limits}
+	_returns := &Z_OnCloudLimitsUpdatedReturns{}
+	if g.implemented[OnCloudLimitsUpdatedID] {
+		if err := g.client.Call("Plugin.OnCloudLimitsUpdated", _args, _returns); err != nil {
+			g.log.Error("RPC call OnCloudLimitsUpdated to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, returns *Z_OnCloudLimitsUpdatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnCloudLimitsUpdated(limits *model.ProductLimits)
+	}); ok {
+		hook.OnCloudLimitsUpdated(args.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnCloudLimitsUpdated called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -949,10 +982,10 @@ type Z_GetPluginConfigArgs struct {
 }
 
 type Z_GetPluginConfigReturns struct {
-	A map[string]interface{}
+	A map[string]any
 }
 
-func (g *apiRPCClient) GetPluginConfig() map[string]interface{} {
+func (g *apiRPCClient) GetPluginConfig() map[string]any {
 	_args := &Z_GetPluginConfigArgs{}
 	_returns := &Z_GetPluginConfigReturns{}
 	if err := g.client.Call("Plugin.GetPluginConfig", _args, _returns); err != nil {
@@ -963,7 +996,7 @@ func (g *apiRPCClient) GetPluginConfig() map[string]interface{} {
 
 func (s *apiRPCServer) GetPluginConfig(args *Z_GetPluginConfigArgs, returns *Z_GetPluginConfigReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPluginConfig() map[string]interface{}
+		GetPluginConfig() map[string]any
 	}); ok {
 		returns.A = hook.GetPluginConfig()
 	} else {
@@ -973,14 +1006,14 @@ func (s *apiRPCServer) GetPluginConfig(args *Z_GetPluginConfigArgs, returns *Z_G
 }
 
 type Z_SavePluginConfigArgs struct {
-	A map[string]interface{}
+	A map[string]any
 }
 
 type Z_SavePluginConfigReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (g *apiRPCClient) SavePluginConfig(config map[string]any) *model.AppError {
 	_args := &Z_SavePluginConfigArgs{config}
 	_returns := &Z_SavePluginConfigReturns{}
 	if err := g.client.Call("Plugin.SavePluginConfig", _args, _returns); err != nil {
@@ -991,7 +1024,7 @@ func (g *apiRPCClient) SavePluginConfig(config map[string]interface{}) *model.Ap
 
 func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z_SavePluginConfigReturns) error {
 	if hook, ok := s.impl.(interface {
-		SavePluginConfig(config map[string]interface{}) *model.AppError
+		SavePluginConfig(config map[string]any) *model.AppError
 	}); ok {
 		returns.A = hook.SavePluginConfig(args.A)
 	} else {
@@ -4821,14 +4854,14 @@ func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) erro
 
 type Z_PublishWebSocketEventArgs struct {
 	A string
-	B map[string]interface{}
+	B map[string]any
 	C *model.WebsocketBroadcast
 }
 
 type Z_PublishWebSocketEventReturns struct {
 }
 
-func (g *apiRPCClient) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (g *apiRPCClient) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	_args := &Z_PublishWebSocketEventArgs{event, payload, broadcast}
 	_returns := &Z_PublishWebSocketEventReturns{}
 	if err := g.client.Call("Plugin.PublishWebSocketEvent", _args, _returns); err != nil {
@@ -4839,7 +4872,7 @@ func (g *apiRPCClient) PublishWebSocketEvent(event string, payload map[string]in
 
 func (s *apiRPCServer) PublishWebSocketEvent(args *Z_PublishWebSocketEventArgs, returns *Z_PublishWebSocketEventReturns) error {
 	if hook, ok := s.impl.(interface {
-		PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+		PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 	}); ok {
 		hook.PublishWebSocketEvent(args.A, args.B, args.C)
 	} else {
@@ -5613,6 +5646,65 @@ func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, retu
 		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetCloudLimitsArgs struct {
+}
+
+type Z_GetCloudLimitsReturns struct {
+	A *model.ProductLimits
+	B error
+}
+
+func (g *apiRPCClient) GetCloudLimits() (*model.ProductLimits, error) {
+	_args := &Z_GetCloudLimitsArgs{}
+	_returns := &Z_GetCloudLimitsReturns{}
+	if err := g.client.Call("Plugin.GetCloudLimits", _args, _returns); err != nil {
+		log.Printf("RPC call to GetCloudLimits API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetCloudLimits(args *Z_GetCloudLimitsArgs, returns *Z_GetCloudLimitsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetCloudLimits() (*model.ProductLimits, error)
+	}); ok {
+		returns.A, returns.B = hook.GetCloudLimits()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetCloudLimits called but not implemented."))
+	}
+	return nil
+}
+
+type Z_EnsureBotUserArgs struct {
+	A *model.Bot
+}
+
+type Z_EnsureBotUserReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) EnsureBotUser(bot *model.Bot) (string, error) {
+	_args := &Z_EnsureBotUserArgs{bot}
+	_returns := &Z_EnsureBotUserReturns{}
+	if err := g.client.Call("Plugin.EnsureBotUser", _args, _returns); err != nil {
+		log.Printf("RPC call to EnsureBotUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_EnsureBotUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		EnsureBotUser(bot *model.Bot) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.EnsureBotUser(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API EnsureBotUser called but not implemented."))
 	}
 	return nil
 }

@@ -60,6 +60,25 @@ type ChannelMember struct {
 	ExplicitRoles    string    `json:"explicit_roles"`
 }
 
+func (o *ChannelMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"channel_id":         o.ChannelId,
+		"user_id":            o.UserId,
+		"roles":              o.Roles,
+		"last_viewed_at":     o.LastViewedAt,
+		"msg_count":          o.MsgCount,
+		"mention_count":      o.MentionCount,
+		"mention_count_root": o.MentionCountRoot,
+		"msg_count_root":     o.MsgCountRoot,
+		"notify_props":       o.NotifyProps,
+		"last_update_at":     o.LastUpdateAt,
+		"scheme_guest":       o.SchemeGuest,
+		"scheme_user":        o.SchemeUser,
+		"scheme_admin":       o.SchemeAdmin,
+		"explicit_roles":     o.ExplicitRoles,
+	}
+}
+
 // The following are some GraphQL methods necessary to return the
 // data in float64 type. The spec doesn't support 64 bit integers,
 // so we have to pass the data in float64. The _ at the end is
@@ -79,6 +98,10 @@ func (o *ChannelMember) MentionCount_() float64 {
 
 func (o *ChannelMember) MentionCountRoot_() float64 {
 	return float64(o.MentionCountRoot)
+}
+
+func (o *ChannelMember) MsgCountRoot_() float64 {
+	return float64(o.MsgCountRoot)
 }
 
 func (o *ChannelMember) LastUpdateAt_() float64 {
@@ -143,7 +166,7 @@ func (o *ChannelMember) IsValid() *AppError {
 
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil

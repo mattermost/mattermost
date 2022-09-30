@@ -6,6 +6,7 @@ package migrations
 import (
 	"context"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -20,17 +21,18 @@ const (
 
 type Worker struct {
 	name      string
-	stop      chan bool
+	stop      chan struct{}
 	stopped   chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	store     store.Store
+	closed    int32
 }
 
 func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
 	worker := Worker{
 		name:      "Migrations",
-		stop:      make(chan bool, 1),
+		stop:      make(chan struct{}),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
@@ -41,6 +43,10 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store) model.Worker {
 }
 
 func (worker *Worker) Run() {
+	// Set to open if closed before. We are not bothered about multiple opens.
+	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
+		worker.stop = make(chan struct{})
+	}
 	mlog.Debug("Worker started", mlog.String("worker", worker.name))
 
 	defer func() {
@@ -61,8 +67,12 @@ func (worker *Worker) Run() {
 }
 
 func (worker *Worker) Stop() {
+	// Set to close, and if already closed before, then return.
+	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+		return
+	}
 	mlog.Debug("Worker stopping", mlog.String("worker", worker.name))
-	worker.stop <- true
+	close(worker.stop)
 	<-worker.stopped
 }
 
@@ -86,7 +96,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 	}
 
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
-	cancelWatcherChan := make(chan interface{}, 1)
+	cancelWatcherChan := make(chan struct{}, 1)
 	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
 
 	defer cancelCancelWatcher()
@@ -157,12 +167,12 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	case model.MigrationKeyAdvancedPermissionsPhase2:
 		done, progress, err = worker.runAdvancedPermissionsPhase2Migration(lastDone)
 	default:
-		return false, "", model.NewAppError("MigrationsWorker.runMigration", "migrations.worker.run_migration.unknown_key", map[string]interface{}{"key": key}, "", http.StatusInternalServerError)
+		return false, "", model.NewAppError("MigrationsWorker.runMigration", "migrations.worker.run_migration.unknown_key", map[string]any{"key": key}, "", http.StatusInternalServerError)
 	}
 
 	if done {
 		if nErr := worker.store.System().Save(&model.System{Name: key, Value: "true"}); nErr != nil {
-			return false, "", model.NewAppError("runMigration", "migrations.system.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return false, "", model.NewAppError("runMigration", "migrations.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 

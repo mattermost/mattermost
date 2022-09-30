@@ -33,6 +33,15 @@ func (ts *TeamService) GetTeam(teamID string) (*model.Team, error) {
 	return team, nil
 }
 
+func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
+	teams, err := ts.store.GetMany(teamIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	return teams, nil
+}
+
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
 //
 func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
@@ -132,6 +141,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 		UserId:      user.Id,
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
+		CreateAt:    model.GetMillis(),
 	}
 
 	if !user.IsGuest() {
@@ -182,7 +192,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
 func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
-	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil, "")
 	message.Add("user_id", teamMember.UserId)
 	message.Add("team_id", teamMember.TeamId)
 	ts.wh.Publish(message)
@@ -195,4 +205,14 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	}
 
 	return nil
+}
+
+// GetMember return the team member from the team.
+func (ts *TeamService) GetMember(teamID string, userID string) (*model.TeamMember, error) {
+	member, err := ts.store.GetMember(context.Background(), teamID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return member, err
 }

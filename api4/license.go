@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -31,7 +30,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 
 	if format == "" {
-		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -86,7 +85,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {
@@ -136,7 +135,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	if err := json.NewEncoder(w).Encode(license); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -203,7 +202,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
 	}
 
-	b, readErr := ioutil.ReadAll(r.Body)
+	b, readErr := io.ReadAll(r.Body)
 	if readErr != nil {
 		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
@@ -239,6 +238,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	renewalLink, token, err := c.App.Srv().GenerateLicenseRenewalLink()
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if c.App.Cloud() == nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.upgrade_needed.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 

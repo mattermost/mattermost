@@ -99,8 +99,8 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 			Id = ?
 			AND DeleteAt = 0`, time, time, emoji.Id); err != nil {
 		return errors.Wrap(err, "could not delete emoji")
-	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return store.NewErrNotFound("Emoji", emoji.Id)
+	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
+		return store.NewErrNotFound("Emoji", emoji.Id).Wrap(err)
 	}
 
 	return nil

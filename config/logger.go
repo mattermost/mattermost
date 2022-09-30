@@ -80,7 +80,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 		targetCfg.Levels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
 
 		// apply audit specific formatting
-		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": true, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
+		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
 
 		cfg["_defAudit"] = targetCfg
 	}

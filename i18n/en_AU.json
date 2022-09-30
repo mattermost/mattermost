@@ -81,7 +81,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -208,18 +208,6 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Unable to convert StringInterface to *string"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Unable to convert StringArray to *string"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
@@ -265,7 +253,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -1168,10 +1156,6 @@
     "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1."
   },
@@ -1214,10 +1198,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableAutocomplete is set to true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve Bulk Indexing Time Window must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -2456,10 +2436,6 @@
     "translation": "Unable to read the version of the data import file."
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
   },
@@ -2782,10 +2758,6 @@
   {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -3308,10 +3280,6 @@
     "translation": "Elasticsearch is disabled."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch is already stopped."
   },
@@ -3590,10 +3558,6 @@
   {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Error retrieving cloud subscription"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
@@ -4944,30 +4908,6 @@
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "New users are unable to join your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} would like to invite members to your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost user request upgrade of workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
-  },
-  {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Upgrade"
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
   },
@@ -5021,11 +4961,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Email us any time at "
+    "translation": "Need help or have questions? Email us at "
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Go To Post"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5049,15 +4989,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
+    "translation": "The payment wasn't successful"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
+    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5078,114 +5018,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "Your workspace is over the user limit for the free tier"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud Workspace suspended"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Your Mattermost Cloud subscription has been suspended"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Contact us to reactivate your workspace."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Your Mattermost workspace has been suspended. All contents and data within your workspace will be deleted within 1-3 months."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Contact Support"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud Workspace Over User Limit"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud. To avoid any disruption in your Mattermost workspace, please upgrade."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Your Mattermost Cloud workspace suspension is scheduled for tomorrow"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Your Mattermost Cloud subscription will soon be suspended"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "Once your workspace is suspended, all content and data within your workspace will be deleted within 1-3 months."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Once your workspace has been suspended, you will not be able to log in to your account or update payment information. You will need to contact our support team to re-activate your service."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "To avoid suspension, add your payment information"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "This is a final reminder that we have not received payment for your Mattermost Cloud workspace, which has been overdue since {{ .OverLimitDate }}. Tomorrow we will suspend your service."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "No payment method on file"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost couldn’t process your most recent automatic payment. To keep your service active, please add payment details as soon as possible or your service may be suspended."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud Workspace Suspension"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Act to keep your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "You will lose access to your message history"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "You won’t be able to update payment information without contacting our support team"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "You won't be able to log into your workspace"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "If no action is taken, your workspace will be suspended"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "There’s still time to keep your Mattermost Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Payment not received"
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
@@ -5222,10 +5054,6 @@
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -5290,14 +5118,6 @@
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
     "translation": "Import emoji image field missing or blank."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .OverLimitDate }}.  We will soon begin a process to suspend your service if payment is not received."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5437,7 +5257,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -5502,58 +5322,6 @@
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
     "translation": "Add apps to your workspace"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloud trial ending"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Add payment method"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost ends today"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ends today {{.TodayDate}}. Please add your payment information to ensure your team can continue enjoying the benefits of Cloud Enterprise. If you do not add your payment information within 30 days, your Cloud workspace will be permanently deleted and you will lose any associated data."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloud trial has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start subscription"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "You’ve reached the user limit for the free tier "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud User Limit Reached"
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternatively, you can disable users in the System Console to open up spots for users and stay below the free user limit."
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud now."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -5674,10 +5442,6 @@
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -5932,10 +5696,6 @@
     "translation": "Failed to marshal."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial licence. Please configure a Site URL in the web server section of the Mattermost System Console."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial licence, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
@@ -6098,10 +5858,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -7195,7 +6951,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the specified channel. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.name",
@@ -7207,7 +6963,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_mute.desc",
@@ -7359,7 +7115,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+    "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -7371,7 +7127,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Show Mattermost help message"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -7503,10 +7259,6 @@
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Error retrieving cloud subscription"
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
@@ -7986,7 +7738,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.hoursCount}} hours(s)."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8393,14 +8145,6 @@
   {
     "id": "api.cloud.license_error",
     "translation": "Your licence does not support cloud requests."
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Error retrieving cloud subscription."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Error retrieving System Admin's email."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -9027,14 +8771,6 @@
     "translation": "Image limits check failed. Resolution is too high."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Unable to activate more users as the cloud account is over capacity."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Unable to check number of users in your Mattermost cloud instance."
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "System"
   },
@@ -9165,10 +8901,6 @@
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
     "translation": " replied to a thread."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
   },
   {
     "id": "model.user.is_valid.roles_limit.app_error",
@@ -9324,7 +9056,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "Open Mattermost to increase your team’s productivity"
+    "translation": "Open Mattermost to increase your team’s productivity!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9369,5 +9101,441 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "An error occurred while sending the email"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "The maximum length of MattermostAppID is 32 characters."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Unable to retrieve the file count for the channel"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size must be at least {{.BatchSize}}."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "OnlyThreads and OnlyTotals parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "The file storage settings have unset values."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "The email settings have unset values."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Email list is empty"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Invalid channel name"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Name must be 1 or more lowercase alphanumeric characters."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Invalid post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "An error occurred while parsing the body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Invalid request body."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "You are now upgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost Upgrade Confirmation"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch settings has unset values."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "You received this one-time email because your Mattermost server was inactive for more than {{.Hours}} hours. This email was automatically generated by your Mattermost server."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "An error occurred while fetching recent searches"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of the paid plans."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to retrieve top threads for user."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to retrieve top threads for team."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights is behind a feature flag which is not enabled."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Already notified admin"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can't fetch the post as it is past the cloud's plan limit."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "An error occurred while fetching the last accessible post"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hello there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "An error occurred while clearing team member cache"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "To keep your {{.Plan}} plan active, please contact your financial department or institution as soon as possible. Then, update your payment details as needed."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Please contact your financial department or institution to resolve any issues. Then, update your payment details as needed."
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Unable to get top DMs for user."
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Subscription is not delinquent"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Cloud subscription couldn't be retrieved"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Cloud products couldn't be retrieved"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Your Mattermost workspace has been downgraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "To unarchive your data and keep paid features, update your payment information."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "In addition, your data may have been archived due to Cloud Starter limitations."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Your Mattermost Cloud workspace has been downgraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "View Plans & Pricing"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Your workspace will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Update your payment information now, or downgrade to Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Your workspace will be downgraded to Cloud Starter. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Downgrade to Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Your payment wasn't completed"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Your most recent payment couldn't be processed"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Your Mattermost workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Update your payment information now or downgrade to Cloud Starter below."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Your workspace will be downgraded automatically in 30 days if your payment is unable to be processed."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Please update your payment information soon to process your outstanding invoices."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Action Required: Workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Downgrade to Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Update your credit card information now."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried out in your workspace."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Payment for outstanding invoices dated {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Act to keep your Mattermost {{.Plan}} Features"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "View all limits documentation."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Active plugins and integrations"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Message history"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Files"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Cards from your Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Payment not received"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "The credit card on record wasn't able to be charged. This means your workspace is at risk of being downgraded to Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "The marketplace command is not supported on your device."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open the Marketplace"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is an open source platform for secure communication, collaboration and orchestration of work across tools and teams.\nMattermost contains three key tools:\n\n**Channels** - Stay connected with your team via 1:1 and group messaging.\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\n\n[View documentation and guides]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Missing required fields to send delinquency email."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Unable to send notification post."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Unable to save notify data."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "The user's badge couldn't be retrieved."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Unable to get current plan name"
   }
 ]

@@ -633,7 +633,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_invite.desc",
@@ -777,7 +777,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul nu a putut fi găsit {{.Channel}}. Utilizați [mânerul canalului](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.hint",
@@ -789,7 +789,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://about.mattermost.com/default-channel-handle-documentation) pentru a identifica canalele."
+    "translation": "Canalul specificat nu a putut găsi. Vă rugăm să folosiţi [mâner canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pentru a identifica canalele."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1082,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Imposibil de a încărca fișier(e). Aveți {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Imposibil de încărcat fișiere. Număr incorect de fișiere specificate."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2648,10 +2644,6 @@
     "translation": "Lipsesc necesare reacţie proprietate: utilizator."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Proprietatea de CreateAt răspunsul trebuie să fie mai mare decât părintele post CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Lipsesc necesare răspunsul proprietate: create_at."
   },
@@ -3164,10 +3156,6 @@
     "translation": "Elasticsearch este deja oprit."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Conectarea la server Elasticsearch nu a reuşit."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch este dezactivat."
   },
@@ -3540,10 +3528,6 @@
     "translation": "Nume de utilizator invalid."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Creați la trebuie să fie un timp valabil."
   },
@@ -3758,10 +3742,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Setarea de AggregatePostsAfterDays Elasticsearch trebuie să fie un număr mai mare sau egal cu 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch vrac indexarea fereastra trebuie să fie cel puţin de 1 secundă."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4620,18 +4600,6 @@
     "translation": "Lipsește adresa CATRE."
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Imposibil de convertit StringArray la *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Imposibil de convertit StringInterface la *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Imposibil de convertit StringMap în *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Botul nu există."
   },
@@ -4974,10 +4942,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Setarea Bleve EnableIndexing trebuie să fie setată pe true când Bleve EnableAutocomplete este setată pe true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Fereastra timp de indexare a volumului în vrac trebuie să fie de cel puțin 1 secundă."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -5982,10 +5946,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Nu puteți obține postarea în așteptare."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nu se poate solicita o licență de încercare. Vă rugăm să configurați o adresă URL a site-ului în secțiunea server web din cea mai importantă consolă de sistem."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -7324,116 +7284,12 @@
     "translation": "Eroare internă la solicitarea api cloud."
   },
   {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Se pare că ai mai mult de 10 utilizatori în spațiul tău de lucru, ceea ce depășește limitele gratuite ale nivelului Mattermost Cloud Professional. Pentru a evita orice întrerupere a spațiului de lucru Mattermost, vă rugăm să faceți upgrade."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Repară acum"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Suspendarea spațiului dvs. de lucru Mattermost Cloud este programată pentru mâine"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Abonamentul dvs. Mattermost Cloud va fi în curând suspendat"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "Odată ce spațiul dvs. de lucru este suspendat, tot conținutul și datele din spațiul dvs. de lucru vor fi șterse în decurs de 1-3 luni."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "După ce spațiul dvs. de lucru a fost suspendat, nu veți putea să vă conectați la contul dvs. sau să actualizați informațiile de plată. Va trebui să contactați echipa noastră de asistență pentru a vă reactiva serviciul."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Pentru a evita suspendarea, adăugați informațiile de plată"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Acesta este un ultim memento că nu am primit plăți pentru spațiul dvs. de lucru Mattermost Cloud, care a fost depășit de la {{.OverLimitDate}}. Mâine vă vom suspenda serviciul."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Nu există nicio metodă de plată înregistrată"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Plata este întârziată pentru abonamentul dvs. Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost nu a putut procesa cea mai recentă plată automată. Pentru a vă menține serviciul activ, vă rugăm să adăugați detalii de plată cât mai curând posibil sau serviciul dvs. poate fi suspendat."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Suspendarea spațiului de lucru Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Acționați pentru a vă păstra abonamentul Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Veți pierde accesul la istoricul mesajelor"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Nu veți putea actualiza informațiile de plată fără a contacta echipa noastră de asistență"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Nu veți putea să vă conectați la spațiul de lucru"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Dacă nu se iau măsuri, spațiul dvs. de lucru va fi suspendat"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Mai este timp să vă mențineți activ spațiul de lucru Mattermost Cloud rezolvând problemele legate de metoda dvs. de plată. Pentru a evita suspendarea, actualizați-vă metoda de plată."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Plata nu a fost primita"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Plata este întârziată pentru abonamentul dvs. Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Doar un memento că nu am primit plată pentru abonamentul dvs. Mattermost facturat la {{.OverLimitDate}}. În curând vom începe un proces de suspendare a serviciului dvs. dacă plata nu este primită."
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "Trimiteți-ne un e-mail oricând la "
   },
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor,, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "Ați atins limita de utilizatori pentru nivelul gratuit "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "A fost atinsă limita maximă a utilizatorilor în cloud"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru mai mulți utilizatori sau pentru a rămâne sub limita gratuită de utilizatori."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Se pare că ai acum 10 sau mai mulți utilizatori în spațiul tău de lucru - este minunat! Dacă doriți să invitați mai mulți membri ai echipei, luați în considerare actualizarea Mattermost Cloud Professional acum."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Ați atins limita gratuită pentru utilizatorii de nivel"
   },
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
@@ -7720,10 +7576,6 @@
     "translation": "Lungime conținut nevalidă."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Actualizare"
-  },
-  {
     "id": "api.templates.payment_failed.title",
     "translation": "Plata nu a reușit"
   },
@@ -7744,34 +7596,6 @@
     "translation": "Instituția dvs. financiară a refuzat o plată din {{.CardBrand}} **** {{.LastFour}} asociată cu spațiul dvs. de lucru Mattermost Cloud."
   },
   {
-    "id": "api.templates.over_limit_title",
-    "translation": "Spațiul dvs. de lucru depășește limita de utilizator pentru nivelul gratuit"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Spațiul de lucru Mattermost Cloud a fost suspendat"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Abonamentul dvs. Mattermost Cloud a fost suspendat"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Contactați-ne pentru a vă reactiva spațiul de lucru."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Spațiul dvs. de lucru Mattermost a fost suspendat. Tot conținutul și datele din spațiul dvs. de lucru vor fi șterse în decurs de 1-3 luni."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Contact Support"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Spațiul de lucru Mattermost Cloud peste limita utilizatorului"
-  },
-  {
     "id": "app.user.missing_account.const",
     "translation": "Imposibil de găsit utilizatorul."
   },
@@ -7782,10 +7606,6 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Nu s-a putut muta fișierul încărcat."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nu se poate răspunde."
   },
   {
     "id": "app.upload.get.app_error",
@@ -7870,10 +7690,6 @@
   {
     "id": "api.templates.payment_failed_no_card.button",
     "translation": "Plătește acum"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru mai mulți utilizatori sau pentru a rămâne sub limita gratuită a utilizatorilor."
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
@@ -8216,30 +8032,6 @@
     "translation": "Imposibil de obținut lotul de fișiere pentru indexare."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Utilizatorii noi nu se pot alătura spațiului dvs. de lucru"
-  },
-  {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} ar dori să invite membri în spațiul dvs. de lucru"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Cea mai importantă cerere de utilizator actualizare a spațiului de lucru"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Cineva a încercat recent să se alăture spațiului dvs. de lucru, dar nu a reușit, deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a cloud-ului Mattermost. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Deoarece spațiul dvs. de lucru a atins limita de utilizator pentru versiunea gratuită a Mattermost cloud, invitațiile nu pot fi trimise. Faceți upgrade acum pentru a permite mai multor utilizatori să se alăture spațiului dvs. de lucru."
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru utilizatori și a rămâne sub limita gratuită a utilizatorilor."
-  },
-  {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Ștergerea stării recente nu a reușit. Încercați mai întâi să adăugați starea sau contactați administratorul de sistem pentru detalii."
   },
@@ -8334,10 +8126,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Eroare la primirea e-mailului administratorilor de sistem."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
@@ -8436,10 +8224,6 @@
     "translation": "Acceptați o invitație de la un cluster la distanță"
   },
   {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Eroare la obținerea abonamentului la cloud."
-  },
-  {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Eroare la invalidarea memoriei cache"
   },
@@ -8454,10 +8238,6 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Nu a reușit să codifice câmpul în JSON"
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Eroare la obținerea abonamentului cloud"
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
@@ -8582,10 +8362,6 @@
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Corpul solicitării nu este valid sau lipsește."
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Eroare la obținerea abonamentului cloud"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
@@ -8860,22 +8636,6 @@
     "translation": "Aveți nevoie de permisiunea `{{.Permission}}` pentru a gestiona clusterele la distanță."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie în curând"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Username}}, versiunea de încercare de 14 zile a Mattermost Cloud Professional se încheie în 3 zile, pe {{.TrialEnd}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud trial se încheie"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Adăugați metoda de plată"
-  },
-  {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
     "translation": "Asigurați-vă că bucket-ul Amazon S3 este disponibil și verificați permisiunile bucket-ului."
   },
@@ -8906,22 +8666,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Nu se poate trimite un răspuns automat de la utilizator."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Versiunea de încercare gratuită de 14 zile a Mattermost se încheie astăzi"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, versiunea de încercare gratuită de 14 zile a Mattermost Cloud Professional se încheie astăzi {{.TodayDate}}. Vă rugăm să adăugați informațiile de plată pentru a vă asigura că echipa dvs. poate continua să se bucure de beneficiile Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Procesul Mattermost cloud s-a încheiat"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Începeți abonamentul"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",

@@ -6,8 +6,10 @@ package config
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -23,12 +25,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 	"github.com/mattermost/morph"
 
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
-	mbindata "github.com/mattermost/morph/sources/go_bindata"
+	mbindata "github.com/mattermost/morph/sources/embedded"
 )
 
 //go:embed migrations
@@ -113,7 +116,6 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	if err != nil {
 		return err
 	}
-	defer src.Close()
 
 	cfg := drivers.Config{
 		MigrationsTable:        migrationsTableName,
@@ -123,12 +125,12 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := resetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = appendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -220,13 +222,39 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	id := model.NewId()
 	value := string(b)
-	createAt := model.GetMillis()
-
 	err = ds.checkLength(len(value))
 	if err != nil {
 		return errors.Wrap(err, "marshalled configuration failed length check")
+	}
+
+	sum := sha256.Sum256(b)
+
+	// Skip the persist altogether if we're effectively writing the same configuration.
+	var oldValue string
+	var row *sql.Row
+	if ds.driverName == model.DatabaseDriverMysql {
+		// We use a sub-query to get the Id first because selecting the Id column using
+		// active uses the index, but selecting SHA column using active does not use the index.
+		// The sub-query uses the active index, and then the top-level query uses the primary key.
+		// This takes 2 queries, but it is actually faster than one slow query for MySQL
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Id = (select Id from Configurations Where Active)")
+	} else {
+		row = ds.db.QueryRow("SELECT SHA FROM Configurations WHERE Active")
+	}
+	if err = row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
+		return errors.Wrap(err, "failed to query active configuration")
+	}
+
+	// postgres retruns blank-padded therefore we trim the space
+	oldSum, err := hex.DecodeString(strings.TrimSpace(oldValue))
+	if err != nil {
+		return errors.Wrap(err, "could not encode value")
+	}
+
+	// compare checksums, it's more efficient rather than comparing entire config itself
+	if bytes.Equal(oldSum, sum[0:]) {
+		return nil
 	}
 
 	tx, err := ds.db.Beginx()
@@ -235,33 +263,40 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 	}
 	defer func() {
 		// Rollback after Commit just returns sql.ErrTxDone.
-		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
 			mlog.Error("Failed to rollback configuration transaction", mlog.Err(err))
 		}
 	}()
 
-	params := map[string]interface{}{
-		"id":        id,
+	var oldId string
+	if ds.driverName == model.DatabaseDriverMysql {
+		// the query doesn't use active index if we query for value (mysql, no surprise)
+		// we select Id column which triggers using index hence we do quicker reads
+		// that's the reason we select id first then query against id to get the value.
+		row = tx.QueryRow("SELECT Id FROM Configurations WHERE Active")
+		if err = row.Scan(&oldId); err != nil && err != sql.ErrNoRows {
+			return errors.Wrap(err, "failed to query active configuration")
+		}
+		if oldId != "" {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
+				return errors.Wrap(err, "failed to deactivate current configuration")
+			}
+		}
+	} else {
+		if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
+			return errors.Wrap(err, "failed to deactivate current configuration")
+		}
+	}
+
+	params := map[string]any{
+		"id":        model.NewId(),
 		"value":     value,
-		"create_at": createAt,
+		"create_at": model.GetMillis(),
 		"key":       "ConfigurationId",
+		"sha":       hex.EncodeToString(sum[0:]),
 	}
 
-	// Skip the persist altogether if we're effectively writing the same configuration.
-	var oldValue []byte
-	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
-	if err := row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
-		return errors.Wrap(err, "failed to query active configuration")
-	}
-	if bytes.Equal(oldValue, b) {
-		return nil
-	}
-
-	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
-		return errors.Wrap(err, "failed to deactivate current configuration")
-	}
-
-	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES (:id, :value, :create_at, TRUE)", params); err != nil {
+	if _, err := tx.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active, SHA) VALUES (:id, :value, :create_at, TRUE, :sha)", params); err != nil {
 		return errors.Wrap(err, "failed to record new configuration")
 	}
 
@@ -294,7 +329,7 @@ func (ds *DatabaseStore) Load() ([]byte, error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
-	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -316,7 +351,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "file data failed length check")
 	}
-	params := map[string]interface{}{
+	params := map[string]any{
 		"name":      name,
 		"data":      data,
 		"create_at": model.GetMillis(),
@@ -345,7 +380,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (ds *DatabaseStore) HasFile(name string) (bool, error) {
-	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -363,7 +398,7 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 
 // RemoveFile remoevs a previously persisted configuration file.
 func (ds *DatabaseStore) RemoveFile(name string) error {
-	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -381,4 +416,13 @@ func (ds *DatabaseStore) String() string {
 // Close cleans up resources associated with the store.
 func (ds *DatabaseStore) Close() error {
 	return ds.db.Close()
+}
+
+// removes configurations from database if they are older than threshold.
+func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
+		return errors.Wrap(err, "unable to clean Configurations table")
+	}
+
+	return nil
 }

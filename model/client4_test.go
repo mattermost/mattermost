@@ -29,13 +29,13 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 // https://github.com/mattermost/mattermost-server/v6/issues/8205
 func TestClient4CreatePost(t *testing.T) {
 	post := &Post{
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": []*SlackAttachment{
 				{
 					Actions: []*PostAction{
 						{
 							Integration: &PostActionIntegration{
-								Context: map[string]interface{}{
+								Context: map[string]any{
 									"foo": "bar",
 								},
 								URL: "http://foo.com",
@@ -58,7 +58,7 @@ func TestClient4CreatePost(t *testing.T) {
 				Actions: []*PostAction{
 					{
 						Integration: &PostActionIntegration{
-							Context: map[string]interface{}{
+							Context: map[string]any{
 								"foo": "bar",
 							},
 							URL: "http://foo.com",

@@ -74,7 +74,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
-				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		// If token is stored in the database that means it was used
 		if token != nil {
@@ -178,7 +178,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	session.GenerateCSRF()
 
 	if deviceID != "" {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
@@ -186,11 +186,11 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 			return err
 		}
 	} else if isMobile {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if isOAuthUser || isSaml {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
+		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
-		a.ch.srv.userService.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthWebInDays)
+		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -222,7 +222,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 
@@ -245,9 +245,9 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		secure = true
 	}
 
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 
 	domain := ""
 	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
@@ -276,7 +276,7 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 		Name:    model.SessionCookieCloudUrl,
 		Value:   workspaceName,
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -292,16 +292,16 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		secure = true
 	}
 
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	maxAgeSeconds := *a.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
 	domain := a.GetCookieDomain()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SessionCookieToken,
 		Value:    c.Session().Token,
 		Path:     subpath,
-		MaxAge:   maxAge,
+		MaxAge:   maxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Domain:   domain,
@@ -312,7 +312,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieUser,
 		Value:   c.Session().UserId,
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -322,7 +322,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 		Name:    model.SessionCookieCsrf,
 		Value:   c.Session().GetCSRF(),
 		Path:    subpath,
-		MaxAge:  maxAge,
+		MaxAge:  maxAgeSeconds,
 		Expires: expiresAt,
 		Domain:  domain,
 		Secure:  secure,
@@ -331,6 +331,11 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
+
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if a.Channels().License() != nil && *a.Channels().License().Features.Cloud {
+		a.AttachCloudSessionCookie(c, w, r)
+	}
 }
 
 func GetProtocol(r *http.Request) string {

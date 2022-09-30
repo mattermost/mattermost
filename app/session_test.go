@@ -134,7 +134,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)
@@ -155,9 +155,9 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("get session length mobile", func(t *testing.T) {
 		session := &model.Session{
@@ -244,9 +244,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInHours = 3 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInHours = 2 * 24 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInHours = 24 })
 
 	t.Run("expired session should not be extended", func(t *testing.T) {
 		expires := model.GetMillis() - hourMillis

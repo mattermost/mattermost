@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -29,7 +28,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		if info := s.Cluster.GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -48,7 +47,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
 		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -67,12 +66,12 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *s.Config().LogSettings.EnableFile {
-		s.Log.Flush()
-		logFile := config.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
+	if *s.platform.Config().LogSettings.EnableFile {
+		s.Log().Flush()
+		logFile := config.GetLogFileLocation(*s.platform.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		defer file.Close()
@@ -92,17 +91,17 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 		}
 		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
 		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		for {
 			pos, err := file.Seek(searchPos, io.SeekCurrent)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			_, err = file.ReadAt(b, pos)
 			if err != nil {
-				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			if b[0] == newLine[0] || pos == 0 {
@@ -111,7 +110,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 					line := make([]byte, lineEndPos-pos)
 					_, err := file.ReadAt(line, pos)
 					if err != nil {
-						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					}
 					lines = append(lines, string(line))
 				}
@@ -200,7 +199,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 	}
 	defer func() {
-		_, _ = io.Copy(ioutil.Discard, res.Body)
+		_, _ = io.Copy(io.Discard, res.Body)
 		_ = res.Body.Close()
 	}()
 
@@ -209,7 +208,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 
 func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	if *cfg.EmailSettings.SMTPServer == "" {
-		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
+		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
@@ -231,8 +230,8 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 	T := i18n.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
 	mailConfig := a.Srv().MailServiceConfig()
-	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, ""); err != nil {
-		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, "", "", "", ""); err != nil {
+		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -242,7 +241,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 func (s *Server) serverBusyStateChanged(sbs *model.ServerBusyState) {
 	s.Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
-		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		mlog.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {
 		mlog.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
@@ -256,29 +255,29 @@ func (a *App) GetLatestVersion(latestVersionUrl string) (*model.GithubReleaseInf
 
 	res, err := http.Get(latestVersionUrl)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	defer res.Body.Close()
 
-	responseData, err := ioutil.ReadAll(res.Body)
+	responseData, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_read_all.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var releaseInfoResponse *model.GithubReleaseInfo
 	err = json.Unmarshal(responseData, &releaseInfoResponse)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_unmarshal.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_external_error.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
 	}
 
 	err = latestVersionCache.Set("latest_version_cache", releaseInfoResponse)
 	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", "app.admin.latest_version_set_cache.failure", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return releaseInfoResponse, nil

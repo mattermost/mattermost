@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/graph-gophers/dataloader/v6"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/web"
 )
 
@@ -78,7 +80,7 @@ func (r *resolver) Channels(ctx context.Context, args struct {
 	}
 
 	// TODO: convert this to a streaming API.
-	channels, appErr := c.App.GetChannelsForTeamForUserWithCursor(args.TeamID, args.UserID, &model.ChannelSearchOpts{
+	channels, appErr := c.App.GetChannelsForTeamForUserWithCursor(c.AppContext, args.TeamID, args.UserID, &model.ChannelSearchOpts{
 		IncludeDeleted: args.IncludeDeleted,
 		LastDeleteAt:   int(args.LastDeleteAt),
 		LastUpdateAt:   int(args.LastUpdateAt),
@@ -88,7 +90,7 @@ func (r *resolver) Channels(ctx context.Context, args struct {
 		return nil, appErr
 	}
 
-	appErr = c.App.FillInChannelsProps(channels)
+	appErr = c.App.FillInChannelsProps(c.AppContext, channels)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -130,8 +132,9 @@ func (r *resolver) License(ctx context.Context) (model.StringMap, error) {
 // match with api4.getTeamMembersForUser for teamID=""
 // and api4.getTeamMember for teamID != ""
 func (r *resolver) TeamMembers(ctx context.Context, args struct {
-	UserID string
-	TeamID string
+	UserID      string
+	TeamID      string
+	ExcludeTeam bool
 }) ([]*teamMember, error) {
 	c, err := getCtx(ctx)
 	if err != nil {
@@ -157,7 +160,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return nil, c.Err
 	}
 
-	if args.TeamID != "" {
+	if args.TeamID != "" && !args.ExcludeTeam {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return nil, c.Err
@@ -171,7 +174,13 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		return []*teamMember{{*tm}}, nil
 	}
 
-	members, appErr := c.App.GetTeamMembersForUser(args.UserID)
+	excludeTeamID := ""
+	if args.TeamID != "" && args.ExcludeTeam {
+		excludeTeamID = args.TeamID
+	}
+
+	// Do not return archived team members
+	members, appErr := c.App.GetTeamMembersForUser(args.UserID, excludeTeamID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -209,7 +218,9 @@ func (*resolver) ChannelsLeft(ctx context.Context, args struct {
 // match with api4.getChannelMember
 func (*resolver) ChannelMembers(ctx context.Context, args struct {
 	UserID       string
+	TeamID       string
 	ChannelID    string
+	ExcludeTeam  bool
 	First        int32
 	After        string
 	LastUpdateAt float64
@@ -225,12 +236,14 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 
 	// If it's a single channel
 	if args.ChannelID != "" {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), args.ChannelID, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), args.ChannelID, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return nil, c.Err
 		}
 
-		member, appErr := c.App.GetChannelMember(app.WithMaster(context.Background()), args.ChannelID, args.UserID)
+		ctx := c.AppContext
+		ctx.SetContext(app.WithMaster(ctx.Context()))
+		member, appErr := c.App.GetChannelMember(ctx, args.ChannelID, args.UserID)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -261,7 +274,29 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		}
 	}
 
-	members, err := c.App.Srv().Store.Channel().GetMembersForUserWithCursor(args.UserID, afterChannel, afterUser, limit, int(args.LastUpdateAt))
+	if args.TeamID != "" {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+			primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
+			if primaryTeam != "" {
+				team, appErr := c.App.GetTeamByName(primaryTeam)
+				if appErr != nil {
+					return []*channelMember{}, appErr
+				}
+				args.TeamID = team.Id
+			} else {
+				return []*channelMember{}, nil
+			}
+		}
+	}
+
+	opts := &store.ChannelMemberGraphQLSearchOpts{
+		AfterChannel: afterChannel,
+		AfterUser:    afterUser,
+		Limit:        limit,
+		LastUpdateAt: int(args.LastUpdateAt),
+		ExcludeTeam:  args.ExcludeTeam,
+	}
+	members, err := c.App.Srv().Store.Channel().GetMembersForUserWithCursor(args.UserID, args.TeamID, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -274,13 +309,118 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 	return res, nil
 }
 
+// match with api4.getCategoriesForTeamForUser
+func (*resolver) SidebarCategories(ctx context.Context, args struct {
+	UserID      string
+	TeamID      string
+	ExcludeTeam bool
+}) ([]*model.SidebarCategoryWithChannels, error) {
+	c, err := getCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fallback to primary team logic
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+		primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
+		if primaryTeam != "" {
+			team, appErr := c.App.GetTeamByName(primaryTeam)
+			if appErr != nil {
+				return []*model.SidebarCategoryWithChannels{}, appErr
+			}
+			args.TeamID = team.Id
+		} else {
+			return []*model.SidebarCategoryWithChannels{}, nil
+		}
+	}
+
+	if args.UserID == model.Me {
+		args.UserID = c.AppContext.Session().UserId
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return nil, c.Err
+	}
+
+	// If it's only for a single team.
+	var categories *model.OrderedSidebarCategories
+	var appErr *model.AppError
+	if !args.ExcludeTeam {
+		categories, appErr = c.App.GetSidebarCategoriesForTeamForUser(c.AppContext, args.UserID, args.TeamID)
+		if appErr != nil {
+			return nil, appErr
+		}
+	} else {
+		opts := &store.SidebarCategorySearchOpts{
+			TeamID:      args.TeamID,
+			ExcludeTeam: args.ExcludeTeam,
+		}
+		categories, appErr = c.App.GetSidebarCategories(c.AppContext, args.UserID, opts)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	// TODO: look into optimizing this.
+	// create map
+	orderMap := make(map[string]*model.SidebarCategoryWithChannels, len(categories.Categories))
+	for _, category := range categories.Categories {
+		orderMap[category.Id] = category
+	}
+
+	// create a new slice based on the order
+	res := make([]*model.SidebarCategoryWithChannels, 0, len(categories.Categories))
+	for _, categoryId := range categories.Order {
+		res = append(res, orderMap[categoryId])
+	}
+
+	return res, nil
+}
+
 // getCtx extracts web.Context out of the usual request context.
 // Kind of an anti-pattern, but there are lots of methods attached to *web.Context
 // so we use it for now.
 func getCtx(ctx context.Context) (*web.Context, error) {
-	c, ok := ctx.Value(ctxKey{}).(*web.Context)
+	c, ok := ctx.Value(webCtx).(*web.Context)
 	if !ok {
 		return nil, errors.New("no web.Context found in context")
 	}
 	return c, nil
+}
+
+// getRolesLoader returns the roles loader out of the context.
+func getRolesLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(rolesLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getChannelsLoader returns the channels loader out of the context.
+func getChannelsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(channelsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getTeamsLoader returns the teams loader out of the context.
+func getTeamsLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(teamsLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
+}
+
+// getUsersLoader returns the users loader out of the context.
+func getUsersLoader(ctx context.Context) (*dataloader.Loader, error) {
+	l, ok := ctx.Value(usersLoaderCtx).(*dataloader.Loader)
+	if !ok {
+		return nil, errors.New("no dataloader.Loader found in context")
+	}
+	return l, nil
 }

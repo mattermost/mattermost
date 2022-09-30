@@ -620,7 +620,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open de Mattermost help pagina"
+    "translation": "Toon Mattermost-help bericht"
   },
   {
     "id": "api.command_help.name",
@@ -632,7 +632,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_invite.desc",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_mute.hint",
@@ -788,7 +788,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
+    "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) om kanalen aan te duiden."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1082,10 +1082,6 @@
     "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
   },
@@ -1175,7 +1171,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Fout bij marshal"
+    "translation": "Fout bij marshal."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1857,7 +1853,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Bekijk bericht"
+    "translation": "Beantwoorden in Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2644,10 +2640,6 @@
     "translation": "Mist vereiste team kenmerk: naam."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Mist vereiste team kenmerk: naam."
   },
@@ -3160,10 +3152,6 @@
     "translation": "Elasticsearch is reeds gestopt."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connectie naar Elasticsearch server is mislukt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is uitgeschakeld."
   },
@@ -3536,10 +3524,6 @@
     "translation": "Ongeldige username."
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Naam moet 2 of meer kleine letters bevatten."
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at moet een geldige tijd zijn."
   },
@@ -3754,10 +3738,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "De Elasticsearch AggregatePostsAfterDays instelling moet een getal zijn dat groter is dan of gelijk is aan 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Het Elasticsearch bulkindexeertijdsvenster moet ten minste 1 seconde zijn."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4341,7 +4321,7 @@
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
-    "translation": "Ongeldige kanaal id"
+    "translation": "Ongeldige kanaal id."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -4589,7 +4569,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's gebruiksvoorwaarden zijn bijgewerkt. Ga naar gitlab.com om deze te aanvaarden probeer opnieuw in te loggen op Mattermost."
+    "translation": "GitLab's gebruiksvoorwaarden zijn bijgewerkt. Ga naar {{.URL}} om deze te aanvaarden probeer opnieuw in te loggen op Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4614,18 +4594,6 @@
   {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Aan-adres ontbreekt."
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Kan StringArray niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Kan StringInterface niet naar *string omzetten"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Kan StringMap niet naar *string omzetten"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -4817,7 +4785,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 89+"
+    "translation": "Versie 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4994,10 +4962,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "De Bleve IndexingEnabled instelling moet op waar worden ingesteld als Bleve AutocompleteEnabled is ingesteld op waar"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Het Blevebulkindexeertijdsvenster moet tenminste 1 seconde zijn."
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -5880,10 +5844,6 @@
     "translation": "Ontbrekende Identity Provider SSO decriptors node in de XML."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Kan het bestand niet opladen. Foutief kanaal ID: {{.channelId}}"
   },
@@ -5981,7 +5941,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.daysCount}} dag(-en)."
+    "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.hoursCount}} uur."
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -6844,10 +6804,6 @@
     "translation": "Een upgrade naar de Mattermost Enterprise editie wordt reeds uitgevoerd."
   },
   {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Je hebt de limiet van het aantal gratis gebruikers bereikt"
-  },
-  {
     "id": "api.user.login_cws.license.error",
     "translation": "CWS login is verboden."
   },
@@ -7516,22 +7472,6 @@
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second Floor, Palo Alto, CA, 94301"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "Je het de grens van het aantal gebruikers in de gratis versie bereikt. "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud gebruikerslimiet bereikt"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud."
-  },
-  {
     "id": "app.user.verify_email.app_error",
     "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden."
   },
@@ -7660,30 +7600,6 @@
     "translation": "Fout bij het ophalen van de actieve gebruikers gedurende de opgegeven periode."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Upgraden"
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "Je werkplek overschrijdt de gratis gebruikerslimiet"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud werkplek Gebruikerslimiet overschreden"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat overschrijdt de limiet binnen de gratis versie van Mattermost Cloud. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Neem contact met de helpdesk"
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "Ingeklapte draadjesinstelling moet ofwel uitgeschakeld zijn, default_on of default_off"
   },
@@ -7737,15 +7653,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Mislukte betaling"
+    "translation": "De betaling is niet gelukt"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Actie vereist: Betaling mislukt voor Mattermost Cloud"
+    "translation": "Actie vereist: Betaling mislukt voor Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Om een ononderbroken abonnement op Mattermost Cloud te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
+    "translation": "Om een ononderbroken toegang op Mattermost {{.Plan}} te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7754,102 +7670,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud Workspace opgeschort"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Jouw Mattermost Cloud abonnement is opgeschort"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Neem contact met ons op om jouw werkruimte opnieuw te activeren."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Jouw Mattermost-werkruimte is opgeschort. Alle inhoud en gegevens binnen jouw werkruimte worden binnen 1-3 maanden verwijderd."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Los het nu op"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "De opschorting van jouw Mattermost Cloud werkruimte is gepland voor morgen"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Jouw Mattermost Cloud abonnement zal binnenkort worden opgeschort"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "Zodra jouw werkruimte is geschorst, worden alle inhoud en gegevens binnen jouw werkruimte binnen 1-3 maanden verwijderd."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "Zodra jouw werkruimte is geschorst, kan niet meer inloggen op jouw account of de betalingsgegevens bijwerken. Je moet contact opnemen met onze helpdesk om jouw service opnieuw te activeren."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "Om opschorting te voorkomen, voeg jouw betalingsgegevens toe"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Geen betalingsmethode in jouw account"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost kon jouw meest recente automatische betaling niet verwerken. Om jouw dienst actief te houden, dien je zo snel mogelijk betalingsgegevens toe te voegen of uw dienst kan worden opgeschort."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud Werkplaats opschorting"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Handel nu om jouw Mattermost Cloud-abonnement te behouden"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Je verliest de toegang tot jouw berichtgeschiedenis"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Je kan de betalingsgegevens niet bijwerken zonder contact op te nemen met onze helpdesk"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Je kunt niet inloggen op je werkplek"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Als er geen actie wordt ondernomen, wordt jouw werkplek opgeschort"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Er is nog tijd om jouw Mattermost Cloud workspace actief te houden door problemen met jouw betaalmethode op te lossen. Om opschorting te voorkomen kan je jouw betaalmethode bijwerken."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Betaling niet ontvangen"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Gewoon een herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost abonnement dat gefactureerd is op {{ .OverLimitDate }}.  We zullen binnenkort beginnen met een proces om jouuw dienst op te schorten als de betaling niet is ontvangen."
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7898,10 +7718,6 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Fout bij het verplaatsen van het geüploade bestand."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kan het antwoord niet verwerken."
   },
   {
     "id": "app.channel.save_member.exists.app_error",
@@ -8192,22 +8008,6 @@
     "translation": "Geen enkele e-mail werd succesvol verzonden"
   },
   {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} wil leden uitnodigen voor jouw werkruimte"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost gebruiker verzoekt upgrade van jouw werkruimte"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Omdat jouw werkruimte de gebruikerslimiet heeft bereikt voor de gratis versie van Mattermost cloud, kunnen er geen uitnodigingen worden verstuurd. Upgrade nu om meer gebruikers toe te laten tot jouw werkruimte."
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Maar je kan gebruikers ook uitschakelen in de Systeem Console en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "De MFA-actief status kan niet worden bijgewerkt voor de gebruiker."
   },
@@ -8258,14 +8058,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Fout bij het instellen van de status."
-  },
-  {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Nieuwe gebruikers kunnen geen lid worden van jouw werkruimte"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Iemand heeft onlangs geprobeerd om deel te nemen aan jouw werkruimte, maar kon dit niet omdat jouw werkruimte de gebruikerslimiet heeft bereikt voor de gratis versie van Mattermost cloud. Upgrade nu om meer gebruikers toe te laten tot jouw werkruimte."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
@@ -8321,7 +8113,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Stuur ons een e-mail op "
+    "translation": "Heb je hulp nodig of heb je een vraag? Stuur ons een e-mail op "
   },
   {
     "id": "api.templates.email_footer_v2",
@@ -8330,22 +8122,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Fout bij het verwerken van request body."
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Fout bij het ophalen van cloud abonnement"
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Fout bij het ophalen van cloud abonnement"
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Fout bij het ophalen van cloud abonnement."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Fout bij het ophalen van de e-mail van de systeembeheerder."
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -8385,7 +8161,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Jouw 14-daagse proef van de {{.WorkSpace}} werkruimte is klaar voor gebruik!"
+    "translation": "Jouw werkruimte is klaar voor gebruik!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8876,22 +8652,6 @@
     "translation": "Er is een fout opgetreden bij het uitvoeren van de gevraagde bewerking."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigt binnenkort"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, je 14-daagse proefperiode van Mattermost loopt over 3 dagen af, op {{.TrialEnd}}. Voeg a.u.b. je betalingsgegevens toe om ervoor te zorgen dat je team kan blijven genieten van de voordelen van Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud proefperiode eindigt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Betalingsmethode toevoegen"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Een weergavenaam voor de beveiligde verbinding"
   },
@@ -8902,22 +8662,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kan geen automatisch antwoord van gebruiker sturen."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Je gratis 14-dagen proefperiode van Mattermost eindigde vandaag"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, jouw 14-daagse gratis proefperiode van Mattermost Cloud Enterprise is vandaag beëindigd, {{.TodayDate}}. Voeg aub. jouw betalingsgegevens toe om ervoor te zorgen dat jouw team kan blijven genieten van de voordelen van Cloud Enterprise. Als je jouw betalingsgegevens niet binnen 30 dagen toevoegt, zullen wij jouw Cloud-werkruimte definitief verwijderen en verliest je alle bijbehorende gegevens."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud proefperiode is afgelopen"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start abonnement"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -9025,14 +8769,6 @@
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Controle afbeelding gaf een fout. Resolutie is te hoog."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Het is niet mogelijk om meer gebruikers te activeren omdat het cloud account de maximum capaciteit bereikt heeft."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Kan het aantal gebruikers in jouw Mattermost cloud instance niet controleren."
   },
   {
     "id": "app.system.system_bot.bot_displayname",
@@ -9167,10 +8903,6 @@
     "translation": " antwoordde op een draadje."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fout bij het verwerken van in bulk importeren van bijlagen."
-  },
-  {
     "id": "model.session.is_valid.create_at.app_error",
     "translation": "Ongeldig CreateAt veld voor sessie."
   },
@@ -9259,14 +8991,6 @@
     "translation": "Het is niet gelukt om de volledige onboarding-request te decoderen."
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Naam conflicteert met bestaande systeem emoticonnaam."
   },
@@ -9319,24 +9043,8 @@
     "translation": "groepen die fouten tellen"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Het lukt niet om alle jobs op type en status op te halen."
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9348,7 +9056,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HEY! Open Mattermost om de productiviteit van je team te verhogen!"
+    "translation": "Open Mattermost om de productiviteit van je team te verhogen!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9393,5 +9101,441 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Voorverpakte plugin versie kon niet geparsed worden."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "De maximale lengte van MattermostAppID is 32 tekens."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexering Batchgrootte moet ten minste {{.BatchSize}} zijn."
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Fout bij het opvragen van het aantal bestanden van het kanaal"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "E-mail instellingen heeft niet-ingestelde waarden."
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-maillijst is leeg"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanaalnaam is ongeldig"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "De naam moet 1 of meer alfanumerieke tekens in kleine letters bevatten."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ongeldig post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fout bij het parsen van de body data."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ongeldig body request."
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "We konden het verzoek niet verwerken vanwege beperkingen voor landen die onder een embargo vallen. [Meer informatie vind je in onze documentatie](https://mattermost.com/pl/limitations-for-embargoed-countries), of neem contact op met legal@mattermost.com voor vragen over exportbeperkingen."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights zit achter een functionaliteit die niet is ingeschakeld."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "De parameters OnlyThreads en OnlyTotals voor getThreadsForUser sluiten elkaar uit"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "De instellingen van Elasticsearch bevat niet-ingestelde waarden."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Je hebt deze eenmalige email ontvangen omdat jouw Mattermost server inactief was voor meer dan {{.Hours}} uur. Deze e-mail werd automatisch aangemaakt door jouw Mattermost server."
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Je bent nu geüpgraded!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Jouw {{.WorkspaceName}} werkruimte is nu geüpgraded. Dit zal gefactureerd worden vanaf {{.Date}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Bevestiging Mattermost upgrade"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fout met bijwerken inschrijving vanuit webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fout bij ophalen van de recente zoekopdrachten"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploaden via mmctl naar een Cloud instance wordt niet ondersteund. Raadpleeg de documentatie hier: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ongeldige waarde voor decoder-concurrency {{.Value}}. Moet een positief getal of -1 zijn."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Niet gelukt om de gebruikte bestandsopslag op te halen."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Niet gelukt om de gebruikte teams op te halen"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Niet gelukt om het aan aantal teams op te halen"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kan het team niet herstellen omdat de teamlimiet bereikt is"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kan geen team aanmaken omdat de teamlimiet bereikt is"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Kan de topdraadjes voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Kan de topdraadjes voor het team niet ophalen."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights-functionaliteit is uitgeschakeld."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Kan het bericht niet ophalen omdat het de limiet van het cloud plan overschreden is."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fout bij ophalen van het laatste toegankelijke bericht"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Reeds verwittigde admin"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kan geen bestandsinfo genereren uit de geüploade gegevens."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Ongeldige time-out waarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fout bij het wissen van de cache van teamleden"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Fout bij het ophalen van de top-privé-berichten voor gebruiker."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Betaling is overtijd voor jouw Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Betaling bijwerken"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "De opdracht marktplaats wordt niet ondersteund op jouw toestel."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marktplaats"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open de Marktplaats"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat drie belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n**[Boards](/borden)** - Beheer projecten en taken in een Kanban-bordstructuur om jouw team te helpen belangrijke mijlpalen te halen.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Verplichte velden ontbreken voor het versturen van een e-mail over wanbetaling."
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Jouw betaling is niet voltooid"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Om jouw {{.Plan}} plan actief te houden, dien je zo snel mogelijk contact op te nemen met jouw financiële instelling. Werk vervolgens jouw betalingsgegevens zo nodig bij."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "We konden jouw laatste betaling niet verwerken"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Jouw Mattermost-werkruimte wordt na 30 dagen gedowngraded"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Starter hieronder."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Wij zullen jouw werkruimte automatisch downgraden na 30 dagen als wij niet in staat zijn om jouw betaling te verwerken."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Gelieve jouw betalingsgegevens spoedig bij te werken om jouw openstaande facturen te verwerken."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Downgraden naar Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Jouw werkruimte zal binnenkort gedowngraded worden"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Werk nu jouw creditcardgegevens bij."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Een gedowngradede workspace kan een negatieve invloed hebben op kritische workflows, integraties en andere bedrijfskritische activiteiten die in jouw workspace worden uitgevoerd."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "We hebben geen betaling kunnen innen voor openstaande facturen van {{.DelinquencyDate}}. Jouw werkruimte loopt het risico om gedowngraded te worden."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Melding: Jouw Mattermost {{.Plan}} zal binnenkort gedowngraded worden"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Jouw werkruimte zal binnenkort gedowngraded worden"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "als geen actie wordt ondernomen, zal jouw werkruimte worden gedowngraded en kunnen de volgende gegevens worden gearchiveerd:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Je hebt tijd om jouw Mattermost {{.Plan}} actief te houden, maar je moet de problemen met jouw betalingsmethode oplossen."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Handel om jouw Mattermost {{.Plan}} eigenschappen te behouden"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Bekijk alle documentatie rond beperkingen."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Actieve plugins en integraties"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Berichtengeschiedenis"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Bestanden"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Kaarten van jouw Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Betaling niet ontvangen"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Neem contact op met jouw financiële instelling om eventuele problemen op te lossen. Werk vervolgens jouw betalingsgegevens bij indien nodig."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Jouw Mattermost Cloud-werkruimte werd gedowngraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Plannen en prijzen bekijken"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Over 15 dagen zal jouw werkruimte wordeng edowngrade"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Starter. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Dit is de laatste herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost Cloud-werkruimte sinds {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Downgraden naar Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Betalingsgegevens bijwerken"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Om jouw gegevens te dearchiveren en betaalde functies te behouden, moet je jouw betalingsinformatie bijwerken."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Als je Cloud Professional- of Enterprise-functies gebruikt voor belangrijke zakelijke activiteiten, zullen deze niet langer beschikbaar zijn en zal je verminderde prestaties ervaren."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML kon het Identity Provider Public Certificate niet succesvol laden, neem contact op met jouw systeembeheerder."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We konden het aantal badges van de gebruiker niet ophalen."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Kon geen kennisgevingsbericht verzenden."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Kon geen notificatie-data opslaan."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} lid van de {{.WorkspaceName}} werkruimte heeft een werkruimte upgrade aangevraagd voor: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} leden van de {{.WorkspaceName}} werkruimte hebben een werkruimte upgrade aangevraagd voor: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} lid van de {{.WorkspaceName}} werkruimte heeft gevraagd om de Enterprise-proefperiode te starten om toegang te krijgen tot: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} leden van de {{.WorkspaceName}} werkruimte hebben gevraagd om de Enterprise-proefperiode te starten om toegang te krijgen tot: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Abonnement is niet vervallen"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Kon het cloud abonnement niet ophalen"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Kan huidige plannaam niet ophalen"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Kon cloud producten niet ophalen"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Jouw Mattermost-werkruimte werd gedowngraded"
   }
 ]

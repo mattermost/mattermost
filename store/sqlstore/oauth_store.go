@@ -32,9 +32,9 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	}
 
 	if _, err := as.GetMasterX().NamedExec(`INSERT INTO OAuthApps
-		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted)
+		(Id, CreatorId, CreateAt, UpdateAt, ClientSecret, Name, Description, IconURL, CallbackUrls, Homepage, IsTrusted, MattermostAppID)
 		VALUES
-		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted)`, app); err != nil {
+		(:Id, :CreatorId, :CreateAt, :UpdateAt, :ClientSecret, :Name, :Description, :IconURL, :CallbackUrls, :Homepage, :IsTrusted, :MattermostAppID)`, app); err != nil {
 		return nil, errors.Wrap(err, "failed to save OAuthApp")
 	}
 	return app, nil
@@ -63,7 +63,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	res, err := as.GetMasterX().NamedExec(`UPDATE OAuthApps
 		SET UpdateAt=:UpdateAt, ClientSecret=:ClientSecret, Name=:Name,
 			Description=:Description, IconURL=:IconURL, CallbackUrls=:CallbackUrls,
-			Homepage=:Homepage, IsTrusted=:IsTrusted
+			Homepage=:Homepage, IsTrusted=:IsTrusted, MattermostAppID=:MattermostAppID
 		WHERE Id=:Id`, app)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
@@ -124,13 +124,13 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) ([]*
 	return apps, nil
 }
 
-func (as SqlOAuthStore) DeleteApp(id string) error {
+func (as SqlOAuthStore) DeleteApp(id string) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := as.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	if err := as.deleteApp(transaction, id); err != nil {
 		return err

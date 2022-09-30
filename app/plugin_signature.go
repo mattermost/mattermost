@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
 
@@ -25,9 +24,9 @@ func (a *App) GetPublicKey(name string) ([]byte, *model.AppError) {
 }
 
 func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
-	data, err := s.configStore.GetFile(name)
+	data, err := s.platform.GetConfigFile(name)
 	if err != nil {
-		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPublicKey", "app.plugin.get_public_key.get_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return data, nil
 }
@@ -37,13 +36,13 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	if isSamlFile(&a.Config().SamlSettings, name) {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
-	data, err := ioutil.ReadAll(key)
+	data, err := io.ReadAll(key)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	err = a.Srv().configStore.SetFile(name, data)
+	err = a.Srv().platform.SetConfigFile(name, data)
 	if err != nil {
-		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -61,8 +60,8 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
 	}
 	filename := filepath.Base(name)
-	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
-		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
+		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
@@ -98,12 +97,12 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
 }
 
-func verifySignature(publicKey, message, signatrue io.Reader) error {
+func verifySignature(publicKey, message, signature io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")
 	}
-	s, err := decodeIfArmored(signatrue)
+	s, err := decodeIfArmored(signature)
 	if err != nil {
 		return errors.Wrap(err, "can't decode signature")
 	}
@@ -122,7 +121,7 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 }
 
 func decodeIfArmored(reader io.Reader) (io.Reader, error) {
-	readBytes, err := ioutil.ReadAll(reader)
+	readBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't read the file")
 	}

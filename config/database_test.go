@@ -6,13 +6,13 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -47,7 +47,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	require.NoError(t, err)
 
 	id := model.NewId()
-	_, err = ds.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
+	_, err = ds.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]any{
 		"Id":       id,
 		"Value":    cfgData,
 		"CreateAt": model.GetMillis(),
@@ -55,7 +55,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	require.NoError(t, err)
 
 	for name, data := range files {
-		params := map[string]interface{}{
+		params := map[string]any{
 			"name":      name,
 			"data":      data,
 			"create_at": model.GetMillis(),
@@ -80,8 +80,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
 		var actualCfg *model.Config
@@ -93,8 +92,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	err := mainHelper.GetSQLStore().GetMasterX().Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
 	var actualCfg *model.Config
@@ -270,7 +268,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a string variable with a custom default value", func(t *testing.T) {
@@ -293,7 +291,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 
 		// environment override should take priority over the custom default value
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a bool variable", func(t *testing.T) {
@@ -315,7 +313,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
-		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for an int variable", func(t *testing.T) {
@@ -337,7 +335,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
-		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"TeamSettings": map[string]any{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for an int64 variable", func(t *testing.T) {
@@ -359,7 +357,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a slice variable - one value", func(t *testing.T) {
@@ -381,7 +379,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("get override for a slice variable - three values", func(t *testing.T) {
@@ -406,7 +404,7 @@ func TestDatabaseStoreGetEnvironmentOverrides(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, ds.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
 	})
 }
 
@@ -477,7 +475,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		_, _, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, parse \"invalid\": invalid URI for request")
 		}
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
@@ -553,9 +551,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
-		_, err = db.Exec("DROP TABLE Configurations")
+		_, err = mainHelper.GetSQLStore().GetMasterX().Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
 		newCfg := minimalConfig
@@ -683,7 +679,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		err = ds.Load()
 		require.NoError(t, err)
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
 
 	t.Run("do not persist environment variables - string", func(t *testing.T) {
@@ -701,7 +697,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
@@ -724,7 +720,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
-		assert.Equal(t, map[string]interface{}{"PluginSettings": map[string]interface{}{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"PluginSettings": map[string]any{"EnableUploads": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, false, *actualConfig.PluginSettings.EnableUploads)
@@ -747,7 +743,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
-		assert.Equal(t, map[string]interface{}{"TeamSettings": map[string]interface{}{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"TeamSettings": map[string]any{"MaxUsersPerTeam": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, model.TeamSettingsDefaultMaxUsersPerTeam, *actualConfig.TeamSettings.MaxUsersPerTeam)
@@ -770,7 +766,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
-		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"ServiceSettings": map[string]any{"TLSStrictTransportMaxAge": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, int64(63072000), *actualConfig.ServiceSettings.TLSStrictTransportMaxAge)
@@ -793,7 +789,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, []string{}, actualConfig.SqlSettings.DataSourceReplicas)
@@ -818,7 +814,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
-		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, map[string]any{"SqlSettings": map[string]any{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db", "user:pwd@db2:5433/test-db2", "user:pwd@db3:5434/test-db3"}, actualConfig.SqlSettings.DataSourceReplicas)
@@ -835,20 +831,21 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		cfgData, err := marshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
 		truncateTables(t)
 		id := model.NewId()
-		_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
-			"Id":       id,
-			"Value":    cfgData,
-			"CreateAt": model.GetMillis(),
+		_, err = mainHelper.GetSQLStore().GetMasterX().NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:id, :value, :createat, TRUE)", map[string]any{
+			"id":       id,
+			"value":    cfgData,
+			"createat": model.GetMillis(),
 		})
-		require.NoError(t, err)
+		t.Logf("%v\n", err)
+		require.NoErrorf(t, err, "what is - %v", err)
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			var appErr *model.AppError
+			require.True(t, errors.As(err, &appErr))
+			assert.Equal(t, appErr.Id, "model.config.is_valid.site_url.app_error")
 		}
 	})
 
@@ -1118,4 +1115,51 @@ func TestDatabaseStoreString(t *testing.T) {
 		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
 		assert.False(t, strings.Contains(maskedDSN, "mostest"))
 	}
+}
+
+func TestCleanUp(t *testing.T) {
+	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+	defer tearDown()
+
+	ds, err := newTestDatabaseStore(nil)
+	require.NoError(t, err)
+	require.NotNil(t, ds)
+	defer ds.Close()
+
+	dbs, ok := ds.backingStore.(*DatabaseStore)
+	require.True(t, ok, "should be a DatabaseStore instance")
+
+	b, err := marshalConfig(ds.config)
+	require.NoError(t, err)
+
+	ds.config.JobSettings.CleanupConfigThresholdDays = model.NewInt(30) // we set 30 days as threshold
+
+	now := time.Now()
+	for i := 0; i < 5; i++ {
+		// 20 days, we expect to remove at least 3 configuration values from the store
+		// first 2 (0 and 1) will be within a month constraint, others will be older than
+		// a month hence we expect 3 configurations to be removed from the database.
+		m := -1 * i * 24 * 20
+		params := map[string]any{
+			"id":        model.NewId(),
+			"value":     string(b),
+			"create_at": model.GetMillisForTime(now.Add(time.Duration(m) * time.Hour)),
+		}
+
+		_, err = dbs.db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt) VALUES (:id, :value, :create_at)", params)
+		require.NoError(t, err)
+	}
+	var initialCount int
+	row := dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&initialCount)
+	require.NoError(t, err)
+
+	err = ds.CleanUp()
+	require.NoError(t, err)
+
+	var count int
+	row = dbs.db.QueryRow("SELECT COUNT(*) FROM Configurations")
+	err = row.Scan(&count)
+	require.NoError(t, err)
+	require.True(t, count+3 == initialCount)
 }

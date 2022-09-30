@@ -4,7 +4,7 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -29,21 +29,21 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 		Where(sq.Eq{"Value": "false"}).
 		Where(sq.Like{"Name": store.FeatureTogglePrefix + "%"}).ToSql()
 	if err != nil {
-		mlog.Warn(errors.Wrap(err, "could not build sql query to delete unused features!").Error())
+		mlog.Warn("Could not build sql query to delete unused features", mlog.Err(err))
 	}
 	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
 		mlog.Warn("Failed to delete unused features", mlog.Err(err))
 	}
 }
 
-func (s SqlPreferenceStore) Save(preferences model.Preferences) error {
+func (s SqlPreferenceStore) Save(preferences model.Preferences) (err error) {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 	for _, preference := range preferences {
 		preference := preference
 		if upsertErr := s.saveTx(transaction, &preference); upsertErr != nil {

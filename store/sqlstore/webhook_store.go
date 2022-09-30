@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -155,7 +155,7 @@ func (s SqlWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, o
 	}
 
 	if err := s.GetReplicaX().Select(&webhooks, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find IncomingWebhoook with teamId=%s", teamId)
+		return nil, errors.Wrapf(err, "failed to find IncomingWebhook with teamId=%s", teamId)
 	}
 
 	return webhooks, nil

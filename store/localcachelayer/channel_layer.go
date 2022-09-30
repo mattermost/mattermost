@@ -174,6 +174,37 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	return ch, err
 }
 
+func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
+	var foundChannels []*model.Channel
+	var channelsToQuery []string
+
+	if allowFromCache {
+		for _, id := range ids {
+			var ch *model.Channel
+			if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &ch); err == nil {
+				foundChannels = append(foundChannels, ch)
+			} else {
+				channelsToQuery = append(channelsToQuery, id)
+			}
+		}
+	}
+
+	if channelsToQuery == nil {
+		return foundChannels, nil
+	}
+
+	channels, err := s.ChannelStore.GetMany(channelsToQuery, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ch := range channels {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, ch.Id, ch)
+	}
+
+	return append(foundChannels, channels...), nil
+}
+
 func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
 	member, err := s.ChannelStore.SaveMember(member)
 	if err != nil {

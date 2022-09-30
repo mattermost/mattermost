@@ -16,41 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func TestConfigListener(t *testing.T) {
-	th := Setup(t)
-	defer th.TearDown()
-
-	originalSiteName := th.App.Config().TeamSettings.SiteName
-
-	listenerCalled := false
-	listener := func(oldConfig *model.Config, newConfig *model.Config) {
-		assert.False(t, listenerCalled, "listener called twice")
-
-		assert.Equal(t, *originalSiteName, *oldConfig.TeamSettings.SiteName, "old config contains incorrect site name")
-		assert.Equal(t, "test123", *newConfig.TeamSettings.SiteName, "new config contains incorrect site name")
-
-		listenerCalled = true
-	}
-	listenerId := th.App.AddConfigListener(listener)
-	defer th.App.RemoveConfigListener(listenerId)
-
-	listener2Called := false
-	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
-		assert.False(t, listener2Called, "listener2 called twice")
-
-		listener2Called = true
-	}
-	listener2Id := th.App.AddConfigListener(listener2)
-	defer th.App.RemoveConfigListener(listener2Id)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.SiteName = "test123"
-	})
-
-	assert.True(t, listenerCalled, "listener should've been called")
-	assert.True(t, listener2Called, "listener 2 should've been called")
-}
-
 func TestAsymmetricSigningKey(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -79,12 +44,16 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	config := th.App.ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
 	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]
 	assert.True(t, ok, "expected MaxPostSize in returned config")
+	v, ok := config["SchemaVersion"]
+	assert.True(t, ok, "expected SchemaVersion in returned config")
+	assert.Equal(t, "1", v)
 }
 
 func TestEnsureInstallationDate(t *testing.T) {

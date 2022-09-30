@@ -14,11 +14,11 @@ type Cache struct {
 }
 
 // Get provides a mock function with given fields: key, value
-func (_m *Cache) Get(key string, value interface{}) error {
+func (_m *Cache) Get(key string, value any) error {
 	ret := _m.Called(key, value)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(string, any) error); ok {
 		r0 = rf(key, value)
 	} else {
 		r0 = ret.Error(0)
@@ -128,11 +128,11 @@ func (_m *Cache) Remove(key string) error {
 }
 
 // Set provides a mock function with given fields: key, value
-func (_m *Cache) Set(key string, value interface{}) error {
+func (_m *Cache) Set(key string, value any) error {
 	ret := _m.Called(key, value)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(string, any) error); ok {
 		r0 = rf(key, value)
 	} else {
 		r0 = ret.Error(0)
@@ -142,11 +142,11 @@ func (_m *Cache) Set(key string, value interface{}) error {
 }
 
 // SetWithDefaultExpiry provides a mock function with given fields: key, value
-func (_m *Cache) SetWithDefaultExpiry(key string, value interface{}) error {
+func (_m *Cache) SetWithDefaultExpiry(key string, value any) error {
 	ret := _m.Called(key, value)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(string, any) error); ok {
 		r0 = rf(key, value)
 	} else {
 		r0 = ret.Error(0)
@@ -156,11 +156,11 @@ func (_m *Cache) SetWithDefaultExpiry(key string, value interface{}) error {
 }
 
 // SetWithExpiry provides a mock function with given fields: key, value, ttl
-func (_m *Cache) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
+func (_m *Cache) SetWithExpiry(key string, value any, ttl time.Duration) error {
 	ret := _m.Called(key, value, ttl)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}, time.Duration) error); ok {
+	if rf, ok := ret.Get(0).(func(string, any, time.Duration) error); ok {
 		r0 = rf(key, value, ttl)
 	} else {
 		r0 = ret.Error(0)

@@ -19,12 +19,15 @@ import (
 )
 
 type Context struct {
-	App           app.AppIface
-	AppContext    *request.Context
-	Logger        *mlog.Logger
-	Params        *Params
-	Err           *model.AppError
-	siteURLHeader string
+	App        app.AppIface
+	AppContext *request.Context
+	Logger     *mlog.Logger
+	Params     *Params
+	Err        *model.AppError
+	// This is used to track the graphQL query that's being executed,
+	// so that we can monitor the timings in Grafana.
+	GraphQLOperationName string
+	siteURLHeader        string
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
@@ -40,8 +43,8 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 		return
 	}
 	if c.Err != nil {
-		rec.AddMeta("err", c.Err.Id)
-		rec.AddMeta("code", c.Err.StatusCode)
+		rec.AddErrorCode(c.Err.StatusCode)
+		rec.AddErrorDesc(c.Err.Error())
 		if c.Err.Id == "api.context.permissions.app_error" {
 			level = app.LevelPerms
 		}
@@ -53,16 +56,25 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 // MakeAuditRecord creates a audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	rec := &audit.Record{
-		APIPath:   c.AppContext.Path(),
-		Event:     event,
+		EventName: event,
 		Status:    initialStatus,
-		UserID:    c.AppContext.Session().UserId,
-		SessionID: c.AppContext.Session().Id,
-		Client:    c.AppContext.UserAgent(),
-		IPAddress: c.AppContext.IPAddress(),
-		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
+		Actor: audit.EventActor{
+			UserId:    c.AppContext.Session().UserId,
+			SessionId: c.AppContext.Session().Id,
+			Client:    c.AppContext.UserAgent(),
+			IpAddress: c.AppContext.IPAddress(),
+		},
+		Meta: map[string]interface{}{
+			audit.KeyAPIPath:   c.AppContext.Path(),
+			audit.KeyClusterID: c.App.GetClusterId(),
+		},
+		EventData: audit.EventData{
+			Parameters:  map[string]interface{}{},
+			PriorState:  map[string]interface{}{},
+			ResultState: map[string]interface{}{},
+			ObjectType:  "",
+		},
 	}
-	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
 
 	return rec
 }
@@ -70,7 +82,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -82,7 +94,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
 }
@@ -93,7 +105,7 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
+		mlog.String("error", err.Error()),
 	}
 	switch {
 	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
@@ -152,7 +164,7 @@ func (c *Context) MfaRequired() {
 
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
-		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, "", http.StatusUnauthorized).Wrap(err)
 		return
 	}
 
@@ -209,6 +221,10 @@ func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
 }
 
+func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
+	c.Err = NewInvalidParamError(parameter).Wrap(err)
+}
+
 func (c *Context) SetInvalidURLParam(parameter string) {
 	c.Err = NewInvalidURLParamError(parameter)
 }
@@ -225,8 +241,8 @@ func (c *Context) SetInvalidRemoteClusterTokenError() {
 	c.Err = NewInvalidRemoteClusterTokenError()
 }
 
-func (c *Context) SetJSONEncodingError() {
-	c.Err = NewJSONEncodingError()
+func (c *Context) SetJSONEncodingError(err error) {
+	c.Err = NewJSONEncodingError(err)
 }
 
 func (c *Context) SetCommandNotFoundError() {
@@ -254,20 +270,22 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 }
 
 func NewInvalidParamError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewInvalidURLParamError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
+
 func NewServerBusyError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 	return err
 }
 
 func NewInvalidRemoteIdError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]any{"RemoteId": parameter}, "", http.StatusBadRequest)
 	return err
 }
 
@@ -276,9 +294,9 @@ func NewInvalidRemoteClusterTokenError() *model.AppError {
 	return err
 }
 
-func NewJSONEncodingError() *model.AppError {
-	err := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError)
-	return err
+func NewJSONEncodingError(err error) *model.AppError {
+	appErr := model.NewAppError("Context", "api.context.json_encoding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	return appErr
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {

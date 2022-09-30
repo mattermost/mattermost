@@ -98,7 +98,7 @@ func TestCreateGroup(t *testing.T) {
 
 	_, response, err := th.SystemAdminClient.CreateGroup(gbroken)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	validGroup := &model.Group{
 		DisplayName:    "dn_" + model.NewId(),
@@ -137,7 +137,7 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 	unReferenceableCustomGroup.AllowReference = true
 	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
 	require.NoError(t, err)
@@ -152,7 +152,17 @@ func TestCreateGroup(t *testing.T) {
 	}
 	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
+
+	reservedNameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("here"),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(reservedNameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)
@@ -178,16 +188,16 @@ func TestDeleteGroup(t *testing.T) {
 
 	_, response, err := th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup(g.Id)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
 	require.Error(t, err)
@@ -293,6 +303,12 @@ func TestPatchGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	require.Equal(t, true, patchedG2.AllowReference)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name: model.NewString("here"),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
@@ -939,7 +955,11 @@ func TestGetGroupsByChannel(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByChannel(th.BasicChannel.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -1098,7 +1118,11 @@ func TestGetGroupsByTeam(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -1248,7 +1272,7 @@ func TestGetGroups(t *testing.T) {
 	opts.Source = model.GroupSourceCustom
 	_, response, err := th.Client.GetGroups(opts)
 	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 
 	// Specify ldap groups source when custom groups feature is disabled
 	opts.Source = model.GroupSourceLdap
@@ -1527,7 +1551,7 @@ func TestAddMembersToGroup(t *testing.T) {
 	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, upsertErr)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestDeleteMembersFromGroup(t *testing.T) {
@@ -1605,5 +1629,5 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(ldapGroup.Id, members)
 
 	require.Error(t, deleteErr)
-	CheckNotImplementedStatus(t, response)
+	CheckBadRequestStatus(t, response)
 }

@@ -102,7 +102,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil, ""))
 		}
 
 		hub.InvalidateUser("userId")
@@ -135,7 +135,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -161,12 +161,13 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	userService, err := users.New(users.ServiceConfig{
 		UserStore:    &mockUserStore,
 		SessionStore: &mockSessionStore,
 		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.Config,
+		ConfigFn:     th.App.ch.srv.platform.Config,
 		Metrics:      th.App.Metrics(),
 		Cluster:      th.App.Cluster(),
 		LicenseFn:    th.App.ch.srv.License,
@@ -194,7 +195,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil, ""))
 		}
 		close(done)
 	}()
@@ -227,20 +228,30 @@ func TestHubConnIndex(t *testing.T) {
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc1.SetConnectionID(model.NewId())
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
 		App:    th.App,
 		UserId: model.NewId(),
 	}
+	wc2.SetConnectionID(model.NewId())
+	wc2.SetSession(&model.Session{})
+
 	wc3 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc3.SetConnectionID(model.NewId())
+	wc3.SetSession(&model.Session{})
+
 	wc4 := &WebConn{
 		App:    th.App,
 		UserId: wc2.UserId,
 	}
+	wc4.SetConnectionID(model.NewId())
+	wc4.SetSession(&model.Session{})
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
@@ -282,7 +293,7 @@ func TestHubConnIndex(t *testing.T) {
 	t.Run("RemoveEndUser2", func(t *testing.T) {
 		connIndex.Remove(wc4) // Remove from end from user2
 
-		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2})
 		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
 		assert.True(t, connIndex.Has(wc2))
 		assert.False(t, connIndex.Has(wc3))
@@ -291,27 +302,96 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexByConnectionId(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	// User1
+	wc1ID := model.NewId()
+	wc1 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc1.SetConnectionID(wc1ID)
+	wc1.SetSession(&model.Session{})
+
+	// User2
+	wc2ID := model.NewId()
+	wc2 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc2.SetConnectionID(wc2ID)
+	wc2.SetSession(&model.Session{})
+
+	wc3ID := model.NewId()
+	wc3 := &WebConn{
+		App:    th.App,
+		UserId: wc2.UserId,
+	}
+	wc3.SetConnectionID(wc3ID)
+	wc3.SetSession(&model.Session{})
+
+	t.Run("no connections", func(t *testing.T) {
+		assert.False(t, connIndex.Has(wc1))
+		assert.False(t, connIndex.Has(wc2))
+		assert.False(t, connIndex.Has(wc3))
+		assert.Empty(t, connIndex.byConnectionId)
+	})
+
+	t.Run("adding", func(t *testing.T) {
+		connIndex.Add(wc1)
+		connIndex.Add(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 2)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, wc3, connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+	})
+
+	t.Run("removing", func(t *testing.T) {
+		connIndex.Remove(wc3)
+
+		assert.Len(t, connIndex.byConnectionId, 1)
+		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc3ID])
+		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+	})
+}
+
 func TestHubConnIndexInactive(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
 	connIndex := newHubConnectionIndex(2 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
+		App:    th.App,
 		UserId: model.NewId(),
 		active: true,
 	}
 	wc1.SetConnectionID("conn1")
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
+		App:    th.App,
 		UserId: model.NewId(),
 		active: true,
 	}
 	wc2.SetConnectionID("conn2")
+	wc2.SetSession(&model.Session{})
+
 	wc3 := &WebConn{
+		App:    th.App,
 		UserId: wc2.UserId,
 		active: false,
 	}
 	wc3.SetConnectionID("conn3")
+	wc3.SetSession(&model.Session{})
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
@@ -343,10 +423,10 @@ func TestReliableWebSocketSend(t *testing.T) {
 	th := SetupWithClusterMock(t, testCluster)
 	defer th.TearDown()
 
-	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil)
+	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
 	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
 	th.App.Publish(ev)
-	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil)
+	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil, "")
 	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
 		ReliableClusterSend: true,
 	})

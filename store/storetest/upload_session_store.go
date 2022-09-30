@@ -158,7 +158,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 		require.NotNil(t, us)
 		require.NotEmpty(t, us)
 		// We need this to make sure the ordering is consistent.
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(2 * time.Millisecond)
 	}
 
 	t.Run("should return existing sessions", func(t *testing.T) {

@@ -17,15 +17,7 @@ type SqlUserTermsOfServiceStore struct {
 }
 
 func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
-	s := SqlUserTermsOfServiceStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.UserTermsOfService{}, "UserTermsOfService").SetKeys(false, "UserId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("TermsOfServiceId").SetMaxSize(26)
-	}
-
-	return s
+	return SqlUserTermsOfServiceStore{sqlStore}
 }
 
 func (s SqlUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
@@ -62,7 +54,11 @@ func (s SqlUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSe
 		return nil, errors.Wrapf(err, "failed to update UserTermsOfService with userId=%s and termsOfServiceId=%s", userTermsOfService.UserId, userTermsOfService.TermsOfServiceId)
 	}
 
-	if updatedRows, _ := result.RowsAffected(); updatedRows == 0 {
+	updatedRows, err := result.RowsAffected()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve the number of affected rows for the update of UserTermsOfService")
+	}
+	if updatedRows == 0 {
 		query := `
 			INSERT INTO UserTermsOfService
 				(UserId, TermsOfServiceId, CreateAt)

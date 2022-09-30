@@ -33,7 +33,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(exports)
 	if err != nil {
-		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("listImports", "app.export.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -43,7 +43,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteExport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("export_name", c.Params.ExportName)
+	auditRec.AddEventParameter("export_name", c.Params.ExportName)
 
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)

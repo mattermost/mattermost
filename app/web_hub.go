@@ -90,7 +90,7 @@ func (a *App) TotalWebsocketConnections() int {
 func (s *Server) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
-	s.Log.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
+	s.Log().Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
 
@@ -157,8 +157,8 @@ func (a *App) HubUnregister(webConn *WebConn) {
 }
 
 func (s *Server) Publish(message *model.WebSocketEvent) {
-	if s.Metrics != nil {
-		s.Metrics.IncrementWebsocketEvent(message.EventType())
+	if s.GetMetrics() != nil {
+		s.GetMetrics().IncrementWebsocketEvent(message.EventType())
 	}
 
 	s.PublishSkipClusterSend(message)
@@ -189,6 +189,10 @@ func (s *Server) Publish(message *model.WebSocketEvent) {
 
 func (a *App) Publish(message *model.WebSocketEvent) {
 	a.Srv().Publish(message)
+}
+
+func (ch *Channels) Publish(message *model.WebSocketEvent) {
+	ch.srv.Publish(message)
 }
 
 func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
@@ -353,7 +357,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
-		if metrics := h.srv.Metrics; metrics != nil {
+		if metrics := h.srv.GetMetrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
@@ -521,7 +525,7 @@ func (h *Hub) Start() {
 					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
-				if metrics := h.srv.Metrics; metrics != nil {
+				if metrics := h.srv.GetMetrics(); metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
 				msg = msg.PrecomputeJSON()
@@ -539,13 +543,20 @@ func (h *Hub) Start() {
 						}
 					}
 				}
-				if msg.GetBroadcast().UserId != "" {
+
+				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
+					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
+						broadcast(webConn)
+						continue
+					}
+				} else if msg.GetBroadcast().UserId != "" {
 					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
 					for _, webConn := range candidates {
 						broadcast(webConn)
 					}
 					continue
 				}
+
 				candidates := connIndex.All()
 				for webConn := range candidates {
 					broadcast(webConn)
@@ -596,7 +607,8 @@ type hubConnectionIndex struct {
 	byUserId map[string][]*WebConn
 	// byConnection serves the dual purpose of storing the index of the webconn
 	// in the value of byUserId map, and also to get all connections.
-	byConnection map[*WebConn]int
+	byConnection   map[*WebConn]int
+	byConnectionId map[string]*WebConn
 	// staleThreshold is the limit beyond which inactive connections
 	// will be deleted.
 	staleThreshold time.Duration
@@ -606,6 +618,7 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 	return &hubConnectionIndex{
 		byUserId:       make(map[string][]*WebConn),
 		byConnection:   make(map[*WebConn]int),
+		byConnectionId: make(map[string]*WebConn),
 		staleThreshold: interval,
 	}
 }
@@ -613,9 +626,12 @@ func newHubConnectionIndex(interval time.Duration) *hubConnectionIndex {
 func (i *hubConnectionIndex) Add(wc *WebConn) {
 	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
 	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
+	i.byConnectionId[wc.GetConnectionID()] = wc
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
+	wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
+
 	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
@@ -633,6 +649,7 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	i.byConnection[last] = userConnIndex
 
 	delete(i.byConnection, wc)
+	delete(i.byConnectionId, wc.GetConnectionID())
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {

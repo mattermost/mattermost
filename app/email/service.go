@@ -129,8 +129,7 @@ type ServiceInterface interface {
 	SendVerifyEmail(userEmail, locale, siteURL, token, redirect string) error
 	SendSignInChangeEmail(email, method, locale, siteURL string) error
 	SendWelcomeEmail(userID string, email string, verified bool, disableWelcomeEmail bool, locale, siteURL, redirect string) error
-	SendCloudTrialEndWarningEmail(userEmail, name, trialEndDate, locale, siteURL string) error
-	SendCloudTrialEndedEmail(userEmail, name, locale, siteURL string) error
+	SendCloudUpgradeConfirmationEmail(userEmail, name, trialEndDate, locale, siteURL, workspaceName string) error
 	SendCloudWelcomeEmail(userEmail, locale, teamInviteID, workSpaceName, dns, siteURL string) error
 	SendPasswordChangeEmail(email, method, locale, siteURL string) error
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
@@ -138,20 +137,20 @@ type ServiceInterface interface {
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error
 	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error
+	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
-	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error
-	SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
+	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error
 	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, renewalLink string, daysToExpiration int) error
-	SendUpgradeEmail(user, email, locale, siteURL, action string) (bool, error)
-	SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
-	SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, error)
-	SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, error)
-	SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, error)
-	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error)
+	SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error)
+	// Cloud delinquency email sequence
+	SendDelinquencyEmail7(email, locale, siteURL, planName string) error
+	SendDelinquencyEmail14(email, locale, siteURL, planName string) error
+	SendDelinquencyEmail30(email, locale, siteURL, planName string) error
+	SendDelinquencyEmail45(email, locale, siteURL, planName, delinquencyDate string) error
+	SendDelinquencyEmail60(email, locale, siteURL string) error
+	SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error
+	SendDelinquencyEmail90(email, locale, siteURL string) error
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
 	SendRemoveExpiredLicenseEmail(renewalLink, email string, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError

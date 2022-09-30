@@ -659,7 +659,7 @@ func (p *testCommandProvider) GetCommand(a *App, T i18n.TranslateFunc) *model.Co
 	}
 }
 
-func (p *testCommandProvider) DoCommand(a *App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.CommandResponseTypeEphemeral,

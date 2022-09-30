@@ -98,7 +98,7 @@
 
     .emailBody a {
       text-decoration: none !important;
-      color: #1C58D9 !important;
+      color: #1C58D9;
     }
 
     .title div {
@@ -107,6 +107,7 @@
       line-height: 36px !important;
       letter-spacing: -0.01em !important;
       color: #3F4350 !important;
+      font-family: Open Sans, sans-serif !important;
     }
 
     .subTitle div {
@@ -122,6 +123,16 @@
     .button a {
       background-color: #1C58D9 !important;
       font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 18px !important;
+      color: #FFFFFF !important;
+      padding: 15px 24px !important;
+    }
+
+    .button-cloud a {
+      background-color: #1C58D9 !important;
+      font-weight: 400 !important;
+      font-family: Open Sans, sans-serif !important;
       font-size: 16px !important;
       line-height: 18px !important;
       color: #FFFFFF !important;
@@ -374,7 +385,7 @@
                             <tbody>
                               <tr>
                                 <td align="left" class="title" style="font-size:0px;padding:10px 25px;padding-bottom:16px;word-break:break-word;">
-                                  <div style="font-family: Open Sans, sans-serif; text-align: left; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350;">{{.Props.Title}}</div>
+                                  <div style="text-align: left; font-weight: 600; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; color: #3F4350; font-family: Open Sans, sans-serif;">{{.Props.Title}}</div>
                                 </td>
                               </tr>
                               <tr>
@@ -470,7 +481,7 @@
                               <tr>
                                 <td align="left" style="font-size:0px;padding:0px 0px;word-break:break-word;">
                                   <div style="font-family:Arial;font-size:14px;font-weight:normal;line-height:20px;text-align:left;color:#3F4350;">{{.Props.QuestionInfo}}
-                                    <a href="mailto:{{.Props.SupportEmail}}" style="text-decoration: none; color: #1C58D9;">
+                                    <a href="mailto:{{.Props.SupportEmail}}" style="color: #1C58D9; text-decoration: none;">
                                       {{.Props.SupportEmail}}
                                     </a>
                                   </div>
@@ -495,6 +506,11 @@
                         <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                           <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-top:1px solid #E5E5E5;vertical-align:top;" width="100%">
                             <tbody>
+                              <tr>
+                                <td align="center" class="emailFooter" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                  <div style="font-family: Arial; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.FooterDisclaimer}}</div>
+                                </td>
+                              </tr>
                               <tr>
                                 <td align="center" class="emailFooter" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                                   <div style="font-family: Arial; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}

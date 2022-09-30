@@ -23,7 +23,7 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.2
-	LoadPluginConfiguration(dest interface{}) error
+	LoadPluginConfiguration(dest any) error
 
 	// RegisterCommand registers a custom slash command. When the command is triggered, your plugin
 	// can fulfill it via the ExecuteCommand hook.
@@ -66,13 +66,13 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.6
-	GetPluginConfig() map[string]interface{}
+	GetPluginConfig() map[string]any
 
 	// SavePluginConfig sets the given config for plugin and persists the changes
 	//
 	// @tag Plugin
 	// Minimum server version: 5.6
-	SavePluginConfig(config map[string]interface{}) *model.AppError
+	SavePluginConfig(config map[string]any) *model.AppError
 
 	// GetBundlePath returns the absolute path where the plugin's bundle was unpacked.
 	//
@@ -938,7 +938,7 @@ type API interface {
 	// broadcast determines to which users to send the event.
 	//
 	// Minimum server version: 5.2
-	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
+	PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
 	//
@@ -971,7 +971,7 @@ type API interface {
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
-	LogDebug(msg string, keyValuePairs ...interface{})
+	LogDebug(msg string, keyValuePairs ...any)
 
 	// LogInfo writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
@@ -979,7 +979,7 @@ type API interface {
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
-	LogInfo(msg string, keyValuePairs ...interface{})
+	LogInfo(msg string, keyValuePairs ...any)
 
 	// LogError writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
@@ -987,7 +987,7 @@ type API interface {
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
-	LogError(msg string, keyValuePairs ...interface{})
+	LogError(msg string, keyValuePairs ...any)
 
 	// LogWarn writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
@@ -995,7 +995,7 @@ type API interface {
 	//
 	// @tag Logging
 	// Minimum server version: 5.2
-	LogWarn(msg string, keyValuePairs ...interface{})
+	LogWarn(msg string, keyValuePairs ...any)
 
 	// SendMail sends an email to a specific address
 	//
@@ -1147,6 +1147,16 @@ type API interface {
 	//
 	// Minimum server version: 5.36
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+
+	// GetCloudLimits gets limits associated with a cloud workspace, if any
+	//
+	// Minimum server version: 7.0
+	GetCloudLimits() (*model.ProductLimits, error)
+
+	// EnsureBotUser updates the bot if it exists, otherwise creates it.
+	//
+	// Minimum server version: 7.1
+	EnsureBotUser(bot *model.Bot) (string, error)
 }
 
 var handshake = plugin.HandshakeConfig{

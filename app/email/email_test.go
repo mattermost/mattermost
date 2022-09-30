@@ -182,7 +182,7 @@ func TestSendInviteEmails(t *testing.T) {
 	})
 }
 
-func TestSendCloudTrialEndWarningEmail(t *testing.T) {
+func TestSendCloudUpgradedEmail(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
@@ -190,7 +190,7 @@ func TestSendCloudTrialEndWarningEmail(t *testing.T) {
 	emailTo := "testclouduser@example.com"
 	emailToUsername := strings.Split(emailTo, "@")[0]
 
-	t.Run("SendCloudTrialEndWarningEmail", func(t *testing.T) {
+	t.Run("SendCloudUpgradedEmail", func(t *testing.T) {
 		verifyMailbox := func(t *testing.T) {
 			t.Helper()
 
@@ -208,30 +208,26 @@ func TestSendCloudTrialEndWarningEmail(t *testing.T) {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.HTML, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "feedback-cloud@mattermost.com")
+			require.Contains(t, resultsEmail.Body.Text, "You are now upgraded!", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Body.Text, "SomeName workspace has now been upgraded", "Wrong received message %s", resultsEmail.Body.Text)
 		}
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudTrialEndWarningEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "http://testserver")
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName")
 		require.NoError(t, err)
 
 		verifyMailbox(t)
 	})
 }
 
-func TestSendCloudTrialEndedEmail(t *testing.T) {
+func TestSendCloudWelcomeEmail(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.ConfigureInbucketMail()
 
 	emailTo := "testclouduser@example.com"
-	emailToUsername := strings.Split(emailTo, "@")[0]
 
-	t.Run("SendCloudTrialEndedEmail", func(t *testing.T) {
+	t.Run("TestSendCloudWelcomeEmail", func(t *testing.T) {
 		verifyMailbox := func(t *testing.T) {
 			t.Helper()
 
@@ -249,14 +245,73 @@ func TestSendCloudTrialEndedEmail(t *testing.T) {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
 			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "your 14-day free trial of Mattermost Cloud Enterprise has ended today", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "we will delete your Cloud workspace permanently", "Wrong received message %s", resultsEmail.Body.Text)
+			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
+			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
+
 		}
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudTrialEndedEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale)
+		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)
+	})
+}
+
+func TestMailServiceConfig(t *testing.T) {
+	configuredReplyTo := "feedbackexample@test.com"
+	customReplyTo := "customreplyto@test.com"
+
+	emailService := Service{
+		config: func() *model.Config {
+			return &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					SiteURL: model.NewString(""),
+				},
+				EmailSettings: model.EmailSettings{
+					EnableSignUpWithEmail:             new(bool),
+					EnableSignInWithEmail:             new(bool),
+					EnableSignInWithUsername:          new(bool),
+					SendEmailNotifications:            new(bool),
+					UseChannelInEmailNotifications:    new(bool),
+					RequireEmailVerification:          new(bool),
+					FeedbackName:                      new(string),
+					FeedbackEmail:                     new(string),
+					ReplyToAddress:                    model.NewString(configuredReplyTo),
+					FeedbackOrganization:              new(string),
+					EnableSMTPAuth:                    new(bool),
+					SMTPUsername:                      new(string),
+					SMTPPassword:                      new(string),
+					SMTPServer:                        new(string),
+					SMTPPort:                          new(string),
+					SMTPServerTimeout:                 new(int),
+					ConnectionSecurity:                new(string),
+					SendPushNotifications:             new(bool),
+					PushNotificationServer:            new(string),
+					PushNotificationContents:          new(string),
+					PushNotificationBuffer:            new(int),
+					EnableEmailBatching:               new(bool),
+					EmailBatchingBufferSize:           new(int),
+					EmailBatchingInterval:             new(int),
+					EnablePreviewModeBanner:           new(bool),
+					SkipServerCertificateVerification: new(bool),
+					EmailNotificationContentsType:     new(string),
+					LoginButtonColor:                  new(string),
+					LoginButtonBorderColor:            new(string),
+					LoginButtonTextColor:              new(string),
+					EnableInactivityEmail:             new(bool),
+				},
+			}
+		},
+	}
+
+	t.Run("use custom replyto instead of configured replyto", func(t *testing.T) {
+		mailConfig := emailService.mailServiceConfig(customReplyTo)
+		require.Equal(t, customReplyTo, mailConfig.ReplyToAddress)
+	})
+
+	t.Run("use configured replyto", func(t *testing.T) {
+		mailConfig := emailService.mailServiceConfig("")
+		require.Equal(t, configuredReplyTo, mailConfig.ReplyToAddress)
 	})
 }

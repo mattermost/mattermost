@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -99,7 +99,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 
 	u, err := url.Parse(task.rc.SiteURL)
 	if err != nil {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
@@ -112,20 +112,20 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, u.String())
 
 	if err != nil {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
 		)
 		errResp = err
 	} else {
-		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 		)
 
 		if err = json.Unmarshal(respJSON, &response); err != nil {
-			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster",
+			rcs.server.Log().Error("Invalid response sending message to remote cluster",
 				mlog.String("remote", task.rc.DisplayName),
 				mlog.Err(err),
 			)
@@ -163,7 +163,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err = ioutil.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

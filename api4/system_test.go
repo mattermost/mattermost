@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -64,7 +64,7 @@ func TestGetPing(t *testing.T) {
 		resp, err := client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err := ioutil.ReadAll(resp.Body)
+		respBytes, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
@@ -77,7 +77,7 @@ func TestGetPing(t *testing.T) {
 		resp, err = client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err = ioutil.ReadAll(resp.Body)
+		respBytes, err = io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
@@ -130,28 +130,31 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
+
+	es := model.EmailSettings{}
+	es.SetDefaults(false)
+
+	es.SMTPServer = model.NewString("")
+	es.SMTPPort = model.NewString("")
+	es.SMTPPassword = model.NewString("")
+	es.FeedbackName = model.NewString("")
+	es.FeedbackEmail = model.NewString("some-addr@test.com")
+	es.ReplyToAddress = model.NewString("some-addr@test.com")
+	es.ConnectionSecurity = model.NewString("")
+	es.SMTPUsername = model.NewString("")
+	es.EnableSMTPAuth = model.NewBool(false)
+	es.SkipServerCertificateVerification = model.NewBool(true)
+	es.SendEmailNotifications = model.NewBool(false)
+	es.SMTPServerTimeout = model.NewInt(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: model.NewString(""),
 		},
-		EmailSettings: model.EmailSettings{
-			SMTPServer:                        model.NewString(""),
-			SMTPPort:                          model.NewString(""),
-			SMTPPassword:                      model.NewString(""),
-			FeedbackName:                      model.NewString(""),
-			FeedbackEmail:                     model.NewString("some-addr@test.com"),
-			ReplyToAddress:                    model.NewString("some-addr@test.com"),
-			ConnectionSecurity:                model.NewString(""),
-			SMTPUsername:                      model.NewString(""),
-			EnableSMTPAuth:                    model.NewBool(false),
-			SkipServerCertificateVerification: model.NewBool(true),
-			SendEmailNotifications:            model.NewBool(false),
-			SMTPServerTimeout:                 model.NewInt(15),
-		},
+		EmailSettings: es,
 		FileSettings: model.FileSettings{
 			DriverName: model.NewString(model.ImageDriverLocal),
 			Directory:  model.NewString(dir),
@@ -193,10 +196,19 @@ func TestEmailTest(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("empty email settings", func(t *testing.T) {
+		config.EmailSettings = model.EmailSettings{}
+		resp, err := th.SystemAdminClient.TestEmail(&config)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_email_settings_nil.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	t.Run("As a System Administrator", func(t *testing.T) {
@@ -514,17 +526,21 @@ func TestS3TestConnection(t *testing.T) {
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+
+	fs := model.FileSettings{}
+	fs.SetDefaults(false)
+
+	fs.DriverName = model.NewString(model.ImageDriverS3)
+	fs.AmazonS3AccessKeyId = model.NewString(model.MinioAccessKey)
+	fs.AmazonS3SecretAccessKey = model.NewString(model.MinioSecretKey)
+	fs.AmazonS3Bucket = model.NewString("")
+	fs.AmazonS3Endpoint = model.NewString(s3Endpoint)
+	fs.AmazonS3Region = model.NewString("")
+	fs.AmazonS3PathPrefix = model.NewString("")
+	fs.AmazonS3SSL = model.NewBool(false)
+
 	config := model.Config{
-		FileSettings: model.FileSettings{
-			DriverName:              model.NewString(model.ImageDriverS3),
-			AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
-			AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
-			AmazonS3Bucket:          model.NewString(""),
-			AmazonS3Endpoint:        model.NewString(s3Endpoint),
-			AmazonS3Region:          model.NewString(""),
-			AmazonS3PathPrefix:      model.NewString(""),
-			AmazonS3SSL:             model.NewBool(false),
-		},
+		FileSettings: fs,
 	}
 
 	t.Run("as system user", func(t *testing.T) {
@@ -572,10 +588,19 @@ func TestS3TestConnection(t *testing.T) {
 
 	t.Run("as restricted system admin", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
 
 		resp, err := th.SystemAdminClient.TestS3Connection(&config)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("empty file settings", func(t *testing.T) {
+		config.FileSettings = model.FileSettings{}
+		resp, err := th.SystemAdminClient.TestS3Connection(&config)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+		CheckBadRequestStatus(t, resp)
 	})
 }
 
@@ -793,7 +818,7 @@ func TestPushNotificationAck(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
-		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
+		req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)
@@ -809,11 +834,11 @@ func TestCompleteOnboarding(t *testing.T) {
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 	require.NoError(t, err)
-	sigFile, err := ioutil.ReadAll(signatureFileReader)
+	sigFile, err := io.ReadAll(signatureFileReader)
 	require.NoError(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
@@ -929,5 +954,65 @@ func TestCompleteOnboarding(t *testing.T) {
 		resp, err := th.SystemAdminClient.CompleteOnboarding(req)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+	})
+}
+
+func TestGetAppliedSchemaMigrations(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("as a regular user", func(t *testing.T) {
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as a system manager role", func(t *testing.T) {
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
+		require.Nil(t, appErr)
+		th.LoginBasic2()
+
+		_, resp, err := th.Client.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp, err := c.GetAppliedSchemaMigrations()
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
+func TestCheckHasNilFields(t *testing.T) {
+	t.Run("check if the empty struct has nil fields", func(t *testing.T) {
+		var s model.FileSettings
+		res := checkHasNilFields(&s)
+		require.True(t, res)
+	})
+
+	t.Run("check if the struct has any nil fields", func(t *testing.T) {
+		s := model.FileSettings{
+			DriverName: model.NewString(model.ImageDriverLocal),
+		}
+		res := checkHasNilFields(&s)
+		require.True(t, res)
+	})
+
+	t.Run("struct has all fields set", func(t *testing.T) {
+		var s model.FileSettings
+		s.SetDefaults(false)
+		res := checkHasNilFields(&s)
+		require.False(t, res)
+	})
+
+	t.Run("embedded struct, with nil fields", func(t *testing.T) {
+		type myStr struct {
+			Name    string
+			Surname *string
+		}
+		s := myStr{}
+		res := checkHasNilFields(&s)
+		require.True(t, res)
 	})
 }

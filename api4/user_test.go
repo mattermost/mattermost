@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -408,7 +409,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 		_, _, errr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
 		require.Nil(t, errr)
 
-		_, errr = th.App.AddUserToChannel(guest, th.BasicChannel, false)
+		_, errr = th.App.AddUserToChannel(th.Context, guest, th.BasicChannel, false)
 		require.Nil(t, errr)
 
 		guestClient := th.CreateClient()
@@ -642,7 +643,7 @@ func TestGetUser(t *testing.T) {
 	user := th.CreateUser()
 	user.Props = map[string]string{"testpropkey": "testpropvalue"}
 
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		ruser, resp, err := client.GetUser(user.Id, "")
@@ -698,7 +699,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 
 	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
 
-	th.App.UpdateUser(user, false)
+	th.App.UpdateUser(th.Context, user, false)
 
 	ruser, _, err := th.Client.GetUser(user.Id, "")
 	require.NoError(t, err)
@@ -784,7 +785,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -1027,6 +1028,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestSearchUsers(t *testing.T) {
+	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1187,7 +1189,7 @@ func TestSearchUsers(t *testing.T) {
 	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
 		_, resp, err = th.SystemAdminClient.SearchUsers(search)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -1214,7 +1216,7 @@ func TestSearchUsers(t *testing.T) {
 	})
 }
 
-func findUserInList(id string, users []*model.User) bool {
+func findUserInList(id string, users []*model.User) bool { //nolint:unused
 	for _, user := range users {
 		if user.Id == id {
 			return true
@@ -1603,7 +1605,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	gc1, appErr := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
+	gc1, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	usersByChannelId, _, err := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
@@ -2102,7 +2104,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Greater(t, postCount, int64(0))
 
@@ -2115,7 +2117,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Equal(t, postCount, int64(0))
 
@@ -2124,7 +2126,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, rTeam)
 
-		rChannel, appErr := th.App.GetChannel(channel.Id)
+		rChannel, appErr := th.App.GetChannel(th.Context, channel.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, rChannel)
 	})
@@ -2183,46 +2185,6 @@ func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSoc
 }
 
 func TestUpdateUserActive(t *testing.T) {
-	t.Run("not activating more users when cloud license users at limit", func(t *testing.T) {
-		// create 5 active users
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		cloudMock := &mocks.CloudInterface{}
-		cloudMock.Mock.On(
-			"GetSubscription", mock.Anything,
-		).Return(&model.Subscription{
-			ID:         "MySubscriptionID",
-			CustomerID: "MyCustomer",
-			ProductID:  "SomeProductId",
-			AddOns:     []string{},
-			StartAt:    1000000000,
-			EndAt:      2000000000,
-			CreateAt:   1000000000,
-			Seats:      100,
-			DNS:        "some.dns.server",
-			IsPaidTier: "false",
-		}, nil)
-
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		th.App.Srv().Cloud = cloudMock
-
-		user := th.BasicUser
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.EnableUserDeactivation = true
-			*cfg.ExperimentalSettings.CloudUserLimit = 4
-		})
-
-		// deactivate 5th user, now we have 4 active users and are at limit
-		_, err := th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		require.NoError(t, err)
-
-		// try and reactivate 5th user, not allowed because it exceeds the set cloud user limit
-		resp, err := th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckErrorMessage(t, err, "Unable to activate more users as the cloud account is over capacity.")
-		CheckBadRequestStatus(t, resp)
-	})
 	t.Run("basic tests", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -2667,9 +2629,9 @@ func TestGetUsersInChannel(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		})
 		require.NoError(t, appErr)
-		_, aErr := th.App.AddUserToChannel(th.BasicUser, channel, false)
+		_, aErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
 		require.Nil(t, aErr)
-		_, aErr = th.App.AddUserToChannel(th.BasicUser2, channel, false)
+		_, aErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
 		require.Nil(t, aErr)
 		th.SystemAdminClient.DeleteChannel(channel.Id)
 
@@ -2758,7 +2720,7 @@ func TestGetUsersInGroup(t *testing.T) {
 	t.Run("Requires ldap license", func(t *testing.T) {
 		_, response, err := th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		CheckForbiddenStatus(t, response)
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -3650,14 +3612,61 @@ func TestLoginCookies(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
+		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 		_, resp, _ := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
-		val := strings.Split(resp.Header["Set-Cookie"][0], ";")
-		cloudSessionCookie := strings.Split(val[0], "=")[1]
-		domain := strings.Split(val[2], "=")[1]
+		found := false
+		cookies := resp.Header.Values("Set-Cookie")
+		for i := range cookies {
+			if strings.Contains(cookies[i], "MMCLOUDURL") {
+				found = true
+				assert.Contains(t, cookies[i], "MMCLOUDURL=testchips;", "should contain MMCLOUDURL")
+				assert.Contains(t, cookies[i], "Domain=mattermost.com;", "should contain Domain=mattermost.com")
+				break
+			}
+		}
+		assert.True(t, found, "Did not find MMCLOUDURL cookie")
+	})
 
-		assert.Equal(t, "testchips", cloudSessionCookie)
-		assert.Equal(t, "mattermost.com", domain)
+	t.Run("should return cookie with MMCLOUDURL for cloud installations when doing cws login", func(t *testing.T) {
+		token := model.NewRandomString(64)
+		os.Setenv("CWS_CLOUD_TOKEN", token)
+
+		updateConfig := func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
+		}
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		form := url.Values{}
+		form.Add("login_id", th.SystemAdminUser.Email)
+		form.Add("cws_token", token)
+
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		r, _ := th.Client.DoAPIRequestWithHeaders(
+			http.MethodPost,
+			th.Client.APIURL+"/users/login/cws",
+			form.Encode(),
+			map[string]string{
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+		)
+		defer closeBody(r)
+
+		cookies := r.Cookies()
+		found := false
+		for i := range cookies {
+			if cookies[i].Name == model.SessionCookieCloudUrl {
+				found = true
+				assert.Equal(t, "testchips", cookies[i].Value)
+			}
+		}
+		assert.True(t, found, "should have found cookie")
 	})
 
 	t.Run("should NOT return cookie with MMCLOUDURL for cloud installations without expected format of cloud URL", func(t *testing.T) {
@@ -4030,7 +4039,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			_, resp, err := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
@@ -4044,7 +4053,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		rtoken, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4109,7 +4118,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4151,7 +4160,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4211,7 +4220,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4231,7 +4240,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4256,7 +4265,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4304,7 +4313,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4347,7 +4356,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4372,7 +4381,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
@@ -4399,7 +4408,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, resp, err := th.Client.GetUserAccessTokens(0, 100)
 		require.Error(t, err)
@@ -4412,7 +4421,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		require.NoError(t, err)
@@ -4432,7 +4441,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		_, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		require.NoError(t, err)
@@ -4455,7 +4464,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -4491,7 +4500,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 			token, _, err := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 			require.NoError(t, err)
@@ -4529,7 +4538,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4573,7 +4582,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4612,7 +4621,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
@@ -4648,7 +4657,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4692,7 +4701,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4731,7 +4740,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		require.NoError(t, err)
 		assertToken(t, th, token, th.BasicUser.Id)
@@ -4775,7 +4784,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4822,7 +4831,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
@@ -4865,7 +4874,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -4888,7 +4897,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	token, _, err := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	require.NoError(t, err)
 
@@ -5259,7 +5268,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	user := th.BasicUser
-	th.App.UpdateUserRoles(user.Id, model.SystemGuestRoleId, false)
+	th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(user.Id, "")
@@ -5268,7 +5277,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		_, err = c.PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
 
-		defer require.Nil(t, th.App.DemoteUserToGuest(user))
+		defer require.Nil(t, th.App.DemoteUserToGuest(th.Context, user))
 	}, "promote a guest to user")
 
 	t.Run("websocket update user event", func(t *testing.T) {
@@ -5411,11 +5420,11 @@ func TestGetKnownUsers(t *testing.T) {
 	th.LinkUserToTeam(u3, t2)
 	th.LinkUserToTeam(u4, t3)
 
-	th.App.AddUserToChannel(u1, c1, false)
-	th.App.AddUserToChannel(u1, c2, false)
-	th.App.AddUserToChannel(u2, c1, false)
-	th.App.AddUserToChannel(u3, c2, false)
-	th.App.AddUserToChannel(u4, c3, false)
+	th.App.AddUserToChannel(th.Context, u1, c1, false)
+	th.App.AddUserToChannel(th.Context, u1, c2, false)
+	th.App.AddUserToChannel(th.Context, u2, c1, false)
+	th.App.AddUserToChannel(th.Context, u3, c2, false)
+	th.App.AddUserToChannel(th.Context, u4, c3, false)
 
 	t.Run("get know users sharing no channels", func(t *testing.T) {
 		_, _, _ = th.Client.Login(u4.Email, u4.Password)
@@ -5794,6 +5803,96 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Len(t, uss3.Threads, 0)
 	})
 
+	t.Run("totalsOnly param", func(t *testing.T) {
+		client := th.Client
+		sysadminClient := th.SystemAdminClient
+
+		var rootIds []*model.Post
+		for i := 0; i < 10; i++ {
+			rpost, resp, err := client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			rootIds = append(rootIds, rpost)
+			if i%2 == 0 {
+				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+			} else {
+				_, resp, err = sysadminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+			}
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+		}
+
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:    false,
+			TotalsOnly: true,
+			PageSize:   30,
+		})
+		require.NoError(t, err)
+		require.Len(t, uss.Threads, 0)
+		require.Len(t, rootIds, 10)
+		require.Equal(t, int64(10), uss.Total)
+		require.Equal(t, int64(5), uss.TotalUnreadThreads)
+		require.Equal(t, int64(5), uss.TotalUnreadMentions)
+	})
+
+	t.Run("threadsOnly param", func(t *testing.T) {
+		client := th.Client
+		sysadminClient := th.SystemAdminClient
+
+		var rootIds []*model.Post
+		for i := 0; i < 10; i++ {
+			rpost, resp, err := client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			rootIds = append(rootIds, rpost)
+			if i%2 == 0 {
+				_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+			} else {
+				_, resp, err = sysadminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+			}
+
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+		}
+
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:     false,
+			ThreadsOnly: true,
+			PageSize:    30,
+		})
+
+		require.NoError(t, err)
+		require.Len(t, rootIds, 10)
+		require.Len(t, uss.Threads, 10)
+		require.Equal(t, int64(0), uss.Total)
+		require.Equal(t, int64(0), uss.TotalUnreadThreads)
+		require.Equal(t, int64(0), uss.TotalUnreadMentions)
+		require.Equal(t, int64(1), uss.Threads[0].ReplyCount)
+
+		require.Equal(t, rootIds[9].Id, uss.Threads[0].PostId)
+		require.Equal(t, th.SystemAdminUser.Id, uss.Threads[0].Participants[0].Id)
+		require.Equal(t, th.BasicUser.Id, uss.Threads[1].Participants[0].Id)
+	})
+
+	t.Run("setting both threadsOnly, and totalsOnly params is not allowed", func(t *testing.T) {
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+
+		_, resp, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			ThreadsOnly: true,
+			TotalsOnly:  true,
+			PageSize:    30,
+		})
+
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusBadRequest)
+	})
+
 	t.Run("editing or reacting to reply post does not make thread unread", func(t *testing.T) {
 		client := th.Client
 
@@ -5948,7 +6047,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadReadChanged)
 	})
 
-	_, resp, err = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.CreateAt)
+	_, resp, err = th.Client.SetThreadUnreadByPostId(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, rpost.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
@@ -5962,7 +6061,7 @@ func TestThreadSocketEvents(t *testing.T) {
 						caught = true
 
 						data := ev.GetData()
-						require.EqualValues(t, rpost.CreateAt, data["timestamp"])
+						require.EqualValues(t, rpost.CreateAt-1, data["timestamp"])
 						require.EqualValues(t, float64(0), data["previous_unread_replies"])
 						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 						require.EqualValues(t, float64(1), data["unread_replies"])
@@ -6066,6 +6165,50 @@ func TestThreadSocketEvents(t *testing.T) {
 			require.Truef(t, caught, "User should have received %s event", model.WebsocketEventThreadUpdated)
 		}
 	})
+
+	t.Run("Listen for thread updated event after create post when not previously following the thread", func(t *testing.T) {
+		rpost2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "root post"}
+
+		var appErr *model.AppError
+		rpost2, appErr = th.App.CreatePostAsUser(th.Context, rpost2, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		reply1 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 1", RootId: rpost2.Id}
+		reply2 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "reply 2", RootId: rpost2.Id}
+		reply3 := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id, Message: "mention @" + th.BasicUser.Username, RootId: rpost2.Id}
+
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply1, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply2, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.CreatePostAsUser(th.Context, reply3, th.Context.Session().Id, false)
+		require.Nil(t, appErr)
+
+		count := 0
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventThreadUpdated {
+						count++
+						data := ev.GetData()
+						var thread model.ThreadResponse
+						jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
+						require.NoError(t, jsonErr)
+
+						require.Equal(t, int64(0), int64(data["previous_unread_replies"].(float64)))
+						require.Equal(t, int64(0), int64(data["previous_unread_mentions"].(float64)))
+						require.Equal(t, int64(3), thread.UnreadReplies)
+						require.Equal(t, int64(1), thread.UnreadMentions)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Equalf(t, 1, count, "User should have received 1 %s event", model.WebsocketEventThreadUpdated)
+	})
 }
 
 func TestFollowThreads(t *testing.T) {
@@ -6120,7 +6263,7 @@ func TestFollowThreads(t *testing.T) {
 
 	t.Run("No permission to channel", func(t *testing.T) {
 		// Add user1 to private channel
-		_, appErr := th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel2, false)
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel2, false)
 		require.Nil(t, appErr)
 		defer th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", th.BasicPrivateChannel2)
 
@@ -6423,7 +6566,7 @@ func TestReadThreads(t *testing.T) {
 		require.Greater(t, uss2.Threads[0].LastViewedAt, uss.Threads[0].LastViewedAt)
 	})
 
-	t.Run("1 thread", func(t *testing.T) {
+	t.Run("1 thread by timestamp", func(t *testing.T) {
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
@@ -6450,6 +6593,42 @@ func TestReadThreads(t *testing.T) {
 		uss3, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 2, nil)
 		require.Equal(t, uss3.Threads[0].LastViewedAt, timestamp)
 	})
+
+	t.Run("1 thread by post id", func(t *testing.T) {
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
+		reply1, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
+		reply2, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
+		reply3, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 1, nil)
+
+		_, resp, err := th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, reply3.CreateAt+1)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
+
+		_, resp, err = th.Client.SetThreadUnreadByPostId(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, reply1.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 1, nil)
+
+		_, resp, err = th.Client.SetThreadUnreadByPostId(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, reply2.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 1, nil)
+
+		_, resp, err = th.Client.SetThreadUnreadByPostId(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, reply3.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 1, nil)
+	})
 }
 
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
@@ -6472,8 +6651,8 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	require.Nil(t, appErr)
 
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg @" + th.BasicUser2.Username})
-	reply, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply1", RootId: rpost.Id})
-	postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
+	reply1, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply1 @" + th.BasicUser2.Username, RootId: rpost.Id})
+	reply2, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
 
 	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
 
@@ -6485,7 +6664,12 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	u, _, _ = th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 	require.EqualValues(t, 1, u.TotalUnreadMentions)
 
-	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, reply.CreateAt)
+	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, reply1.CreateAt)
+
+	u, _, _ = th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.EqualValues(t, 1, u.TotalUnreadMentions)
+
+	th.SystemAdminClient.UpdateThreadReadForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, reply2.CreateAt)
 
 	u, _, _ = th.SystemAdminClient.GetUserThreads(th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 	require.EqualValues(t, 0, u.TotalUnreadMentions)

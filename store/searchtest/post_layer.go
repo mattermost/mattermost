@@ -1649,7 +1649,7 @@ func testSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) {
 func testSearchBotAccountsPosts(t *testing.T, th *SearchTestHelper) {
 	bot, err := th.createBot("testbot", "Test Bot", th.User.Id)
 	require.NoError(t, err)
-	defer th.deleteBot(bot.UserId)
+	defer th.deleteBotUser(bot.UserId)
 	err = th.addUserToTeams(model.UserFromBot(bot), []string{th.Team.Id})
 	require.NoError(t, err)
 	p1, err := th.createPost(bot.UserId, th.ChannelBasic.Id, "bot test message", "", model.PostTypeDefault, 0, false)

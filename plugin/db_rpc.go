@@ -367,9 +367,7 @@ func (db *dbRPCClient) RowsNext(rowsID string, dest []driver.Value) error {
 		log.Printf("error during Plugin.RowsNext: %v", err)
 	}
 	ret.A = decodableError(ret.A)
-	for i, v := range ret.B {
-		dest[i] = v
-	}
+	copy(dest, ret.B)
 	return ret.A
 }
 

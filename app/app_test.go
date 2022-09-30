@@ -56,6 +56,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("License").Return(&mockLicenseStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 

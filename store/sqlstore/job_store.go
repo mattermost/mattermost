@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -34,10 +34,13 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed marshalling job data")
 	}
+	if jss.IsBinaryParamEnabled() {
+		jsonData = AppendBinaryFlag(jsonData)
+	}
 	query := jss.getQueryBuilder().
 		Insert("Jobs").
 		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
-		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, string(jsonData))
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -56,11 +59,14 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 	if jsonErr != nil {
 		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
 	}
+	if jss.IsBinaryParamEnabled() {
+		dataJSON = AppendBinaryFlag(dataJSON)
+	}
 	query, args, err := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", model.GetMillis()).
 		Set("Status", job.Status).
-		Set("Data", string(dataJSON)).
+		Set("Data", dataJSON).
 		Set("Progress", job.Progress).
 		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
 	if err != nil {

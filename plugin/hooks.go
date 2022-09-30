@@ -42,6 +42,7 @@ const (
 	RunDataRetentionID              = 24
 	OnInstallID                     = 25
 	OnSendDailyTelemetryID          = 26
+	OnCloudLimitsUpdatedID          = 27
 	TotalHooksID                    = iota
 )
 
@@ -260,8 +261,13 @@ type Hooks interface {
 	// Minimum server version: 6.5
 	OnInstall(c *Context, event model.OnInstallEvent) error
 
-	// OnSendDailyTelemetry is invoked when the server send the daily telemtry data.
+	// OnSendDailyTelemetry is invoked when the server send the daily telemetry data.
 	//
 	// Minimum server version: 6.5
 	OnSendDailyTelemetry()
+
+	// OnCloudLimitsUpdated is invoked product limits change, for example when plan tiers change
+	//
+	// Minimum server version: 7.0
+	OnCloudLimitsUpdated(limits *model.ProductLimits)
 }
