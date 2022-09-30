@@ -82,14 +82,20 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	titleTemplate := "<title>%s</title>"
+	strToBeChanged := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
+	strToBeInserted := strToBeChanged
 	siteName := c.App.Srv().Config().TeamSettings.SiteName
+	ogDescriptionMetaTag := getOGDescriptionMetaTag(c)
 	if siteName != nil && model.TeamSettingsDefaultSiteName != *siteName {
-		titleTemplate := "<title>%s</title>"
-		siteNameTitle := fmt.Sprintf(titleTemplate, *siteName)
-		defaultSiteName := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
-		contents = bytes.ReplaceAll(contents, []byte(defaultSiteName), []byte(siteNameTitle))
+		strToBeInserted = fmt.Sprintf(titleTemplate, *siteName)
 	}
-
+	if ogDescriptionMetaTag != "" {
+		strToBeInserted = fmt.Sprintf("%s%s", strToBeInserted, ogDescriptionMetaTag)
+	}
+	if strToBeChanged != strToBeInserted {
+		contents = bytes.ReplaceAll(contents, []byte(strToBeChanged), []byte(strToBeInserted))
+	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(contents)
 }
@@ -138,4 +144,19 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 
 	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
+}
+
+func getOGDescriptionMetaTag(c *Context) string {
+	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
+	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
+	if customSiteDescription != nil && *customSiteDescription != siteDescription {
+		siteDescription = *customSiteDescription
+	}
+
+	if siteDescription == "" {
+		return ""
+	}
+
+	ogDescriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
+	return fmt.Sprintf(ogDescriptionTemplate, siteDescription)
 }
