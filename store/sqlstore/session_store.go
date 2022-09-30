@@ -140,7 +140,6 @@ func (me SqlSessionStore) GetSessionsForOAuthApp(appID string) ([]*model.Session
 		return nil, errors.Wrapf(err, "failed to create query for Session with appID=%s", appID)
 	}
 
-	fmt.Printf("query: %s", query)
 	if err = me.GetReplicaX().Select(&sessions, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with appID=%s", appID)
 	}
