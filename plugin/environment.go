@@ -8,6 +8,7 @@ import (
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -472,6 +473,15 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}
 
+	newContents, changed := patchReactDOM(sourceBundleFileContents)
+	if changed {
+		sourceBundleFileContents = newContents
+		err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
+		if err != nil {
+			return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
+		}
+	}
+
 	hash := fnv.New64a()
 	if _, err = hash.Write(sourceBundleFileContents); err != nil {
 		return nil, errors.Wrapf(err, "unable to generate hash for webapp bundle: %v", id)
@@ -486,6 +496,50 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	}
 
 	return manifest, nil
+}
+
+func patchReactDOM(b []byte) ([]byte, bool) {
+	s := string(b)
+	nameIndex := strings.Index(s, "react-dom")
+
+	if nameIndex == -1 {
+		return b, false
+	}
+
+	beginning := strings.LastIndex(s[:nameIndex], "{")
+	var end int
+
+	argDefBeginning := strings.LastIndex(s[:beginning], "function") + 9
+	argDefEnd := strings.LastIndex(s[:beginning], ")") - 1
+	argsNames := strings.Split(s[argDefBeginning:argDefEnd], ",")
+	if len(argsNames) != 3 {
+		return b, false
+	}
+
+	exportsArgName := strings.TrimSpace(argsNames[1])
+
+	numOpen := 0
+	for i, c := range s[beginning:] {
+		if end != 0 {
+			break
+		}
+		switch c {
+		case '}':
+			numOpen--
+
+			if numOpen == 0 {
+				end = beginning + i
+			}
+		case '{':
+			numOpen++
+		}
+	}
+
+	first := s[:end]
+	second := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
+	third := s[end:]
+	result := first + second + third
+	return []byte(result), true
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
