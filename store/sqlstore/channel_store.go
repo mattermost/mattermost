@@ -518,9 +518,9 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 	if s.DriverName() == model.DatabaseDriverMysql {
 		_, err = transaction.NamedExec(`
 			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose, CreateAt)
 			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
+			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose, :createat)
 		`, vals)
 		if err != nil && IsUniqueConstraintError(err, []string{"PRIMARY"}) {
 			_, err = transaction.NamedExec(`UPDATE PublicChannels
@@ -529,22 +529,24 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 			    DisplayName = :displayname,
 			    Name = :name,
 			    Header = :header,
-			    Purpose = :purpose
+			    Purpose = :purpose,
+				CreateAt = :createat
 			    WHERE Id=:id`, vals)
 		}
 	} else {
 		_, err = transaction.NamedExec(`
 			INSERT INTO
-			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose)
+			    PublicChannels(Id, DeleteAt, TeamId, DisplayName, Name, Header, Purpose, CreateAt)
 			VALUES
-			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose)
+			    (:id, :deleteat, :teamid, :displayname, :name, :header, :purpose, :createat)
 			ON CONFLICT (id) DO UPDATE
 			SET DeleteAt = :deleteat,
-			    TeamId = :teamid,
-			    DisplayName = :displayname,
-			    Name = :name,
-			    Header = :header,
-			    Purpose = :purpose;
+			TeamId = :teamid,
+			DisplayName = :displayname,
+			Name = :name,
+			Header = :header,
+			Purpose = :purpose,
+			CreateAt = :createat;
 		`, vals)
 	}
 	if err != nil {
@@ -4346,11 +4348,10 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			FROM
 				PublicChannels
 				LEFT JOIN Posts on Posts.ChannelId = PublicChannels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
-				LEFT JOIN Channels on Channels.Id = PublicChannels.Id
 			WHERE
 				PublicChannels.TeamId = ?
 				AND PublicChannels.DeleteAt = 0
-				AND Channels.CreateAt < ?
+				AND PublicChannels.CreateAt < ?
 			GROUP BY
 				PublicChannels.Id,
 				PublicChannels.DisplayName,
