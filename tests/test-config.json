@@ -385,7 +385,6 @@
         }
     },
     "DisplaySettings": {
-        "CustomUrlSchemes": [],
-        "ExperimentalTimezone": false
+        "CustomUrlSchemes": []
     }
 }

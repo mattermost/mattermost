@@ -80,9 +80,6 @@ func init() {
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: model.NewString("http://custom.com"),
 		},
-		DisplaySettings: model.DisplaySettings{
-			ExperimentalTimezone: model.NewBool(false),
-		},
 	}
 }
 

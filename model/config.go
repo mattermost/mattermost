@@ -2936,18 +2936,13 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_customization"`
-	ExperimentalTimezone *bool    `access:"experimental_features"`
+	CustomURLSchemes []string `access:"site_customization"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
 	if s.CustomURLSchemes == nil {
 		customURLSchemes := []string{}
 		s.CustomURLSchemes = customURLSchemes
-	}
-
-	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
