@@ -8612,10 +8612,6 @@
     "translation": "Invalid message."
   },
   {
-    "id": "model.draft.is_valid.post_id.app_error",
-    "translation": "Invalid post id."
-  },
-  {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Invalid props."
   },
