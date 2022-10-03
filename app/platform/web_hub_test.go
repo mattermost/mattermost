@@ -141,7 +141,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -229,6 +229,7 @@ func TestHubConnIndex(t *testing.T) {
 		UserId:   model.NewId(),
 	}
 	wc1.SetConnectionID(model.NewId())
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
@@ -237,18 +238,23 @@ func TestHubConnIndex(t *testing.T) {
 		UserId:   model.NewId(),
 	}
 	wc2.SetConnectionID(model.NewId())
+	wc2.SetSession(&model.Session{})
+
 	wc3 := &WebConn{
 		Platform: th.Service,
 		Suite:    th.Suite,
 		UserId:   wc2.UserId,
 	}
 	wc3.SetConnectionID(model.NewId())
+	wc3.SetSession(&model.Session{})
+
 	wc4 := &WebConn{
 		Platform: th.Service,
 		Suite:    th.Suite,
 		UserId:   wc2.UserId,
 	}
 	wc4.SetConnectionID(model.NewId())
+	wc4.SetSession(&model.Session{})
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)
@@ -313,6 +319,7 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 		UserId:   model.NewId(),
 	}
 	wc1.SetConnectionID(wc1ID)
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2ID := model.NewId()
@@ -322,6 +329,7 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 		UserId:   model.NewId(),
 	}
 	wc2.SetConnectionID(wc2ID)
+	wc2.SetSession(&model.Session{})
 
 	wc3ID := model.NewId()
 	wc3 := &WebConn{
@@ -330,6 +338,7 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 		UserId:   wc2.UserId,
 	}
 	wc3.SetConnectionID(wc3ID)
+	wc3.SetSession(&model.Session{})
 
 	t.Run("no connections", func(t *testing.T) {
 		assert.False(t, connIndex.Has(wc1))
@@ -359,26 +368,36 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 }
 
 func TestHubConnIndexInactive(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
 	connIndex := newHubConnectionIndex(2 * time.Second)
 
 	// User1
 	wc1 := &WebConn{
-		UserId: model.NewId(),
-		active: true,
+		Platform: th.Service,
+		UserId:   model.NewId(),
+		active:   true,
 	}
 	wc1.SetConnectionID("conn1")
+	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
-		UserId: model.NewId(),
-		active: true,
+		Platform: th.Service,
+		UserId:   model.NewId(),
+		active:   true,
 	}
 	wc2.SetConnectionID("conn2")
+	wc2.SetSession(&model.Session{})
+
 	wc3 := &WebConn{
-		UserId: wc2.UserId,
-		active: false,
+		Platform: th.Service,
+		UserId:   wc2.UserId,
+		active:   false,
 	}
 	wc3.SetConnectionID("conn3")
+	wc3.SetSession(&model.Session{})
 
 	connIndex.Add(wc1)
 	connIndex.Add(wc2)

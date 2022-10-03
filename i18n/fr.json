@@ -7928,10 +7928,6 @@
     "translation": "La raison suivante a été fournie :"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Résoudre maintenant"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
   },

@@ -87,6 +87,7 @@ type PlatformService struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+	goroutineBuffered   chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 	sharedChannelService      SharedChannelServiceIFace
@@ -109,6 +110,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
 		goroutineExitSignal: make(chan struct{}, 1),
+		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},

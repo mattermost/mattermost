@@ -27,3 +27,21 @@ func (ps *PlatformService) WaitForGoroutines() {
 		<-ps.goroutineExitSignal
 	}
 }
+
+func (ps *PlatformService) GoBuffered(f func()) {
+	ps.goroutineBuffered <- struct{}{}
+
+	atomic.AddInt32(&ps.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&ps.goroutineCount, -1)
+		select {
+		case ps.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+
+		<-ps.goroutineBuffered
+	}()
+}

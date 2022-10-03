@@ -75,6 +75,9 @@ type AppIface interface {
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
+	// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
+	// Use GetLastAccessibleFileTime() to access the result.
+	ComputeLastAccessibleFileTime() error
 	// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 	// Use GetLastAccessiblePostTime() to access the result.
 	ComputeLastAccessiblePostTime() error
@@ -175,6 +178,8 @@ type AppIface interface {
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	// If filter is not nil and returns false for a struct field, that field will be omitted.
 	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
+	// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
+	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
 	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
@@ -185,6 +190,8 @@ type AppIface interface {
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
+	// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+	GetLastAccessibleFileTime() (int64, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessiblePostTime() (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
@@ -627,7 +634,6 @@ type AppIface interface {
 	GetFile(fileID string) ([]byte, *model.AppError)
 	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
 	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
