@@ -5,9 +5,8 @@ CREATE TABLE IF NOT EXISTS Drafts (
     UserId varchar(26) NOT NULL,
     ChannelId varchar(26) NOT NULL,
     RootId varchar(26) DEFAULT '',
-    PostId varchar(26) DEFAULT '',
     Message text,
     Props text,
     FileIds text,
-    PRIMARY KEY (UserId, ChannelId, RootId, PostId)
+    PRIMARY KEY (UserId, ChannelId, RootId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

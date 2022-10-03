@@ -3075,7 +3075,7 @@ func (a *OpenTracingAppLayer) DeleteCommand(commandID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteDraft(userID string, channelID string, rootID string, postID string, connectionID string) (*model.Draft, *model.AppError) {
+func (a *OpenTracingAppLayer) DeleteDraft(userID string, channelID string, rootID string, connectionID string) (*model.Draft, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteDraft")
 
@@ -3087,7 +3087,7 @@ func (a *OpenTracingAppLayer) DeleteDraft(userID string, channelID string, rootI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteDraft(userID, channelID, rootID, postID, connectionID)
+	resultVar0, resultVar1 := a.app.DeleteDraft(userID, channelID, rootID, connectionID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5926,7 +5926,7 @@ func (a *OpenTracingAppLayer) GetDeletedChannels(c request.CTX, teamID string, o
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID string, postID string) (*model.Draft, *model.AppError) {
+func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID string) (*model.Draft, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDraft")
 
@@ -5938,7 +5938,7 @@ func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetDraft(userID, channelID, rootID, postID)
+	resultVar0, resultVar1 := a.app.GetDraft(userID, channelID, rootID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

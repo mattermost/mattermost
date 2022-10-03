@@ -16,7 +16,6 @@ type Draft struct {
 	UserId    string `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	RootId    string `json:"root_id"`
-	PostId    string `json:"post_id"`
 
 	Message string `json:"message"`
 
@@ -44,10 +43,6 @@ func (o *Draft) IsValid(maxDraftSize int) *AppError {
 
 	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(IsValidId(o.PostId) || o.PostId == "") {
-		return NewAppError("Drafts.IsValid", "model.draft.is_valid.post_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if utf8.RuneCountInString(o.Message) > maxDraftSize {

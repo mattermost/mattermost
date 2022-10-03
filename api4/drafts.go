@@ -92,7 +92,6 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	rootID := ""
-	postID := ""
 
 	connectionID := r.Header.Get(model.ConnectionId)
 
@@ -100,20 +99,16 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		rootID = c.Params.ThreadId
 	}
 
-	if c.Params.PostId != "" {
-		postID = c.Params.PostId
-	}
-
 	userID := c.AppContext.Session().UserId
 	channelID := c.Params.ChannelId
 
-	draft, err := c.App.GetDraft(userID, channelID, rootID, postID)
+	draft, err := c.App.GetDraft(userID, channelID, rootID)
 	if err != nil || c.AppContext.Session().UserId != draft.UserId {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
 	}
 
-	if _, err := c.App.DeleteDraft(userID, channelID, rootID, postID, connectionID); err != nil {
+	if _, err := c.App.DeleteDraft(userID, channelID, rootID, connectionID); err != nil {
 		c.Err = err
 		return
 	}

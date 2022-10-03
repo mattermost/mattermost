@@ -5,9 +5,8 @@ CREATE TABLE IF NOT EXISTS drafts (
     userid VARCHAR(26),
     channelid VARCHAR(26),
     rootid VARCHAR(26) DEFAULT '',
-    postid VARCHAR(26) DEFAULT '',
     message VARCHAR(65535),
     props VARCHAR(8000),
     fileids VARCHAR(300),
-    PRIMARY KEY (userid, channelid, rootid, postid)
+    PRIMARY KEY (userid, channelid, rootid)
 );

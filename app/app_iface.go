@@ -525,7 +525,7 @@ type AppIface interface {
 	DeleteBrandImage() *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
-	DeleteDraft(userID, channelID, rootID, postID string, connectionID string) (*model.Draft, *model.AppError)
+	DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
 	DeleteEmoji(emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
@@ -636,7 +636,7 @@ type AppIface interface {
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
-	GetDraft(userID, channelID, rootID, postID string) (*model.Draft, *model.AppError)
+	GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError)
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError)
 	GetEmoji(emojiId string) (*model.Emoji, *model.AppError)
 	GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError)
