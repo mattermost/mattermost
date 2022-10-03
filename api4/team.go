@@ -1462,12 +1462,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if !*c.App.Config().GuestAccountsSettings.Enable {
-		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -1483,6 +1483,29 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest) {
 		c.SetPermissionError(model.PermissionInviteGuest)
 		return
+	}
+
+	// restrict guest invites depending on the subscription type (see MM-47228)
+	isCloud := c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud
+	if isCloud {
+		subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getSubscription", "api.team.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		product, aErr := c.App.GetCurrentProduct(subscription.ProductID)
+		if aErr != nil {
+			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getCurrentProduct", "api.team.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		isPaidSubscription := product.SKU == model.LicenseShortSkuEnterprise || product.SKU == model.LicenseShortSkuProfessional
+
+		if subscription.IsFreeTrial == "false" && !isPaidSubscription {
+			c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	var guestsInvite model.GuestsInvite

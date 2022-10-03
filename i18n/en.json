@@ -2976,11 +2976,11 @@
     "translation": "Error invalidating email invites."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
+    "id": "api.team.invite_guests_to_channels.license.error",
     "translation": "Your license does not support guest accounts"
   },
   {
