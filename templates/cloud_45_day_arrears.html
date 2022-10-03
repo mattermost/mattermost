@@ -142,7 +142,6 @@
     .button-cloud a {
       background-color: #1C58D9 !important;
       font-weight: 400 !important;
-      font-family: Open Sans, sans-serif !important;
       font-size: 16px !important;
       line-height: 18px !important;
       color: #FFFFFF !important;
@@ -340,6 +339,13 @@
         padding: 0px 0px 0px 12px !important;
       }
     }
+
+    @media only screen and (min-width:480px) {
+      .mj-column-per-50 {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 
@@ -418,7 +424,7 @@
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
                                       <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;border-top:16px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                        <a href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal" style="display: inline-block; background: #FFFFFF; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-family: Open Sans, sans-serif; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px; font-weight: 400;" target="_blank">
+                                        <a href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px; font-weight: 400;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>
