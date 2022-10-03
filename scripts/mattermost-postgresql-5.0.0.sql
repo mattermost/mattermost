@@ -246,7 +246,8 @@ CREATE TABLE public.incomingwebhooks (
     description character varying(500),
     username character varying(255),
     iconurl character varying(1024),
-    channellocked boolean DEFAULT false
+    channellocked boolean DEFAULT false,
+    enabled boolean DEFAULT true
 );
 
 
@@ -713,7 +714,7 @@ COPY public.fileinfo (id, creatorid, postid, createat, updateat, deleteat, path,
 -- Data for Name: incomingwebhooks; Type: TABLE DATA; Schema: public; Owner: mmuser
 --
 
-COPY public.incomingwebhooks (id, createat, updateat, deleteat, userid, channelid, teamid, displayname, description, username, iconurl, channellocked) FROM stdin;
+COPY public.incomingwebhooks (id, createat, updateat, deleteat, userid, channelid, teamid, displayname, description, username, iconurl, channellocked, enabled) FROM stdin;
 \.
 
 

@@ -311,7 +311,8 @@ CREATE TABLE public.incomingwebhooks (
     description character varying(500),
     username character varying(255),
     iconurl character varying(1024),
-    channellocked boolean
+    channellocked boolean,
+    enabled boolean
 );
 
 
