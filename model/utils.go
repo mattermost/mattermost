@@ -190,6 +190,10 @@ func (StringInterface) ImplementsGraphQLType(name string) bool {
 	return name == "StringInterface"
 }
 
+func (si StringInterface) MarshalJSON() ([]byte, error) {
+	return json.Marshal((map[string]any)(si))
+}
+
 func (si *StringInterface) UnmarshalGraphQL(input any) error {
 	json, ok := input.(map[string]any)
 	if !ok {

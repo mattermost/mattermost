@@ -597,7 +597,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 		a.ch.srv.Log().Warn("Error encoding request", mlog.Err(err))
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 

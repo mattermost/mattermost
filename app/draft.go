@@ -30,7 +30,7 @@ func (a *App) GetDraft(userID, channelID, rootID, postID string) (*model.Draft, 
 	return draft, nil
 }
 
-func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft, *model.AppError) {
+func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	dt, dErr := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, draft.PostId)
 	var notFoundErr *store.ErrNotFound
 	if dErr != nil && !errors.As(dErr, &notFoundErr) {
@@ -39,7 +39,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 
 	var err *model.AppError
 	if dt == nil {
-		dt, err = a.CreateDraft(c, draft)
+		dt, err = a.CreateDraft(c, draft, connectionID)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			var appErr *model.AppError
@@ -53,7 +53,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 			}
 		}
 	} else {
-		dt, err = a.UpdateDraft(c, draft)
+		dt, err = a.UpdateDraft(c, draft, connectionID)
 		if err != nil {
 			var appErr *model.AppError
 			switch {
@@ -68,7 +68,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 	return dt, nil
 }
 
-func (a *App) CreateDraft(c *request.Context, draft *model.Draft) (*model.Draft, *model.AppError) {
+func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
@@ -106,7 +106,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
@@ -117,7 +117,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 	return dt, nil
 }
 
-func (a *App) UpdateDraft(c *request.Context, draft *model.Draft) (*model.Draft, *model.AppError) {
+func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
@@ -152,7 +152,7 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft) (*model.Draft,
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", draft.ChannelId, draft.UserId, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
@@ -173,7 +173,7 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 	return drafts, nil
 }
 
-func (a *App) DeleteDraft(userID, channelID, rootID, postID string) (*model.Draft, *model.AppError) {
+func (a *App) DeleteDraft(userID, channelID, rootID, postID string, connectionID string) (*model.Draft, *model.AppError) {
 	draft, nErr := a.Srv().Store.Draft().Get(userID, channelID, rootID, postID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
@@ -194,7 +194,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID, postID string) (*model.Draf
 		mlog.Warn("Failed to encode draft to JSON")
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
 

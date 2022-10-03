@@ -87,12 +87,18 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 	// This approach becomes effectively similar to a dataloader if the displayName computation
 	// were to be done at the field level per channel.
 
-	// Get DM/GM channelIDs
+	// Get DM/GM channelIDs and set empty maps as well.
 	var channelIDs []string
 	for _, ch := range channels {
 		if ch.IsGroupOrDirect() {
 			channelIDs = append(channelIDs, ch.Id)
 		}
+
+		// This is needed to avoid sending null, which
+		// does not match with the schema since props is not nullable.
+		// And making it nullable would mean taking pointer of a map,
+		// which is not very idiomatic.
+		ch.MakeNonNil()
 	}
 
 	var nameFormat string

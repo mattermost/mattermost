@@ -208,6 +208,7 @@ func TestEmailTest(t *testing.T) {
 
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	t.Run("As a System Administrator", func(t *testing.T) {

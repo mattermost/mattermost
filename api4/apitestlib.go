@@ -440,13 +440,9 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.SystemManagerUser.Password = "Pa$$word11"
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(2)
 	go func() {
 		th.LoginSystemAdmin()
-		wg.Done()
-	}()
-	go func() {
-		th.LoginSystemManager()
 		wg.Done()
 	}()
 	go func() {
@@ -525,10 +521,6 @@ func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
-}
-
-func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemManagerClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {

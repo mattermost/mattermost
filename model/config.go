@@ -361,6 +361,7 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
+	EnableAPITriggerAdminNotifications                *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
@@ -370,6 +371,7 @@ type ServiceSettings struct {
 	EnableSVGs                                        *bool `access:"site_posts"`
 	EnableLatex                                       *bool `access:"site_posts"`
 	EnableInlineLatex                                 *bool `access:"site_posts"`
+	PostPriority                                      *bool `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string // telemetry: none
@@ -754,6 +756,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAPITeamDeletion = NewBool(false)
 	}
 
+	if s.EnableAPITriggerAdminNotifications == nil {
+		s.EnableAPITriggerAdminNotifications = NewBool(false)
+	}
+
 	if s.EnableAPIUserDeletion == nil {
 		s.EnableAPIUserDeletion = NewBool(false)
 	}
@@ -836,6 +842,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableCustomGroups == nil {
 		s.EnableCustomGroups = NewBool(true)
+	}
+
+	if s.PostPriority == nil {
+		s.PostPriority = NewBool(false)
 	}
 }
 
@@ -1949,6 +1959,7 @@ type TeamSettings struct {
 	CustomBrandText           *string `access:"site_customization"`
 	CustomDescriptionText     *string `access:"site_customization"`
 	RestrictDirectMessage     *string `access:"site_users_and_teams"`
+	EnableLastActiveTime      *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -1986,6 +1997,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomUserStatuses == nil {
 		s.EnableCustomUserStatuses = NewBool(true)
+	}
+
+	if s.EnableLastActiveTime == nil {
+		s.EnableLastActiveTime = NewBool(true)
 	}
 
 	if s.EnableCustomBrand == nil {

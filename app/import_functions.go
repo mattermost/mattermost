@@ -15,6 +15,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
@@ -30,8 +31,8 @@ import (
 // still enforced.
 //
 
-func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError {
-	if err := validateSchemeImportData(data); err != nil {
+func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.AppError {
+	if err := imports.ValidateSchemeImportData(data); err != nil {
 		return err
 	}
 
@@ -77,7 +78,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		}
 
 		if data.DefaultTeamGuestRole == nil {
-			data.DefaultTeamGuestRole = &RoleImportData{
+			data.DefaultTeamGuestRole = &imports.RoleImportData{
 				DisplayName: model.NewString("Team Guest Role for Scheme"),
 			}
 		}
@@ -99,7 +100,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		}
 
 		if data.DefaultChannelGuestRole == nil {
-			data.DefaultChannelGuestRole = &RoleImportData{
+			data.DefaultChannelGuestRole = &imports.RoleImportData{
 				DisplayName: model.NewString("Channel Guest Role for Scheme"),
 			}
 		}
@@ -112,9 +113,9 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 	return nil
 }
 
-func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
 	if !isSchemeRole {
-		if err := validateRoleImportData(data); err != nil {
+		if err := imports.ValidateRoleImportData(data); err != nil {
 			return err
 		}
 	}
@@ -158,8 +159,8 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	return err
 }
 
-func (a *App) importTeam(c request.CTX, data *TeamImportData, dryRun bool) *model.AppError {
-	if err := validateTeamImportData(data); err != nil {
+func (a *App) importTeam(c request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
+	if err := imports.ValidateTeamImportData(data); err != nil {
 		return err
 	}
 
@@ -226,8 +227,8 @@ func (a *App) importTeam(c request.CTX, data *TeamImportData, dryRun bool) *mode
 	return nil
 }
 
-func (a *App) importChannel(c request.CTX, data *ChannelImportData, dryRun bool) *model.AppError {
-	if err := validateChannelImportData(data); err != nil {
+func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryRun bool) *model.AppError {
+	if err := imports.ValidateChannelImportData(data); err != nil {
 		return err
 	}
 
@@ -291,8 +292,8 @@ func (a *App) importChannel(c request.CTX, data *ChannelImportData, dryRun bool)
 	return nil
 }
 
-func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *model.AppError {
-	if err := validateUserImportData(data); err != nil {
+func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
+	if err := imports.ValidateUserImportData(data); err != nil {
 		return err
 	}
 
@@ -730,7 +731,7 @@ func (a *App) importUser(c request.CTX, data *UserImportData, dryRun bool) *mode
 	return a.importUserTeams(c, savedUser, data.Teams)
 }
 
-func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamImportData) *model.AppError {
+func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -745,7 +746,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamI
 	}
 
 	teamThemePreferencesByID := map[string]model.Preferences{}
-	channels := map[string][]UserChannelImportData{}
+	channels := map[string][]imports.UserChannelImportData{}
 	teamsByID := map[string]*model.Team{}
 	teamMemberByTeamID := map[string]*model.TeamMember{}
 	newTeamMembers := []*model.TeamMember{}
@@ -820,7 +821,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamI
 			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
 		if !user.IsGuest() {
-			channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
+			channels[team.Id] = append(channels[team.Id], imports.UserChannelImportData{Name: model.NewString(model.DefaultChannelName)})
 		}
 
 		teamsByID[team.Id] = team
@@ -890,7 +891,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]UserTeamI
 	return nil
 }
 
-func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Team, data *[]imports.UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1060,8 +1061,8 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 	return nil
 }
 
-func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.AppError {
-	if err := validateReactionImportData(data, post.CreateAt); err != nil {
+func (a *App) importReaction(data *imports.ReactionImportData, post *model.Post) *model.AppError {
+	if err := imports.ValidateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
 
@@ -1090,12 +1091,12 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.
 	return nil
 }
 
-func (a *App) importReplies(c request.CTX, data []ReplyImportData, post *model.Post, teamID string) *model.AppError {
+func (a *App) importReplies(c request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
 		replyData := replyData
-		if err = validateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
+		if err = imports.ValidateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
 		usernames = append(usernames, *replyData.User)
@@ -1192,7 +1193,7 @@ func (a *App) importReplies(c request.CTX, data []ReplyImportData, post *model.P
 	return nil
 }
 
-func (a *App) importAttachment(c request.CTX, data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
 	var (
 		name string
 		file io.Reader
@@ -1224,7 +1225,7 @@ func (a *App) importAttachment(c request.CTX, data *AttachmentImportData, post *
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.GetFileInfosForPost(post.Id, true, false)
+		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
@@ -1234,7 +1235,7 @@ func (a *App) importAttachment(c request.CTX, data *AttachmentImportData, post *
 			}
 			// check md5
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.GetFile(oldFile.Id)
+			oldFileData, err := a.getFileIgnoreCloudLimit(oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}
@@ -1264,9 +1265,9 @@ func (a *App) importAttachment(c request.CTX, data *AttachmentImportData, post *
 
 type postAndData struct {
 	post           *model.Post
-	postData       *PostImportData
-	directPostData *DirectPostImportData
-	replyData      *ReplyImportData
+	postData       *imports.PostImportData
+	directPostData *imports.DirectPostImportData
+	replyData      *imports.ReplyImportData
 	team           *model.Team
 	lineNumber     int
 }
@@ -1316,7 +1317,7 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 }
 
 // getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
-func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
 	teamChannels := make(map[string]map[string]*model.Channel)
 	for _, postData := range data {
 		teamName := *postData.Team
@@ -1343,13 +1344,13 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(c request.CTX, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
 
 	for _, line := range lines {
-		if err := validatePostImportData(line.Post, a.MaxPostSize()); err != nil {
+		if err := imports.ValidatePostImportData(line.Post, a.MaxPostSize()); err != nil {
 			return line.LineNumber, err
 		}
 	}
@@ -1361,7 +1362,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []LineImportWorkerDat
 
 	usernames := []string{}
 	teamNames := make([]string, len(lines))
-	postsData := make([]*PostImportData, len(lines))
+	postsData := make([]*imports.PostImportData, len(lines))
 	for i, line := range lines {
 		usernames = append(usernames, *line.Post.User)
 		if line.Post.FlaggedBy != nil {
@@ -1532,7 +1533,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []LineImportWorkerDat
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c request.CTX, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(c request.CTX, attachments *[]imports.AttachmentImportData, post *model.Post, teamID string) map[string]bool {
 	if attachments == nil {
 		return nil
 	}
@@ -1564,9 +1565,9 @@ func (a *App) updateFileInfoWithPostId(post *model.Post) {
 		}
 	}
 }
-func (a *App) importDirectChannel(c request.CTX, data *DirectChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectChannel(c request.CTX, data *imports.DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
-	if err = validateDirectChannelImportData(data); err != nil {
+	if err = imports.ValidateDirectChannelImportData(data); err != nil {
 		return err
 	}
 
@@ -1645,13 +1646,13 @@ func (a *App) importDirectChannel(c request.CTX, data *DirectChannelImportData, 
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(c request.CTX, lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
 
 	for _, line := range lines {
-		if err := validateDirectPostImportData(line.DirectPost, a.MaxPostSize()); err != nil {
+		if err := imports.ValidateDirectPostImportData(line.DirectPost, a.MaxPostSize()); err != nil {
 			return line.LineNumber, err
 		}
 	}
@@ -1840,8 +1841,8 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []LineImportWor
 	return 0, nil
 }
 
-func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
-	aerr := validateEmojiImportData(data)
+func (a *App) importEmoji(data *imports.EmojiImportData, dryRun bool) *model.AppError {
+	aerr := imports.ValidateEmojiImportData(data)
 	if aerr != nil {
 		if aerr.Id == "model.emoji.system_emoji_name.app_error" {
 			mlog.Warn("Skipping emoji import due to name conflict with system emoji", mlog.String("emoji_name", *data.Name))
