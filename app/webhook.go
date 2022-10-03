@@ -55,7 +55,7 @@ func (a *App) handleWebhookEvents(c request.CTX, post *model.Post, team *model.T
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
-		if hook.ChannelId == post.ChannelId || hook.ChannelId == "" {
+		if (hook.ChannelId == post.ChannelId || hook.ChannelId == "") && hook.Enabled {
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
@@ -682,6 +682,9 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	webhookType := req.Type
 
 	var hook *model.IncomingWebhook
+	if(hook.Enabled) {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
 	result := <-hchan
 	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
@@ -789,13 +792,8 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 		overrideIconURL = req.IconURL
 	}
 
-	if hook.Enabled {
-		_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
-		return err
-	} else {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
+	_, err := a.CreateWebhookPost(c, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
+	return err
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
