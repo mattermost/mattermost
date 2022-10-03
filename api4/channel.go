@@ -33,7 +33,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam, model.ScopeChannelsSearch, model.ScopeTeamsRead)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_archived", api.APISessionRequiredDisableWhenBusy(searchArchivedChannelsForTeam, model.ScopeChannelsSearch, model.ScopeTeamsRead)).Methods("POST")
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam, model.ScopeChannelsSearch)).Methods("GET")
-	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch, model.ScopeChannelsSearch)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch, model.ScopeChannelsSearch, model.ScopeTeamsRead)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser, model.ScopeChannelsRead, model.ScopeTeamsRead, model.ScopeUsersRead)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channels", api.APISessionRequired(getChannelsForUser, model.ScopeChannelsRead, model.ScopeUsersRead)).Methods("GET")
 

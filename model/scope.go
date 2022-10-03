@@ -86,7 +86,6 @@ const (
 	ScopeFilesDelete Scope = "files:delete"
 	ScopeFilesRead   Scope = "files:read"
 	ScopeFilesSearch Scope = "files:search"
-	ScopeFilesUpdate Scope = "files:update"
 
 	ScopeOAuth2Manage Scope = "oauth2:manage"
 
