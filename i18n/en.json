@@ -8644,6 +8644,10 @@
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },

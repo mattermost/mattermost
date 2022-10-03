@@ -221,6 +221,10 @@ func (group *Group) IsValidName() *AppError {
 			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
 
+		if *group.Name == UserNotifyAll || *group.Name == ChannelMentionsNotifyProp || *group.Name == UserNotifyHere {
+			return NewAppError("IsValidName", "model.group.name.reserved_name.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if !validGroupnameChars.MatchString(*group.Name) {
 			return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
 		}
