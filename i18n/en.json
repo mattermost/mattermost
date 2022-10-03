@@ -8720,7 +8720,7 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.insights.start_of_day_for_time_range.time_range.app_error",
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Invalid time range."
   },
   {

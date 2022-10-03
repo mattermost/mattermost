@@ -60,7 +60,7 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -113,7 +113,7 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -164,7 +164,7 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -224,7 +224,7 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -280,7 +280,7 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -333,7 +333,7 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -366,7 +366,7 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, user.GetTimezoneLocation())
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -418,7 +418,7 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -471,7 +471,7 @@ func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	loc := user.GetTimezoneLocation()
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -537,7 +537,7 @@ func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	loc := user.GetTimezoneLocation()
-	startTime, appErr := model.StartOfDayForTimeRange(c.Params.TimeRange, loc)
+	startTime, appErr := model.GetStartOfDayForTimeRange(c.Params.TimeRange, loc)
 	if appErr != nil {
 		c.Err = appErr
 		return

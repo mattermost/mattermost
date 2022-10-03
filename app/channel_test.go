@@ -2464,7 +2464,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange, _ := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2542,7 +2542,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange, _ := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForUserSince(th.Context, th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2753,7 +2753,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 		{ID: channel2.Id, MessageCount: 6},
 	}
 
-	timeRange, _ := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2851,7 +2851,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 		{ID: channel2.Id, MessageCount: 6},
 	}
 
-	timeRange, _ := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 4})
