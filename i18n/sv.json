@@ -9537,5 +9537,9 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Information i obligatoriska fält saknas för att kunna skicka e-postmeddelanden om utebliven betalning."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fel under utförandet av jobbet."
   }
 ]
