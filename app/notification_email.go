@@ -113,7 +113,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
-	templateString := "<%s@" + a.Srv().MailServiceConfig().Hostname + ">"
+	templateString := "<%s@" + utils.GetHostnameFromSiteURL(a.GetSiteURL()) + ">"
 	messageID := ""
 	inReplyTo := ""
 	references := ""

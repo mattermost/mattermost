@@ -318,12 +318,9 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	if mail.messageID != "" {
 		headers["Message-ID"] = []string{mail.messageID}
 	} else {
-		templateString := "<%s@" + config.Hostname + ">"
 		randomStringLength := 16
-		randomString := model.NewRandomString(randomStringLength)
-		timestamp := fmt.Sprint(time.Now().Unix())
-		messageID := fmt.Sprintf(templateString, randomString+"-"+timestamp)
-		headers["Message-ID"] = []string{messageID}
+		msgID := fmt.Sprintf("<%s-%d@%s>", model.NewRandomString(randomStringLength), time.Now().Unix(), config.Hostname)
+		headers["Message-ID"] = []string{msgID}
 	}
 
 	if mail.inReplyTo != "" {
