@@ -113,18 +113,18 @@ const (
 	ScopeUsersUpdate Scope = "users:update"
 )
 
-var validScopes = map[ScopeResource][]ScopeOperation{
-	ScopeChannels: append(crudsScopeOps, ScopeJoin),
-	ScopeCommands: {ScopeExecute},
-	ScopeEmojis:   crudsScopeOps,
-	ScopeFiles:    crudsScopeOps,
-	ScopeOAuth2:   {ScopeManage},
-	ScopePosts:    crudsScopeOps,
-	ScopeTeams:    append(crudsScopeOps, ScopeJoin),
-	ScopeUsers:    crudsScopeOps,
-}
+var searchAndCRUD = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
 
-var crudsScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
+var validScopes = map[ScopeResource][]ScopeOperation{
+	ScopeChannels: append(searchAndCRUD, ScopeJoin),
+	ScopeCommands: {ScopeExecute},
+	ScopeEmojis:   searchAndCRUD,
+	ScopeFiles:    searchAndCRUD,
+	ScopeOAuth2:   {ScopeManage},
+	ScopePosts:    searchAndCRUD,
+	ScopeTeams:    append(searchAndCRUD, ScopeJoin),
+	ScopeUsers:    searchAndCRUD,
+}
 
 func (r ScopeResource) NewScope(op ScopeOperation) Scope {
 	return Scope(r) + ScopeSeparator + Scope(op)
