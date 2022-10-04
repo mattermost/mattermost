@@ -1279,13 +1279,13 @@ func (th *TestHelper) SetupTeamScheme() *model.Scheme {
 	return th.SetupScheme(model.SchemeScopeTeam)
 }
 
-func (th *TestHelper) GetMockSubscription(freeTrial string) *model.Subscription {
+func (th *TestHelper) GetMockCloudSubscription(productId string, freeTrial string) *model.Subscription {
 	deliquencySince := int64(2000000000)
 
 	return &model.Subscription{
 		ID:              "MySubscriptionID",
 		CustomerID:      "MyCustomer",
-		ProductID:       "SomeProductId",
+		ProductID:       productId,
 		AddOns:          []string{},
 		StartAt:         1000000000,
 		EndAt:           2000000000,
@@ -1297,6 +1297,44 @@ func (th *TestHelper) GetMockSubscription(freeTrial string) *model.Subscription 
 		TrialEndAt:      2000000000,
 		LastInvoice:     &model.Invoice{},
 		DelinquentSince: &deliquencySince,
+	}
+}
+
+func (th *TestHelper) GetMockCloudProducts() []*model.Product {
+	return []*model.Product{
+		{
+			ID:                "prod_test1",
+			Name:              "name",
+			Description:       "description",
+			PricePerSeat:      10,
+			SKU:               "starter",
+			PriceID:           "price_id",
+			Family:            "family",
+			RecurringInterval: "recurring_interval",
+			BillingScheme:     "billing_scheme",
+		},
+		{
+			ID:                "prod_test2",
+			Name:              "name2",
+			Description:       "description2",
+			PricePerSeat:      100,
+			SKU:               "professional",
+			PriceID:           "price_id2",
+			Family:            "family2",
+			RecurringInterval: "recurring_interval2",
+			BillingScheme:     "billing_scheme2",
+		},
+		{
+			ID:                "prod_test3",
+			Name:              "name3",
+			Description:       "description3",
+			PricePerSeat:      1000,
+			SKU:               "enterprise",
+			PriceID:           "price_id3",
+			Family:            "family3",
+			RecurringInterval: "recurring_interval3",
+			BillingScheme:     "billing_scheme3",
+		},
 	}
 }
 
