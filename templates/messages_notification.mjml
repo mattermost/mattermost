@@ -1,7 +1,7 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/style.mjml" />
-    <mj-include path="partials/slack_attachment_styles.mjml" />
+    <mj-include path="partials/message_attachment_styles.mjml" />
   </mj-head>
   <mj-body css-class="emailBody">
     <mj-wrapper mj-class="email">
@@ -12,7 +12,7 @@
           <mj-group>
             <mj-include path="./partials/message_avatar_col.mjml" />
             <mj-include path="./partials/sender_info_col.mjml" />
-            <mj-include path="./partials/slack_attachment.html" type="html" />
+            <mj-include path="partials/message_attachment.html" type="html" />
             <mj-include path="./partials/message_button.mjml" />
           </mj-group>
         </mj-section>

@@ -1,11 +1,11 @@
-{{if .SlackAttachments}}
-<div class="slackAttachments">
-    {{range .SlackAttachments}}
-    <div class="slackAttachment" style="vertical-align:top;" width="100%">
+{{if .MessageAttachments}}
+<div class="messageAttachments">
+    {{range .MessageAttachments}}
+    <div class="messageAttachment" style="vertical-align:top;" width="100%">
         <div class="pretext" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
             {{.Pretext}}
         </div>
-        <div class="slackAttachmentContent" style="border-left: 4px solid {{.Color}}; padding: 12px;">
+        <div class="messageAttachmentContent" style="border-left: 4px solid {{.Color}}; padding: 12px;">
             <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px" width="100%">
                 <tbody>
                 {{if or .AuthorIcon .AuthorName}}
@@ -52,14 +52,14 @@
 
                     <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em;" width="100%">
                         {{range .FieldRows}}
-                        <tr class="slackAttachment_row">
+                        <tr class="messageAttachment_row">
                             {{ $length := len .Cells }}
                             {{range .Cells}}
                             <td
-                                    class="slackAttachment_field"
+                                    class="messageAttachment_field"
                                     {{ if eq $length 1 }}colspan="2"{{end}}
                             >
-                                <div class="slackAttachment_title">{{.Title}}</div>
+                                <div class="messageAttachment_title">{{.Title}}</div>
                                 <div>{{.Value}}</div>
                             </td>
                             {{end}}

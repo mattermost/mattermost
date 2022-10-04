@@ -348,7 +348,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		Message: "This is the message",
 	}
 
-	slackAttachments := []*model.SlackAttachment{
+	messageAttachments := []*model.SlackAttachment{
 		{
 			Color:      "#FF0000",
 			Pretext:    "slack attachment 1 pretext",
@@ -391,7 +391,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		},
 	}
 
-	model.ParseSlackAttachment(post, slackAttachments)
+	model.ParseSlackAttachment(post, messageAttachments)
 
 	channel := &model.Channel{
 		DisplayName: "ChannelName",

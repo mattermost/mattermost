@@ -152,7 +152,6 @@
     .button-cloud a {
       background-color: #1C58D9 !important;
       font-weight: 400 !important;
-      font-family: Open Sans, sans-serif !important;
       font-size: 16px !important;
       line-height: 18px !important;
       color: #FFFFFF !important;
@@ -351,14 +350,14 @@
       }
     }
 
-    .slackAttachmentContent {
+    .messageAttachmentContent {
       padding: 0px;
       border: 1px solid rgba(63, 67, 80, 0.16);
       margin-bottom: 20px;
       border-radius: 0 4px 4px 0;
     }
 
-    .slackAttachmentContent>table,
+    .messageAttachmentContent>table,
     .attachment__body {
       font-family: Open Sans, sans-serif;
       text-align: left;
@@ -367,7 +366,7 @@
       color: #3F4350;
     }
 
-    .slackAttachmentContent .attachment__author-icon {
+    .messageAttachmentContent .attachment__author-icon {
       width: 14px;
       height: 14px;
       margin-right: 5px;
@@ -379,7 +378,7 @@
       opacity: 0.6;
     }
 
-    .slackAttachmentContent p {
+    .messageAttachmentContent p {
       margin: 0;
     }
 
@@ -418,7 +417,7 @@
       flex: 1;
     }
 
-    .slackAttachmentContent>table.attachment__footer-container {
+    .messageAttachmentContent>table.attachment__footer-container {
       color: #a3a3a3;
       font-size: 12px;
     }
@@ -433,7 +432,7 @@
       font-size: 12px;
     }
 
-    .slackAttachment_title {
+    .messageAttachment_title {
       padding-top: 1em;
       font-weight: 600;
       margin-bottom: 4px;
@@ -473,11 +472,11 @@
       margin-bottom: 16px;
     }
 
-    .slackAttachments {
+    .messageAttachments {
       margin-top: 22px;
     }
 
-    .slackAttachments h1,
+    .messageAttachments h1,
     h2,
     h3,
     h4,
@@ -493,10 +492,17 @@
       border-radius: 4px;
     }
 
-    .slackAttachments a {
+    .messageAttachments a {
       background-color: unset !important;
       border: none !important;
       padding: unset !important;
+    }
+
+    @media only screen and (min-width:480px) {
+      .mj-column-per-50 {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
     }
   </style>
   <!-- this empty mj attribute tag is required by MJML to compile successfully -->
@@ -651,14 +657,14 @@
                               </table>
                             </div>
                             <!--[if mso | IE]></td><![endif]-->
-                            {{if .SlackAttachments}}
-                            <div class="slackAttachments" style="margin-top: 22px;">
-                              {{range .SlackAttachments}}
-                              <div class="slackAttachment" style="vertical-align:top;" width="100%">
+                            {{if .MessageAttachments}}
+                            <div class="messageAttachments" style="margin-top: 22px;">
+                              {{range .MessageAttachments}}
+                              <div class="messageAttachment" style="vertical-align:top;" width="100%">
                                 <div class="pretext" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
                                   {{.Pretext}}
                                 </div>
-                                <div class="slackAttachmentContent" style="border: 1px solid rgba(63, 67, 80, 0.16); margin-bottom: 20px; border-radius: 0 4px 4px 0; border-left: 4px solid {{.Color}}; padding: 12px;">
+                                <div class="messageAttachmentContent" style="border: 1px solid rgba(63, 67, 80, 0.16); margin-bottom: 20px; border-radius: 0 4px 4px 0; border-left: 4px solid {{.Color}}; padding: 12px;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="font-family: Open Sans, sans-serif; text-align: left; line-height: 20px; color: #3F4350; vertical-align: top; font-size: 14px;" width="100%" valign="top" align="left">
                                     <tbody>
                                       {{if or .AuthorIcon .AuthorName}}
@@ -704,11 +710,11 @@
                                       </table>
                                       <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em;" width="100%">
                                         {{range .FieldRows}}
-                                        <tr class="slackAttachment_row">
+                                        <tr class="messageAttachment_row">
                                           {{ $length := len .Cells }}
                                           {{range .Cells}}
-                                          <td class="slackAttachment_field" {{ if eq $length 1 }}colspan="2" {{end}}>
-                                            <div class="slackAttachment_title" style="padding-top: 1em; font-weight: 600; margin-bottom: 4px;">{{.Title}}</div>
+                                          <td class="messageAttachment_field" {{ if eq $length 1 }}colspan="2" {{end}}>
+                                            <div class="messageAttachment_title" style="padding-top: 1em; font-weight: 600; margin-bottom: 4px;">{{.Title}}</div>
                                             <div>{{.Value}}</div>
                                           </td>
                                           {{end}}

@@ -1,11 +1,11 @@
-.slackAttachmentContent {
+.messageAttachmentContent {
     padding: 0px;
     border: 1px solid rgba(63, 67, 80, 0.16);
     margin-bottom: 20px;
     border-radius: 0 4px 4px 0;
 }
 
-.slackAttachmentContent > table, .attachment__body {
+.messageAttachmentContent > table, .attachment__body {
     font-family: Open Sans, sans-serif;
     text-align: left;
     font-size: 14px;
@@ -13,7 +13,7 @@
     color: #3F4350;
 }
 
-.slackAttachmentContent .attachment__author-icon {
+.messageAttachmentContent .attachment__author-icon {
     width: 14px;
     height: 14px;
     margin-right: 5px;
@@ -25,7 +25,7 @@
     opacity: 0.6;
 }
 
-.slackAttachmentContent p {
+.messageAttachmentContent p {
     margin: 0;
 }
 
@@ -65,7 +65,7 @@
     flex: 1;
 }
 
-.slackAttachmentContent > table.attachment__footer-container {
+.messageAttachmentContent > table.attachment__footer-container {
     color: #a3a3a3;
     font-size: 12px;
 }
@@ -80,7 +80,7 @@
     font-size: 12px;
 }
 
-.slackAttachment_title {
+.messageAttachment_title {
     padding-top: 1em;
     font-weight: 600;
     margin-bottom: 4px;
@@ -120,11 +120,11 @@
     margin-bottom: 16px;
 }
 
-.slackAttachments {
+.messageAttachments {
     margin-top: 22px;
 }
 
-.slackAttachments h1, h2, h3, h4, h5, h6 {
+.messageAttachments h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
 }
 
@@ -135,7 +135,7 @@ code {
     border-radius: 4px;
 }
 
-.slackAttachments a {
+.messageAttachments a {
     background-color: unset !important;
     border: none !important;
     padding: unset !important;

@@ -1383,6 +1383,25 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
 }
 
+func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	channelID := th.BasicChannel.Id
+	userID := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		ChannelId: channelID,
+		UserId:    userID,
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

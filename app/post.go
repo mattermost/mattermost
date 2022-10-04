@@ -203,6 +203,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp("from_bot", "true")
 	}
 
+	if c.Session().IsOAuth {
+		post.AddProp("from_oauth_app", "true")
+	}
+
 	var ephemeralPost *model.Post
 	if post.Type == "" && !a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
