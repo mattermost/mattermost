@@ -1481,7 +1481,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
-			true,
+			false,
+			false,
 		).Once().Return(email.SendMailError)
 		th.App.Srv().EmailService = &emailServiceMock
 
