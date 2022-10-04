@@ -28,7 +28,7 @@ type OutgoingWebhook struct {
 	ContentType  string      `json:"content_type"`
 	Username     string      `json:"username"`
 	IconURL      string      `json:"icon_url"`
-	Enabled	     bool		 `json:"enabled`
+	Enabled		 bool		 `json:"enabled"`
 }
 
 func (o *OutgoingWebhook) Auditable() map[string]interface{} {
