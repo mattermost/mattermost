@@ -3402,7 +3402,7 @@ func TestCloudInviteGuest(t *testing.T) {
 
 		require.Equal(t, res.StatusCode, http.StatusForbidden)
 		require.True(t, strings.Contains(err.Error(), "Guest accounts are disabled"))
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("When IN paid subscription, guest invite must work as expected", func(t *testing.T) {
@@ -3433,7 +3433,7 @@ func TestCloudInviteGuest(t *testing.T) {
 		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", string(buf))
 
 		require.Equal(t, res.StatusCode, http.StatusOK)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 
 	t.Run("When subscription is FREE TRIAL, guest invite must work as expected", func(t *testing.T) {
@@ -3465,7 +3465,7 @@ func TestCloudInviteGuest(t *testing.T) {
 		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", string(buf))
 
 		require.Equal(t, res.StatusCode, http.StatusOK)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }
 
