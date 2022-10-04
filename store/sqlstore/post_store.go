@@ -661,7 +661,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -1060,7 +1060,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool, options model.GetPostsOptions) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1104,6 +1104,22 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 		return nil
 	}
 
+	offset := options.PerPage * options.Page
+
+	cpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads)
+		cpc <- store.StoreResult{Data: posts, NErr: err}
+		close(cpc)
+	}()
+
+	cpr := <-cpc
+	if cpr.NErr != nil {
+		return nil, cpr.NErr
+	}
+
+	parents := cpr.Data.([]*model.Post)
+
 	l := len(posts)
 	for i := range posts {
 		idx := i
@@ -1118,6 +1134,10 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 		post := &posts[idx].Post
 		list.AddPost(post)
 		list.AddOrder(posts[idx].Id)
+	}
+
+	for _, p := range parents {
+		list.AddPost(p)
 	}
 
 	return list, nil
@@ -1144,7 +1164,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
@@ -1154,7 +1174,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions, options)
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1229,11 +1249,10 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
-		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "getPostsSinceCollapsedThreads_ToSql")
 	}
@@ -1242,7 +1261,15 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
+
+	opts := model.GetPostsOptions{
+		SkipFetchThreads: options.SkipFetchThreads,
+		ChannelId:        options.ChannelId,
+		PerPage:          60,
+		Page:             0,
+	}
+
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions, opts)
 }
 
 //nolint:unparam
@@ -1453,7 +1480,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	if options.CollapsedThreads {
-		conditions = append(conditions, sq.Eq{"RootId": ""})
+		conditions = append(conditions, sq.Or{sq.Eq{"RootId": ""}, sq.Eq{"Props ->> 'broadcasted_thread_reply'": true}})
 		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
@@ -1515,7 +1542,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions, options)
 	if err != nil {
 		return nil, err
 	}
@@ -1560,7 +1587,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Eq{"Posts.RootId": ""}}
+		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}}
 	}
 	query := s.getQueryBuilder().
 		Select("Id").
@@ -1601,7 +1628,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
+		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}}
 	}
 	query := s.getQueryBuilder().
 		Select("*").
