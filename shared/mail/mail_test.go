@@ -363,7 +363,7 @@ func TestSendMail(t *testing.T) {
 			"\r\nMessage-ID: <abc123@mattermost.com>\r\n",
 			"",
 		},
-		"doesn't add message-id header": {
+		"always adds message-id header": {
 			mail.Address{},
 			"",
 			"",
