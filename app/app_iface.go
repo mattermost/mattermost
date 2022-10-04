@@ -75,10 +75,10 @@ type AppIface interface {
 	// field is returned.
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-	ClientConfigWithComputed() map[string]string
+	ClientConfigWithComputed(c request.CTX) map[string]string
 	// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
 	// Use GetLastAccessibleFileTime() to access the result.
-	ComputeLastAccessibleFileTime() error
+	ComputeLastAccessibleFileTime(c request.CTX) error
 	// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 	// Use GetLastAccessiblePostTime() to access the result.
 	ComputeLastAccessiblePostTime(c request.CTX) error
@@ -146,7 +146,7 @@ type AppIface interface {
 	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
 	// A new ExpiresAt is only written if enough time has elapsed since last update.
 	// Returns true only if the session was extended.
-	ExtendSessionExpiryIfNeeded(session *model.Session) bool
+	ExtendSessionExpiryIfNeeded(c request.CTX, session *model.Session) bool
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -180,7 +180,7 @@ type AppIface interface {
 	// If filter is not nil and returns false for a struct field, that field will be omitted.
 	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
 	// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
+	GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
 	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
@@ -192,7 +192,7 @@ type AppIface interface {
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
-	GetLastAccessibleFileTime() (int64, *model.AppError)
+	GetLastAccessibleFileTime(c request.CTX) (int64, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
@@ -271,7 +271,7 @@ type AppIface interface {
 	NotifySessionsExpired(c request.CTX) error
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
-	OverrideIconURLIfEmoji(post *model.Post)
+	OverrideIconURLIfEmoji(c request.CTX, post *model.Post)
 	// PatchBot applies the given patch to the bot and corresponding user.
 	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
@@ -327,11 +327,11 @@ type AppIface interface {
 	SetSessionExpireInHours(session *model.Session, hours int)
 	// SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 	// and sets status of given userId to dnd which will be restored back after endtime
-	SetStatusDoNotDisturbTimed(userId string, endtime int64)
+	SetStatusDoNotDisturbTimed(c request.CTX, userId string, endtime int64)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
-	SetStatusLastActivityAt(userID string, activityAt int64)
+	SetStatusLastActivityAt(c request.CTX, userID string, activityAt int64)
 	// SyncLdap starts an LDAP sync job.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
@@ -376,7 +376,7 @@ type AppIface interface {
 	UpdateChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 	// which unsets dnd status of users if needed and saves and broadcasts it
-	UpdateDNDStatusOfUsers()
+	UpdateDNDStatusOfUsers(c request.CTX)
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices(c request.CTX) *model.AppError
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
@@ -638,10 +638,10 @@ type AppIface interface {
 	GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 	GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
-	GetFile(fileID string) ([]byte, *model.AppError)
-	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
-	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
+	GetFile(c request.CTX, fileID string) ([]byte, *model.AppError)
+	GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model.AppError)
+	GetFileInfos(c request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForPostWithMigration(c request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
@@ -754,7 +754,7 @@ type AppIface interface {
 	GetSchemeRolesForTeam(teamID string) (string, string, string, *model.AppError)
 	GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError)
-	GetSession(token string) (*model.Session, *model.AppError)
+	GetSession(c request.CTX, token string) (*model.Session, *model.AppError)
 	GetSessionById(sessionID string) (*model.Session, *model.AppError)
 	GetSessions(userID string) ([]*model.Session, *model.AppError)
 	GetSharedChannel(channelID string) (*model.SharedChannel, error)
@@ -778,7 +778,7 @@ type AppIface interface {
 	GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError)
 	GetTeamByName(name string) (*model.Team, *model.AppError)
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
-	GetTeamIdFromQuery(query url.Values) (string, *model.AppError)
+	GetTeamIdFromQuery(c request.CTX, query url.Values) (string, *model.AppError)
 	GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError)
 	GetTeamMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
@@ -875,9 +875,9 @@ type AppIface interface {
 	InvalidateAllResendInviteEmailJobs() *model.AppError
 	InvalidateCacheForUser(userID string)
 	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
-	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteGuestsToChannelsGracefully(c request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
-	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsFirstUserAccount() bool
 	IsLeader(c request.CTX) bool
@@ -939,11 +939,11 @@ type AppIface interface {
 	PostUpdateChannelPurposeMessage(c request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError
 	PostWithProxyAddedToImageURLs(post *model.Post) *model.Post
 	PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post
-	PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
+	PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
 	PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
 	PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList
 	ProcessSlackText(text string) string
-	Publish(message *model.WebSocketEvent)
+	Publish(c request.CTX, message *model.WebSocketEvent)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
@@ -995,7 +995,7 @@ type AppIface interface {
 	SanitizeTeams(c request.CTX, session model.Session, teams []*model.Team) []*model.Team
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
-	SaveAndBroadcastStatus(status *model.Status)
+	SaveAndBroadcastStatus(c request.CTX, status *model.Status)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(c request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
@@ -1065,11 +1065,11 @@ type AppIface interface {
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
 	SetServer(srv *Server)
-	SetStatusAwayIfNeeded(userID string, manual bool)
-	SetStatusDoNotDisturb(userID string)
-	SetStatusOffline(userID string, manual bool)
-	SetStatusOnline(userID string, manual bool)
-	SetStatusOutOfOffice(userID string)
+	SetStatusAwayIfNeeded(c request.CTX, userID string, manual bool)
+	SetStatusDoNotDisturb(c request.CTX, userID string)
+	SetStatusOffline(c request.CTX, userID string, manual bool)
+	SetStatusOnline(c request.CTX, userID string, manual bool)
+	SetStatusOutOfOffice(c request.CTX, userID string)
 	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
@@ -1109,7 +1109,7 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	UpdateLastActivityAtIfNeeded(session model.Session)
+	UpdateLastActivityAtIfNeeded(c request.CTX, session model.Session)
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -1145,7 +1145,7 @@ type AppIface interface {
 	UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserRoles(c request.CTX, userID string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
+	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
