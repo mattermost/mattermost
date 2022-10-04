@@ -181,9 +181,14 @@ func (b *BrokerService) runHandlers() {
 		}
 
 		ev := <-b.channel
-		atomic.AddInt32(&b.eventCount, -1)
 		for _, subscriber := range b.subscribers[ev.Topic] {
-			b.runGoroutine(func() { subscriber.handler(ev) })
+			handler := subscriber.handler
+			b.runGoroutine(func() { handler(ev) })
+		}
+		atomic.AddInt32(&b.eventCount, -1)
+		select {
+		case b.goroutineExitSignal <- struct{}{}:
+		default:
 		}
 	}
 }
