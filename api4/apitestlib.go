@@ -1279,6 +1279,27 @@ func (th *TestHelper) SetupTeamScheme() *model.Scheme {
 	return th.SetupScheme(model.SchemeScopeTeam)
 }
 
+func (th *TestHelper) GetMockSubscription(freeTrial string) *model.Subscription {
+	deliquencySince := int64(2000000000)
+
+	return &model.Subscription{
+		ID:              "MySubscriptionID",
+		CustomerID:      "MyCustomer",
+		ProductID:       "SomeProductId",
+		AddOns:          []string{},
+		StartAt:         1000000000,
+		EndAt:           2000000000,
+		CreateAt:        1000000000,
+		Seats:           10,
+		IsFreeTrial:     freeTrial,
+		DNS:             "some.dns.server",
+		IsPaidTier:      "false",
+		TrialEndAt:      2000000000,
+		LastInvoice:     &model.Invoice{},
+		DelinquentSince: &deliquencySince,
+	}
+}
+
 func (th *TestHelper) SetupChannelScheme() *model.Scheme {
 	return th.SetupScheme(model.SchemeScopeChannel)
 }

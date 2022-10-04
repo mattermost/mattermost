@@ -3359,6 +3359,32 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 	})
+
+	t.Run("When Cloud and NOT in paid subscription NOR free trial return error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+		cloudLicense := model.NewTestLicense("Cloud")
+		th.App.Srv().SetLicense(cloudLicense)
+
+		cloud := &mocks.CloudInterface{}
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = cloud
+
+		nonTrialSubscription := th.GetMockSubscription("false")
+		product := &model.Product{
+			ID:  "SomeProductId",
+			SKU: "starter",
+		}
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(nonTrialSubscription, nil)
+		cloud.Mock.On("GetCurrentProduct", mock.Anything).Return(product, nil)
+
+		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: emailList, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Error(t, err)
+	})
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {

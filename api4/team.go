@@ -1490,13 +1490,13 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	if isCloud {
 		subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
 		if err != nil {
-			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getSubscription", "api.team.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getSubscription", "api.team.cloud.get_subscription.request_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		product, aErr := c.App.GetCurrentProduct(subscription.ProductID)
 		if aErr != nil {
-			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getCurrentProduct", "api.team.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getCurrentProduct", "api.team.cloud.get_current_product.request_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
