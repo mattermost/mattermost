@@ -56,7 +56,7 @@ func getGraphQLUser(ctx context.Context, id string) (*user, error) {
 		}
 	}
 
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.UpdateLastActivityAtIfNeeded(c.AppContext, *c.AppContext.Session())
 
 	return &user{*usr}, nil
 }
@@ -95,7 +95,7 @@ func (u *user) Preferences(ctx context.Context) ([]model.Preference, error) {
 		return nil, err
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), u.Id) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), u.Id) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
@@ -133,7 +133,7 @@ func (u *user) Sessions(ctx context.Context) ([]*model.Session, error) {
 		return nil, err
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), u.Id) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), u.Id) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
@@ -182,7 +182,7 @@ func getGraphQLUsers(c *web.Context, userIDs []string) ([]*model.User, error) {
 	// and cached for the rest of the query. So it's not an issue
 	// to run this in a loop.
 	for _, id := range userIDs {
-		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, id)
+		canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, id)
 		if appErr != nil || !canSee {
 			c.SetPermissionError(model.PermissionViewMembers)
 			return nil, c.Err

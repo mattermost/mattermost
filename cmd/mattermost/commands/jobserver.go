@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -38,9 +39,10 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Srv().Shutdown()
+	c := request.EmptyContext(a.Log())
+	defer a.Srv().Shutdown(c)
 
-	a.Srv().LoadLicense()
+	a.Srv().LoadLicense(c)
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")

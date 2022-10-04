@@ -10,13 +10,14 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
-func (a *App) GenerateSupportPacket() []model.FileData {
+func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
 	var warnings []string
 
@@ -24,7 +25,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	fileDatas := []model.FileData{}
 
 	// A array of the functions that we can iterate through since they all have the same return value
-	functions := []func() (*model.FileData, string){
+	functions := []func(request.CTX) (*model.FileData, string){
 		a.generateSupportPacketYaml,
 		a.createPluginsFile,
 		a.createSanitizedConfigFile,
@@ -33,7 +34,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	}
 
 	for _, fn := range functions {
-		fileData, warning := fn()
+		fileData, warning := fn(c)
 
 		if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
@@ -54,7 +55,7 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	return fileDatas
 }
 
-func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
+func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, string) {
 	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
@@ -79,7 +80,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	}
 
 	supportedUsers := 0
-	if license := a.Srv().License(); license != nil {
+	if license := a.Srv().License(c); license != nil {
 		supportedUsers = *license.Features.Users
 	}
 
@@ -113,7 +114,7 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) createPluginsFile() (*model.FileData, string) {
+func (a *App) createPluginsFile(c request.CTX) (*model.FileData, string) {
 	var warning string
 
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
@@ -137,7 +138,7 @@ func (a *App) createPluginsFile() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) getNotificationsLog() (*model.FileData, string) {
+func (a *App) getNotificationsLog(c request.CTX) (*model.FileData, string) {
 	var warning string
 
 	// Getting notifications.log
@@ -164,7 +165,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) getMattermostLog() (*model.FileData, string) {
+func (a *App) getMattermostLog(c request.CTX) (*model.FileData, string) {
 	var warning string
 
 	// Getting mattermost.log
@@ -190,7 +191,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 	return nil, warning
 }
 
-func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
+func (a *App) createSanitizedConfigFile(c request.CTX) (*model.FileData, string) {
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err == nil {

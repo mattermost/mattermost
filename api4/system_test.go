@@ -796,7 +796,7 @@ func TestPushNotificationAck(t *testing.T) {
 	th := Setup(t).InitBasic()
 	api, err := Init(th.Server)
 	require.NoError(t, err)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	defer th.TearDown()
 
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {

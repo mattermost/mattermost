@@ -42,7 +42,7 @@ func handleTriggerNotifyAdminPosts(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	// only system admins can manually trigger these notifications
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -28,7 +29,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	if hub == nil {
 		return
 	}
-	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
+	session, sessionErr := wh.app.GetSession(request.EmptyContext(wh.app.Log()), conn.GetSessionToken())
 	defer wh.app.ReturnSessionToPool(session)
 
 	if sessionErr != nil {

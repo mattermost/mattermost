@@ -1113,7 +1113,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 		CheckBadRequestStatus(t, response)
 	})
 
-	th.App.Srv().RemoveLicense()
+	th.App.Srv().RemoveLicense(th.Context)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(th.BasicTeam.Id, opts)

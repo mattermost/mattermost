@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
@@ -104,7 +105,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Srv().Shutdown()
+	defer a.Srv().Shutdown(request.EmptyContext(a.Log()))
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {

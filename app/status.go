@@ -225,11 +225,11 @@ func (a *App) SetStatusOnline(c request.CTX, userID string, manual bool) {
 	}
 
 	if broadcast {
-		a.BroadcastStatus(status)
+		a.BroadcastStatus(c, status)
 	}
 }
 
-func (a *App) BroadcastStatus(status *model.Status) {
+func (a *App) BroadcastStatus(c request.CTX, status *model.Status) {
 	if a.Srv().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
@@ -237,7 +237,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil, "")
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	a.Publish(event)
+	a.Publish(c, event)
 }
 
 func (a *App) SetStatusOffline(c request.CTX, userID string, manual bool) {
@@ -333,7 +333,7 @@ func (a *App) SaveAndBroadcastStatus(c request.CTX, status *model.Status) {
 		c.Logger().Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
-	a.BroadcastStatus(status)
+	a.BroadcastStatus(c, status)
 }
 
 func (a *App) SetStatusOutOfOffice(c request.CTX, userID string) {
@@ -402,7 +402,7 @@ func (a *App) UpdateDNDStatusOfUsers(c request.CTX) {
 	}
 	for i := range statuses {
 		a.AddStatusCache(statuses[i])
-		a.BroadcastStatus(statuses[i])
+		a.BroadcastStatus(c, statuses[i])
 	}
 }
 

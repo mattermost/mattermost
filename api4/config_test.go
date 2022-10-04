@@ -251,7 +251,7 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer th.App.Srv().RemoveLicense(th.Context)
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud
@@ -304,7 +304,7 @@ func TestUpdateConfig(t *testing.T) {
 
 	t.Run("Should not be able to modify ComplianceSettings.Directory in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer th.App.Srv().RemoveLicense(th.Context)
 
 		cfg2 := th.App.Config().Clone()
 		*cfg2.ComplianceSettings.Directory = "hellodir"
@@ -854,7 +854,7 @@ func TestPatchConfig(t *testing.T) {
 
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
+		defer th.App.Srv().RemoveLicense(th.Context)
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud

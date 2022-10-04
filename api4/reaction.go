@@ -35,7 +35,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), reaction.PostId, model.PermissionAddReaction) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), reaction.PostId, model.PermissionAddReaction) {
 		c.SetPermissionError(model.PermissionAddReaction)
 		return
 	}
@@ -57,7 +57,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannel) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
@@ -93,12 +93,12 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
 		c.SetPermissionError(model.PermissionRemoveReaction)
 		return
 	}
 
-	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveOthersReactions) {
+	if c.Params.UserId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionRemoveOthersReactions) {
 		c.SetPermissionError(model.PermissionRemoveOthersReactions)
 		return
 	}
@@ -121,7 +121,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	postIds := model.ArrayFromJSON(r.Body)
 	for _, postId := range postIds {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannel) {
+		if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), postId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}

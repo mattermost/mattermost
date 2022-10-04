@@ -259,7 +259,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
-		session, err := c.App.GetSession(token)
+		session, err := c.App.GetSession(c.AppContext, token)
 		defer c.App.ReturnSessionToPool(session)
 
 		if err != nil {

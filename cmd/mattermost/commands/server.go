@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/manualtesting"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -77,7 +78,8 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		mlog.Error(err.Error())
 		return err
 	}
-	defer server.Shutdown()
+	c := request.EmptyContext(server.Log())
+	defer server.Shutdown(c)
 	// We add this after shutdown so that it can be called
 	// before server shutdown happens as it can close
 	// the advanced logger and prevent the mlog call from working properly.
@@ -102,7 +104,7 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	wsapi.Init(server)
 	web.New(server)
 
-	err = server.Start()
+	err = server.Start(c)
 	if err != nil {
 		mlog.Error(err.Error())
 		return err

@@ -500,7 +500,7 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllPublicRoleId, false)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
 
@@ -515,7 +515,7 @@ func TestCreatePostPublic(t *testing.T) {
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
 
@@ -550,7 +550,7 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId+" "+model.SystemPostAllRoleId, false)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
 
@@ -568,7 +568,7 @@ func TestCreatePostAll(t *testing.T) {
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
 
@@ -655,7 +655,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	api, err := Init(th.Server)
 	require.NoError(t, err)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 
 	cli := th.CreateClient()
 	_, _, err = cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
@@ -2789,7 +2789,7 @@ func TestSetChannelUnread(t *testing.T) {
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
-	s2, _ := th.App.GetSession(th.Client.AuthToken)
+	s2, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	th.Client.Login(u1.Email, u1.Password)
 	c1 := th.BasicChannel
 	c1toc2 := &model.ChannelView{ChannelId: th.BasicChannel2.Id, PrevChannelId: c1.Id}

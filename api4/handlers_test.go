@@ -71,7 +71,7 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 
 	api, err := Init(th.Server)
 	require.NoError(t, err)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 
 	t.Run("with WebserverMode == \"gzip\"", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "gzip" })

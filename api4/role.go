@@ -27,7 +27,7 @@ func (api *API) InitRole() {
 }
 
 func getAllRoles(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -142,7 +142,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			requiredPermission = model.PermissionManageSystem
 		}
 	}
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), requiredPermission) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), requiredPermission) {
 		c.SetPermissionError(requiredPermission)
 		return
 	}
@@ -193,12 +193,12 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldRole.Name == model.PlaybookMemberRoleId ||
 		oldRole.Name == model.RunAdminRoleId ||
 		oldRole.Name == model.RunMemberRoleId {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementSystemRoles) {
+		if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementSystemRoles) {
 			c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementSystemRoles)
 			return
 		}

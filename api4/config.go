@@ -241,7 +241,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId == "" {
 		config = c.App.LimitedClientConfigWithComputed()
 	} else {
-		config = c.App.ClientConfigWithComputed()
+		config = c.App.ClientConfigWithComputed(c.AppContext)
 	}
 
 	w.Write([]byte(model.MapToJSON(config)))

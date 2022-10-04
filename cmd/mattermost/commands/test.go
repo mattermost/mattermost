@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/wsapi"
@@ -50,10 +51,11 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Srv().Shutdown()
+	c := request.EmptyContext(a.Log())
+	defer a.Srv().Shutdown(c)
 
 	i18n.InitTranslations(*a.Config().LocalizationSettings.DefaultServerLocale, *a.Config().LocalizationSettings.DefaultClientLocale)
-	serverErr := a.Srv().Start()
+	serverErr := a.Srv().Start(c)
 	if serverErr != nil {
 		return serverErr
 	}
@@ -74,10 +76,11 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Srv().Shutdown()
+	c := request.EmptyContext(a.Log())
+	defer a.Srv().Shutdown(c)
 
 	i18n.InitTranslations(*a.Config().LocalizationSettings.DefaultServerLocale, *a.Config().LocalizationSettings.DefaultClientLocale)
-	serverErr := a.Srv().Start()
+	serverErr := a.Srv().Start(c)
 	if serverErr != nil {
 		return serverErr
 	}
@@ -89,9 +92,9 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-c
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
 
 	return nil
 }

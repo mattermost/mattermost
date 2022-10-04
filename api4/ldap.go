@@ -60,12 +60,12 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionCreateLdapSyncJob) {
 		c.SetPermissionError(model.PermissionCreateLdapSyncJob)
 		return
 	}
 
-	c.App.SyncLdap(opts.IncludeRemovedMembers)
+	c.App.SyncLdap(c.AppContext, opts.IncludeRemovedMembers)
 
 	auditRec.Success()
 	ReturnStatusOK(w)
@@ -77,12 +77,12 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestLdap) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionTestLdap) {
 		c.SetPermissionError(model.PermissionTestLdap)
 		return
 	}
 
-	if err := c.App.TestLdap(); err != nil {
+	if err := c.App.TestLdap(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -91,7 +91,7 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementGroups)
 		return
 	}
@@ -148,7 +148,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
@@ -254,7 +254,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
@@ -297,7 +297,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
@@ -337,7 +337,7 @@ func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPublicCert) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionAddLdapPublicCert) {
 		c.SetPermissionError(model.PermissionAddLdapPublicCert)
 		return
 	}
@@ -361,7 +361,7 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionAddLdapPrivateCert) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionAddLdapPrivateCert) {
 		c.SetPermissionError(model.PermissionAddLdapPrivateCert)
 		return
 	}
@@ -385,7 +385,7 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPublicCert) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionRemoveLdapPublicCert) {
 		c.SetPermissionError(model.PermissionRemoveLdapPublicCert)
 		return
 	}
@@ -403,7 +403,7 @@ func removeLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionRemoveLdapPrivateCert) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionRemoveLdapPrivateCert) {
 		c.SetPermissionError(model.PermissionRemoveLdapPrivateCert)
 		return
 	}

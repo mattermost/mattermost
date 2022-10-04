@@ -101,10 +101,12 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 		}
 	}
 
+	ctx := request.EmptyContext(testLogger)
+
 	a := app.New(app.ServerConnector(s.Channels()))
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := s.Start()
+	serverErr := s.Start(ctx)
 	if serverErr != nil {
 		panic(serverErr)
 	}
@@ -131,7 +133,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 
 	th := &TestHelper{
 		App:               a,
-		Context:           request.EmptyContext(testLogger),
+		Context:           ctx,
 		Server:            s,
 		Web:               web,
 		IncludeCacheLayer: includeCacheLayer,
@@ -176,9 +178,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches(th.Context)
 	}
-	th.Server.Shutdown()
+	th.Server.Shutdown(th.Context)
 }
 
 func TestStaticFilesRequest(t *testing.T) {

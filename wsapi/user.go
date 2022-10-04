@@ -14,7 +14,7 @@ func (api *API) InitUser() {
 }
 
 func (api *API) userTyping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
-	api.App.ExtendSessionExpiryIfNeeded(&req.Session)
+	api.App.ExtendSessionExpiryIfNeeded(request.EmptyContext(api.App.Log()), &req.Session)
 
 	if api.App.Srv().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
@@ -53,10 +53,11 @@ func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]
 		manual = false
 	}
 
+	ctx := request.EmptyContext(api.App.Log())
 	if userIsActive {
-		api.App.SetStatusOnline(req.Session.UserId, manual)
+		api.App.SetStatusOnline(ctx, req.Session.UserId, manual)
 	} else {
-		api.App.SetStatusAwayIfNeeded(req.Session.UserId, manual)
+		api.App.SetStatusAwayIfNeeded(ctx, req.Session.UserId, manual)
 	}
 
 	return nil, nil

@@ -51,12 +51,12 @@ func (r *resolver) Channels(ctx context.Context, args struct {
 		args.UserID = c.AppContext.Session().UserId
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), args.UserID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
 
-	if args.TeamID != "" && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+	if args.TeamID != "" && !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 		c.SetPermissionError(model.PermissionViewTeam)
 		return nil, c.Err
 	}
@@ -113,7 +113,7 @@ func (r *resolver) Config(ctx context.Context) (model.StringMap, error) {
 	if c.AppContext.Session().UserId == "" {
 		return c.App.LimitedClientConfigWithComputed(), nil
 	}
-	return c.App.ClientConfigWithComputed(), nil
+	return c.App.ClientConfigWithComputed(c.AppContext), nil
 }
 
 // match with api4.getClientLicense
@@ -123,7 +123,7 @@ func (r *resolver) License(ctx context.Context) (model.StringMap, error) {
 		return nil, err
 	}
 
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
+	if c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadLicenseInformation) {
 		return c.App.Srv().ClientLicense(), nil
 	}
 	return c.App.Srv().GetSanitizedClientLicense(), nil
@@ -145,12 +145,12 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 		args.UserID = c.AppContext.Session().UserId
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), args.UserID) && !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionReadOtherUsersTeams) {
 		c.SetPermissionError(model.PermissionReadOtherUsersTeams)
 		return nil, c.Err
 	}
 
-	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, args.UserID)
+	canSee, appErr := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, args.UserID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -161,7 +161,7 @@ func (r *resolver) TeamMembers(ctx context.Context, args struct {
 	}
 
 	if args.TeamID != "" && !args.ExcludeTeam {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 			c.SetPermissionError(model.PermissionViewTeam)
 			return nil, c.Err
 		}
@@ -207,7 +207,7 @@ func (*resolver) ChannelsLeft(ctx context.Context, args struct {
 		args.UserID = c.AppContext.Session().UserId
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), args.UserID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
@@ -251,7 +251,7 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		return []*channelMember{{*member}}, nil
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), args.UserID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}
@@ -275,7 +275,7 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 	}
 
 	if args.TeamID != "" {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+		if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 			primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
 			if primaryTeam != "" {
 				team, appErr := c.App.GetTeamByName(primaryTeam)
@@ -321,7 +321,7 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 	}
 
 	// Fallback to primary team logic
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
+	if !c.App.SessionHasPermissionToTeam(c.AppContext, *c.AppContext.Session(), args.TeamID, model.PermissionViewTeam) {
 		primaryTeam := *c.App.Config().TeamSettings.ExperimentalPrimaryTeam
 		if primaryTeam != "" {
 			team, appErr := c.App.GetTeamByName(primaryTeam)
@@ -338,7 +338,7 @@ func (*resolver) SidebarCategories(ctx context.Context, args struct {
 		args.UserID = c.AppContext.Session().UserId
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), args.UserID) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), args.UserID) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return nil, c.Err
 	}

@@ -119,7 +119,7 @@ func (c *Context) LogErrorByCode(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	return c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionManageSystem)
 }
 
 func (c *Context) SessionRequired() {
@@ -198,7 +198,7 @@ func (c *Context) MfaRequired() {
 // ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
 // Session cookies will be resent to the client with updated max age.
 func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
-	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext.Session()); ok {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext, c.AppContext.Session()); ok {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 }

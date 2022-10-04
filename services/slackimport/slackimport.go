@@ -84,18 +84,18 @@ type slackComment struct {
 
 // Actions provides the actions that needs to be used for import slack data
 type Actions struct {
-	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
+	UpdateActive           func(request.CTX, *model.User, bool) (*model.User, *model.AppError)
 	AddUserToChannel       func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)
-	JoinUserToTeam         func(*model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
+	JoinUserToTeam         func(request.CTX, *model.Team, *model.User, string) (*model.TeamMember, *model.AppError)
 	CreateDirectChannel    func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
-	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
-	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
-	GenerateThumbnailImage func(image.Image, string)
-	GeneratePreviewImage   func(image.Image, string)
-	InvalidateAllCaches    func()
-	MaxPostSize            func() int
-	PrepareImage           func(fileData []byte) (image.Image, func(), error)
+	CreateChannel          func(request.CTX, *model.Channel, bool) (*model.Channel, *model.AppError)
+	DoUploadFile           func(request.CTX, time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
+	GenerateThumbnailImage func(request.CTX, image.Image, string)
+	GeneratePreviewImage   func(request.CTX, image.Image, string)
+	InvalidateAllCaches    func(request.CTX)
+	MaxPostSize            func(request.CTX) int
+	PrepareImage           func(c request.CTX, fileData []byte) (image.Image, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
@@ -199,7 +199,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 	posts = slackConvertChannelMentions(channels, posts)
 	posts = slackConvertPostsMarkup(posts)
 
-	addedUsers := si.slackAddUsers(teamID, users, log)
+	addedUsers := si.slackAddUsers(c, teamID, users, log)
 	botUser := si.slackAddBotUser(teamID, log)
 
 	si.slackAddChannels(c, teamID, channels, posts, addedUsers, uploads, botUser, log)
@@ -208,7 +208,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 		si.deactivateSlackBotUser(botUser)
 	}
 
-	si.actions.InvalidateAllCaches()
+	si.actions.InvalidateAllCaches(c)
 
 	log.WriteString(i18n.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
@@ -228,7 +228,7 @@ func truncateRunes(s string, i int) string {
 	return s
 }
 
-func (si *SlackImporter) slackAddUsers(teamId string, slackusers []slackUser, importerLog *bytes.Buffer) map[string]*model.User {
+func (si *SlackImporter) slackAddUsers(c request.CTX, teamId string, slackusers []slackUser, importerLog *bytes.Buffer) map[string]*model.User {
 	// Log header
 	importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.created"))
 	importerLog.WriteString("===============\r\n\r\n")
@@ -257,7 +257,7 @@ func (si *SlackImporter) slackAddUsers(teamId string, slackusers []slackUser, im
 		// Check for email conflict and use existing user if found
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
-			if _, err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
+			if _, err := si.actions.JoinUserToTeam(c, team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
 			} else {
 				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -544,8 +544,8 @@ func (si *SlackImporter) slackUploadFile(slackPostFile *slackFile, uploads map[s
 	return uploadedFile, true
 }
 
-func (si *SlackImporter) deactivateSlackBotUser(user *model.User) {
-	if _, err := si.actions.UpdateActive(user, false); err != nil {
+func (si *SlackImporter) deactivateSlackBotUser(c request.CTX, user *model.User) {
+	if _, err := si.actions.UpdateActive(c, user, false); err != nil {
 		mlog.Warn("Slack Import: Unable to deactivate the user account used for the bot.")
 	}
 }
@@ -701,7 +701,7 @@ func (si *SlackImporter) oldImportPost(post *model.Post) string {
 	return firstPostId
 }
 
-func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *model.User {
+func (si *SlackImporter) oldImportUser(c request.CTX, team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
 	user.Roles = model.SystemUserRoleId
@@ -716,7 +716,7 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 		mlog.Warn("Failed to set email verified.", mlog.Err(err))
 	}
 
-	if _, err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
+	if _, err := si.actions.JoinUserToTeam(c, team, user, ""); err != nil {
 		mlog.Warn("Failed to join team when importing.", mlog.Err(err))
 	}
 

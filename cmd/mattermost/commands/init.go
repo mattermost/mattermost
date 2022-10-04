@@ -21,8 +21,9 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool)
 		panic(err)
 	}
 
-	a.InitPlugins(request.EmptyContext(a.Log()), *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-	a.DoAppMigrations()
+	c := request.EmptyContext(a.Log())
+	a.InitPlugins(c, *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+	a.DoAppMigrations(c)
 
 	return a, nil
 }
@@ -54,7 +55,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	a := app.New(app.ServerConnector(s.Channels()))
 
 	if model.BuildEnterpriseReady == "true" {
-		a.Srv().LoadLicense()
+		a.Srv().LoadLicense(request.EmptyContext(a.Log()))
 	}
 
 	return a, nil
