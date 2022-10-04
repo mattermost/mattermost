@@ -975,8 +975,8 @@ type AppIface interface {
 	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
-	RestoreGroup(groupID string) (*model.Group, *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
+	RestoreGroup(groupID string) (*model.Group, *model.AppError)
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
