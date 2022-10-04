@@ -1783,7 +1783,29 @@ func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(c request.CTX, service str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime(c request.CTX) error {
+func (a *OpenTracingAppLayer) ComputeLastAccessibleFileTime(c request.CTX) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ComputeLastAccessibleFileTime")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ComputeLastAccessibleFileTime()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ComputeLastAccessiblePostTime")
 
@@ -6053,7 +6075,7 @@ func (a *OpenTracingAppLayer) GetFileInfos(c request.CTX, page int, perPage int,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPost")
 
@@ -6065,14 +6087,14 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(c request.CTX, postID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfosForPost(c, postID, fromMaster, includeDeleted)
+	resultVar0, resultVar1, resultVar2 := a.app.GetFileInfosForPost(c, postID, fromMaster, includeDeleted)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(c request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
@@ -6884,7 +6906,29 @@ func (a *OpenTracingAppLayer) GetKnownUsers(userID string) ([]string, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLastAccessibleFileTime(c request.CTX) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLastAccessibleFileTime")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetLastAccessibleFileTime()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLastAccessiblePostTime")
 

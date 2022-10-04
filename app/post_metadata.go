@@ -123,7 +123,7 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	}
 
 	// Files
-	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
+	if fileInfos, _, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
 		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
@@ -210,9 +210,9 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
-		return nil, nil
+		return nil, 0, nil
 	}
 
 	return a.GetFileInfosForPost(post.Id, fromMaster, false)

@@ -46,6 +46,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
 	"github.com/mattermost/mattermost-server/v6/jobs/notify_admin"
@@ -134,6 +135,7 @@ type Server struct {
 
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
+	goroutineBuffered   chan struct{}
 
 	EmailService email.ServiceInterface
 
@@ -208,6 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
+		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		WebSocketRouter: &WebSocketRouter{
@@ -1040,6 +1043,26 @@ func (s *Server) Go(f func()) {
 	}()
 }
 
+// GoBuffered acts like a semaphore which creates a goroutine, but maintains a record of it
+// to ensure that execution completes before the server is shutdown.
+func (s *Server) GoBuffered(f func()) {
+	s.goroutineBuffered <- struct{}{}
+
+	atomic.AddInt32(&s.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&s.goroutineCount, -1)
+		select {
+		case s.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+
+		<-s.goroutineBuffered
+	}()
+}
+
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
 func (s *Server) WaitForGoroutines() {
 	for atomic.LoadInt32(&s.goroutineCount) != 0 {
@@ -1849,6 +1872,12 @@ func (s *Server) initJobs(c request.CTX) {
 		model.JobTypeLastAccessiblePost,
 		last_accessible_post.MakeWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License(c)),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeLastAccessibleFile,
+		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(

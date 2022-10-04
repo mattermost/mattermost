@@ -1225,7 +1225,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.GetFileInfosForPost(post.Id, true, false)
+		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}
@@ -1235,7 +1235,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			}
 			// check md5
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.GetFile(c, oldFile.Id)
+			oldFileData, err := a.getFileIgnoreCloudLimit(c, oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}

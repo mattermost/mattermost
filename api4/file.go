@@ -482,6 +482,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 	auditRec.AddMeta("file", info)
@@ -514,6 +515,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -555,6 +557,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 	auditRec.AddMeta("file", info)
@@ -589,6 +592,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -622,6 +626,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -650,6 +655,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -822,5 +828,12 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
+	// File is inaccessible due to cloud plan's limit.
+	if appErr.Id == "app.file.cloud.get.app_error" {
+		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
 	}
 }
