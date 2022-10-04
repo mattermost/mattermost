@@ -770,20 +770,22 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		defer release()
 	}
 
-	// Fill in the background of a potentially-transparent png file as white
-	if imgType == "png" {
-		imaging.FillImageTransparency(decoded, image.White)
-	}
-
 	decoded = imaging.MakeImageUpright(decoded, t.imageOrientation)
 	if decoded == nil {
 		return
 	}
 
-	writeJPEG := func(img image.Image, path string) {
+	writeImage := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			err := t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
+			var err error
+			// It's okay to access imgType in a separate goroutine,
+			// because imgType is only written once and never written again.
+			if imgType == "png" {
+				err = t.imgEncoder.EncodePNG(w, img)
+			} else {
+				err = t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
+			}
 			if err != nil {
 				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 				w.CloseWithError(err)
@@ -798,18 +800,28 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		}
 	}
 
+	updateFilePathExt := func(imgType, path string) string {
+		if imgType == "png" {
+			path = strings.TrimSuffix(path, filepath.Ext(path)) + ".png"
+		}
+		return path
+	}
+
+	t.fileinfo.ThumbnailPath = updateFilePathExt(imgType, t.fileinfo.ThumbnailPath)
+	t.fileinfo.PreviewPath = updateFilePathExt(imgType, t.fileinfo.PreviewPath)
+
 	var wg sync.WaitGroup
 	wg.Add(3)
 	// Generating thumbnail and preview regardless of HasPreviewImage value.
 	// This is needed on mobile in case of animated GIFs.
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
+		writeImage(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
 	}()
 
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
+		writeImage(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
 	}()
 
 	go func() {
@@ -949,40 +961,33 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData[i]))
+		img, imgType, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
 		}
 		wg.Add(2)
-		go func(img image.Image, path string) {
+		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generateThumbnailImage(img, path)
-		}(img, thumbnailPathList[i])
+			a.generateThumbnailImage(img, imgType, path)
+		}(img, imgType, thumbnailPathList[i])
 
-		go func(img image.Image, path string) {
+		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generatePreviewImage(img, path)
-		}(img, previewPathList[i])
+			a.generatePreviewImage(img, imgType, path)
+		}(img, imgType, previewPathList[i])
 
 		wg.Wait()
 		release()
 	}
 }
 
-func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
+func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, imgType string, release func(), err error) {
 	// Decode image bytes into Image object
-	var imgType string
 	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
+		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-
-	// Fill in the background of a potentially-transparent png file as white
-	if imgType == "png" {
-		imaging.FillImageTransparency(img, image.White)
-	}
-
 	imgData.Seek(0, io.SeekStart)
 
 	// Flip the image to be upright
@@ -992,14 +997,23 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 	}
 	img = imaging.MakeImageUpright(img, orientation)
 
-	return img, release, nil
+	return img, imgType, release, nil
 }
 
-func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
+func (a *App) generateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
 	var buf bytes.Buffer
-	if err := a.ch.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
-		return
+
+	thumb := imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight)
+	if imgType == "png" {
+		if err := a.ch.imgEncoder.EncodePNG(&buf, thumb); err != nil {
+			mlog.Error("Unable to encode image as png", mlog.String("path", thumbnailPath), mlog.Err(err))
+			return
+		}
+	} else {
+		if err := a.ch.imgEncoder.EncodeJPEG(&buf, thumb, jpegEncQuality); err != nil {
+			mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
+			return
+		}
 	}
 
 	if _, err := a.WriteFile(&buf, thumbnailPath); err != nil {
@@ -1008,13 +1022,20 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	}
 }
 
-func (a *App) generatePreviewImage(img image.Image, previewPath string) {
+func (a *App) generatePreviewImage(img image.Image, imgType, previewPath string) {
 	var buf bytes.Buffer
-	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
-	if err := a.ch.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
-		return
+	preview := imaging.GeneratePreview(img, imagePreviewWidth)
+	if imgType == "png" {
+		if err := a.ch.imgEncoder.EncodePNG(&buf, preview); err != nil {
+			mlog.Error("Unable to encode image as preview png", mlog.Err(err), mlog.String("path", previewPath))
+			return
+		}
+	} else {
+		if err := a.ch.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
+			mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
+			return
+		}
 	}
 
 	if _, err := a.WriteFile(&buf, previewPath); err != nil {
@@ -1033,7 +1054,7 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer file.Close()
-		img, release, err := prepareImage(a.ch.imgDecoder, file)
+		img, _, release, err := prepareImage(a.ch.imgDecoder, file)
 		if err != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
