@@ -510,7 +510,7 @@ func TestGetCloudProducts(t *testing.T) {
 		// make a more explicit check
 		require.Equal(t, returnedProducts[0].ID, "prod_test1")
 		require.Equal(t, returnedProducts[0].Name, "name")
-		require.Equal(t, returnedProducts[0].SKU, "starter")
+		require.Equal(t, returnedProducts[0].SKU, cloudProducts[0].SKU)
 		require.Equal(t, returnedProducts[0].PricePerSeat, float64(10))
 		require.Equal(t, returnedProducts[0].Description, "")
 		require.Equal(t, returnedProducts[0].PriceID, "")
@@ -520,7 +520,7 @@ func TestGetCloudProducts(t *testing.T) {
 
 		require.Equal(t, returnedProducts[1].ID, "prod_test2")
 		require.Equal(t, returnedProducts[1].Name, "name2")
-		require.Equal(t, returnedProducts[1].SKU, "professional")
+		require.Equal(t, returnedProducts[1].SKU, cloudProducts[1].SKU)
 		require.Equal(t, returnedProducts[1].PricePerSeat, float64(100))
 		require.Equal(t, returnedProducts[1].Description, "")
 		require.Equal(t, returnedProducts[1].PriceID, "")
@@ -530,7 +530,7 @@ func TestGetCloudProducts(t *testing.T) {
 
 		require.Equal(t, returnedProducts[2].ID, "prod_test3")
 		require.Equal(t, returnedProducts[2].Name, "name3")
-		require.Equal(t, returnedProducts[2].SKU, "enterprise")
+		require.Equal(t, returnedProducts[2].SKU, cloudProducts[2].SKU)
 		require.Equal(t, returnedProducts[2].PricePerSeat, float64(1000))
 		require.Equal(t, returnedProducts[2].Description, "")
 		require.Equal(t, returnedProducts[2].PriceID, "")
