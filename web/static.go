@@ -6,6 +6,7 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"net/http"
 	"os"
 	"path"
@@ -83,18 +84,18 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	titleTemplate := "<title>%s</title>"
-	strToBeChanged := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
-	strToBeInserted := strToBeChanged
+	originalHTML := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
+	modifiedHTML := originalHTML
 	siteName := c.App.Srv().Config().TeamSettings.SiteName
 	ogDescriptionMetaTag := getOGDescriptionMetaTag(c)
-	if siteName != nil && model.TeamSettingsDefaultSiteName != *siteName {
-		strToBeInserted = fmt.Sprintf(titleTemplate, *siteName)
+	if siteName != nil && len(*siteName) > 0 {
+		modifiedHTML = fmt.Sprintf(titleTemplate, *siteName)
 	}
 	if ogDescriptionMetaTag != "" {
-		strToBeInserted = fmt.Sprintf("%s%s", strToBeInserted, ogDescriptionMetaTag)
+		modifiedHTML = fmt.Sprintf("%s%s", modifiedHTML, ogDescriptionMetaTag)
 	}
-	if strToBeChanged != strToBeInserted {
-		contents = bytes.ReplaceAll(contents, []byte(strToBeChanged), []byte(strToBeInserted))
+	if originalHTML != modifiedHTML {
+		contents = bytes.ReplaceAll(contents, []byte(originalHTML), []byte(modifiedHTML))
 	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(contents)
@@ -149,7 +150,7 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 func getOGDescriptionMetaTag(c *Context) string {
 	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
 	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
-	if customSiteDescription != nil && *customSiteDescription != siteDescription {
+	if customSiteDescription != nil && len(*customSiteDescription) > 0 {
 		siteDescription = *customSiteDescription
 	}
 
@@ -158,5 +159,5 @@ func getOGDescriptionMetaTag(c *Context) string {
 	}
 
 	ogDescriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
-	return fmt.Sprintf(ogDescriptionTemplate, siteDescription)
+	return fmt.Sprintf(ogDescriptionTemplate, html.EscapeString(siteDescription))
 }
