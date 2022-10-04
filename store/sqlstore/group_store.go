@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -1029,34 +1028,38 @@ func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupS
 }
 
 type group struct {
-	Id             string
-	Name           *string
-	DisplayName    string
-	Description    string
-	Source         model.GroupSource
-	RemoteId       *string
-	CreateAt       int64
-	UpdateAt       int64
-	DeleteAt       int64
-	HasSyncables   bool
-	MemberCount    *int
-	AllowReference bool
+	Id                          string
+	Name                        *string
+	DisplayName                 string
+	Description                 string
+	Source                      model.GroupSource
+	RemoteId                    *string
+	CreateAt                    int64
+	UpdateAt                    int64
+	DeleteAt                    int64
+	HasSyncables                bool
+	MemberCount                 *int
+	AllowReference              bool
+	ChannelMemberCount          *int
+	ChannelMemberTimezonesCount *int
 }
 
 func (g group) ToModel() *model.Group {
 	return &model.Group{
-		Id:             g.Id,
-		Name:           g.Name,
-		DisplayName:    g.DisplayName,
-		Description:    g.Description,
-		Source:         g.Source,
-		RemoteId:       g.RemoteId,
-		CreateAt:       g.CreateAt,
-		UpdateAt:       g.UpdateAt,
-		DeleteAt:       g.DeleteAt,
-		HasSyncables:   g.HasSyncables,
-		AllowReference: g.AllowReference,
-		MemberCount:    g.MemberCount,
+		Id:                          g.Id,
+		Name:                        g.Name,
+		DisplayName:                 g.DisplayName,
+		Description:                 g.Description,
+		Source:                      g.Source,
+		RemoteId:                    g.RemoteId,
+		CreateAt:                    g.CreateAt,
+		UpdateAt:                    g.UpdateAt,
+		DeleteAt:                    g.DeleteAt,
+		HasSyncables:                g.HasSyncables,
+		AllowReference:              g.AllowReference,
+		MemberCount:                 g.MemberCount,
+		ChannelMemberCount:          g.ChannelMemberCount,
+		ChannelMemberTimezonesCount: g.ChannelMemberTimezonesCount,
 	}
 }
 
@@ -1552,7 +1555,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if err != nil {
 		return nil, errors.Wrap(err, "get_groups_tosql")
 	}
-	mlog.Debug(queryString)
+
 	if err = s.GetReplicaX().Select(&groupsVar, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Groups")
 	}
