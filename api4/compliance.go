@@ -25,11 +25,12 @@ func (api *API) InitCompliance() {
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	var job model.Compliance
 	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
-		c.SetInvalidParam("compliance")
+		c.SetInvalidParamWithErr("compliance", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
+	auditRec.AddEventParameter("compliance", job)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateComplianceExportJob) {
@@ -46,13 +47,15 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec.Success()
+	auditRec.AddEventResultState(rjob)
+	auditRec.AddEventObjectType("compliance")
 	auditRec.AddMeta("compliance_id", rjob.Id)
 	auditRec.AddMeta("compliance_desc", rjob.Desc)
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rjob); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -73,7 +76,7 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(crs); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -91,6 +94,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventParameter("report_id", c.Params.ReportId)
 	job, err := c.App.GetComplianceReport(c.Params.ReportId)
 	if err != nil {
 		c.Err = err
@@ -102,7 +106,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("compliance_desc", job.Desc)
 
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -114,7 +118,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("downloadComplianceReport", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("compliance_id", c.Params.ReportId)
+	auditRec.AddEventParameter("compliance_id", c.Params.ReportId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionDownloadComplianceExportResult) {
 		c.SetPermissionError(model.PermissionDownloadComplianceExportResult)
@@ -126,8 +130,8 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("compliance_id", job.Id)
-	auditRec.AddMeta("compliance_desc", job.Desc)
+	auditRec.AddEventResultState(job)
+	auditRec.AddEventObjectType("compliance")
 
 	reportBytes, err := c.App.GetComplianceFile(job)
 	if err != nil {

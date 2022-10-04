@@ -730,12 +730,12 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 // - post creation (mentions handling)
 // - channel marked unread
 // - user explicitly following a thread
-func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (*model.ThreadMembership, error) {
+func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.ThreadMembershipOpts) (_ *model.ThreadMembership, err error) {
 	trx, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(trx)
+	defer finalizeTransactionX(trx, &err)
 
 	membership, err := s.getMembershipForUser(trx, userId, postId)
 	now := utils.MillisFromTime(time.Now())
@@ -934,4 +934,210 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	}
 
 	return unreadReplies, nil
+}
+
+// Top threads in all public channels and private channels userID is a member of. Returns a list of threads ranked by interactions.
+func (s *SqlThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	var args []any
+	query := `select
+		threads_list.PostId,
+		threads_list.ReplyCount,
+		threads_list.ChannelId,
+		threads_list.DisplayName,
+		threads_list.Name,
+		threads_list.Participants,
+		p.UserId
+	from((
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			t.Participants,
+			c.DisplayName,
+			c.Name
+		FROM
+			Threads t
+			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
+		WHERE
+			t.threaddeleteat IS NULL
+			AND t.LastReplyAt > ?
+			AND c.TeamId = ?
+		GROUP BY
+			t.PostId,
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)
+	UNION
+	ALL (
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			t.Participants,
+			c.DisplayName,
+			c.Name
+		FROM
+			Threads t
+			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
+			LEFT JOIN Channels c ON t.ChannelId = c.Id
+		WHERE
+			t.threaddeleteat IS NULL
+			AND cm.UserId = ?
+			AND c.Type = 'P'
+			AND c.TeamId = ?
+			AND t.LastReplyAt > ?
+		GROUP BY
+			t.PostId,
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)) as threads_list
+	LEFT JOIN Posts as p on p.Id = threads_list.PostId
+	ORDER BY ReplyCount DESC
+	limit ? offset ?`
+
+	args = append(args, since, teamID, userID, teamID, since, limit+1, offset)
+
+	topThreads := make([]*model.TopThread, 0)
+	err := s.GetReplicaX().Select(&topThreads, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
+	}
+	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
+	if err != nil {
+		return nil, err
+	}
+	return model.GetTopThreadListWithPagination(topThreads, limit), nil
+}
+
+func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	var args []any
+
+	// gets all threads within the team which user follows.
+	query := `select 
+		threads_list.PostId,
+		threads_list.ReplyCount,
+		threads_list.ChannelId,
+		threads_list.DisplayName,
+		threads_list.Name,
+		threads_list.Participants,
+		p.UserId
+	from((
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			t.Participants,
+			c.DisplayName,
+			c.Name
+		FROM
+			Threads t
+			LEFT JOIN PublicChannels c ON t.ChannelId = c.Id
+			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
+		WHERE
+			t.threaddeleteat IS NULL
+			AND t.LastReplyAt > ?
+			AND c.TeamId = ?
+			AND tm.UserId = ?
+            AND tm.Following = TRUE
+		GROUP BY
+			t.PostId,
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)
+	UNION
+	ALL (
+		SELECT
+			t.PostId,
+			t.ReplyCount,
+			t.ChannelId,
+			t.Participants,
+			c.DisplayName,
+			c.Name
+		FROM
+			Threads t
+			LEFT JOIN ChannelMembers cm ON t.ChannelId = cm.ChannelId
+			LEFT JOIN Channels c ON t.ChannelId = c.Id
+			LEFT JOIN ThreadMemberships as tm on t.PostId = tm.PostId
+		WHERE
+			cm.UserId = ?
+			AND c.Type = 'P'
+			AND c.TeamId = ?
+			AND t.threaddeleteat IS NULL
+			AND t.LastReplyAt > ?
+			AND tm.UserId = ?
+            AND tm.Following = TRUE
+		GROUP BY
+			t.PostId,
+			c.DisplayName,
+			c.Name,
+			t.Participants
+	)) as threads_list
+	LEFT JOIN Posts as p on p.Id = threads_list.PostId
+	ORDER BY ReplyCount DESC
+	limit ? offset ?`
+
+	args = append(args, since, teamID, userID, userID, teamID, since, userID, limit+1, offset)
+
+	topThreads := make([]*model.TopThread, 0)
+	err := s.GetReplicaX().Select(&topThreads, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get top threads=%s", teamID)
+	}
+	topThreads, err = postProcessTopThreads(topThreads, s, teamID)
+	if err != nil {
+		return nil, err
+	}
+	return model.GetTopThreadListWithPagination(topThreads, limit), nil
+}
+
+func userContains(userIDs []string, searchedUserID string) bool {
+	for _, userID := range userIDs {
+		if userID == searchedUserID {
+			return true
+		}
+	}
+	return false
+}
+
+func postProcessTopThreads(topThreads []*model.TopThread, s *SqlThreadStore, teamID string) ([]*model.TopThread, error) {
+	// create list of userIDs
+	var userIDs []string
+	for _, topThread := range topThreads {
+		userID := topThread.UserId
+		if !userContains(userIDs, userID) {
+			userIDs = append(userIDs, userID)
+		}
+	}
+
+	usersMap := map[string]*model.User{}
+
+	users, err := s.User().GetProfileByIds(context.Background(), userIDs, &store.UserGetByIdsOpts{}, true)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get users for top threads in team=%s", teamID)
+	}
+	for _, user := range users {
+		usersMap[user.Id] = user
+	}
+
+	// resolve user, root post for each top thread
+	for _, topThread := range topThreads {
+		postCreator := usersMap[topThread.UserId]
+		topThread.UserInformation = &model.InsightUserInformation{
+			Id:                postCreator.Id,
+			LastPictureUpdate: postCreator.LastPictureUpdate,
+			FirstName:         postCreator.FirstName,
+			LastName:          postCreator.LastName,
+			Username:          postCreator.Username,
+			NickName:          postCreator.Nickname,
+		}
+		post, err := s.Post().GetSingle(topThread.PostId, false)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get extended post for post id=%s", topThread.PostId)
+		}
+		topThread.Post = post
+	}
+	return topThreads, nil
 }

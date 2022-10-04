@@ -12,7 +12,7 @@ import (
 //
 // There are a number  of send channels (`MaxConcurrentSends`) to allow for sending to multiple
 // remotes concurrently, while preserving message order for each remote.
-func (rcs *Service) enqueueTask(ctx context.Context, remoteId string, task interface{}) error {
+func (rcs *Service) enqueueTask(ctx context.Context, remoteId string, task any) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}

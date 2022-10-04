@@ -1080,10 +1080,6 @@
     "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "无法上传文件。指定的文件数不匹配。"
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "无法上传超过最大尺寸的文件：{{.Filename}}"
   },
@@ -1853,7 +1849,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "查看消息"
+    "translation": "在 Mattermost 中回复"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3150,10 +3146,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "ElasticSearch 已停止。"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "连接 Elasticsearch 服务器失败。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5829,7 +5821,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5837,11 +5829,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "版本 12+"
+    "translation": "版本 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 78+"
+    "translation": "版本 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5849,7 +5841,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 89+"
+    "translation": "版本 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -6162,10 +6154,6 @@
   {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "永久删除团队功能未开启。请联系系统管理员。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "无法请求试用许可证。请在 Mattermost 系统控制台设置站点网址。"
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -7472,10 +7460,6 @@
     "translation": "无法获取帖子的文件信息。"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "立刻修复"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "随时通过电子邮件发送给我们 "
   },
@@ -7566,10 +7550,6 @@
   {
     "id": "app.insert_error",
     "translation": "插入出错"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "无法封装响应。"
   },
   {
     "id": "app.group.uniqueness_error",
@@ -8161,7 +8141,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "您的{{.WorkSpace}}工作区的 14 天试用已准备就绪！"
+    "translation": "您工作区的 14 天试用已准备就绪！"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8524,14 +8504,6 @@
     "translation": "无法邀请来自其他地方的共享频道到安全连接。"
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost 云试用已结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "开始订阅"
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "图像限制检查失败。分辨率过高。"
   },
@@ -8712,22 +8684,6 @@
     "translation": "立刻续订"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "您的 Mattermost 14 天免费试用即将结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost 云试用结束"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "添加付款方式"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "您的 Mattermost 14 天免费试用已结束"
-  },
-  {
     "id": "sharedchannel.permalink.not_found",
     "translation": "这帖子包含指向其他频道的永久链接，其他网站的用户可能无法看到。"
   },
@@ -8872,14 +8828,6 @@
     "translation": "Mattermost 是一个灵活的开源通讯平台，可实现安全的团队协作。"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 14 天试用将于 3 天后于 {{.TrialEnd}} 结束。请添加您的付款信息，以确保您的团队可以继续享受 Mattermost 云的好处。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}，您的 Mattermost 企业云 14 天免费试用已于{{.TodayDate}}结束，。请添加您的付款信息，以确保您的团队可以继续享受企业云的好处。"
-  },
-  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "功能需要升级到企业版。"
   },
@@ -8942,10 +8890,6 @@
   {
     "id": "app.notification.body.thread_channel.subTitle",
     "translation": "当您不在时，{{.SenderName}} 回复了您关注的话题。"
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "处理批量导入附件时出错。"
   },
   {
     "id": "api.unmarshal_error",
@@ -9029,7 +8973,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": "Bleve  Bulk索引的的大小，不能小于{{.BatchSize}}."
+    "translation": "Bleve  Bulk索引的的大小不能小于{{.BatchSize}}."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9060,14 +9004,6 @@
     "translation": "无法按类型和状态获取所有工作内容。"
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " 添加该组的用户名冲突 "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " 获取该组的用户名失败 "
-  },
-  {
     "id": "app.group.crud_permission",
     "translation": "无法展现/执行此源类型。"
   },
@@ -9078,10 +9014,6 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "无法统计该频道的文件数量"
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " 该用户组无效 "
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9097,7 +9029,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "嗨!打开最重要的事情，以提高您的团队的生产力!"
+    "translation": "快来打开 Mattermost 以提高您团队的生产力！"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9129,7 +9061,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的{{ .ChannelName }} 频道"
+    "translation": "{{ .SenderName }} 邀请您加入 {{ .TeamDisplayName }} 团队的 {{ .ChannelName }} 频道"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
@@ -9141,7 +9073,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "您的“ {{.WorkspaceName}}” 工作空间现在已经升级。您将收到{{.TrialEnd}}的账单通知"
+    "translation": "您的“ {{.WorkspaceName}}”工作空间现在已经升级。您将从{{.TrialEnd}}开始收到账单通知"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9173,7 +9105,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " 禁用“观点”功能 "
+    "translation": "Insights 位于未启用的特性标志后面。"
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9254,5 +9186,97 @@
   {
     "id": "app.recent_searches.app_error",
     "translation": "获取最近搜索错误"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "无法获取团队使用情况"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights 功能已禁用。"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "您收到这封一次性电子邮件是因为您的 Mattermost 服务器处于非活动状态超过 {{.Hours}} 小时。 本电子邮件是由您的 Mattermost 服务器自动生成。"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "不支持通过 mmctl 上传到 Cloud 实例。 请在此处查看文档：https://docs.mattermost.com/manage/cloud-data-export.html。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "无法恢复团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "无法创建团队，因为已达到团队限制"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "从 webhook 更新订阅时出错。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理员"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "无效的解码器并发 {{.Value}}。 应该是正数或 -1。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch 批量索引的批量大小必须至少是 {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "无效的超时值 {{.Value}}.应该是一个正数。"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "无法将值：{{.Value}} 解析为 int64"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "无法获取存储使用情况。"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "无法从上传的数据生成文件信息。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "无法获得团队人数"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "清除团队成员缓存时出错"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "无法为用户获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "无法为团队获取顶级线程。"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "无法为用户获取顶级 DMs。"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "无法获取帖子，因为它超过了云的计划限制。"
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "获取最后可访问的帖子时出错"
   }
 ]

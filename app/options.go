@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,7 +21,7 @@ type Option func(s *Server) error
 // construct an app with a different store.
 //
 // The override parameter must be either a store.Store or func(App) store.Store().
-func StoreOverride(override interface{}) Option {
+func StoreOverride(override any) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:
@@ -52,7 +53,21 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 			return errors.Wrap(err, "failed to apply Config option")
 		}
 
-		s.configStore = &configWrapper{srv: s, Store: configStore}
+		platformCfg := platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Cluster:      s.Cluster,
+		}
+		if metricsInterface != nil {
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
+		}
+
+		ps, sErr := platform.New(platformCfg)
+		if sErr != nil {
+			return errors.Wrap(sErr, "failed to initialize platform")
+		}
+		s.platform = ps
+
 		return nil
 	}
 }
@@ -60,7 +75,20 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 // ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore *config.Store) Option {
 	return func(s *Server) error {
-		s.configStore = &configWrapper{srv: s, Store: configStore}
+		platformCfg := platform.ServiceConfig{
+			ConfigStore:  configStore,
+			StartMetrics: s.startMetrics,
+			Cluster:      s.Cluster,
+		}
+		if metricsInterface != nil {
+			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
+		}
+
+		ps, sErr := platform.New(platformCfg)
+		if sErr != nil {
+			return errors.Wrap(sErr, "failed to initialize platform")
+		}
+		s.platform = ps
 
 		return nil
 	}
@@ -97,9 +125,15 @@ func StartSearchEngine(s *Server) error {
 	return nil
 }
 
+// SetLogger requires platform service to be initialized before calling.
+// If not, logger should be set after platform service are initialized.
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
-		s.Log = logger
+		if s.platform == nil {
+			return errors.New("platform service is not initialized")
+		}
+
+		s.platform.SetLogger(logger)
 		return nil
 	}
 }

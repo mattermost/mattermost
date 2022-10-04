@@ -39,7 +39,7 @@ type LinkMetadata struct {
 	// - *model.PostImage if the linked content is an image
 	// - *opengraph.OpenGraph if the linked content is an HTML document
 	// - nil if the linked content has no metadata
-	Data interface{}
+	Data any
 }
 
 // truncateText ensure string is 300 chars, truncate and add ellipsis
@@ -143,7 +143,7 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 		return nil
 	}
 
-	var data interface{}
+	var data any
 	var err error
 
 	switch o.Type {

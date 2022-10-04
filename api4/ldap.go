@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type mixedUnlinkedGroup struct {
@@ -51,7 +52,10 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeRemovedMembers bool `json:"include_removed_members"`
 	}
 	var opts LdapSyncOptions
-	json.NewDecoder(r.Body).Decode(&opts)
+	err := json.NewDecoder(r.Body).Decode(&opts)
+	if err != nil {
+		c.Logger.Warn("Error decoding LDAP sync options", mlog.Err(err))
+	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -107,9 +111,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.IsConfigured = c.Params.IsConfigured
 	}
 
-	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
-	if err != nil {
-		c.Err = err
+	groups, total, appErr := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -126,12 +130,12 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		mugs = append(mugs, mug)
 	}
 
-	b, marshalErr := json.Marshal(struct {
+	b, err := json.Marshal(struct {
 		Count  int                   `json:"count"`
 		Groups []*mixedUnlinkedGroup `json:"groups"`
 	}{Count: total, Groups: mugs})
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -151,18 +155,19 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("linkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
 
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	ldapGroup, err := c.App.GetLdapGroup(c.Params.RemoteId)
-	if err != nil {
-		c.Err = err
+	ldapGroup, appErr := c.App.GetLdapGroup(c.Params.RemoteId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+
 	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
@@ -170,9 +175,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
-	if err != nil && err.Id != "app.group.no_rows" {
-		c.Err = err
+	group, appErr := c.App.GetGroupByRemoteID(ldapGroup.GetRemoteId(), model.GroupSourceLdap)
+	if appErr != nil && appErr.Id != "app.group.no_rows" {
+		c.Err = appErr
 		return
 	}
 	if group != nil {
@@ -198,11 +203,13 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			group.DeleteAt = 0
 			group.DisplayName = displayName
 			group.RemoteId = ldapGroup.RemoteId
-			newOrUpdatedGroup, err = c.App.UpdateGroup(group)
-			if err != nil {
-				c.Err = err
+			newOrUpdatedGroup, appErr = c.App.UpdateGroup(group)
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
+			auditRec.AddEventResultState(newOrUpdatedGroup)
+			auditRec.AddEventObjectType("group")
 		}
 		status = http.StatusOK
 	} else {
@@ -215,17 +222,19 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
 		}
-		newOrUpdatedGroup, err = c.App.CreateGroup(newGroup)
-		if err != nil {
-			c.Err = err
+		newOrUpdatedGroup, appErr = c.App.CreateGroup(newGroup)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
+		auditRec.AddEventResultState(newOrUpdatedGroup)
+		auditRec.AddEventObjectType("group")
 		status = http.StatusCreated
 	}
 
-	b, marshalErr := json.Marshal(newOrUpdatedGroup)
-	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+	b, err := json.Marshal(newOrUpdatedGroup)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -243,7 +252,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("unlinkLdapGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+	auditRec.AddEventParameter("remote_id", c.Params.RemoteId)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
@@ -260,14 +269,16 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group", group)
+	auditRec.AddEventPriorState(group)
+	auditRec.AddEventObjectType("group")
 
 	if group.DeleteAt == 0 {
-		_, err = c.App.DeleteGroup(group.Id)
+		deletedGroup, err := c.App.DeleteGroup(group.Id)
 		if err != nil {
 			c.Err = err
 			return
 		}
+		auditRec.AddEventResultState(deletedGroup)
 	}
 
 	auditRec.Success()
@@ -283,6 +294,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
+	auditRec.AddEventParameter("props", props)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -338,7 +350,7 @@ func addLdapPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 
 	auditRec := c.MakeAuditRecord("addLdapPublicCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	if err := c.App.AddLdapPublicCertificate(fileData); err != nil {
 		c.Err = err
@@ -362,7 +374,7 @@ func addLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord("addLdapPrivateCertificate", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("filename", fileData.Filename)
+	auditRec.AddEventParameter("filename", fileData.Filename)
 
 	if err := c.App.AddLdapPrivateCertificate(fileData); err != nil {
 		c.Err = err

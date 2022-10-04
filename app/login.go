@@ -74,7 +74,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
-				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		// If token is stored in the database that means it was used
 		if token != nil {
@@ -222,7 +222,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 
@@ -331,6 +331,11 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
+
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if a.Channels().License() != nil && *a.Channels().License().Features.Cloud {
+		a.AttachCloudSessionCookie(c, w, r)
+	}
 }
 
 func GetProtocol(r *http.Request) string {

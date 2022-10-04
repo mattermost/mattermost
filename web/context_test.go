@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
@@ -43,7 +42,7 @@ func TestCloudKeyRequired(t *testing.T) {
 
 	c := &Context{
 		App:        th.App,
-		AppContext: &request.Context{},
+		AppContext: th.Context,
 	}
 
 	c.CloudKeyRequired()

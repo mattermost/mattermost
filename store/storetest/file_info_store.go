@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("GetFilesBatchForIndexing", func(t *testing.T) { testFileInfoStoreGetFilesBatchForIndexing(t, ss) })
 	t.Run("CountAll", func(t *testing.T) { testFileInfoStoreCountAll(t, ss) })
 	t.Run("GetStorageUsage", func(t *testing.T) { testFileInfoGetStorageUsage(t, ss) })
+	t.Run("GetUptoNSizeFileTime", func(t *testing.T) { testGetUptoNSizeFileTime(t, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, ss store.Store) {
@@ -730,6 +732,11 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	_, err := ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
 	require.NoError(t, err)
+
+	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), usage)
+
 	f1, err := ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
@@ -753,7 +760,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	usage, err := ss.FileInfo().GetStorageUsage(false, false)
+	usage, err = ss.FileInfo().GetStorageUsage(false, false)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
 
@@ -766,4 +773,72 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 	usage, err = ss.FileInfo().GetStorageUsage(false, true)
 	require.NoError(t, err)
 	require.Equal(t, int64(30), usage)
+}
+
+func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
+	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
+	assert.Error(t, err)
+	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
+	assert.Error(t, err)
+
+	_, err = ss.FileInfo().PermanentDeleteBatch(model.GetMillis(), 100000)
+	require.NoError(t, err)
+
+	diff := int64(10000)
+	now := utils.MillisFromTime(time.Now()) + diff
+
+	f1, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file1.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	f2, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file2.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	f3, err := ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file3.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+	now = now + diff
+	_, err = ss.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Size:      10,
+		Path:      "file4.txt",
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+
+	createAt, err := ss.FileInfo().GetUptoNSizeFileTime(20)
+	require.NoError(t, err)
+	assert.Equal(t, f3.CreateAt, createAt)
+
+	_, err = ss.FileInfo().GetUptoNSizeFileTime(5)
+	assert.Error(t, err)
+	assert.IsType(t, &store.ErrNotFound{}, err)
+
+	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(1000)
+	require.NoError(t, err)
+	assert.Equal(t, f1.CreateAt, createAt)
+
+	_, err = ss.FileInfo().DeleteForPost(f3.PostId)
+	require.NoError(t, err)
+
+	createAt, err = ss.FileInfo().GetUptoNSizeFileTime(20)
+	require.NoError(t, err)
+	assert.Equal(t, f2.CreateAt, createAt)
 }

@@ -103,7 +103,7 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
-			nil, "", http.StatusNotImplemented)
+			nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -150,7 +150,7 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Write the response values to the output upon return
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(fileUploadResponse); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -165,15 +165,15 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 
 	auditRec := c.MakeAuditRecord("uploadFileSimple", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
 
 	clientId := r.Form.Get("client_id")
-	auditRec.AddMeta("client_id", clientId)
+	auditRec.AddEventParameter("client_id", clientId)
 
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FileTeamId),
@@ -254,7 +254,7 @@ NextPart:
 			if err != nil && err != io.EOF {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
-					map[string]interface{}{"Formname": formname},
+					map[string]any{"Formname": formname},
 					err.Error(), http.StatusBadRequest)
 				return nil
 			}
@@ -312,7 +312,7 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return nil
 		}
@@ -335,8 +335,8 @@ NextPart:
 		}
 
 		auditRec := c.MakeAuditRecord("uploadFileMultipart", audit.Fail)
-		auditRec.AddMeta("channel_id", c.Params.ChannelId)
-		auditRec.AddMeta("client_id", clientId)
+		auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+		auditRec.AddEventParameter("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
 			app.UploadFileSetTeamId(FileTeamId),
@@ -367,7 +367,7 @@ NextPart:
 	if expectClientIds && len(clientIds) != nFiles {
 		c.Err = model.NewAppError("uploadFileMultipart",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": nFiles},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": nFiles},
 			"", http.StatusBadRequest)
 		return nil
 	}
@@ -401,7 +401,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -412,7 +412,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if len(clientIds) != 0 && len(clientIds) != len(fileHeaders) {
 		c.Err = model.NewAppError("uploadFilesMultipartBuffered",
 			"api.file.upload_file.incorrect_number_of_client_ids.app_error",
-			map[string]interface{}{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
+			map[string]any{"NumClientIds": len(clientIds), "NumFiles": len(fileHeaders)},
 			"", http.StatusBadRequest)
 		return nil
 	}
@@ -438,8 +438,8 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 
 		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", audit.Fail)
 		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("channel_id", channelId)
-		auditRec.AddMeta("client_id", clientId)
+		auditRec.AddEventParameter("channel_id", channelId)
+		auditRec.AddEventParameter("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
 			app.UploadFileSetTeamId(FileTeamId),
@@ -477,11 +477,12 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("force_download", forceDownload)
+	auditRec.AddEventParameter("force_download", forceDownload)
 
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 	auditRec.AddMeta("file", info)
@@ -514,6 +515,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -545,7 +547,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().FileSettings.EnablePublicLink {
-		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -555,6 +557,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 	auditRec.AddMeta("file", info)
@@ -589,6 +592,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -622,6 +626,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -632,7 +637,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -643,13 +648,14 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !*c.App.Config().FileSettings.EnablePublicLink {
-		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
+		setInaccessibleFileHeader(w, err)
 		return
 	}
 
@@ -759,7 +765,7 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	var params model.SearchParameter
 	jsonErr := json.NewDecoder(r.Body).Decode(&params)
 	if jsonErr != nil {
-		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 
@@ -821,6 +827,13 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := json.NewEncoder(w).Encode(results); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func setInaccessibleFileHeader(w http.ResponseWriter, appErr *model.AppError) {
+	// File is inaccessible due to cloud plan's limit.
+	if appErr.Id == "app.file.cloud.get.app_error" {
+		w.Header().Set(model.HeaderFirstInaccessibleFileTime, "1")
 	}
 }

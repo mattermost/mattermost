@@ -137,19 +137,19 @@ func (s SqlStatusStore) updateExpiredStatuses(t *sqlxTxWrapper) ([]*model.Status
 	return statuses, nil
 }
 
-func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+func (s SqlStatusStore) UpdateExpiredDNDStatuses() (_ []*model.Status, err error) {
 	if s.DriverName() == model.DatabaseDriverMysql {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
-		statuses, err := s.updateExpiredStatuses(transaction)
-		if err != nil {
-			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")
+		defer finalizeTransactionX(transaction, &terr)
+		statuses, terr := s.updateExpiredStatuses(transaction)
+		if terr != nil {
+			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: updateExpiredDNDStatusesT")
 		}
-		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "UpdateExpiredDNDStatuses: commit_transaction")
+		if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "UpdateExpiredDNDStatuses: commit_transaction")
 		}
 
 		for _, status := range statuses {

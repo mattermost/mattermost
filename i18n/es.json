@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "No se puede encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": "No se puede encontrar los usuarios: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1080,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1352,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": "{{.Count}} archivos enviados: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": "{{.Count}} imágenes enviadas: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -3154,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch ya fue detenido."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "La conexión al servidor Elasticsearch no pudo establecer."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5956,10 +5952,6 @@
     "translation": "No se puede obtener el mensaje pendiente."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "No se puede cargar el archivo. ID de canal incorrecto: {{.channelId}}"
   },
@@ -7596,10 +7588,6 @@
     "translation": "error al insertar"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Incapaz de ordenar la respuesta."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "el miembro del grupo ya existe"
   },
@@ -7674,10 +7662,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Arreglar ahora"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7862,10 +7846,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Error al generar la contraseña."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error al procesar archivos adjuntos de importación masiva."
   },
   {
     "id": "app.import.attachment.read_file_data.error",
@@ -8112,10 +8092,6 @@
     "translation": "Agiliza tu trabajo con herramientas como Github, Jira y Zoom. Explora todas las integraciones que tenemos en nuestro"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Tu prueba gratuita de 14 días de Mattermost finaliza pronto"
-  },
-  {
     "id": "api.command_share.unknown_action",
     "translation": "Acción desconocida `{{.Action}}`. Acciones disponibles: {{.Actions}}"
   },
@@ -8142,34 +8118,6 @@
   {
     "id": "api.command_remote.missing_command",
     "translation": "Falta el comando. Acciones disponibles: {{.Actions}}"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, su prueba de 14 días de Mattermost finaliza en 3 días, en {{.TrialEnd}}. Por favor, añada su información de pago para garantizar que su equipo pueda seguir disfrutando de los beneficios de Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Fin de la prueba de la nube de Mattermost"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Añadir método de pago"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Su prueba gratuita de 14 días de Mattermost ha terminado hoy"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, su prueba gratuita de 14 días de Mattermost Cloud Enterprise ha terminado hoy, {{.TodayDate}}. Por favor, añada su información de pago para asegurarse de que su equipo pueda seguir disfrutando de los beneficios de Cloud Enterprise."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "La prueba en la nube de Mattermost ha terminado"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Iniciar la suscripción"
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9030,5 +8978,297 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": " "
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": " "
+  },
+  {
+    "id": "Boards",
+    "translation": " "
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": " "
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": " "
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": " "
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": " "
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": " "
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": " "
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": " "
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.member_count",
+    "translation": " "
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": " "
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": " "
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": " "
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": " "
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": " "
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": " "
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": " "
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": " "
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.system.complete_onboarding_request.no_first_user",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license_error",
+    "translation": " "
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": " "
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": " "
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": " "
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": " "
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": " "
+  },
+  {
+    "id": "Playbooks",
+    "translation": " "
+  },
+  {
+    "id": "Channels",
+    "translation": " "
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
+    "translation": " "
   }
 ]

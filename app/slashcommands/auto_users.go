@@ -57,9 +57,9 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	}
 	_, err = a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
-		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
+	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
 		var limitExceededErr *store.ErrLimitExceeded
@@ -67,18 +67,18 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		case errors.As(nErr, &conflictErr):
-			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.conflict.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &limitExceededErr):
-			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.max_accounts.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	return nil
 }
 
-func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, error) {
+func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error) {
 	var userEmail string
 	var userName string
 	if cfg.Fuzzy {
@@ -113,7 +113,7 @@ func (cfg *AutoUserCreator) createRandomUser(c *request.Context) (*model.User, e
 	return ruser, nil
 }
 
-func (cfg *AutoUserCreator) CreateTestUsers(c *request.Context, num utils.Range) ([]*model.User, error) {
+func (cfg *AutoUserCreator) CreateTestUsers(c request.CTX, num utils.Range) ([]*model.User, error) {
 	numUsers := utils.RandIntFromRange(num)
 	users := make([]*model.User, numUsers)
 

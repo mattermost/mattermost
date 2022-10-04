@@ -15,7 +15,6 @@ import (
 // from multiple Mattermost applications, and the Mattermost service itself does not
 // have any S3 credentials.
 type customTransport struct {
-	base   http.RoundTripper
 	host   string
 	scheme string
 	client http.Client

@@ -10,12 +10,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates the Cloud Freemium limits
+// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
 func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
-	if !a.Config().FeatureFlags.CloudFree {
-		return nil
-	}
-
 	appErr := a.checkIntegrationLimitsForConfigSave(oldConfig, newConfig)
 	if appErr != nil {
 		return appErr
@@ -50,17 +46,17 @@ func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.App
 func (a *App) GetPostsUsage() (int64, *model.AppError) {
 	count, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true, AllowFromCache: true})
 	if err != nil {
-		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return utils.RoundOffToZeroes(float64(count)), nil
+	return utils.RoundOffToZeroesResolution(float64(count), 3), nil
 }
 
 // GetStorageUsage returns the sum of files' sizes stored on this instance
 func (a *App) GetStorageUsage() (int64, *model.AppError) {
 	usage, err := a.Srv().Store.FileInfo().GetStorageUsage(true, false)
 	if err != nil {
-		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return usage, nil
 }
@@ -70,7 +66,7 @@ func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
 	includeDeleted := false
 	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &includeDeleted})
 	if err != nil {
-		return nil, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	usage.Active = teamCount

@@ -36,11 +36,11 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		}
 		postList, err := scs.server.GetStore().Post().Get(context.Background(), postID, opts, "", map[string]bool{})
 		if err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
 			return msg
 		}
 		if len(postList.Order) == 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "No post found for permalink", mlog.String("postID", postID))
 			return msg
 		}
 
@@ -66,7 +66,7 @@ func (scs *Service) processPermalinkFromRemote(p *model.Post, team *model.Team) 
 		// Extract host name
 		parsed, err := url.Parse(remoteLink)
 		if err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceWarn, "Unable to parse the remote link during replacing permalinks", mlog.Err(err))
 			return remoteLink
 		}
 

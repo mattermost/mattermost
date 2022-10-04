@@ -1084,10 +1084,6 @@
     "translation": "Не удалось загрузить файл(ы). Есть {{.NumClientIds}} client_id для {{.NumFiles}} файлов."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не удалось загрузить файлы. Неверное количество указанных файлов."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Размер файла превышает максимальный размер и не может быть загружен: {{.Filename}}"
   },
@@ -3158,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch уже остановлен."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не удалось подключиться к серверу Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5976,10 +5968,6 @@
     "translation": "Не удалось получить реакции для данного сообщения."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Невозможно запросить пробную лицензию. Пожалуйста, настройте URL сайта в разделе Системная консоль веб-сервера Mattermost."
-  },
-  {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "Вы должны принять Соглашение об оценке программного обеспечения Mattermost и Политику конфиденциальности, чтобы запросить лицензию."
   },
@@ -7021,7 +7009,7 @@
   },
   {
     "id": "app.channel.pinned_posts.app_error",
-    "translation": "Не удалось найти прикрепленные сообщения."
+    "translation": "Не удалось найти закрепленные сообщения."
   },
   {
     "id": "app.channel.permanent_delete_members_by_user.app_error",
@@ -7784,10 +7772,6 @@
     "translation": "ошибка insert"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Невозможно организовать ответ."
-  },
-  {
     "id": "app.import.attachment.read_file_data.error",
     "translation": "Не удалось прочитать аттачмент при импорте."
   },
@@ -7962,10 +7946,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Ваше финансовое учреждение отклонило платёж вашей карты {{.CardBrand}}. ****{{.LastFour}}, связанный с вашим рабочим пространством Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Исправить сейчас"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -8672,18 +8652,6 @@
     "translation": "Не удалось отправить автоматический ответ от пользователя."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная подписка на Mattermost скоро закончится"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавить способ оплаты"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "Отображаемое название безопасного соединения"
   },
@@ -8694,18 +8662,6 @@
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
     "translation": "Не удалось сбросить поле AuthData в Email."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Ваша бесплатная 14-дневная пробная версия Mattermost закончилась сегодня"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Завершение пробной подписки на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Начать подписку"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -8876,10 +8832,6 @@
     "translation": "Пока вас не было, {{.SenderName}} отправил вам новое личное сообщение."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Ошибка при обработке вложений сгруппированного импорта."
-  },
-  {
     "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": "Список администраторов пуст."
   },
@@ -8942,14 +8894,6 @@
   {
     "id": "api.templates.invite_body.title.reminder",
     "translation": "Напоминание"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, Ваша 14-дневная пробная версия Mattermost заканчивается через 3 дня {{.TrialEnd}}. Пожалуйста, добавьте свою платежную информацию, чтобы Ваша команда могла продолжать пользоваться преимуществами Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, ваша 14-дневная бесплатная пробная версия Mattermost Cloud Enterprise закончилась сегодня, {{.TodayDate}}. Добавьте платежную информацию, чтобы ваша команда могла продолжать пользоваться преимуществами Cloud Enterprise. Если вы не добавите свою платежную информацию в течение 30 дней, мы навсегда удалим вашу рабочую область в облаке, и вы потеряете все связанные с ней данные."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
@@ -9072,10 +9016,6 @@
     "translation": "ошибка подсчета групп"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Имя конфликтует с существующим системным именем эмодзи."
   },
@@ -9110,26 +9050,6 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "имя группы не уникально"
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
@@ -9184,22 +9104,6 @@
     "translation": "Гостевой доступ к указанному "
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "Максимальная длина MattermostAppID — 32 символа."
   },
@@ -9218,14 +9122,6 @@
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": "Недопустимый post_id"
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9250,10 +9146,6 @@
   {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Недопустимое название канала"
-  },
-  {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
@@ -9286,14 +9178,6 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "В настройки электронной почты есть не заданные значения."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",

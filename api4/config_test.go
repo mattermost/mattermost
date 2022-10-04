@@ -6,7 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -252,9 +252,6 @@ func TestUpdateConfig(t *testing.T) {
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		defer th.App.Srv().RemoveLicense()
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud
@@ -536,7 +533,7 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 }
 
 func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
-	logFile, err := ioutil.TempFile("", "adv.log")
+	logFile, err := os.CreateTemp("", "adv.log")
 	require.NoError(t, err)
 	defer os.Remove(logFile.Name())
 
@@ -572,12 +569,13 @@ func TestUpdateConfigDiffInAuditRecord(t *testing.T) {
 
 	require.NoError(t, logFile.Sync())
 
-	data, err := ioutil.ReadAll(logFile)
+	data, err := io.ReadAll(logFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, data)
+
 	require.Contains(t, string(data),
-		fmt.Sprintf(`"diff":"[{Path:ServiceSettings.ReadTimeout BaseVal:%d ActualVal:%d}]"`,
-			timeoutVal, timeoutVal+1))
+		fmt.Sprintf(`"config_diffs":[{"actual_val":%d,"base_val":%d,"path":"ServiceSettings.ReadTimeout"}]`,
+			timeoutVal+1, timeoutVal))
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
@@ -598,7 +596,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 		serviceSettings, ok := envConfig["ServiceSettings"]
 		require.True(t, ok, "should've returned ServiceSettings")
 
-		serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{})
+		serviceSettingsAsMap, ok := serviceSettings.(map[string]any)
 		require.True(t, ok, "should've returned ServiceSettings as a map")
 
 		siteURL, ok := serviceSettingsAsMap["SiteURL"]
@@ -857,9 +855,6 @@ func TestPatchConfig(t *testing.T) {
 	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		defer th.App.Srv().RemoveLicense()
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 
 		cloud := &mocks.CloudInterface{}
 		cloudImpl := th.App.Srv().Cloud
@@ -960,7 +955,7 @@ func TestMigrateConfig(t *testing.T) {
 		file, err := json.MarshalIndent(cfg, "", "  ")
 		require.NoError(t, err)
 
-		err = ioutil.WriteFile("from.json", file, 0644)
+		err = os.WriteFile("from.json", file, 0644)
 		require.NoError(t, err)
 
 		defer os.Remove("from.json")

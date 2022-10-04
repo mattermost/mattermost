@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
@@ -36,7 +35,7 @@ func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandRe
 	if strings.TrimSpace(strings.Split(contentType, ";")[0]) == "application/json" {
 		return CommandResponseFromJSON(body)
 	}
-	if b, err := ioutil.ReadAll(body); err == nil {
+	if b, err := io.ReadAll(body); err == nil {
 		return CommandResponseFromPlainText(string(b)), nil
 	}
 	return nil, nil
@@ -49,7 +48,7 @@ func CommandResponseFromPlainText(text string) *CommandResponse {
 }
 
 func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
-	b, err := ioutil.ReadAll(data)
+	b, err := io.ReadAll(data)
 	if err != nil {
 		return nil, err
 	}

@@ -105,6 +105,38 @@ type User struct {
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 }
 
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                         u.Id,
+		"create_at":                  u.CreateAt,
+		"update_at":                  u.UpdateAt,
+		"delete_at":                  u.DeleteAt,
+		"username":                   u.Username,
+		"auth_service":               u.AuthService,
+		"email":                      u.Email,
+		"email_verified":             u.EmailVerified,
+		"position":                   u.Position,
+		"roles":                      u.Roles,
+		"allow_marketing":            u.AllowMarketing,
+		"props":                      u.Props,
+		"notify_props":               u.NotifyProps,
+		"last_password_update":       u.LastPasswordUpdate,
+		"last_picture_update":        u.LastPictureUpdate,
+		"failed_attempts":            u.FailedAttempts,
+		"locale":                     u.Locale,
+		"timezone":                   u.Timezone,
+		"mfa_active":                 u.MfaActive,
+		"remote_id":                  u.RemoteId,
+		"last_activity_at":           u.LastActivityAt,
+		"is_bot":                     u.IsBot,
+		"bot_description":            u.BotDescription,
+		"bot_last_icon_update":       u.BotLastIconUpdate,
+		"terms_of_service_id":        u.TermsOfServiceId,
+		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
+		"disable_welcome_email":      u.DisableWelcomeEmail,
+	}
+}
+
 //msgp UserMap
 
 // UserMap is a map from a userId to a user object.
@@ -133,11 +165,33 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
+func (u *UserPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     u.Username,
+		"nickname":     u.Nickname,
+		"first_name":   u.FirstName,
+		"last_name":    u.LastName,
+		"position":     u.Position,
+		"email":        u.Email,
+		"props":        u.Props,
+		"notify_props": u.NotifyProps,
+		"locale":       u.Locale,
+		"timezone":     u.Timezone,
+		"remote_id":    u.RemoteId,
+	}
+}
+
 //msgp:ignore UserAuth
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *UserAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auth_service": u.AuthService,
+	}
 }
 
 //msgp:ignore UserForIndexing
@@ -327,7 +381,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
@@ -335,7 +389,7 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Roles) > UserRolesMaxLength {
 		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -423,8 +477,32 @@ func (u *User) DeleteAt_() float64 {
 	return float64(u.DeleteAt)
 }
 
-func (u *User) LastPictureUpdateAt() float64 {
+func (u *User) UpdateAt_() float64 {
+	return float64(u.UpdateAt)
+}
+
+func (u *User) LastPictureUpdate_() float64 {
 	return float64(u.LastPictureUpdate)
+}
+
+func (u *User) LastPasswordUpdate_() float64 {
+	return float64(u.LastPasswordUpdate)
+}
+
+func (u *User) FailedAttempts_() float64 {
+	return float64(u.FailedAttempts)
+}
+
+func (u *User) LastActivityAt_() float64 {
+	return float64(u.LastActivityAt)
+}
+
+func (u *User) BotLastIconUpdate_() float64 {
+	return float64(u.BotLastIconUpdate)
+}
+
+func (u *User) TermsOfServiceCreateAt_() float64 {
+	return float64(u.TermsOfServiceCreateAt)
 }
 
 // PreUpdate should be run before updating the user in the db.

@@ -35,7 +35,7 @@ type MergeConfig struct {
 //     retTS := ret.(testStruct)
 //     return &retTS, nil
 // }
-func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (interface{}, error) {
+func Merge(base any, patch any, mergeConfig *MergeConfig) (any, error) {
 	if reflect.TypeOf(base) != reflect.TypeOf(patch) {
 		return nil, fmt.Errorf(
 			"cannot merge different types. base type: %s, patch type: %s",

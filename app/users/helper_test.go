@@ -5,7 +5,6 @@ package users
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -48,7 +47,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "userservicetest")
+	tempWorkspace, err := os.MkdirTemp("", "userservicetest")
 	if err != nil {
 		panic(err)
 	}
@@ -91,12 +90,12 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			sessionCache: cache,
 			config:       configStore.Get,
 			sessionPool: sync.Pool{
-				New: func() interface{} {
+				New: func() any {
 					return &model.Session{}
 				},
 			},
 		},
-		Context:     &request.Context{},
+		Context:     request.EmptyContext(nil),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,

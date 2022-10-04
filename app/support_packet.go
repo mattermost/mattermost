@@ -6,7 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"runtime"
 	"strings"
 
@@ -145,7 +145,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 		// notifications.log
 		notificationsLog := config.GetNotificationsLogFileLocation(*a.Config().LogSettings.FileLocation)
 
-		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
+		notificationsLogFileData, notificationsLogFileDataErr := os.ReadFile(notificationsLog)
 
 		if notificationsLogFileDataErr == nil {
 			fileData := model.FileData{
@@ -155,7 +155,7 @@ func (a *App) getNotificationsLog() (*model.FileData, string) {
 			return &fileData, ""
 		}
 
-		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
+		warning = fmt.Sprintf("os.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
 
 	} else {
 		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
@@ -172,7 +172,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 		// mattermost.log
 		mattermostLog := config.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
 
-		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
+		mattermostLogFileData, mattermostLogFileDataErr := os.ReadFile(mattermostLog)
 
 		if mattermostLogFileDataErr == nil {
 			fileData := model.FileData{
@@ -181,7 +181,7 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 			}
 			return &fileData, ""
 		}
-		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
+		warning = fmt.Sprintf("os.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
 
 	} else {
 		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"

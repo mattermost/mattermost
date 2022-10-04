@@ -21,7 +21,7 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool)
 		panic(err)
 	}
 
-	a.InitPlugins(&request.Context{}, *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+	a.InitPlugins(request.EmptyContext(a.Log()), *a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 	a.DoAppMigrations()
 
 	return a, nil
@@ -42,9 +42,10 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	model.AppErrorInit(i18n.T)
 
 	s, err := app.NewServer(
+		// The option order is important as app.Config option reads app.StartMetrics option.
+		app.StartMetrics,
 		app.Config(configDSN, readOnlyConfigStore, nil),
 		app.StartSearchEngine,
-		app.StartMetrics,
 	)
 	if err != nil {
 		return nil, err

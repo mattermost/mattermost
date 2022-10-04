@@ -6,7 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -79,11 +79,16 @@ type PluginSetting struct {
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
-	Default interface{} `json:"default" yaml:"default"`
+	Default any `json:"default" yaml:"default"`
 
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
 	Options []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// The intended hosting environment for this plugin setting. Can be "cloud" or "on-prem".  When this field is set,
+	// and the opposite environment is running the plugin, the setting will be hidden in the admin console UI.
+	// Note that this functionality is entirely client-side, so the plugin needs to handle the case of invalid submissions.
+	Hosting string `json:"hosting"`
 }
 
 type PluginSettingsSchema struct {
@@ -103,42 +108,41 @@ type PluginSettingsSchema struct {
 //
 // Example plugin.json:
 //
-//
-//    {
-//      "id": "com.mycompany.myplugin",
-//      "name": "My Plugin",
-//      "description": "This is my plugin",
-//      "homepage_url": "https://example.com",
-//      "support_url": "https://example.com/support",
-//      "release_notes_url": "https://example.com/releases/v0.0.1",
-//      "icon_path": "assets/logo.svg",
-//      "version": "0.1.0",
-//      "min_server_version": "5.6.0",
-//      "server": {
-//        "executables": {
-//          "linux-amd64": "server/dist/plugin-linux-amd64",
-//          "darwin-amd64": "server/dist/plugin-darwin-amd64",
-//          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
-//        }
-//      },
-//      "webapp": {
-//          "bundle_path": "webapp/dist/main.js"
-//      },
-//      "settings_schema": {
-//        "header": "Some header text",
-//        "footer": "Some footer text",
-//        "settings": [{
-//          "key": "someKey",
-//          "display_name": "Enable Extra Feature",
-//          "type": "bool",
-//          "help_text": "When true, an extra feature will be enabled!",
-//          "default": "false"
-//        }]
-//      },
-//      "props": {
-//        "someKey": "someData"
-//      }
-//    }
+//	{
+//	  "id": "com.mycompany.myplugin",
+//	  "name": "My Plugin",
+//	  "description": "This is my plugin",
+//	  "homepage_url": "https://example.com",
+//	  "support_url": "https://example.com/support",
+//	  "release_notes_url": "https://example.com/releases/v0.0.1",
+//	  "icon_path": "assets/logo.svg",
+//	  "version": "0.1.0",
+//	  "min_server_version": "5.6.0",
+//	  "server": {
+//	    "executables": {
+//	      "linux-amd64": "server/dist/plugin-linux-amd64",
+//	      "darwin-amd64": "server/dist/plugin-darwin-amd64",
+//	      "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+//	    }
+//	  },
+//	  "webapp": {
+//	      "bundle_path": "webapp/dist/main.js"
+//	  },
+//	  "settings_schema": {
+//	    "header": "Some header text",
+//	    "footer": "Some footer text",
+//	    "settings": [{
+//	      "key": "someKey",
+//	      "display_name": "Enable Extra Feature",
+//	      "type": "bool",
+//	      "help_text": "When true, an extra feature will be enabled!",
+//	      "default": "false"
+//	    }]
+//	  },
+//	  "props": {
+//	    "someKey": "someData"
+//	  }
+//	}
 type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Ids must be at least
 	// 3 characters, at most 190 characters and must match ^[a-zA-Z0-9-_\.]+$.
@@ -183,7 +187,7 @@ type Manifest struct {
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
-	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+	Props map[string]any `json:"props,omitempty" yaml:"props,omitempty"`
 
 	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
 	//
@@ -360,8 +364,9 @@ func (s *PluginSetting) isValid() error {
 		pluginSettingType == Text ||
 		pluginSettingType == LongText ||
 		pluginSettingType == Number ||
-		pluginSettingType == Username) {
-		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+		pluginSettingType == Username ||
+		pluginSettingType == Custom) {
+		return errors.New("should not set Placeholder for setting type not in text, generated, number, username, or custom")
 	}
 
 	if s.Options != nil {
@@ -421,7 +426,7 @@ func FindManifest(dir string) (manifest *Manifest, path string, err error) {
 			}
 			continue
 		}
-		b, ioerr := ioutil.ReadAll(f)
+		b, ioerr := io.ReadAll(f)
 		f.Close()
 		if ioerr != nil {
 			return nil, path, ioerr

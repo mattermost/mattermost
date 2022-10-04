@@ -1080,10 +1080,6 @@
     "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "無法上傳檔案。檔案數量不對。"
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "無法上傳超過最大尺寸的檔案：{{.Filename}}"
   },
@@ -3150,10 +3146,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch 已停止"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "連線至 Elasticsearch 伺服器失敗。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5992,10 +5984,6 @@
     "translation": "無法取得保留中的文章。"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "無法要求試用授權。請在 Mattermost 系統控制台的網頁伺服器區段設定站台 URL。"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "無法取得試用授權，請再嘗試一次或聯絡 support@mattermost.com。"
   },
@@ -7270,5 +7258,49 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "無法解析要求本文。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "圖片大小超過上限，圖片解析度過高。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "返回至 {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "頻道"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "雲端 API 請求時發生內部錯誤。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "錯誤 無效快取"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "從 Webhook 更新訂閱時發生錯誤。"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS 處理請求錯誤。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理者"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "您的授權不支援雲端請求。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "無法恢復團隊，已達到團隊數量上限"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "無法建立團隊，已達到團隊數量上限"
   }
 ]

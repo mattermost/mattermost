@@ -24,8 +24,8 @@ func TestGraphQLChannels(t *testing.T) {
 	ch1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, myTeam.Id)
 	ch2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypePrivate, myTeam.Id)
 	th.LinkUserToTeam(th.BasicUser, myTeam)
-	th.App.AddUserToChannel(th.BasicUser, ch1, false)
-	th.App.AddUserToChannel(th.BasicUser, ch2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
 	th.CreateDmChannel(th.BasicUser2)
 
 	var q struct {
@@ -40,7 +40,10 @@ func TestGraphQLChannels(t *testing.T) {
 			Header            string            `json:"header"`
 			Purpose           string            `json:"purpose"`
 			SchemeId          string            `json:"schemeId"`
+			TotalMsgCountRoot float64           `json:"totalMsgCountRoot"`
+			LastRootPostAt    float64           `json:"lastRootPostAt"`
 			Cursor            string            `json:"cursor"`
+			Props             map[string]any    `json:"props"`
 			Team              struct {
 				ID          string `json:"id"`
 				DisplayName string `json:"displayName"`
@@ -70,7 +73,10 @@ func TestGraphQLChannels(t *testing.T) {
 	    header
 	    purpose
 	    schemeId
+		totalMsgCountRoot
+		lastRootPostAt
 	    cursor
+	    props
 	  }
 	}
 	`,
@@ -93,6 +99,7 @@ func TestGraphQLChannels(t *testing.T) {
 			assert.NotEmpty(t, ch.PrettyDisplayName)
 			assert.NotEmpty(t, ch.CreateAt)
 			assert.NotEmpty(t, ch.UpdateAt)
+			assert.NotNil(t, ch.Props)
 			if ch.Type == model.ChannelTypeOpen {
 				numPublic++
 			} else if ch.Type == model.ChannelTypePrivate {
@@ -128,7 +135,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"userId": u1.Id,
 			},
 		}
@@ -157,7 +164,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 			},
 		}
@@ -171,7 +178,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.Channels[3].Cursor,
 			},
@@ -186,7 +193,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first": 4,
 				"after": q.Channels[3].Cursor,
 			},
@@ -209,7 +216,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  10,
 				"teamId": myTeam.Id,
 			},
@@ -224,7 +231,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  2,
 				"teamId": myTeam.Id,
 			},
@@ -251,7 +258,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  2,
 				"teamId": myTeam.Id,
 			},
@@ -286,7 +293,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": false,
 			},
 		}
@@ -301,7 +308,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastUpdateAt":   float64(now),
 			},
@@ -318,7 +325,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastUpdateAt":   float64(now),
 			},
@@ -339,7 +346,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": false,
 			},
 		}
@@ -353,7 +360,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastDeleteAt":   float64(model.GetMillis()),
 			},
@@ -368,7 +375,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input = graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"includeDeleted": true,
 				"lastDeleteAt":   float64(model.GetMillis()),
 				"first":          5,
@@ -396,7 +403,7 @@ func TestGraphQLChannels(t *testing.T) {
 		input := graphQLInput{
 			OperationName: "channels",
 			Query:         query,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"first":  10,
 				"teamId": myTeam.Id,
 			},
@@ -409,7 +416,7 @@ func TestGraphQLChannels(t *testing.T) {
 		require.Len(t, q.Channels, 3)
 		for _, ch := range q.Channels {
 			require.Equal(t, ch.ID, ch.Stats.ChannelId)
-			count, appErr := th.App.GetChannelMemberCount(ch.Stats.ChannelId)
+			count, appErr := th.App.GetChannelMemberCount(th.Context, ch.Stats.ChannelId)
 			require.Nil(t, appErr)
 			require.Equal(t, float64(count), ch.Stats.MemberCount)
 		}
@@ -436,7 +443,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
+		assert.Equal(t, "nick2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -452,7 +459,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1"))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("nickname_full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("full_name", func(t *testing.T) {
@@ -472,7 +479,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1"))
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 
 		users = []*model.User{
 			{
@@ -484,7 +491,7 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				Username: "user2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1"))
+		assert.Equal(t, "user2", getPrettyDNForUsers("full_name", users, "user1", map[string]string{}))
 	})
 
 	t.Run("username", func(t *testing.T) {
@@ -504,8 +511,33 @@ func TestGetPrettyDNForUsers(t *testing.T) {
 				LastName:  "last2",
 			},
 		}
-		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1"))
+		assert.Equal(t, "user2", getPrettyDNForUsers("username", users, "user1", map[string]string{}))
 	})
+
+	t.Run("cache", func(t *testing.T) {
+		users := []*model.User{
+			{
+				Id:        "user1",
+				Nickname:  "nick1",
+				Username:  "user1",
+				FirstName: "first1",
+				LastName:  "last1",
+			},
+			{
+				Id:        "user2",
+				Nickname:  "nick2",
+				Username:  "user2",
+				FirstName: "first2",
+				LastName:  "last2",
+			},
+		}
+
+		cache := map[string]string{}
+		assert.Equal(t, "first2 last2", getPrettyDNForUsers("full_name", users, "user1", cache))
+		cache["user2"] = "teststring!!"
+		assert.Equal(t, "teststring!!", getPrettyDNForUsers("full_name", users, "user1", cache))
+	})
+
 }
 
 func TestChannelCursor(t *testing.T) {

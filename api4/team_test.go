@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -95,9 +94,6 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -119,10 +115,6 @@ func TestCreateTeam(t *testing.T) {
 	})
 
 	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
-		defer th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -636,9 +628,6 @@ func TestRestoreTeam(t *testing.T) {
 	t.Run("cloud limit reached returns 400", func(t *testing.T) {
 		// Create an archived team to be restored later
 		team := createTeam(t, true, model.TeamOpen)
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -660,9 +649,6 @@ func TestRestoreTeam(t *testing.T) {
 	})
 
 	t.Run("cloud below limit returns 200", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_CLOUDFREE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_CLOUDFREE")
-		th.App.ReloadConfig()
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
 		cloud := &mocks.CloudInterface{}
@@ -981,6 +967,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	client := th.Client
 
@@ -1417,6 +1404,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 
 func TestSearchAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	oTeam := th.BasicTeam
@@ -3040,7 +3028,7 @@ func TestImportTeam(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
 
-		posts, _, err := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false)
+		posts, _, err := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false, false)
 		require.NoError(t, err)
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
@@ -3134,7 +3122,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	require.NoError(t, err)
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_subject",
-		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
@@ -3145,7 +3133,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.SystemAdminClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -3156,7 +3144,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, err = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_subject",
-		map[string]interface{}{"SenderName": "Administrator",
+		map[string]any{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 	checkEmail(t, expectedSubject)
@@ -3167,7 +3155,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	_, _, err = th.LocalClient.InviteUsersToTeamAndChannelsGracefully(th.BasicTeam.Id, []string{user1, user2}, []string{th.BasicChannel.Id}, "")
 	require.NoError(t, err)
 	expectedSubject = i18n.T("api.templates.invite_team_and_channel_subject",
-		map[string]interface{}{"SenderName": "Administrator",
+		map[string]any{"SenderName": "Administrator",
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"ChannelName":     th.BasicChannel.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
@@ -3291,7 +3279,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := i18n.T("api.templates.invite_guest_subject",
-		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+		map[string]any{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 

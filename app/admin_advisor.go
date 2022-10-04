@@ -17,7 +17,7 @@ import (
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, nErr := a.Srv().Store.System().Get()
 	if nErr != nil {
-		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
@@ -156,7 +156,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 
 		if !forceAck {
 			if *a.Config().EmailSettings.SMTPServer == "" {
-				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, i18n.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, i18n.T("api.context.invalid_param.app_error", map[string]any{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
 			T := i18n.GetUserTranslations(sender.Locale)
 			data := a.Srv().EmailService.NewEmailTemplateData(sender.Locale)
@@ -191,11 +191,11 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 
 			body, err := a.Srv().TemplatesContainer().RenderToString("warn_metric_ack", data)
 			if err != nil {
-				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 
-			if err := mail.SendMailUsingConfig(model.MmSupportAdvisorAddress, subject, body, mailConfig, false, sender.Email); err != nil {
-				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+			if err := mail.SendMailUsingConfig(model.MmSupportAdvisorAddress, subject, body, mailConfig, false, "", "", "", sender.Email); err != nil {
+				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
 
@@ -213,7 +213,7 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 	}
 
 	// Inform client that this metric warning has been acked
-	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil, "")
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
 
@@ -236,7 +236,7 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 		Name:  warnMetricId,
 		Value: status,
 	}); err != nil {
-		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]any{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -253,7 +253,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -85,7 +84,7 @@ func CopyDir(src string, dst string) (err error) {
 		return
 	}
 
-	items, err := ioutil.ReadDir(src)
+	items, err := os.ReadDir(src)
 	if err != nil {
 		return
 	}
@@ -100,7 +99,12 @@ func CopyDir(src string, dst string) (err error) {
 				return
 			}
 		} else {
-			if item.Mode()&os.ModeSymlink != 0 {
+			info, ierr := item.Info()
+			if ierr != nil {
+				continue
+			}
+
+			if info.Mode()&os.ModeSymlink != 0 {
 				continue
 			}
 

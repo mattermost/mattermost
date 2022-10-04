@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -64,7 +64,7 @@ func TestGetPing(t *testing.T) {
 		resp, err := client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err := ioutil.ReadAll(resp.Body)
+		respBytes, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
@@ -77,7 +77,7 @@ func TestGetPing(t *testing.T) {
 		resp, err = client.DoAPIGet("/system/ping", "")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err = ioutil.ReadAll(resp.Body)
+		respBytes, err = io.ReadAll(resp.Body)
 		require.NoError(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
@@ -130,7 +130,7 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -208,6 +208,7 @@ func TestEmailTest(t *testing.T) {
 
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	t.Run("As a System Administrator", func(t *testing.T) {
@@ -817,7 +818,7 @@ func TestPushNotificationAck(t *testing.T) {
 		resp := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
-		req.Body = ioutil.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
+		req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
 
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusForbidden, resp.Code)
@@ -833,11 +834,11 @@ func TestCompleteOnboarding(t *testing.T) {
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 	require.NoError(t, err)
-	sigFile, err := ioutil.ReadAll(signatureFileReader)
+	sigFile, err := io.ReadAll(signatureFileReader)
 	require.NoError(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 	pluginServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
@@ -967,7 +968,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	})
 
 	t.Run("as a system manager role", func(t *testing.T) {
-		_, appErr := th.App.UpdateUserRoles(th.BasicUser2.Id, model.SystemManagerRoleId, false)
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
 		require.Nil(t, appErr)
 		th.LoginBasic2()
 

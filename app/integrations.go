@@ -38,7 +38,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 
 	plugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), 0)
+		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, "", 0).Wrap(err)
 	}
 
 	pluginStates := ch.cfgSvc.Config().PluginSettings.PluginStates
@@ -70,10 +70,6 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 }
 
 func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) *model.AppError {
-	if !a.Config().FeatureFlags.CloudFree {
-		return nil
-	}
-
 	if a.License() == nil || !*a.License().Features.Cloud {
 		return nil
 	}
@@ -110,7 +106,7 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 
 	limit := *limits.Integrations.Enabled
 	if enableCount > limit {
-		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "app.install_integration.reached_max_limit.error", map[string]interface{}{"NumIntegrations": limit}, "", http.StatusBadRequest)
+		return model.NewAppError("checkIfIntegrationMeetsFreemiumLimits", "app.install_integration.reached_max_limit.error", map[string]any{"NumIntegrations": limit}, "", http.StatusBadRequest)
 	}
 
 	return nil

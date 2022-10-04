@@ -4,7 +4,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -38,7 +37,7 @@ func TestPluginPublicKeys(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 	publicKeyFilename := "test-public-key.plugin.gpg"
-	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
+	publicKey, err := os.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)

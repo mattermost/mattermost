@@ -21,7 +21,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	// Try a public channel *with* permission.
 	args := &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -38,7 +38,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	// Try a public channel *without* permission.
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -52,7 +52,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 	privateChannel := th.createPrivateChannel(th.BasicTeam)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -64,7 +64,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	// Try a private channel *without* permission.
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: privateChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -80,7 +80,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 	groupChannel := th.createGroupChannel(user1, user2)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: groupChannel.Id,
 		UserId:    user1.Id,
 	}
@@ -90,7 +90,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	// Try a group channel *without* being a member.
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: groupChannel.Id,
 		UserId:    user3.Id,
 	}
@@ -102,7 +102,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 	directChannel := th.createDmChannel(user1)
 
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: directChannel.Id,
 		UserId:    th.BasicUser.Id,
 	}
@@ -112,7 +112,7 @@ func TestHeaderProviderDoCommand(t *testing.T) {
 
 	// Try a direct channel *without* being a member.
 	args = &model.CommandArgs{
-		T:         func(s string, args ...interface{}) string { return s },
+		T:         func(s string, args ...any) string { return s },
 		ChannelId: directChannel.Id,
 		UserId:    user2.Id,
 	}

@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -81,7 +80,7 @@ func TestExtractTarGz(t *testing.T) {
 			})
 		}
 
-		dst, err := ioutil.TempDir("", "TestExtractTarGz")
+		dst, err := os.MkdirTemp("", "TestExtractTarGz")
 		require.NoError(t, err)
 		defer os.RemoveAll(dst)
 
@@ -175,7 +174,7 @@ func TestExtractTarGz(t *testing.T) {
 
 	for i, testCase := range testCases {
 		t.Run(fmt.Sprintf("test-%d", i), func(t *testing.T) {
-			dst, err := ioutil.TempDir("", "TestExtractTarGz")
+			dst, err := os.MkdirTemp("", "TestExtractTarGz")
 			require.NoError(t, err)
 			defer os.RemoveAll(dst)
 

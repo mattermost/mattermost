@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -22,33 +23,43 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+// channelsWrapper provides an implementation of `product.ChannelService` to be used by products.
 type channelsWrapper struct {
 	srv *Server
 }
 
 func (s *channelsWrapper) GetDirectChannel(userID1, userID2 string) (*model.Channel, *model.AppError) {
-	return s.srv.getDirectChannel(userID1, userID2)
+	return s.srv.getDirectChannel(request.EmptyContext(s.srv.Log()), userID1, userID2)
 }
 
 // GetChannelByID gets a Channel by its ID.
 func (s *channelsWrapper) GetChannelByID(channelID string) (*model.Channel, *model.AppError) {
-	return s.srv.getChannel(channelID)
+	return s.srv.getChannel(request.EmptyContext(s.srv.Log()), channelID)
 }
 
 // GetChannelMember gets a channel member by userID.
 func (s *channelsWrapper) GetChannelMember(channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return s.srv.getChannelMember(context.Background(), channelID, userID)
+	return s.srv.getChannelMember(request.EmptyContext(s.srv.Log()), channelID, userID)
 }
+
+func (s *channelsWrapper) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return s.srv.getChannelsForTeamForUser(request.EmptyContext(s.srv.Log()), teamID, userID, opts)
+}
+
+// Ensure the wrapper implements the product service.
+var _ product.ChannelService = (*channelsWrapper)(nil)
 
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
+//
 //	['town-square', 'off-topic']
+//
 // However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-//	['town-square', 'game-of-thrones', 'wow']
 //
-func (a *App) DefaultChannelNames() []string {
+//	['town-square', 'game-of-thrones', 'wow']
+func (a *App) DefaultChannelNames(c request.CTX) []string {
 	names := []string{"town-square"}
 
 	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
@@ -66,7 +77,7 @@ func (a *App) DefaultChannelNames() []string {
 	return names
 }
 
-func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
+func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
 	var requestor *model.User
 	var nErr error
 	if userRequestorId != "" {
@@ -75,24 +86,17 @@ func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return model.NewAppError("JoinDefaultChannels", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+				return model.NewAppError("JoinDefaultChannels", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return model.NewAppError("JoinDefaultChannels", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("JoinDefaultChannels", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 	}
 
-	var err *model.AppError
-	for _, channelName := range a.DefaultChannelNames() {
+	for _, channelName := range a.DefaultChannelNames(c) {
 		channel, channelErr := a.Srv().Store.Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, channelErr.Error(), http.StatusInternalServerError)
-			}
+			c.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -111,18 +115,18 @@ func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model
 
 		_, nErr = a.Srv().Store.Channel().SaveMember(cm)
 		if histErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
-			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(histErr)
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 			if aErr := a.postJoinMessageForDefaultChannel(c, user, requestor, channel); aErr != nil {
-				mlog.Warn("Failed to post join/leave message", mlog.Err(aErr))
+				c.Logger().Warn("Failed to post join/leave message", mlog.Err(aErr))
 			}
 		}
 
 		a.invalidateCacheForChannelMembers(channel.Id)
 
-		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
@@ -134,19 +138,19 @@ func (a *App) JoinDefaultChannels(c *request.Context, teamID string, user *model
 		switch {
 		case errors.As(nErr, &cErr):
 			if cErr.Resource == "ChannelMembers" {
-				return model.NewAppError("JoinDefaultChannels", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+				return model.NewAppError("JoinDefaultChannels", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			}
 		case errors.As(nErr, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("JoinDefaultChannels", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("JoinDefaultChannels", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	return nil
 }
 
-func (a *App) postJoinMessageForDefaultChannel(c *request.Context, user *model.User, requestor *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinMessageForDefaultChannel(c request.CTX, user *model.User, requestor *model.User, channel *model.Channel) *model.AppError {
 	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(c, user, channel); err != nil {
@@ -172,7 +176,7 @@ func (a *App) postJoinMessageForDefaultChannel(c *request.Context, user *model.U
 	return nil
 }
 
-func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -182,13 +186,13 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 	}
 
 	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId)
+	count, err := a.GetNumberOfChannelsOnTeam(c, channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
 
 	if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
-		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
 	}
 
 	channel.CreatorId = userID
@@ -205,7 +209,7 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 
 	a.postJoinChannelMessage(c, user, channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
@@ -214,7 +218,7 @@ func (a *App) CreateChannelWithUser(c *request.Context, channel *model.Channel, 
 }
 
 // RenameChannel is used to rename the channel Name and the DisplayName fields
-func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
+func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
 	if channel.Type == model.ChannelTypeDirect {
 		return nil, model.NewAppError("RenameChannel", "api.channel.rename_channel.cant_rename_direct_messages.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -228,7 +232,7 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 		channel.DisplayName = newDisplayName
 	}
 
-	newChannel, err := a.UpdateChannel(channel)
+	newChannel, err := a.UpdateChannel(c, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +240,7 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 	return newChannel, nil
 }
 
-func (a *App) CreateChannel(c *request.Context, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	sc, nErr := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
@@ -248,20 +252,20 @@ func (a *App) CreateChannel(c *request.Context, channel *model.Channel, addMembe
 		case errors.As(nErr, &invErr):
 			switch {
 			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Type":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(nErr)
 			}
 		case errors.As(nErr, &cErr):
-			return sc, model.NewAppError("CreateChannel", store.ChannelExistsError, nil, cErr.Error(), http.StatusBadRequest)
+			return sc, model.NewAppError("CreateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &ltErr):
-			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -271,9 +275,9 @@ func (a *App) CreateChannel(c *request.Context, channel *model.Channel, addMembe
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("CreateChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("CreateChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("CreateChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CreateChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 
@@ -293,17 +297,17 @@ func (a *App) CreateChannel(c *request.Context, channel *model.Channel, addMembe
 			case errors.As(nErr, &cErr):
 				switch cErr.Resource {
 				case "ChannelMembers":
-					return nil, model.NewAppError("CreateChannel", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+					return nil, model.NewAppError("CreateChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 				}
 			case errors.As(nErr, &appErr):
 				return nil, appErr
 			default:
-				return nil, model.NewAppError("CreateChannel", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CreateChannel", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
-			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -322,8 +326,8 @@ func (a *App) CreateChannel(c *request.Context, channel *model.Channel, addMembe
 	return sc, nil
 }
 
-func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	channel, nErr := a.getDirectChannel(userID, otherUserID)
+func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	channel, nErr := a.getDirectChannel(c, userID, otherUserID)
 	if nErr != nil {
 		return nil, nErr
 	}
@@ -357,7 +361,7 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 		}
 	}
 
-	channel, err := a.createDirectChannel(userID, otherUserID, channelOptions...)
+	channel, err := a.createDirectChannel(c, userID, otherUserID, channelOptions...)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -369,8 +373,8 @@ func (a *App) GetOrCreateDirectChannel(c *request.Context, userID, otherUserID s
 	return channel, nil
 }
 
-func (a *App) getOrCreateDirectChannelWithUser(c *request.Context, user, otherUser *model.User) (*model.Channel, *model.AppError) {
-	channel, nErr := a.getDirectChannel(user.Id, otherUser.Id)
+func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *model.User) (*model.Channel, *model.AppError) {
+	channel, nErr := a.getDirectChannel(c, user.Id, otherUser.Id)
 	if nErr != nil {
 		return nil, nErr
 	}
@@ -379,7 +383,7 @@ func (a *App) getOrCreateDirectChannelWithUser(c *request.Context, user, otherUs
 		return channel, nil
 	}
 
-	channel, err := a.createDirectChannelWithUser(user, otherUser)
+	channel, err := a.createDirectChannelWithUser(c, user, otherUser)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -391,7 +395,7 @@ func (a *App) getOrCreateDirectChannelWithUser(c *request.Context, user, otherUs
 	return channel, nil
 }
 
-func (a *App) handleCreationEvent(c *request.Context, userID, otherUserID string, channel *model.Channel) {
+func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, channel *model.Channel) {
 	a.InvalidateCacheForUser(userID)
 	a.InvalidateCacheForUser(otherUserID)
 
@@ -405,16 +409,16 @@ func (a *App) handleCreationEvent(c *request.Context, userID, otherUserID string
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil, "")
 	message.Add("creator_id", userID)
 	message.Add("teammate_id", otherUserID)
 	a.Publish(message)
 }
 
-func (a *App) createDirectChannel(userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	users, err := a.Srv().Store.User().GetMany(context.Background(), []string{userID, otherUserID})
 	if err != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if len(users) == 0 {
@@ -441,10 +445,10 @@ func (a *App) createDirectChannel(userID string, otherUserID string, channelOpti
 		user = users[1]
 		otherUser = users[0]
 	}
-	return a.createDirectChannelWithUser(user, otherUser, channelOptions...)
+	return a.createDirectChannelWithUser(c, user, otherUser, channelOptions...)
 }
 
-func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -455,34 +459,34 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOp
 		case errors.As(nErr, &invErr):
 			switch {
 			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
-				return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Type":
-				return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(nErr)
 			}
 		case errors.As(nErr, &cErr):
 			switch cErr.Resource {
 			case "Channel":
-				return channel, model.NewAppError("createDirectChannelWithUser", store.ChannelExistsError, nil, cErr.Error(), http.StatusBadRequest)
+				return channel, model.NewAppError("createDirectChannelWithUser", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(nErr)
 			case "ChannelMembers":
-				return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			}
 		case errors.As(nErr, &ltErr):
-			return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if user.Id != otherUser.Id {
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUser.Id, channel.Id, model.GetMillis()); err != nil {
-			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -502,16 +506,16 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User, channelOp
 			Type:             channel.Type,
 		}
 
-		if _, err := a.SaveSharedChannel(sc); err != nil {
-			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		if _, err := a.SaveSharedChannel(c, sc); err != nil {
+			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return channel, nil
 }
 
-func (a *App) CreateGroupChannel(userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupChannel(userIDs)
+func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError) {
+	channel, err := a.createGroupChannel(c, userIDs)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -523,21 +527,21 @@ func (a *App) CreateGroupChannel(userIDs []string, creatorId string) (*model.Cha
 		a.InvalidateCacheForUser(userID)
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
 	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
 	a.Publish(message)
 
 	return channel, nil
 }
 
-func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppError) {
+func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, nil, true)
 	if err != nil {
-		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(users) != len(userIDs) {
@@ -560,20 +564,20 @@ func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppEr
 		case errors.As(nErr, &invErr):
 			switch {
 			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Type":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
-				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest).Wrap(nErr)
 			}
 		case errors.As(nErr, &cErr):
-			return channel, model.NewAppError("CreateChannel", store.ChannelExistsError, nil, cErr.Error(), http.StatusBadRequest)
+			return channel, model.NewAppError("CreateChannel", store.ChannelExistsError, nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &ltErr):
-			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
@@ -593,37 +597,37 @@ func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppEr
 			case errors.As(nErr, &cErr):
 				switch cErr.Resource {
 				case "ChannelMembers":
-					return nil, model.NewAppError("createGroupChannel", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+					return nil, model.NewAppError("createGroupChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 				}
 			case errors.As(nErr, &appErr):
 				return nil, appErr
 			default:
-				return nil, model.NewAppError("createGroupChannel", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("createGroupChannel", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return channel, nil
 }
 
-func (a *App) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError) {
+func (a *App) GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError) {
 	if len(userIDs) > model.ChannelGroupMaxUsers || len(userIDs) < model.ChannelGroupMinUsers {
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, nil, true)
 	if err != nil {
-		return nil, model.NewAppError("GetGroupChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(users) != len(userIDs) {
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJSON(userIDs), http.StatusBadRequest)
 	}
 
-	channel, appErr := a.GetChannelByName(model.GetGroupNameFromUserIds(userIDs), "", true)
+	channel, appErr := a.GetChannelByName(c, model.GetGroupNameFromUserIds(userIDs), "", true)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -632,27 +636,27 @@ func (a *App) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError
 }
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
-func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	_, err := a.Srv().Store.Channel().Update(channel)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	a.invalidateCacheForChannel(channel)
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
 	channelJSON, jsonErr := json.Marshal(channel)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode channel to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("channel", string(channelJSON))
 	a.Publish(messageWs)
@@ -661,7 +665,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 }
 
 // CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
-func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+func (a *App) CreateChannelScheme(c request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError) {
 	scheme, err := a.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -672,37 +676,37 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 	}
 
 	channel.SchemeId = &scheme.Id
-	if _, err := a.UpdateChannelScheme(channel); err != nil {
+	if _, err := a.UpdateChannelScheme(c, channel); err != nil {
 		return nil, err
 	}
 	return scheme, nil
 }
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
-func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	if channel.SchemeId != nil && *channel.SchemeId != "" {
 		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
 			return nil, err
 		}
 	}
 	channel.SchemeId = nil
-	return a.UpdateChannelScheme(channel)
+	return a.UpdateChannelScheme(c, channel)
 }
 
 // UpdateChannelScheme saves the new SchemeId of the channel passed.
-func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) UpdateChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
 	var oldChannel *model.Channel
 	var err *model.AppError
-	if oldChannel, err = a.GetChannel(channel.Id); err != nil {
+	if oldChannel, err = a.GetChannel(c, channel.Id); err != nil {
 		return nil, err
 	}
 
 	oldChannel.SchemeId = channel.SchemeId
-	return a.UpdateChannel(oldChannel)
+	return a.UpdateChannel(c, oldChannel)
 }
 
-func (a *App) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
-	channel, err := a.UpdateChannel(oldChannel)
+func (a *App) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	channel, err := a.UpdateChannel(c, oldChannel)
 	if err != nil {
 		return channel, err
 	}
@@ -714,20 +718,20 @@ func (a *App) UpdateChannelPrivacy(c *request.Context, oldChannel *model.Channel
 			channel.Type = model.ChannelTypeOpen
 		}
 		// revert to previous channel privacy
-		a.UpdateChannel(channel)
+		a.UpdateChannel(c, channel)
 		return channel, err
 	}
 
 	a.invalidateCacheForChannel(channel)
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	a.Publish(messageWs)
 
 	return channel, nil
 }
 
-func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postChannelPrivacyMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	var authorId string
 	var authorUsername string
 	if user != nil {
@@ -736,7 +740,7 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 	} else {
 		systemBot, err := a.GetSystemBot()
 		if err != nil {
-			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		authorId = systemBot.UserId
@@ -758,24 +762,24 @@ func (a *App) postChannelPrivacyMessage(c *request.Context, user *model.User, ch
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	if channel.DeleteAt == 0 {
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := a.Srv().Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
-		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	channel.DeleteAt = 0
 	a.invalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
@@ -787,9 +791,9 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 	}
@@ -799,7 +803,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Message:   T("api.channel.restore_channel.unarchived", map[string]any{"Username": user.Username}),
 			Type:      model.PostTypeChannelRestored,
 			UserId:    userID,
 			Props: model.StringInterface{
@@ -808,19 +812,19 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 		}
 
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-			mlog.Warn("Failed to post unarchive message", mlog.Err(err))
+			c.Logger().Warn("Failed to post unarchive message", mlog.Err(err))
 		}
 	} else {
 		a.Srv().Go(func() {
 			systemBot, err := a.GetSystemBot()
 			if err != nil {
-				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+				c.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 				return
 			}
 
 			post := &model.Post{
 				ChannelId: channel.Id,
-				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": systemBot.Username}),
+				Message:   i18n.T("api.channel.restore_channel.unarchived", map[string]any{"Username": systemBot.Username}),
 				Type:      model.PostTypeChannelRestored,
 				UserId:    systemBot.UserId,
 				Props: model.StringInterface{
@@ -829,7 +833,7 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 			}
 
 			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-				mlog.Error("Failed to post unarchive message", mlog.Err(err))
+				c.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 			}
 		})
 	}
@@ -837,32 +841,32 @@ func (a *App) RestoreChannel(c *request.Context, channel *model.Channel, userID 
 	return channel, nil
 }
 
-func (a *App) PatchChannel(c *request.Context, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
+func (a *App) PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
-	channel, err := a.UpdateChannel(channel)
+	channel, err := a.UpdateChannel(c, channel)
 	if err != nil {
 		return nil, err
 	}
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(c, userID, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-			mlog.Warn(err.Error())
+			c.Logger().Warn(err.Error())
 		}
 	}
 
 	if channel.Header != oldChannelHeader {
 		if err = a.PostUpdateChannelHeaderMessage(c, userID, channel, oldChannelHeader, channel.Header); err != nil {
-			mlog.Warn(err.Error())
+			c.Logger().Warn(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(c, userID, channel, oldChannelPurpose, channel.Purpose); err != nil {
-			mlog.Warn(err.Error())
+			c.Logger().Warn(err.Error())
 		}
 	}
 
@@ -870,8 +874,8 @@ func (a *App) PatchChannel(c *request.Context, channel *model.Channel, patch *mo
 }
 
 // GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
-func (a *App) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
-	channel, err := a.GetChannel(channelID)
+func (a *App) GetSchemeRolesForChannel(c request.CTX, channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+	channel, err := a.GetChannel(c, channelID)
 	if err != nil {
 		return
 	}
@@ -890,11 +894,11 @@ func (a *App) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRol
 		return
 	}
 
-	return a.GetTeamSchemeChannelRoles(channel.TeamId)
+	return a.GetTeamSchemeChannelRoles(c, channel.TeamId)
 }
 
 // GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
-func (a *App) GetTeamSchemeChannelRoles(teamID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+func (a *App) GetTeamSchemeChannelRoles(c request.CTX, teamID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return
@@ -920,8 +924,8 @@ func (a *App) GetTeamSchemeChannelRoles(teamID string) (guestRoleName, userRoleN
 }
 
 // GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
-func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
+func (a *App) GetChannelModerationsForChannel(c request.CTX, channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(c, channel.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -939,7 +943,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		}
 	}
 
-	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(c, channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -956,12 +960,12 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		}
 	}
 
-	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+	return buildChannelModerations(c, channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
 // PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
-func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(c, channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -999,7 +1003,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	var scheme *model.Scheme
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || *channel.SchemeId == "" {
-		scheme, err = a.CreateChannelScheme(channel)
+		scheme, err = a.CreateChannelScheme(c, channel)
 		if err != nil {
 			return nil, err
 		}
@@ -1010,11 +1014,13 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if err != nil {
 			return nil, err
 		}
-		a.sendUpdatedRoleEvent(adminRole)
+		if appErr := a.sendUpdatedRoleEvent(adminRole); appErr != nil {
+			return nil, appErr
+		}
 
-		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil, "")
 		a.Publish(message)
-		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+		c.Logger().Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
@@ -1047,17 +1053,17 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		permissionModified := *channelModerationPatch.Name
 		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
 			if *channelModerationPatch.Roles.Guests {
-				mlog.Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+				c.Logger().Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
-				mlog.Info("Permission disabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+				c.Logger().Info("Permission disabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			}
 		}
 
 		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
 			if *channelModerationPatch.Roles.Members {
-				mlog.Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+				c.Logger().Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
-				mlog.Info("Permission disabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+				c.Logger().Info("Permission disabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			}
 		}
 	}
@@ -1066,16 +1072,16 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
 	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
 		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
-		if _, err = a.DeleteChannelScheme(channel); err != nil {
+		if _, err = a.DeleteChannelScheme(c, channel); err != nil {
 			return nil, err
 		}
 
-		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil, "")
 		a.Publish(message)
 
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
-		mlog.Info("Permission scheme deleted.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+		c.Logger().Info("Permission scheme deleted.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
 		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
 		if err != nil {
@@ -1087,18 +1093,18 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
-	cErr := a.forEachChannelMember(channel.Id, func(channelMember model.ChannelMember) error {
+	cErr := a.forEachChannelMember(c, channel.Id, func(channelMember model.ChannelMember) error {
 		a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(channelMember.UserId)
 		return nil
 	})
 	if cErr != nil {
-		return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations.cache_invalidation.error", nil, cErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations.cache_invalidation.error", nil, "", http.StatusInternalServerError).Wrap(cErr)
 	}
 
-	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+	return buildChannelModerations(c, channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
-func buildChannelModerations(channelType model.ChannelType, memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
+func buildChannelModerations(c request.CTX, channelType model.ChannelType, memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
 	var memberPermissions, guestPermissions, higherScopedMemberPermissions, higherScopedGuestPermissions map[string]bool
 	if memberRole != nil {
 		memberPermissions = memberRole.GetChannelModeratedPermissions(channelType)
@@ -1142,14 +1148,14 @@ func buildChannelModerations(channelType model.ChannelType, memberRole *model.Ro
 	return channelModerations
 }
 
-func (a *App) UpdateChannelMemberRoles(channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.GetChannelMember(context.Background(), channelID, userID); err != nil {
+	if member, err = a.GetChannelMember(c, channelID, userID); err != nil {
 		return nil, err
 	}
 
-	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelID)
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(c, channelID)
 	if err != nil {
 		return nil, err
 	}
@@ -1198,11 +1204,11 @@ func (a *App) UpdateChannelMemberRoles(channelID string, userID string, newRoles
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	return a.updateChannelMember(member)
+	return a.updateChannelMember(c, member)
 }
 
-func (a *App) UpdateChannelMemberSchemeRoles(channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
-	member, err := a.GetChannelMember(context.Background(), channelID, userID)
+func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	member, err := a.GetChannelMember(c, channelID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1220,10 +1226,10 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelID string, userID string, is
 		member.ExplicitRoles = RemoveRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
 	}
 
-	return a.updateChannelMember(member)
+	return a.updateChannelMember(c, member)
 }
 
-func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
 	filteredProps := make(map[string]string)
 
 	// update whichever notify properties have been provided, but don't change the others
@@ -1263,9 +1269,9 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 		case errors.As(err, &appErr):
 			return nil, appErr
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -1273,10 +1279,10 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
+	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1284,28 +1290,28 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID s
 	return member, nil
 }
 
-func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
-	if nErr != nil {
+func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	member, err := a.Srv().Store.Channel().UpdateMember(member)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	a.InvalidateCacheForUser(member.UserId)
 
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
+	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
@@ -1313,7 +1319,7 @@ func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMe
 	return member, nil
 }
 
-func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID string) *model.AppError {
+func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
 	ihc := make(chan store.StoreResult, 1)
 	ohc := make(chan store.StoreResult, 1)
 
@@ -1337,21 +1343,21 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return model.NewAppError("DeleteChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+				return model.NewAppError("DeleteChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return model.NewAppError("DeleteChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("DeleteChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 	}
 
 	ihcresult := <-ihc
 	if ihcresult.NErr != nil {
-		return model.NewAppError("DeleteChannel", "app.webhooks.get_incoming_by_channel.app_error", nil, ihcresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_incoming_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ihcresult.NErr)
 	}
 
 	ohcresult := <-ohc
 	if ohcresult.NErr != nil {
-		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, ohcresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(ohcresult.NErr)
 	}
 
 	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
@@ -1363,7 +1369,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 	}
 
 	if channel.Name == model.DefaultChannelName {
-		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+		err := model.NewAppError("deleteChannel", "api.channel.delete_channel.cannot.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -1381,13 +1387,13 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 		}
 
 		if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-			mlog.Warn("Failed to post archive message", mlog.Err(err))
+			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
 		a.Srv().Go(func() {
 			systemBot, err := a.GetSystemBot()
 			if err != nil {
-				mlog.Error("Failed to post archive message", mlog.Err(err))
+				c.Logger().Error("Failed to post archive message", mlog.Err(err))
 				return
 			}
 
@@ -1402,7 +1408,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 			}
 
 			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-				mlog.Error("Failed to post archive message", mlog.Err(err))
+				c.Logger().Error("Failed to post archive message", mlog.Err(err))
 			}
 		})
 	}
@@ -1410,25 +1416,25 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv().Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			c.Logger().Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.invalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv().Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			c.Logger().Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 
 	deleteAt := model.GetMillis()
 
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	a.invalidateCacheForChannel(channel)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -1436,7 +1442,7 @@ func (a *App) DeleteChannel(c *request.Context, channel *model.Channel, userID s
 	return nil
 }
 
-func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func (a *App) addUserToChannel(c request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1445,7 +1451,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(nErr, &nfErr) {
-			return nil, model.NewAppError("AddUserToChannel", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("AddUserToChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	} else {
 		return channelMember, nil
@@ -1457,7 +1463,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
 		}
 		if len(nonMembers) > 0 {
-			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -1485,7 +1491,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 	}
 
 	if nErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
-		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1495,16 +1501,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model
 }
 
 // AddUserToChannel adds a user to a given channel.
-func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
 	if !skipTeamMemberIntegrityCheck {
 		teamMember, nErr := a.Srv().Store.Team().GetMember(context.Background(), channel.TeamId, user.Id)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
-				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
 
@@ -1513,12 +1519,12 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel, skipTea
 		}
 	}
 
-	newMember, err := a.addUserToChannel(user, channel)
+	newMember, err := a.addUserToChannel(c, user, channel)
 	if err != nil {
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
@@ -1537,11 +1543,11 @@ type ChannelMemberOpts struct {
 }
 
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
-func (a *App) AddChannelMember(c *request.Context, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store.Channel().GetMember(context.Background(), channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
-			return nil, model.NewAppError("AddChannelMember", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("AddChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
 		return member, nil
@@ -1561,7 +1567,7 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 		}
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, opts.SkipTeamMemberIntegrityCheck)
+	cm, err := a.AddUserToChannel(c, user, channel, opts.SkipTeamMemberIntegrityCheck)
 	if err != nil {
 		return nil, err
 	}
@@ -1578,7 +1584,7 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 
 	if opts.UserRequestorID == "" || userID == opts.UserRequestorID {
 		if err := a.postJoinChannelMessage(c, user, channel); err != nil {
-			mlog.Error("Failed to post join channel message", mlog.Err(err))
+			return nil, err
 		}
 	} else {
 		a.Srv().Go(func() {
@@ -1589,12 +1595,12 @@ func (a *App) AddChannelMember(c *request.Context, userID string, channel *model
 	return cm, nil
 }
 
-func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError {
+func (a *App) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
 	profiles, err := a.Srv().Store.User().GetProfiles(options)
 	if err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	var preferences model.Preferences
@@ -1619,16 +1625,16 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 	}
 
 	if err := a.Srv().Store.Preference().Save(preferences); err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
-func (a *App) PostUpdateChannelHeaderMessage(c *request.Context, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
+func (a *App) PostUpdateChannelHeaderMessage(c request.CTX, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
 	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
-		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var message string
@@ -1653,16 +1659,16 @@ func (a *App) PostUpdateChannelHeaderMessage(c *request.Context, userID string, 
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) PostUpdateChannelPurposeMessage(c *request.Context, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+func (a *App) PostUpdateChannelPurposeMessage(c request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
 	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
-		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	var message string
@@ -1686,16 +1692,16 @@ func (a *App) PostUpdateChannelPurposeMessage(c *request.Context, userID string,
 		},
 	}
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) PostUpdateChannelDisplayNameMessage(c *request.Context, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
+func (a *App) PostUpdateChannelDisplayNameMessage(c request.CTX, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
 	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
-		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	message := fmt.Sprintf(i18n.T("api.channel.post_update_channel_displayname_message_and_forget.updated_from"), user.Username, oldChannelDisplayName, newChannelDisplayName)
@@ -1713,45 +1719,45 @@ func (a *App) PostUpdateChannelDisplayNameMessage(c *request.Context, userID str
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) GetChannel(channelID string) (*model.Channel, *model.AppError) {
-	return a.Srv().getChannel(channelID)
+func (a *App) GetChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
+	return a.Srv().getChannel(c, channelID)
 }
 
-func (s *Server) getChannel(channelID string) (*model.Channel, *model.AppError) {
+func (s *Server) getChannel(c request.CTX, channelID string) (*model.Channel, *model.AppError) {
 	channel, err := s.Store.Channel().Get(channelID, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channel, nil
 }
 
-func (a *App) GetChannels(channelIDs []string) ([]*model.Channel, *model.AppError) {
+func (a *App) GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetMany(channelIDs, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channels, nil
 }
 
-func (a *App) GetChannelByName(channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (a *App) GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var channel *model.Channel
 	var err error
 
@@ -1765,24 +1771,24 @@ func (a *App) GetChannelByName(channelName, teamID string, includeDeleted bool) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return channel, nil
 }
 
-func (a *App) GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
+func (a *App) GetChannelsByNames(c request.CTX, channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetByNames(teamID, channelNames, true)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelsByNames", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelsByNames", "app.channel.get_by_name.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels, nil
 }
 
-func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+func (a *App) GetChannelByNameForTeamName(c request.CTX, channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var team *model.Team
 
 	team, err := a.Srv().Store.Team().GetByName(teamName)
@@ -1790,9 +1796,9 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.team.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.team.get_by_name.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.team.get_by_name.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.team.get_by_name.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		}
 	}
 
@@ -1809,63 +1815,67 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	return result, nil
 }
 
-func (a *App) GetChannelsForTeamForUser(teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamID, userID, opts)
+func (s *Server) getChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	list, err := s.Store.Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return list, nil
 }
 
-func (a *App) GetChannelsForTeamForUserWithCursor(teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
+func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+	return a.Srv().getChannelsForTeamForUser(c, teamID, userID, opts)
+}
+
+func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return list, nil
 }
 
-func (a *App) GetChannelsForUser(userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
+func (a *App) GetChannelsForUser(c request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetChannelsByUser(userID, includeDeleted, lastDeleteAt, pageSize, fromChannelID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return list, nil
 }
 
-func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
+func (a *App) GetAllChannels(c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:      opts.ExcludeChannelNames,
@@ -1876,15 +1886,15 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (m
 	}
 	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if err != nil {
-		return nil, model.NewAppError("GetAllChannels", "app.channel.get_all_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetAllChannels", "app.channel.get_all_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channels, nil
 }
 
-func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+func (a *App) GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
@@ -1893,100 +1903,100 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 	}
 	count, err := a.Srv().Store.Channel().GetAllChannelsCount(storeOpts)
 	if err != nil {
-		return 0, model.NewAppError("GetAllChannelsCount", "app.channel.get_all_channels_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetAllChannelsCount", "app.channel.get_all_channels_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return count, nil
 }
 
-func (a *App) GetDeletedChannels(teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
+func (a *App) GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetDeleted(teamID, offset, limit, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.missing.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return list, nil
 }
 
-func (a *App) GetChannelsUserNotIn(teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) GetChannelsUserNotIn(c request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetMoreChannels(teamID, userID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels, nil
 }
 
-func (a *App) GetPublicChannelsByIdsForTeam(teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
+func (a *App) GetPublicChannelsByIdsForTeam(c request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetPublicChannelsByIdsForTeam(teamID, channelIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return list, nil
 }
 
-func (a *App) GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) GetPublicChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetPublicChannelsForTeam(teamID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return list, nil
 }
 
-func (a *App) GetPrivateChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) GetPrivateChannelsForTeam(c request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetPrivateChannelsForTeam(teamID, offset, limit)
 	if err != nil {
-		return nil, model.NewAppError("GetPrivateChannelsForTeam", "app.channel.get_private_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPrivateChannelsForTeam", "app.channel.get_private_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return list, nil
 }
 
-func (a *App) GetChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	return a.Srv().getChannelMember(ctx, channelID, userID)
+func (a *App) GetChannelMember(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	return a.Srv().getChannelMember(c, channelID, userID)
 }
 
-func (s *Server) getChannelMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	channelMember, err := s.Store.Channel().GetMember(ctx, channelID, userID)
+func (s *Server) getChannelMember(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	channelMember, err := s.Store.Channel().GetMember(c.Context(), channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelMember", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	return channelMember, nil
 }
 
-func (a *App) GetChannelMembersPage(channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
+func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersPage", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelMembers, nil
 }
 
-func (a *App) GetChannelMembersTimezones(channelID string) ([]string, *model.AppError) {
+func (a *App) GetChannelMembersTimezones(c request.CTX, channelID string) ([]string, *model.AppError) {
 	membersTimezones, err := a.Srv().Store.Channel().GetChannelMembersTimezones(channelID)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersTimezones", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersTimezones", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var timezones []string
@@ -2000,28 +2010,28 @@ func (a *App) GetChannelMembersTimezones(channelID string) ([]string, *model.App
 	return model.RemoveDuplicateStrings(timezones), nil
 }
 
-func (a *App) GetChannelMembersByIds(channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
+func (a *App) GetChannelMembersByIds(c request.CTX, channelID string, userIDs []string) (model.ChannelMembers, *model.AppError) {
 	members, err := a.Srv().Store.Channel().GetMembersByIds(channelID, userIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersByIds", "app.channel.get_members_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersByIds", "app.channel.get_members_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return members, nil
 }
 
-func (a *App) GetChannelMembersForUser(teamID string, userID string) (model.ChannelMembers, *model.AppError) {
+func (a *App) GetChannelMembersForUser(c request.CTX, teamID string, userID string) (model.ChannelMembers, *model.AppError) {
 	channelMembers, err := a.Srv().Store.Channel().GetMembersForUser(teamID, userID)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUser", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersForUser", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelMembers, nil
 }
 
-func (a *App) GetChannelMembersForUserWithPagination(userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+func (a *App) GetChannelMembersForUserWithPagination(c request.CTX, userID string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(userID, page, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	members := make([]*model.ChannelMember, 0, len(m))
@@ -2032,69 +2042,69 @@ func (a *App) GetChannelMembersForUserWithPagination(userID string, page, perPag
 	return members, nil
 }
 
-func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
+func (a *App) GetChannelMembersWithTeamDataForUserWithPagination(c request.CTX, userID string, page, perPage int) (model.ChannelMembersWithTeamData, *model.AppError) {
 	m, err := a.Srv().Store.Channel().GetMembersForUserWithPagination(userID, page, perPage)
 	if err != nil {
-		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetChannelMembersForUserWithPagination", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return m, nil
 }
 
-func (a *App) GetChannelMemberCount(channelID string) (int64, *model.AppError) {
+func (a *App) GetChannelMemberCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetMemberCount(channelID, true)
 	if err != nil {
-		return 0, model.NewAppError("GetChannelMemberCount", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetChannelMemberCount", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return count, nil
 }
 
-func (a *App) GetChannelFileCount(channelID string) (int64, *model.AppError) {
+func (a *App) GetChannelFileCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetFileCount(channelID)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.GetFileCount", "app.channel.get_file_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.GetFileCount", "app.channel.get_file_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return count, nil
 }
 
-func (a *App) GetChannelGuestCount(channelID string) (int64, *model.AppError) {
+func (a *App) GetChannelGuestCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetGuestCount(channelID, true)
 	if err != nil {
-		return 0, model.NewAppError("SqlChannelStore.GetGuestCount", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlChannelStore.GetGuestCount", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return count, nil
 }
 
-func (a *App) GetChannelPinnedPostCount(channelID string) (int64, *model.AppError) {
+func (a *App) GetChannelPinnedPostCount(c request.CTX, channelID string) (int64, *model.AppError) {
 	count, err := a.Srv().Store.Channel().GetPinnedPostCount(channelID, true)
 	if err != nil {
-		return 0, model.NewAppError("GetChannelPinnedPostCount", "app.channel.get_pinnedpost_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetChannelPinnedPostCount", "app.channel.get_pinnedpost_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return count, nil
 }
 
-func (a *App) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
+func (a *App) GetChannelCounts(c request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
 	counts, err := a.Srv().Store.Channel().GetChannelCounts(teamID, userID)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return counts, nil
 }
 
-func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, *model.AppError) {
+func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError) {
 	channelUnread, err := a.Srv().Store.Channel().GetChannelUnread(channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -2105,7 +2115,7 @@ func (a *App) GetChannelUnread(channelID, userID string) (*model.ChannelUnread, 
 	return channelUnread, nil
 }
 
-func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID string) *model.AppError {
+func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
 	userChan := make(chan store.StoreResult, 1)
 	memberChan := make(chan store.StoreResult, 1)
 	go func() {
@@ -2124,9 +2134,9 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(uresult.NErr, &nfErr):
-			return model.NewAppError("CreateChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("CreateChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(uresult.NErr)
 		default:
-			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
 
@@ -2142,7 +2152,7 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cm, err := a.AddUserToChannel(user, channel, false)
+	cm, err := a.AddUserToChannel(c, user, channel, false)
 	if err != nil {
 		return err
 	}
@@ -2164,7 +2174,7 @@ func (a *App) JoinChannel(c *request.Context, channel *model.Channel, userID str
 	return nil
 }
 
-func (a *App) postJoinChannelMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinChannelMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	message := fmt.Sprintf(i18n.T("api.channel.join_channel.post_and_forget"), user.Username)
 	postType := model.PostTypeJoinChannel
 
@@ -2184,13 +2194,13 @@ func (a *App) postJoinChannelMessage(c *request.Context, user *model.User, chann
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) postJoinTeamMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
@@ -2202,13 +2212,13 @@ func (a *App) postJoinTeamMessage(c *request.Context, user *model.User, channel 
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) *model.AppError {
+func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
 	sc := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().Get(channelID, true)
@@ -2235,9 +2245,9 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(cresult.NErr, &nfErr):
-			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound).Wrap(cresult.NErr)
 		default:
-			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, cresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cresult.NErr)
 		}
 	}
 	uresult := <-uc
@@ -2245,14 +2255,14 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(uresult.NErr, &nfErr):
-			return model.NewAppError("LeaveChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("LeaveChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(uresult.NErr)
 		default:
-			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(uresult.NErr)
 		}
 	}
 	ccresult := <-mcc
 	if ccresult.NErr != nil {
-		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, ccresult.NErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("LeaveChannel", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(ccresult.NErr)
 	}
 
 	channel := cresult.Data.(*model.Channel)
@@ -2284,7 +2294,7 @@ func (a *App) LeaveChannel(c *request.Context, channelID string, userID string) 
 	return nil
 }
 
-func (a *App) postLeaveChannelMessage(c *request.Context, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postLeaveChannelMessage(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		// Message here embeds `@username`, not just `username`, to ensure that mentions
@@ -2299,13 +2309,13 @@ func (a *App) postLeaveChannelMessage(c *request.Context, user *model.User, chan
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) PostAddToChannelMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	message := fmt.Sprintf(i18n.T("api.channel.add_member.added"), addedUser.Username, user.Username)
 	postType := model.PostTypeAddToChannel
 
@@ -2329,13 +2339,13 @@ func (a *App) PostAddToChannelMessage(c *request.Context, user *model.User, adde
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) postAddToTeamMessage(c *request.Context, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -2351,18 +2361,18 @@ func (a *App) postAddToTeamMessage(c *request.Context, user *model.User, addedUs
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postRemoveFromChannelMessage(c request.CTX, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	messageUserId := removerUserId
 	if messageUserId == "" {
 		systemBot, err := a.GetSystemBot()
 		if err != nil {
-			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		messageUserId = systemBot.UserId
@@ -2383,66 +2393,66 @@ func (a *App) postRemoveFromChannelMessage(c *request.Context, removerUserId str
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	user, nErr := a.Srv().Store.User().Get(context.Background(), userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("removeUserFromChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("removeUserFromChannel", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return model.NewAppError("removeUserFromChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("removeUserFromChannel", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 	isGuest := user.IsGuest()
 
 	if channel.Name == model.DefaultChannelName {
 		if !isGuest {
-			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
+			return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]any{"Channel": model.DefaultChannelName}, "", http.StatusBadRequest)
 		}
 	}
 
 	if channel.IsGroupConstrained() && userIDToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIDToRemove}, channel)
 		if err != nil {
-			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if len(nonMembers) == 0 {
-			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]any{"UserIDs": nonMembers}, "", http.StatusBadRequest)
 		}
 	}
 
-	cm, err := a.GetChannelMember(context.Background(), channel.Id, userIDToRemove)
+	cm, err := a.GetChannelMember(c, channel.Id, userIDToRemove)
 	if err != nil {
 		return err
 	}
 
 	if err := a.Srv().Store.Channel().RemoveMember(channel.Id, userIDToRemove); err != nil {
-		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("removeUserFromChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := a.Srv().Store.ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
-		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if isGuest {
-		currentMembers, err := a.GetChannelMembersForUser(channel.TeamId, userIDToRemove)
+		currentMembers, err := a.GetChannelMembersForUser(c, channel.TeamId, userIDToRemove)
 		if err != nil {
 			return err
 		}
 		if len(currentMembers) == 0 {
 			teamMember, err := a.GetTeamMember(channel.TeamId, userIDToRemove)
 			if err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			if err = a.postProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
@@ -2469,13 +2479,13 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 		})
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
 	message.Add("remover_id", removerUserId)
 	a.Publish(message)
 
 	// because the removed user no longer belongs to the channel we need to send a separate websocket event
-	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil)
+	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
 	a.Publish(userMsg)
@@ -2483,7 +2493,7 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 	return nil
 }
 
-func (a *App) RemoveUserFromChannel(c *request.Context, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func (a *App) RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	var err *model.AppError
 
 	if err = a.removeUserFromChannel(c, userIDToRemove, removerUserId, channel); err != nil {
@@ -2500,32 +2510,30 @@ func (a *App) RemoveUserFromChannel(c *request.Context, userIDToRemove string, r
 			return err
 		}
 	} else {
-		a.Srv().Go(func() {
-			if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
-				mlog.Error("Failed to post user removal message", mlog.Err(err))
-			}
-		})
+		if err := a.postRemoveFromChannelMessage(c, removerUserId, user, channel); err != nil {
+			c.Logger().Error("Failed to post user removal message", mlog.Err(err))
+		}
 	}
 
 	return nil
 }
 
-func (a *App) GetNumberOfChannelsOnTeam(teamID string) (int, *model.AppError) {
+func (a *App) GetNumberOfChannelsOnTeam(c request.CTX, teamID string) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv().Store.Channel().GetTeamChannels(teamID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return len(list), nil
 }
 
-func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError {
+func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *model.AppError {
 	status, err := a.GetStatus(userID)
 
 	oldStatus := model.StatusOffline
@@ -2550,7 +2558,7 @@ func (a *App) SetActiveChannel(userID string, channelID string) *model.AppError 
 	return nil
 }
 
-func (a *App) IsCRTEnabledForUser(userID string) bool {
+func (a *App) IsCRTEnabledForUser(c request.CTX, userID string) bool {
 	appCRT := *a.Config().ServiceSettings.CollapsedThreads
 	if appCRT == model.CollapsedThreadsDisabled {
 		return false
@@ -2567,9 +2575,9 @@ func (a *App) IsCRTEnabledForUser(userID string) bool {
 }
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
-func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
-	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID) {
-		return a.markChannelAsUnreadFromPostCRTUnsupported(postID, userID)
+func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError) {
+	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {
+		return a.markChannelAsUnreadFromPostCRTUnsupported(c, postID, userID)
 	}
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
@@ -2581,31 +2589,31 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string, collapse
 		return nil, err
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
+	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(c, user, post)
 	if err != nil {
 		return nil, err
 	}
 
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
 	if nErr != nil {
-		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.sendWebSocketPostUnreadEvent(channelUnread, postID, false)
+	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, false)
 	a.UpdateMobileAppBadge(userID)
 
 	return channelUnread, nil
 }
 
-func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
-	if err != nil {
-		return nil, err
+func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+	post, appErr := a.GetSinglePost(postID, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	threadId := post.RootId
@@ -2613,9 +2621,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 		threadId = post.Id
 	}
 
-	unreadMentions, unreadMentionsRoot, err := a.countMentionsFromPost(user, post)
-	if err != nil {
-		return nil, err
+	unreadMentions, unreadMentionsRoot, appErr := a.countMentionsFromPost(c, user, post)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// if root post,
@@ -2624,10 +2632,10 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	if post.RootId == "" {
 		channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, unreadMentionsRoot, true)
 		if nErr != nil {
-			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 
-		a.sendWebSocketPostUnreadEvent(channelUnread, postID, true)
+		a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, true)
 		a.UpdateMobileAppBadge(userID)
 		return channelUnread, nil
 	}
@@ -2637,21 +2645,21 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, err := a.GetSinglePost(post.RootId, false)
-	if err != nil {
-		return nil, err
+	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if nErr != nil {
-		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow {
-		threadMembership, sErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
+		threadMembership, mErr := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		var errNotFound *store.ErrNotFound
-		if sErr != nil && !errors.As(sErr, &errNotFound) {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		if mErr != nil && !errors.As(mErr, &errNotFound) {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		// Follow thread if we're not already following it
 		if threadMembership == nil {
@@ -2662,35 +2670,35 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 				UpdateViewedTimestamp: false,
 				UpdateParticipants:    false,
 			}
-			threadMembership, sErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
-			if sErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+			threadMembership, mErr = a.Srv().Store.Thread().MaintainMembership(user.Id, threadId, opts)
+			if mErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 			}
 		}
 		// If threadmembership already exists but user had previously unfollowed the thread, then follow the thread again.
 		threadMembership.Following = true
 		threadMembership.LastViewed = post.CreateAt - 1
-		threadMembership.UnreadMentions, err = a.countThreadMentions(user, rootPost, channel.TeamId, post.CreateAt-1)
-		if err != nil {
-			return nil, err
+		threadMembership.UnreadMentions, appErr = a.countThreadMentions(c, user, rootPost, channel.TeamId, post.CreateAt-1)
+		if appErr != nil {
+			return nil, appErr
 		}
-		threadMembership, sErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		threadMembership, mErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, sErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
-		if sErr != nil {
-			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, sErr.Error(), http.StatusInternalServerError)
+		thread, mErr := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		if mErr != nil {
+			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 
-		if a.IsCRTEnabledForUser(userID) {
+		if a.IsCRTEnabledForUser(c, userID) {
 			payload, jsonErr := json.Marshal(thread)
 			if jsonErr != nil {
-				mlog.Warn("Failed to encode thread to JSON")
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
-			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
 			a.Publish(message)
 		}
@@ -2698,15 +2706,15 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(postID string, userID st
 
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, 0, false)
 	if nErr != nil {
-		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	a.sendWebSocketPostUnreadEvent(channelUnread, postID, false)
+	a.sendWebSocketPostUnreadEvent(c, channelUnread, postID, false)
 	a.UpdateMobileAppBadge(userID)
 	return channelUnread, nil
 }
 
-func (a *App) sendWebSocketPostUnreadEvent(channelUnread *model.ChannelUnreadAt, postID string, withMsgCountRoot bool) {
-	message := model.NewWebSocketEvent(model.WebsocketEventPostUnread, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
+func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.ChannelUnreadAt, postID string, withMsgCountRoot bool) {
+	message := model.NewWebSocketEvent(model.WebsocketEventPostUnread, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil, "")
 	message.Add("msg_count", channelUnread.MsgCount)
 	if withMsgCountRoot {
 		message.Add("msg_count_root", channelUnread.MsgCountRoot)
@@ -2718,7 +2726,7 @@ func (a *App) sendWebSocketPostUnreadEvent(channelUnread *model.ChannelUnreadAt,
 	a.Publish(message)
 }
 
-func (a *App) AutocompleteChannels(userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
+func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
@@ -2729,13 +2737,13 @@ func (a *App) AutocompleteChannels(userID, term string) (model.ChannelListWithTe
 
 	channelList, err := a.Srv().Store.Channel().Autocomplete(userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
-		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) AutocompleteChannelsForTeam(teamID, userID, term string) (model.ChannelList, *model.AppError) {
+func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
@@ -2746,29 +2754,29 @@ func (a *App) AutocompleteChannelsForTeam(teamID, userID, term string) (model.Ch
 
 	channelList, err := a.Srv().Store.Channel().AutocompleteInTeam(teamID, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
-		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) AutocompleteChannelsForSearch(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *App) AutocompleteChannelsForSearch(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	term = strings.TrimSpace(term)
 
 	channelList, err := a.Srv().Store.Channel().AutocompleteInTeamForSearch(teamID, userID, term, includeDeleted)
 	if err != nil {
-		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
-func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
+func (a *App) SearchAllChannels(c request.CTX, term string, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, int64, *model.AppError) {
 	if opts.ExcludeDefaultChannels {
-		opts.ExcludeChannelNames = a.DefaultChannelNames()
+		opts.ExcludeChannelNames = a.DefaultChannelNames(c)
 	}
 	storeOpts := store.ChannelSearchOpts{
 		ExcludeChannelNames:      opts.ExcludeChannelNames,
@@ -2780,6 +2788,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (mode
 		ExcludeGroupConstrained:  opts.ExcludeGroupConstrained,
 		PolicyID:                 opts.PolicyID,
 		IncludePolicyID:          opts.IncludePolicyID,
+		IncludeSearchById:        opts.IncludeSearchById,
 		ExcludePolicyConstrained: opts.ExcludePolicyConstrained,
 		Public:                   opts.Public,
 		Private:                  opts.Private,
@@ -2791,85 +2800,85 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (mode
 
 	channelList, totalCount, err := a.Srv().Store.Channel().SearchAllChannels(term, storeOpts)
 	if err != nil {
-		return nil, 0, model.NewAppError("SearchAllChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SearchAllChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, totalCount, nil
 }
 
-func (a *App) SearchChannels(teamID string, term string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchChannels(c request.CTX, teamID string, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	term = strings.TrimSpace(term)
 
 	channelList, err := a.Srv().Store.Channel().SearchInTeam(teamID, term, includeDeleted)
 	if err != nil {
-		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) SearchArchivedChannels(teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchArchivedChannels(c request.CTX, teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 
 	channelList, err := a.Srv().Store.Channel().SearchArchivedInTeam(teamID, term, userID)
 	if err != nil {
-		return nil, model.NewAppError("SearchArchivedChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchArchivedChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) SearchChannelsForUser(userID, teamID, term string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchChannelsForUser(c request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	term = strings.TrimSpace(term)
 
 	channelList, err := a.Srv().Store.Channel().SearchForUserInTeam(userID, teamID, term, includeDeleted)
 	if err != nil {
-		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) SearchGroupChannels(userID, term string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchGroupChannels(c request.CTX, userID, term string) (model.ChannelList, *model.AppError) {
 	if term == "" {
 		return model.ChannelList{}, nil
 	}
 
 	channelList, err := a.Srv().Store.Channel().SearchGroupChannels(userID, term)
 	if err != nil {
-		return nil, model.NewAppError("SearchGroupChannels", "app.channel.search_group_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchGroupChannels", "app.channel.search_group_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channelList, nil
 }
 
-func (a *App) SearchChannelsUserNotIn(teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID string, term string) (model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 	channelList, err := a.Srv().Store.Channel().SearchMore(userID, teamID, term)
 	if err != nil {
-		return nil, model.NewAppError("SearchChannelsUserNotIn", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchChannelsUserNotIn", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
 }
 
-func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
 	if a.canSendPushNotifications() {
 		for _, channelID := range channelIDs {
 			channel, errCh := a.Srv().Store.Channel().Get(channelID, true)
 			if errCh != nil {
-				mlog.Warn("Failed to get channel", mlog.Err(errCh))
+				c.Logger().Warn("Failed to get channel", mlog.Err(errCh))
 				continue
 			}
 
 			member, err := a.Srv().Store.Channel().GetMember(context.Background(), channelID, userID)
 			if err != nil {
-				mlog.Warn("Failed to get membership", mlog.Err(err))
+				c.Logger().Warn("Failed to get membership", mlog.Err(err))
 				continue
 			}
 
@@ -2877,7 +2886,7 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 			if notify == model.ChannelNotifyDefault {
 				user, err := a.GetUser(userID)
 				if err != nil {
-					mlog.Warn("Failed to get user", mlog.String("user_id", userID), mlog.Err(err))
+					c.Logger().Warn("Failed to get user", mlog.String("user_id", userID), mlog.Err(err))
 					continue
 				}
 				notify = user.NotifyProps[model.PushNotifyProp]
@@ -2899,11 +2908,11 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 	}
 
 	var err error
-	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(userID))
+	updateThreads := *a.Config().ServiceSettings.ThreadAutoFollow && (!collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID))
 	if updateThreads {
 		err = a.Srv().Store.Thread().MarkAllAsReadByChannels(userID, channelIDs)
 		if err != nil {
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -2912,15 +2921,15 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
 			message.Add("channel_id", channelID)
 			a.Publish(message)
 		}
@@ -2929,10 +2938,10 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 		a.clearPushNotification(currentSessionId, userID, channelID, "")
 	}
 
-	if updateThreads && a.IsCRTEnabledForUser(userID) {
+	if updateThreads && a.IsCRTEnabledForUser(c, userID) {
 		timestamp := model.GetMillis()
 		for _, channelID := range channelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil)
+			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
 		}
@@ -2941,8 +2950,8 @@ func (a *App) MarkChannelsAsViewed(channelIDs []string, userID string, currentSe
 	return times, nil
 }
 
-func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
-	if err := a.SetActiveChannel(userID, view.ChannelId); err != nil {
+func (a *App) ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
+	if err := a.SetActiveChannel(c, userID, view.ChannelId); err != nil {
 		return nil, err
 	}
 
@@ -2960,34 +2969,34 @@ func (a *App) ViewChannel(view *model.ChannelView, userID string, currentSession
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(channelIDs, userID, currentSessionId, collapsedThreadsSupported)
+	return a.MarkChannelsAsViewed(c, channelIDs, userID, currentSessionId, collapsedThreadsSupported)
 }
 
-func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {
 	if err := a.Srv().Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
-		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
-		return model.NewAppError("PermanentDeleteChannel", "app.channel.remove_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
-		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_incoming_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_incoming_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); err != nil {
-		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	deleteAt := model.GetMillis()
 
 	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
-		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	a.invalidateCacheForChannel(channel)
-	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
 	a.Publish(message)
@@ -2995,10 +3004,10 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
-func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError {
+func (a *App) RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError {
 	err := a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id)
 	if err != nil {
-		return model.NewAppError("RemoveAllDeactivatedMembersFromChannel", "app.channel.remove_all_deactivated_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RemoveAllDeactivatedMembersFromChannel", "app.channel.remove_all_deactivated_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -3006,9 +3015,9 @@ func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *mo
 
 // MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 // function is only exposed to sysadmins and the possibility of this edge case is relatively small.
-func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+func (a *App) MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	// Check that all channel members are in the destination team.
-	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+	channelMembers, err := a.GetChannelMembersPage(c, channel.Id, 0, 10000000)
 	if err != nil {
 		return err
 	}
@@ -3031,7 +3040,7 @@ func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.C
 			}
 			for _, channelMember := range channelMembers {
 				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
-					mlog.Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+					c.Logger().Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
 				}
 			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
@@ -3044,14 +3053,14 @@ func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.C
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("MoveChannel", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("MoveChannel", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return model.NewAppError("MoveChannel", "app.team.get.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("MoveChannel", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	if nErr := a.Srv().Store.Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); nErr != nil {
-		return model.NewAppError("MoveChannel", "app.channel.sidebar_categories.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return model.NewAppError("MoveChannel", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	channel.TeamId = team.Id
@@ -3060,54 +3069,54 @@ func (a *App) MoveChannel(c *request.Context, team *model.Team, channel *model.C
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("MoveChannel", "app.channel.update.bad_id", nil, invErr.Error(), http.StatusBadRequest)
+			return model.NewAppError("MoveChannel", "app.channel.update.bad_id", nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("MoveChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("MoveChannel", "app.channel.update_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
-		mlog.Warn("Failed to get incoming webhooks", mlog.Err(err))
+		c.Logger().Warn("Failed to get incoming webhooks", mlog.Err(err))
 	} else {
 		for _, webhook := range incomingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
-					mlog.Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+					c.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
 				}
 			}
 		}
 	}
 
 	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
-		mlog.Warn("Failed to get outgoing webhooks", mlog.Err(err))
+		c.Logger().Warn("Failed to get outgoing webhooks", mlog.Err(err))
 	} else {
 		for _, webhook := range outgoingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
-					mlog.Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+					c.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
 				}
 			}
 		}
 	}
 
 	if err := a.RemoveUsersFromChannelNotMemberOfTeam(c, user, channel, team); err != nil {
-		mlog.Warn("error while removing non-team member users", mlog.Err(err))
+		c.Logger().Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
 	if user != nil {
 		if err := a.postChannelMoveMessage(c, user, channel, previousTeam); err != nil {
-			mlog.Warn("error while posting move channel message", mlog.Err(err))
+			c.Logger().Warn("error while posting move channel message", mlog.Err(err))
 		}
 	}
 
 	return nil
 }
 
-func (a *App) postChannelMoveMessage(c *request.Context, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
+func (a *App) postChannelMoveMessage(c request.CTX, user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
 
 	post := &model.Post{
 		ChannelId: channel.Id,
@@ -3120,14 +3129,14 @@ func (a *App) postChannelMoveMessage(c *request.Context, user *model.User, chann
 	}
 
 	if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
-func (a *App) RemoveUsersFromChannelNotMemberOfTeam(c *request.Context, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
-	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+func (a *App) RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+	channelMembers, err := a.GetChannelMembersPage(c, channel.Id, 0, 10000000)
 	if err != nil {
 		return err
 	}
@@ -3165,16 +3174,20 @@ func (a *App) RemoveUsersFromChannelNotMemberOfTeam(c *request.Context, remover 
 	return nil
 }
 
-func (a *App) GetPinnedPosts(channelID string) (*model.PostList, *model.AppError) {
+func (a *App) GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError) {
 	posts, err := a.Srv().Store.Channel().GetPinnedPosts(channelID)
 	if err != nil {
-		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) ToggleMuteChannel(channelID, userID string) (*model.ChannelMember, *model.AppError) {
+func (a *App) ToggleMuteChannel(c request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError) {
 	member, nErr := a.Srv().Store.Channel().GetMember(context.Background(), channelID, userID)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -3183,15 +3196,15 @@ func (a *App) ToggleMuteChannel(channelID, userID string) (*model.ChannelMember,
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("ToggleMuteChannel", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("ToggleMuteChannel", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("ToggleMuteChannel", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("ToggleMuteChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
 	member.SetChannelMuted(!member.IsChannelMuted())
 
-	member, err := a.updateChannelMember(member)
+	member, err := a.updateChannelMember(c, member)
 	if err != nil {
 		return nil, err
 	}
@@ -3201,15 +3214,15 @@ func (a *App) ToggleMuteChannel(channelID, userID string) (*model.ChannelMember,
 	return member, nil
 }
 
-func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) ([]*model.ChannelMember, *model.AppError) {
-	members, nErr := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
-	if nErr != nil {
+func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string, muted bool) ([]*model.ChannelMember, *model.AppError) {
+	members, err := a.Srv().Store.Channel().GetMembersByChannelIds(channelIDs, userID)
+	if err != nil {
 		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -3229,28 +3242,28 @@ func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) (
 		return nil, nil
 	}
 
-	updated, nErr := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
-	if nErr != nil {
+	updated, err := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
+	if err != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	for _, member := range updated {
 		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
-		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
+		evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
 
 		memberJSON, jsonErr := json.Marshal(member)
 		if jsonErr != nil {
-			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return nil, model.NewAppError("setChannelsMuted", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		}
 
 		evt.Add("channelMember", string(memberJSON))
@@ -3260,11 +3273,11 @@ func (a *App) setChannelsMuted(channelIDs []string, userID string, muted bool) (
 	return updated, nil
 }
 
-func (a *App) FillInChannelProps(channel *model.Channel) *model.AppError {
-	return a.FillInChannelsProps(model.ChannelList{channel})
+func (a *App) FillInChannelProps(c request.CTX, channel *model.Channel) *model.AppError {
+	return a.FillInChannelsProps(c, model.ChannelList{channel})
 }
 
-func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError {
+func (a *App) FillInChannelsProps(c request.CTX, channelList model.ChannelList) *model.AppError {
 	// Group the channels by team and call GetChannelsByNames just once per team.
 	channelsByTeam := make(map[string]model.ChannelList)
 	for _, channel := range channelList {
@@ -3290,7 +3303,7 @@ func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError
 		}
 
 		if len(allChannelMentionNames) > 0 {
-			mentionedChannels, err := a.GetChannelsByNames(allChannelMentionNames, teamID)
+			mentionedChannels, err := a.GetChannelsByNames(c, allChannelMentionNames, teamID)
 			if err != nil {
 				return err
 			}
@@ -3301,11 +3314,11 @@ func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError
 			}
 
 			for _, channel := range channelList {
-				channelMentionsProp := make(map[string]interface{}, len(channelMentions[channel]))
+				channelMentionsProp := make(map[string]any, len(channelMentions[channel]))
 				for _, channelMention := range channelMentions[channel] {
 					if mentioned, ok := mentionedChannelsByName[channelMention]; ok {
 						if mentioned.Type == model.ChannelTypeOpen {
-							channelMentionsProp[mentioned.Name] = map[string]interface{}{
+							channelMentionsProp[mentioned.Name] = map[string]any{
 								"display_name": mentioned.DisplayName,
 							}
 						}
@@ -3324,7 +3337,7 @@ func (a *App) FillInChannelsProps(channelList model.ChannelList) *model.AppError
 	return nil
 }
 
-func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember) error) error {
+func (a *App) forEachChannelMember(c request.CTX, channelID string, f func(model.ChannelMember) error) error {
 	perPage := 100
 	page := 0
 
@@ -3351,37 +3364,38 @@ func (a *App) forEachChannelMember(channelID string, f func(model.ChannelMember)
 	return nil
 }
 
-func (a *App) ClearChannelMembersCache(channelID string) {
+func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	clearSessionCache := func(channelMember model.ChannelMember) error {
 		a.ClearSessionCacheForUser(channelMember.UserId)
-		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil)
+		message := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", channelMember.UserId, nil, "")
 		memberJSON, jsonErr := json.Marshal(channelMember)
 		if jsonErr != nil {
-			mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+			return jsonErr
 		}
 		message.Add("channelMember", string(memberJSON))
 		a.Publish(message)
 		return nil
 	}
-	if err := a.forEachChannelMember(channelID, clearSessionCache); err != nil {
-		a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+	if err := a.forEachChannelMember(c, channelID, clearSessionCache); err != nil {
+		return fmt.Errorf("error clearing cache for channel members: channel_id: %s, error: %w", channelID, err)
 	}
+	return nil
 }
 
 func (a *App) GetMemberCountsByGroup(ctx context.Context, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
 	channelMemberCounts, err := a.Srv().Store.Channel().GetMemberCountsByGroup(ctx, channelID, includeTimezones)
 	if err != nil {
-		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelMemberCounts, nil
 }
 
-func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
-	return a.Srv().getDirectChannel(userID, otherUserID)
+func (a *App) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
+	return a.Srv().getDirectChannel(c, userID, otherUserID)
 }
 
-func (s *Server) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+func (s *Server) getDirectChannel(c request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := s.Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -3389,32 +3403,32 @@ func (s *Server) getDirectChannel(userID, otherUserID string) (*model.Channel, *
 			return nil, nil
 		}
 
-		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	return channel, nil
 }
 
-func (a *App) GetTopChannelsForTeamSince(teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+func (a *App) GetTopChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForTeamSince", "app.channel.get_top_for_team_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
 
-func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
+func (a *App) GetTopChannelsForUserSince(c request.CTX, userID, teamID string, opts *model.InsightsOpts) (*model.TopChannelList, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	topChannels, err := a.Srv().Store.Channel().GetTopChannelsForUserSince(userID, teamID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("GetTopChannelsForUserSince", "app.channel.get_top_for_user_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetTopChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
 }
@@ -3424,13 +3438,36 @@ func (a *App) GetTopChannelsForUserSince(userID, teamID string, opts *model.Insi
 // use a sinceUnixMillis parameter value as returned by model.GetStartOfDayMillis.
 //
 // WARNING: PostCountsByDuration PERFORMS NO AUTHORIZATION CHECKS ON THE GIVEN CHANNELS.
-func (a *App) PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
+func (a *App) PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError) {
 	if !a.Config().FeatureFlags.InsightsEnabled {
 		return nil, model.NewAppError("PostCountsByDuration", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 	postCountByDay, err := a.Srv().Store.Channel().PostCountsByDuration(channelIDs, sinceUnixMillis, userID, grouping, groupingLocation)
 	if err != nil {
-		return nil, model.NewAppError("PostCountsByDuration", "app.channel.get_post_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("PostCountsByDuration", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return postCountByDay, nil
+}
+
+func (a *App) GetTopInactiveChannelsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForTeamSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForTeamSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForTeamSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return topChannels, nil
+}
+
+func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopInactiveChannelList, *model.AppError) {
+	if !a.Config().FeatureFlags.InsightsEnabled {
+		return nil, model.NewAppError("GetTopChannelsForUserSince", "api.insights.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	topChannels, err := a.Srv().Store.Channel().GetTopInactiveChannelsForUserSince(teamID, userID, opts.StartUnixMilli, opts.Page*opts.PerPage, opts.PerPage)
+	if err != nil {
+		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return topChannels, nil
 }

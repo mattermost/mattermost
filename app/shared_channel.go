@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) checkChannelNotShared(channelId string) error {
+func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(channelId); err != nil {
+	if _, err := a.GetChannel(c, channelId); err != nil {
 		return fmt.Errorf("cannot share this channel: %w", err)
 	}
 
@@ -22,7 +23,7 @@ func (a *App) checkChannelNotShared(channelId string) error {
 	if _, err := a.GetSharedChannel(channelId); err == nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is already shared")
+			return fmt.Errorf("channel is already shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -33,7 +34,7 @@ func (a *App) checkChannelIsShared(channelId string) error {
 	if _, err := a.GetSharedChannel(channelId); err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is not shared")
+			return fmt.Errorf("channel is not shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -45,7 +46,7 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return errors.New("channel is not shared")
+			return fmt.Errorf("channel is not shared: %w", err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}
@@ -58,8 +59,8 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 
 // SharedChannels
 
-func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	if err := a.checkChannelNotShared(sc.ChannelId); err != nil {
+func (a *App) SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
+	if err := a.checkChannelNotShared(c, sc.ChannelId); err != nil {
 		return nil, err
 	}
 	return a.Srv().Store.SharedChannel().Save(sc)
@@ -76,7 +77,7 @@ func (a *App) HasSharedChannel(channelID string) (bool, error) {
 func (a *App) GetSharedChannels(page int, perPage int, opts model.SharedChannelFilterOpts) ([]*model.SharedChannel, *model.AppError) {
 	channels, err := a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
 	if err != nil {
-		return nil, model.NewAppError("GetSharedChannels", "app.channel.get_channels.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetSharedChannels", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return channels, nil
 }
@@ -125,9 +126,9 @@ func (a *App) GetRemoteClusterForUser(remoteID string, userID string) (*model.Re
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return rc, nil

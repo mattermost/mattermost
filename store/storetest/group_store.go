@@ -91,6 +91,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMember", func(t *testing.T) { groupTestGetMember(t, ss) })
 	t.Run("GetNonMemberUsersPage", func(t *testing.T) { groupTestGetNonMemberUsersPage(t, ss) })
+
+	t.Run("DistinctGroupMemberCountForSource", func(t *testing.T) { groupTestDistinctGroupMemberCountForSource(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -515,7 +517,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 	// Returns all the groups
 	d1, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroups })
+	require.Condition(t, func() bool { return len(d1) >= numGroups }, len(d1), ">=", numGroups)
 	for _, expectedGroup := range groups {
 		present := false
 		for _, dbGroup := range d1 {
@@ -727,7 +729,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	d5, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
 	afterCount := len(d5)
-	require.Condition(t, func() bool { return beforeCount == afterCount+1 })
+	require.Condition(t, func() bool { return beforeCount == afterCount+1 }, beforeCount, "==", afterCount+1)
 
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
@@ -1525,7 +1527,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 	// Returns all the group teams
 	d1, err := ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
+	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables }, len(d1), ">=", numGroupSyncables)
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {
@@ -1654,7 +1656,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.SyncableId, groupTeam.SyncableId)
 	require.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	require.Equal(t, d1.CreateAt, groupTeam.CreateAt)
-	require.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })
+	require.Condition(t, func() bool { return d1.UpdateAt >= groupTeam.UpdateAt }, d1.UpdateAt, ">=", groupTeam.UpdateAt)
 
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
@@ -5115,4 +5117,83 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000)
 	require.Error(t, err)
 	require.Nil(t, users)
+}
+
+func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
+	// get the before counts
+	customGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	ldapGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
+	// create 2 groups, 1 custom and 1 ldap
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	customGroup, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	ldapGroup, err := ss.Group().Create(g2)
+	require.NoError(t, err)
+
+	// create a couple of users
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	// add both new users to both new groups
+	_, err = ss.Group().UpsertMember(customGroup.Id, user1.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(customGroup.Id, user2.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user2.Id)
+	require.NoError(t, err)
+
+	// remove one user from a group to ensure the 'where deleteat = 0' clause is working
+	_, err = ss.Group().DeleteMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	defer func() {
+		ss.Group().DeleteMember(ldapGroup.Id, user2.Id)
+		ss.Group().DeleteMember(customGroup.Id, user1.Id)
+		ss.Group().DeleteMember(customGroup.Id, user2.Id)
+
+		ss.Group().Delete(customGroup.Id)
+		ss.Group().Delete(ldapGroup.Id)
+
+		ss.User().PermanentDelete(user1.Id)
+		ss.User().PermanentDelete(user2.Id)
+	}()
+
+	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	require.Equal(t, customGroupCountBefore+2, customGroupCount)
+
+	ldapGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	require.Equal(t, ldapGroupCountBefore+1, ldapGroupCount)
 }

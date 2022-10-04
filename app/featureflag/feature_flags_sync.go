@@ -22,7 +22,7 @@ type SyncParams struct {
 	SplitKey            string
 	SyncIntervalSeconds int
 	Log                 *mlog.Logger
-	Attributes          map[string]interface{}
+	Attributes          map[string]any
 }
 
 type Synchronizer struct {
@@ -100,7 +100,7 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 	return baseFeatureFlags
 }
 
-func getStructFields(s interface{}) []string {
+func getStructFields(s any) []string {
 	structType := reflect.TypeOf(s)
 	fieldNames := make([]string, 0, structType.NumField())
 	for i := 0; i < structType.NumField(); i++ {

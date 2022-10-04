@@ -134,7 +134,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
-		err = th.App.DemoteUserToGuest(user)
+		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
 		rsession, err = th.App.GetSession(session.Token)

@@ -16,6 +16,8 @@ type PostList struct {
 	PrevPostId string           `json:"prev_post_id"`
 	// HasNext indicates whether there are more items to be fetched or not.
 	HasNext bool `json:"has_next"`
+	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
+	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
 }
 
 func NewPostList() *PostList {
@@ -30,19 +32,26 @@ func NewPostList() *PostList {
 func (o *PostList) Clone() *PostList {
 	orderCopy := make([]string, len(o.Order))
 	postsCopy := make(map[string]*Post)
-	for i, v := range o.Order {
-		orderCopy[i] = v
-	}
+	copy(orderCopy, o.Order)
 	for k, v := range o.Posts {
 		postsCopy[k] = v.Clone()
 	}
 	return &PostList{
-		Order:      orderCopy,
-		Posts:      postsCopy,
-		NextPostId: o.NextPostId,
-		PrevPostId: o.PrevPostId,
-		HasNext:    o.HasNext,
+		Order:                     orderCopy,
+		Posts:                     postsCopy,
+		NextPostId:                o.NextPostId,
+		PrevPostId:                o.PrevPostId,
+		HasNext:                   o.HasNext,
+		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
 	}
+}
+
+func (o *PostList) ForPlugin() *PostList {
+	copy := o.Clone()
+	for k, p := range copy.Posts {
+		copy.Posts[k] = p.ForPlugin()
+	}
+	return copy
 }
 
 func (o *PostList) ToSlice() []*Post {

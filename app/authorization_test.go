@@ -7,7 +7,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -78,7 +78,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 	}
 
 	t.Run("basic user can access basic channel", func(t *testing.T) {
-		assert.True(t, th.App.SessionHasPermissionToChannel(session, th.BasicChannel.Id, model.PermissionAddReaction))
+		assert.True(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicChannel.Id, model.PermissionAddReaction))
 	})
 
 	t.Run("does not panic if fetching channel causes an error", func(t *testing.T) {
@@ -103,7 +103,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
-		assert.False(t, th.App.SessionHasPermissionToChannel(session, th.BasicUser.Id, model.PermissionAddReaction))
+		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
 	})
 }
 
@@ -113,16 +113,16 @@ func TestHasPermissionToCategory(t *testing.T) {
 	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
-	categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
 
 	_, err = th.App.GetSession(session.Token)
 	require.Nil(t, err)
-	require.True(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
+	require.True(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
 
-	categories2, err := th.App.GetSidebarCategories(th.BasicUser2.Id, th.BasicTeam.Id)
+	categories2, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
-	require.False(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+	require.False(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
 }
 
 func TestSessionHasPermissionToGroup(t *testing.T) {
@@ -133,7 +133,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 	require.NoError(t, e)
 	defer file.Close()
 
-	b, e := ioutil.ReadAll(file)
+	b, e := io.ReadAll(file)
 	require.NoError(t, e)
 
 	r := csv.NewReader(strings.NewReader(string(b)))

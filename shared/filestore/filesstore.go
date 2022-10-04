@@ -40,18 +40,20 @@ type FileBackend interface {
 }
 
 type FileBackendSettings struct {
-	DriverName              string
-	Directory               string
-	AmazonS3AccessKeyId     string
-	AmazonS3SecretAccessKey string
-	AmazonS3Bucket          string
-	AmazonS3PathPrefix      string
-	AmazonS3Region          string
-	AmazonS3Endpoint        string
-	AmazonS3SSL             bool
-	AmazonS3SignV2          bool
-	AmazonS3SSE             bool
-	AmazonS3Trace           bool
+	DriverName                         string
+	Directory                          string
+	AmazonS3AccessKeyId                string
+	AmazonS3SecretAccessKey            string
+	AmazonS3Bucket                     string
+	AmazonS3PathPrefix                 string
+	AmazonS3Region                     string
+	AmazonS3Endpoint                   string
+	AmazonS3SSL                        bool
+	AmazonS3SignV2                     bool
+	AmazonS3SSE                        bool
+	AmazonS3Trace                      bool
+	SkipVerify                         bool
+	AmazonS3RequestTimeoutMilliseconds int64
 }
 
 func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {

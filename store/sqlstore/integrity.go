@@ -17,7 +17,7 @@ type relationalCheckConfig struct {
 	childIdAttr        string
 	canParentIdBeEmpty bool
 	sortRecords        bool
-	filter             interface{}
+	filter             any
 }
 
 func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.OrphanedRecord, error) {
@@ -52,9 +52,12 @@ func getOrphanedRecords(ss *SqlStore, cfg relationalCheckConfig) ([]model.Orphan
 		main = main.OrderBy("CT." + cfg.parentIdAttr)
 	}
 
-	query, args, _ := main.ToSql()
+	query, args, err := main.ToSql()
+	if err != nil {
+		return nil, err
+	}
 
-	err := ss.GetMasterX().Select(&records, query, args...)
+	err = ss.GetMasterX().Select(&records, query, args...)
 	return records, err
 }
 

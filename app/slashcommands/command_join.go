@@ -37,7 +37,7 @@ func (*JoinProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*JoinProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*JoinProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	channelName := strings.ToLower(message)
 
 	if strings.HasPrefix(message, "~") {
@@ -55,11 +55,11 @@ func (*JoinProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PermissionJoinPublicChannels) {
+		if !a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionJoinPublicChannels) {
 			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(args.UserId, channel.Id, model.PermissionReadChannel) {
+		if !a.HasPermissionToChannel(c, args.UserId, channel.Id, model.PermissionReadChannel) {
 			return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	default:

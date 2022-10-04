@@ -54,6 +54,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
 	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
 	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss, s) })
+	t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, ss, s) })
 	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
 	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
 	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
@@ -93,6 +94,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
+	t.Run("SearchMultilingual", func(t *testing.T) { testUserStoreSearchUsersMultilingual(t, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -124,11 +126,11 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	for i := 0; i < 49; i++ {
@@ -978,6 +980,85 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		})
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+	})
+}
+
+func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
+
+	cleanupStatusStore(t, s)
+
+	teamId := model.NewId()
+
+	user1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "aaa" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user1.Id}, -1)
+	require.NoError(t, nErr)
+
+	user2Admin, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "bbb" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
+	require.NoError(t, nErr)
+
+	user3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "ccc" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user3.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user3.Id}, -1)
+	require.NoError(t, nErr)
+
+	ch1 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in channel by admin",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      user1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:     c1.Id,
+		UserId:        user2Admin.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		ExplicitRoles: "channel_admin",
+	})
+	require.NoError(t, nErr)
+	ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      user3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, nErr)
+
+	t.Run("get users in admin, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannelByAdmin(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.NoError(t, err)
+		require.Len(t, users, 3)
+		require.Equal(t, user2Admin.Username, users[0].Username)
+		require.Equal(t, user1.Username, users[1].Username)
+		require.Equal(t, user3.Username, users[2].Username)
 	})
 }
 
@@ -2359,13 +2440,22 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
-	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
+
+	// Increment root mentions by 1
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true)
+	require.NoError(t, nErr)
+
+	// CRT is enabled, only root mentions are counted
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message with CRT")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)
@@ -2718,6 +2808,36 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 				TeamRoles:      []string{},
 			},
 			[]*model.User{u3},
+		},
+		{
+			"escape :",
+			t1id,
+			"ji:m",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
+			"escape ( and )",
+			t1id,
+			"ji(bah)",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
+			"escape <",
+			t1id,
+			"ji(bah<",
+			&model.UserSearchOptions{},
+			[]*model.User{},
+		},
+		{
+			"wildcard search",
+			t1id,
+			"@",
+			&model.UserSearchOptions{
+				Limit: model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2, u1, u3},
 		},
 	}
 
@@ -5929,4 +6049,175 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
+}
+
+func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlStore) {
+	u1 := &model.User{
+		Username:  "test1" + model.NewId(),
+		FirstName: "Inígo",
+		LastName:  "Martínez",
+		Nickname:  "Berridi",
+		Email:     MakeEmail(),
+	}
+	_, err := ss.User().Save(u1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	u2 := &model.User{
+		Username:  "test2" + model.NewId(),
+		FirstName: "Zinëdìne",
+		LastName:  "Zidanë",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	u3 := &model.User{
+		Username:  "test3" + model.NewId(),
+		FirstName: "Thomas ",
+		LastName:  "Müller",
+		Nickname:  "Fußballspieler",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u3)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	u4 := &model.User{
+		Username:  "test4" + model.NewId(),
+		FirstName: "Jérémie ",
+		LastName:  "Jéry",
+		Email:     MakeEmail(),
+	}
+	_, err = ss.User().Save(u4)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+	u4.AuthData = nilAuthData
+
+	testCases := []struct {
+		Description      string
+		Term             string
+		Options          *model.UserSearchOptions
+		ExpectedPostgres []*model.User
+		ExpectedMysql    []*model.User
+		Language         string
+	}{
+		{
+			"search test1 player",
+			"inig",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u1},
+			[]*model.User{u1},
+			"spanish",
+		},
+		{
+			"search test2 player",
+			"zine",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2},
+			[]*model.User{u2},
+			"french",
+		},
+		{
+			"search test2 player",
+			"zidane",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u2},
+			[]*model.User{u2},
+			"french",
+		},
+		{
+			"search test3 player",
+			"muller",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u3},
+			[]*model.User{u3},
+			"german",
+		},
+		{
+			"search test3 player",
+			"muller",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{},
+			[]*model.User{u3},
+			"english",
+		},
+		{
+			"search test4 player",
+			"jere",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{u4},
+			[]*model.User{u4},
+			"spanish",
+		},
+		{
+			"search test4 player",
+			"jere",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.UserSearchDefaultLimit,
+			},
+			[]*model.User{},
+			[]*model.User{u4},
+			"english",
+		},
+	}
+
+	var initialDefaultTextSearchConfig string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		error := s.GetMasterX().Get(&initialDefaultTextSearchConfig, `SHOW default_text_search_config`)
+		require.NoError(t, error)
+	}
+
+	for _, testCase := range testCases {
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + testCase.Language + "'")
+			require.NoError(t, error)
+		}
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := ss.User().SearchWithoutTeam(
+				testCase.Term,
+				testCase.Options,
+			)
+
+			if s.DriverName() != model.DatabaseDriverPostgres {
+				require.NoError(t, err)
+				assertUsers(t, testCase.ExpectedMysql, users)
+			} else {
+				require.NoError(t, err)
+				assertUsers(t, testCase.ExpectedPostgres, users)
+			}
+		})
+	}
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + initialDefaultTextSearchConfig + "'")
+		require.NoError(t, error)
+	}
 }

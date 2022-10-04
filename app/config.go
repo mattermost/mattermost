@@ -12,7 +12,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -31,110 +30,24 @@ const (
 	ErrorTermsOfServiceNoRowsFound = "app.terms_of_service.get.no_rows.app_error"
 )
 
-// configWrapper is an adapter struct that only exposes the
-// config related functionality to be passed down to other products.
-type configWrapper struct {
-	srv *Server
-	*config.Store
-}
-
-func (w *configWrapper) Name() ServiceKey {
-	return ConfigKey
-}
-
-func (w *configWrapper) Config() *model.Config {
-	return w.Store.Get()
-}
-
-func (w *configWrapper) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return w.Store.AddListener(listener)
-}
-
-func (w *configWrapper) RemoveConfigListener(id string) {
-	w.Store.RemoveListener(id)
-}
-
-func (w *configWrapper) UpdateConfig(f func(*model.Config)) {
-	if w.Store.IsReadOnly() {
-		return
-	}
-	old := w.Config()
-	updated := old.Clone()
-	f(updated)
-	if _, _, err := w.Store.Set(updated); err != nil {
-		mlog.Error("Failed to update config", mlog.Err(err))
-	}
-}
-
-func (w *configWrapper) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	oldCfg, newCfg, err := w.Store.Set(newCfg)
-	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
-	} else if err != nil {
-		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if w.srv.startMetrics && *w.Config().MetricsSettings.Enable {
-		if w.srv.Metrics != nil {
-			w.srv.Metrics.Register()
-		}
-		w.srv.SetupMetricsServer()
-	} else {
-		w.srv.StopMetricsServer()
-	}
-
-	if w.srv.Cluster != nil {
-		err := w.srv.Cluster.ConfigChanged(w.Store.RemoveEnvironmentOverrides(oldCfg),
-			w.Store.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return oldCfg, newCfg, nil
-}
-
-func (w *configWrapper) ReloadConfig() error {
-	if err := w.Store.Load(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Server) Config() *model.Config {
-	return s.configStore.Config()
-}
-
-func (s *Server) ConfigStore() *configWrapper {
-	return s.configStore
+	return s.platform.Config()
 }
 
 func (a *App) Config() *model.Config {
 	return a.ch.cfgSvc.Config()
 }
 
-func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
-}
-
-func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return a.Srv().EnvironmentConfig(filter)
-}
-
-func (s *Server) UpdateConfig(f func(*model.Config)) {
-	s.configStore.UpdateConfig(f)
+func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
+	return a.Srv().platform.GetEnvironmentOverridesWithFilter(filter)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
-	a.Srv().UpdateConfig(f)
-}
-
-func (s *Server) ReloadConfig() error {
-	return s.configStore.ReloadConfig()
+	a.Srv().platform.UpdateConfig(f)
 }
 
 func (a *App) ReloadConfig() error {
-	return a.Srv().ReloadConfig()
+	return a.Srv().platform.ReloadConfig()
 }
 
 func (a *App) ClientConfig() map[string]string {
@@ -149,24 +62,13 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.ch.limitedClientConfig.Load().(map[string]string)
 }
 
-// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
-// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
-// for the listener that can later be used to remove it.
-func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return s.configStore.AddConfigListener(listener)
-}
-
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return a.Srv().AddConfigListener(listener)
+	return a.Srv().platform.AddConfigListener(listener)
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
-func (s *Server) RemoveConfigListener(id string) {
-	s.configStore.RemoveConfigListener(id)
-}
-
 func (a *App) RemoveConfigListener(id string) {
-	a.Srv().RemoveConfigListener(id)
+	a.Srv().platform.RemoveConfigListener(id)
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
@@ -445,7 +347,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.
 func (a *App) GetConfigFile(name string) ([]byte, error) {
-	data, err := a.Srv().configStore.GetFile(name)
+	data, err := a.Srv().platform.GetConfigFile(name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get config file %s", name)
 	}
@@ -463,19 +365,13 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
-func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return a.EnvironmentConfig(filter)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-// It returns both the previous and current configs.
-func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return s.configStore.SaveConfig(newCfg, sendConfigChangeClusterMessage)
-}
-
-// SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
@@ -495,8 +391,8 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 }
 
 func (s *Server) MailServiceConfig() *mail.SMTPConfig {
-	emailSettings := s.Config().EmailSettings
-	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	emailSettings := s.platform.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.platform.Config().ServiceSettings.SiteURL)
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,

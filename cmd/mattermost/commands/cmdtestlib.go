@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -127,7 +126,7 @@ func (h *testHelper) SetConfig(config *model.Config) {
 	if err != nil {
 		panic("failed to marshal config: " + err.Error())
 	}
-	if err := ioutil.WriteFile(h.configFilePath, buf, 0600); err != nil {
+	if err := os.WriteFile(h.configFilePath, buf, 0600); err != nil {
 		panic("failed to write file " + h.configFilePath + ": " + err.Error())
 	}
 }

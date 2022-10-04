@@ -32,7 +32,7 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 
 	jobs, err := store.Job().GetAllByType(model.JobTypeMigrations)
 	if err != nil {
-		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, job := range jobs {

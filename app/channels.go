@@ -10,6 +10,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
@@ -20,18 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/pkg/errors"
 )
-
-// configSvc is a consumer interface to work
-// with any config related task with the server.
-type configSvc interface {
-	Config() *model.Config
-	AddConfigListener(listener func(*model.Config, *model.Config)) string
-	RemoveConfigListener(id string)
-	UpdateConfig(f func(*model.Config))
-	SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError)
-}
 
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
@@ -40,16 +31,10 @@ type licenseSvc interface {
 	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
-// namer is an interface which enforces that
-// all services can return their names.
-type namer interface {
-	Name() ServiceKey
-}
-
 // Channels contains all channels related state.
 type Channels struct {
 	srv        *Server
-	cfgSvc     configSvc
+	cfgSvc     product.ConfigService
 	filestore  filestore.FileBackend
 	licenseSvc licenseSvc
 	routerSvc  *routerService
@@ -95,11 +80,14 @@ type Channels struct {
 
 	dndTaskMut sync.Mutex
 	dndTask    *model.ScheduledTask
+
+	postReminderMut  sync.Mutex
+	postReminderTask *model.ScheduledTask
 }
 
 func init() {
 	RegisterProduct("channels", ProductManifest{
-		Initializer: func(s *Server, services map[ServiceKey]interface{}) (Product, error) {
+		Initializer: func(s *Server, services map[ServiceKey]any) (Product, error) {
 			return NewChannels(s, services)
 		},
 		Dependencies: map[ServiceKey]struct{}{
@@ -110,10 +98,10 @@ func init() {
 	})
 }
 
-func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, error) {
+func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
 		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s, s.httpService, s.Log),
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
 		uploadLockMap: map[string]bool{},
 	}
 
@@ -135,13 +123,9 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		switch svcKey {
 		// Keep adding more services here
 		case ConfigKey:
-			cfgSvc, ok := svc.(configSvc)
+			cfgSvc, ok := svc.(product.ConfigService)
 			if !ok {
 				return nil, errors.New("Config service did not satisfy ConfigSvc interface")
-			}
-			_, ok = svc.(namer)
-			if !ok {
-				return nil, errors.New("Config service does not contain Name method")
 			}
 			ch.cfgSvc = cfgSvc
 		case FilestoreKey:
@@ -154,10 +138,6 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 			svc, ok := svc.(licenseSvc)
 			if !ok {
 				return nil, errors.New("License service did not satisfy licenseSvc interface")
-			}
-			_, ok = svc.(namer)
-			if !ok {
-				return nil, errors.New("License service does not contain Name method")
 			}
 			ch.licenseSvc = svc
 		}
@@ -187,12 +167,12 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(); err != nil {
-			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
 			if err := ch.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
 	}
@@ -244,12 +224,18 @@ func NewChannels(s *Server, services map[ServiceKey]interface{}) (*Channels, err
 		ch: ch,
 	}
 
+	services[UserKey] = &App{ch: ch}
+
+	services[PreferencesKey] = &preferencesServiceWrapper{
+		app: &App{ch: ch},
+	}
+
 	return ch, nil
 }
 
 func (ch *Channels) Start() error {
 	// Start plugins
-	ctx := request.EmptyContext()
+	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
@@ -257,7 +243,7 @@ func (ch *Channels) Start() error {
 		// to ensure we don't re-init plugins unnecessarily.
 		diffs, err := config.Diff(prevCfg, cfg)
 		if err != nil {
-			mlog.Warn("Error in comparing configs", mlog.Err(err))
+			ch.srv.Log().Warn("Error in comparing configs", mlog.Err(err))
 			return
 		}
 
@@ -321,15 +307,17 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
+// Ensure hooksService implements `product.HooksService`
+var _ product.HooksService = (*hooksService)(nil)
+
 type hooksService struct {
 	ch *Channels
 }
 
-func (s *hooksService) RegisterHooks(productID string, hooks product.Hooks) error {
+func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 	if s.ch.pluginsEnvironment == nil {
 		return errors.New("could not find plugins environment")
 	}
 
-	s.ch.pluginsEnvironment.AddProduct(productID, hooks)
-	return nil
+	return s.ch.pluginsEnvironment.AddProduct(productID, hooks)
 }

@@ -5,7 +5,7 @@ package plugintest_test
 
 import (
 	"fmt"
-	"io/ioutil"
+	io "io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -52,7 +52,7 @@ func Example() {
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Header.Add("Mattermost-User-Id", user.Id)
 	p.ServeHTTP(&plugin.Context{}, w, r)
-	body, err := ioutil.ReadAll(w.Result().Body)
+	body, err := io.ReadAll(w.Result().Body)
 	require.NoError(t, err)
 	assert.Equal(t, "Welcome back, billybob!", string(body))
 }

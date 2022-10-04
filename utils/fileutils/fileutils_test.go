@@ -5,7 +5,6 @@ package fileutils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,23 +25,23 @@ func TestFindFile(t *testing.T) {
 		//     tmpDir3/
 		//       tmpDir4/
 		//         tmpDir5/
-		tmpDir1, err := ioutil.TempDir("", "")
+		tmpDir1, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		defer os.RemoveAll(tmpDir1)
 
-		tmpDir2, err := ioutil.TempDir(tmpDir1, "")
+		tmpDir2, err := os.MkdirTemp(tmpDir1, "")
 		require.NoError(t, err)
 
 		err = os.Mkdir(filepath.Join(tmpDir2, "other.txt"), 0700)
 		require.NoError(t, err)
 
-		tmpDir3, err := ioutil.TempDir(tmpDir2, "")
+		tmpDir3, err := os.MkdirTemp(tmpDir2, "")
 		require.NoError(t, err)
 
-		tmpDir4, err := ioutil.TempDir(tmpDir3, "")
+		tmpDir4, err := os.MkdirTemp(tmpDir3, "")
 		require.NoError(t, err)
 
-		tmpDir5, err := ioutil.TempDir(tmpDir4, "")
+		tmpDir5, err := os.MkdirTemp(tmpDir4, "")
 		require.NoError(t, err)
 
 		type testCase struct {
@@ -56,7 +55,7 @@ func TestFindFile(t *testing.T) {
 
 		for _, fileName := range []string{"file1.json", "file2.xml", "other.txt"} {
 			filePath := filepath.Join(tmpDir1, fileName)
-			require.NoError(t, ioutil.WriteFile(filePath, []byte("{}"), 0600))
+			require.NoError(t, os.WriteFile(filePath, []byte("{}"), 0600))
 
 			// Relative paths end up getting symlinks fully resolved, so use this below as necessary.
 			filePathResolved, err := filepath.EvalSymlinks(filePath)

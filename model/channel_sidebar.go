@@ -97,7 +97,7 @@ func (t SidebarCategoryType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *SidebarCategoryType) UnmarshalGraphQL(input interface{}) error {
+func (t *SidebarCategoryType) UnmarshalGraphQL(input any) error {
 	chType, ok := input.(string)
 	if !ok {
 		return errors.New("wrong type")
@@ -115,7 +115,7 @@ func (t SidebarCategorySorting) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
 }
 
-func (t *SidebarCategorySorting) UnmarshalGraphQL(input interface{}) error {
+func (t *SidebarCategorySorting) UnmarshalGraphQL(input any) error {
 	chType, ok := input.(string)
 	if !ok {
 		return errors.New("wrong type")
@@ -123,4 +123,8 @@ func (t *SidebarCategorySorting) UnmarshalGraphQL(input interface{}) error {
 
 	*t = SidebarCategorySorting(chType)
 	return nil
+}
+
+func (t *SidebarCategory) SortOrder_() float64 {
+	return float64(t.SortOrder)
 }

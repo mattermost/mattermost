@@ -222,13 +222,13 @@ func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *mod
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, teamID)
+// CreateInitialSidebarCategories provides a mock function with given fields: userID, opts
+func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userID, opts)
 
 	var r0 *model.OrderedSidebarCategories
-	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, teamID)
+	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
@@ -236,8 +236,8 @@ func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, teamID str
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, teamID)
+	if rf, ok := ret.Get(1).(func(string, *store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1372,8 +1372,31 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamID string, offset int, limi
 	return r0, r1
 }
 
-// GetSidebarCategories provides a mock function with given fields: userID, teamID
-func (_m *ChannelStore) GetSidebarCategories(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
+// GetSidebarCategories provides a mock function with given fields: userID, opts
+func (_m *ChannelStore) GetSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(userID, opts)
+
+	var r0 *model.OrderedSidebarCategories
+	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userID, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(userID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSidebarCategoriesForTeamForUser provides a mock function with given fields: userID, teamID
+func (_m *ChannelStore) GetSidebarCategoriesForTeamForUser(userID string, teamID string) (*model.OrderedSidebarCategories, error) {
 	ret := _m.Called(userID, teamID)
 
 	var r0 *model.OrderedSidebarCategories
@@ -1549,6 +1572,52 @@ func (_m *ChannelStore) GetTopChannelsForUserSince(userID string, teamID string,
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
 		r1 = rf(userID, teamID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopInactiveChannelsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopInactiveChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopInactiveChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopInactiveChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopInactiveChannelsForUserSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopInactiveChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopInactiveChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopInactiveChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -78,7 +78,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -108,13 +108,16 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("updateConfig", audit.Fail)
+
+	// auditRec.AddEventParameter("config", cfg)  // TODO We can do this but do we want to?
 	defer c.LogAuditRec(auditRec)
 
 	cfg.SetDefaults()
@@ -130,14 +133,13 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err1 error
-	cfg, err1 = config.Merge(appCfg, cfg, &utils.MergeConfig{
+	cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return writeFilter(c, structField)
 		},
 	})
-	if err1 != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err1.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -154,8 +156,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
-	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
-		c.Err = err
+	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -164,51 +166,53 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}
 
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
-	if err := cfg.IsValid(); err != nil {
-		c.Err = err
+	if appErr := cfg.IsValid(); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(cfg, true)
+	oldCfg, newCfg, appErr := c.App.SaveConfig(cfg, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	diffs, err := config.Diff(oldCfg, newCfg)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-
-	diffs, diffErr := config.Diff(oldCfg, newCfg)
-	if diffErr != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
-		return
-	}
-	auditRec.AddMeta("diff", diffs.Sanitize())
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 
-	cfg, mergeErr := config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
+	cfg, err = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
 	})
-	if mergeErr != nil {
-		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
+	//auditRec.AddEventResultState(cfg) // TODO we can do this too but do we want to? the config object is huge
+	auditRec.AddEventObjectType("config")
 	auditRec.Success()
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
-		if jsonErr != nil {
-			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 		w.Write(js)
@@ -216,7 +220,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -255,9 +259,10 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJSON(r.Body)
-	if cfg == nil {
-		c.SetInvalidParam("config")
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil || cfg == nil {
+		c.SetInvalidParamWithErr("config", err)
 		return
 	}
 
@@ -281,7 +286,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
 		return
 	}
 
@@ -289,20 +294,20 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if cfg.PluginSettings.MarketplaceURL != nil && cfg.PluginSettings.EnableUploads != nil {
 		// Breaking it down to 2 conditions to make it simple.
 		if *cfg.PluginSettings.MarketplaceURL != *appCfg.PluginSettings.MarketplaceURL && !*cfg.PluginSettings.EnableUploads {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
 			return
 		}
 	}
 
-	if err := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); err != nil {
-		c.Err = err
+	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
-			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
+			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
 		}
 	}
@@ -311,53 +316,53 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 	}
 
-	updatedCfg, mergeErr := config.Merge(appCfg, cfg, &utils.MergeConfig{
+	updatedCfg, err := config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: filterFn,
 	})
-
-	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err := updatedCfg.IsValid()
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	oldCfg, newCfg, err := c.App.SaveConfig(updatedCfg, true)
+	appErr := updatedCfg.IsValid()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	oldCfg, newCfg, appErr := c.App.SaveConfig(updatedCfg, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	diffs, err := config.Diff(oldCfg, newCfg)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	diffs, diffErr := config.Diff(oldCfg, newCfg)
-	if diffErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
-		return
-	}
-	auditRec.AddMeta("diff", diffs.Sanitize())
+	auditRec.AddEventPriorState(&diffs)
 
 	newCfg.Sanitize()
 
 	auditRec.Success()
 
-	cfg, mergeErr = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
+	cfg, err = config.Merge(&model.Config{}, newCfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
 	})
-	if mergeErr != nil {
-		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
-		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
-		if jsonErr != nil {
-			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		if err != nil {
+			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			return
 		}
 		w.Write(js)
@@ -365,7 +370,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(cfg); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

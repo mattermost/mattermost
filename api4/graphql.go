@@ -18,9 +18,9 @@ import (
 )
 
 type graphQLInput struct {
-	Query         string                 `json:"query"`
-	OperationName string                 `json:"operationName"`
-	Variables     map[string]interface{} `json:"variables"`
+	Query         string         `json:"query"`
+	OperationName string         `json:"operationName"`
+	Variables     map[string]any `json:"variables"`
 }
 
 // Unique type to hold our context.
@@ -48,7 +48,7 @@ func (api *API) InitGraphQL() error {
 	var err error
 	opts := []graphql.SchemaOpt{
 		graphql.UseFieldResolvers(),
-		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log)),
+		graphql.Logger(mlog.NewGraphQLLogger(api.srv.Log())),
 		graphql.MaxParallelism(loaderBatchCapacity), // This is dangerous if the query
 		// uses any non-dataloader backed object. So we need to be a bit careful here.
 	}
@@ -78,7 +78,7 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if response != nil {
 			if err := json.NewEncoder(w).Encode(response); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 		}
 	}()
@@ -100,6 +100,8 @@ func (api *API) graphQL(c *Context, w http.ResponseWriter, r *http.Request) {
 		response = &graphql.Response{Errors: []*gqlerrors.QueryError{err2}}
 		return
 	}
+
+	c.GraphQLOperationName = params.OperationName
 
 	// Populate the context with required info.
 	reqCtx := r.Context()

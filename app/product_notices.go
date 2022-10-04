@@ -198,7 +198,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	return true, nil
 }
 
-func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue interface{}) (bool, error) {
+func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue any) (bool, error) {
 	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
 		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
@@ -213,7 +213,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userID string, k
 	return pref.Value == expectedValue, nil
 }
 
-func validateConfigEntry(conf *model.Config, path string, expectedValue interface{}) bool {
+func validateConfigEntry(conf *model.Config, path string, expectedValue any) bool {
 	value, found := config.GetValueByPath(strings.Split(path, "."), *conf)
 	if !found {
 		return false
@@ -246,7 +246,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 
 	views, err := a.Srv().Store.ProductNotices().GetViews(userID)
 	if err != nil {
-		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
@@ -301,7 +301,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 			searchEngineVersion,
 			&a.ch.cachedNotices[noticeIndex])
 		if err != nil {
-			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 		if result {
 			selectedLocale := "en"
@@ -320,7 +320,7 @@ func (a *App) GetProductNotices(c *request.Context, userID, teamID string, clien
 // UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError {
 	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
-		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return nil
 }
@@ -362,15 +362,15 @@ func (a *App) UpdateProductNotices() *model.AppError {
 
 	data, err := utils.GetURLWithCache(url, &noticesCache, skip)
 	if err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	a.ch.cachedNotices, err = model.UnmarshalProductNotices(data)
 	if err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Srv().Store.ProductNotices().ClearOldNotices(a.ch.cachedNotices); err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return nil
 }

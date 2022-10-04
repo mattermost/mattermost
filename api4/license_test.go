@@ -212,14 +212,6 @@ func TestRequestTrialLicense(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("blank site url", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "" })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
-		resp, err := th.SystemAdminClient.RequestTrialLicense(1000)
-		CheckErrorID(t, err, "api.license.request_trial_license.no-site-url.app_error")
-		CheckBadRequestStatus(t, resp)
-	})
-
 	t.Run("trial license user count less than current users", func(t *testing.T) {
 		nUsers := 1
 		license := model.NewTestLicense()

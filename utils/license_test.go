@@ -6,7 +6,6 @@ package utils
 import (
 	"bytes"
 	"encoding/base64"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -80,10 +79,10 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 	})
 
 	t.Run("not a license file", func(t *testing.T) {
-		f, err := ioutil.TempFile("", "TestGetLicenseFileFromDisk")
+		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
 		require.NoError(t, err)
 		defer os.Remove(f.Name())
-		ioutil.WriteFile(f.Name(), []byte("not a license"), 0777)
+		os.WriteFile(f.Name(), []byte("not a license"), 0777)
 
 		fileBytes := GetLicenseFileFromDisk(f.Name())
 		require.NotEmpty(t, fileBytes, "should have read the file")

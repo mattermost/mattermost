@@ -116,7 +116,7 @@ func TestGetUpload(t *testing.T) {
 		Filename:  "upload",
 		FileSize:  8 * 1024 * 1024,
 	}
-	us, err := th.App.CreateUploadSession(us)
+	us, err := th.App.CreateUploadSession(th.Context, us)
 	require.Nil(t, err)
 	require.NotNil(t, us)
 	require.NotEmpty(t, us)
@@ -176,7 +176,7 @@ func TestGetUploadsForUser(t *testing.T) {
 				Filename:  "upload",
 				FileSize:  8 * 1024 * 1024,
 			}
-			us, err := th.App.CreateUploadSession(us)
+			us, err := th.App.CreateUploadSession(th.Context, us)
 			require.Nil(t, err)
 			require.NotNil(t, us)
 			require.NotEmpty(t, us)
@@ -207,10 +207,10 @@ func TestUploadData(t *testing.T) {
 		CreateAt:  model.GetMillis(),
 		UserId:    th.BasicUser2.Id,
 		ChannelId: th.BasicChannel.Id,
-		Filename:  "upload",
+		Filename:  "upload.zip",
 		FileSize:  8 * 1024 * 1024,
 	}
-	us, err := th.App.CreateUploadSession(us)
+	us, err := th.App.CreateUploadSession(th.Context, us)
 	require.Nil(t, err)
 	require.NotNil(t, us)
 	require.NotEmpty(t, us)
@@ -251,7 +251,7 @@ func TestUploadData(t *testing.T) {
 			Filename:  "upload",
 			FileSize:  8 * 1024 * 1024,
 		}
-		_, appErr := th.App.CreateUploadSession(us2)
+		_, appErr := th.App.CreateUploadSession(th.Context, us2)
 		require.Nil(t, appErr)
 
 		info, resp, err := th.SystemAdminClient.UploadData(us2.Id, bytes.NewReader(data))
@@ -281,6 +281,9 @@ func TestUploadData(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.Equal(t, u.Filename, info.Name)
+		require.Equal(t, u.FileSize, info.Size)
+		require.Equal(t, "zip", info.Extension)
+		require.Equal(t, "application/zip", info.MimeType)
 
 		file, _, err := th.Client.GetFile(info.Id)
 		require.NoError(t, err)

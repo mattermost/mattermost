@@ -84,11 +84,11 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &invErr):
-				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			case errors.As(err, &appErr):
 				c.Err = appErr
 			default:
-				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return
 		}
@@ -114,7 +114,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			if ok {
 				c.Err = appErr
 			} else {
-				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			return
@@ -133,7 +133,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			if ok {
 				c.Err = appErr
 			} else {
-				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, err.Error(), http.StatusInternalServerError)
+				c.Err = model.NewAppError("manualTest", "api.user.login.bot_login_forbidden.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			return
 		}

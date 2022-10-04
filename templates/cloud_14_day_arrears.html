@@ -1,6 +1,6 @@
-{{define "cloud_trial_ended_email"}}
+{{define "cloud_14_day_arrears"}}
 
-<!-- FILE: cloud_trial_ended_email.mjml -->
+<!-- FILE: cloud_14_day_arrears.mjml -->
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
@@ -70,12 +70,22 @@
         width: 100% !important;
         max-width: 100%;
       }
+
+      .mj-column-per-50 {
+        width: 50% !important;
+        max-width: 50%;
+      }
     }
   </style>
   <style media="screen and (min-width:480px)">
     .moz-text-html .mj-column-per-100 {
       width: 100% !important;
       max-width: 100%;
+    }
+
+    .moz-text-html .mj-column-per-50 {
+      width: 50% !important;
+      max-width: 50%;
     }
   </style>
   <style type="text/css">
@@ -98,7 +108,7 @@
 
     .emailBody a {
       text-decoration: none !important;
-      color: #1C58D9 !important;
+      color: #1C58D9;
     }
 
     .title div {
@@ -132,7 +142,6 @@
     .button-cloud a {
       background-color: #1C58D9 !important;
       font-weight: 400 !important;
-      font-family: Open Sans, sans-serif !important;
       font-size: 16px !important;
       line-height: 18px !important;
       color: #FFFFFF !important;
@@ -330,6 +339,13 @@
         padding: 0px 0px 0px 12px !important;
       }
     }
+
+    @media only screen and (min-width:480px) {
+      .mj-column-per-50 {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }
   </style>
 </head>
 
@@ -389,16 +405,21 @@
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:24px;word-break:break-word;">
-                                  <div style="font-family:Open Sans, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#3F4350;">{{.Props.SubTitle}}</div>
+                                <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:16px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#3F4350;">{{.Props.SubTitle1}}</div>
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" vertical-align="middle" class="button-cloud" style="font-size:0px;padding:0px;word-break:break-word;">
+                                <td align="center" style="font-size:0px;padding:10px 25px;padding-top:0px;padding-bottom:24px;word-break:break-word;">
+                                  <div style="font-family:Open Sans, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:center;color:#3F4350;">{{.Props.SubTitle2}}</div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td align="center" vertical-align="middle" class="button-cloud" style="font-size:0px;padding:0px;padding-bottom:40px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
                                       <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;border-top:16px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
-                                        <a href="{{.Props.ButtonURL}}" style="display: inline-block; background: #FFFFFF; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-weight: 400; font-family: Open Sans, sans-serif; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px;" target="_blank">
+                                        <a href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal" style="display: inline-block; background: #FFFFFF; font-family: Open Sans, sans-serif; margin: 0; text-transform: none; mso-padding-alt: 0px; border-radius: 4px; text-decoration: none; background-color: #1C58D9; font-size: 16px; line-height: 18px; color: #FFFFFF; padding: 15px 24px; font-weight: 400;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>
@@ -420,7 +441,7 @@
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>
                     <tr>
-                      <td style="border-left:1px solid #E5E5E5;border-right:1px solid #E5E5E5;direction:ltr;font-size:0px;padding:20px 0;padding-top:57px;text-align:center;">
+                      <td style="border-left:1px solid #E5E5E5;border-right:1px solid #E5E5E5;direction:ltr;font-size:0px;padding:20px 0;padding-top:0px;text-align:center;">
                         <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:610px;" ><![endif]-->
                         <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
                           <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
@@ -435,20 +456,11 @@
                                             <tbody>
                                               <tr>
                                                 <td style="width:320px;">
-                                                  <img alt height="auto" src="{{.Props.SiteURL}}/static/images/trial-ended.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
+                                                  <img alt height="auto" src="{{.Props.SiteURL}}/static/images/cloud-laptop-error.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="320">
                                                 </td>
                                               </tr>
                                             </tbody>
                                           </table>
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                          <div style="font-family:Open Sans, sans-serif;font-size:14px;line-height:20px;text-align:center;color:#3F4350;">{{.Props.QuestionInfo}}
-                                            <a href="mailto:{{.Props.SupportEmail}}" style="text-decoration: none; color: #1C58D9;">
-                                              {{.Props.SupportEmail}}
-                                            </a>
-                                          </div>
                                         </td>
                                       </tr>
                                     </tbody>
@@ -469,16 +481,87 @@
                 <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
                   <tbody>
                     <tr>
-                      <td style="border-bottom:1px solid #E5E5E5;border-left:1px solid #E5E5E5;border-right:1px solid #E5E5E5;direction:ltr;font-size:0px;padding:0px 24px 48px 24px;text-align:center;">
-                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:562px;" ><![endif]-->
-                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-top:1px solid #E5E5E5;vertical-align:top;" width="100%">
+                      <td style="border-left:1px solid #E5E5E5;border-right:1px solid #E5E5E5;direction:ltr;font-size:0px;padding:20px 0;padding-top:0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:305px;" ><![endif]-->
+                        <div class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
                             <tbody>
                               <tr>
-                                <td align="center" class="emailFooter" style="font-size:0px;padding:64px 0px 0px 0px;word-break:break-word;">
-                                  <div style="font-family: Open Sans, sans-serif; text-align: center; font-size: 12px; line-height: 16px; color: rgba(63, 67, 80, 0.56); padding: 8px 24px 8px 24px;">{{.Props.Organization}}
-                                    {{.Props.FooterV2}}
-                                  </div>
+                                <td style="vertical-align:top;padding:0;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                                    <tbody>
+                                      <tr>
+                                        <td align="left" style="font-size:0px;padding:0px;padding-bottom:0px;padding-left:48px;word-break:break-word;">
+                                          <div style="font-family:Open Sans, sans-serif;font-size:16px;font-weight:600;line-height:1;text-align:left;color:#000000;">{{.Props.QuestionTitle}}</div>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td align="left" style="font-size:0px;padding:10px 25px;padding-bottom:0px;padding-left:48px;word-break:break-word;">
+                                          <div style="font-family:Open Sans, sans-serif;font-size:14px;line-height:1;text-align:left;color:#3F4350;">{{.Props.QuestionInfo}}
+                                            <a href="mailto:{{.Props.SupportEmail}}" style="color: #1C58D9; text-decoration: none;">
+                                              {{.Props.SupportEmail}}</a>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:305px;" ><![endif]-->
+                        <div class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td style="vertical-align:top;padding-bottom:0px;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                                    <tbody>
+                                      <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                          <p style="border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:100%;">
+                                          </p>
+                                          <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:255px;" role="presentation" width="255px" ><tr><td style="height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <!--[if mso | IE]></td></tr></table><![endif]-->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="660px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:612px;" width="612" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+              <div style="margin:0px auto;max-width:612px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                  <tbody>
+                    <tr>
+                      <td style="border-bottom:1px solid #E5E5E5;border-left:1px solid #E5E5E5;border-right:1px solid #E5E5E5;direction:ltr;font-size:0px;padding:20px 0;padding-bottom:24px;padding-top:0px;text-align:center;">
+                        <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:610px;" ><![endif]-->
+                        <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td style="vertical-align:top;padding:0;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style width="100%">
+                                    <tbody>
+                                      <tr>
+                                        <td align="center" style="font-size:0px;padding:0;word-break:break-word;">
+                                          <div style="font-family:Open Sans, sans-serif;font-size:12px;line-height:1;text-align:center;color:#AAAAAA;">{{.Props.Organization}}
+                                            {{.Props.FooterV2}}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
                                 </td>
                               </tr>
                             </tbody>

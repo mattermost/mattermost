@@ -307,8 +307,6 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -362,7 +360,7 @@ func (wc *WebConn) readPump() {
 		}
 
 		var decoder interface {
-			Decode(v interface{}) error
+			Decode(v any) error
 		}
 		if msgType == websocket.TextMessage {
 			decoder = json.NewDecoder(rd)
@@ -580,7 +578,7 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 func (wc *WebConn) clearDeadQueue() {
 	for i := 0; i < deadQueueSize; i++ {
 		if wc.deadQueue[i] == nil {
-			return
+			break
 		}
 		wc.deadQueue[i] = nil
 	}
@@ -662,7 +660,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil, "")
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
@@ -749,6 +747,11 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
 	}
 
+	// if the connection is omitted don't send the message
+	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
+		return false
+	}
+
 	// If the event is destined to a specific user
 	if msg.GetBroadcast().UserId != "" {
 		return wc.UserId == msg.GetBroadcast().UserId
@@ -823,10 +826,6 @@ func (wc *WebConn) logSocketErr(source string, err error) {
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
 	} else {
-		logFunc := mlog.Debug
-		if e, ok := err.(net.Error); ok && e.Timeout() {
-			logFunc = mlog.Error
-		}
-		logFunc(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 	}
 }

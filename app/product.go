@@ -6,8 +6,6 @@ package app
 import (
 	"fmt"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type Product interface {
@@ -16,7 +14,7 @@ type Product interface {
 }
 
 type ProductManifest struct {
-	Initializer  func(*Server, map[ServiceKey]interface{}) (Product, error)
+	Initializer  func(*Server, map[ServiceKey]any) (Product, error)
 	Dependencies map[ServiceKey]struct{}
 }
 
@@ -28,7 +26,7 @@ func RegisterProduct(name string, m ProductManifest) {
 
 func (s *Server) initializeProducts(
 	productMap map[string]ProductManifest,
-	serviceMap map[ServiceKey]interface{},
+	serviceMap map[ServiceKey]any,
 ) error {
 	// create a product map to consume
 	pmap := make(map[string]struct{})
@@ -79,19 +77,4 @@ func (s *Server) initializeProducts(
 	}
 
 	return nil
-}
-
-type logWrapper struct {
-	srv *Server
-}
-
-func (s *logWrapper) LogError(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Error(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
-}
-
-func (s *logWrapper) LogWarn(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Warn(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
-}
-func (s *logWrapper) LogDebug(productID, msg string, keyValuePairs ...interface{}) {
-	s.srv.Log.Debug(msg, mlog.String("product_id", productID), mlog.Map("key-value pairs", keyValuePairs))
 }
