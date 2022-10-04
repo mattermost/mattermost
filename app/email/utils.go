@@ -34,3 +34,15 @@ func (es *Service) mailServiceConfig(replyToAddress string) *mail.SMTPConfig {
 	}
 	return &cfg
 }
+
+func (es *Service) GetTrackFlowStartedByRole(isFirstAdmin bool, isSystemAdmin bool) string {
+	trackFlowStartedByRole := "su"
+
+	if isFirstAdmin {
+		trackFlowStartedByRole = "fa"
+	} else if isSystemAdmin {
+		trackFlowStartedByRole = "sa"
+	}
+
+	return trackFlowStartedByRole
+}
