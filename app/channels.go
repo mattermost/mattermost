@@ -168,6 +168,8 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(); err != nil {
 			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			// exit mattermost with error due to misconfigured SAML
+			return nil, errors.Wrap(err, "failed to initiate SAML from configuration. Please review the same in https://docs.mattermost.com/configure/configuration-settings.html.")
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
