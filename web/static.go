@@ -88,7 +88,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	modifiedHTML := originalHTML
 	siteName := c.App.Srv().Config().TeamSettings.SiteName
 	ogDescriptionMetaTag := getOGDescriptionMetaTag(c)
-	if siteName != nil && len(*siteName) > 0 {
+	if siteName != nil && *siteName != "" {
 		modifiedHTML = fmt.Sprintf(titleTemplate, *siteName)
 	}
 	if ogDescriptionMetaTag != "" {
@@ -150,7 +150,7 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 func getOGDescriptionMetaTag(c *Context) string {
 	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
 	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
-	if customSiteDescription != nil && len(*customSiteDescription) > 0 {
+	if customSiteDescription != nil && *customSiteDescription != "" {
 		siteDescription = *customSiteDescription
 	}
 
