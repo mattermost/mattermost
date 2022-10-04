@@ -368,8 +368,8 @@ func TestSendMail(t *testing.T) {
 			"",
 			"",
 			"",
+			"\r\nMessage-ID: <",
 			"",
-			"\r\nMessage-ID:",
 		},
 		"adds in-reply-to header": {
 			mail.Address{},
