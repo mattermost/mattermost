@@ -84,19 +84,12 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	titleTemplate := "<title>%s</title>"
-	originalHTML := fmt.Sprintf(titleTemplate, model.TeamSettingsDefaultSiteName)
-	modifiedHTML := originalHTML
-	siteName := c.App.Srv().Config().TeamSettings.SiteName
-	ogDescriptionMetaTag := getOGDescriptionMetaTag(c)
-	if siteName != nil && *siteName != "" {
-		modifiedHTML = fmt.Sprintf(titleTemplate, *siteName)
-	}
-	if ogDescriptionMetaTag != "" {
-		modifiedHTML = fmt.Sprintf("%s%s", modifiedHTML, ogDescriptionMetaTag)
-	}
+	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
+	modifiedHTML := getOpenGraphMetaTags(c, originalHTML, titleTemplate)
 	if originalHTML != modifiedHTML {
 		contents = bytes.ReplaceAll(contents, []byte(originalHTML), []byte(modifiedHTML))
 	}
+
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(contents)
 }
@@ -147,7 +140,9 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }
 
-func getOGDescriptionMetaTag(c *Context) string {
+func getOpenGraphMetaTags(c *Context, originalHTML string, titleTemplate string) string {
+	modifiedHTML := originalHTML
+	siteName := c.App.Srv().Config().TeamSettings.SiteName
 	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
 	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
 	if customSiteDescription != nil && *customSiteDescription != "" {
@@ -159,5 +154,12 @@ func getOGDescriptionMetaTag(c *Context) string {
 	}
 
 	ogDescriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
-	return fmt.Sprintf(ogDescriptionTemplate, html.EscapeString(siteDescription))
+	ogDescription := fmt.Sprintf(ogDescriptionTemplate, html.EscapeString(siteDescription))
+	if siteName != nil && *siteName != "" {
+		modifiedHTML = fmt.Sprintf(titleTemplate, html.EscapeString(*siteName))
+	}
+	if ogDescription != "" {
+		modifiedHTML = fmt.Sprintf("%s%s", modifiedHTML, ogDescription)
+	}
+	return modifiedHTML
 }
