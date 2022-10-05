@@ -1500,7 +1500,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		isPaidSubscription := product.SKU == model.LicenseShortSkuEnterprise || product.SKU == model.LicenseShortSkuProfessional
+		isPaidSubscription := product.SKU == model.CloudSubscriptionSkuEnterprise || product.SKU == model.CloudSubscriptionSkuProfessional
 
 		if subscription.IsFreeTrial == "false" && !isPaidSubscription {
 			c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
