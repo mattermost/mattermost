@@ -97,7 +97,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -109,13 +109,13 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch status.Status {
 	case "online":
-		c.App.SetStatusOnline(c.Params.UserId, true)
+		c.App.SetStatusOnline(c.AppContext, c.Params.UserId, true)
 	case "offline":
-		c.App.SetStatusOffline(c.Params.UserId, true)
+		c.App.SetStatusOffline(c.AppContext, c.Params.UserId, true)
 	case "away":
-		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
+		c.App.SetStatusAwayIfNeeded(c.AppContext, c.Params.UserId, true)
 	case "dnd":
-		c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
+		c.App.SetStatusDoNotDisturbTimed(c.AppContext, c.Params.UserId, status.DNDEndTime)
 	default:
 		c.SetInvalidParam("status")
 		return
@@ -142,7 +142,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -168,7 +168,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -198,12 +198,12 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.AppContext, c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}

@@ -227,7 +227,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		return nil, err
 	}
 
-	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -269,7 +269,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			}
 		}
 
-		a.sendUpdatedUserEvent(*nUser)
+		a.sendUpdatedUserEvent(c, *nUser)
 	}
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
@@ -293,7 +293,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
 	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil, "")
 	message.Add("user_id", ruser.Id)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
@@ -787,7 +787,7 @@ func (a *App) SetDefaultProfileImage(c request.CTX, user *model.User) *model.App
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", updatedUser)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }
@@ -961,7 +961,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	a.invalidateUserChannelMembersCaches(c, user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
-	a.sendUpdatedUserEvent(*ruser)
+	a.sendUpdatedUserEvent(c, *ruser)
 
 	return ruser, nil
 }
@@ -982,7 +982,7 @@ func (a *App) DeactivateGuests(c *request.Context) *model.AppError {
 	a.Srv().Store.User().ClearCaches()
 
 	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil, "")
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }
@@ -1068,7 +1068,7 @@ func (a *App) UpdateUserAuth(userID string, userAuth *model.UserAuth) (*model.Us
 	return userAuth, nil
 }
 
-func (a *App) sendUpdatedUserEvent(user model.User) {
+func (a *App) sendUpdatedUserEvent(c request.CTX, user model.User) {
 	// exclude event creator user from admin, member user broadcast
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
@@ -1081,18 +1081,18 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
 	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
+	a.Publish(c, adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
 	message.Add("user", &user)
 	message.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(message)
+	a.Publish(c, message)
 
 	// send unsanitized user to event creator
 	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil, "")
 	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
-	a.Publish(sourceUserMessage)
+	a.Publish(c, sourceUserMessage)
 }
 
 func (a *App) isUniqueToGroupNames(val string) *model.AppError {
@@ -1209,7 +1209,7 @@ func (a *App) UpdateUser(c request.CTX, user *model.User, sendNotifications bool
 				}
 			})
 		}
-		a.sendUpdatedUserEvent(*userUpdate.New)
+		a.sendUpdatedUserEvent(c, *userUpdate.New)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1529,7 +1529,7 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 		message := model.NewWebSocketEvent(model.WebsocketEventUserRoleUpdated, "", "", user.Id, nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("roles", newRoles)
-		a.Publish(message)
+		a.Publish(c, message)
 	}
 
 	return ruser, nil
@@ -1750,7 +1750,7 @@ func (a *App) VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string
 	}
 
 	tokenData.Email = strings.ToLower(tokenData.Email)
-	if err := a.VerifyUserEmail(tokenData.UserId, tokenData.Email); err != nil {
+	if err := a.VerifyUserEmail(c, tokenData.UserId, tokenData.Email); err != nil {
 		return err
 	}
 
@@ -1807,7 +1807,7 @@ func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.Use
 	return stats, nil
 }
 
-func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
+func (a *App) VerifyUserEmail(c request.CTX, userID, email string) *model.AppError {
 	if _, err := a.Srv().Store.User().VerifyEmail(userID, email); err != nil {
 		return model.NewAppError("VerifyUserEmail", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1820,7 +1820,7 @@ func (a *App) VerifyUserEmail(userID, email string) *model.AppError {
 		return err
 	}
 
-	a.sendUpdatedUserEvent(*user)
+	a.sendUpdatedUserEvent(c, *user)
 
 	return nil
 }
@@ -2203,8 +2203,8 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	if err != nil {
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
-		a.sendUpdatedUserEvent(*promotedUser)
-		if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
+		a.sendUpdatedUserEvent(c, *promotedUser)
+		if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(c, promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
 	}
@@ -2215,7 +2215,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedMemberRoleEvent(c, user.Id, member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2231,7 +2231,7 @@ func (a *App) PromoteGuestToUser(c *request.Context, user *model.User, requestor
 				return model.NewAppError("PromoteGuestToUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
-			a.Publish(evt)
+			a.Publish(c, evt)
 		}
 	}
 
@@ -2248,8 +2248,8 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.sendUpdatedUserEvent(*demotedUser)
-	if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
+	a.sendUpdatedUserEvent(c, *demotedUser)
+	if uErr := a.ch.srv.userService.UpdateSessionsIsGuest(c, demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}
 
@@ -2259,7 +2259,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	}
 
 	for _, member := range teamMembers {
-		a.sendUpdatedMemberRoleEvent(user.Id, member)
+		a.sendUpdatedMemberRoleEvent(c, user.Id, member)
 
 		channelMembers, appErr := a.GetChannelMembersForUser(c, member.TeamId, user.Id)
 		if appErr != nil {
@@ -2276,7 +2276,7 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 				return model.NewAppError("DemoteUserToGuest", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			evt.Add("channelMember", string(memberJSON))
-			a.Publish(evt)
+			a.Publish(c, evt)
 		}
 	}
 
@@ -2284,14 +2284,14 @@ func (a *App) DemoteUserToGuest(c request.CTX, user *model.User) *model.AppError
 	return nil
 }
 
-func (a *App) PublishUserTyping(userID, channelID, parentId string) *model.AppError {
+func (a *App) PublishUserTyping(c request.CTX, userID, channelID, parentId string) *model.AppError {
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[userID] = true
 
 	event := model.NewWebSocketEvent(model.WebsocketEventTyping, "", channelID, "", omitUsers, "")
 	event.Add("parent_id", parentId)
 	event.Add("user_id", userID)
-	a.Publish(event)
+	a.Publish(c, event)
 
 	return nil
 }
@@ -2311,7 +2311,7 @@ func (a *App) invalidateUserCacheAndPublish(c request.CTX, userID string) {
 
 	message := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", nil, "")
 	message.Add("user", user)
-	a.Publish(message)
+	a.Publish(c, message)
 }
 
 // GetKnownUsers returns the list of user ids of users with any direct
@@ -2462,17 +2462,17 @@ func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMemb
 	return thread, nil
 }
 
-func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
+func (a *App) UpdateThreadsReadForUser(c request.CTX, userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store.Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
-func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
+func (a *App) UpdateThreadFollowForUser(c request.CTX, userID, teamID, threadID string, state bool) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             state,
 		IncrementMentions:     false,
@@ -2496,7 +2496,7 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 	message.Add("thread_id", threadID)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
@@ -2513,7 +2513,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	post, appErr := a.GetSinglePost(threadID, false)
+	post, appErr := a.GetSinglePost(c, threadID, false)
 	if appErr != nil {
 		return appErr
 	}
@@ -2556,12 +2556,12 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	message.Add("previous_unread_replies", int64(0))
 	message.Add("previous_unread_mentions", int64(0))
 
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
 func (a *App) UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2594,7 +2594,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	post, err := a.GetSinglePost(threadID, false)
+	post, err := a.GetSinglePost(c, threadID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2631,7 +2631,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
-	a.Publish(message)
+	a.Publish(c, message)
 	return thread, nil
 }
 

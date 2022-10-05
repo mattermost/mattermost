@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionAdded, reaction, post)
+		a.sendReactionEvent(c, model.WebsocketEventReactionAdded, reaction, post)
 	})
 
 	return reaction, nil
@@ -120,8 +120,8 @@ func (a *App) GetTopReactionsForUserSince(userID string, teamID string, opts *mo
 	return topReactionList, nil
 }
 
-func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
-	post, err := a.GetSinglePost(reaction.PostId, false)
+func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
+	post, err := a.GetSinglePost(c, reaction.PostId, false)
 	if err != nil {
 		return err
 	}
@@ -153,13 +153,13 @@ func (a *App) DeleteReactionForPost(c *request.Context, reaction *model.Reaction
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WebsocketEventReactionRemoved, reaction, post)
+		a.sendReactionEvent(c, model.WebsocketEventReactionRemoved, reaction, post)
 	})
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
+func (a *App) sendReactionEvent(c request.CTX, event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 	reactionJSON, err := json.Marshal(reaction)
@@ -167,5 +167,5 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 		a.Log().Warn("Failed to encode reaction to JSON", mlog.Err(err))
 	}
 	message.Add("reaction", string(reactionJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 }

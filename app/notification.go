@@ -572,7 +572,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		return nil, err
 	}
 	if !published {
-		a.Publish(message)
+		a.Publish(c, message)
 	}
 
 	// If this is a reply in a thread, notify participants
@@ -644,7 +644,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
 
-					a.Publish(message)
+					a.Publish(c, message)
 				}
 			}
 		}

@@ -380,7 +380,7 @@ func (wc *WebConn) readPump() {
 		// Messages which actions are prefixed with the plugin prefix
 		// should only be dispatched to the plugins
 		if !strings.HasPrefix(req.Action, websocketMessagePluginPrefix) {
-			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
+			wc.App.Srv().WebSocketRouter.ServeWebSocket(wc.ctx, wc, &req)
 		}
 
 		clonedReq, err := req.Clone()
@@ -405,7 +405,7 @@ func (wc *WebConn) writePump() {
 
 	if wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
-			if err := wc.drainDeadQueue(index); err != nil {
+			if err := wc.drainDeadQueue(wc.ctx, index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
@@ -423,7 +423,7 @@ func (wc *WebConn) writePump() {
 			// Send hello message
 			msg := wc.createHelloMessage()
 			wc.addToDeadQueue(msg)
-			if err := wc.writeMessage(msg); err != nil {
+			if err := wc.writeMessage(wc.ctx, msg); err != nil {
 				wc.logSocketErr("websocket.sendHello", err)
 				return
 			}
@@ -828,8 +828,8 @@ func (wc *WebConn) isMemberOfTeam(c request.CTX, teamID string) bool {
 func (wc *WebConn) logSocketErr(source string, err error) {
 	// browsers will appear as CloseNoStatusReceived
 	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		c.Logger().Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
+		wc.ctx.Logger().Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
 	} else {
-		c.Logger().Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+		wc.ctx.Logger().Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 	}
 }

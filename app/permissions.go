@@ -30,7 +30,7 @@ type permissionsServiceWrapper struct {
 }
 
 func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToTeam(userID, teamID, permission)
+	return s.app.HasPermissionToTeam(request.EmptyContext(s.app.Log()), userID, teamID, permission)
 }
 
 func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
@@ -89,7 +89,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
-	a.DoAppMigrations()
+	a.DoAppMigrations(request.EmptyContext(a.Log()))
 
 	return nil
 }
@@ -175,7 +175,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 	return err
 }
 
-func (a *App) ImportPermissions(jsonl io.Reader) error {
+func (a *App) ImportPermissions(c request.CTX, jsonl io.Reader) error {
 	createdSchemeIDs := []string{}
 
 	scanner := bufio.NewScanner(jsonl)
@@ -195,7 +195,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 					rollback(a, createdSchemeIDs)
 					return errors.New(err.Message)
 				}
-				_, err = a.PatchRole(dbRole, &model.RolePatch{
+				_, err = a.PatchRole(c, dbRole, &model.RolePatch{
 					Permissions: &roleIn.Permissions,
 				})
 				if err != nil {
@@ -229,7 +229,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 				continue
 			}
 
-			err = updateRole(a, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
+			err = updateRole(a, c, schemeConveyor, roleNameTuple[0], roleNameTuple[1])
 			if err != nil {
 				// Delete the new Schemes. The new Roles are deleted automatically.
 				rollback(a, createdSchemeIDs)
@@ -252,7 +252,7 @@ func rollback(a *App, createdSchemeIDs []string) {
 	}
 }
 
-func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
+func updateRole(a *App, c request.CTX, sc *model.SchemeConveyor, roleCreatedName, defaultRoleName string) error {
 	var err *model.AppError
 
 	roleCreated, err := a.GetRoleByName(context.Background(), roleCreatedName)
@@ -272,7 +272,7 @@ func updateRole(a *App, sc *model.SchemeConveyor, roleCreatedName, defaultRoleNa
 	roleCreated.Description = roleIn.Description
 	roleCreated.Permissions = roleIn.Permissions
 
-	_, err = a.UpdateRole(roleCreated)
+	_, err = a.UpdateRole(c, roleCreated)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%v: %v\n", err.Message, err.DetailedError))
 	}

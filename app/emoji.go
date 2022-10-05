@@ -38,7 +38,7 @@ const (
 	MaxEmojiOriginalHeight = 1028
 )
 
-func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
@@ -85,7 +85,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("CreateEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("emoji", string(emojiJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 	return emoji, nil
 }
 

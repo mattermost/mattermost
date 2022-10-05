@@ -19,29 +19,29 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	actions := slackimport.Actions{
-		UpdateActive: func(user *model.User, active bool) (*model.User, *model.AppError) {
+		UpdateActive: func(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError) {
 			return a.UpdateActive(c, user, active)
 		},
 		AddUserToChannel: a.AddUserToChannel,
-		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+		JoinUserToTeam: func(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 			return a.JoinUserToTeam(c, team, user, userRequestorId)
 		},
 		CreateDirectChannel: a.createDirectChannel,
 		CreateGroupChannel:  a.createGroupChannel,
-		CreateChannel: func(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+		CreateChannel: func(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 			return a.CreateChannel(c, channel, addMember)
 		},
-		DoUploadFile: func(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+		DoUploadFile: func(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 			return a.DoUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 		},
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
-		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
-		MaxPostSize:            func() int { return a.ch.srv.MaxPostSize() },
-		PrepareImage: func(fileData []byte) (image.Image, func(), error) {
-			img, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
+		InvalidateAllCaches:    func(c request.CTX) { a.ch.srv.InvalidateAllCaches(c) },
+		MaxPostSize:            func(c request.CTX) int { return a.ch.srv.MaxPostSize() },
+		PrepareImage: func(c request.CTX, fileData []byte) (image.Image, func(), error) {
+			img, release, err := prepareImage(c, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
 				return nil, nil, err
 			}

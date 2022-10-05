@@ -8,11 +8,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
+func (a *App) checkIntegrationLimitsForConfigSave(c request.CTX, oldConfig, newConfig *model.Config) *model.AppError {
 	pluginIds := []string{}
 	for pluginId, newState := range newConfig.PluginSettings.PluginStates {
 		oldState, ok := oldConfig.PluginSettings.PluginStates[pluginId]
@@ -22,7 +23,7 @@ func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Co
 	}
 
 	if len(pluginIds) > 0 {
-		return a.checkIfIntegrationsMeetFreemiumLimits(pluginIds)
+		return a.checkIfIntegrationsMeetFreemiumLimits(c, pluginIds)
 	}
 
 	return nil
@@ -69,8 +70,8 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 	return out, nil
 }
 
-func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) *model.AppError {
-	if a.License() == nil || !*a.License().Features.Cloud {
+func (a *App) checkIfIntegrationsMeetFreemiumLimits(c request.CTX, originalPluginIds []string) *model.AppError {
+	if a.License(c) == nil || !*a.License(c).Features.Cloud {
 		return nil
 	}
 

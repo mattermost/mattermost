@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -140,12 +141,12 @@ func linearFilterPostsSlice(posts []*model.Post, earliestAccessibleTime int64) (
 }
 
 // filterInaccessiblePosts filters out the posts, past the cloud limit
-func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPostOptions) *model.AppError {
+func (a *App) filterInaccessiblePosts(c request.CTX, postList *model.PostList, options filterPostOptions) *model.AppError {
 	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
 		return nil
 	}
 
-	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
+	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(c)
 	if appErr != nil {
 		return model.NewAppError("filterInaccessiblePosts", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -207,7 +208,7 @@ func (a *App) filterInaccessiblePosts(postList *model.PostList, options filterPo
 }
 
 // isInaccessiblePost indicates if the post is past the cloud plan's limit.
-func (a *App) isInaccessiblePost(post *model.Post) (int64, *model.AppError) {
+func (a *App) isInaccessiblePost(c request.CTX, post *model.Post) (int64, *model.AppError) {
 	if post == nil {
 		return 0, nil
 	}
@@ -217,17 +218,17 @@ func (a *App) isInaccessiblePost(post *model.Post) (int64, *model.AppError) {
 		Posts: map[string]*model.Post{post.Id: post},
 	}
 
-	return pl.FirstInaccessiblePostTime, a.filterInaccessiblePosts(pl, filterPostOptions{assumeSortedCreatedAt: true})
+	return pl.FirstInaccessiblePostTime, a.filterInaccessiblePosts(c, pl, filterPostOptions{assumeSortedCreatedAt: true})
 }
 
 // getFilteredAccessiblePosts returns accessible posts filtered as per the cloud plan's limit and also indicates if there were any inaccessible posts
-func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPostOptions) ([]*model.Post, int64, *model.AppError) {
+func (a *App) getFilteredAccessiblePosts(c request.CTX, posts []*model.Post, options filterPostOptions) ([]*model.Post, int64, *model.AppError) {
 	if len(posts) == 0 {
 		return posts, 0, nil
 	}
 
 	filteredPosts := []*model.Post{}
-	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime()
+	lastAccessiblePostTime, appErr := a.GetLastAccessiblePostTime(c)
 	if appErr != nil {
 		return filteredPosts, 0, model.NewAppError("getFilteredAccessiblePosts", "app.last_accessible_post.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	} else if lastAccessiblePostTime == 0 {

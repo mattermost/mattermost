@@ -62,7 +62,7 @@ const fileStorePluginFolder = "plugins"
 func (ch *Channels) installPluginFromData(c request.CTX, data model.PluginEventData) {
 	c.Logger().Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
-	pluginSignaturePathMap, appErr := ch.getPluginsFromFolder()
+	pluginSignaturePathMap, appErr := ch.getPluginsFromFolder(c)
 	if appErr != nil {
 		c.Logger().Error("Failed to get plugin signatures from filestore. Can't install plugin from data.", mlog.Err(appErr))
 		return
@@ -100,11 +100,11 @@ func (ch *Channels) installPluginFromData(c request.CTX, data model.PluginEventD
 		c.Logger().Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		c.Logger().Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
@@ -116,11 +116,11 @@ func (ch *Channels) removePluginFromData(c request.CTX, data model.PluginEventDa
 		c.Logger().Warn("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		c.Logger().Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
@@ -174,11 +174,11 @@ func (ch *Channels) installPlugin(c request.CTX, pluginFile, signature io.ReadSe
 		c.Logger().Warn("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
@@ -207,7 +207,7 @@ func (ch *Channels) InstallMarketplacePlugin(c request.CTX, request *model.Insta
 
 	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
-		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
+		plugin, appErr = ch.getRemoteMarketplacePlugin(c, request.Id, request.Version)
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -452,11 +452,11 @@ func (ch *Channels) RemovePlugin(c request.CTX, id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 

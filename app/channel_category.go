@@ -117,7 +117,7 @@ func (a *App) CreateSidebarCategory(c request.CTX, userID, teamID string, newCat
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryCreated, teamID, "", userID, nil, "")
 	message.Add("category_id", category.Id)
-	a.Publish(message)
+	a.Publish(c, message)
 	return category, nil
 }
 
@@ -137,7 +137,7 @@ func (a *App) UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, c
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryOrderUpdated, teamID, "", userID, nil, "")
 	message.Add("order", categoryOrder)
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
@@ -156,7 +156,7 @@ func (a *App) UpdateSidebarCategories(c request.CTX, userID, teamID string, cate
 
 	message.Add("updatedCategories", string(updatedCategoriesJSON))
 
-	a.Publish(message)
+	a.Publish(c, message)
 
 	a.muteChannelsForUpdatedCategories(c, userID, updatedCategories, originalCategories)
 
@@ -282,7 +282,7 @@ func (a *App) DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId st
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryDeleted, teamID, "", userID, nil, "")
 	message.Add("category_id", categoryId)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }

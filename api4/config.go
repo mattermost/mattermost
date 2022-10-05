@@ -156,7 +156,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
+	if appErr := c.App.CheckFreemiumLimitsForConfigSave(c.AppContext, appCfg, cfg); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -299,7 +299,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
+	if appErr := c.App.CheckFreemiumLimitsForConfigSave(c.AppContext, appCfg, cfg); appErr != nil {
 		c.Err = appErr
 		return
 	}

@@ -69,7 +69,7 @@ type AppIface interface {
 	// be included; otherwise, they will be excluded.
 	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
 	// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
-	CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError
+	CheckFreemiumLimitsForConfigSave(c request.CTX, oldConfig, newConfig *model.Config) *model.AppError
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
@@ -132,7 +132,7 @@ type AppIface interface {
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.
-	EnablePlugin(id string) *model.AppError
+	EnablePlugin(c request.CTX, id string) *model.AppError
 	// EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
 	// any ensureBotOptions hence it is not required for now.
 	// TODO: Once the focalboard migration completed, we should add this logic to the app and
@@ -211,7 +211,7 @@ type AppIface interface {
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
 	// GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
-	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
+	GetPostsByIds(c request.CTX, postIDs []string) ([]*model.Post, int64, *model.AppError)
 	// GetPostsUsage returns the total posts count rounded down to the most
 	// significant digit
 	GetPostsUsage() (int64, *model.AppError)
@@ -273,7 +273,7 @@ type AppIface interface {
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(c request.CTX, post *model.Post)
 	// PatchBot applies the given patch to the bot and corresponding user.
-	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	PatchBot(c request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	// Perform an HTTP POST request to an integration's action endpoint.
@@ -345,7 +345,7 @@ type AppIface interface {
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
-	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
+	SyncSyncableRoles(c request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
@@ -423,8 +423,8 @@ type AppIface interface {
 	AddUserToTeamByTeamId(c request.CTX, teamID string, user *model.User) *model.AppError
 	AddUserToTeamByToken(c *request.Context, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError)
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
-	AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
-	AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError
+	AdjustInProductLimits(c request.CTX, limits *model.ProductLimits, subscription *model.Subscription) *model.AppError
+	AdjustTeamsFromProductLimits(c request.CTX, teamLimits *model.TeamsLimits) *model.AppError
 	AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
@@ -438,7 +438,7 @@ type AppIface interface {
 	AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError)
 	AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 	AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError)
-	BroadcastStatus(status *model.Status)
+	BroadcastStatus(c request.CTX, status *model.Status)
 	BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError)
 	BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError)
 	BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError)
@@ -467,7 +467,7 @@ type AppIface interface {
 	ClearSessionCacheForAllUsersSkipClusterSend()
 	ClearSessionCacheForUser(userID string)
 	ClearSessionCacheForUserSkipClusterSend(userID string)
-	ClearTeamMembersCache(teamID string) error
+	ClearTeamMembersCache(c request.CTX, teamID string) error
 	ClientConfig() map[string]string
 	ClientConfigHash() string
 	Cloud() einterfaces.CloudInterface
@@ -484,10 +484,10 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
 	CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError)
-	CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError)
+	CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError)
 	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError)
-	CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError)
+	CreateGroupWithUserIds(c request.CTX, group *model.GroupWithUserIds) (*model.Group, *model.AppError)
 	CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	CreateJob(job *model.Job) (*model.Job, *model.AppError)
 	CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
@@ -528,16 +528,16 @@ type AppIface interface {
 	DeleteEphemeralPost(c request.CTX, userID, postID string)
 	DeleteExport(name string) *model.AppError
 	DeleteGroup(groupID string) (*model.Group, *model.AppError)
-	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
-	DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
-	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+	DeleteGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError)
+	DeleteGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
+	DeleteGroupSyncable(c request.CTX, groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 	DeleteIncomingWebhook(hookID string) *model.AppError
 	DeleteOAuthApp(c request.CTX, appID string) *model.AppError
 	DeleteOutgoingWebhook(hookID string) *model.AppError
 	DeletePluginKey(c request.CTX, pluginID string, key string) *model.AppError
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	DeletePreferences(userID string, preferences model.Preferences) *model.AppError
-	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
+	DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
+	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteRetentionPolicy(policyID string) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
@@ -576,7 +576,7 @@ type AppIface interface {
 	FinishSendAdminNotifyPost(c request.CTX, trial bool, now int64)
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
-	GenerateSupportPacket() []model.FileData
+	GenerateSupportPacket(c request.CTX) []model.FileData
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
 	GetAllChannels(c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError)
@@ -642,9 +642,9 @@ type AppIface interface {
 	GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model.AppError)
 	GetFileInfos(c request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(c request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
-	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPosts(c request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForChannel(c request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForTeam(c request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
 	GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError)
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
@@ -714,15 +714,15 @@ type AppIface interface {
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
-	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
-	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostThread(c request.CTX, postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
+	GetPosts(c request.CTX, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetPostsAfterPost(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAroundPost(c request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsBeforePost(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsEtag(channelID string, collapsedThreads bool) string
 	GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
-	GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
+	GetPostsPage(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(c request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
 	GetPreferenceByCategoryAndNameForUser(userID string, category string, preferenceName string) (*model.Preference, *model.AppError)
 	GetPreferenceByCategoryForUser(userID string, category string) (model.Preferences, *model.AppError)
 	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
@@ -768,7 +768,7 @@ type AppIface interface {
 	GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(c request.CTX, userID, teamID string) ([]string, *model.AppError)
-	GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError)
+	GetSinglePost(c request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
@@ -869,7 +869,7 @@ type AppIface interface {
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
-	ImportPermissions(jsonl io.Reader) error
+	ImportPermissions(c request.CTX, jsonl io.Reader) error
 	InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateAllResendInviteEmailJobs() *model.AppError
@@ -915,15 +915,15 @@ type AppIface interface {
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
 	NotifyAndSetWarnMetricAck(c request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
-	NotifySharedChannelUserUpdate(user *model.User)
+	NotifySharedChannelUserUpdate(c request.CTX, user *model.User)
 	OpenInteractiveDialog(c request.CTX, request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
-	PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
+	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
 	PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
-	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
+	PatchRole(c request.CTX, role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)
-	PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError)
+	PatchTeam(c request.CTX, teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError)
 	PatchUser(c request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError)
 	PermanentDeleteAllUsers(c *request.Context) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
@@ -944,7 +944,7 @@ type AppIface interface {
 	PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList
 	ProcessSlackText(text string) string
 	Publish(c request.CTX, message *model.WebSocketEvent)
-	PublishUserTyping(userID, channelID, parentId string) *model.AppError
+	PublishUserTyping(c request.CTX, userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
@@ -952,7 +952,7 @@ type AppIface interface {
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
+	RegenerateTeamInviteId(c request.CTX, teamID string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError
@@ -962,11 +962,11 @@ type AppIface interface {
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
-	RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError
+	RemoveRecentCustomStatus(c request.CTX, userID string, status *model.CustomStatus) *model.AppError
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
-	RemoveTeamIcon(teamID string) *model.AppError
+	RemoveTeamIcon(c request.CTX, teamID string) *model.AppError
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
@@ -976,7 +976,7 @@ type AppIface interface {
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
-	RestoreTeam(teamID string) *model.AppError
+	RestoreTeam(c request.CTX, teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
 	ReturnSessionToPool(session *model.Session)
@@ -984,7 +984,7 @@ type AppIface interface {
 	RevokeAllSessions(userID string) *model.AppError
 	RevokeSession(session *model.Session) *model.AppError
 	RevokeSessionById(sessionID string) *model.AppError
-	RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) *model.AppError
+	RevokeSessionsForDeviceId(c request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError
 	RevokeUserAccessToken(token *model.UserAccessToken) *model.AppError
 	RolesGrantPermission(c request.CTX, roleNames []string, permissionId string) bool
 	Saml() einterfaces.SamlInterface
@@ -998,7 +998,7 @@ type AppIface interface {
 	SaveAndBroadcastStatus(c request.CTX, status *model.Status)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(c request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
-	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
@@ -1012,7 +1012,7 @@ type AppIface interface {
 	SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.FileInfoList, *model.AppError)
 	SearchGroupChannels(c request.CTX, userID, term string) (model.ChannelList, *model.AppError)
 	SearchPostsForUser(c request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError)
-	SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
+	SearchPostsInTeam(c request.CTX, teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
 	SearchPrivateTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchPublicTeams(searchOpts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
@@ -1042,14 +1042,14 @@ type AppIface interface {
 	SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool
 	SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool
 	SessionHasPermissionToChannelByPost(c request.CTX, session model.Session, postID string, permission *model.Permission) bool
-	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
+	SessionHasPermissionToCreateJob(c request.CTX, session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(c request.CTX, session model.Session, groupID string, permission *model.Permission) bool
-	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
+	SessionHasPermissionToReadJob(c request.CTX, session model.Session, jobType string) (bool, *model.Permission)
 	SessionHasPermissionToTeam(c request.CTX, session model.Session, teamID string, permission *model.Permission) bool
 	SessionHasPermissionToUser(c request.CTX, session model.Session, userID string) bool
 	SessionHasPermissionToUserOrBot(c request.CTX, session model.Session, userID string) bool
 	SetActiveChannel(c request.CTX, userID string, channelID string) *model.AppError
-	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
+	SetAutoResponderStatus(c request.CTX, user *model.User, oldNotifyProps model.StringMap)
 	SetChannels(ch *Channels)
 	SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError
 	SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError
@@ -1070,12 +1070,12 @@ type AppIface interface {
 	SetStatusOffline(c request.CTX, userID string, manual bool)
 	SetStatusOnline(c request.CTX, userID string, manual bool)
 	SetStatusOutOfOffice(c request.CTX, userID string)
-	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
-	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
-	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
-	SlackImport(c *request.Context, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
-	SoftDeleteAllTeamsExcept(teamID string) *model.AppError
-	SoftDeleteTeam(teamID string) *model.AppError
+	SetTeamIcon(c request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError
+	SetTeamIconFromFile(c request.CTX, team *model.Team, file io.Reader) *model.AppError
+	SetTeamIconFromMultiPartFile(c request.CTX, teamID string, file multipart.File) *model.AppError
+	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
+	SoftDeleteAllTeamsExcept(c request.CTX, teamID string) *model.AppError
+	SoftDeleteTeam(c request.CTX, teamID string) *model.AppError
 	Srv() *Server
 	SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
@@ -1104,8 +1104,8 @@ type AppIface interface {
 	UpdateConfig(f func(*model.Config))
 	UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
-	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
-	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	UpdateGroup(c request.CTX, group *model.Group) (*model.Group, *model.AppError)
+	UpdateGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
@@ -1120,25 +1120,25 @@ type AppIface interface {
 	UpdatePasswordByUserIdSendEmail(c request.CTX, userID, newPassword, method string) *model.AppError
 	UpdatePasswordSendEmail(c request.CTX, user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
-	UpdatePreferences(userID string, preferences model.Preferences) *model.AppError
+	UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)
-	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
+	UpdateRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	UpdateSharedChannelRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error
 	UpdateSidebarCategories(c request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(c request.CTX, userID, teamID string, categoryOrder []string) *model.AppError
-	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
-	UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError)
-	UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError)
-	UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite bool) *model.AppError
-	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
-	UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError
+	UpdateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError)
+	UpdateTeamMemberRoles(c request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError)
+	UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError)
+	UpdateTeamPrivacy(c request.CTX, teamID string, teamType string, allowOpenInvite bool) *model.AppError
+	UpdateTeamScheme(c request.CTX, team *model.Team) (*model.Team, *model.AppError)
+	UpdateThreadFollowForUser(c request.CTX, userID, teamID, threadID string, state bool) *model.AppError
 	UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, teamID, threadID string) *model.AppError
 	UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError)
 	UpdateThreadReadForUserByPost(c request.CTX, currentSessionId, userID, teamID, threadID, postID string) (*model.ThreadResponse, *model.AppError)
-	UpdateThreadsReadForUser(userID, teamID string) *model.AppError
+	UpdateThreadsReadForUser(c request.CTX, userID, teamID string) *model.AppError
 	UpdateUser(c request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(c request.CTX, userID string, active bool) *model.AppError
 	UpdateUserAsUser(c request.CTX, user *model.User, asAdmin bool) (*model.User, *model.AppError)
@@ -1147,13 +1147,13 @@ type AppIface interface {
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
-	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
-	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
-	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	UpsertGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError)
+	UpsertGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
+	UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool
 	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 	VerifyEmailFromToken(c request.CTX, userSuppliedTokenString string) *model.AppError
-	VerifyUserEmail(userID, email string) *model.AppError
+	VerifyUserEmail(c request.CTX, userID, email string) *model.AppError
 	ViewChannel(c request.CTX, view *model.ChannelView, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 }

@@ -90,7 +90,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(&emoji)
 	auditRec.AddEventObjectType("emoji")
 
-	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext, c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
 		c.Err = err
 		return

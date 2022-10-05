@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -125,19 +126,19 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 	return a.Srv().mergeChannelHigherScopedPermissions(roles)
 }
 
-func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+func (a *App) PatchRole(c request.CTX, role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil
 	}
 
 	role.Patch(patch)
-	role, err := a.UpdateRole(role)
+	role, err := a.UpdateRole(c, role)
 	if err != nil {
 		return nil, err
 	}
 
-	if appErr := a.sendUpdatedRoleEvent(role); appErr != nil {
+	if appErr := a.sendUpdatedRoleEvent(c, role); appErr != nil {
 		return nil, appErr
 	}
 
@@ -167,7 +168,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	return role, nil
 }
 
-func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+func (a *App) UpdateRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError) {
 	savedRole, err := a.Srv().Store.Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -226,7 +227,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	for _, ir := range impactedRoles {
 		if ir.Name != role.Name {
-			appErr = a.sendUpdatedRoleEvent(ir)
+			appErr = a.sendUpdatedRoleEvent(c, ir)
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -258,14 +259,14 @@ func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
 	return nil
 }
 
-func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
+func (a *App) sendUpdatedRoleEvent(c request.CTX, role *model.Role) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("role", string(roleJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 

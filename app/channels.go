@@ -235,8 +235,8 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 
 func (ch *Channels) Start() error {
 	// Start plugins
-	ctx := request.EmptyContext(ch.srv.Log())
-	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
+	c := request.EmptyContext(ch.srv.Log())
+	ch.initPlugins(c, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		// We compute the difference between configs
@@ -259,19 +259,19 @@ func (ch *Channels) Start() error {
 		// Do only if some plugin related settings has changed.
 		if hasDiff {
 			if *cfg.PluginSettings.Enable {
-				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
+				ch.initPlugins(c, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 			} else {
-				ch.ShutDownPlugins()
+				ch.ShutDownPlugins(c)
 			}
 		}
 
 	})
 
-	if err := ch.ensureAsymmetricSigningKey(); err != nil {
+	if err := ch.ensureAsymmetricSigningKey(c); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := ch.ensurePostActionCookieSecret(); err != nil {
+	if err := ch.ensurePostActionCookieSecret(c); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
@@ -279,7 +279,7 @@ func (ch *Channels) Start() error {
 }
 
 func (ch *Channels) Stop() error {
-	ch.ShutDownPlugins()
+	ch.ShutDownPlugins(request.EmptyContext(ch.srv.Log()))
 
 	ch.dndTaskMut.Lock()
 	if ch.dndTask != nil {

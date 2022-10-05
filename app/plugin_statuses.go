@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -92,7 +93,7 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
-func (ch *Channels) notifyPluginStatusesChanged() error {
+func (ch *Channels) notifyPluginStatusesChanged(c request.CTX) error {
 	pluginStatuses, err := ch.getClusterPluginStatuses()
 	if err != nil {
 		return err
@@ -102,7 +103,7 @@ func (ch *Channels) notifyPluginStatusesChanged() error {
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
-	ch.srv.Publish(message)
+	ch.srv.Publish(c, message)
 
 	return nil
 }

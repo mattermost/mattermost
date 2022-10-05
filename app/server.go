@@ -428,7 +428,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 9: Hub depends on s.Channels() (step 8)
-	s.HubStart()
+	s.HubStart(c)
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -517,9 +517,9 @@ func NewServer(options ...Option) (*Server, error) {
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
 		appInstance := New(ServerConnector(ch))
-		message.Add("config", appInstance.ClientConfigWithComputed())
+		message.Add("config", appInstance.ClientConfigWithComputed(c))
 		s.Go(func() {
-			s.Publish(message)
+			s.Publish(c, message)
 		})
 
 		if err = s.platform.ReconfigureLogger(); err != nil {
@@ -533,7 +533,7 @@ func NewServer(options ...Option) (*Server, error) {
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
-			s.Publish(message)
+			s.Publish(c, message)
 		})
 
 	})
@@ -732,19 +732,19 @@ func (s *Server) runJobs(c request.CTX) {
 		s.telemetryService.RunTelemetryJob(firstRun)
 	})
 	s.Go(func() {
-		runSessionCleanupJob(s)
+		runSessionCleanupJob(c, s)
 	})
 	s.Go(func() {
-		runJobsCleanupJob(s)
+		runJobsCleanupJob(c, s)
 	})
 	s.Go(func() {
-		runTokenCleanupJob(s)
+		runTokenCleanupJob(c, s)
 	})
 	s.Go(func() {
 		runCommandWebhookCleanupJob(s)
 	})
 	s.Go(func() {
-		runConfigCleanupJob(s)
+		runConfigCleanupJob(c, s)
 	})
 
 	if complianceI := s.Channels().Compliance; complianceI != nil {
@@ -807,7 +807,7 @@ func (s *Server) startInterClusterServices(c request.CTX, license *model.License
 
 	var err error
 
-	rcs, err := remotecluster.NewRemoteClusterService(c, s)
+	rcs, err := remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		return err
 	}
@@ -880,7 +880,7 @@ func (s *Server) Shutdown(c request.CTX) {
 
 	defer sentry.Flush(2 * time.Second)
 
-	s.HubStop()
+	s.HubStop(c)
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
@@ -2022,14 +2022,14 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 func runDNDStatusExpireJob(c request.CTX, a *App) {
 	if a.IsLeader(c) {
 		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", func() { a.UpdateDNDStatusOfUsers(c) }, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		c.Logger().Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader(c)))
 		if a.IsLeader(c) {
 			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", func() { a.UpdateDNDStatusOfUsers(c) }, 5*time.Minute)
 			})
 		} else {
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)

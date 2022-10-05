@@ -18,7 +18,7 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().installPluginFromData(data)
+	s.Channels().installPluginFromData(request.EmptyContext(s.Log()), data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
@@ -26,7 +26,7 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.Channels().removePluginFromData(data)
+	s.Channels().removePluginFromData(request.EmptyContext(s.Log()), data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
@@ -84,7 +84,7 @@ func (s *Server) clusterPublishHandler(msg *model.ClusterMessage) {
 		s.Log().Warn("Failed to decode event from JSON", mlog.Err(err))
 		return
 	}
-	s.PublishSkipClusterSend(event)
+	s.PublishSkipClusterSend(request.EmptyContext(s.Log()), event)
 }
 
 func (s *Server) clusterUpdateStatusHandler(msg *model.ClusterMessage) {

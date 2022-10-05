@@ -201,7 +201,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(c request.CTX, channelID 
 // SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
-func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+func (a *App) SyncSyncableRoles(c request.CTX, syncableID string, syncableType model.GroupSyncableType) *model.AppError {
 	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
 		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -234,7 +234,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 // syncable.
 func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
-	a.SyncSyncableRoles(syncableID, syncableType)
+	a.SyncSyncableRoles(c, syncableID, syncableType)
 
 	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
@@ -246,7 +246,7 @@ func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableT
 	case model.GroupSyncableTypeTeam:
 		a.createDefaultTeamMemberships(c, since, &syncableID, includeRemovedMembers)
 		a.deleteGroupConstrainedTeamMemberships(c, &syncableID)
-		if err := a.ClearTeamMembersCache(syncableID); err != nil {
+		if err := a.ClearTeamMembersCache(c, syncableID); err != nil {
 			c.Logger().Warn("Error clearing team members cache", mlog.Err(err))
 		}
 	case model.GroupSyncableTypeChannel:

@@ -599,7 +599,7 @@ func (a *App) OpenInteractiveDialog(c request.CTX, request model.OpenDialogReque
 
 	message := model.NewWebSocketEvent(model.WebsocketEventOpenDialog, "", "", userID, nil, "")
 	message.Add("dialog", string(jsonRequest))
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }

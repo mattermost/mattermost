@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -122,7 +123,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 	return nil
 }
 
-func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
+func (a *App) CreateGroupWithUserIds(c request.CTX, group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
 	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
 		appErr.Where = "CreateGroupWithUserIds"
 		return nil, appErr
@@ -156,12 +157,12 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		return nil, model.NewAppError("CreateGroupWithUserIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return newGroup, nil
 }
 
-func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+func (a *App) UpdateGroup(c request.CTX, group *model.Group) (*model.Group, *model.AppError) {
 	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
 		appErr.Where = "UpdateGroup"
 		return nil, appErr
@@ -197,7 +198,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return updatedGroup, nil
 }
@@ -256,7 +257,7 @@ func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*
 	return a.sanitizeProfiles(members, false), nil
 }
 
-func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (a *App) UpsertGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store.Group().UpsertMember(groupID, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -271,14 +272,14 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
-	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
+	if appErr := a.publishGroupMemberEvent(c, model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
 		return nil, appErr
 	}
 
 	return groupMember, nil
 }
 
-func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (a *App) DeleteGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	groupMember, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -290,14 +291,14 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
-	if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
+	if appErr := a.publishGroupMemberEvent(c, model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
 		return nil, appErr
 	}
 
 	return groupMember, nil
 }
 
-func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	gs, err := a.Srv().Store.Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
 	var notFoundErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &notFoundErr) {
@@ -345,7 +346,7 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 				return nil, model.NewAppError("UpsertGroupSyncable", "group_not_associated_to_synced_team", nil, "", http.StatusBadRequest)
 			}
 		} else {
-			_, appErr := a.UpsertGroupSyncable(model.NewGroupTeam(groupSyncable.GroupId, team.Id, groupSyncable.AutoAdd))
+			_, appErr := a.UpsertGroupSyncable(c, model.NewGroupTeam(groupSyncable.GroupId, team.Id, groupSyncable.AutoAdd))
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -386,7 +387,7 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		messageWs = model.NewWebSocketEvent(model.WebsocketEventReceivedGroupAssociatedToChannel, "", gs.SyncableId, "", nil, "")
 	}
 	messageWs.Add("group_id", gs.GroupId)
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return gs, nil
 }
@@ -415,7 +416,7 @@ func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncable
 	return groups, nil
 }
 
-func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (a *App) UpdateGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	if groupSyncable.DeleteAt == 0 {
 		// updating a *deleted* GroupSyncable, so no need to ensure the GroupTeam is present (as done in the upsert)
 		gs, err := a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
@@ -433,7 +434,7 @@ func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 	}
 
 	// do an upsert to ensure that there's an associated GroupTeam
-	gs, err := a.UpsertGroupSyncable(groupSyncable)
+	gs, err := a.UpsertGroupSyncable(c, groupSyncable)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +442,7 @@ func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 	return gs, nil
 }
 
-func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (a *App) DeleteGroupSyncable(c request.CTX, groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	gs, err := a.Srv().Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -488,7 +489,7 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 	}
 
 	messageWs.Add("group_id", gs.GroupId)
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return gs, nil
 }
@@ -730,7 +731,7 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 	return true, nil
 }
 
-func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+func (a *App) UpsertGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	members, err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -746,7 +747,7 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	}
 
 	for _, groupMember := range members {
-		if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
+		if appErr := a.publishGroupMemberEvent(c, model.WebsocketEventGroupMemberAdd, groupMember); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -754,7 +755,7 @@ func (a *App) UpsertGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	return members, nil
 }
 
-func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
+func (a *App) DeleteGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
 	members, err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -770,7 +771,7 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	}
 
 	for _, groupMember := range members {
-		if appErr := a.publishGroupMemberEvent(model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
+		if appErr := a.publishGroupMemberEvent(c, model.WebsocketEventGroupMemberDelete, groupMember); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -778,13 +779,13 @@ func (a *App) DeleteGroupMembers(groupID string, userIDs []string) ([]*model.Gro
 	return members, nil
 }
 
-func (a *App) publishGroupMemberEvent(eventName string, groupMember *model.GroupMember) *model.AppError {
+func (a *App) publishGroupMemberEvent(c request.CTX, eventName string, groupMember *model.GroupMember) *model.AppError {
 	messageWs := model.NewWebSocketEvent(eventName, "", "", groupMember.UserId, nil, "")
 	groupMemberJSON, jsonErr := json.Marshal(groupMember)
 	if jsonErr != nil {
 		return model.NewAppError("publishGroupMemberEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("group_member", string(groupMemberJSON))
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 	return nil
 }

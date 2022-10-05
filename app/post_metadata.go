@@ -123,7 +123,7 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
+	if fileInfos, _, err := a.getFileMetadataForPost(c, post, isNewPost || isEditPost); err != nil {
 		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
@@ -210,12 +210,12 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFileMetadataForPost(c request.CTX, post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, 0, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id, fromMaster, false)
+	return a.GetFileInfosForPost(c, post.Id, fromMaster, false)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
@@ -255,7 +255,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 	}
 
 	// Permalink previews are not toggled via the ServiceSettings.EnableLinkPreviews config setting.
-	if !*a.Config().ServiceSettings.EnableLinkPreviews && !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
+	if !*a.Config().ServiceSettings.EnableLinkPreviews && !looksLikeAPermalink(c, firstLink, *a.Config().ServiceSettings.SiteURL) {
 		return nil, nil
 	}
 
@@ -505,12 +505,12 @@ func looksLikeAPermalink(c request.CTX, url, siteURL string) bool {
 	return matched
 }
 
-func (a *App) containsPermalink(post *model.Post) bool {
+func (a *App) containsPermalink(c request.CTX, post *model.Post) bool {
 	link, _ := a.getFirstLinkAndImages(post.Message)
 	if link == "" {
 		return false
 	}
-	return looksLikeAPermalink(link, a.GetSiteURL())
+	return looksLikeAPermalink(c, link, a.GetSiteURL())
 }
 
 func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
@@ -538,10 +538,10 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	var err error
-	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
+	if looksLikeAPermalink(c, requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews && a.Config().FeatureFlags.PermalinkPreviews {
 		referencedPostID := requestURL[len(requestURL)-26:]
 
-		referencedPost, appErr := a.GetSinglePost(referencedPostID, false)
+		referencedPost, appErr := a.GetSinglePost(c, referencedPostID, false)
 		// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 		if appErr != nil {
 			return nil, nil, nil, appErr
@@ -563,7 +563,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 		}
 
 		// Get metadata for embedded post
-		if a.containsPermalink(referencedPost) {
+		if a.containsPermalink(c, referencedPost) {
 			// referencedPost contains a permalink: we don't get its metadata
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 		} else {
@@ -612,11 +612,11 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 		if err == nil {
 			// Parse the data
-			og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+			og, image, err = a.parseLinkMetadata(c, requestURL, body, contentType)
 		}
 		og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
-		a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
+		a.saveLinkMetadataToDatabase(c, requestURL, timestamp, og, image)
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
@@ -700,7 +700,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)
 }
 
-func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+func (a *App) parseLinkMetadata(c request.CTX, requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if contentType == "image/svg+xml" {
 		image := &model.PostImage{
 			Format: "svg",
@@ -711,7 +711,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
-		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
+		og := a.parseOpenGraphMetadata(c, requestURL, body, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least
 		// one of these required fields exists before returning the OpenGraph data

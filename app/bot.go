@@ -63,7 +63,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 			Description: &bot.Description,
 		}
 
-		if _, err = a.PatchBot(botID, botPatch); err != nil {
+		if _, err = a.PatchBot(c, botID, botPatch); err != nil {
 			return "", fmt.Errorf("failed to patch bot: %w", err)
 		}
 
@@ -297,7 +297,7 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
-func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (a *App) PatchBot(c request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
-	a.sendUpdatedUserEvent(*ruser)
+	a.sendUpdatedUserEvent(c, *ruser)
 
 	bot, nErr = a.Srv().Store.Bot().Update(bot)
 	if nErr != nil {

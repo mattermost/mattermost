@@ -151,8 +151,8 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 
 // SharedChannelUsers
 
-func (a *App) NotifySharedChannelUserUpdate(user *model.User) {
-	a.sendUpdatedUserEvent(*user)
+func (a *App) NotifySharedChannelUserUpdate(c request.CTX, user *model.User) {
+	a.sendUpdatedUserEvent(c, *user)
 }
 
 // onUserProfileChange is called when a user's profile has changed

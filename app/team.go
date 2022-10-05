@@ -47,7 +47,7 @@ func (w *teamServiceWrapper) CreateMember(ctx *request.Context, teamID, userID s
 // Ensure the wrapper implements the product service.
 var _ product.TeamService = (*teamServiceWrapper)(nil)
 
-func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
+func (a *App) AdjustTeamsFromProductLimits(c request.CTX, teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
 	teams, appErr := a.GetAllTeams()
 	if appErr != nil {
@@ -83,11 +83,11 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 			cloudLimitsArchived := true
 			// Archive the remainder
 			patch := model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-			_, err := a.PatchTeam(team.Id, &patch)
+			_, err := a.PatchTeam(c, team.Id, &patch)
 			if err != nil {
 				return err
 			}
-			err = a.SoftDeleteTeam(team.Id)
+			err = a.SoftDeleteTeam(c, team.Id)
 			if err != nil {
 				return err
 			}
@@ -105,12 +105,12 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 		cloudLimitsArchived := false
 		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
 		for _, team := range teamsToRestore {
-			err := a.RestoreTeam(team.Id)
+			err := a.RestoreTeam(c, team.Id)
 			if err != nil {
 				return err
 			}
 
-			_, err = a.PatchTeam(team.Id, patch)
+			_, err = a.PatchTeam(c, team.Id, patch)
 			if err != nil {
 				return err
 			}
@@ -120,7 +120,7 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 	return nil
 }
 
-func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
+func (a *App) SoftDeleteAllTeamsExcept(c request.CTX, teamID string) *model.AppError {
 	teams, appErr := a.GetAllTeams()
 	if appErr != nil {
 		return appErr
@@ -133,12 +133,12 @@ func (a *App) SoftDeleteAllTeamsExcept(teamID string) *model.AppError {
 	patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
 	for _, team := range teams {
 		if team.Id != teamID {
-			_, err := a.PatchTeam(team.Id, patch)
+			_, err := a.PatchTeam(c, team.Id, patch)
 			if err != nil {
 				return err
 			}
 
-			err = a.SoftDeleteTeam(team.Id)
+			err = a.SoftDeleteTeam(c, team.Id)
 			if err != nil {
 				return err
 			}
@@ -210,7 +210,7 @@ func (a *App) normalizeDomains(domains string) []string {
 	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 }
 
-func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+func (a *App) UpdateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -231,7 +231,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
@@ -281,7 +281,7 @@ func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName st
 	return newTeam, nil
 }
 
-func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
+func (a *App) UpdateTeamScheme(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.GetTeam(team.Id)
 	if err != nil {
 		return nil, err
@@ -303,19 +303,19 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		}
 	}
 
-	nErr = a.ClearTeamMembersCache(team.Id)
+	nErr = a.ClearTeamMembersCache(c, team.Id)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateTeamScheme", "app.team.clear_cache.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
+	if appErr := a.sendTeamEvent(c, oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
 		return nil, appErr
 	}
 
 	return oldTeam, nil
 }
 
-func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite bool) *model.AppError {
+func (a *App) UpdateTeamPrivacy(c request.CTX, teamID string, teamType string, allowOpenInvite bool) *model.AppError {
 	oldTeam, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
@@ -343,14 +343,14 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+func (a *App) PatchTeam(c request.CTX, teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
 	team, err := a.ch.srv.teamService.PatchTeam(teamID, patch)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -371,14 +371,14 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
 	return team, nil
 }
 
-func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError) {
+func (a *App) RegenerateTeamInviteId(c request.CTX, teamID string) (*model.Team, *model.AppError) {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return nil, err
@@ -400,14 +400,14 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 		}
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
+func (a *App) sendTeamEvent(c request.CTX, team *model.Team, event string) *model.AppError {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -423,7 +423,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) *model.AppError {
 		return model.NewAppError("sendTeamEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("team", string(teamJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
@@ -444,7 +444,7 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 	return model.TeamGuestRoleId, model.TeamUserRoleId, model.TeamAdminRoleId, nil
 }
 
-func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
+func (a *App) UpdateTeamMemberRoles(c request.CTX, teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
 	member, nErr := a.Srv().Store.Team().GetMember(context.Background(), teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -521,14 +521,14 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles strin
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedMemberRoleEvent(c, userID, member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
 	member, err := a.GetTeamMember(teamID, userID)
 	if err != nil {
 		return nil, err
@@ -560,21 +560,21 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 
 	a.ClearSessionCacheForUser(userID)
 
-	if appErr := a.sendUpdatedMemberRoleEvent(userID, member); appErr != nil {
+	if appErr := a.sendUpdatedMemberRoleEvent(c, userID, member); appErr != nil {
 		return nil, appErr
 	}
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) *model.AppError {
+func (a *App) sendUpdatedMemberRoleEvent(c request.CTX, userID string, member *model.TeamMember) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventMemberroleUpdated, "", "", userID, nil, "")
 	tmJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedMemberRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("member", string(tmJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 	return nil
 }
 
@@ -862,7 +862,7 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", user.Id, nil, "")
 	message.Add("team_id", team.Id)
 	message.Add("user_id", user.Id)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return teamMember, nil
 }
@@ -1087,7 +1087,7 @@ func (a *App) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMe
 	message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 	message.Add("team_id", teamID)
 	message.Add("user_id", userID)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return teamMember, nil
 }
@@ -1116,7 +1116,7 @@ func (a *App) AddTeamMembers(c request.CTX, teamID string, userIDs []string, use
 		message := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, "", "", userID, nil, "")
 		message.Add("team_id", teamID)
 		message.Add("user_id", userID)
-		a.Publish(message)
+		a.Publish(c, message)
 	}
 
 	return membersWithErrors, nil
@@ -1816,14 +1816,14 @@ func (a *App) PermanentDeleteTeam(c request.CTX, team *model.Team) *model.AppErr
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
+func (a *App) SoftDeleteTeam(c request.CTX, teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
@@ -1844,14 +1844,14 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) RestoreTeam(teamID string) *model.AppError {
+func (a *App) RestoreTeam(c request.CTX, teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return err
@@ -1872,7 +1872,7 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventRestoreTeam); appErr != nil {
 		return appErr
 	}
 
@@ -1985,16 +1985,16 @@ func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SetTeamIcon(c request.CTX, teamID string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromMultiPartFile(teamID, file)
+	return a.SetTeamIconFromMultiPartFile(c, teamID, file)
 }
 
-func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError {
+func (a *App) SetTeamIconFromMultiPartFile(c request.CTX, teamID string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamID)
 
 	if getTeamErr != nil {
@@ -2010,10 +2010,10 @@ func (a *App) SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *
 			nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}
 
-	return a.SetTeamIconFromFile(team, file)
+	return a.SetTeamIconFromFile(c, team, file)
 }
 
-func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+func (a *App) SetTeamIconFromFile(c request.CTX, team *model.Team, file io.Reader) *model.AppError {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
@@ -2048,14 +2048,14 @@ func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppEr
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
 }
 
-func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
+func (a *App) RemoveTeamIcon(c request.CTX, teamID string) *model.AppError {
 	team, err := a.GetTeam(teamID)
 	if err != nil {
 		return model.NewAppError("RemoveTeamIcon", "api.team.remove_team_icon.get_team.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -2067,7 +2067,7 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(c, team, model.WebsocketEventUpdateTeam); appErr != nil {
 		return appErr
 	}
 
@@ -2102,7 +2102,7 @@ func (a *App) InvalidateAllResendInviteEmailJobs() *model.AppError {
 	return nil
 }
 
-func (a *App) ClearTeamMembersCache(teamID string) error {
+func (a *App) ClearTeamMembersCache(c request.CTX, teamID string) error {
 	perPage := 100
 	page := 0
 
@@ -2121,7 +2121,7 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 				return jsonErr
 			}
 			message.Add("member", string(tmJSON))
-			a.Publish(message)
+			a.Publish(c, message)
 		}
 
 		length := len(teamMembers)

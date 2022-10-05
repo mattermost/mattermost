@@ -14,6 +14,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -21,9 +22,10 @@ import (
 )
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	c := request.EmptyContext(ch.srv.Log())
 	params := mux.Vars(r)
 	if handler, ok := ch.routerSvc.getHandler(params["plugin_id"]); ok {
-		ch.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
+		ch.servePluginRequest(c, w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
 			handler.ServeHTTP(w, r)
 		})
 		return
@@ -49,7 +51,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ch.servePluginRequest(w, r, hooks.ServeHTTP)
+	ch.servePluginRequest(c, w, r, hooks.ServeHTTP)
 }
 
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
@@ -121,7 +123,7 @@ func (ch *Channels) ServePluginPublicRequest(w http.ResponseWriter, r *http.Requ
 	http.ServeFile(w, r, publicFile)
 }
 
-func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
+func (ch *Channels) servePluginRequest(c request.CTX, w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
@@ -148,7 +150,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		session, err := New(ServerConnector(ch)).GetSession(token)
+		session, err := New(ServerConnector(ch)).GetSession(c, token)
 		defer ch.srv.userService.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false

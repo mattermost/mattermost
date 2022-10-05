@@ -165,7 +165,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("group", group)
 
-	newGroup, appErr := c.App.CreateGroupWithUserIds(group)
+	newGroup, appErr := c.App.CreateGroupWithUserIds(c.AppContext, group)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -257,7 +257,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	group.Patch(&groupPatch)
 
-	group, appErr = c.App.UpdateGroup(group)
+	group, appErr = c.App.UpdateGroup(c.AppContext, group)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -342,7 +342,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		Type:       syncableType,
 	}
 	groupSyncable.Patch(patch)
-	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
+	groupSyncable, appErr = c.App.UpsertGroupSyncable(c.AppContext, groupSyncable)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -505,7 +505,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	groupSyncable.Patch(patch)
 
-	groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
+	groupSyncable, appErr = c.App.UpdateGroupSyncable(c.AppContext, groupSyncable)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -562,7 +562,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, appErr = c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	_, appErr = c.App.DeleteGroupSyncable(c.AppContext, c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1041,7 +1041,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("addGroupMembers", newMembers)
 
-	members, appErr := c.App.UpsertGroupMembers(c.Params.GroupId, newMembers.UserIds)
+	members, appErr := c.App.UpsertGroupMembers(c.AppContext, c.Params.GroupId, newMembers.UserIds)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1095,7 +1095,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("deleteGroupMembers", deleteBody)
 
-	members, appErr := c.App.DeleteGroupMembers(c.Params.GroupId, deleteBody.UserIds)
+	members, appErr := c.App.DeleteGroupMembers(c.AppContext, c.Params.GroupId, deleteBody.UserIds)
 	if appErr != nil {
 		c.Err = appErr
 		return

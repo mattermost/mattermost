@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
 )
@@ -50,23 +51,23 @@ func (s *clusterWrapper) PublishPluginClusterEvent(productID string, ev model.Pl
 func (s *clusterWrapper) PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", productID, event), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
-	s.srv.Publish(ev)
+	s.srv.Publish(request.EmptyContext(s.srv.Log()), ev)
 }
 
 func (s *clusterWrapper) SetPluginKeyWithOptions(productID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	return s.srv.setPluginKeyWithOptions(productID, key, value, options)
+	return s.srv.setPluginKeyWithOptions(request.EmptyContext(s.srv.Log()), productID, key, value, options)
 }
 
 func (s *clusterWrapper) KVGet(productID, key string) ([]byte, *model.AppError) {
-	return s.srv.getPluginKey(productID, key)
+	return s.srv.getPluginKey(request.EmptyContext(s.srv.Log()), productID, key)
 }
 
 func (s *clusterWrapper) KVDelete(productID, key string) *model.AppError {
-	return s.srv.deletePluginKey(productID, key)
+	return s.srv.deletePluginKey(request.EmptyContext(s.srv.Log()), productID, key)
 }
 
 func (s *clusterWrapper) KVList(productID string, page, perPage int) ([]string, *model.AppError) {
-	return s.srv.listPluginKeys(productID, page, perPage)
+	return s.srv.listPluginKeys(request.EmptyContext(s.srv.Log()), productID, page, perPage)
 }
 
 // Registers a given function to be called when the cluster leader may have changed. Returns a unique ID for the

@@ -84,7 +84,7 @@ func (a *App) SendAutoResponse(c request.CTX, channel *model.Channel, receiver *
 	return true, nil
 }
 
-func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *App) SetAutoResponderStatus(c request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	active := user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 	oldActive := oldNotifyProps[model.AutoResponderActiveNotifyProp] == "true"
 
@@ -92,9 +92,9 @@ func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.Stri
 	autoResponderDisabled := oldActive && !active
 
 	if autoResponderEnabled {
-		a.SetStatusOutOfOffice(user.Id)
+		a.SetStatusOutOfOffice(c, user.Id)
 	} else if autoResponderDisabled {
-		a.SetStatusOnline(user.Id, true)
+		a.SetStatusOnline(c, user.Id, true)
 	}
 }
 

@@ -142,7 +142,7 @@ func (a *App) deduplicateCreatePost(c request.CTX, post *model.Post) (foundPost 
 
 	// If the other thread finished creating the post, return the created post back to the
 	// client, making the API call feel idempotent.
-	actualPost, err := a.GetSinglePost(postID, false)
+	actualPost, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -343,7 +343,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true, false)
+	rpost = a.PreparePostForClient(c, rpost, true, false)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -523,7 +523,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return post
 }
@@ -545,7 +545,7 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return post
 }
@@ -565,7 +565,7 @@ func (a *App) DeleteEphemeralPost(c request.CTX, userID, postID string) {
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
-	a.Publish(message)
+	a.Publish(c, message)
 }
 
 func (a *App) UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
@@ -706,7 +706,7 @@ func (a *App) UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*mod
 		return nil, err
 	}
 	if !published {
-		a.Publish(message)
+		a.Publish(c, message)
 	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
@@ -727,7 +727,7 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, nil
 	}
 
-	previewedPost, err := a.GetSinglePost(previewedPostID, false)
+	previewedPost, err := a.GetSinglePost(c, previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
 			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
@@ -770,14 +770,14 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 			c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 		}
 		messageCopy.Add("post", postJSON)
-		a.Publish(messageCopy)
+		a.Publish(c, messageCopy)
 	}
 
 	return true, nil
 }
 
-func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, false)
+func (a *App) PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -806,7 +806,7 @@ func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatc
 	return updatedPost, nil
 }
 
-func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsPage(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPosts(options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -819,14 +819,14 @@ func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *mod
 	}
 
 	// The postList is sorted as only rootPosts Order is included
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetPosts(c request.CTX, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -838,7 +838,7 @@ func (a *App) GetPosts(channelID string, offset int, limit int) (*model.PostList
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -849,20 +849,20 @@ func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
 	return a.Srv().Store.Post().GetEtag(channelID, true, collapsedThreads)
 }
 
-func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsSince(c request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPostsSince(options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *model.AppError) {
+func (a *App) GetSinglePost(c request.CTX, postID string, includeDeleted bool) (*model.Post, *model.AppError) {
 	post, err := a.Srv().Store.Post().GetSingle(postID, includeDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -874,7 +874,7 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 		}
 	}
 
-	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
+	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(c, post)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -885,7 +885,7 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 	return post, nil
 }
 
-func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
+func (a *App) GetPostThread(c request.CTX, postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
 	posts, err := a.Srv().Store.Post().Get(context.Background(), postID, opts, userID, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -908,46 +908,46 @@ func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID st
 		filterOptions.assumeSortedCreatedAt = true
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, posts, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPosts(c request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForTeam(c request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (a *App) GetFlaggedPostsForChannel(c request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -983,14 +983,14 @@ func (a *App) GetPermalinkPost(c request.CTX, postID string, userID string) (*mo
 		return nil, err
 	}
 
-	if appErr := a.filterInaccessiblePosts(list, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, list, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
 	return list, nil
 }
 
-func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsBeforePost(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPostsBefore(options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1011,14 +1011,14 @@ func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList
 	if options.ChannelId != "" {
 		filterOptions.assumeSortedCreatedAt = true
 	}
-	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsAfterPost(c request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	postList, err := a.Srv().Store.Post().GetPostsAfter(options, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1039,14 +1039,14 @@ func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList,
 	if options.ChannelId != "" {
 		filterOptions.assumeSortedCreatedAt = true
 	}
-	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
 	return postList, nil
 }
 
-func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsAroundPost(c request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error
 	sanitize := a.Config().GetSanitizeOptions()
@@ -1075,7 +1075,7 @@ func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*m
 	if options.ChannelId != "" {
 		filterOptions.assumeSortedCreatedAt = true
 	}
-	if appErr := a.filterInaccessiblePosts(postList, filterOptions); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postList, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1203,7 +1203,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 		CollapsedThreads:         collapsedThreads,
 		CollapsedThreadsExtended: collapsedThreadsExtended,
 	}
-	postList, err := a.GetPostThread(lastUnreadPostId, opts, userID)
+	postList, err := a.GetPostThread(c, lastUnreadPostId, opts, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1215,14 +1215,14 @@ func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userI
 		postList.Order = []string{lastUnreadPostId}
 
 		// BeforePosts will only be accessible if the lastUnreadPostId is itself accessible
-		if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+		if postListBefore, err := a.GetPostsBeforePost(c, model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
 			return nil, err
 		} else if postListBefore != nil {
 			postList.Extend(postListBefore)
 		}
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(c, model.GetPostsOptions{ChannelId: channelID, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: userID}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1267,13 +1267,13 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", string(postJSON))
 	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.Publish(userMessage)
+	a.Publish(c, userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.Publish(adminMessage)
+	a.Publish(c, adminMessage)
 
 	if len(post.FileIds) > 0 {
 		a.Srv().Go(func() {
@@ -1341,7 +1341,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 	return channel, nil
 }
 
-func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
+func (a *App) searchPostsInTeam(c request.CTX, teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
 	pchan := make(chan store.StoreResult, len(paramsList))
@@ -1376,7 +1376,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 
 	posts.SortByCreateAt()
 
-	a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	a.filterInaccessiblePosts(c, posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 	return posts, nil
 }
@@ -1479,12 +1479,12 @@ func (a *App) getCloudMessagesHistoryLimit(c request.CTX) (int64, *model.AppErro
 	return int64(*limits.Messages.History), nil
 }
 
-func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+func (a *App) SearchPostsInTeam(c request.CTX, teamID string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamID), http.StatusNotImplemented)
 	}
 
-	return a.searchPostsInTeam(teamID, "", paramsList, func(params *model.SearchParams) {
+	return a.searchPostsInTeam(c, teamID, "", paramsList, func(params *model.SearchParams) {
 		params.SearchWithoutUserId = true
 	})
 }
@@ -1537,7 +1537,7 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1599,7 +1599,7 @@ func (a *App) GetFileInfosForPost(c request.CTX, postID string, fromMaster bool,
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
+	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(c, fileInfos)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
@@ -1769,7 +1769,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
+	thread, err := a.GetPostThread(c, post.Id, model.GetPostsOptions{}, user.Id)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -1786,7 +1786,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	page := 0
 	perPage := 200
 	for {
-		postList, err := a.GetPostsAfterPost(model.GetPostsOptions{
+		postList, err := a.GetPostsAfterPost(c, model.GetPostsOptions{
 			ChannelId: post.ChannelId,
 			PostId:    post.Id,
 			Page:      page,
@@ -1884,7 +1884,7 @@ func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.Threa
 }
 
 func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(postID, includeDeleted)
+	post, err := a.GetSinglePost(c, postID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -1908,7 +1908,7 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 }
 
 // GetPostsByIds response bool value indicates, if the post is inaccessible due to cloud plan's limit.
-func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
+func (a *App) GetPostsByIds(c request.CTX, postIDs []string) ([]*model.Post, int64, *model.AppError) {
 	posts, err := a.Srv().Store.Post().GetPostsByIds(postIDs)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -1920,7 +1920,7 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 		}
 	}
 
-	posts, firstInaccessiblePostTime, appErr := a.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+	posts, firstInaccessiblePostTime, appErr := a.getFilteredAccessiblePosts(c, posts, filterPostOptions{assumeSortedCreatedAt: true})
 	if appErr != nil {
 		return nil, 0, appErr
 	}
@@ -2019,7 +2019,7 @@ func (a *App) SetPostReminder(c request.CTX, postID, userID string, targetTime i
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("post", postJSON)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }

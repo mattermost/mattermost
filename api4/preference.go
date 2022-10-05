@@ -110,7 +110,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, pref := range preferences {
 		if pref.Category == model.PreferenceCategoryFlaggedPost {
-			post, err := c.App.GetSinglePost(pref.Name, false)
+			post, err := c.App.GetSinglePost(c.AppContext, pref.Name, false)
 			if err != nil {
 				c.SetInvalidParam("preference.name")
 				return
@@ -125,7 +125,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		sanitizedPreferences = append(sanitizedPreferences, pref)
 	}
 
-	if err := c.App.UpdatePreferences(c.Params.UserId, sanitizedPreferences); err != nil {
+	if err := c.App.UpdatePreferences(c.AppContext, c.Params.UserId, sanitizedPreferences); err != nil {
 		c.Err = err
 		return
 	}
@@ -154,7 +154,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.DeletePreferences(c.Params.UserId, preferences); err != nil {
+	if err := c.App.DeletePreferences(c.AppContext, c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}

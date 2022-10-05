@@ -31,7 +31,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return

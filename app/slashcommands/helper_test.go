@@ -101,7 +101,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := th.Server.Start()
+	serverErr := th.Server.Start(th.Context)
 	if serverErr != nil {
 		panic(serverErr)
 	}
@@ -367,7 +367,7 @@ func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel)
 func (th *TestHelper) shutdownApp() {
 	done := make(chan bool)
 	go func() {
-		th.Server.Shutdown()
+		th.Server.Shutdown(th.Context)
 		close(done)
 	}()
 
@@ -383,7 +383,7 @@ func (th *TestHelper) shutdownApp() {
 func (th *TestHelper) tearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.Srv().InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches(th.Context)
 	}
 	th.shutdownApp()
 	if th.tempWorkspace != "" {
@@ -410,7 +410,7 @@ func (th *TestHelper) removePermissionFromRole(permission string, roleName strin
 
 	role.Permissions = newPermissions
 
-	_, err2 := th.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(th.Context, role)
 	if err2 != nil {
 		panic(err2)
 	}
@@ -430,7 +430,7 @@ func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(th.Context, role)
 	if err2 != nil {
 		panic(err2)
 	}

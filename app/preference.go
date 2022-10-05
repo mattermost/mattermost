@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
 )
@@ -25,11 +26,11 @@ func (w *preferencesServiceWrapper) GetPreferencesForUser(userID string) (model.
 }
 
 func (w *preferencesServiceWrapper) UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError {
-	return w.app.UpdatePreferences(userID, preferences)
+	return w.app.UpdatePreferences(request.EmptyContext(w.app.Log()), userID, preferences)
 }
 
 func (w *preferencesServiceWrapper) DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError {
-	return w.app.DeletePreferences(userID, preferences)
+	return w.app.DeletePreferences(request.EmptyContext(w.app.Log()), userID, preferences)
 }
 
 func (a *App) GetPreferencesForUser(userID string) (model.Preferences, *model.AppError) {
@@ -60,7 +61,7 @@ func (a *App) GetPreferenceByCategoryAndNameForUser(userID string, category stri
 	return res, nil
 }
 
-func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *App) UpdatePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userID != preference.UserId {
 			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
@@ -84,7 +85,7 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil, "")
 	// TODO this needs to be updated to include information on which categories changed
-	a.Publish(message)
+	a.Publish(c, message)
 
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesChanged, "", "", userID, nil, "")
 	prefsJSON, jsonErr := json.Marshal(preferences)
@@ -92,12 +93,12 @@ func (a *App) UpdatePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("UpdatePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }
 
-func (a *App) DeletePreferences(userID string, preferences model.Preferences) *model.AppError {
+func (a *App) DeletePreferences(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userID != preference.UserId {
 			err := model.NewAppError("DeletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
@@ -118,7 +119,7 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 
 	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryUpdated, "", "", userID, nil, "")
 	// TODO this needs to be updated to include information on which categories changed
-	a.Publish(message)
+	a.Publish(c, message)
 
 	message = model.NewWebSocketEvent(model.WebsocketEventPreferencesDeleted, "", "", userID, nil, "")
 	prefsJSON, jsonErr := json.Marshal(preferences)
@@ -126,7 +127,7 @@ func (a *App) DeletePreferences(userID string, preferences model.Preferences) *m
 		return model.NewAppError("DeletePreferences", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("preferences", string(prefsJSON))
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }

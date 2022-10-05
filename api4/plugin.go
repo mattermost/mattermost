@@ -334,7 +334,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.EnablePlugin(c.Params.PluginId); err != nil {
+	if err := c.App.EnablePlugin(c.AppContext, c.Params.PluginId); err != nil {
 		c.Err = err
 		return
 	}

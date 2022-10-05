@@ -1223,7 +1223,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		role.Permissions = permissions
 
-		_, err2 := th.App.UpdateRole(role)
+		_, err2 := th.App.UpdateRole(th.Context, role)
 		if err2 != nil {
 			panic(err2)
 		}
@@ -1249,7 +1249,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 
 	role.Permissions = newPermissions
 
-	_, err2 := th.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(th.Context, role)
 	if err2 != nil {
 		panic(err2)
 	}
@@ -1269,7 +1269,7 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
+	_, err2 := th.App.UpdateRole(th.Context, role)
 	if err2 != nil {
 		panic(err2)
 	}

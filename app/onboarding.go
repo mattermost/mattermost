@@ -47,7 +47,7 @@ func (a *App) CompleteOnboarding(c request.CTX, request *model.CompleteOnboardin
 				return
 			}
 
-			appErr = a.EnablePlugin(id)
+			appErr = a.EnablePlugin(c, id)
 			if appErr != nil {
 				c.Logger().Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return

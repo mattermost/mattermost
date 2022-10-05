@@ -215,7 +215,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -223,7 +223,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -231,7 +231,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 
@@ -239,7 +239,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
+		list, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	}
 
 	if err != nil {
@@ -305,7 +305,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		postList, err = c.App.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+		postList, err = c.App.GetPostsPage(c.AppContext, model.GetPostsOptions{ChannelId: channelId, Page: app.PageDefault, PerPage: c.Params.LimitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 		if err != nil {
 			c.Err = err
 			return
@@ -348,11 +348,11 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	var err *model.AppError
 
 	if channelId != "" {
-		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForChannel(c.AppContext, c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
 	} else if teamId != "" {
-		posts, err = c.App.GetFlaggedPostsForTeam(c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForTeam(c.AppContext, c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
 	} else {
-		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPosts(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
 	if err != nil {
 		c.Err = err
@@ -451,7 +451,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
+	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(c.AppContext, postIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -501,7 +501,7 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventParameter("post_id", c.Params.PostId)
 
-	post, err := c.App.GetSinglePost(c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
@@ -582,7 +582,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		FromPost:                 fromPost,
 		FromCreateAt:             fromCreateAt,
 	}
-	list, err := c.App.GetPostThread(c.Params.PostId, opts, c.AppContext.Session().UserId)
+	list, err := c.App.GetPostThread(c.AppContext, c.Params.PostId, opts, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -751,7 +751,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -804,7 +804,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
 
-	originalPost, err := c.App.GetSinglePost(c.Params.PostId, false)
+	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -911,7 +911,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
-	post, err := c.App.GetSinglePost(c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
 		return

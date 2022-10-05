@@ -6,13 +6,14 @@ package app
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 // CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
-func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
-	appErr := a.checkIntegrationLimitsForConfigSave(oldConfig, newConfig)
+func (a *App) CheckFreemiumLimitsForConfigSave(c request.CTX, oldConfig, newConfig *model.Config) *model.AppError {
+	appErr := a.checkIntegrationLimitsForConfigSave(c, oldConfig, newConfig)
 	if appErr != nil {
 		return appErr
 	}

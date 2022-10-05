@@ -148,7 +148,7 @@ func (ch *Channels) syncPluginsActiveState(c request.CTX) {
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
-					ch.srv.Publish(message)
+					ch.srv.Publish(c, message)
 				}
 			}(plugin)
 		}
@@ -179,11 +179,11 @@ func (ch *Channels) syncPluginsActiveState(c request.CTX) {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
+	if err := ch.notifyPluginStatusesChanged(c); err != nil {
 		c.Logger().Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 
-	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+	if err := ch.notifyIntegrationsUsageChanged(c); err != nil {
 		c.Logger().Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
@@ -399,8 +399,8 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
-func (a *App) EnablePlugin(id string) *model.AppError {
-	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
+func (a *App) EnablePlugin(c request.CTX, id string) *model.AppError {
+	appErr := a.checkIfIntegrationsMeetFreemiumLimits(c, []string{id})
 	if appErr != nil {
 		return appErr
 	}
@@ -497,7 +497,7 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
+func (ch *Channels) notifyIntegrationsUsageChanged(c request.CTX) *model.AppError {
 	usage, appErr := ch.getIntegrationsUsage()
 	if appErr != nil {
 		return appErr
@@ -506,7 +506,7 @@ func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil, "")
 	message.Add("usage", usage)
 	message.GetBroadcast().ContainsSensitiveData = true
-	ch.Publish(message)
+	ch.Publish(c, message)
 
 	return nil
 }
@@ -868,7 +868,7 @@ func (ch *Channels) notifyPluginEnabled(c request.CTX, manifest *model.Manifest)
 	// Notify all cluster peer clients.
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil, "")
 	message.Add("manifest", manifest.ClientManifest())
-	ch.srv.Publish(message)
+	ch.srv.Publish(c, message)
 
 	return nil
 }

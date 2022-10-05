@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -72,20 +73,20 @@ func (a *App) CancelJob(jobId string) *model.AppError {
 	return a.Srv().Jobs.RequestCancellation(jobId)
 }
 
-func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+func (a *App) SessionHasPermissionToCreateJob(c request.CTX, session model.Session, job *model.Job) (bool, *model.Permission) {
 	switch job.Type {
 	case model.JobTypeBlevePostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreatePostBleveIndexesJob), model.PermissionCreatePostBleveIndexesJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreatePostBleveIndexesJob), model.PermissionCreatePostBleveIndexesJob
 	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
 	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateComplianceExportJob), model.PermissionCreateComplianceExportJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreateComplianceExportJob), model.PermissionCreateComplianceExportJob
 	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostIndexingJob), model.PermissionCreateElasticsearchPostIndexingJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreateElasticsearchPostIndexingJob), model.PermissionCreateElasticsearchPostIndexingJob
 	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostAggregationJob), model.PermissionCreateElasticsearchPostAggregationJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreateElasticsearchPostAggregationJob), model.PermissionCreateElasticsearchPostAggregationJob
 	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
 	case
 		model.JobTypeMigrations,
 		model.JobTypePlugins,
@@ -98,24 +99,24 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
-		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+		return a.SessionHasPermissionTo(c, session, model.PermissionManageJobs), model.PermissionManageJobs
 	}
 
 	return false, nil
 }
 
-func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
+func (a *App) SessionHasPermissionToReadJob(c request.CTX, session model.Session, jobType string) (bool, *model.Permission) {
 	switch jobType {
 	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionReadDataRetentionJob), model.PermissionReadDataRetentionJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadDataRetentionJob), model.PermissionReadDataRetentionJob
 	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionReadComplianceExportJob), model.PermissionReadComplianceExportJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadComplianceExportJob), model.PermissionReadComplianceExportJob
 	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostIndexingJob), model.PermissionReadElasticsearchPostIndexingJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadElasticsearchPostIndexingJob), model.PermissionReadElasticsearchPostIndexingJob
 	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionReadElasticsearchPostAggregationJob), model.PermissionReadElasticsearchPostAggregationJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadElasticsearchPostAggregationJob), model.PermissionReadElasticsearchPostAggregationJob
 	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadLdapSyncJob), model.PermissionReadLdapSyncJob
 	case
 		model.JobTypeBlevePostIndexing,
 		model.JobTypeMigrations,
@@ -129,7 +130,7 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeExtractContent:
-		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
+		return a.SessionHasPermissionTo(c, session, model.PermissionReadJobs), model.PermissionReadJobs
 	}
 
 	return false, nil

@@ -204,7 +204,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	role, appErr := c.App.PatchRole(oldRole, &patch)
+	role, appErr := c.App.PatchRole(c.AppContext, oldRole, &patch)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -129,7 +129,7 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
-		a.Publish(message)
+		a.Publish(c, message)
 	}
 
 	if nErr != nil {
@@ -212,7 +212,7 @@ func (a *App) CreateChannelWithUser(c request.CTX, channel *model.Channel, userI
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelCreated, "", "", userID, nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return rchannel, nil
 }
@@ -337,7 +337,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	}
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
-		!a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem) {
+		!a.SessionHasPermissionTo(c, *c.Session(), model.PermissionManageSystem) {
 		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
 		if err != nil {
 			return nil, err
@@ -412,7 +412,7 @@ func (a *App) handleCreationEvent(c request.CTX, userID, otherUserID string, cha
 	message := model.NewWebSocketEvent(model.WebsocketEventDirectAdded, "", channel.Id, "", nil, "")
 	message.Add("creator_id", userID)
 	message.Add("teammate_id", otherUserID)
-	a.Publish(message)
+	a.Publish(c, message)
 }
 
 func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
@@ -529,7 +529,7 @@ func (a *App) CreateGroupChannel(c request.CTX, userIDs []string, creatorId stri
 
 	message := model.NewWebSocketEvent(model.WebsocketEventGroupAdded, "", channel.Id, "", nil, "")
 	message.Add("teammate_ids", model.ArrayToJSON(userIDs))
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return channel, nil
 }
@@ -659,7 +659,7 @@ func (a *App) UpdateChannel(c request.CTX, channel *model.Channel) (*model.Chann
 		return nil, model.NewAppError("UpdateChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	messageWs.Add("channel", string(channelJSON))
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return channel, nil
 }
@@ -726,7 +726,7 @@ func (a *App) UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, use
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
-	a.Publish(messageWs)
+	a.Publish(c, messageWs)
 
 	return channel, nil
 }
@@ -781,7 +781,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelRestored, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	var user *model.User
 	if userID != "" {
@@ -1014,12 +1014,12 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 		if err != nil {
 			return nil, err
 		}
-		if appErr := a.sendUpdatedRoleEvent(adminRole); appErr != nil {
+		if appErr := a.sendUpdatedRoleEvent(c, adminRole); appErr != nil {
 			return nil, appErr
 		}
 
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil, "")
-		a.Publish(message)
+		a.Publish(c, message)
 		c.Logger().Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
 		scheme, err = a.GetScheme(*channel.SchemeId)
@@ -1077,17 +1077,17 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 		}
 
 		message := model.NewWebSocketEvent(model.WebsocketEventChannelSchemeUpdated, "", channel.Id, "", nil, "")
-		a.Publish(message)
+		a.Publish(c, message)
 
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
 		c.Logger().Info("Permission scheme deleted.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
-		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
+		memberRole, err = a.PatchRole(c, memberRole, memberRolePatch)
 		if err != nil {
 			return nil, err
 		}
-		guestRole, err = a.PatchRole(guestRole, guestRolePatch)
+		guestRole, err = a.PatchRole(c, guestRole, guestRolePatch)
 		if err != nil {
 			return nil, err
 		}
@@ -1285,7 +1285,7 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
-	a.Publish(evt)
+	a.Publish(c, evt)
 
 	return member, nil
 }
@@ -1314,7 +1314,7 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 		return nil, model.NewAppError("updateChannelMember", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	evt.Add("channelMember", string(memberJSON))
-	a.Publish(evt)
+	a.Publish(c, evt)
 
 	return member, nil
 }
@@ -1437,7 +1437,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }
@@ -1527,7 +1527,7 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return newMember, nil
 }
@@ -2482,13 +2482,13 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
 	message.Add("remover_id", removerUserId)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	// because the removed user no longer belongs to the channel we need to send a separate websocket event
 	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
-	a.Publish(userMsg)
+	a.Publish(c, userMsg)
 
 	return nil
 }
@@ -2552,7 +2552,7 @@ func (a *App) SetActiveChannel(c request.CTX, userID string, channelID string) *
 	a.AddStatusCache(status)
 
 	if status.Status != oldStatus {
-		a.BroadcastStatus(status)
+		a.BroadcastStatus(c, status)
 	}
 
 	return nil
@@ -2579,7 +2579,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(c, userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(c, postID, userID)
 	}
-	post, err := a.GetSinglePost(postID, false)
+	post, err := a.GetSinglePost(c, postID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2606,7 +2606,7 @@ func (a *App) MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID s
 }
 
 func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	post, appErr := a.GetSinglePost(postID, false)
+	post, appErr := a.GetSinglePost(c, postID, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2645,7 +2645,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 	//                          If there are replies with mentions below the marked reply in the thread, then sum the mentions for the threads mention badge.
 	// In CRT Unsupported Client: Channel is marked as unread and new messages line inserted above the marked post.
 	//                            Badge on channel sums mentions in all posts (root & replies) including and below the post that was marked unread.
-	rootPost, appErr := a.GetSinglePost(post.RootId, false)
+	rootPost, appErr := a.GetSinglePost(c, post.RootId, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -2700,7 +2700,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
-			a.Publish(message)
+			a.Publish(c, message)
 		}
 	}
 
@@ -2723,7 +2723,7 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
-	a.Publish(message)
+	a.Publish(c, message)
 }
 
 func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.ChannelListWithTeamData, *model.AppError) {
@@ -2868,7 +2868,7 @@ func (a *App) SearchChannelsUserNotIn(c request.CTX, teamID string, userID strin
 func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID string, currentSessionId string, collapsedThreadsSupported bool) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
-	if a.canSendPushNotifications() {
+	if a.canSendPushNotifications(c) {
 		for _, channelID := range channelIDs {
 			channel, errCh := a.Srv().Store.Channel().Get(channelID, true)
 			if errCh != nil {
@@ -2931,7 +2931,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 		for _, channelID := range channelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventChannelViewed, "", "", userID, nil, "")
 			message.Add("channel_id", channelID)
-			a.Publish(message)
+			a.Publish(c, message)
 		}
 	}
 	for _, channelID := range channelsToClearPushNotifications {
@@ -2943,7 +2943,7 @@ func (a *App) MarkChannelsAsViewed(c request.CTX, channelIDs []string, userID st
 		for _, channelID := range channelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
-			a.Publish(message)
+			a.Publish(c, message)
 		}
 	}
 
@@ -2999,7 +2999,7 @@ func (a *App) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *mod
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
-	a.Publish(message)
+	a.Publish(c, message)
 
 	return nil
 }
@@ -3180,7 +3180,7 @@ func (a *App) GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, 
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr := a.filterInaccessiblePosts(c, posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -3267,7 +3267,7 @@ func (a *App) setChannelsMuted(c request.CTX, channelIDs []string, userID string
 		}
 
 		evt.Add("channelMember", string(memberJSON))
-		a.Publish(evt)
+		a.Publish(c, evt)
 	}
 
 	return updated, nil
@@ -3373,7 +3373,7 @@ func (a *App) ClearChannelMembersCache(c request.CTX, channelID string) error {
 			return jsonErr
 		}
 		message.Add("channelMember", string(memberJSON))
-		a.Publish(message)
+		a.Publish(c, message)
 		return nil
 	}
 	if err := a.forEachChannelMember(c, channelID, clearSessionCache); err != nil {

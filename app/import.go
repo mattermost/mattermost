@@ -290,7 +290,7 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importScheme(line.Scheme, dryRun)
+		return a.importScheme(c, line.Scheme, dryRun)
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
@@ -315,7 +315,7 @@ func (a *App) importLine(c request.CTX, line imports.LineImportData, dryRun bool
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importEmoji(line.Emoji, dryRun)
+		return a.importEmoji(c, line.Emoji, dryRun)
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}

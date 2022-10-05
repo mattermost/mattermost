@@ -1089,7 +1089,7 @@ func (a *App) GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model
 		return nil, appErr
 	}
 
-	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(fileInfo)
+	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(c, fileInfo)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1130,7 +1130,7 @@ func (a *App) GetFileInfos(c request.CTX, page, perPage int, opt *model.GetFileI
 		filterOptions.assumeSortedCreatedAt = true
 	}
 
-	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
+	fileInfos, _, appErr := a.getFilteredAccessibleFiles(c, fileInfos, filterOptions)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1297,7 +1297,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
+	return fileInfoSearchResults, a.filterInaccessibleFiles(c, fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
 func (a *App) ExtractContentFromFileInfo(c request.CTX, fileInfo *model.FileInfo) error {

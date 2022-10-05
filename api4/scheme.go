@@ -38,7 +38,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
@@ -65,7 +65,7 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
@@ -82,7 +82,7 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementPermissions)
 		return
 	}
@@ -114,7 +114,7 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementTeams) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementTeams) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementTeams)
 		return
 	}
@@ -151,7 +151,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementChannels) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementChannels)
 		return
 	}
@@ -209,7 +209,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(scheme)
 	auditRec.AddEventObjectType("scheme")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}
@@ -244,7 +244,7 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+	if !c.App.SessionHasPermissionTo(c.AppContext, *c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
 		return
 	}

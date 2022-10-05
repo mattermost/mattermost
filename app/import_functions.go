@@ -31,7 +31,7 @@ import (
 // still enforced.
 //
 
-func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.AppError {
+func (a *App) importScheme(c request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
 	if err := imports.ValidateSchemeImportData(data); err != nil {
 		return err
 	}
@@ -68,12 +68,12 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 
 	if scheme.Scope == model.SchemeScopeTeam {
 		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
-		if err := a.importRole(data.DefaultTeamAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
-		if err := a.importRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -83,19 +83,19 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
-		if err := a.importRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
 		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
-		if err := a.importRole(data.DefaultChannelAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
-		if err := a.importRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -105,7 +105,7 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
-		if err := a.importRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
@@ -113,7 +113,7 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 	return nil
 }
 
-func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(c request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
 	if !isSchemeRole {
 		if err := imports.ValidateRoleImportData(data); err != nil {
 			return err
@@ -153,7 +153,7 @@ func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole
 	if role.Id == "" {
 		_, err = a.CreateRole(role)
 	} else {
-		_, err = a.UpdateRole(role)
+		_, err = a.UpdateRole(c, role)
 	}
 
 	return err
@@ -495,7 +495,7 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
-		if savedUser, err = a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{FromImport: true}); err != nil {
+		if savedUser, err = a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -563,7 +563,7 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 		}
 		if emailVerified {
 			if hasUserEmailVerifiedChanged {
-				if err := a.VerifyUserEmail(user.Id, user.Email); err != nil {
+				if err := a.VerifyUserEmail(c, user.Id, user.Email); err != nil {
 					return err
 				}
 			}
@@ -867,12 +867,12 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 
 	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(c, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(c, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
 	}
 
 	for _, team := range allTeams {
@@ -1225,7 +1225,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 
 	// Go over existing files in the post and see if there already exists a file with the same name, size and hash. If so - skip it
 	if post.Id != "" {
-		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(post.Id, true, false)
+		oldFiles, err := a.getFileInfosForPostIgnoreCloudLimit(c, post.Id, true, false)
 		if err != nil {
 			return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 		}

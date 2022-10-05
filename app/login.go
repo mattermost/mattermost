@@ -181,7 +181,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
-		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
+		if err := a.RevokeSessionsForDeviceId(c, user.Id, deviceID, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return err
 		}

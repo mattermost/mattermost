@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -157,9 +158,9 @@ func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.Ap
 	return nil
 }
 
-func (a *App) AdjustInProductLimits(limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
+func (a *App) AdjustInProductLimits(c request.CTX, limits *model.ProductLimits, subscription *model.Subscription) *model.AppError {
 	if limits.Teams != nil && limits.Teams.Active != nil && *limits.Teams.Active > 0 {
-		err := a.AdjustTeamsFromProductLimits(limits.Teams)
+		err := a.AdjustTeamsFromProductLimits(c, limits.Teams)
 		if err != nil {
 			return err
 		}

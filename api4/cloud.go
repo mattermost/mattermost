@@ -639,7 +639,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 					return true
 				}, plugin.OnCloudLimitsUpdatedID)
 			}
-			c.App.AdjustInProductLimits(event.ProductLimits, event.Subscription)
+			c.App.AdjustInProductLimits(c.AppContext, event.ProductLimits, event.Subscription)
 		}
 
 		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {

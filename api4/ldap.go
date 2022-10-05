@@ -203,7 +203,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			group.DeleteAt = 0
 			group.DisplayName = displayName
 			group.RemoteId = ldapGroup.RemoteId
-			newOrUpdatedGroup, appErr = c.App.UpdateGroup(group)
+			newOrUpdatedGroup, appErr = c.App.UpdateGroup(c.AppContext, group)
 			if appErr != nil {
 				c.Err = appErr
 				return
