@@ -4134,7 +4134,7 @@ func (s *OpenTracingLayerGroupStore) GetGroupSyncable(groupID string, syncableID
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroups")
 	s.Root.Store.SetContext(newCtx)
@@ -4143,7 +4143,7 @@ func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetGroups(page, perPage, opts)
+	result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4224,7 +4224,7 @@ func (s *OpenTracingLayerGroupStore) GetMember(groupID string, userID string) (*
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
+func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -4233,7 +4233,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, erro
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetMemberCount(groupID)
+	result, err := s.GroupStore.GetMemberCount(groupID, viewRestrictions)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

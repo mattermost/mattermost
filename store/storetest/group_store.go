@@ -3476,6 +3476,13 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Save(u2)
 	require.NoError(t, err)
 
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.NoError(t, err)
+
 	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
 	require.NoError(t, err)
 
@@ -3485,7 +3492,18 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group2.Id, user2.Id)
 	require.NoError(t, err)
 
+	_, err = ss.Group().UpsertMember(group2.Id, user3.Id)
+	require.NoError(t, err)
+
 	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      user1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
@@ -3519,39 +3537,44 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	testCases := []struct {
-		Name    string
-		Page    int
-		PerPage int
-		Opts    model.GroupSearchOpts
-		Resultf func([]*model.Group) bool
+		Name         string
+		Page         int
+		PerPage      int
+		Opts         model.GroupSearchOpts
+		Resultf      func([]*model.Group) bool
+		Restrictions *model.ViewUsersRestrictions
 	}{
 		{
-			Name:    "Get all the Groups",
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 3,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 3 },
+			Name:         "Get all the Groups",
+			Opts:         model.GroupSearchOpts{},
+			Page:         0,
+			PerPage:      3,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 3 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get first Group with page 0 with 1 element",
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 1,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
+			Name:         "Get first Group with page 0 with 1 element",
+			Opts:         model.GroupSearchOpts{},
+			Page:         0,
+			PerPage:      1,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 1 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get single result from page 1",
-			Opts:    model.GroupSearchOpts{},
-			Page:    1,
-			PerPage: 1,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
+			Name:         "Get single result from page 1",
+			Opts:         model.GroupSearchOpts{},
+			Page:         1,
+			PerPage:      1,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 1 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get multiple results from page 1",
-			Opts:    model.GroupSearchOpts{},
-			Page:    1,
-			PerPage: 2,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 2 },
+			Name:         "Get multiple results from page 1",
+			Opts:         model.GroupSearchOpts{},
+			Page:         1,
+			PerPage:      2,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 2 },
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching name",
@@ -3566,6 +3589,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching display name",
@@ -3580,6 +3604,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching multiple display names",
@@ -3594,6 +3619,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Include member counts",
@@ -3605,7 +3631,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					if g.MemberCount == nil {
 						return false
 					}
-					if g.Id == group1.Id && *g.MemberCount != 1 {
+					if (g.Id == group1.Id || g.Id == group2.Id) && *g.MemberCount != 1 {
 						return false
 					}
 					if g.DeleteAt != 0 {
@@ -3614,6 +3640,31 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include member counts with restrictions",
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.MemberCount == nil {
+						return false
+					}
+					if g.Id == group1.Id && *g.MemberCount != 1 {
+						return false
+					}
+					if g.Id == group2.Id && *g.MemberCount != 0 {
+						return false
+					}
+					if g.DeleteAt != 0 {
+						return false
+					}
+				}
+				return true
+			},
+			Restrictions: &model.ViewUsersRestrictions{Channels: []string{channel1.Id}},
 		},
 		{
 			Name:    "Not associated to team",
@@ -3634,6 +3685,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Not associated to other team",
@@ -3654,6 +3706,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Include allow reference",
@@ -3674,6 +3727,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Use Since return all",
@@ -3691,6 +3745,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Use Since return none",
@@ -3700,6 +3755,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained teams",
@@ -3709,6 +3765,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 2 && groups[0].Id == group1.Id && groups[1].Id == group2.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained page 0",
@@ -3718,6 +3775,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group1.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained page 1",
@@ -3727,6 +3785,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group2.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Non-group constrained team with no associated groups still returns groups for the child channel",
@@ -3736,6 +3795,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) > 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by group member",
@@ -3745,6 +3805,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 1 && groups[0].Id == group1.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by non-existent group member",
@@ -3754,6 +3815,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by non-member member",
@@ -3763,12 +3825,13 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 2
 			},
+			Restrictions: nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
+			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts, tc.Restrictions)
 			require.NoError(t, err)
 			require.True(t, tc.Resultf(groups))
 		})
@@ -4119,7 +4182,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 	}
 
-	count, err := ss.Group().GetMemberCount(group.Id)
+	count, err := ss.Group().GetMemberCount(group.Id, nil)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
 
@@ -4127,7 +4190,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.User().Update(user, true)
 	require.NoError(t, nErr)
 
-	count, err = ss.Group().GetMemberCount(group.Id)
+	count, err = ss.Group().GetMemberCount(group.Id, nil)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), count)
 }

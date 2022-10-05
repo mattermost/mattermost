@@ -4656,11 +4656,11 @@ func (s *RetryLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 
 }
 
-func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetGroups(page, perPage, opts)
+		result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}
@@ -4761,11 +4761,11 @@ func (s *RetryLayerGroupStore) GetMember(groupID string, userID string) (*model.
 
 }
 
-func (s *RetryLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
+func (s *RetryLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetMemberCount(groupID)
+		result, err := s.GroupStore.GetMemberCount(groupID, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}

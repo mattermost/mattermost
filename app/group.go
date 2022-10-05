@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
+func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store.Group().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -26,7 +26,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 	}
 
 	if opts != nil && opts.IncludeMemberCount {
-		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
+		memberCount, err := a.Srv().Store.Group().GetMemberCount(id, viewRestrictions)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -146,7 +146,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	}
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
-	count, err := a.Srv().Store.Group().GetMemberCount(newGroup.Id)
+	count, err := a.Srv().Store.Group().GetMemberCount(newGroup.Id, nil)
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -184,7 +184,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		}
 	}
 
-	count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
+	count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id, nil)
 	if err != nil {
 		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -218,7 +218,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 }
 
 func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+	count, err := a.Srv().Store.Group().GetMemberCount(groupID, nil)
 	if err != nil {
 		return 0, model.NewAppError("GetGroupMemberCount", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -579,8 +579,8 @@ func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.Grou
 	return groupsAssociatedByChannelId, nil
 }
 
-func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts)
+func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetGroups", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

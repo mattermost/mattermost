@@ -830,7 +830,7 @@ type GroupStore interface {
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
 	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
-	GetMemberCount(groupID string) (int64, error)
+	GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error)
 
 	GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 
@@ -876,7 +876,7 @@ type GroupStore interface {
 	GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error)
 	CountGroupsByTeam(teamID string, opts model.GroupSearchOpts) (int64, error)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error)
+	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
 
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error)
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error)

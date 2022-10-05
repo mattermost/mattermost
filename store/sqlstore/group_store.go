@@ -460,20 +460,25 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
-	query := `
-		SELECT
-			count(*)
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
-			GroupMembers.GroupId = ?
-			AND Users.DeleteAt = 0
-			AND GroupMembers.DeleteAt = 0`
+func (s *SqlGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+
+	query := s.getQueryBuilder().
+		Select("COUNT(DISTINCT u.Id)").
+		From("GroupMembers").
+		Join("Users u ON u.Id = GroupMembers.UserId").
+		Where(sq.Eq{"GroupMembers.GroupId": groupID}).
+		Where(sq.Eq{"u.DeleteAt": 0}).
+		Where(sq.Eq{"GroupMembers.DeleteAt": 0})
+
+	query = applyViewRestrictionsFilter(query, viewRestrictions, false)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "")
+	}
 
 	var count int64
-	err := s.GetReplicaX().Get(&count, query, groupID)
+	err = s.GetReplicaX().Get(&count, queryString, args...)
 	if err != nil {
 		return int64(0), errors.Wrapf(err, "failed to count member Users for Group with id=%s", groupID)
 	}
@@ -1386,15 +1391,30 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 	return groups, nil
 }
 
-func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	groupsVar := groups{}
 
 	groupsQuery := s.getQueryBuilder().Select("g.*")
 
 	if opts.IncludeMemberCount {
+		countQuery := s.getQueryBuilder().
+			Select("GroupMembers.GroupId, COUNT(DISTINCT u.Id) AS MemberCount").
+			From("GroupMembers").
+			LeftJoin("Users u ON u.Id = GroupMembers.UserId").
+			Where(sq.Eq{"GroupMembers.DeleteAt": 0}).
+			Where(sq.Eq{"u.DeleteAt": 0}).
+			GroupBy("GroupId")
+
+		countQuery = applyViewRestrictionsFilter(countQuery, viewRestrictions, false)
+
+		countString, params, err := countQuery.PlaceholderFormat(sq.Question).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "get_groups_tosql")
+		}
+
 		groupsQuery = s.getQueryBuilder().
 			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id")
+			LeftJoin("("+countString+") AS Members ON Members.GroupId = g.Id", params...)
 	}
 
 	if opts.FilterHasMember != "" {

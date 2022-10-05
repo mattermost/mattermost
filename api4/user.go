@@ -876,7 +876,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
-	group, err := c.App.GetGroup(groupID, nil)
+	group, err := c.App.GetGroup(groupID, nil, nil)
 	if err != nil {
 		return err
 	}

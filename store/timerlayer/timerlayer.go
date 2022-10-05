@@ -3765,10 +3765,10 @@ func (s *TimerLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetGroups(page, perPage, opts)
+	result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3845,10 +3845,10 @@ func (s *TimerLayerGroupStore) GetMember(groupID string, userID string) (*model.
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
+func (s *TimerLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetMemberCount(groupID)
+	result, err := s.GroupStore.GetMemberCount(groupID, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

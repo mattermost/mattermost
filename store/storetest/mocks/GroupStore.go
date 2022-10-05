@@ -577,13 +577,13 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 	return r0, r1
 }
 
-// GetGroups provides a mock function with given fields: page, perPage, opts
-func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
-	ret := _m.Called(page, perPage, opts)
+// GetGroups provides a mock function with given fields: page, perPage, opts, viewRestrictions
+func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	ret := _m.Called(page, perPage, opts, viewRestrictions)
 
 	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts) []*model.Group); ok {
-		r0 = rf(page, perPage, opts)
+	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) []*model.Group); ok {
+		r0 = rf(page, perPage, opts, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Group)
@@ -591,8 +591,8 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts) error); ok {
-		r1 = rf(page, perPage, opts)
+	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(page, perPage, opts, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -692,20 +692,20 @@ func (_m *GroupStore) GetMember(groupID string, userID string) (*model.GroupMemb
 	return r0, r1
 }
 
-// GetMemberCount provides a mock function with given fields: groupID
-func (_m *GroupStore) GetMemberCount(groupID string) (int64, error) {
-	ret := _m.Called(groupID)
+// GetMemberCount provides a mock function with given fields: groupID, viewRestrictions
+func (_m *GroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	ret := _m.Called(groupID, viewRestrictions)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(groupID)
+	if rf, ok := ret.Get(0).(func(string, *model.ViewUsersRestrictions) int64); ok {
+		r0 = rf(groupID, viewRestrictions)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(groupID)
+	if rf, ok := ret.Get(1).(func(string, *model.ViewUsersRestrictions) error); ok {
+		r1 = rf(groupID, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}
