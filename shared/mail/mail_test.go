@@ -363,13 +363,13 @@ func TestSendMail(t *testing.T) {
 			"\r\nMessage-ID: <abc123@mattermost.com>\r\n",
 			"",
 		},
-		"doesn't add message-id header": {
+		"always adds message-id header": {
 			mail.Address{},
 			"",
 			"",
 			"",
+			"\r\nMessage-ID: <",
 			"",
-			"\r\nMessage-ID:",
 		},
 		"adds in-reply-to header": {
 			mail.Address{},
@@ -408,7 +408,8 @@ func TestSendMail(t *testing.T) {
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
 			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references}
-			err = SendMail(mocm, mail, time.Now())
+			cfg := getConfig()
+			err = sendMail(mocm, mail, time.Now(), cfg)
 			require.NoError(t, err)
 			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
