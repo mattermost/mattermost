@@ -85,7 +85,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	titleTemplate := "<title>%s</title>"
 	originalHTML := fmt.Sprintf(titleTemplate, html.EscapeString(model.TeamSettingsDefaultSiteName))
-	modifiedHTML := getOpenGraphMetaTags(c, originalHTML, titleTemplate)
+	modifiedHTML := getOpenGraphMetaTags(c)
 	if originalHTML != modifiedHTML {
 		contents = bytes.ReplaceAll(contents, []byte(originalHTML), []byte(modifiedHTML))
 	}
@@ -140,26 +140,27 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
 }
 
-func getOpenGraphMetaTags(c *Context, originalHTML string, titleTemplate string) string {
-	modifiedHTML := originalHTML
-	siteName := c.App.Srv().Config().TeamSettings.SiteName
+func getOpenGraphMetaTags(c *Context) string {
+	siteName := model.TeamSettingsDefaultSiteName
+	customSiteName := c.App.Srv().Config().TeamSettings.SiteName
+	if customSiteName != nil && *customSiteName != "" {
+		siteName = *customSiteName
+	}
+
 	siteDescription := model.TeamSettingsDefaultCustomDescriptionText
 	customSiteDescription := c.App.Srv().Config().TeamSettings.CustomDescriptionText
 	if customSiteDescription != nil && *customSiteDescription != "" {
 		siteDescription = *customSiteDescription
 	}
 
-	if siteDescription == "" {
-		return ""
+	titleTemplate := "<title>%s</title>"
+	titleHTML := fmt.Sprintf(titleTemplate, html.EscapeString(siteName))
+
+	if siteDescription != "" {
+		descriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
+		descriptionHTML := fmt.Sprintf(descriptionTemplate, html.EscapeString(siteDescription))
+		return fmt.Sprintf("%s%s", titleHTML, descriptionHTML)
 	}
 
-	ogDescriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
-	ogDescription := fmt.Sprintf(ogDescriptionTemplate, html.EscapeString(siteDescription))
-	if siteName != nil && *siteName != "" {
-		modifiedHTML = fmt.Sprintf(titleTemplate, html.EscapeString(*siteName))
-	}
-	if ogDescription != "" {
-		modifiedHTML = fmt.Sprintf("%s%s", modifiedHTML, ogDescription)
-	}
-	return modifiedHTML
+	return titleHTML
 }
