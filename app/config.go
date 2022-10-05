@@ -12,7 +12,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -32,46 +31,23 @@ const (
 )
 
 func (s *Server) Config() *model.Config {
-	return s.configStore.Get()
+	return s.platform.Config()
 }
 
 func (a *App) Config() *model.Config {
-	return a.Srv().Config()
+	return a.ch.cfgSvc.Config()
 }
 
-func (s *Server) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return s.configStore.GetEnvironmentOverridesWithFilter(filter)
-}
-
-func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
-	return a.Srv().EnvironmentConfig(filter)
-}
-
-func (s *Server) UpdateConfig(f func(*model.Config)) {
-	if s.configStore.IsReadOnly() {
-		return
-	}
-	old := s.Config()
-	updated := old.Clone()
-	f(updated)
-	if _, _, err := s.configStore.Set(updated); err != nil {
-		mlog.Error("Failed to update config", mlog.Err(err))
-	}
+func (a *App) EnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
+	return a.Srv().platform.GetEnvironmentOverridesWithFilter(filter)
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
-	a.Srv().UpdateConfig(f)
-}
-
-func (s *Server) ReloadConfig() error {
-	if err := s.configStore.Load(); err != nil {
-		return err
-	}
-	return nil
+	a.Srv().platform.UpdateConfig(f)
 }
 
 func (a *App) ReloadConfig() error {
-	return a.Srv().ReloadConfig()
+	return a.Srv().platform.ReloadConfig()
 }
 
 func (a *App) ClientConfig() map[string]string {
@@ -86,24 +62,13 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.ch.limitedClientConfig.Load().(map[string]string)
 }
 
-// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
-// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
-// for the listener that can later be used to remove it.
-func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return s.configStore.AddListener(listener)
-}
-
 func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	return a.Srv().AddConfigListener(listener)
+	return a.Srv().platform.AddConfigListener(listener)
 }
 
 // Removes a listener function by the unique ID returned when AddConfigListener was called
-func (s *Server) RemoveConfigListener(id string) {
-	s.configStore.RemoveListener(id)
-}
-
 func (a *App) RemoveConfigListener(id string) {
-	a.Srv().RemoveConfigListener(id)
+	a.Srv().platform.RemoveConfigListener(id)
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
@@ -303,8 +268,8 @@ func (a *App) PostActionCookieSecret() []byte {
 }
 
 func (ch *Channels) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(ch.srv.Config(), ch.srv.TelemetryId(), ch.srv.License())
+	clientConfig := config.GenerateClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(ch.cfgSvc.Config(), ch.srv.TelemetryId(), ch.srv.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := ch.srv.Store.TermsOfService().GetLatest(true)
@@ -357,6 +322,11 @@ func (a *App) ClientConfigWithComputed() map[string]string {
 	if installationDate, err := a.ch.srv.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
+	if ver, err := a.ch.srv.Store.GetDBSchemaVersion(); err != nil {
+		mlog.Error("Could not get the schema version", mlog.Err(err))
+	} else {
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
+	}
 
 	return respCfg
 }
@@ -377,7 +347,7 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 
 // GetConfigFile proxies access to the given configuration file to the underlying config store.
 func (a *App) GetConfigFile(name string) ([]byte, error) {
-	data, err := a.Srv().configStore.GetFile(name)
+	data, err := a.Srv().platform.GetConfigFile(name)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get config file %s", name)
 	}
@@ -395,43 +365,13 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 // If filter is not nil and returns false for a struct field, that field will be omitted.
-func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]interface{} {
+func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any {
 	return a.EnvironmentConfig(filter)
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-// It returns both the previous and current configs.
-func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	oldCfg, newCfg, err := s.configStore.Set(newCfg)
-	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
-	} else if err != nil {
-		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	if s.startMetrics && *s.Config().MetricsSettings.Enable {
-		if s.Metrics != nil {
-			s.Metrics.Register()
-		}
-		s.SetupMetricsServer()
-	} else {
-		s.StopMetricsServer()
-	}
-
-	if s.Cluster != nil {
-		err := s.Cluster.ConfigChanged(s.configStore.RemoveEnvironmentOverrides(oldCfg),
-			s.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	return oldCfg, newCfg, nil
-}
-
-// SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
@@ -451,8 +391,8 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 }
 
 func (s *Server) MailServiceConfig() *mail.SMTPConfig {
-	emailSettings := s.Config().EmailSettings
-	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	emailSettings := s.platform.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.platform.Config().ServiceSettings.SiteURL)
 	cfg := mail.SMTPConfig{
 		Hostname:                          hostname,
 		ConnectionSecurity:                *emailSettings.ConnectionSecurity,

@@ -34,7 +34,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 
 		err := th.App.NotifySessionsExpired()
 		// no error, but also no requests sent
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, 0, handler.numReqs())
 	})
 
@@ -65,8 +65,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 		}
 
 		err := th.App.NotifySessionsExpired()
-
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, 2, handler.numReqs())
 
 		expected := []string{"22222", "33333"}

@@ -56,7 +56,7 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 func TestSamlResetId(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
-	th.App.Srv().Saml = &mocks.SamlInterface{}
+	th.App.Channels().Saml = &mocks.SamlInterface{}
 
 	user := th.BasicUser
 	_, appErr := th.App.UpdateUserAuth(user.Id, &model.UserAuth{

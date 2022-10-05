@@ -45,6 +45,21 @@ func TestCreateUpload(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
+	t.Run("not allowed in cloud", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().RemoveLicense()
+
+		u, resp, err := th.SystemAdminClient.CreateUpload(&model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  8 * 1024 * 1024,
+			Type:      model.UploadTypeImport,
+		})
+		require.Nil(t, u)
+		CheckErrorID(t, err, "api.file.cloud_upload.app_error")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("valid", func(t *testing.T) {
 		us.ChannelId = th.BasicChannel.Id
 		u, resp, err := th.Client.CreateUpload(us)
@@ -101,7 +116,7 @@ func TestGetUpload(t *testing.T) {
 		Filename:  "upload",
 		FileSize:  8 * 1024 * 1024,
 	}
-	us, err := th.App.CreateUploadSession(us)
+	us, err := th.App.CreateUploadSession(th.Context, us)
 	require.Nil(t, err)
 	require.NotNil(t, us)
 	require.NotEmpty(t, us)
@@ -161,7 +176,7 @@ func TestGetUploadsForUser(t *testing.T) {
 				Filename:  "upload",
 				FileSize:  8 * 1024 * 1024,
 			}
-			us, err := th.App.CreateUploadSession(us)
+			us, err := th.App.CreateUploadSession(th.Context, us)
 			require.Nil(t, err)
 			require.NotNil(t, us)
 			require.NotEmpty(t, us)
@@ -192,10 +207,10 @@ func TestUploadData(t *testing.T) {
 		CreateAt:  model.GetMillis(),
 		UserId:    th.BasicUser2.Id,
 		ChannelId: th.BasicChannel.Id,
-		Filename:  "upload",
+		Filename:  "upload.zip",
 		FileSize:  8 * 1024 * 1024,
 	}
-	us, err := th.App.CreateUploadSession(us)
+	us, err := th.App.CreateUploadSession(th.Context, us)
 	require.Nil(t, err)
 	require.NotNil(t, us)
 	require.NotEmpty(t, us)
@@ -223,6 +238,28 @@ func TestUploadData(t *testing.T) {
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
+	t.Run("not allowed in cloud", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer th.App.Srv().RemoveLicense()
+
+		us2 := &model.UploadSession{
+			Id:        model.NewId(),
+			Type:      model.UploadTypeImport,
+			CreateAt:  model.GetMillis(),
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "upload",
+			FileSize:  8 * 1024 * 1024,
+		}
+		_, appErr := th.App.CreateUploadSession(th.Context, us2)
+		require.Nil(t, appErr)
+
+		info, resp, err := th.SystemAdminClient.UploadData(us2.Id, bytes.NewReader(data))
+		require.Nil(t, info)
+		CheckErrorID(t, err, "api.file.cloud_upload.app_error")
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
 	t.Run("bad content-length", func(t *testing.T) {
 		u, resp, err := th.Client.CreateUpload(us)
 		require.NoError(t, err)
@@ -244,6 +281,9 @@ func TestUploadData(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.Equal(t, u.Filename, info.Name)
+		require.Equal(t, u.FileSize, info.Size)
+		require.Equal(t, "zip", info.Extension)
+		require.Equal(t, "application/zip", info.MimeType)
 
 		file, _, err := th.Client.GetFile(info.Id)
 		require.NoError(t, err)

@@ -35,7 +35,7 @@ func main() {
 		"keycloak":           8080,
 		"prometheus":         9090,
 		"grafana":            3000,
-		"mysql-read-replica": 3306, // FIXME: not recorgnizing the successfully running service on port 3307.
+		"mysql-read-replica": 3306, // FIXME: not recognizing the successfully running service on port 3307.
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

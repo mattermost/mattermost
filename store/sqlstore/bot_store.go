@@ -48,22 +48,10 @@ type SqlBotStore struct {
 
 // newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
 func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
-	us := &SqlBotStore{
+	return &SqlBotStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("OwnerId").SetMaxSize(model.BotCreatorIdMaxRunes)
-	}
-
-	return us
-}
-
-func (us SqlBotStore) createIndexesIfNotExists() {
 }
 
 // Get fetches the given bot in the database.
@@ -108,7 +96,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 	var conditions []string
 	var conditionsSql string
 	var additionalJoin string
-	var args []interface{}
+	var args []any
 
 	if !options.IncludeDeleted {
 		conditions = append(conditions, "b.DeleteAt = 0")
@@ -156,7 +144,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 
 	bots := []*model.Bot{}
 	if err := us.GetReplicaX().Select(&bots, sql, args...); err != nil {
-		return nil, errors.Wrap(err, "select")
+		return nil, errors.Wrap(err, "error selecting all bots")
 	}
 
 	return bots, nil
@@ -227,7 +215,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 func (us SqlBotStore) PermanentDelete(botUserId string) error {
 	query := "DELETE FROM Bots WHERE UserId = ?"
 	if _, err := us.GetMasterX().Exec(query, botUserId); err != nil {
-		return store.NewErrInvalidInput("Bot", "UserId", botUserId)
+		return store.NewErrInvalidInput("Bot", "UserId", botUserId).Wrap(err)
 	}
 	return nil
 }

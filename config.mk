@@ -20,7 +20,7 @@ RUN_SERVER_IN_BACKGROUND ?= true
 
 # Data loaded by default in openldap when container starts.
 #
-# Posible options: test or qa
+# Possible options: test or qa
 LDAP_DATA ?= test
 
 # Mock the CWS.

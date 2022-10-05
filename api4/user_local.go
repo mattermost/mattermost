@@ -100,45 +100,47 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		ViewRestrictions: nil,
 	}
 
-	var err *model.AppError
-	var profiles []*model.User
-	etag := ""
+	var (
+		appErr   *model.AppError
+		profiles []*model.User
+		etag     string
+	)
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
-		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
 	} else if notInChannelId != "" {
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+		profiles, appErr = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if notInTeamId != "" {
 		etag = c.App.GetUsersNotInTeamEtag(inTeamId, "")
 		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+		profiles, appErr = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 	} else if inTeamId != "" {
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
+			profiles, appErr = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), nil)
 		} else {
 			etag = c.App.GetUsersInTeamEtag(inTeamId, "")
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
+			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else {
-		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -146,9 +148,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	js, jsonErr := json.Marshal(profiles)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -170,23 +172,23 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, parseError := strconv.ParseInt(sinceString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("since")
+		since, err := strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("since", err)
 			return
 		}
 		options.Since = since
 	}
 
-	users, err := c.App.GetUsersByIds(userIds, options)
-	if err != nil {
-		c.Err = err
+	users, appErr := c.App.GetUsersByIds(userIds, options)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(users)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(users)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUsersByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -225,7 +227,7 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -245,7 +247,9 @@ func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("user", user)
+	auditRec.AddEventParameter("user_id", c.Params.UserId)
+	auditRec.AddEventPriorState(user)
+	auditRec.AddEventObjectType("user")
 
 	if c.Params.Permanent {
 		err = c.App.PermanentDeleteUser(c.AppContext, user)
@@ -306,7 +310,7 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -337,21 +341,22 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
+	uss, appErr := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(uss)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("localGetUploadsForUser", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(uss)
+	if err != nil {
+		c.Err = model.NewAppError("localGetUploadsForUser", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }

@@ -50,9 +50,10 @@ func getSharedChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(channels)
 	if err != nil {
-		c.SetJSONEncodingError()
+		c.SetJSONEncodingError(err)
 		return
 	}
+
 	w.Write(b)
 }
 
@@ -80,7 +81,7 @@ func getRemoteClusterInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(remoteInfo)
 	if err != nil {
-		c.SetJSONEncodingError()
+		c.SetJSONEncodingError(err)
 		return
 	}
 	w.Write(b)

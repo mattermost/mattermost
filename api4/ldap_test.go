@@ -153,7 +153,7 @@ func TestSyncLdap(t *testing.T) {
 		includeRemovedMembers = args[1].(bool)
 		ready <- true
 	}
-	th.App.Srv().Ldap = ldapMock
+	th.App.Channels().Ldap = ldapMock
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, err := client.SyncLdap(false)

@@ -49,7 +49,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
-	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults)
+	configStore, err := config.NewStoreFromDSN(getConfigDSN(command, config.GetEnvironment()), false, customDefaults, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -65,15 +65,16 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 	debug.SetTraceback("crash")
 
 	options := []app.Option{
+		// The option order is important as app.Config option reads app.StartMetrics option.
+		app.StartMetrics,
 		app.ConfigStore(configStore),
 		app.RunEssentialJobs,
 		app.JoinCluster,
 		app.StartSearchEngine,
-		app.StartMetrics,
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
-		mlog.Critical(err.Error())
+		mlog.Error(err.Error())
 		return err
 	}
 	defer server.Shutdown()
@@ -86,20 +87,24 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		if x := recover(); x != nil {
 			var buf bytes.Buffer
 			pprof.Lookup("goroutine").WriteTo(&buf, 2)
-			mlog.Critical("A panic occurred",
+			mlog.Error("A panic occurred",
 				mlog.Any("error", x),
 				mlog.String("stack", buf.String()))
 			panic(x)
 		}
 	}()
 
-	api := api4.Init(server)
+	api, err := api4.Init(server)
+	if err != nil {
+		mlog.Error(err.Error())
+		return err
+	}
 	wsapi.Init(server)
 	web.New(server)
 
 	err = server.Start()
 	if err != nil {
-		mlog.Critical(err.Error())
+		mlog.Error(err.Error())
 		return err
 	}
 

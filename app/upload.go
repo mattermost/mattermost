@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"io"
+	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -20,7 +21,32 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
-const IncompleteUploadSuffix = ".tmp"
+
+func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
+	ext := strings.ToLower(filepath.Ext(name))
+
+	info := &model.FileInfo{
+		Name:      name,
+		MimeType:  mime.TypeByExtension(ext),
+		Size:      size,
+		Extension: ext,
+	}
+
+	if ext != "" {
+		// The client expects a file extension without the leading period
+		info.Extension = ext[1:]
+	}
+
+	if info.IsImage() {
+		config, _, err := a.ch.imgDecoder.DecodeConfig(file)
+		if err != nil {
+			return nil, err
+		}
+		info.Width = config.Width
+		info.Height = config.Height
+	}
+	return info, nil
+}
 
 func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -48,7 +74,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
-					map[string]interface{}{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
+					map[string]any{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
 				return false
 			}
 			if newInfo != nil {
@@ -89,7 +115,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
-				nil, fileErr.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(fileErr)
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
@@ -100,10 +126,10 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 	return nil
 }
 
-func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
 	}
 
 	us.FileOffset = 0
@@ -119,20 +145,20 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	}
 
 	if us.Type == model.UploadTypeAttachment {
-		channel, err := a.GetChannel(us.ChannelId)
+		channel, err := a.GetChannel(c, us.ChannelId)
 		if err != nil {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
-				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
 		}
 		if channel.DeleteAt != 0 {
 			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+				map[string]any{"channelId": us.ChannelId}, "", http.StatusBadRequest)
 		}
 	}
 
 	us, storeErr := a.Srv().Store.UploadSession().Save(us)
 	if storeErr != nil {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	return us, nil
@@ -145,10 +171,10 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 		switch {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, nfErr.Error(), http.StatusNotFound)
+				nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return us, nil
@@ -158,7 +184,7 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return uss, nil
 }
@@ -166,23 +192,23 @@ func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *
 func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
 	// prevent more than one caller to upload data at the same time for a given upload session.
 	// This is to avoid possible inconsistencies.
-	a.Srv().uploadLockMapMut.Lock()
-	locked := a.Srv().uploadLockMap[us.Id]
+	a.ch.uploadLockMapMut.Lock()
+	locked := a.ch.uploadLockMap[us.Id]
 	if locked {
 		// session lock is already taken, return error.
-		a.Srv().uploadLockMapMut.Unlock()
+		a.ch.uploadLockMapMut.Unlock()
 		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
 			nil, "", http.StatusBadRequest)
 	}
 	// grab the session lock.
-	a.Srv().uploadLockMap[us.Id] = true
-	a.Srv().uploadLockMapMut.Unlock()
+	a.ch.uploadLockMap[us.Id] = true
+	a.ch.uploadLockMapMut.Unlock()
 
 	// reset the session lock on exit.
 	defer func() {
-		a.Srv().uploadLockMapMut.Lock()
-		delete(a.Srv().uploadLockMap, us.Id)
-		a.Srv().uploadLockMapMut.Unlock()
+		a.ch.uploadLockMapMut.Lock()
+		delete(a.ch.uploadLockMap, us.Id)
+		a.ch.uploadLockMapMut.Unlock()
 	}()
 
 	// fetch the session from store to check for inconsistencies.
@@ -195,7 +221,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	uploadPath := us.Path
 	if us.Type == model.UploadTypeImport {
-		uploadPath += IncompleteUploadSuffix
+		uploadPath += model.IncompleteUploadSuffix
 	}
 
 	// make sure it's not possible to upload more data than what is expected.
@@ -218,7 +244,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 				errStr = err.Error()
 			}
 			return nil, model.NewAppError("UploadData", "app.upload.upload_data.first_part_too_small.app_error",
-				map[string]interface{}{"Size": minFirstPartSize}, errStr, http.StatusBadRequest)
+				map[string]any{"Size": minFirstPartSize}, errStr, http.StatusBadRequest)
 		}
 	} else if us.FileOffset < us.FileSize {
 		// resume upload
@@ -227,7 +253,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	if written > 0 {
 		us.FileOffset += written
 		if storeErr := a.Srv().Store.UploadSession().Update(us); storeErr != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 	if err != nil {
@@ -242,13 +268,14 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	// upload is done, create FileInfo
 	file, err := a.FileReader(uploadPath)
 	if err != nil {
-		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	info, err := model.GetInfoForBytes(us.Filename, file, int(us.FileSize))
+	// generate file info
+	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
 	file.Close()
-	if err != nil {
-		return nil, err
+	if genErr != nil {
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, "", http.StatusInternalServerError).Wrap(genErr)
 	}
 
 	info.CreatorId = us.UserId
@@ -264,10 +291,10 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 
 	// image post-processing
-	if info.IsImage() {
+	if info.IsImage() && !info.IsSvg() {
 		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
-				map[string]interface{}{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
+				map[string]any{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
@@ -282,7 +309,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	if us.Type == model.UploadTypeImport {
 		if err := a.MoveFile(uploadPath, us.Path); err != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -293,7 +320,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		case errors.As(storeErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 

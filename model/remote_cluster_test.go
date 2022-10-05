@@ -33,11 +33,11 @@ func TestRemoteClusterIsValid(t *testing.T) {
 	}
 
 	for _, item := range data {
-		err := item.rc.IsValid()
+		appErr := item.rc.IsValid()
 		if item.valid {
-			assert.Nil(t, err, item.name)
+			assert.Nil(t, appErr, item.name)
 		} else {
-			assert.NotNil(t, err, item.name)
+			assert.NotNil(t, appErr, item.name)
 		}
 	}
 }
@@ -67,11 +67,11 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 	}
 
 	for _, item := range data {
-		err := item.msg.IsValid()
+		appErr := item.msg.IsValid()
 		if item.valid {
-			assert.Nil(t, err, item.name)
+			assert.Nil(t, appErr, item.name)
 		} else {
-			assert.NotNil(t, err, item.name)
+			assert.NotNil(t, appErr, item.name)
 		}
 	}
 }

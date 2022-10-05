@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -22,14 +21,6 @@ type MockScheduler struct {
 
 func (scheduler *MockScheduler) Enabled(cfg *model.Config) bool {
 	return true
-}
-
-func (scheduler *MockScheduler) Name() string {
-	return "MockScheduler"
-}
-
-func (scheduler *MockScheduler) JobType() string {
-	return model.JobTypeDataRetention
 }
 
 func (scheduler *MockScheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
@@ -70,16 +61,11 @@ func TestScheduler(t *testing.T) {
 		},
 	}
 
-	jobInterface := new(mocks.DataRetentionJobInterface)
-	jobInterface.On("MakeScheduler").Return(new(MockScheduler))
-	jobServer.DataRetentionJob = jobInterface
-
-	exportInterface := new(mocks.MessageExportJobInterface)
-	exportInterface.On("MakeScheduler").Return(new(MockScheduler))
-	jobServer.MessageExportJob = exportInterface
+	jobServer.initSchedulers()
+	jobServer.RegisterJobType(model.JobTypeDataRetention, nil, new(MockScheduler))
+	jobServer.RegisterJobType(model.JobTypeMessageExport, nil, new(MockScheduler))
 
 	t.Run("Base", func(t *testing.T) {
-		jobServer.InitSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 
@@ -91,7 +77,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ClusterLeaderChanged", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 		jobServer.HandleClusterLeaderChange(false)
@@ -103,7 +89,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ClusterLeaderChangedBeforeStart", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
@@ -114,7 +100,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("DoubleClusterLeaderChangedBeforeStart", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.HandleClusterLeaderChange(false)
 		jobServer.HandleClusterLeaderChange(true)
 		jobServer.StartSchedulers()
@@ -126,7 +112,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ConfigChanged", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 		jobServer.HandleClusterLeaderChange(false)
@@ -139,7 +125,7 @@ func TestScheduler(t *testing.T) {
 	})
 
 	t.Run("ConfigChangedDeadlock", func(t *testing.T) {
-		jobServer.InitSchedulers()
+		jobServer.initSchedulers()
 		jobServer.StartSchedulers()
 		time.Sleep(time.Second)
 

@@ -107,7 +107,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.Error(t, err, "Should fail")
 	})
 
-	t.Run("re-join alfter leaving with limit problem", func(t *testing.T) {
+	t.Run("re-join after leaving with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser1 := th.CreateUser(&user1)
 

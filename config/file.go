@@ -5,7 +5,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -30,10 +30,23 @@ type FileStore struct {
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
-func NewFileStore(path string) (fs *FileStore, err error) {
+func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err error) {
 	resolvedPath, err := resolveConfigFilePath(path)
 	if err != nil {
 		return nil, err
+	}
+
+	f, err := os.Open(resolvedPath)
+	if err != nil && errors.Is(err, os.ErrNotExist) && createFileIfNotExists {
+		file, err2 := os.Create(resolvedPath)
+		if err2 != nil {
+			return nil, fmt.Errorf("could not create config file: %w", err2)
+		}
+		defer file.Close()
+	} else if err != nil {
+		return nil, err
+	} else {
+		defer f.Close()
 	}
 
 	return &FileStore{
@@ -63,8 +76,6 @@ func resolveConfigFilePath(path string) (string, error) {
 		return configFile, nil
 	}
 
-	// Otherwise, search for the config/ folder using the same heuristics as above, and build
-	// an absolute path anchored there and joining the given input path (or plain filename).
 	if configFolder, found := fileutils.FindDir("config"); found {
 		return filepath.Join(configFolder, path), nil
 	}
@@ -100,7 +111,7 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = ioutil.WriteFile(fs.path, b, 0600)
+	err = os.WriteFile(fs.path, b, 0600)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
@@ -119,7 +130,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 	}
 	defer f.Close()
 
-	fileBytes, err := ioutil.ReadAll(f)
+	fileBytes, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +142,7 @@ func (fs *FileStore) Load() ([]byte, error) {
 func (fs *FileStore) GetFile(name string) ([]byte, error) {
 	resolvedPath := fs.resolveFilePath(name)
 
-	data, err := ioutil.ReadFile(resolvedPath)
+	data, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
 	}
@@ -149,7 +160,7 @@ func (fs *FileStore) GetFilePath(name string) string {
 func (fs *FileStore) SetFile(name string, data []byte) error {
 	resolvedPath := fs.resolveFilePath(name)
 
-	err := ioutil.WriteFile(resolvedPath, data, 0600)
+	err := os.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}

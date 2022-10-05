@@ -8,7 +8,7 @@ package timerlayer
 
 import (
 	"context"
-	timemodule "time"
+    "time"
 
     "github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -38,13 +38,13 @@ type {{.Name}} struct {
 {{range $substoreName, $substore := .SubStores}}
 {{range $index, $element := $substore.Methods}}
 func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
-	start := timemodule.Now()
+	start := time.Now()
 	{{if $element.Results | len | eq 0}}
 	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{else}}
 	{{genResultsVars $element.Results false }} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{end}}
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
 		if {{$element.Results | errorToBoolean}} {

@@ -18,19 +18,7 @@ type SqlTermsOfServiceStore struct {
 }
 
 func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
-	s := SqlTermsOfServiceStore{sqlStore, metrics}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.TermsOfService{}, "TermsOfService").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Text").SetMaxSize(model.PostMessageMaxBytesV2)
-	}
-
-	return s
-}
-
-func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
+	return SqlTermsOfServiceStore{sqlStore, metrics}
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {

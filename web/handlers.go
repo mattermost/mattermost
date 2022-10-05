@@ -87,16 +87,17 @@ type Handler struct {
 }
 
 func generateDevCSP(c Context) string {
+	var devCSP []string
+
 	// Add unsafe-eval to the content security policy for faster source maps in development mode
-	devCSPMap := make(map[string]bool)
 	if model.BuildNumber == "dev" {
-		devCSPMap["unsafe-eval"] = true
+		devCSP = append(devCSP, "'unsafe-eval'")
 	}
 
 	// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
 	// see https://github.com/reduxjs/redux-devtools/issues/380
 	if model.BuildNumber == "dev" {
-		devCSPMap["unsafe-inline"] = true
+		devCSP = append(devCSP, "'unsafe-inline'")
 	}
 
 	// Add supported flags for debugging during development, even if not on a dev build.
@@ -118,21 +119,29 @@ func generateDevCSP(c Context) string {
 			// Honour only supported keys
 			switch devFlagKey {
 			case "unsafe-eval", "unsafe-inline":
-				devCSPMap[devFlagKey] = true
+				if model.BuildNumber == "dev" {
+					// These flags are added automatically for dev builds
+					continue
+				}
+
+				devCSP = append(devCSP, "'"+devFlagKey+"'")
 			default:
 				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
 			}
 		}
 	}
-	var devCSP string
-	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
-	for _, devCSPFlag := range supportedCSPFlags {
-		if devCSPMap[devCSPFlag] {
-			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
-		}
+
+	// Add flags for Webpack dev servers used by other products during development
+	if model.BuildNumber == "dev" {
+		// Focalboard runs on http://localhost:9006
+		devCSP = append(devCSP, "http://localhost:9006")
 	}
 
-	return devCSP
+	if len(devCSP) == 0 {
+		return ""
+	}
+
+	return " " + strings.Join(devCSP, " ")
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -168,6 +177,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.AppContext.SetUserAgent(r.UserAgent())
 	c.AppContext.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.AppContext.SetPath(r.URL.Path)
+	c.AppContext.SetContext(context.Background())
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
 
@@ -207,17 +217,20 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
+	}
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())
-	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
+	w.Header().Set(model.HeaderVersionId, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Channels().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
 	cloudCSP := ""
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
@@ -269,7 +282,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -278,7 +291,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.AppContext.SetSession(session)
 		}
-	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
 		if remoteId := c.GetRemoteID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //
@@ -302,6 +315,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
+	c.AppContext.SetLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -379,7 +393,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.APIURLSuffix+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveAPIEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
+			var endpoint string
+			if strings.HasPrefix(r.URL.Path, model.APIURLSuffixV5) {
+				// It's a graphQL query, so use the operation name.
+				endpoint = c.GraphQLOperationName
+			} else {
+				endpoint = h.HandlerName
+			}
+			c.App.Metrics().ObserveAPIEndpointDuration(endpoint, r.Method, statusCode, elapsed)
 		}
 	}
 }

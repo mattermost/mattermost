@@ -22,27 +22,10 @@ type SqlEmojiStore struct {
 }
 
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
-	s := &SqlEmojiStore{
+	return &SqlEmojiStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Emoji{}, "Emoji").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("CreatorId").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64)
-
-		table.SetUniqueTogether("Name", "DeleteAt")
-	}
-
-	return s
-}
-
-func (es SqlEmojiStore) createIndexesIfNotExists() {
-	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
-	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
-	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")
 }
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
@@ -116,8 +99,8 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 			Id = ?
 			AND DeleteAt = 0`, time, time, emoji.Id); err != nil {
 		return errors.Wrap(err, "could not delete emoji")
-	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return store.NewErrNotFound("Emoji", emoji.Id)
+	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
+		return store.NewErrNotFound("Emoji", emoji.Id).Wrap(err)
 	}
 
 	return nil

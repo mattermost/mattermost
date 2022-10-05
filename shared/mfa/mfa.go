@@ -106,7 +106,7 @@ func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 	return nil
 }
 
-// Deactivate set the mfa as deactive, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
+// Deactivate set the mfa as deactivated, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
 func (m *MFA) Deactivate(userId string) error {
 	if err := m.store.UpdateMfaActive(userId, false); err != nil {
 		return errors.Wrap(err, "unable to store mfa active")

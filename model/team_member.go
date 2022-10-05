@@ -13,9 +13,10 @@ const (
 	USERNAME = "Username"
 )
 
-//msgp:tuple TeamMember
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple TeamMember
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -25,6 +26,21 @@ type TeamMember struct {
 	SchemeUser    bool   `json:"scheme_user"`
 	SchemeAdmin   bool   `json:"scheme_admin"`
 	ExplicitRoles string `json:"explicit_roles"`
+	CreateAt      int64  `json:"-"`
+}
+
+func (o *TeamMember) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"team_id":        o.TeamId,
+		"user_id":        o.UserId,
+		"roles":          o.Roles,
+		"delete_at":      o.DeleteAt,
+		"scheme_guest":   o.SchemeGuest,
+		"scheme_user":    o.SchemeUser,
+		"scheme_admin":   o.SchemeAdmin,
+		"explicit_roles": o.ExplicitRoles,
+		"create_at":      o.CreateAt,
+	}
 }
 
 //msgp:ignore TeamUnread
@@ -69,6 +85,7 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
+//msgp:ignore TeamInviteReminderData
 type TeamInviteReminderData struct {
 	Interval string
 }
@@ -112,7 +129,7 @@ func (o *TeamMember) IsValid() *AppError {
 
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.roles_limit.app_error",
-			map[string]interface{}{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -123,4 +140,10 @@ func (o *TeamMember) PreUpdate() {
 
 func (o *TeamMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+// DeleteAt_ returns the deleteAt value in float64. This is necessary to work
+// with GraphQL since it doesn't support 64 bit integers.
+func (o *TeamMember) DeleteAt_() float64 {
+	return float64(o.DeleteAt)
 }

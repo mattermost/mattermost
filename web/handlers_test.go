@@ -79,6 +79,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
@@ -131,7 +132,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
-	th.App.SetSessionExpireInDays(session, 1)
+	th.App.SetSessionExpireInHours(session, 24)
 	session, err := th.App.CreateSession(session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -321,6 +322,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
@@ -386,7 +388,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline' http://localhost:9006"}, response.Header()["Content-Security-Policy"])
 	})
 
 }
@@ -409,9 +411,9 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
-
+		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline' http://localhost:9006", devCSP)
 	})
+
 	t.Run("allowed dev flags", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
@@ -434,7 +436,7 @@ func TestGenerateDevCSP(t *testing.T) {
 
 		devCSP := generateDevCSP(*c)
 
-		assert.Equal(t, " 'unsafe-eval' 'unsafe-inline'", devCSP)
+		assert.Equal(t, " 'unsafe-inline' 'unsafe-eval'", devCSP)
 	})
 
 	t.Run("partial dev flags", func(t *testing.T) {
@@ -641,6 +643,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true

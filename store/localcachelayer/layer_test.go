@@ -61,7 +61,7 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storete
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, st.SqlStore)
+			f(t, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
 		})
 	}
 }

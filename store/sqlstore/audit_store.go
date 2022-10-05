@@ -4,7 +4,7 @@
 package sqlstore
 
 import (
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -16,23 +16,7 @@ type SqlAuditStore struct {
 }
 
 func newSqlAuditStore(sqlStore *SqlStore) store.AuditStore {
-	s := &SqlAuditStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Audit{}, "Audits").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Action").SetMaxSize(512)
-		table.ColMap("ExtraInfo").SetMaxSize(1024)
-		table.ColMap("IpAddress").SetMaxSize(64)
-		table.ColMap("SessionId").SetMaxSize(26)
-	}
-
-	return s
-}
-
-func (s SqlAuditStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
+	return &SqlAuditStore{sqlStore}
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) error {

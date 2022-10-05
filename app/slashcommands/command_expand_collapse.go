@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type ExpandProvider struct {
@@ -56,11 +55,11 @@ func (*CollapseProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*ExpandProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ExpandProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, false)
 }
 
-func (*CollapseProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CollapseProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, true)
 }
 
@@ -73,14 +72,14 @@ func setCollapsePreference(a *app.App, args *model.CommandArgs, isCollapse bool)
 	}
 
 	if err := a.Srv().Store.Preference().Save(model.Preferences{pref}); err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error") + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil)
+	socketMessage := model.NewWebSocketEvent(model.WebsocketEventPreferenceChanged, "", "", args.UserId, nil, "")
 
-	prefJSON, jsonErr := json.Marshal(pref)
-	if jsonErr != nil {
-		mlog.Warn("Failed to encode to JSON", mlog.Err(jsonErr))
+	prefJSON, err := json.Marshal(pref)
+	if err != nil {
+		return &model.CommandResponse{Text: args.T("api.marshal_error") + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	socketMessage.Add("preference", string(prefJSON))
 	a.Publish(socketMessage)

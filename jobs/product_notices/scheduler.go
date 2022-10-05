@@ -6,29 +6,12 @@ package product_notices
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type Scheduler struct {
-	App *app.App
-}
-
-func (m *ProductNoticesJobInterfaceImpl) MakeScheduler() model.Scheduler {
-	return &Scheduler{m.App}
-}
-
-func (scheduler *Scheduler) Name() string {
-	return JobName + "Scheduler"
-}
-
-func (scheduler *Scheduler) JobType() string {
-	return model.JobTypeProductNotices
-}
-
-func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	// Only enabled when ExtendSessionLengthWithActivity is enabled.
-	return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
+	*jobs.PeriodicScheduler
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
@@ -36,12 +19,9 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 	return &nextTime
 }
 
-func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
-	data := map[string]string{}
-
-	job, err := scheduler.App.Srv().Jobs.CreateJob(model.JobTypeProductNotices, data)
-	if err != nil {
-		return nil, err
+func MakeScheduler(jobServer *jobs.JobServer) model.Scheduler {
+	isEnabled := func(cfg *model.Config) bool {
+		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
-	return job, nil
+	return &Scheduler{PeriodicScheduler: jobs.NewPeriodicScheduler(jobServer, model.JobTypeProductNotices, 0, isEnabled)}
 }

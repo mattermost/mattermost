@@ -565,7 +565,7 @@ func TestDisableUserBots(t *testing.T) {
 	err = th.App.disableUserBots(th.Context, ownerId1)
 	require.Nil(t, err)
 
-	// Check all bots and corrensponding users are disabled for creator 1
+	// Check all bots and corresponding users are disabled for creator 1
 	for _, bot := range bots {
 		retbot, err2 := th.App.GetBot(bot.UserId, true)
 		require.Nil(t, err2)
@@ -606,7 +606,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err := th.App.CreateUser(th.Context, &sysadmin1)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	th.App.UpdateUserRoles(th.Context, sysadmin1.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
@@ -616,7 +616,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 	_, err = th.App.CreateUser(th.Context, &sysadmin2)
 	require.Nil(t, err, "failed to create user")
-	th.App.UpdateUserRoles(sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+	th.App.UpdateUserRoles(th.Context, sysadmin2.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 
 	// create user to be disabled
 	user1, err := th.App.CreateUser(th.Context, &model.User{

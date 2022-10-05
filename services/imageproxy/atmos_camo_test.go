@@ -4,7 +4,7 @@
 package imageproxy
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -38,8 +38,8 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 }
 
 func TestAtmosCamoBackend_GetImage(t *testing.T) {
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontalWhite.png"
-	proxiedURL := "http://images.example.com/62183a1cf0a4927c3b56d249366c2745e34ffe63/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c57686974652e706e67"
+	imageURL := "https://www.mattermost.com/wp-content/uploads/2022/02/logoHorizontalWhite.png"
+	proxiedURL := "http://images.example.com/b569ce17f1be4550cffa8d8dd3a9e80e6d209584/68747470733a2f2f7777772e6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c57686974652e706e67"
 
 	proxy := makeTestAtmosCamoProxy()
 
@@ -76,6 +76,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 		proxy:     proxy,
 		siteURL:   parsedURL,
 		remoteURL: remoteURL,
+		client:    proxy.HTTPService.MakeClient(false),
 	}
 
 	body, contentType, err := backend.GetImageDirect("https://example.com/image.png")
@@ -84,13 +85,13 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 	assert.Equal(t, "image/png", contentType)
 
 	require.NotNil(t, body)
-	respBody, _ := ioutil.ReadAll(body)
+	respBody, _ := io.ReadAll(body)
 	assert.Equal(t, []byte("1111111111"), respBody)
 }
 
 func TestGetAtmosCamoImageURL(t *testing.T) {
-	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
-	proxiedURL := "http://images.example.com/5b6f6661516bc837b89b54566eb619d14a5c3eca/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67"
+	imageURL := "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png"
+	proxiedURL := "http://images.example.com/03b122734ae088d10cb46ea05512ec7dc852299e/68747470733a2f2f6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c2e706e67"
 
 	defaultSiteURL := "https://mattermost.example.com"
 	proxyURL := "http://images.example.com"
@@ -151,21 +152,21 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 		},
 		{
 			Name:     "should not bypass protocol relative URLs",
-			Input:    "//www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png",
+			Input:    "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
 			SiteURL:  "http://mattermost.example.com",
 			Expected: proxiedURL,
 		},
 		{
 			Name:     "should not bypass if the host prefix is same",
-			Input:    "http://www.mattermost.org.example.com/wp-content/uploads/2016/03/logoHorizontal.png",
+			Input:    "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
 			SiteURL:  defaultSiteURL,
-			Expected: "http://images.example.com/99dcf38b8e6110d6e3ebcfb7a2db9ce875bc5c03/687474703a2f2f7777772e6d61747465726d6f73742e6f72672e6578616d706c652e636f6d2f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67",
+			Expected: "http://images.example.com/03b122734ae088d10cb46ea05512ec7dc852299e/68747470733a2f2f6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c2e706e67",
 		},
 		{
 			Name:     "should not bypass for user auth URLs",
-			Input:    "http://www.mattermost.org@example.com/wp-content/uploads/2016/03/logoHorizontal.png",
+			Input:    "https://mattermost.com/wp-content/uploads/2022/02/logoHorizontal.png",
 			SiteURL:  defaultSiteURL,
-			Expected: "http://images.example.com/19deedea7c0b75369f8d2162ee4e7ab36e26ca50/687474703a2f2f7777772e6d61747465726d6f73742e6f7267406578616d706c652e636f6d2f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67",
+			Expected: "http://images.example.com/03b122734ae088d10cb46ea05512ec7dc852299e/68747470733a2f2f6d61747465726d6f73742e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032322f30322f6c6f676f486f72697a6f6e74616c2e706e67",
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {

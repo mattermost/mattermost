@@ -15,14 +15,15 @@ import (
 type documentExtractor struct{}
 
 var doconvConverterByExtensions = map[string]func(io.Reader) (string, map[string]string, error){
-	"doc":   docconv.ConvertDoc,
-	"docx":  docconv.ConvertDocx,
-	"pptx":  docconv.ConvertPptx,
-	"odt":   docconv.ConvertODT,
-	"html":  func(r io.Reader) (string, map[string]string, error) { return docconv.ConvertHTML(r, true) },
-	"pages": docconv.ConvertPages,
-	"rtf":   docconv.ConvertRTF,
-	"pdf":   docconv.ConvertPDF,
+	"doc":  docconv.ConvertDoc,
+	"docx": docconv.ConvertDocx,
+	"pptx": docconv.ConvertPptx,
+	"odt":  docconv.ConvertODT,
+	"html": func(r io.Reader) (string, map[string]string, error) { return docconv.ConvertHTML(r, true) },
+	// Temporarily disabled to avoid crashes on malicious .pages files
+	// "pages": docconv.ConvertPages,
+	"rtf": docconv.ConvertRTF,
+	"pdf": docconv.ConvertPDF,
 }
 
 func (de *documentExtractor) Match(filename string) bool {

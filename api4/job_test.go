@@ -16,36 +16,33 @@ import (
 
 func TestCreateJob(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	job := &model.Job{
-		Type: model.JobTypeMessageExport,
+		Type: model.JobTypeActiveUsers,
 		Data: map[string]string{
 			"thing": "stuff",
 		},
 	}
 
-	_, resp, err := th.SystemManagerClient.CreateJob(job)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("valid job as user without permissions", func(t *testing.T) {
+		_, resp, err := th.SystemManagerClient.CreateJob(job)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	received, _, err := th.SystemAdminClient.CreateJob(job)
-	require.NoError(t, err)
+	t.Run("valid job as user with permissions", func(t *testing.T) {
+		received, _, err := th.SystemAdminClient.CreateJob(job)
+		require.NoError(t, err)
+		defer th.App.Srv().Store.Job().Delete(received.Id)
+	})
 
-	defer th.App.Srv().Store.Job().Delete(received.Id)
-
-	job = &model.Job{
-		Type: model.NewId(),
-	}
-
-	_, resp, err = th.SystemAdminClient.CreateJob(job)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
-
-	job.Type = model.JobTypeElasticsearchPostIndexing
-	_, resp, err = th.Client.CreateJob(job)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	t.Run("invalid job type as user without permissions", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.CreateJob(&model.Job{Type: model.NewId()})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetJob(t *testing.T) {
@@ -131,6 +128,7 @@ func TestGetJobs(t *testing.T) {
 
 func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
@@ -195,6 +193,7 @@ func TestGetJobsByType(t *testing.T) {
 
 func TestDownloadJob(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	jobName := model.NewId()
 	job := &model.Job{

@@ -54,7 +54,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "message",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				})
@@ -129,7 +129,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "message",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				})
@@ -244,7 +244,7 @@ func TestPluginDeadlock(t *testing.T) {
 					UserId: "{{.User.Id}}",
 					ChannelId: "{{.Channel.Id}}",
 					Message:   "messageUpdated",
-					Props: map[string]interface{}{
+					Props: map[string]any{
 						"from_plugin": true,
 					},
 				}

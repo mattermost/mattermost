@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -19,46 +19,23 @@ type SqlSchemeStore struct {
 }
 
 func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
-	s := &SqlSchemeStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(model.SchemeNameMaxLength).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(model.SchemeDisplayNameMaxLength)
-		table.ColMap("Description").SetMaxSize(model.SchemeDescriptionMaxLength)
-		table.ColMap("Scope").SetMaxSize(32)
-		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
-		table.ColMap("DefaultTeamGuestRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
-		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
-	}
-
-	return s
+	return &SqlSchemeStore{sqlStore}
 }
 
-func (s SqlSchemeStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
-}
-
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error) {
 	if scheme.Id == "" {
-		transaction, err := s.GetMasterX().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
+		transaction, terr := s.GetMasterX().Beginx()
+		if terr != nil {
+			return nil, errors.Wrap(terr, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, err := s.createScheme(scheme, transaction)
-		if err != nil {
-			return nil, err
+		newScheme, terr := s.createScheme(scheme, transaction)
+		if terr != nil {
+			return nil, terr
 		}
-		if err := transaction.Commit(); err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
+		if terr = transaction.Commit(); terr != nil {
+			return nil, errors.Wrap(terr, "commit_transaction")
 		}
 		return newScheme, nil
 	}
@@ -72,7 +49,8 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	res, err := s.GetMasterX().NamedExec(`UPDATE Schemes
 		SET UpdateAt=:UpdateAt, CreateAt=:CreateAt, DeleteAt=:DeleteAt, Name=:Name, DisplayName=:DisplayName, Description=:Description, Scope=:Scope,
 		 DefaultTeamAdminRole=:DefaultTeamAdminRole, DefaultTeamUserRole=:DefaultTeamUserRole, DefaultTeamGuestRole=:DefaultTeamGuestRole,
-		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole 
+		 DefaultChannelAdminRole=:DefaultChannelAdminRole, DefaultChannelUserRole=:DefaultChannelUserRole, DefaultChannelGuestRole=:DefaultChannelGuestRole,
+		 DefaultPlaybookMemberRole=:DefaultPlaybookMemberRole, DefaultPlaybookAdminRole=:DefaultPlaybookAdminRole, DefaultRunMemberRole=:DefaultRunMemberRole, DefaultRunAdminRole=:DefaultRunAdminRole 
 		 WHERE Id=:Id`, scheme)
 
 	if err != nil {
@@ -92,7 +70,18 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 
 func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
 	// Fetch the default system scheme roles to populate default permissions.
-	defaultRoleNames := []string{model.TeamAdminRoleId, model.TeamUserRoleId, model.TeamGuestRoleId, model.ChannelAdminRoleId, model.ChannelUserRoleId, model.ChannelGuestRoleId}
+	defaultRoleNames := []string{
+		model.TeamAdminRoleId,
+		model.TeamUserRoleId,
+		model.TeamGuestRoleId,
+		model.ChannelAdminRoleId,
+		model.ChannelUserRoleId,
+		model.ChannelGuestRoleId,
+		model.PlaybookAdminRoleId,
+		model.PlaybookMemberRoleId,
+		model.RunAdminRoleId,
+		model.RunMemberRoleId,
+	}
 	defaultRoles := make(map[string]*model.Role)
 	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
 	if err != nil {
@@ -100,23 +89,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 	}
 
 	for _, role := range roles {
-		switch role.Name {
-		case model.TeamAdminRoleId:
-			defaultRoles[model.TeamAdminRoleId] = role
-		case model.TeamUserRoleId:
-			defaultRoles[model.TeamUserRoleId] = role
-		case model.TeamGuestRoleId:
-			defaultRoles[model.TeamGuestRoleId] = role
-		case model.ChannelAdminRoleId:
-			defaultRoles[model.ChannelAdminRoleId] = role
-		case model.ChannelUserRoleId:
-			defaultRoles[model.ChannelUserRoleId] = role
-		case model.ChannelGuestRoleId:
-			defaultRoles[model.ChannelGuestRoleId] = role
-		}
+		defaultRoles[role.Name] = role
 	}
 
-	if len(defaultRoles) != 6 {
+	if len(defaultRoles) != len(defaultRoleNames) {
 		return nil, errors.New("createScheme: unable to retrieve default scheme roles")
 	}
 
@@ -163,6 +139,58 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			return nil, err
 		}
 		scheme.DefaultTeamGuestRole = savedRole.Name
+
+		// playbook admin role
+		playbookAdminRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Playbook Admin Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.PlaybookAdminRoleId].Permissions,
+			SchemeManaged: true,
+		}
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookAdminRole, transaction)
+		if err != nil {
+			return nil, err
+		}
+		scheme.DefaultPlaybookAdminRole = savedRole.Name
+
+		// playbook member role
+		playbookMemberRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Playbook Member Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.PlaybookMemberRoleId].Permissions,
+			SchemeManaged: true,
+		}
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(playbookMemberRole, transaction)
+		if err != nil {
+			return nil, err
+		}
+		scheme.DefaultPlaybookMemberRole = savedRole.Name
+
+		// run admin role
+		runAdminRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Run Admin Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.RunAdminRoleId].Permissions,
+			SchemeManaged: true,
+		}
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runAdminRole, transaction)
+		if err != nil {
+			return nil, err
+		}
+		scheme.DefaultRunAdminRole = savedRole.Name
+
+		// run member role
+		runMemberRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Run Member Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.RunMemberRoleId].Permissions,
+			SchemeManaged: true,
+		}
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(runMemberRole, transaction)
+		if err != nil {
+			return nil, err
+		}
+		scheme.DefaultRunMemberRole = savedRole.Name
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
@@ -234,9 +262,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 	}
 
 	if _, err := transaction.NamedExec(`INSERT INTO Schemes
-		(Id, Name, DisplayName, Description, Scope, DefaultTeamAdminRole, DefaultTeamUserRole, DefaultTeamGuestRole, DefaultChannelAdminRole, DefaultChannelUserRole, DefaultChannelGuestRole, CreateAt, UpdateAt, DeleteAt)
+	(Id, Name, DisplayName, Description, Scope, DefaultTeamAdminRole, DefaultTeamUserRole, DefaultTeamGuestRole, DefaultChannelAdminRole, DefaultChannelUserRole, DefaultChannelGuestRole, CreateAt, UpdateAt, DeleteAt, DefaultPlaybookAdminRole, DefaultPlaybookMemberRole, DefaultRunAdminRole, DefaultRunMemberRole)
 		VALUES
-		(:Id, :Name, :DisplayName, :Description, :Scope, :DefaultTeamAdminRole, :DefaultTeamUserRole, :DefaultTeamGuestRole, :DefaultChannelAdminRole, :DefaultChannelUserRole, :DefaultChannelGuestRole, :CreateAt, :UpdateAt, :DeleteAt)`, scheme); err != nil {
+		(:Id, :Name, :DisplayName, :Description, :Scope, :DefaultTeamAdminRole, :DefaultTeamUserRole, :DefaultTeamGuestRole, :DefaultChannelAdminRole, :DefaultChannelUserRole, :DefaultChannelGuestRole, :CreateAt, :UpdateAt, :DeleteAt, :DefaultPlaybookAdminRole, :DefaultPlaybookMemberRole, :DefaultRunAdminRole, :DefaultRunMemberRole)`, scheme); err != nil {
 		return nil, errors.Wrap(err, "failed to save Scheme")
 	}
 
@@ -308,6 +336,13 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
 	if scheme.Scope == model.SchemeScopeTeam {
 		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
+	}
+	if scheme.Scope == model.SchemeScopePlaybook {
+		roleNames = append(roleNames, scheme.DefaultPlaybookAdminRole, scheme.DefaultPlaybookMemberRole)
+	}
+
+	if scheme.Scope == model.SchemeScopeRun {
+		roleNames = append(roleNames, scheme.DefaultRunAdminRole, scheme.DefaultRunMemberRole)
 	}
 
 	time := model.GetMillis()
@@ -392,7 +427,7 @@ func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	err := s.GetReplicaX().Get(&count, `SELECT count(*) FROM Schemes WHERE Scope = ? AND DeleteAt = 0`, scope)
 
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes by scope")
+		return 0, errors.Wrap(err, "failed to count Schemes by scope")
 	}
 	return count, nil
 }
@@ -413,7 +448,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	var count int64
 	err := s.GetReplicaX().Get(&count, query)
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Schemes without permission")
+		return 0, errors.Wrap(err, "failed to count Schemes without permission")
 	}
 	return count, nil
 }

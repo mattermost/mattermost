@@ -4,7 +4,10 @@
 package api4
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -70,6 +73,94 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotContains(t, received.Channels, channel.Id)
 		assert.Equal(t, []string{th.BasicChannel.Id}, received.Channels)
+	})
+
+	t.Run("should return expected sort order value", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      user.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "custom123",
+			},
+		})
+		require.NoError(t, err)
+
+		// Initial new category sort order is 10 (first)
+		require.Equal(t, int64(10), customCategory.SortOrder)
+	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
+			r, err := client.DoAPIPostBytes(route, payload)
+			require.Error(t, err)
+			closeBody(r)
+		})
+	})
+
+	t.Run("should publish expected WS payload", func(t *testing.T) {
+		t.Skip("MM-42652")
+		userWSClient, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer userWSClient.Close()
+		userWSClient.Listen()
+
+		category := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "test",
+			},
+			Channels: []string{th.BasicChannel.Id, "notachannel", th.BasicChannel2.Id},
+		}
+
+		received, _, err := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, category)
+		require.NoError(t, err)
+
+		testCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:      received.Id,
+					UserId:  th.BasicUser.Id,
+					TeamId:  th.BasicTeam.Id,
+					Sorting: model.SidebarCategorySortRecent,
+					Muted:   true,
+				},
+				Channels: []string{th.BasicChannel.Id},
+			},
+		}
+
+		testCategories, _, err = th.Client.UpdateSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, testCategories)
+		require.NoError(t, err)
+
+		b, err := json.Marshal(testCategories)
+		require.NoError(t, err)
+		expected := string(b)
+
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WebsocketEventSidebarCategoryUpdated {
+						caught = true
+						data := ev.GetData()
+
+						updatedCategoriesData, ok := data["updatedCategories"]
+						require.True(t, ok)
+						require.EqualValues(t, expected, updatedCategoriesData)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Truef(t, caught, "User should have received %s event", model.WebsocketEventSidebarCategoryUpdated)
 	})
 }
 
@@ -337,6 +428,25 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		member, _, err := client.GetChannelMember(dmChannel.Id, user.Id, "")
 		require.NoError(t, err)
 		assert.False(t, member.IsChannelMuted())
+	})
+
+	t.Run("should not crash with null input", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			user, client := setupUserForSubtest(t, th)
+
+			categories, _, err := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+			require.NoError(t, err)
+			require.Len(t, categories.Categories, 3)
+			require.Len(t, categories.Order, 3)
+
+			dmsCategory := categories.Categories[2]
+
+			payload := []byte(`null`)
+			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
+			r, err := client.DoAPIPutBytes(route, payload)
+			require.Error(t, err)
+			closeBody(r)
+		})
 	})
 }
 

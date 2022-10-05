@@ -1,0 +1,1 @@
+ALTER TABLE OAuthApps ADD COLUMN IF NOT EXISTS MattermostAppID varchar(32);

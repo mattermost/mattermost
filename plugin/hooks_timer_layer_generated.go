@@ -186,3 +186,29 @@ func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPosted(webConnID, userID st
 	hooks.hooksImpl.WebSocketMessageHasBeenPosted(webConnID, userID, req)
 	hooks.recordTime(startTime, "WebSocketMessageHasBeenPosted", true)
 }
+
+func (hooks *hooksTimerLayer) RunDataRetention(nowTime, batchSize int64) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.RunDataRetention(nowTime, batchSize)
+	hooks.recordTime(startTime, "RunDataRetention", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnInstall(c *Context, event model.OnInstallEvent) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnInstall(c, event)
+	hooks.recordTime(startTime, "OnInstall", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSendDailyTelemetry() {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnSendDailyTelemetry()
+	hooks.recordTime(startTime, "OnSendDailyTelemetry", true)
+}
+
+func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnCloudLimitsUpdated(limits)
+	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
+}

@@ -5,7 +5,6 @@ package teams
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -43,7 +42,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "teamservicetest")
+	tempWorkspace, err := os.MkdirTemp("", "teamservicetest")
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +80,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			},
 			wh: &mockWebHub{},
 		},
-		Context:     &request.Context{},
+		Context:     request.EmptyContext(nil),
 		configStore: configStore,
 		dbStore:     s,
 		LogBuffer:   buffer,

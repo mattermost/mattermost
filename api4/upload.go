@@ -31,7 +31,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var us model.UploadSession
 	if jsonErr := json.NewDecoder(r.Body).Decode(&us); jsonErr != nil {
-		c.SetInvalidParam("upload")
+		c.SetInvalidParamWithErr("upload", jsonErr)
 		return
 	}
 
@@ -41,15 +41,20 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createUpload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("upload", us)
+	auditRec.AddEventParameter("upload", us)
 
 	if us.Type == model.UploadTypeImport {
 		if !c.IsSystemAdmin() {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 	} else {
-		if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
@@ -60,7 +65,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
-	rus, err := c.App.CreateUploadSession(&us)
+	rus, err := c.App.CreateUploadSession(c.AppContext, &us)
 	if err != nil {
 		c.Err = err
 		return
@@ -69,7 +74,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(rus); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -91,7 +96,7 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(us); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -109,7 +114,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("uploadData", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("upload_id", c.Params.UploadId)
+	auditRec.AddEventParameter("upload_id", c.Params.UploadId)
 
 	us, err := c.App.GetUploadSession(c.Params.UploadId)
 	if err != nil {
@@ -122,8 +127,12 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+			c.Err = model.NewAppError("UploadData", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 	} else {
-		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
+		if us.UserId != c.AppContext.Session().UserId || !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), us.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
@@ -143,7 +152,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 

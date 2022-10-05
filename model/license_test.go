@@ -149,26 +149,26 @@ func TestLicenseRecordIsValid(t *testing.T) {
 		Bytes:    "asdfghjkl;",
 	}
 
-	err := lr.IsValid()
-	assert.NotNil(t, err)
+	appErr := lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = "ASDFGHJKL;"
-	err = lr.IsValid()
-	assert.Nil(t, err)
+	appErr = lr.IsValid()
+	assert.Nil(t, appErr)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {

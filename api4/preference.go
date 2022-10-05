@@ -38,7 +38,7 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(preferences); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -60,7 +60,7 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if err := json.NewEncoder(w).Encode(preferences); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -82,7 +82,7 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if err := json.NewEncoder(w).Encode(preferences); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -102,7 +102,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var preferences model.Preferences
 	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
-		c.SetInvalidParam("preferences")
+		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	}
 
@@ -110,13 +110,13 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	for _, pref := range preferences {
 		if pref.Category == model.PreferenceCategoryFlaggedPost {
-			post, err := c.App.GetSinglePost(pref.Name)
+			post, err := c.App.GetSinglePost(pref.Name, false)
 			if err != nil {
 				c.SetInvalidParam("preference.name")
 				return
 			}
 
-			if !c.App.SessionHasPermissionToChannel(*c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
 				c.SetPermissionError(model.PermissionReadChannel)
 				return
 			}
@@ -150,7 +150,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var preferences model.Preferences
 	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
-		c.SetInvalidParam("preferences")
+		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	}
 

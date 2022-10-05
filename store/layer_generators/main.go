@@ -10,7 +10,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -49,7 +49,7 @@ func buildRetryLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -62,7 +62,7 @@ func buildTimerLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
 }
 
 func buildOpenTracingLayer() error {
@@ -75,7 +75,7 @@ func buildOpenTracingLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
+	return os.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
 }
 
 type methodParam struct {
@@ -155,7 +155,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to open store/store.go file: %w", err)
 	}
-	src, err := ioutil.ReadAll(file)
+	src, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -221,10 +221,20 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			if len(results) == 0 {
 				return ""
 			}
-			if len(results) == 1 {
-				return strings.Join(results, ", ")
+			returns := []string{}
+			for _, result := range results {
+				switch result {
+				case "*PostReminderMetadata":
+					returns = append(returns, fmt.Sprintf("*store.%s", strings.TrimPrefix(result, "*")))
+				default:
+					returns = append(returns, result)
+				}
 			}
-			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
+
+			if len(returns) == 1 {
+				return strings.Join(returns, ", ")
+			}
+			return fmt.Sprintf("(%s)", strings.Join(returns, ", "))
 		},
 		"genResultsVars": func(results []string, withNilError bool) string {
 			vars := []string{}
@@ -284,8 +294,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				switch param.Type {
 				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				case "*UserGetByIdsOpts":
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				case "*UserGetByIdsOpts", "*ChannelMemberGraphQLSearchOpts", "*SidebarCategorySearchOpts":
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}
@@ -298,8 +308,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				switch param.Type {
 				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				case "*UserGetByIdsOpts":
-					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				case "*UserGetByIdsOpts", "*ChannelMemberGraphQLSearchOpts", "*SidebarCategorySearchOpts":
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
 				}

@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,18 +20,9 @@ type SqlChannelMemberHistoryStore struct {
 }
 
 func newSqlChannelMemberHistoryStore(sqlStore *SqlStore) store.ChannelMemberHistoryStore {
-	s := &SqlChannelMemberHistoryStore{
+	return &SqlChannelMemberHistoryStore{
 		SqlStore: sqlStore,
 	}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.ChannelMemberHistory{}, "ChannelMemberHistory").SetKeys(false, "ChannelId", "UserId", "JoinTime")
-		table.ColMap("ChannelId").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("JoinTime").SetNotNull(true)
-	}
-
-	return s
 }
 
 func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
@@ -201,16 +192,16 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 	)`
 	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
-		return
+		return 0, err
 	}
-	deleted, err = result.RowsAffected()
-	return
+
+	return result.RowsAffected()
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var (
 		query string
-		args  []interface{}
+		args  []any
 		err   error
 	)
 
@@ -254,4 +245,25 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
 	return rowsAffected, nil
+}
+
+// GetChannelsLeftSince returns list of channels that the user has left after a given time,
+// but has not rejoined again.
+func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since int64) ([]string, error) {
+	query, params, err := s.getQueryBuilder().
+		Select("ChannelId").
+		From("ChannelMemberHistory").
+		GroupBy("ChannelId").
+		Where(sq.Eq{"UserId": userID}).
+		Having("MAX(LeaveTime) > MAX(JoinTime) AND MAX(LeaveTime) IS NOT NULL AND MAX(LeaveTime) >= ?", since).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+	channelIds := []string{}
+	err = s.GetReplicaX().Select(&channelIds, query, params...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetChannelsLeftSince userId=%s since=%d", userID, since)
+	}
+
+	return channelIds, nil
 }

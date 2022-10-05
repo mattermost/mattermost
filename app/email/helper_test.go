@@ -5,7 +5,6 @@ package email
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -64,7 +63,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "userservicetest")
+	tempWorkspace, err := os.MkdirTemp("", "userservicetest")
 	if err != nil {
 		panic(err)
 	}

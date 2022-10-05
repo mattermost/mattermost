@@ -4494,7 +4494,7 @@ SOFTWARE.
 
 This product contains 'archiver' by Matthew Holt
 
-A library to handle direferen archive files (zip, rar, tar.gz...)
+A library to handle different archive files (zip, rar, tar.gz...)
 
 * HOMEPAGE:
   * https://github.com/mholt/archiver

@@ -12,8 +12,9 @@ import (
 type UploadType string
 
 const (
-	UploadTypeAttachment UploadType = "attachment"
-	UploadTypeImport     UploadType = "import"
+	UploadTypeAttachment   UploadType = "attachment"
+	UploadTypeImport       UploadType = "import"
+	IncompleteUploadSuffix            = ".tmp"
 )
 
 // UploadNoUserID is a "fake" user id used by the API layer when in local mode.
@@ -78,7 +79,7 @@ func (us *UploadSession) IsValid() *AppError {
 	}
 
 	if err := us.Type.IsValid(); err != nil {
-		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if !IsValidId(us.UserId) && us.UserId != UploadNoUserID {

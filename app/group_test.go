@@ -17,13 +17,21 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	group, err := th.App.GetGroup(group.Id)
+	group, err := th.App.GetGroup(group.Id, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	group, err = th.App.GetGroup(model.NewId())
+	nilGroup, err := th.App.GetGroup(model.NewId(), nil)
 	require.NotNil(t, err)
-	require.Nil(t, group)
+	require.Nil(t, nilGroup)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false})
+	require.Nil(t, err)
+	require.Nil(t, group.MemberCount)
+
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true})
+	require.Nil(t, err)
+	require.NotNil(t, group.MemberCount)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
@@ -31,7 +39,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupSourceLdap)
+	g, err := th.App.GetGroupByRemoteID(*group.RemoteId, model.GroupSourceLdap)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
@@ -65,7 +73,7 @@ func TestCreateGroup(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	}
 
 	g, err := th.App.CreateGroup(group)
@@ -73,6 +81,17 @@ func TestCreateGroup(t *testing.T) {
 	require.NotNil(t, g)
 
 	g, err = th.App.CreateGroup(group)
+	require.NotNil(t, err)
+	require.Nil(t, g)
+
+	user := th.CreateUser()
+	usernameGroup := &model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        &user.Username,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	g, err = th.App.CreateGroup(usernameGroup)
 	require.NotNil(t, err)
 	require.Nil(t, g)
 }
@@ -86,6 +105,12 @@ func TestUpdateGroup(t *testing.T) {
 	g, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 	require.NotNil(t, g)
+
+	user := th.CreateUser()
+	g.Name = &user.Username
+	g, err = th.App.UpdateGroup(g)
+	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestDeleteGroup(t *testing.T) {
@@ -173,7 +198,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
-	channel := th.CreateChannel(team)
+	channel := th.CreateChannel(th.Context, team)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)

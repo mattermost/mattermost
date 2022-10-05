@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -47,6 +48,7 @@ const (
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
+	PostTypeReminder               = "reminder"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -70,6 +72,11 @@ const (
 	PostPropsPreviewedPost = "previewed_post"
 )
 
+const (
+	ModifierMessages string = "messages"
+	ModifierFiles    string = "files"
+)
+
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`
@@ -86,7 +93,7 @@ type Post struct {
 	// MessageSource will contain the message as submitted by the user if Message has been modified
 	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
 	// populate edit boxes if present.
-	MessageSource string `json:"message_source,omitempty" db:"-"`
+	MessageSource string `json:"message_source,omitempty"`
 
 	Type          string          `json:"type"`
 	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
@@ -94,16 +101,40 @@ type Post struct {
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"-"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
-	PendingPostId string          `json:"pending_post_id" db:"-"`
+	PendingPostId string          `json:"pending_post_id"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
 	RemoteId      *string         `json:"remote_id,omitempty"`
 
 	// Transient data populated before sending a post to the client
-	ReplyCount   int64         `json:"reply_count" db:"-"`
-	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
-	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  *bool         `json:"is_following,omitempty" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
-	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
+	ReplyCount   int64         `json:"reply_count"`
+	LastReplyAt  int64         `json:"last_reply_at"`
+	Participants []*User       `json:"participants"`
+	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	Metadata     *PostMetadata `json:"metadata,omitempty"`
+}
+
+func (o *Post) Auditable() map[string]interface{} {
+	return map[string]interface{}{ // TODO check this
+		"id":              o.Id,
+		"create_at":       o.CreateAt,
+		"update_at":       o.UpdateAt,
+		"edit_at":         o.EditAt,
+		"delete_at":       o.DeleteAt,
+		"is_pinned":       o.IsPinned,
+		"user_id":         o.UserId,
+		"channel_id":      o.ChannelId,
+		"root_id":         o.RootId,
+		"original_id":     o.OriginalId,
+		"type":            o.Type,
+		"props":           o.GetProps(),
+		"file_ids":        o.FileIds,
+		"pending_post_id": o.PendingPostId,
+		"remote_id":       o.RemoteId,
+		"reply_count":     o.ReplyCount,
+		"last_reply_at":   o.LastReplyAt,
+		"is_following":    o.IsFollowing,
+		"metadata":        o.Metadata,
+	}
 }
 
 type PostEphemeral struct {
@@ -119,6 +150,13 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type PostReminder struct {
+	TargetTime int64 `json:"target_time"`
+	// These fields are only used internally for interacting with DB.
+	PostId string `json:",omitempty"`
+	UserId string `json:",omitempty"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -126,6 +164,7 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -227,6 +266,11 @@ func (o *Post) ToJSON() (string, error) {
 	return string(b), err
 }
 
+func (o *Post) EncodeJSON(w io.Writer) error {
+	o.StripActionIntegrations()
+	return json.NewEncoder(w).Encode(o)
+}
+
 type GetPostsSinceOptions struct {
 	UserId                   string
 	ChannelId                string
@@ -257,6 +301,21 @@ type GetPostsOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
+	FromPost                 string // PostId after which to send the items
+	FromCreateAt             int64  // CreateAt after which to send the items
+	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	IncludeDeleted           bool
+}
+
+type PostCountOptions struct {
+	// Only include posts on a specific team. "" for any team.
+	TeamId          string
+	MustHaveFile    bool
+	MustHaveHashtag bool
+	ExcludeDeleted  bool
+	UsersPostsOnly  bool
+	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
+	AllowFromCache bool
 }
 
 func (o *Post) Etag() string {
@@ -385,7 +444,7 @@ func (o *Post) PreSave() {
 
 func (o *Post) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.Filenames == nil {
@@ -404,14 +463,14 @@ func (o *Post) PreCommit() {
 
 func (o *Post) MakeNonNil() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 }
 
 func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	propsCopy := make(map[string]any, len(o.Props)-1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -419,10 +478,10 @@ func (o *Post) DelProp(key string) {
 	o.Props = propsCopy
 }
 
-func (o *Post) AddProp(key string, value interface{}) {
+func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	propsCopy := make(map[string]any, len(o.Props)+1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -442,7 +501,7 @@ func (o *Post) SetProps(props StringInterface) {
 	o.Props = props
 }
 
-func (o *Post) GetProp(key string) interface{} {
+func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
@@ -541,7 +600,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
@@ -622,7 +681,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 	var ranges []markdown.Range
 
-	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+	markdown.Inspect(message, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.ReferenceImage:
 			ranges = append(ranges, v.ReferenceDefinition.RawDestination)
@@ -686,18 +745,10 @@ func (o *Post) ToNilIfInvalid() *Post {
 	return o
 }
 
-func (o *Post) RemovePreviewPost() {
-	if o.Metadata == nil || o.Metadata.Embeds == nil {
-		return
-	}
-	n := 0
-	for _, embed := range o.Metadata.Embeds {
-		if embed.Type != PostEmbedPermalink {
-			o.Metadata.Embeds[n] = embed
-			n++
-		}
-	}
-	o.Metadata.Embeds = o.Metadata.Embeds[:n]
+func (o *Post) ForPlugin() *Post {
+	p := o.Clone()
+	p.Metadata = nil
+	return p
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {

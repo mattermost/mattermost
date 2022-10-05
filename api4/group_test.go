@@ -26,7 +26,7 @@ func TestGetGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -65,7 +65,155 @@ func TestGetGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, response)
 }
+func TestCreateGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
 
+	id := model.NewId()
+	g := &model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceCustom,
+		Description:    "description_" + id,
+		AllowReference: true,
+	}
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
+
+	group, _, err := th.SystemAdminClient.CreateGroup(g)
+	require.NoError(t, err)
+
+	assert.Equal(t, g.DisplayName, group.DisplayName)
+	assert.Equal(t, g.Name, group.Name)
+	assert.Equal(t, g.Source, group.Source)
+	assert.Equal(t, g.Description, group.Description)
+	assert.Equal(t, g.RemoteId, group.RemoteId)
+
+	gbroken := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      "rrrr",
+		Description: "description_" + id,
+	}
+
+	_, response, err := th.SystemAdminClient.CreateGroup(gbroken)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	validGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	_, response, err = th.SystemAdminClient.CreateGroup(validGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	usernameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           &th.BasicUser.Username,
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(usernameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	unReferenceableCustomGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: false,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+	unReferenceableCustomGroup.AllowReference = true
+	_, response, err = th.SystemAdminClient.CreateGroup(unReferenceableCustomGroup)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	customGroupWithRemoteID := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+		RemoteId:       model.NewString(model.NewId()),
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(customGroupWithRemoteID)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	reservedNameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("here"),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(reservedNameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	th.SystemAdminClient.Logout()
+	_, response, err = th.SystemAdminClient.CreateGroup(g)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, response)
+}
+
+func TestDeleteGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	id := model.NewId()
+	g, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	_, response, err := th.Client.DeleteGroup(g.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
+	_, response, err = th.Client.DeleteGroup(g.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	_, response, err = th.Client.DeleteGroup(g.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	_, response, err = th.Client.DeleteGroup("wertyuijhbgvfcde")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	validGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        model.NewString("name" + model.NewId()),
+		Source:      model.GroupSourceCustom,
+	})
+	assert.Nil(t, appErr)
+
+	_, response, err = th.Client.DeleteGroup(validGroup.Id)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+}
 func TestPatchGroup(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -76,7 +224,15 @@ func TestPatchGroup(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	g2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("name" + model.NewId()),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
 	})
 	assert.Nil(t, appErr)
 
@@ -100,7 +256,7 @@ func TestPatchGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, response)
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
 
 	group2, response, err := th.SystemAdminClient.PatchGroup(g.Id, gp)
 	require.NoError(t, err)
@@ -131,6 +287,29 @@ func TestPatchGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, response)
 
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:           model.NewString(model.NewId()),
+		DisplayName:    model.NewString("foo"),
+		AllowReference: model.NewBool(false),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	// ensure that omitting the AllowReference field from the patch doesn't patch it to false
+	patchedG2, response, err := th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewString("foo"),
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+	require.Equal(t, true, patchedG2.AllowReference)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name: model.NewString("here"),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
 	require.Error(t, err)
@@ -147,7 +326,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -175,6 +354,20 @@ func TestLinkGroupTeam(t *testing.T) {
 	groupTeam, response, _ := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestLinkGroupChannel(t *testing.T) {
@@ -187,7 +380,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -217,6 +410,20 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	_, _, err = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Error(t, err)
+
+	gid := model.NewId()
+	g2, app2Err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + gid,
+		Name:        model.NewString("name" + gid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + gid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, app2Err)
+
+	_, response, err = th.Client.LinkGroupSyncable(g2.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
@@ -229,7 +436,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -280,7 +487,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -332,7 +539,7 @@ func TestGetGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -394,7 +601,7 @@ func TestGetGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -456,7 +663,7 @@ func TestGetGroupTeams(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -509,7 +716,7 @@ func TestGetGroupChannels(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -561,7 +768,7 @@ func TestPatchGroupTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -633,7 +840,7 @@ func TestPatchGroupChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -716,7 +923,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -735,6 +942,8 @@ func TestGetGroupsByChannel(t *testing.T) {
 		},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByChannel("asdfasdf", opts)
 		require.Error(t, err)
@@ -746,7 +955,11 @@ func TestGetGroupsByChannel(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByChannel(th.BasicChannel.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -795,7 +1008,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -813,6 +1026,8 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 			PerPage: 60,
 		},
 	}
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	_, response, err := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam("asdfasdf", opts)
 	require.Error(t, err)
@@ -871,7 +1086,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, err)
 
@@ -890,18 +1105,24 @@ func TestGetGroupsByTeam(t *testing.T) {
 		},
 	}
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam("asdfasdf", opts)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, response)
 	})
 
-	th.App.Srv().SetLicense(nil)
+	th.App.Srv().RemoveLicense()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, _, response, err := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
 		require.Error(t, err)
-		CheckNotImplementedStatus(t, response)
+		if client == th.SystemAdminClient {
+			CheckNotImplementedStatus(t, response)
+		} else {
+			CheckForbiddenStatus(t, response)
+		}
 	})
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -945,27 +1166,32 @@ func TestGetGroups(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 	start := group.UpdateAt - 1
 
+	id2 := model.NewId()
+	group2, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id2,
+		Name:        model.NewString("name" + id2),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id2,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
 	opts := model.GroupSearchOpts{
+		Source: model.GroupSourceLdap,
 		PageOpts: &model.PageOpts{
 			Page:    0,
 			PerPage: 60,
 		},
 	}
 
-	th.App.Srv().SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-	_, response, err := th.SystemAdminClient.GetGroups(opts)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, response)
-
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
-
-	_, _, err = th.SystemAdminClient.GetGroups(opts)
+	_, _, err := th.SystemAdminClient.GetGroups(opts)
 	require.NoError(t, err)
 
 	_, err = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
@@ -1031,6 +1257,36 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	// make sure it returned th.Group,not group
 	assert.Equal(t, groups[0].Id, th.Group.Id)
+
+	opts.Source = model.GroupSourceCustom
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Id, group2.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomGroups = false
+	})
+
+	// Specify custom groups source when feature is disabled
+	opts.Source = model.GroupSourceCustom
+	_, response, err := th.Client.GetGroups(opts)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
+	// Specify ldap groups source when custom groups feature is disabled
+	opts.Source = model.GroupSourceLdap
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
+
+	// don't include source and should only get ldap groups in response
+	opts.Source = ""
+	groups, _, err = th.Client.GetGroups(opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Source, model.GroupSourceLdap)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
@@ -1043,7 +1299,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1059,7 +1315,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1109,7 +1365,7 @@ func TestGetGroupStats(t *testing.T) {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	assert.Nil(t, appErr)
 
@@ -1129,7 +1385,8 @@ func TestGetGroupStats(t *testing.T) {
 	})
 
 	t.Run("Returns stats for a group with no members", func(t *testing.T) {
-		stats, _, _ := th.SystemAdminClient.GetGroupStats(group.Id)
+		stats, _, err := th.SystemAdminClient.GetGroupStats(group.Id)
+		require.NoError(t, err)
 		assert.Equal(t, stats.GroupID, group.Id)
 		assert.Equal(t, stats.TotalMemberCount, int64(0))
 	})
@@ -1160,7 +1417,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 			Name:        model.NewString("name" + id),
 			Source:      model.GroupSourceLdap,
 			Description: "description_" + id,
-			RemoteId:    model.NewId(),
+			RemoteId:    model.NewString(model.NewId()),
 		})
 		require.Nil(t, err)
 		groups = append(groups, group)
@@ -1227,4 +1484,150 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, apiGroups, groups[0])
 	require.Contains(t, apiGroups, groups[2])
+}
+
+func TestAddMembersToGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// 1. Test with custom source
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+	})
+	assert.Nil(t, err)
+
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{user1.Id, user2.Id},
+	}
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(group.Id, members)
+	require.NoError(t, upsertErr)
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupMembers, 2)
+
+	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	assert.Nil(t, countErr)
+
+	assert.Equal(t, count, int64(2))
+
+	// 2. Test invalid group ID
+	_, response, upsertErr = th.Client.UpsertGroupMembers("abc123", members)
+	require.Error(t, upsertErr)
+	CheckBadRequestStatus(t, response)
+
+	// 3. Test invalid user ID
+	invalidMembers := &model.GroupModifyMembers{
+		UserIds: []string{"abc123"},
+	}
+
+	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(group.Id, invalidMembers)
+	require.Error(t, upsertErr)
+	CheckInternalErrorStatus(t, response)
+
+	// 4. Test with ldap source
+	ldapId := model.NewId()
+	ldapGroup, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + ldapId,
+		Name:        model.NewString("name" + ldapId),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + ldapId,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, err)
+
+	_, response, upsertErr = th.SystemAdminClient.UpsertGroupMembers(ldapGroup.Id, members)
+
+	require.Error(t, upsertErr)
+	CheckBadRequestStatus(t, response)
+}
+
+func TestDeleteMembersFromGroup(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// 1. Test with custom source
+	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	user2, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user2", Password: "test-password-2", Username: "test-user-2", Roles: model.SystemUserRoleId})
+	assert.Nil(t, appErr)
+
+	id := model.NewId()
+	g := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+	}
+	group, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+		Group:   *g,
+		UserIds: []string{user1.Id, user2.Id},
+	})
+	assert.Nil(t, err)
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{user1.Id},
+	}
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(group.Id, members)
+	require.NoError(t, deleteErr)
+	CheckOKStatus(t, response)
+
+	assert.Len(t, groupMembers, 1)
+	assert.Equal(t, groupMembers[0].UserId, user1.Id)
+
+	users, usersErr := th.App.GetGroupMemberUsers(group.Id)
+	assert.Nil(t, usersErr)
+
+	assert.Len(t, users, 1)
+	assert.Equal(t, users[0].Id, user2.Id)
+
+	// 2. Test invalid group ID
+	_, response, deleteErr = th.Client.DeleteGroupMembers("abc123", members)
+	require.Error(t, deleteErr)
+	CheckBadRequestStatus(t, response)
+
+	// 3. Test invalid user ID
+	invalidMembers := &model.GroupModifyMembers{
+		UserIds: []string{"abc123"},
+	}
+
+	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(group.Id, invalidMembers)
+	require.Error(t, deleteErr)
+	CheckInternalErrorStatus(t, response)
+
+	// 4. Test with ldap source
+	ldapId := model.NewId()
+	g1 := &model.Group{
+		DisplayName: "dn_" + ldapId,
+		Name:        model.NewString("name" + ldapId),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + ldapId,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	ldapGroup, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+		Group:   *g1,
+		UserIds: []string{user1.Id, user2.Id},
+	})
+	assert.Nil(t, err)
+
+	_, response, deleteErr = th.SystemAdminClient.DeleteGroupMembers(ldapGroup.Id, members)
+
+	require.Error(t, deleteErr)
+	CheckBadRequestStatus(t, response)
 }

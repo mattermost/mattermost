@@ -46,20 +46,18 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		Active:    true,
 	}
 
-	if *c.App.Config().ServiceSettings.EnableReliableWebSockets {
-		cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)
-		if cfg.ConnectionID == "" || c.AppContext.Session().UserId == "" {
-			// If not present, we assume client is not capable yet, or it's a fresh connection.
-			// We just create a new ID.
-			cfg.ConnectionID = model.NewId()
-			// In case of fresh connection id, sequence number is already zero.
-		} else {
-			cfg, err = c.App.PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
-			if err != nil {
-				mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
-				ws.Close()
-				return
-			}
+	cfg.ConnectionID = r.URL.Query().Get(connectionIDParam)
+	if cfg.ConnectionID == "" || c.AppContext.Session().UserId == "" {
+		// If not present, we assume client is not capable yet, or it's a fresh connection.
+		// We just create a new ID.
+		cfg.ConnectionID = model.NewId()
+		// In case of fresh connection id, sequence number is already zero.
+	} else {
+		cfg, err = c.App.PopulateWebConnConfig(c.AppContext.Session(), cfg, r.URL.Query().Get(sequenceNumberParam))
+		if err != nil {
+			mlog.Warn("Error while populating webconn config", mlog.String("id", r.URL.Query().Get(connectionIDParam)), mlog.Err(err))
+			ws.Close()
+			return
 		}
 	}
 

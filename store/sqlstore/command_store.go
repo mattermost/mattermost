@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -26,32 +26,7 @@ func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s.commandsQuery = s.getQueryBuilder().
 		Select("*").
 		From("Commands")
-	for _, db := range sqlStore.GetAllConns() {
-		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
-		tableo.ColMap("Id").SetMaxSize(26)
-		tableo.ColMap("Token").SetMaxSize(26)
-		tableo.ColMap("CreatorId").SetMaxSize(26)
-		tableo.ColMap("TeamId").SetMaxSize(26)
-		tableo.ColMap("Trigger").SetMaxSize(128)
-		tableo.ColMap("URL").SetMaxSize(1024)
-		tableo.ColMap("Method").SetMaxSize(1)
-		tableo.ColMap("Username").SetMaxSize(64)
-		tableo.ColMap("IconURL").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteDesc").SetMaxSize(1024)
-		tableo.ColMap("AutoCompleteHint").SetMaxSize(1024)
-		tableo.ColMap("DisplayName").SetMaxSize(64)
-		tableo.ColMap("Description").SetMaxSize(128)
-		tableo.ColMap("PluginId").SetMaxSize(190)
-	}
-
 	return s
-}
-
-func (s SqlCommandStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_command_team_id", "Commands", "TeamId")
-	s.CreateIndexIfNotExists("idx_command_update_at", "Commands", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_command_create_at", "Commands", "CreateAt")
-	s.CreateIndexIfNotExists("idx_command_delete_at", "Commands", "DeleteAt")
 }
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
@@ -65,12 +40,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 	}
 
 	// Trigger is a keyword
-	var trigger string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		trigger = `"trigger"`
-	} else {
-		trigger = "`Trigger`"
-	}
+	trigger := s.toReserveCase("trigger")
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO Commands (Id, Token, CreateAt,
 		UpdateAt, DeleteAt, CreatorId, TeamId, `+trigger+`, Method, Username,
@@ -215,11 +185,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, error) {
 		Where(sq.Eq{"Id": cmd.Id})
 
 	// Trigger is a keyword
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.Set(`"trigger"`, cmd.Trigger)
-	} else {
-		query = query.Set("`Trigger`", cmd.Trigger)
-	}
+	query = query.Set(s.toReserveCase("trigger"), cmd.Trigger)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

@@ -28,7 +28,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, succes
 	}
 }
 
-func (api *apiTimerLayer) LoadPluginConfiguration(dest interface{}) error {
+func (api *apiTimerLayer) LoadPluginConfiguration(dest any) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.LoadPluginConfiguration(dest)
 	api.recordTime(startTime, "LoadPluginConfiguration", _returnsA == nil)
@@ -77,14 +77,14 @@ func (api *apiTimerLayer) SaveConfig(config *model.Config) *model.AppError {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) GetPluginConfig() map[string]interface{} {
+func (api *apiTimerLayer) GetPluginConfig() map[string]any {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.GetPluginConfig()
 	api.recordTime(startTime, "GetPluginConfig", true)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (api *apiTimerLayer) SavePluginConfig(config map[string]any) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SavePluginConfig(config)
 	api.recordTime(startTime, "SavePluginConfig", _returnsA == nil)
@@ -1007,7 +1007,7 @@ func (api *apiTimerLayer) KVList(page, perPage int) ([]string, *model.AppError) 
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (api *apiTimerLayer) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	startTime := timePkg.Now()
 	api.apiImpl.PublishWebSocketEvent(event, payload, broadcast)
 	api.recordTime(startTime, "PublishWebSocketEvent", true)
@@ -1034,25 +1034,32 @@ func (api *apiTimerLayer) HasPermissionToChannel(userID, channelId string, permi
 	return _returnsA
 }
 
-func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RolesGrantPermission(roleNames, permissionId)
+	api.recordTime(startTime, "RolesGrantPermission", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogDebug", true)
 }
 
-func (api *apiTimerLayer) LogInfo(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogInfo(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogInfo(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogInfo", true)
 }
 
-func (api *apiTimerLayer) LogError(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogError(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogError(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogError", true)
 }
 
-func (api *apiTimerLayer) LogWarn(msg string, keyValuePairs ...interface{}) {
+func (api *apiTimerLayer) LogWarn(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogWarn(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogWarn", true)
@@ -1217,4 +1224,18 @@ func (api *apiTimerLayer) RequestTrialLicense(requesterID string, users int, ter
 	_returnsA := api.apiImpl.RequestTrialLicense(requesterID, users, termsAccepted, receiveEmailsAccepted)
 	api.recordTime(startTime, "RequestTrialLicense", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) GetCloudLimits() (*model.ProductLimits, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetCloudLimits()
+	api.recordTime(startTime, "GetCloudLimits", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) EnsureBotUser(bot *model.Bot) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EnsureBotUser(bot)
+	api.recordTime(startTime, "EnsureBotUser", _returnsB == nil)
+	return _returnsA, _returnsB
 }

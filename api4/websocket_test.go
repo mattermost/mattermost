@@ -41,7 +41,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true
-	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser)
+	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser, "")
 	evt1.Add("user_id", "somerandomid")
 	th.App.Publish(evt1)
 
@@ -69,7 +69,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	require.True(t, eventHit, "did not receive typing event")
 
-	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil)
+	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
 	th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
@@ -204,10 +204,6 @@ func TestWebSocketReconnectRace(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableReliableWebSockets = true
-	})
-
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	defer WebSocketClient.Close()
@@ -236,6 +232,47 @@ func TestWebSocketReconnectRace(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestWebSocketSendBinary(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	client := th.CreateClient()
+	th.LoginBasicWithClient(client)
+	WebSocketClient, err := th.CreateWebSocketClientWithClient(client)
+	require.NoError(t, err)
+	defer WebSocketClient.Close()
+	WebSocketClient.Listen()
+	resp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(client2)
+	WebSocketClient2, err := th.CreateWebSocketClientWithClient(client2)
+	require.NoError(t, err)
+	defer WebSocketClient2.Close()
+
+	time.Sleep(1000 * time.Millisecond)
+
+	WebSocketClient.SendBinaryMessage("get_statuses", nil)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error, resp.Error)
+	require.Equal(t, resp.SeqReply, WebSocketClient.Sequence-1)
+
+	status, ok := resp.Data[th.BasicUser.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
+	status, ok = resp.Data[th.BasicUser2.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
+
+	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
+		"user_ids": []string{th.BasicUser2.Id},
+	})
+	status, ok = resp.Data[th.BasicUser2.Id]
+	require.True(t, ok)
+	require.Equal(t, model.StatusOnline, status)
 }
 
 func TestWebSocketStatuses(t *testing.T) {

@@ -37,11 +37,11 @@ func (*MuteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*MuteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
 
-	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
+	if channel, noChannelErr = a.GetChannel(c, args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_mute.no_channel.error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -58,13 +58,13 @@ func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 		channel, _ = a.Srv().Store.Channel().GetByName(channel.TeamId, channelName, true)
 
 		if channel == nil {
-			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
+			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	}
 
-	channelMember, err := a.ToggleMuteChannel(channel.Id, args.UserId)
+	channelMember, err := a.ToggleMuteChannel(c, channel.Id, args.UserId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.not_member.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{Text: args.T("api.command_mute.not_member.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
 	// Direct and Group messages won't have a nice channel title, omit it
@@ -76,7 +76,7 @@ func (*MuteProvider) DoCommand(a *app.App, c *request.Context, args *model.Comma
 	}
 
 	if channelMember.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelNotifyMention {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.CommandResponseTypeEphemeral}
+		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]any{"Channel": channel.DisplayName}), ResponseType: model.CommandResponseTypeEphemeral}
 	}
-	return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.CommandResponseTypeEphemeral}
+	return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]any{"Channel": channel.DisplayName}), ResponseType: model.CommandResponseTypeEphemeral}
 }

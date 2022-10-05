@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到頻道 {{.Channel}}. 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "找不到特定的頻道。 請用[頻道識別](https://about.mattermost.com/default-channel-handle-documentation)以分辨頻道。"
+    "translation": "找不到特定的頻道。 請用[頻道識別](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)以分辨頻道。"
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1078,10 +1078,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "無法上傳檔案。檔案數量不對。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -2484,10 +2480,6 @@
     "translation": "頻道顯示名稱長度不符要求。"
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "缺少必要的頻道屬性：顯示名稱。"
-  },
-  {
     "id": "app.import.validate_channel_import_data.header_length.error",
     "translation": "頻道標題過長。"
   },
@@ -2642,10 +2634,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "缺少必要的互動屬性：使用者。"
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "回應建立時間必須大於隸屬訊息的建立時間。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -3160,10 +3148,6 @@
     "translation": "Elasticsearch 已停止"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "連線至 Elasticsearch 伺服器失敗。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },
@@ -3536,10 +3520,6 @@
     "translation": "無效的使用者名稱"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名稱必須是2個以上的小寫英數字元"
-  },
-  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -3754,10 +3734,6 @@
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4616,18 +4592,6 @@
     "translation": "缺少收件人位址。"
   },
   {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: 無法將 StringArray 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: 無法將 StringInterface 轉換為 *string"
-  },
-  {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: 無法將 StringMap 轉換為 *string"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },
@@ -4970,10 +4934,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "當啟用 Bleve EnableAutocomplete 時必須設定 Bleve EnableIndexing 為啟用。"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Bleve 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
@@ -6024,10 +5984,6 @@
     "translation": "無法取得保留中的文章。"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "無法要求試用授權。請在 Mattermost 系統控制台的網頁伺服器區段設定站台 URL。"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "無法取得試用授權，請再嘗試一次或聯絡 support@mattermost.com。"
   },
@@ -6252,14 +6208,6 @@
     "translation": "寄送電子郵件給我們"
   },
   {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "正在聯絡我們"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "聯絡我們"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "感謝您對 Mattermost 有興趣，我們會盡快聯絡。"
   },
@@ -6350,10 +6298,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "刪除偏好設定時遇到錯誤"
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "找不到警告計量。"
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -6464,10 +6408,6 @@
     "translation": "儲存 {{.WarnMetricName}} 的值失敗"
   },
   {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "管理員清單空白。"
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "config.json 當中的 DownloadExportResults 設定為 false。請設為 true 才能下載此工作的結果。"
   },
@@ -6478,10 +6418,6 @@
   {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[了解 Mattermost Advisor 的更多資訊](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_name_header",
@@ -7080,10 +7016,6 @@
     "translation": "無法找到被釘選的訊息。"
   },
   {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "無法增加提及計數。"
-  },
-  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "無法取得私人頻道。"
   },
@@ -7154,10 +7086,6 @@
   {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "診斷 ID： "
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "使用者數量已達到免費層上限"
   },
   {
     "id": "api.migrate_to_saml.error",
@@ -7260,14 +7188,6 @@
     "translation": "取得頻道成員時失敗"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "開始試用"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "要求測試"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
     "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
   },
@@ -7338,5 +7258,49 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "無法解析要求本文。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "圖片大小超過上限，圖片解析度過高。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "返回至 {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "頻道"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "雲端 API 請求時發生內部錯誤。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "錯誤 無效快取"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "從 Webhook 更新訂閱時發生錯誤。"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS 處理請求錯誤。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理者"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "您的授權不支援雲端請求。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "無法恢復團隊，已達到團隊數量上限"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "無法建立團隊，已達到團隊數量上限"
   }
 ]

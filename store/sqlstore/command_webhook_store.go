@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -19,22 +19,7 @@ type SqlCommandWebhookStore struct {
 }
 
 func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
-	s := &SqlCommandWebhookStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		tablec := db.AddTableWithName(model.CommandWebhook{}, "CommandWebhooks").SetKeys(false, "Id")
-		tablec.ColMap("Id").SetMaxSize(26)
-		tablec.ColMap("CommandId").SetMaxSize(26)
-		tablec.ColMap("UserId").SetMaxSize(26)
-		tablec.ColMap("ChannelId").SetMaxSize(26)
-		tablec.ColMap("RootId").SetMaxSize(26)
-	}
-
-	return s
-}
-
-func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
+	return &SqlCommandWebhookStore{sqlStore}
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
@@ -97,8 +82,8 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 	if sqlResult, err := s.GetMasterX().Exec(queryString, args...); err != nil {
 		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
-	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return store.NewErrInvalidInput("CommandWebhook", "id", id)
+	} else if rows, err := sqlResult.RowsAffected(); rows == 0 {
+		return store.NewErrInvalidInput("CommandWebhook", "id", id).Wrap(err)
 	}
 
 	return nil

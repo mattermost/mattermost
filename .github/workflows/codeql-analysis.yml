@@ -1,16 +1,19 @@
 name: "CodeQL"
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ master ]
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '30 5,17 * * *'
+
+permissions:
+  contents: read
 
 jobs:
   analyze:
+    permissions:
+      security-events: write  # for github/codeql-action/autobuild to send a status report
     name: Analyze
     runs-on: ubuntu-latest
 
@@ -26,6 +29,7 @@ jobs:
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
+        debug: true
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
     - name: Perform CodeQL Analysis

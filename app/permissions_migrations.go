@@ -176,15 +176,15 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
-				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			default:
-				return model.NewAppError("doPermissionsMigration", "app.role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("doPermissionsMigration", "app.role.save.insert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 	}
 
 	if err := s.Store.System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
-		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -536,7 +536,7 @@ func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMa
 			Add: []string{PermissionManageSecureConnections},
 		})
 
-	// remote the decprecated permission from system admin
+	// remote the deprecated permission from system admin
 	transformations = append(transformations,
 		permissionTransformation{
 			On:     isRole(model.SystemAdminRoleId),
@@ -667,7 +667,7 @@ func (a *App) getAddComplianceSubsectionPermissions() (permissionsMap, error) {
 		Add: permissionsComplianceWrite,
 	})
 
-	// Ancilary permissions
+	// Ancillary permissions
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id),
 		Add: []string{model.PermissionCreateDataRetentionJob.Id},
@@ -915,6 +915,82 @@ func (a *App) getAddTestEmailAncillaryPermission() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	customGroupPermissions := []string{
+		model.PermissionCreateCustomGroup.Id,
+		model.PermissionManageCustomGroupMembers.Id,
+		model.PermissionEditCustomGroup.Id,
+		model.PermissionDeleteCustomGroup.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  isRole(model.SystemUserRoleId),
+		Add: customGroupPermissions,
+	})
+
+	t = append(t, permissionTransformation{
+		On:  isRole(model.SystemAdminRoleId),
+		Add: customGroupPermissions,
+	})
+
+	return t, nil
+}
+
+func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			permissionExists(model.PermissionCreatePublicChannel.Id),
+			permissionExists(model.PermissionCreatePrivateChannel.Id),
+		),
+		Add: []string{
+			model.PermissionPublicPlaybookCreate.Id,
+			model.PermissionPrivatePlaybookCreate.Id,
+		},
+	})
+
+	transformations = append(transformations, permissionTransformation{
+		On: isRole(model.SystemAdminRoleId),
+		Add: []string{
+			model.PermissionPublicPlaybookManageProperties.Id,
+			model.PermissionPublicPlaybookManageMembers.Id,
+			model.PermissionPublicPlaybookView.Id,
+			model.PermissionPublicPlaybookMakePrivate.Id,
+			model.PermissionPrivatePlaybookManageProperties.Id,
+			model.PermissionPrivatePlaybookManageMembers.Id,
+			model.PermissionPrivatePlaybookView.Id,
+			model.PermissionPrivatePlaybookMakePublic.Id,
+			model.PermissionRunCreate.Id,
+			model.PermissionRunManageProperties.Id,
+			model.PermissionRunManageMembers.Id,
+			model.PermissionRunView.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getPlaybooksPermissionsAddManageRoles() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	transformations = append(transformations, permissionTransformation{
+		On: permissionOr(
+			isRole(model.PlaybookAdminRoleId),
+			isRole(model.TeamAdminRoleId),
+			isRole(model.SystemAdminRoleId),
+		),
+		Add: []string{
+			model.PermissionPublicPlaybookManageRoles.Id,
+			model.PermissionPrivatePlaybookManageRoles.Id,
+		},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -953,6 +1029,9 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddAboutSubsectionPermissions, Migration: a.getAddAboutSubsectionPermissions},
 		{Key: model.MigrationKeyAddReportingSubsectionPermissions, Migration: a.getAddReportingSubsectionPermissions},
 		{Key: model.MigrationKeyAddTestEmailAncillaryPermission, Migration: a.getAddTestEmailAncillaryPermission},
+		{Key: model.MigrationKeyAddPlaybooksPermissions, Migration: a.getAddPlaybooksPermissions},
+		{Key: model.MigrationKeyAddCustomUserGroupsPermissions, Migration: a.getAddCustomUserGroupsPermissions},
+		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 	}
 
 	roles, err := s.Store.Role().GetAll()

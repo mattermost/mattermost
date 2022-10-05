@@ -93,7 +93,7 @@ func TestRemoveEnvOverrides(t *testing.T) {
 		{
 			name: "[]string setting",
 			inputConfig: modifiedDefault(func(in *model.Config) {
-				in.SqlSettings.DataSourceReplicas = []string{"somthing"}
+				in.SqlSettings.DataSourceReplicas = []string{"something"}
 			}),
 			env: map[string]string{
 				"MM_SQLSETTINGS_DATASOURCEREPLICAS": "otherthing alsothis",

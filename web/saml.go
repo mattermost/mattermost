@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+const maxSAMLResponseSize = 2 * 1024 * 1024 // 2MB
+
 func (w *Web) InitSaml() {
 	w.MainRouter.Handle("/login/sso/saml", w.APIHandler(loginWithSaml)).Methods("GET")
 	w.MainRouter.Handle("/login/sso/saml", w.APIHandlerTrustRequester(completeSaml)).Methods("POST")
@@ -89,7 +91,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		stateStr := ""
 		b, err := b64.StdEncoding.DecodeString(relayState)
 		if err != nil {
-			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
+			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusFound).Wrap(err)
 			return
 		}
 		stateStr = string(b)
@@ -122,6 +124,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if len(encodedXML) > maxSAMLResponseSize {
+		err := model.NewAppError("completeSaml", "api.user.authorize_oauth_user.saml_response_too_long.app_error", nil, "SAML response is too long", http.StatusBadRequest)
+		mlog.Error(err.Error())
+		handleError(err)
+		return
+	}
+
 	user, err := samlInterface.DoLogin(c.AppContext, encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
@@ -143,7 +152,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.LogErrorByCode(err)
 				break
 			}
-			c.App.AddDirectChannels(teamId, user)
+			c.App.AddDirectChannels(c.AppContext, teamId, user)
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
@@ -156,7 +165,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
 			if err := c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.UserAuthServiceSaml)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError))
+				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err))
 			}
 		})
 	}

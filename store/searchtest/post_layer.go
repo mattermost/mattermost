@@ -90,7 +90,7 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
-		Name: "Should be able to exclude messages that contain a serch term",
+		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFilterMessagesWithATerm,
 		Tags: []string{EngineMySql, EnginePostgres},
 	},
@@ -152,7 +152,7 @@ var searchPostStoreTests = []searchTest{
 	},
 	{
 		Name: "Should support searching for multiple hashtags",
-		Fn:   testSearcWithMultipleHashtags,
+		Fn:   testSearchWithMultipleHashtags,
 		Tags: []string{EngineElasticSearch},
 	},
 	{
@@ -187,7 +187,7 @@ var searchPostStoreTests = []searchTest{
 	},
 	{
 		Name: "Should not return system messages",
-		Fn:   testSearchShouldExcludeSytemMessages,
+		Fn:   testSearchShouldExcludeSystemMessages,
 		Tags: []string{EngineAll},
 	},
 	{
@@ -1225,7 +1225,7 @@ func testSearchHashtagWithMarkdown(t *testing.T, th *SearchTestHelper) {
 	th.checkPostInSearchResults(t, p5.Id, results.Posts)
 }
 
-func testSearcWithMultipleHashtags(t *testing.T, th *SearchTestHelper) {
+func testSearchWithMultipleHashtags(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching hashtag #hashtag", "#hashtwo #hashone", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching term with `#hashtag`", "#hashtwo #hashthree", model.PostTypeDefault, 0, false)
@@ -1399,7 +1399,7 @@ func testSearchHashtagWithUnderscores(t *testing.T, th *SearchTestHelper) {
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
-func testSearchShouldExcludeSytemMessages(t *testing.T, th *SearchTestHelper) {
+func testSearchShouldExcludeSystemMessages(t *testing.T, th *SearchTestHelper) {
 	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test system message one", "", model.PostTypeJoinChannel, 0, false)
 	require.NoError(t, err)
 	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "test system message two", "", model.PostTypeLeaveChannel, 0, false)
@@ -1649,7 +1649,7 @@ func testSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) {
 func testSearchBotAccountsPosts(t *testing.T, th *SearchTestHelper) {
 	bot, err := th.createBot("testbot", "Test Bot", th.User.Id)
 	require.NoError(t, err)
-	defer th.deleteBot(bot.UserId)
+	defer th.deleteBotUser(bot.UserId)
 	err = th.addUserToTeams(model.UserFromBot(bot), []string{th.Team.Id})
 	require.NoError(t, err)
 	p1, err := th.createPost(bot.UserId, th.ChannelBasic.Id, "bot test message", "", model.PostTypeDefault, 0, false)

@@ -18,7 +18,7 @@ cat config/config.json | \
     jq '.SqlSettings.DriverName = "mysql"' > $TMPDIR/config.json
 
 echo "Running the migration"
-make ARGS="version --config $TMPDIR/config.json" run-cli
+make ARGS="db migrate --config $TMPDIR/config.json" run-cli
 
 echo "Setting up config for fresh db setup"
 cat config/config.json | \
@@ -26,7 +26,7 @@ cat config/config.json | \
     jq '.SqlSettings.DriverName = "mysql"' > $TMPDIR/config.json
 
 echo "Setting up fresh db"
-make ARGS="version --config $TMPDIR/config.json" run-cli
+make ARGS="db migrate --config $TMPDIR/config.json" run-cli
 
 if [ "$SCHEMA_VERSION" == "5.0.0" ]; then
   for i in "ChannelMembers SchemeGuest" "ChannelMembers MsgCountRoot" "ChannelMembers MentionCountRoot" "Channels TotalMsgCountRoot"; do

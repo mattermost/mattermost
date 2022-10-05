@@ -25,11 +25,11 @@ func TestHelpCommand(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SupportSettings.HelpLink = "" })
 	rs1, _, _ := client.ExecuteCommand(channel.Id, "/help ")
-	assert.Equal(t, rs1.GotoLocation, model.SupportSettingsDefaultHelpLink, "failed to default help link")
+	assert.Contains(t, rs1.Text, model.SupportSettingsDefaultHelpLink, "failed to default help link")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.SupportSettings.HelpLink = "https://docs.mattermost.com/guides/user.html"
 	})
 	rs2, _, _ := client.ExecuteCommand(channel.Id, "/help ")
-	assert.Equal(t, rs2.GotoLocation, "https://docs.mattermost.com/guides/user.html", "failed to help link")
+	assert.Contains(t, rs2.Text, "https://docs.mattermost.com/guides/user.html", "failed to help link")
 }

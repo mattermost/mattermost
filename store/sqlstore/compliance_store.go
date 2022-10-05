@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,23 +20,7 @@ type SqlComplianceStore struct {
 }
 
 func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
-	s := &SqlComplianceStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Compliance{}, "Compliances").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Status").SetMaxSize(64)
-		table.ColMap("Desc").SetMaxSize(512)
-		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("Keywords").SetMaxSize(512)
-		table.ColMap("Emails").SetMaxSize(1024)
-	}
-
-	return s
-}
-
-func (s SqlComplianceStore) createIndexesIfNotExists() {
+	return &SqlComplianceStore{sqlStore}
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
@@ -46,12 +30,7 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	}
 
 	// DESC is a keyword
-	var desc string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		desc = `"desc"`
-	} else {
-		desc = "`Desc`"
-	}
+	desc := s.toReserveCase("desc")
 
 	query := `INSERT INTO Compliances (Id, CreateAt, UserId, Status, Count, ` + desc + `, Type, StartAt, EndAt, Keywords, Emails)
 	VALUES
@@ -81,11 +60,7 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 		Where(sq.Eq{"Id": compliance.Id})
 
 	// DESC is a keyword
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = query.Set(`"desc"`, compliance.Desc)
-	} else {
-		query = query.Set("`Desc`", compliance.Desc)
-	}
+	query = query.Set(s.toReserveCase("desc"), compliance.Desc)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -131,7 +106,7 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 
 func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	keywordQuery := ""
-	var argsKeywords []interface{}
+	var argsKeywords []any
 	keywords := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Keywords, ",", " ", -1))))
 	if len(keywords) > 0 {
 		clauses := make([]string, len(keywords))
@@ -146,7 +121,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 	}
 
 	emailQuery := ""
-	var argsEmails []interface{}
+	var argsEmails []any
 	emails := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Emails, ",", " ", -1))))
 	if len(emails) > 0 {
 		clauses := make([]string, len(emails))
@@ -164,12 +139,12 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 
 	channelPosts := []*model.CompliancePost{}
 	channelsQuery := ""
-	var argsChannelsQuery []interface{}
+	var argsChannelsQuery []any
 	if !cursor.ChannelsQueryCompleted {
 		if cursor.LastChannelsQueryPostCreateAt == 0 {
 			cursor.LastChannelsQueryPostCreateAt = job.StartAt
 		}
-		//append the named parameters of SQL query in the correct order to argsChannelsQuery
+		// append the named parameters of SQL query in the correct order to argsChannelsQuery
 		argsChannelsQuery = append(argsChannelsQuery, cursor.LastChannelsQueryPostCreateAt, cursor.LastChannelsQueryPostCreateAt, cursor.LastChannelsQueryPostID, job.EndAt)
 		argsChannelsQuery = append(argsChannelsQuery, argsEmails...)
 		argsChannelsQuery = append(argsChannelsQuery, argsKeywords...)
@@ -229,12 +204,12 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 
 	directMessagePosts := []*model.CompliancePost{}
 	directMessagesQuery := ""
-	var argsDirectMessagesQuery []interface{}
+	var argsDirectMessagesQuery []any
 	if !cursor.DirectMessagesQueryCompleted && len(channelPosts) < limit {
 		if cursor.LastDirectMessagesQueryPostCreateAt == 0 {
 			cursor.LastDirectMessagesQueryPostCreateAt = job.StartAt
 		}
-		//append the named parameters of SQL query in the correct order to argsDirectMessagesQuery
+		// append the named parameters of SQL query in the correct order to argsDirectMessagesQuery
 		argsDirectMessagesQuery = append(argsDirectMessagesQuery, cursor.LastDirectMessagesQueryPostCreateAt, cursor.LastDirectMessagesQueryPostCreateAt, cursor.LastDirectMessagesQueryPostID, job.EndAt)
 		argsDirectMessagesQuery = append(argsDirectMessagesQuery, argsEmails...)
 		argsDirectMessagesQuery = append(argsDirectMessagesQuery, argsKeywords...)
@@ -296,8 +271,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 }
 
 func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limit int) ([]*model.MessageExport, model.MessageExportCursor, error) {
-	var args []interface{}
-	args = append(args, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, limit)
+	var args []any
+	args = append(args, model.ChannelTypeDirect, model.ChannelTypeGroup, cursor.LastPostUpdateAt, cursor.LastPostUpdateAt, cursor.LastPostId, limit)
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -315,8 +290,8 @@ func (s SqlComplianceStore) MessageExport(cursor model.MessageExportCursor, limi
 			Teams.DisplayName AS TeamDisplayName,
 			Channels.Id AS ChannelId,
 			CASE
-				WHEN Channels.Type = 'D' THEN 'Direct Message'
-				WHEN Channels.Type = 'G' THEN 'Group Message'
+				WHEN Channels.Type = ? THEN 'Direct Message'
+				WHEN Channels.Type = ? THEN 'Group Message'
 				ELSE Channels.DisplayName
 			END AS ChannelDisplayName,
 			Channels.Name AS ChannelName,

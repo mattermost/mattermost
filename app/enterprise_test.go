@@ -57,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			saml2.Mock.On("ConfigureSP").Return(nil)
 			saml2.Mock.On("GetMetadata").Return("samlTwo", nil)
 			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(_ *Server) einterfaces.SamlInterface {
+				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
@@ -77,6 +77,7 @@ func TestSAMLSettings(t *testing.T) {
 			mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+			mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 			mockStore.On("User").Return(&mockUserStore)
 			mockStore.On("Post").Return(&mockPostStore)
@@ -89,10 +90,10 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			if tc.isNil {
-				assert.Nil(t, th.App.Srv().Saml)
+				assert.Nil(t, th.App.Channels().Saml)
 			} else {
-				assert.NotNil(t, th.App.Srv().Saml)
-				metadata, err := th.App.Srv().Saml.GetMetadata()
+				assert.NotNil(t, th.App.Channels().Saml)
+				metadata, err := th.App.Channels().Saml.GetMetadata()
 				assert.Nil(t, err)
 				assert.Equal(t, tc.metadata, metadata)
 			}

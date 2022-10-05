@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 const (
@@ -26,11 +27,12 @@ type msgType int
 const (
 	msgTypeJSON msgType = iota + 1
 	msgTypePong
+	msgTypeBinary
 )
 
 type writeMessage struct {
 	msgType msgType
-	data    interface{}
+	data    any
 }
 
 const avgReadMsgSizeBytes = 1024
@@ -87,7 +89,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, header http.Header) (*WebSocketClient, error) {
 	conn, _, err := dialer.Dial(connectURL, header)
 	if err != nil {
-		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	client := &WebSocketClient{
@@ -109,7 +111,7 @@ func makeClient(dialer *websocket.Dialer, url, connectURL, authToken string, hea
 	client.configurePingHandling()
 	go client.writer()
 
-	client.SendMessage(WebsocketAuthenticationChallenge, map[string]interface{}{"token": authToken})
+	client.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": authToken})
 
 	return client, nil
 }
@@ -138,7 +140,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	var err error
 	wsc.Conn, _, err = dialer.Dial(wsc.ConnectURL, nil)
 	if err != nil {
-		return NewAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return NewAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	// Super racy and should not be done anyways.
 	// All of this needs to be redesigned for v6.
@@ -155,7 +157,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
-	wsc.SendMessage(WebsocketAuthenticationChallenge, map[string]interface{}{"token": wsc.AuthToken})
+	wsc.SendMessage(WebsocketAuthenticationChallenge, map[string]any{"token": wsc.AuthToken})
 
 	return nil
 }
@@ -182,6 +184,10 @@ func (wsc *WebSocketClient) writer() {
 			switch msg.msgType {
 			case msgTypeJSON:
 				wsc.Conn.WriteJSON(msg.data)
+			case msgTypeBinary:
+				if data, ok := msg.data.([]byte); ok {
+					wsc.Conn.WriteMessage(websocket.BinaryMessage, data)
+				}
 			case msgTypePong:
 				wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 			}
@@ -229,7 +235,7 @@ func (wsc *WebSocketClient) Listen() {
 			_, r, err := wsc.Conn.NextReader()
 			if err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
+					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
 				return
 			}
@@ -239,7 +245,7 @@ func (wsc *WebSocketClient) Listen() {
 				// This should use a different error ID, but en.json is not imported anyways.
 				// It's a different bug altogether but we let it be for now.
 				// See MM-24520.
-				wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
+				wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				return
 			}
 
@@ -262,7 +268,7 @@ func (wsc *WebSocketClient) Listen() {
 	}()
 }
 
-func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface{}) {
+func (wsc *WebSocketClient) SendMessage(action string, data map[string]any) {
 	req := &WebSocketRequest{}
 	req.Seq = wsc.Sequence
 	req.Action = action
@@ -275,10 +281,30 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 	}
 }
 
+func (wsc *WebSocketClient) SendBinaryMessage(action string, data map[string]any) error {
+	req := &WebSocketRequest{}
+	req.Seq = wsc.Sequence
+	req.Action = action
+	req.Data = data
+
+	binaryData, err := msgpack.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request to msgpack: %w", err)
+	}
+
+	wsc.Sequence++
+	wsc.writeChan <- writeMessage{
+		msgType: msgTypeBinary,
+		data:    binaryData,
+	}
+
+	return nil
+}
+
 // UserTyping will push a user_typing event out to all connected users
 // who are in the specified channel
 func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"channel_id": channelId,
 		"parent_id":  parentId,
 	}
@@ -294,7 +320,7 @@ func (wsc *WebSocketClient) GetStatuses() {
 // GetStatusesByIds will fetch certain user statuses based on ids and return
 // a map of string statuses using user id as the key
 func (wsc *WebSocketClient) GetStatusesByIds(userIds []string) {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"user_ids": userIds,
 	}
 	wsc.SendMessage("get_statuses_by_ids", data)

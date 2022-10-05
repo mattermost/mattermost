@@ -193,6 +193,13 @@ func (th *SearchTestHelper) deleteUser(user *model.User) error {
 	return th.Store.User().PermanentDelete(user.Id)
 }
 
+func (th *SearchTestHelper) deleteBotUser(botID string) error {
+	if err := th.deleteBot(botID); err != nil {
+		return err
+	}
+	return th.Store.User().PermanentDelete(botID)
+}
+
 func (th *SearchTestHelper) cleanAllUsers() error {
 	users, err := th.Store.User().GetAll()
 	if err != nil {

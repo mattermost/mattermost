@@ -204,18 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "store.sql.convert_string_map",
-    "translation": "FromDb: Не може да конвертира StringMap в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_interface",
-    "translation": "FromDb: Не може да конвертира StringInterface в *низ"
-  },
-  {
-    "id": "store.sql.convert_string_array",
-    "translation": "FromDb: Не може да конвертира StringArray в *низ"
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
   },
@@ -888,10 +876,6 @@
     "translation": "Настройката на Elasticsearch ConnectionUrl трябва да бъде предоставена, когато е активирано индексирането на Elasticsearch."
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Времевият прозорец за групово индексиране на Elasticsearch трябва да бъде най-малко 1 секунда."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Настройката на Elasticsearch AggregatePostsAfterDays трябва да бъде число, по-голямо или равно на 1."
   },
@@ -934,10 +918,6 @@
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
     "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableAutocomplete е зададен на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Времевия прозорец на Bleve Bulk трябва да бъде най-малко 1 секунда."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
@@ -1142,10 +1122,6 @@
   {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Създадено в трябва да е валидно време."
-  },
-  {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Името трябва да има 2 или повече буквено-цифрови символи."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -1940,10 +1916,6 @@
     "translation": "Elasticsearch е забранен."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Неуспешно свързване с Elasticsearch сървъра."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch вече е спрян."
   },
@@ -2460,20 +2432,8 @@
     "translation": "Не можа да се запази стойността за {{.WarnMetricName}}"
   },
   {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Не може да се намери показател."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Списъкът на администраторите е празен."
-  },
-  {
     "id": "app.system.warn_metric.bot_displayname",
     "translation": "Mattermost съветник"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Научете повече за Mattermost съветника](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.save.app_error",
@@ -3968,10 +3928,6 @@
     "translation": "Личен маркер за достъп беше добавен към вашия профил на {{.SiteURL}}. Той може да бъде използван за достъп до {{.SiteName}} с вашия профил."
   },
   {
-    "id": "api.templates.upgrade_mattermost_cloud",
-    "translation": "Надстрой"
-  },
-  {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{.SiteName}}] Вашият метод за вход е актуализиран"
   },
@@ -4066,122 +4022,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
-  },
-  {
-    "id": "api.templates.over_limit_title",
-    "translation": "Вашето работно пространство превишава лимита на потребители за безплатното ниво"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost облачното работно пространство е спряно"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Абонаментът ви за Mattermost Cloud беше спрян"
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info2",
-    "translation": "Свържете се с нас, за да активирате отново работното си пространство."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Работното Ви пространство беше спряно, цялото съдържание и данни в него ще бъдат изтрити в рамките на 1-3 месеца."
-  },
-  {
-    "id": "api.templates.over_limit_suspended_contact_support",
-    "translation": "Свържете се с поддръжката"
-  },
-  {
-    "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud работното пространство превишава потребителското ограничение"
-  },
-  {
-    "id": "api.templates.over_limit_info2",
-    "translation": "Като алтернатива можете да деактивирате потребителите в Системна конзола, за да отворите места за повече потребители или да останете под безплатния потребителски лимит."
-  },
-  {
-    "id": "api.templates.over_limit_info1",
-    "translation": "Изглежда, че имате повече от 10 потребители във вашето работно пространство, което е извън ограниченията на безплатното ниво в Mattermost Cloud Professional. За да избегнете прекъсвания във вашето работно пространство Mattermost, моля надстройте."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Оправи сега"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_title",
-    "translation": "Спирането на работното ви пространство в Mattermost Cloud е насрочено за утре"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Абонаментът ви за Mattermost Cloud скоро ще бъде спрян"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info4",
-    "translation": "След като работното ви пространство бъде спряно, цялото съдържание и данни в него ще бъдат изтрити в рамките на 1-3 месеца."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info3",
-    "translation": "След като работното Ви пространство бъде спряно, няма да можете да влезете в акаунта си или да актуализирате данните за плащане. Ще трябва да се свържете с нашия екип за поддръжка, за да активирате отново Вашата услуга."
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info2",
-    "translation": "За да избегнете спиране, добавете данните си за плащане"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Това е последно напомняне, че не сме получили плащане за вашето работно пространство Mattermost Cloud, то е просрочено от {{.OverLimitDate}}. Утре ще спрем услугата ви."
-  },
-  {
-    "id": "api.templates.over_limit_7_days_title",
-    "translation": "Няма регистриран начин на плащане"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Плащането е просрочено за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost не можа да обработи последното Ви автоматично плащане. За да поддържате услугата си активна, моля, добавете данните за плащане възможно най-скоро или услугата Ви може да бъде спряна."
-  },
-  {
-    "id": "api.templates.over_limit_30_days_title",
-    "translation": "Спиране на Mattermost облачното работно пространство"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Действайте, за да запазите абонамента си за Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item3",
-    "translation": "Ще загубите достъп до историята на съобщенията си"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item2",
-    "translation": "Няма да можете да актуализирате данните за плащане, без да се свържете с нашия екип за поддръжка"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2_item1",
-    "translation": "Няма да можете да влезете в работното си пространство"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info2",
-    "translation": "Ако не се предприемат действия, работното ви пространство ще бъде спряно"
-  },
-  {
-    "id": "api.templates.over_limit_30_days_info1",
-    "translation": "Все още има време да поддържате работното си пространство на Mattermost Cloud активно чрез разрешаване на проблема с начина на плащане. За да избегнете спиране, актуализирайте начина си на плащане."
-  },
-  {
-    "id": "api.templates.over_limit_14_days_title",
-    "translation": "Не е получено плащане"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Плащането е просрочено за вашия Mattermost Cloud абонамент"
-  },
-  {
-    "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Само напомняне, че не сме получили плащане за вашия Mattermost абонамент, фактуриран на {{.OverLimitDate}}. Скоро ще започнем процес за спиране на вашата услуга, ако не бъде получено плащане."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -4294,22 +4134,6 @@
   {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, втори етаж, Пало Алто, Калифорния, 94301"
-  },
-  {
-    "id": "api.templates.at_limit_title",
-    "translation": "Достигнахте ограничението за потребители на безплатното ниво "
-  },
-  {
-    "id": "api.templates.at_limit_subject",
-    "translation": "Достигнато е Mattermost Cloud ограничението за потребители"
-  },
-  {
-    "id": "api.templates.at_limit_info2",
-    "translation": "Като алтернатива можете да деактивирате потребителите в Системна конзола, за да отворите места за повече потребители или да останете под безплатния потребителски лимит."
-  },
-  {
-    "id": "api.templates.at_limit_info1",
-    "translation": "Изглежда, че вече имате 10 или повече потребители в работното си пространство - това е страхотно! Ако искате да поканите повече членове на екипа, помислете за надграждане на Mattermost Cloud Professional сега."
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -4430,10 +4254,6 @@
   {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "Никой за поканване."
-  },
-  {
-    "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "Достигнахте ограничението за потребители на безплатния абонамент"
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -4816,10 +4636,6 @@
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Неуспешно избиране на пакета от членове на канала."
-  },
-  {
-    "id": "app.channel.increment_mention_count.app_error",
-    "translation": "Броят на споменаванията не може да се увеличи."
   },
   {
     "id": "app.channel.get_unread.app_error",
@@ -5534,10 +5350,6 @@
     "translation": "marshal грешка"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Не може да се поиска пробен лиценз. Моля, конфигурирайте URL адрес на сайта в секцията за уеб сървъра на Mattermost Системна конзола."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Не можете да получите пробен лиценз, моля, опитайте отново или се свържете със support@mattermost.com. Не може да се получи броят на регистрираните потребители."
   },
@@ -5676,10 +5488,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Файл над максималните размери не може да бъде качен: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Невъзможно качването на файл. Зададен е неправилен брой файлове."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -6070,7 +5878,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен зададения канал. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.name",
@@ -6082,7 +5890,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_mute.desc",
@@ -6234,7 +6042,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://about.mattermost.com/default-channel-handle-documentation) за да определяте канали."
+    "translation": "Не е намерен канала {{.Channel}}. Моля, използвайте [адреса на канала](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) за да определяте канали."
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -6310,10 +6118,6 @@
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Липсва задължително свойство за отговор: create_at."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Свойството CreateAt на отговора трябва да е по-голямо от CreateAt на родителската публикация."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -6476,20 +6280,12 @@
     "translation": "Заглавката на канала е твърде дълга."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Липсва задължително свойство на канала: display_name"
-  },
-  {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
     "translation": "Display_name на канала не е в рамките на разрешените ограничения на дължината."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Не може да се прочете версията на файла за импортиране на данни."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Неуспешно построяване на заявката."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -6888,14 +6684,6 @@
     "translation": "Интеграцията/Slack Bot потребителя с ел.поща {{.Email}} и парола {{.Password}} е внесен.\n"
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Вземи пробно"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Започни пробен период"
-  },
-  {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
     "translation": "Пробната версия на Enterprise вече е активна. Отидете на **Системна конзола > Управление на потребители > Права**, за да активирате разширени права."
   },
@@ -7078,14 +6866,6 @@
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
     "translation": "Заявка Mattermost свържете с нас. Интересно ми е да науча повече за използването на профили за гости.\n"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Свързване с нас"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Свържете се с нас"
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
@@ -8228,22 +8008,6 @@
     "translation": "Няма успешно изпратена ел.поща"
   },
   {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} желае да покани членове във Вашето работно пространство"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost потребителска заявка за надстройка на работното пространство"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Тъй като работното ви пространство е достигнало потребителското ограничение за безплатната версия на Mattermost cloud, покани не могат да бъдат изпращани. Надстройте сега, за да позволите на повече потребители да се присъединят към вашето работно пространство."
-  },
-  {
-    "id": "api.templates.at_limit_info5",
-    "translation": "Като алтернатива можете да деактивирате потребителите в системната конзола, за да отворите места за потребители и да останете под безплатния потребителски лимит."
-  },
-  {
     "id": "mfa.deactivate.app_error",
     "translation": "Не може да се актуализира състоянието на активност за МФУ потребител."
   },
@@ -8300,14 +8064,6 @@
     "translation": "Не можа да се получи пакета с файлове за индексиране."
   },
   {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "Нови потребители не могат да се присъединяват към вашето работно пространство"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Някой наскоро се опита да се присъедини към Вашето работно пространство, но не успя, тъй като е достигнато ограничението за потребители в безплатната версия на Mattermost cloud. Надстройте сега, за да позволите на повече потребители да се присъединят към Вашето работно пространство."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Въпроси?"
   },
@@ -8322,22 +8078,6 @@
   {
     "id": "api.post.search_files.invalid_body.app_error",
     "translation": "Не можа да се анализира тялото на заявката."
-  },
-  {
-    "id": "ent.cloud.subscription.error",
-    "translation": "Грешка при получаване на абонамента за облак"
-  },
-  {
-    "id": "api.team.cloud.subscription.error",
-    "translation": "Грешка при получаване на абонамента за облак"
-  },
-  {
-    "id": "api.cloud.get_subscription.error",
-    "translation": "Грешка при получаване на абонамента за облак."
-  },
-  {
-    "id": "api.cloud.get_admins_emails.error",
-    "translation": "Грешка при вземане на администраторската ел.поща."
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -8784,46 +8524,6 @@
     "translation": "Полето '{{.Field}}' трябва да бъде зададено чрез доставчика за удостоверяване на потребители."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Безплатната Ви 14-дневна пробна версия на Mattermost приключва скоро"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи след 3 дни, на {{.TrialEnd}}. Моля, добавете информация за плащане за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Приключва пробната версия на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавяне на метод за плащане"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Безплатната ви 14-дневна пробна версия на Mattermost приключи днес"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи днес, {{.TodayDate}}. Моля, добавете информация за плащане, за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Пробната версия на Mattermost cloud приключи"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Започни абонамент"
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.start_trial.notification_body",
-    "translation": "Моля, отидете в **Системна конзола > Конфигурация на сайта > Персонализиране**, за да зададете [ел.поща за поддръжка](https://docs.mattermost.com/administration/config-settings.html#support-email) като вътрешен адрес за ел.поща на бюрото за ИТ поддръжка на вашата организация за обратна връзка с крайните потребители, известия по ел.поща и заявки за поддръжка."
-  },
-  {
-    "id": "api.server.warn_metric.support_email_not_configured.notification_title",
-    "translation": "Задайте адрес на ел.поща за поддръжка"
-  },
-  {
     "id": "api.remote_cluster.update_not_unique.app_error",
     "translation": "Вече съществува защитена връзка със същия url адрес."
   },
@@ -9060,14 +8760,6 @@
     "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
   },
   {
-    "id": "api.user.update_active.cloud_at_or_over_limit_check_overcapacity",
-    "translation": "Не мога да активирам повече потребители, тъй като капацитетът на профила в облака е надхвърлен."
-  },
-  {
-    "id": "api.user.update_active.cloud_at_limit_check_error",
-    "translation": "Неуспешна проверка броя на потребителите във Вашата Mattermost облачна инстанция."
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "Проверката за ограничения на изображението е неуспешна. Разделителната способност е твърде висока."
   },
@@ -9142,18 +8834,6 @@
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Невъзможно получаването на маркери по тип при анулирането на маркери за проверка по ел.поща"
-  },
-  {
-    "id": "extract_content.worker.do_job.file_info",
-    "translation": "Неуспешно получаване на информация за файла при извличане на съдържание."
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.to",
-    "translation": "Невалидна входна стойност 'До'"
-  },
-  {
-    "id": "extrac_content.worker.do_job.invalid_input.from",
-    "translation": "Невалидна входна стойност 'От'"
   },
   {
     "id": "app.user.store_is_empty.app_error",

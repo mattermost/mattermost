@@ -18,6 +18,7 @@ func (api *API) InitSystemLocal() {
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APILocal(clearServerBusy)).Methods("DELETE")
 	api.BaseRoutes.APIRoot.Handle("/integrity", api.APILocal(localCheckIntegrity)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APILocal(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -32,7 +33,7 @@ func localCheckIntegrity(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	data, err := json.Marshal(results)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.localCheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.localCheckIntegrity", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

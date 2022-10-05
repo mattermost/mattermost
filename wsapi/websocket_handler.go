@@ -12,13 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]any, *model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	handlerFunc func(*model.WebSocketRequest) (map[string]any, *model.AppError)
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
@@ -50,7 +50,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.T = conn.T
 	r.Locale = conn.Locale
 
-	var data map[string]interface{}
+	var data map[string]any
 	var err *model.AppError
 
 	if data, err = wh.handlerFunc(r); err != nil {
@@ -73,7 +73,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 }
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
-	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
+	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]any{"Name": name}, "", http.StatusBadRequest)
 }
 
 func NewServerBusyWebSocketError(action string) *model.AppError {

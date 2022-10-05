@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -167,10 +169,18 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 	}
 
 	// Disable TCP_NO_DELAY for higher throughput
-	// Unfortunately, it doesn't work for tls.Conn,
-	// and currently, the API doesn't expose the underlying TCP conn.
-	tcpConn, ok := cfg.WebSocket.UnderlyingConn().(*net.TCPConn)
-	if ok {
+	var tcpConn *net.TCPConn
+	switch conn := cfg.WebSocket.UnderlyingConn().(type) {
+	case *net.TCPConn:
+		tcpConn = conn
+	case *tls.Conn:
+		newConn, ok := conn.NetConn().(*net.TCPConn)
+		if ok {
+			tcpConn = newConn
+		}
+	}
+
+	if tcpConn != nil {
 		err := tcpConn.SetNoDelay(false)
 		if err != nil {
 			mlog.Warn("Error in setting NoDelay socket opts", mlog.Err(err))
@@ -181,7 +191,7 @@ func (a *App) NewWebConn(cfg *WebConnConfig) *WebConn {
 		cfg.activeQueue = make(chan model.WebSocketMessage, sendQueueSize)
 	}
 
-	if cfg.deadQueue == nil && *a.ch.srv.Config().ServiceSettings.EnableReliableWebSockets {
+	if cfg.deadQueue == nil {
 		cfg.deadQueue = make([]*model.WebSocketEvent, deadQueueSize)
 	}
 
@@ -297,8 +307,6 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	defer wc.App.Srv().userService.ReturnSessionToPool(wc.GetSession())
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -333,7 +341,9 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
+			return err
+		}
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
@@ -343,9 +353,23 @@ func (wc *WebConn) readPump() {
 	})
 
 	for {
+		msgType, rd, err := wc.WebSocket.NextReader()
+		if err != nil {
+			wc.logSocketErr("websocket.NextReader", err)
+			return
+		}
+
+		var decoder interface {
+			Decode(v any) error
+		}
+		if msgType == websocket.TextMessage {
+			decoder = json.NewDecoder(rd)
+		} else {
+			decoder = msgpack.NewDecoder(rd)
+		}
 		var req model.WebSocketRequest
-		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
+		if err = decoder.Decode(&req); err != nil {
+			wc.logSocketErr("websocket.Decode", err)
 			return
 		}
 
@@ -375,7 +399,7 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
-	if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets && wc.Sequence != 0 {
+	if wc.Sequence != 0 {
 		if ok, index := wc.isInDeadQueue(wc.Sequence); ok {
 			if err := wc.drainDeadQueue(index); err != nil {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
@@ -424,27 +448,6 @@ func (wc *WebConn) writePump() {
 
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
-			skipSend := false
-			if len(wc.send) >= sendSlowWarn {
-				// When the pump starts to get slow we'll drop non-critical messages
-				switch msg.EventType() {
-				case model.WebsocketEventTyping,
-					model.WebsocketEventStatusChange,
-					model.WebsocketEventChannelViewed:
-					mlog.Warn(
-						"websocket.slow: dropping message",
-						mlog.String("user_id", wc.UserId),
-						mlog.String("type", msg.EventType()),
-						mlog.String("channel_id", evt.GetBroadcast().ChannelId),
-					)
-					skipSend = true
-				}
-			}
-
-			if skipSend {
-				continue
-			}
-
 			buf.Reset()
 			var err error
 			if evtOk {
@@ -472,8 +475,7 @@ func (wc *WebConn) writePump() {
 				mlog.Warn("websocket.full", logData...)
 			}
 
-			if *wc.App.Srv().Config().ServiceSettings.EnableReliableWebSockets &&
-				evtOk {
+			if evtOk {
 				wc.addToDeadQueue(evt)
 			}
 
@@ -576,7 +578,7 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 func (wc *WebConn) clearDeadQueue() {
 	for i := 0; i < deadQueueSize; i++ {
 		if wc.deadQueue[i] == nil {
-			return
+			break
 		}
 		wc.deadQueue[i] = nil
 	}
@@ -658,11 +660,11 @@ func (wc *WebConn) IsAuthenticated() bool {
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
-	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil)
+	msg := model.NewWebSocketEvent(model.WebsocketEventHello, "", "", wc.UserId, nil, "")
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion,
 		model.BuildNumber,
 		wc.App.ClientConfigHash(),
-		wc.App.Srv().License() != nil))
+		wc.App.Channels().License() != nil))
 	msg.Add("connection_id", wc.connectionID.Load())
 	return msg
 }
@@ -701,6 +703,23 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
+	// When the pump starts to get slow we'll drop non-critical
+	// messages. We should skip those frames before they are
+	// queued to wc.send buffered channel.
+	if len(wc.send) >= sendSlowWarn {
+		switch msg.EventType() {
+		case model.WebsocketEventTyping,
+			model.WebsocketEventStatusChange,
+			model.WebsocketEventChannelViewed:
+			mlog.Warn(
+				"websocket.slow: dropping message",
+				mlog.String("user_id", wc.UserId),
+				mlog.String("type", msg.EventType()),
+			)
+			return false
+		}
+	}
+
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
@@ -721,6 +740,16 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 		if !*hasReadPrivateDataPermission {
 			return false
 		}
+	}
+
+	// If the event is destined to a specific connection
+	if msg.GetBroadcast().ConnectionId != "" {
+		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
+	}
+
+	// if the connection is omitted don't send the message
+	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
+		return false
 	}
 
 	// If the event is destined to a specific user

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -71,9 +71,13 @@ func init() {
 	ScheduleExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 
 	CsvExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	CsvExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	ActianceExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	ActianceExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
+
 	GlobalRelayZipExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	GlobalRelayZipExportCmd.Flags().Int("limit", -1, "The number of posts to export. The default of -1 means no limit.")
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
@@ -164,11 +168,16 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
+		limit, err := command.Flags().GetInt("limit")
+		if err != nil {
+			return errors.New("limit flag error")
+		}
+
 		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}
@@ -227,10 +236,10 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	var opts app.BulkExportOpts
+	var opts model.BulkExportOpts
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
-	if err := a.BulkExport(fileWriter, filepath.Dir(outPath), opts); err != nil {
+	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}

@@ -22,7 +22,7 @@ type SyncParams struct {
 	SplitKey            string
 	SyncIntervalSeconds int
 	Log                 *mlog.Logger
-	Attributes          map[string]interface{}
+	Attributes          map[string]any
 }
 
 type Synchronizer struct {
@@ -55,7 +55,7 @@ func NewSynchronizer(params SyncParams) (*Synchronizer, error) {
 	}, nil
 }
 
-// EnsureReady blocks until the syncronizer is ready to update feature flag values
+// EnsureReady blocks until the synchronizer is ready to update feature flag values
 func (f *Synchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
 		return errors.Wrap(err, "split.io client could not initialize")
@@ -100,7 +100,7 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 	return baseFeatureFlags
 }
 
-func getStructFields(s interface{}) []string {
+func getStructFields(s any) []string {
 	structType := reflect.TypeOf(s)
 	fieldNames := make([]string, 0, structType.NumField())
 	for i := 0; i < structType.NumField(); i++ {

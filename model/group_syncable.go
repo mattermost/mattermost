@@ -42,6 +42,24 @@ type GroupSyncable struct {
 	TeamID             string `db:"-" json:"-"`
 }
 
+func (syncable *GroupSyncable) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"group_id":             syncable.GroupId,
+		"syncable_id":          syncable.SyncableId,
+		"auto_add":             syncable.AutoAdd,
+		"scheme_admin":         syncable.SchemeAdmin,
+		"create_at":            syncable.CreateAt,
+		"delete_at":            syncable.DeleteAt,
+		"update_at":            syncable.UpdateAt,
+		"type":                 syncable.Type,
+		"channel_display_name": syncable.ChannelDisplayName,
+		"team_display_name":    syncable.TeamDisplayName,
+		"team_type":            syncable.TeamType,
+		"channel_type":         syncable.ChannelType,
+		"team_id":              syncable.TeamID,
+	}
+}
+
 func (syncable *GroupSyncable) IsValid() *AppError {
 	if !IsValidId(syncable.GroupId) {
 		return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.group_id.app_error", nil, "", http.StatusBadRequest)
@@ -53,7 +71,7 @@ func (syncable *GroupSyncable) IsValid() *AppError {
 }
 
 func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
-	var kvp map[string]interface{}
+	var kvp map[string]any
 	err := json.Unmarshal(b, &kvp)
 	if err != nil {
 		return err
