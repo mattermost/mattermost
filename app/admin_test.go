@@ -64,7 +64,7 @@ func TestGetLatestVersion(t *testing.T) {
 		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write(updatedJSON)
 		}))
-		defer ts.Close()
+		defer updatedServer.Close()
 
 		cachedResult, err := th.App.GetLatestVersion(updatedServer.URL)
 		require.Nil(t, err)
@@ -82,7 +82,7 @@ func TestGetLatestVersion(t *testing.T) {
 				}
 			`))
 		}))
-		defer ts.Close()
+		defer errorServer.Close()
 
 		_, appErr := th.App.GetLatestVersion(errorServer.URL)
 		require.NotNil(t, appErr)
