@@ -453,19 +453,19 @@ func TestGetCloudProducts(t *testing.T) {
 			ID:           "prod_test1",
 			Name:         "name",
 			PricePerSeat: 10,
-			SKU:          "starter",
+			SKU:          cloudProducts[0].SKU,
 		},
 		{
 			ID:           "prod_test2",
 			Name:         "name2",
 			PricePerSeat: 100,
-			SKU:          "professional",
+			SKU:          cloudProducts[1].SKU,
 		},
 		{
 			ID:           "prod_test3",
 			Name:         "name3",
 			PricePerSeat: 1000,
-			SKU:          "enterprise",
+			SKU:          cloudProducts[2].SKU,
 		},
 	}
 	t.Run("get products for admins", func(t *testing.T) {
