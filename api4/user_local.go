@@ -136,7 +136,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, appErr = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else {
-		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
+		profiles, _, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
 	if appErr != nil {

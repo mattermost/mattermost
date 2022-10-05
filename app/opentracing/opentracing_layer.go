@@ -10940,7 +10940,7 @@ func (a *OpenTracingAppLayer) GetUsersNotInTeamPage(teamID string, groupConstrai
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersPage")
 
@@ -10952,14 +10952,14 @@ func (a *OpenTracingAppLayer) GetUsersPage(options *model.UserGetOptions, asAdmi
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersPage(options, asAdmin)
+	resultVar0, resultVar1, resultVar2 := a.app.GetUsersPage(options, asAdmin)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (a *OpenTracingAppLayer) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *model.AppError) {

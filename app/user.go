@@ -455,13 +455,13 @@ func (a *App) GetUsersFromProfiles(options *model.UserGetOptions) ([]*model.User
 	return users, nil
 }
 
-func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsersPage(options, asAdmin)
+func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, *model.AppError) {
+	users, totalCount, err := a.ch.srv.userService.GetUsersPage(options, asAdmin)
 	if err != nil {
-		return nil, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, 0, model.NewAppError("GetUsersPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return users, nil
+	return users, totalCount, nil
 }
 
 func (a *App) GetUsersEtag(restrictionsHash string) string {

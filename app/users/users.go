@@ -117,13 +117,13 @@ func (us *UserService) GetUsersByUsernames(usernames []string, options *model.Us
 	return us.store.GetProfilesByUsernames(usernames, options.ViewRestrictions)
 }
 
-func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, error) {
-	users, _, err := us.GetUsersFromProfiles(options)
+func (us *UserService) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, int64, error) {
+	users, totalCount, err := us.GetUsersFromProfiles(options)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.sanitizeProfiles(users, asAdmin), totalCount, nil
 }
 
 func (us *UserService) GetUsersEtag(restrictionsHash string) string {

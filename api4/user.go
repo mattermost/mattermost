@@ -771,6 +771,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var totalCount int64
+
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListUsersWithoutTeam) {
@@ -813,7 +815,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
-			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin()) // ensure this accepts new options
+			profiles, appErr = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if inChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), inChannelId, model.PermissionReadChannel) {
@@ -859,7 +861,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		profiles, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin()) // ensure this accepts new options
+		profiles, totalCount, appErr = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
 	if appErr != nil {
@@ -872,7 +874,20 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
-	js, err := json.Marshal(profiles)
+	var viewData any
+	if userGetOptions.IncludeTotalCount {
+		viewData = struct {
+			Users      []*model.User `json:"users"`
+			TotalCount int64         `json:"total_count"`
+		}{
+			Users:      profiles,
+			TotalCount: totalCount,
+		}
+	} else {
+		viewData = profiles
+	}
+
+	js, err := json.Marshal(viewData)
 	if err != nil {
 		c.Err = model.NewAppError("getUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
