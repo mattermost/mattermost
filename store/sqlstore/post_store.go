@@ -2331,28 +2331,20 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, startPostID str
 		table += " USE INDEX(idx_posts_create_at_id)"
 	}
 	query := `SELECT
-			PostsQuery.*, Channels.TeamId
-		FROM (
-			SELECT
-				*
-			FROM
-				` + table + `
-			WHERE
-				Posts.CreateAt > ?
-			OR
-				(Posts.CreateAt = ? AND Posts.Id > ?)
-			ORDER BY
-				CreateAt ASC, Id ASC
-			LIMIT
-				?
-			)
-		AS
-			PostsQuery
+			Posts.*, Channels.TeamId
+		FROM ` + table + `
 		LEFT JOIN
 			Channels
 		ON
-			PostsQuery.ChannelId = Channels.Id
-		ORDER BY CreateAt ASC, Id ASC`
+			Posts.ChannelId = Channels.Id
+		WHERE
+			Posts.CreateAt > ?
+		OR
+			(Posts.CreateAt = ? AND Posts.Id > ?)
+		ORDER BY
+			Posts.CreateAt ASC, Posts.Id ASC
+		LIMIT
+			?`
 	err := s.GetSearchReplicaX().Select(&posts, query, startTime, startTime, startPostID, limit)
 
 	if err != nil {
