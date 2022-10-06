@@ -94,8 +94,8 @@ func newWebHub(ps *PlatformService) *Hub {
 	}
 }
 
-// HubStart starts all the hubs.
-func (ps *PlatformService) HubStart(suite SuiteIFace) {
+// hubStart starts all the hubs.
+func (ps *PlatformService) hubStart(suite SuiteIFace) {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
