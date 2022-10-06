@@ -154,7 +154,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.32.3
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.32.4
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.2.0
@@ -392,10 +392,14 @@ email-mocks: ## Creates mocks for misc interfaces.
 	$(GO) install github.com/vektra/mockery/v2/...@v2.10.4
 	$(GOBIN)/mockery --dir app/email --name ServiceInterface --output app/email/mocks --note 'Regenerate this file using `make email-mocks`.'
 
+platform-mocks: ## Creates mocks for platform interfaces.
+	$(GO) install github.com/vektra/mockery/v2/...@v2.14.0
+	$(GOBIN)/mockery --dir app/platform --name SuiteIFace --output app/platform/mocks --note 'Regenerate this file using `make platform-mocks`.'
+
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
-mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks
+mocks: store-mocks telemetry-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks searchengine-mocks sharedchannel-mocks misc-mocks email-mocks platform-mocks
 
 layers: app-layers store-layers pluginapi
 
