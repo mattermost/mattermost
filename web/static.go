@@ -155,12 +155,11 @@ func getOpenGraphMetaTags(c *Context) string {
 
 	titleTemplate := "<title>%s</title>"
 	titleHTML := fmt.Sprintf(titleTemplate, html.EscapeString(siteName))
-
+	descriptionHTML := ""
 	if siteDescription != "" {
 		descriptionTemplate := "<meta property=\"og:description\" content=\"%s\" />"
-		descriptionHTML := fmt.Sprintf(descriptionTemplate, html.EscapeString(siteDescription))
-		return fmt.Sprintf("%s%s", titleHTML, descriptionHTML)
+		descriptionHTML = fmt.Sprintf(descriptionTemplate, html.EscapeString(siteDescription))
 	}
 
-	return titleHTML
+	return fmt.Sprintf("%s%s", titleHTML, descriptionHTML)
 }
