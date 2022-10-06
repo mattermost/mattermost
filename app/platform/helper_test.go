@@ -181,7 +181,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	th.Service.HubStart(th.Suite)
+	th.Service.Start(th.Suite)
 
 	return th
 }

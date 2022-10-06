@@ -243,32 +243,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	ps.Busy = NewBusy(ps.clusterIFace)
 
-	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
-		ps.regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
-
-		message.Add("config", ps.ClientConfigWithComputed())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
-
-		if err = ps.ReconfigureLogger(); err != nil {
-			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
-			return
-		}
-	})
-	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		ps.regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
-		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
-
-	})
-
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		ps.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
@@ -294,6 +268,37 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.searchLicenseListenerId = searchLicenseListenerId
 
 	return ps, nil
+}
+
+func (ps *PlatformService) Start(suite SuiteIFace) error {
+	ps.hubStart(suite)
+
+	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
+		ps.regenerateClientConfig()
+
+		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
+
+		message.Add("config", ps.ClientConfigWithComputed())
+		ps.Go(func() {
+			ps.Publish(message)
+		})
+
+		if err := ps.ReconfigureLogger(); err != nil {
+			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			return
+		}
+	})
+	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		ps.regenerateClientConfig()
+
+		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
+		message.Add("license", ps.GetSanitizedClientLicense())
+		ps.Go(func() {
+			ps.Publish(message)
+		})
+
+	})
+	return nil
 }
 
 func (ps *PlatformService) ShutdownMetrics() error {
