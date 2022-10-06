@@ -65,7 +65,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
@@ -84,7 +84,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
-			if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
@@ -94,7 +94,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		return err
 	}
 
-	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
@@ -114,7 +114,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	}
 
 	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
@@ -129,7 +129,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 		}
 	}
 
-	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
@@ -207,7 +207,7 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.Srv().Store.User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store().User()).ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
