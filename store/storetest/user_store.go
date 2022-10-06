@@ -2809,22 +2809,6 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			},
 			[]*model.User{u3},
 		},
-		{
-			"escape :",
-			t1id,
-			"ji:m",
-			&model.UserSearchOptions{},
-			[]*model.User{},
-		},
-		{
-			"wildcard search",
-			t1id,
-			"@",
-			&model.UserSearchOptions{
-				Limit: model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u2, u1, u3},
-		},
 	}
 
 	for _, testCase := range testCases {

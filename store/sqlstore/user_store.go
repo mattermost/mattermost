@@ -1511,21 +1511,10 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 		termArgs := []any{}
 		var dbSpecificTerm string
 
-		if isPostgreSQL {
-			// Escaping the : in case of a Postgres search.
-			term = strings.ReplaceAll(term, ":", "\\:")
-		}
-
 		for _, field := range fields {
 			if isPostgreSQL {
-				if strings.TrimLeft(term, "@") == "" {
-					// For wildcard search, we need to fall back to pattern matching.
-					searchFields = append(searchFields, fmt.Sprintf("%s ILIKE ? escape '*' ", field))
-					dbSpecificTerm = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
-				} else {
-					searchFields = append(searchFields, fmt.Sprintf("to_tsvector(lower(%[1]s)) @@ to_tsquery(concat(lower(?),':*'))", field))
-					dbSpecificTerm = strings.TrimLeft(term, "@")
-				}
+				searchFields = append(searchFields, fmt.Sprintf("to_tsvector(lower(%[1]s)) @@ to_tsquery(concat(lower(?),':*'))", field))
+				dbSpecificTerm = strings.TrimLeft(term, "@")
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 				dbSpecificTerm = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
