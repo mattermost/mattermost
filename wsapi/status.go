@@ -14,7 +14,7 @@ func (api *API) InitStatus() {
 }
 
 func (api *API) getStatuses(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
-	statusMap := api.App.GetAllStatuses()
+	statusMap := api.App.Srv().Platform().GetAllStatuses()
 	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
@@ -25,7 +25,7 @@ func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]any, *
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 
-	statusMap, err := api.App.GetStatusesByIds(userIds)
+	statusMap, err := api.App.Srv().Platform().GetStatusesByIds(userIds)
 	if err != nil {
 		return nil, err
 	}
