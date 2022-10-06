@@ -102,13 +102,13 @@ func TestUpdateGroup(t *testing.T) {
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
 
-	g, err := th.App.UpdateGroup(group)
+	g, err := th.App.UpdateGroup(th.Context, group)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
 	user := th.CreateUser()
 	g.Name = &user.Username
-	g, err = th.App.UpdateGroup(g)
+	g, err = th.App.UpdateGroup(th.Context, g)
 	require.NotNil(t, err)
 	require.Nil(t, g)
 }
@@ -132,11 +132,11 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	g, err := th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	g, err = th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 }
@@ -145,15 +145,15 @@ func TestDeleteGroupMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	groupMember, err := th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, groupMember)
 
-	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	groupMember, err = th.App.DeleteGroupMember(th.Context, groupMember.GroupId, groupMember.UserId)
 	require.Nil(t, err)
 	require.NotNil(t, groupMember)
 
-	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	groupMember, err = th.App.DeleteGroupMember(th.Context, groupMember.GroupId, groupMember.UserId)
 	require.NotNil(t, err)
 	require.Nil(t, groupMember)
 }
@@ -164,22 +164,22 @@ func TestUpsertGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
 	// can update again without error
-	gs, err = th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err = th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	gs, err = th.App.DeleteGroupSyncable(gs.GroupId, gs.SyncableId, gs.Type)
+	gs, err = th.App.DeleteGroupSyncable(th.Context, gs.GroupId, gs.SyncableId, gs.Type)
 	require.Nil(t, err)
 	require.NotEqual(t, int64(0), gs.DeleteAt)
 
 	// Un-deleting works
 	gs.DeleteAt = 0
-	gs, err = th.App.UpsertGroupSyncable(gs)
+	gs, err = th.App.UpsertGroupSyncable(th.Context, gs)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), gs.DeleteAt)
 }
@@ -193,14 +193,14 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 
 	team := th.CreateTeam()
 	team.GroupConstrained = model.NewBool(true)
-	team, err := th.App.UpdateTeam(team)
+	team, err := th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, err)
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupTeam(group1.Id, team.Id, false))
 	require.Nil(t, err)
 
 	channel := th.CreateChannel(th.Context, team)
 
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(group2.Id, channel.Id, false))
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "group_not_associated_to_synced_team")
 
@@ -208,7 +208,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	require.Nil(t, gs)
 	require.NotNil(t, err)
 
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group1.Id, channel.Id, false))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(group1.Id, channel.Id, false))
 	require.Nil(t, err)
 }
 
@@ -218,7 +218,7 @@ func TestGetGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -235,7 +235,7 @@ func TestGetGroupSyncables(t *testing.T) {
 	// Create a group team
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -251,15 +251,15 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
 
-	gs, err := th.App.UpsertGroupSyncable(groupChannel)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupChannel)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	gs, err = th.App.DeleteGroupSyncable(th.Context, group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	gs, err = th.App.DeleteGroupSyncable(th.Context, group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 	require.NotNil(t, err)
 	require.Nil(t, gs)
 }
@@ -277,7 +277,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Type:       model.GroupSyncableTypeChannel,
 	}
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -311,7 +311,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 		Type:       model.GroupSyncableTypeChannel,
 	}
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -350,7 +350,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -380,15 +380,15 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	g, err := th.App.UpsertGroupMember(group1.Id, th.BasicUser.Id)
+	g, err := th.App.UpsertGroupMember(th.Context, group1.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
+	g, err = th.App.UpsertGroupMember(th.Context, group2.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group1.Id,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
@@ -396,7 +396,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	groupSyncable2, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	groupSyncable2, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group2.Id,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
@@ -411,7 +411,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 
 	// set a syncable to be scheme admins
 	groupSyncable2.SchemeAdmin = true
-	_, err = th.App.UpdateGroupSyncable(groupSyncable2)
+	_, err = th.App.UpdateGroupSyncable(th.Context, groupSyncable2)
 	require.Nil(t, err)
 
 	// a syncable is set to scheme admin true, so this returns true
@@ -420,7 +420,7 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.True(t, actual)
 
 	// delete the syncable, should be false again
-	th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	th.App.DeleteGroupSyncable(th.Context, group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 	require.False(t, actual)

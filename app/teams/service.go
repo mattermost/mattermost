@@ -6,6 +6,7 @@ package teams
 import (
 	"errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -18,6 +19,7 @@ type TeamService struct {
 	wh           WebHub
 	config       func() *model.Config
 	license      func() *model.License
+	ctx          request.CTX
 }
 
 // ServiceConfig is used to initialize the TeamService.
@@ -30,6 +32,7 @@ type ServiceConfig struct {
 	WebHub       WebHub
 	ConfigFn     func() *model.Config
 	LicenseFn    func() *model.License
+	Context      request.CTX
 }
 
 // Users is a subset of UserService interface
@@ -40,7 +43,7 @@ type Users interface {
 // WebHub is used to publish events, the name should be given appropriately
 // while developing the websocket or clustering service
 type WebHub interface {
-	Publish(message *model.WebSocketEvent)
+	Publish(c request.CTX, message *model.WebSocketEvent)
 }
 
 func New(c ServiceConfig) (*TeamService, error) {
@@ -56,6 +59,7 @@ func New(c ServiceConfig) (*TeamService, error) {
 		config:       c.ConfigFn,
 		license:      c.LicenseFn,
 		wh:           c.WebHub,
+		ctx:          c.Context,
 	}, nil
 }
 

@@ -53,10 +53,10 @@ func TestSendNotifications(t *testing.T) {
 	t.Run("license is required for group mention", func(t *testing.T) {
 		group := th.CreateGroup()
 		group.AllowReference = true
-		group, updateErr := th.App.UpdateGroup(group)
+		group, updateErr := th.App.UpdateGroup(th.Context, group)
 		require.Nil(t, updateErr)
 
-		_, upsertErr := th.App.UpsertGroupMember(group.Id, th.BasicUser2.Id)
+		_, upsertErr := th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser2.Id)
 		require.Nil(t, upsertErr)
 
 		groupMentionPost := &model.Post{
@@ -97,7 +97,7 @@ func TestSendNotifications(t *testing.T) {
 
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.Srv().InvalidateAllCaches()
+	appErr = th.App.Srv().InvalidateAllCaches(th.Context)
 	require.Nil(t, appErr)
 
 	post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
@@ -271,7 +271,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 2)
@@ -284,7 +284,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, guest, post, channel, potentialMentions)
 
 		require.NoError(t, err)
 		require.Len(t, outOfChannelUsers, 1)
@@ -298,7 +298,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -312,7 +312,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, directChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, directChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -326,7 +326,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, groupChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, groupChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -341,7 +341,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{inactiveUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -355,7 +355,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{botUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -366,7 +366,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
@@ -380,9 +380,9 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		th.LinkUserToTeam(nonGroupMember, th.BasicTeam)
 
 		group := th.CreateGroup()
-		_, appErr := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+		_, appErr := th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
-		_, appErr = th.App.UpsertGroupMember(group.Id, nonChannelMember.Id)
+		_, appErr = th.App.UpsertGroupMember(th.Context, group.Id, nonChannelMember.Id)
 		require.Nil(t, appErr)
 
 		constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
@@ -390,7 +390,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		constrainedChannel, appErr = th.App.UpdateChannel(th.Context, constrainedChannel)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		_, appErr = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 			GroupId:    group.Id,
 			Type:       model.GroupSyncableTypeChannel,
 			SyncableId: constrainedChannel.Id,
@@ -400,7 +400,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{nonChannelMember.Username, nonGroupMember.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, constrainedChannel, potentialMentions)
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, constrainedChannel, potentialMentions)
 
 		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 1)
@@ -2400,7 +2400,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return true", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2413,7 +2413,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOnline(user.Id, true)
+		th.App.SetStatusOnline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2426,7 +2426,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      "false",
@@ -2439,7 +2439,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2452,7 +2452,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOffline(user.Id, true)
+		th.App.SetStatusOffline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2465,7 +2465,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOutOfOffice(user.Id)
+		th.App.SetStatusOutOfOffice(th.Context, user.Id)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2478,7 +2478,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusDoNotDisturb(user.Id)
+		th.App.SetStatusDoNotDisturb(th.Context, user.Id)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,
@@ -2512,13 +2512,13 @@ func TestInsertGroupMentions(t *testing.T) {
 	group := th.CreateGroup()
 	group.DisplayName = "engineering"
 	group.Name = model.NewString("engineering")
-	group, err := th.App.UpdateGroup(group)
+	group, err := th.App.UpdateGroup(th.Context, group)
 	require.Nil(t, err)
 
 	groupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(groupChannelMember, team)
 	th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
-	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
 	nonGroupChannelMember := th.CreateUser()
@@ -2527,13 +2527,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	nonChannelGroupMember := th.CreateUser()
 	th.LinkUserToTeam(nonChannelGroupMember, team)
-	_, err = th.App.UpsertGroupMember(group.Id, nonChannelGroupMember.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, nonChannelGroupMember.Id)
 	require.Nil(t, err)
 
 	groupWithNoMembers := th.CreateGroup()
 	groupWithNoMembers.DisplayName = "marketing"
 	groupWithNoMembers.Name = model.NewString("marketing")
-	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
+	groupWithNoMembers, err = th.App.UpdateGroup(th.Context, groupWithNoMembers)
 	require.Nil(t, err)
 
 	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
@@ -2622,7 +2622,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	group1.AllowReference = true
-	group1, err = th.App.UpdateGroup(group1)
+	group1, err = th.App.UpdateGroup(th.Context, group1)
 	require.Nil(t, err)
 
 	group2 := th.CreateGroup()
@@ -2635,7 +2635,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	group2.AllowReference = true
-	group2, err = th.App.UpdateGroup(group2)
+	group2, err = th.App.UpdateGroup(th.Context, group2)
 	require.Nil(t, err)
 
 	// Sync first group to constrained channel
@@ -2643,7 +2643,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	constrainedChannel.GroupConstrained = model.NewBool(true)
 	constrainedChannel, err = th.App.UpdateChannel(th.Context, constrainedChannel)
 	require.Nil(t, err)
-	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group1.Id,
 		Type:       model.GroupSyncableTypeChannel,
 		SyncableId: constrainedChannel.Id,
@@ -2661,14 +2661,14 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	// Create a third group not synced with a team or channel
 	group3 := th.CreateGroup()
 	group3.AllowReference = true
-	group3, err = th.App.UpdateGroup(group3)
+	group3, err = th.App.UpdateGroup(th.Context, group3)
 	require.Nil(t, err)
 
 	// Sync group2 to the team
 	team.GroupConstrained = model.NewBool(true)
-	team, err = th.App.UpdateTeam(team)
+	team, err = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, err)
-	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group2.Id,
 		Type:       model.GroupSyncableTypeTeam,
 		SyncableId: team.Id,
@@ -2694,7 +2694,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	team.GroupConstrained = model.NewBool(false)
-	team, err = th.App.UpdateTeam(team)
+	team, err = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, err)
 
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {

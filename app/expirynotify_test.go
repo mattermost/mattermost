@@ -32,7 +32,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 			*cfg.EmailSettings.SendPushNotifications = false
 		})
 
-		err := th.App.NotifySessionsExpired()
+		err := th.App.NotifySessionsExpired(th.Context)
 		// no error, but also no requests sent
 		require.NoError(t, err)
 		require.Equal(t, 0, handler.numReqs())
@@ -64,7 +64,7 @@ func TestNotifySessionsExpired(t *testing.T) {
 			require.Nil(t, err)
 		}
 
-		err := th.App.NotifySessionsExpired()
+		err := th.App.NotifySessionsExpired(th.Context)
 		require.NoError(t, err)
 		require.Equal(t, 2, handler.numReqs())
 

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -105,7 +106,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	require.NoError(t, nErr)
 
 	// test that notifications aren't sent before interval
-	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	job.checkPendingNotifications(time.Unix(10001, 0), func(request.CTX, string, []*batchedNotification) {})
 
 	require.NotNil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 1, "shouldn't have sent queued post")
@@ -127,7 +128,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	require.NoError(t, nErr)
 
 	var wasCalled int32
-	job.checkPendingNotifications(time.Unix(10050, 0), func(string, []*batchedNotification) {
+	job.checkPendingNotifications(time.Unix(10050, 0), func(request.CTX, string, []*batchedNotification) {
 		atomic.StoreInt32(&wasCalled, int32(1))
 	})
 
@@ -167,7 +168,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 
 	received := make(chan *model.Post, 2)
 
-	job.checkPendingNotifications(time.Unix(10130, 0), func(s string, notifications []*batchedNotification) {
+	job.checkPendingNotifications(time.Unix(10130, 0), func(c request.CTX, s string, notifications []*batchedNotification) {
 		for _, notification := range notifications {
 			received <- notification.post
 		}
@@ -223,12 +224,12 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	}
 
 	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
-	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	job.checkPendingNotifications(time.Unix(10001, 0), func(request.CTX, string, []*batchedNotification) {})
 	require.NotNil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 1, "shouldn't have sent queued post")
 
 	// notifications should be sent 901s after post was created, because default batch interval is 15mins
-	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	job.checkPendingNotifications(time.Unix(10901, 0), func(request.CTX, string, []*batchedNotification) {})
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }
@@ -274,12 +275,12 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	}
 
 	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
-	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	job.checkPendingNotifications(time.Unix(10001, 0), func(request.CTX, string, []*batchedNotification) {})
 	require.NotNil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 1, "shouldn't have sent queued post")
 
 	// notifications should be sent 901s after post was created, because default batch interval is 15mins
-	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	job.checkPendingNotifications(time.Unix(10901, 0), func(request.CTX, string, []*batchedNotification) {})
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }

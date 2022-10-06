@@ -36,7 +36,7 @@ const (
 // Mocks can be re-generated with `make sharedchannel-mocks`.
 type ServerIface interface {
 	Config() *model.Config
-	IsLeader() bool
+	IsLeader(request.CTX) bool
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
@@ -49,20 +49,20 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
+	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
+	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	InvalidateCacheForUser(userID string)
-	NotifySharedChannelUserUpdate(user *model.User)
+	NotifySharedChannelUserUpdate(c request.CTX, user *model.User)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -92,6 +92,8 @@ type Service struct {
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
 	siteURL                   *url.URL
+
+	ctx request.CTX
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
@@ -101,6 +103,7 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 		app:          app,
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
+		ctx:          request.EmptyContext(server.Log()),
 	}
 	parsed, err := url.Parse(*server.Config().ServiceSettings.SiteURL)
 	if err != nil {
@@ -171,7 +174,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
-	if scs.server.IsLeader() {
+	if scs.server.IsLeader(scs.ctx) {
 		scs.resume()
 	} else {
 		scs.pause()

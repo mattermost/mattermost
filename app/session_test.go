@@ -29,7 +29,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = false })
 
-	rsession, err := th.App.GetSession(session.Token)
+	rsession, err := th.App.GetSession(th.Context, session.Token)
 	require.Nil(t, err)
 	assert.Equal(t, rsession.Id, session.Id)
 
@@ -39,7 +39,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
-	rsession, err = th.App.GetSession(session.Token)
+	rsession, err = th.App.GetSession(th.Context, session.Token)
 	require.NotNil(t, err)
 	assert.Equal(t, "api.context.invalid_token.error", err.Id)
 	assert.Equal(t, "idle timeout", err.DetailedError)
@@ -57,7 +57,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
-	_, err = th.App.GetSession(session.Token)
+	_, err = th.App.GetSession(th.Context, session.Token)
 	assert.Nil(t, err)
 
 	// Test personal access token session, should not timeout
@@ -72,7 +72,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
-	_, err = th.App.GetSession(session.Token)
+	_, err = th.App.GetSession(th.Context, session.Token)
 	assert.Nil(t, err)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
@@ -90,7 +90,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	require.NoError(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
-	_, err = th.App.GetSession(session.Token)
+	_, err = th.App.GetSession(th.Context, session.Token)
 	assert.Nil(t, err)
 }
 
@@ -106,20 +106,20 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		session, err := th.App.CreateSession(&model.Session{UserId: guest.Id, Props: model.StringMap{model.SessionPropIsGuest: "true"}})
 		require.Nil(t, err)
 
-		rsession, err := th.App.GetSession(session.Token)
+		rsession, err := th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		rsession, err = th.App.GetSession(session.Token)
+		rsession, err = th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
 
-		rsession, err = th.App.GetSession(session.Token)
+		rsession, err = th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 	})
@@ -130,19 +130,19 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		session, err := th.App.CreateSession(&model.Session{UserId: user.Id, Props: model.StringMap{model.SessionPropIsGuest: "false"}})
 		require.Nil(t, err)
 
-		rsession, err := th.App.GetSession(session.Token)
+		rsession, err := th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "false", rsession.Props[model.SessionPropIsGuest])
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
-		rsession, err = th.App.GetSession(session.Token)
+		rsession, err = th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 
 		th.App.ClearSessionCacheForUser(session.UserId)
-		rsession, err = th.App.GetSession(session.Token)
+		rsession, err = th.App.GetSession(th.Context, session.Token)
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SessionPropIsGuest])
 	})
@@ -257,7 +257,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -274,7 +274,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
 		session.ExpiresAt = expires
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -304,7 +304,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
 			session.ExpiresAt = expires
 
-			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+			ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 			if !test.enabled {
 				require.False(t, ok)

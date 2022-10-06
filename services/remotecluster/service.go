@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -42,7 +43,7 @@ var (
 
 type ServerIface interface {
 	Config() *model.Config
-	IsLeader() bool
+	IsLeader(request.CTX) bool
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
@@ -88,6 +89,8 @@ type Service struct {
 	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
 	done                     chan struct{}
+
+	ctx request.CTX
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
@@ -118,6 +121,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		httpClient:               client,
 		topicListeners:           make(map[string]map[string]TopicListener),
 		connectionStateListeners: make(map[string]ConnectionStateListener),
+		ctx:                      request.EmptyContext(server.Log()),
 	}
 
 	service.send = make([]chan any, MaxConcurrentSends)
@@ -218,7 +222,7 @@ func (rcs *Service) RemoveConnectionStateListener(listenerId string) {
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (rcs *Service) onClusterLeaderChange() {
-	if rcs.server.IsLeader() {
+	if rcs.server.IsLeader(rcs.ctx) {
 		rcs.resume()
 	} else {
 		rcs.pause()

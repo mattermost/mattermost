@@ -792,7 +792,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		teamUserRole, appErr := th.App.GetRoleByName(context.Background(), teamScheme.DefaultTeamUserRole)
 		require.Nil(t, appErr)
 		teamUserRole.Permissions = []string{}
-		_, appErr = th.App.UpdateRole(teamUserRole)
+		_, appErr = th.App.UpdateRole(th.Context, teamUserRole)
 		require.Nil(t, appErr)
 
 		th.LoginBasic()
@@ -801,7 +801,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		require.NoError(t, err)
 
 		team.SchemeId = &teamScheme.Id
-		team, appErr = th.App.UpdateTeamScheme(team)
+		team, appErr = th.App.UpdateTeamScheme(th.Context, team)
 		require.Nil(t, appErr)
 
 		_, _, err = th.Client.CreateChannel(&model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})

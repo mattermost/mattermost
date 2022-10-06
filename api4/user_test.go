@@ -497,12 +497,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
 		th.BasicTeam.GroupConstrained = model.NewBool(true)
-		team, appErr := th.App.UpdateTeam(th.BasicTeam)
+		team, appErr := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
 			th.BasicTeam.GroupConstrained = model.NewBool(false)
-			_, appErr = th.App.UpdateTeam(th.BasicTeam)
+			_, appErr = th.App.UpdateTeam(th.Context, th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
 
@@ -516,12 +516,12 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
 
 		th.BasicTeam.GroupConstrained = model.NewBool(true)
-		team, appErr := th.App.UpdateTeam(th.BasicTeam)
+		team, appErr := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, appErr)
 
 		defer func() {
 			th.BasicTeam.GroupConstrained = model.NewBool(false)
-			_, appErr = th.App.UpdateTeam(th.BasicTeam)
+			_, appErr = th.App.UpdateTeam(th.Context, th.BasicTeam)
 			require.Nil(t, appErr)
 		}()
 
@@ -1206,7 +1206,7 @@ func TestSearchUsers(t *testing.T) {
 		require.Empty(t, users)
 	})
 
-	_, appErr = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 	assert.Nil(t, appErr)
 
 	t.Run("Returns user in group user found in group", func(t *testing.T) {
@@ -1725,7 +1725,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
@@ -1839,7 +1839,7 @@ func TestPatchUser(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
@@ -2406,7 +2406,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
-	th.App.SetStatusOnline(th.BasicUser.Id, true)
+	th.App.SetStatusOnline(th.Context, th.BasicUser.Id, true)
 
 	rusers, _, err := th.Client.GetRecentlyActiveUsersInTeam(teamId, 0, 60, "")
 	require.NoError(t, err)
@@ -2734,7 +2734,7 @@ func TestGetUsersInGroup(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	assert.Nil(t, err)
-	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, user1.Id)
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group when called by system admin", func(t *testing.T) {
@@ -2757,7 +2757,7 @@ func TestUpdateUserMfa(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
@@ -2861,7 +2861,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
+	session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 	session.IsOAuth = true
 	th.App.AddSessionToCache(session)
 
@@ -3524,10 +3524,10 @@ func TestLoginWithLag(t *testing.T) {
 		_, _, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
-		appErr = th.App.Srv().InvalidateAllCaches()
+		appErr = th.App.Srv().InvalidateAllCaches(th.Context)
 		require.Nil(t, appErr)
 
-		session, appErr := th.App.GetSession(th.Client.AuthToken)
+		session, appErr := th.App.GetSession(th.Context, th.Client.AuthToken)
 		require.Nil(t, appErr)
 		require.NotNil(t, session)
 	})
@@ -3556,7 +3556,7 @@ func TestLoginCookies(t *testing.T) {
 			}
 		}
 
-		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 
 		assert.Equal(t, th.Client.AuthToken, sessionCookie)
 		assert.Equal(t, user.Id, userCookie)
@@ -4100,7 +4100,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session, _ := th.App.GetSession(th.Context, th.Client.AuthToken)
 		session.IsOAuth = true
 		th.App.AddSessionToCache(session)
 
@@ -4978,7 +4978,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.SaveAndBroadcastStatus(&model.Status{
+		th.App.SaveAndBroadcastStatus(th.Context, &model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,
@@ -5198,7 +5198,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
@@ -5262,7 +5262,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.Srv().RemoveLicense()
+		th.App.Srv().RemoveLicense(th.Context)
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())

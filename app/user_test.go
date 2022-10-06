@@ -710,7 +710,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.SaveAndBroadcastStatus(&model.Status{
+		th.App.SaveAndBroadcastStatus(th.Context, &model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,
@@ -989,7 +989,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 		enableGuestDomainRestrictions := *th.App.Config().TeamSettings.RestrictCreationToDomains
 		defer func() {
@@ -1076,7 +1076,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.False(t, res, "File was not deleted on FS. err=%v", err)
 
-	finfo, err = th.App.GetFileInfo(finfo.Id)
+	finfo, err = th.App.GetFileInfo(th.Context, finfo.Id)
 
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
@@ -1157,7 +1157,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user1, team2)
 
-	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
+	th.App.UpdateTeamMemberRoles(th.Context, team1.Id, user1.Id, "team_user team_admin")
 
 	team1channel1 := th.CreateChannel(th.Context, team1)
 	team1channel2 := th.CreateChannel(th.Context, team1)
@@ -1180,7 +1180,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 
 	addPermission := func(role *model.Role, permission string) *model.AppError {
 		newPermissions := append(role.Permissions, permission)
-		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		_, err := th.App.PatchRole(th.Context, role, &model.RolePatch{Permissions: &newPermissions})
 		return err
 	}
 
@@ -1191,12 +1191,12 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 				newPermissions = append(newPermissions, oldPermission)
 			}
 		}
-		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		_, err := th.App.PatchRole(th.Context, role, &model.RolePatch{Permissions: &newPermissions})
 		return err
 	}
 
 	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.Nil(t, restrictions)
@@ -1213,7 +1213,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, addPermission(teamUserRole, model.PermissionViewMembers.Id))
 		defer removePermission(teamUserRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1229,7 +1229,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
 		defer addPermission(systemUserRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1249,7 +1249,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, addPermission(teamAdminRole, model.PermissionViewMembers.Id))
 		defer removePermission(teamAdminRole, model.PermissionViewMembers.Id)
 
-		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		restrictions, err := th.App.GetViewUsersRestrictions(th.Context, user1.Id)
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
@@ -1539,7 +1539,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		team := th.CreateTeam()
 
 		th.LinkUserToTeam(user, team)
-		th.App.UpdateTeamMemberRoles(team.Id, user.Id, "team_user team_admin")
+		th.App.UpdateTeamMemberRoles(th.Context, team.Id, user.Id, "team_user team_admin")
 
 		teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
 		require.Nil(t, err)

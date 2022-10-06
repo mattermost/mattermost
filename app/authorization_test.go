@@ -41,14 +41,14 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for _, testcase := range cases {
-		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
+		require.Equal(t, th.App.RolesGrantPermission(th.Context, testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
 
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		require.Equal(t, testData.shouldHavePermission, th.App.RolesGrantPermission([]string{testData.channelRole.Name}, testData.permission.Id), "row: %+v\n", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, th.App.RolesGrantPermission(th.Context, []string{testData.channelRole.Name}, testData.permission.Id), "row: %+v\n", testData.truthTableRow)
 	})
 }
 
@@ -56,17 +56,17 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
@@ -116,7 +116,7 @@ func TestHasPermissionToCategory(t *testing.T) {
 	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 	require.Nil(t, err)
 
-	_, err = th.App.GetSession(session.Token)
+	_, err = th.App.GetSession(th.Context, session.Token)
 	require.Nil(t, err)
 	require.True(t, th.App.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
 
@@ -181,10 +181,10 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		}
 
 		if isGroupMember {
-			_, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+			_, err := th.App.UpsertGroupMember(th.Context, group.Id, th.BasicUser.Id)
 			require.Nil(t, err)
 		} else {
-			_, err := th.App.DeleteGroupMember(group.Id, th.BasicUser.Id)
+			_, err := th.App.DeleteGroupMember(th.Context, group.Id, th.BasicUser.Id)
 			if err != nil && err.Id != "app.group.no_rows" {
 				t.Error(err)
 			}
@@ -199,7 +199,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
 		require.Nil(t, err)
 
-		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
+		result := th.App.SessionHasPermissionToGroup(th.Context, *session, group.Id, permission)
 
 		if permissionShouldBeGranted {
 			require.True(t, result, fmt.Sprintf("row: %v", row))

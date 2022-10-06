@@ -43,7 +43,6 @@ func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
 }
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-//
 func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
@@ -195,7 +194,7 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil, "")
 	message.Add("user_id", teamMember.UserId)
 	message.Add("team_id", teamMember.TeamId)
-	ts.wh.Publish(message)
+	ts.wh.Publish(ts.ctx, message)
 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()

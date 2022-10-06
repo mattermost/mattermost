@@ -99,7 +99,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// defer resetting the system role permissions
 	for _, systemRole := range systemSchemeRoles {
-		defer th.App.PatchRole(systemRole, &model.RolePatch{
+		defer th.App.PatchRole(th.Context, systemRole, &model.RolePatch{
 			Permissions: &systemRole.Permissions,
 		})
 	}
@@ -183,7 +183,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				} else {
 					higherScopedPermissions = permissionsDefault
 				}
-				higherScopedRole, testErr = th.App.PatchRole(higherScopedRole, &model.RolePatch{Permissions: &higherScopedPermissions})
+				higherScopedRole, testErr = th.App.PatchRole(th.Context, higherScopedRole, &model.RolePatch{Permissions: &higherScopedPermissions})
 				require.Nil(t, testErr)
 
 				// get channel role
@@ -206,7 +206,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 				} else {
 					channelSchemePermissions = permissionsDefault
 				}
-				channelRole, testErr = th.App.PatchRole(channelRole, &model.RolePatch{Permissions: &channelSchemePermissions})
+				channelRole, testErr = th.App.PatchRole(th.Context, channelRole, &model.RolePatch{Permissions: &channelSchemePermissions})
 				require.Nil(t, testErr)
 
 				testCallback(t, th, permissionInheritanceTestData{
@@ -235,7 +235,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 
 	// assign the scheme to the team
 	team.SchemeId = &teamScheme.Id
-	_, err = th.App.UpdateTeamScheme(team)
+	_, err = th.App.UpdateTeamScheme(th.Context, team)
 	require.Nil(t, err)
 
 	// test 24 combinations where the higher-scoped scheme is a TEAM scheme

@@ -43,7 +43,7 @@ func TestWebSocketEvent(t *testing.T) {
 	omitUser["somerandomid"] = true
 	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser, "")
 	evt1.Add("user_id", "somerandomid")
-	th.App.Publish(evt1)
+	th.App.Publish(th.Context, evt1)
 
 	time.Sleep(300 * time.Millisecond)
 
@@ -70,7 +70,7 @@ func TestWebSocketEvent(t *testing.T) {
 	require.True(t, eventHit, "did not receive typing event")
 
 	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
-	th.App.Publish(evt2)
+	th.App.Publish(th.Context, evt2)
 	time.Sleep(300 * time.Millisecond)
 
 	eventHit = false
@@ -361,7 +361,7 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	WebSocketClient2.Close()
 
-	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+	th.App.SetStatusAwayIfNeeded(th.Context, th.BasicUser.Id, false)
 
 	awayTimeout := *th.App.Config().TeamSettings.UserStatusAwayTimeout
 	defer func() {
@@ -371,8 +371,8 @@ func TestWebSocketStatuses(t *testing.T) {
 
 	time.Sleep(1500 * time.Millisecond)
 
-	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
-	th.App.SetStatusOnline(th.BasicUser.Id, false)
+	th.App.SetStatusAwayIfNeeded(th.Context, th.BasicUser.Id, false)
+	th.App.SetStatusOnline(th.Context, th.BasicUser.Id, false)
 
 	time.Sleep(1500 * time.Millisecond)
 

@@ -117,7 +117,7 @@ func TestImportPermissions(t *testing.T) {
 		json := fmt.Sprintf(`{"display_name":"%v","name":"%v","description":"%v","scope":"%v","default_team_admin_role":"","default_team_user_role":"","default_channel_admin_role":"%v","default_channel_user_role":"%v","roles":[{"id":"yzfx3g9xjjfw8cqo6bpn33xr7o","name":"%v","display_name":"Channel Admin Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589687,"update_at":1526475589687,"delete_at":0,"permissions":["manage_channel_roles"],"scheme_managed":true,"built_in":false},{"id":"a7s3cp4n33dfxbsrmyh9djao3a","name":"%v","display_name":"Channel User Role for Scheme my_scheme_1526475590","description":"","create_at":1526475589688,"update_at":1526475589688,"delete_at":0,"permissions":["read_channel","add_reaction","remove_reaction","manage_public_channel_members","upload_file","get_public_link","create_post","use_slash_commands","manage_private_channel_members","delete_post","edit_post"],"scheme_managed":true,"built_in":false}]}`, displayName, name, description, scope, roleName1, roleName2, roleName1, roleName2)
 		r := strings.NewReader(json)
 
-		err := th.App.ImportPermissions(r)
+		err := th.App.ImportPermissions(th.Context, r)
 		if err != nil {
 			t.Error(err)
 		}
@@ -197,7 +197,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 		}
 		expected = len(results)
 
-		err := th.App.ImportPermissions(r)
+		err := th.App.ImportPermissions(th.Context, r)
 		if err == nil {
 			t.Error(err)
 		}
@@ -239,7 +239,7 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 		}
 		expected = len(results)
 
-		err := th.App.ImportPermissions(r)
+		err := th.App.ImportPermissions(th.Context, r)
 		if err == nil {
 			t.Error(err)
 		}

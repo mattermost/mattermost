@@ -20,7 +20,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(th.Context, user)
 
-	th.App.SetStatusOnline(user.Id, true)
+	th.App.SetStatusOnline(th.Context, user.Id, true)
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
@@ -30,7 +30,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	userUpdated1, _ := th.App.PatchUser(th.Context, user.Id, patch, true)
 
 	// autoResponder is enabled, status should be OOO
-	th.App.SetAutoResponderStatus(userUpdated1, user.NotifyProps)
+	th.App.SetAutoResponderStatus(th.Context, userUpdated1, user.NotifyProps)
 
 	status, err := th.App.GetStatus(userUpdated1.Id)
 	require.Nil(t, err)
@@ -44,7 +44,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 	userUpdated2, _ := th.App.PatchUser(th.Context, user.Id, patch2, true)
 
 	// autoResponder is disabled, status should be ONLINE
-	th.App.SetAutoResponderStatus(userUpdated2, userUpdated1.NotifyProps)
+	th.App.SetAutoResponderStatus(th.Context, userUpdated2, userUpdated1.NotifyProps)
 
 	status, err = th.App.GetStatus(userUpdated2.Id)
 	require.Nil(t, err)
@@ -59,7 +59,7 @@ func TestDisableAutoResponder(t *testing.T) {
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(th.Context, user)
 
-	th.App.SetStatusOnline(user.Id, true)
+	th.App.SetStatusOnline(th.Context, user.Id, true)
 
 	patch := &model.UserPatch{}
 	patch.NotifyProps = make(map[string]string)
@@ -267,7 +267,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -316,7 +316,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -356,7 +356,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
+	if list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false

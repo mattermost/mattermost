@@ -16,8 +16,8 @@ func TestLoadLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.Srv().LoadLicense()
-	require.Nil(t, th.App.Srv().License(), "shouldn't have a valid license")
+	th.App.Srv().LoadLicense(th.Context)
+	require.Nil(t, th.App.Srv().License(th.Context), "shouldn't have a valid license")
 }
 
 func TestSaveLicense(t *testing.T) {
@@ -26,7 +26,7 @@ func TestSaveLicense(t *testing.T) {
 
 	b1 := []byte("junk")
 
-	_, err := th.App.Srv().SaveLicense(b1)
+	_, err := th.App.Srv().SaveLicense(th.Context, b1)
 	require.NotNil(t, err, "shouldn't have saved license")
 }
 
@@ -34,7 +34,7 @@ func TestRemoveLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	err := th.App.Srv().RemoveLicense()
+	err := th.App.Srv().RemoveLicense(th.Context)
 	require.Nil(t, err, "should have removed license")
 }
 
@@ -81,14 +81,14 @@ func TestGenerateRenewalToken(t *testing.T) {
 
 	t.Run("renewal token generated correctly", func(t *testing.T) {
 		setLicense(th, nil)
-		token, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
+		token, appErr := th.App.Srv().GenerateRenewalToken(th.Context, JWTDefaultTokenExpiration)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, token)
 	})
 
 	t.Run("return error if there is no active license", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
-		_, appErr := th.App.Srv().GenerateRenewalToken(JWTDefaultTokenExpiration)
+		_, appErr := th.App.Srv().GenerateRenewalToken(th.Context, JWTDefaultTokenExpiration)
 		require.NotNil(t, appErr)
 	})
 }

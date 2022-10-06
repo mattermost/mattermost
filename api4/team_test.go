@@ -1410,7 +1410,7 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
 
-	updatedTeam, appErr := th.App.UpdateTeam(oTeam)
+	updatedTeam, appErr := th.App.UpdateTeam(th.Context, oTeam)
 	require.Nil(t, appErr)
 	oTeam.UpdateAt = updatedTeam.UpdateAt
 
@@ -2115,7 +2115,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2129,7 +2129,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2221,7 +2221,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, appErr = th.App.UpdateTeam(team)
+	_, appErr = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, appErr)
 
 	// Attempt to use a token on a group-constrained team
@@ -2244,7 +2244,7 @@ func TestAddTeamMember(t *testing.T) {
 	})
 
 	// Associate group to team
-	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, appErr = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -2252,7 +2252,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.UpsertGroupMember(th.Group.Id, otherUser.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, th.Group.Id, otherUser.Id)
 	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2329,7 +2329,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			team := th.CreateTeam()
 			team.AllowOpenInvite = tc.Public
-			th.App.UpdateTeam(team)
+			th.App.UpdateTeam(th.Context, team)
 			if tc.PublicPermission {
 				th.AddPermissionToRole(model.PermissionJoinPublicTeams.Id, model.SystemUserRoleId)
 			} else {
@@ -2494,7 +2494,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2508,7 +2508,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.RemovePermissionFromRole(model.PermissionAddUserToTeam.Id, model.TeamAdminRoleId)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.Srv().InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches(th.Context)
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2517,7 +2517,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, appErr = th.App.UpdateTeam(team)
+	_, appErr = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, appErr)
 
 	// User is not in associated groups so shouldn't be allowed
@@ -2529,7 +2529,7 @@ func TestAddTeamMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Associate group to team
-	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, appErr = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -2537,7 +2537,7 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.UpsertGroupMember(th.Group.Id, userList[0])
+	_, appErr = th.App.UpsertGroupMember(th.Context, th.Group.Id, userList[0])
 	require.Nil(t, appErr)
 
 	_, _, err = client.AddTeamMembers(team.Id, userList)
@@ -2590,7 +2590,7 @@ func TestRemoveTeamMember(t *testing.T) {
 
 	// If the team is group-constrained the user cannot be removed
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
-	_, appErr := th.App.UpdateTeam(th.BasicTeam)
+	_, appErr := th.App.UpdateTeam(th.Context, th.BasicTeam)
 	require.Nil(t, appErr)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, err2 := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
@@ -2886,20 +2886,20 @@ func TestTeamExists(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 	public_member_team := th.BasicTeam
-	err := th.App.UpdateTeamPrivacy(public_member_team.Id, model.TeamOpen, true)
+	err := th.App.UpdateTeamPrivacy(th.Context, public_member_team.Id, model.TeamOpen, true)
 	require.Nil(t, err)
 
 	public_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
-	err = th.App.UpdateTeamPrivacy(public_not_member_team.Id, model.TeamOpen, true)
+	err = th.App.UpdateTeamPrivacy(th.Context, public_not_member_team.Id, model.TeamOpen, true)
 	require.Nil(t, err)
 
 	private_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
 	th.LinkUserToTeam(th.BasicUser, private_member_team)
-	err = th.App.UpdateTeamPrivacy(private_member_team.Id, model.TeamInvite, false)
+	err = th.App.UpdateTeamPrivacy(th.Context, private_member_team.Id, model.TeamInvite, false)
 	require.Nil(t, err)
 
 	private_not_member_team := th.CreateTeamWithClient(th.SystemAdminClient)
-	err = th.App.UpdateTeamPrivacy(private_not_member_team.Id, model.TeamInvite, false)
+	err = th.App.UpdateTeamPrivacy(th.Context, private_not_member_team.Id, model.TeamInvite, false)
 	require.Nil(t, err)
 
 	// Check the appropriate permissions are enforced.
@@ -3176,11 +3176,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.BasicTeam.AllowedDomains = "invalid.com,common.com"
-		_, appErr := th.App.UpdateTeam(th.BasicTeam)
+		_, appErr := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.NotNil(t, appErr, "Should not update the team")
 
 		th.BasicTeam.AllowedDomains = "common.com"
-		_, appErr = th.App.UpdateTeam(th.BasicTeam)
+		_, appErr = th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nilf(t, appErr, "%v, Should update the team", appErr)
 
 		_, err := client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@global.com"})
@@ -3201,7 +3201,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.BasicTeam.AllowedDomains = "common.com"
-		_, appErr := th.App.UpdateTeam(th.BasicTeam)
+		_, appErr := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nilf(t, appErr, "%v, Should update the team", appErr)
 
 		emailList := make([]string, 22)
@@ -3317,7 +3317,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.Len(t, res, 2)
 		require.NotNil(t, res[0].Error)
@@ -3337,7 +3337,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	t.Run("rate limit", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
 
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nilf(t, err, "%v, Should update the team", err)
 
 		emailList := make([]string, 22)
@@ -3354,7 +3354,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
-		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, invite, th.BasicUser.Id)
+		_, appErr := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, invite, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
@@ -3583,7 +3583,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 
 	team := th.CreateTeam()
 	team.GroupConstrained = model.NewBool(true)
-	team, appErr := th.App.UpdateTeam(team)
+	team, appErr := th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, appErr)
 
 	_, appErr = th.App.AddTeamMember(th.Context, team.Id, user1.Id)
@@ -3594,9 +3594,9 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, appErr = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group1.Id, user1.Id)
 	require.Nil(t, appErr)
-	_, appErr = th.App.UpsertGroupMember(group2.Id, user2.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group2.Id, user2.Id)
 	require.Nil(t, appErr)
 
 	// No permissions

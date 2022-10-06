@@ -514,7 +514,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllPublicRoleId)
 	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
@@ -567,7 +567,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	th.App.UpdateUserRoles(th.Context, ruser.Id, model.SystemUserRoleId, false)
 	th.App.JoinUserToTeam(th.Context, th.BasicTeam, ruser, "")
-	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
+	th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, model.TeamUserRoleId+" "+model.TeamPostAllRoleId)
 	th.App.Srv().InvalidateAllCaches(th.Context)
 
 	client.Login(user.Email, user.Password)
@@ -1047,7 +1047,7 @@ func TestPinPost(t *testing.T) {
 	_, err := client.PinPost(post.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(post.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 	require.Nil(t, appErr)
 	require.True(t, rpost.IsPinned, "failed to pin post")
 
@@ -1077,7 +1077,7 @@ func TestUnpinPost(t *testing.T) {
 	_, err := client.UnpinPost(pinnedPost.Id)
 	require.NoError(t, err)
 
-	rpost, appErr := th.App.GetSinglePost(pinnedPost.Id, false)
+	rpost, appErr := th.App.GetSinglePost(th.Context, pinnedPost.Id, false)
 	require.Nil(t, appErr)
 	require.False(t, rpost.IsPinned)
 

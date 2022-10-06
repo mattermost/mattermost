@@ -78,7 +78,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	// Check to see if admin has permission to all the jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -90,7 +90,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	// Initially the system read only admin should not have access to create these jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
 		assert.Equal(t, false, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -101,12 +101,12 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 
 	role.Permissions = append(role.Permissions, model.PermissionCreatePostBleveIndexesJob.Id)
 
-	_, err := th.App.UpdateRole(role)
+	_, err := th.App.UpdateRole(th.Context, role)
 	require.Nil(t, err)
 
 	// Now system read only admin should have ability to create a Belve Post Index job but not the others
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
 		expectedHasPermission := testCase.Job.Type == model.JobTypeBlevePostIndexing
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
@@ -116,12 +116,12 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	role.Permissions = append(role.Permissions, model.PermissionCreateDataRetentionJob.Id)
 	role.Permissions = append(role.Permissions, model.PermissionCreateComplianceExportJob.Id)
 
-	_, err = th.App.UpdateRole(role)
+	_, err = th.App.UpdateRole(th.Context, role)
 	require.Nil(t, err)
 
 	// Now system read only admin should have ability to create all jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(th.Context, session, &testCase.Job)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -164,7 +164,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Check to see if admin has permission to all the jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.Job.Type)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -176,7 +176,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Initially the system manager should not have access to read these jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.Job.Type)
 		assert.Equal(t, false, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -187,12 +187,12 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	role.Permissions = append(role.Permissions, model.PermissionReadDataRetentionJob.Id)
 
-	_, err := th.App.UpdateRole(role)
+	_, err := th.App.UpdateRole(th.Context, role)
 	require.Nil(t, err)
 
 	// Now system manager should have ability to read data retention jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.Job.Type)
 		expectedHasPermission := testCase.Job.Type == model.JobTypeDataRetention
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
@@ -201,12 +201,12 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
 
-	_, err = th.App.UpdateRole(role)
+	_, err = th.App.UpdateRole(th.Context, role)
 	require.Nil(t, err)
 
 	// Now system read only admin should have ability to create all jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(th.Context, session, testCase.Job.Type)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)

@@ -712,7 +712,7 @@ func TestExportDeletedTeams(t *testing.T) {
 	th1.CreatePost(channel1)
 
 	// Delete the team to check that this is handled correctly on import.
-	err := th1.App.SoftDeleteTeam(team1.Id)
+	err := th1.App.SoftDeleteTeam(th1.Context, team1.Id)
 	require.Nil(t, err)
 
 	var b bytes.Buffer

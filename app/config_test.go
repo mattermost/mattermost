@@ -46,7 +46,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	config := th.App.ClientConfigWithComputed()
+	config := th.App.ClientConfigWithComputed(th.Context)
 	_, ok := config["NoAccounts"]
 	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]

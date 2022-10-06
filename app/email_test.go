@@ -18,7 +18,7 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 	defer th.TearDown()
 
 	th.BasicTeam.AllowedDomains = "common.com"
-	_, err := th.App.UpdateTeam(th.BasicTeam)
+	_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 	require.Nilf(t, err, "%v, Should update the team", err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -35,7 +35,7 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 
-	_, err = th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+	_, err = th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)

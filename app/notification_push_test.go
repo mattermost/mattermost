@@ -1260,9 +1260,9 @@ func TestSendTestPushNotification(t *testing.T) {
 	})
 
 	// Per mock definition, first time will send remove, second time will send OK
-	result := th.App.SendTestPushNotification("platform:id")
+	result := th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "false", result)
-	result = th.App.SendTestPushNotification("platform:id")
+	result = th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "true", result)
 
 	// Server side verification.

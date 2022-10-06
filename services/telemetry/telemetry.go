@@ -13,6 +13,7 @@ import (
 
 	rudder "github.com/rudderlabs/analytics-go"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
@@ -84,10 +85,10 @@ const (
 
 type ServerIface interface {
 	Config() *model.Config
-	IsLeader() bool
+	IsLeader(request.CTX) bool
 	HTTPService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
-	License() *model.License
+	License(request.CTX) *model.License
 	GetRoleByName(context.Context, string) (*model.Role, *model.AppError)
 	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
 }
@@ -100,6 +101,7 @@ type TelemetryService struct {
 	rudderClient               rudder.Client
 	TelemetryID                string
 	timestampLastTelemetrySent time.Time
+	ctx                        request.CTX
 }
 
 type RudderConfig struct {
@@ -113,6 +115,7 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		dbStore:      dbStore,
 		searchEngine: searchEngine,
 		log:          log,
+		ctx:          request.EmptyContext(log),
 	}
 	service.ensureTelemetryID()
 	return service
@@ -145,7 +148,7 @@ func (ts *TelemetryService) getRudderConfig() RudderConfig {
 }
 
 func (ts *TelemetryService) telemetryEnabled() bool {
-	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader()
+	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader(ts.ctx)
 }
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
@@ -352,7 +355,7 @@ func (ts *TelemetryService) trackActivity() {
 		"outgoing_webhooks":            outgoingWebhooksCount,
 	}
 
-	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+	if license := ts.srv.License(ts.ctx); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
 		var tmpStorage int64
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
 			tmpStorage = usage
@@ -838,7 +841,7 @@ func (ts *TelemetryService) trackConfig() {
 }
 
 func (ts *TelemetryService) trackLicense() {
-	if license := ts.srv.License(); license != nil {
+	if license := ts.srv.License(ts.ctx); license != nil {
 		data := map[string]any{
 			"customer_id": license.Customer.Id,
 			"license_id":  license.Id,
@@ -1444,7 +1447,7 @@ func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*
 		ServerVersion: model.CurrentVersion,
 	}
 
-	license := ts.srv.License()
+	license := ts.srv.License(ts.ctx)
 	if license != nil && *license.Features.EnterprisePlugins {
 		filter.EnterprisePlugins = true
 	}

@@ -216,10 +216,10 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -244,15 +244,15 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(post)
+		appErr := th.App.attachFilesToPost(th.Context, post)
 		assert.Nil(t, appErr)
 
-		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, appErr := th.App.GetSinglePost(post.Id, false)
+		updated, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
@@ -656,7 +656,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	// Check that the file can no longer be reached.
-	_, err = th.App.GetFileInfo(info1.Id)
+	_, err = th.App.GetFileInfo(th.Context, info1.Id)
 	assert.NotNil(t, err)
 }
 
@@ -2338,7 +2338,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
 	// another user follows the thread
-	th.App.UpdateThreadFollowForUser(user2.Id, th.BasicTeam.Id, p1.Id, true)
+	th.App.UpdateThreadFollowForUser(th.Context, user2.Id, th.BasicTeam.Id, p1.Id, true)
 
 	threadMembership, err = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, err)
@@ -2540,7 +2540,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Len(t, thread.Participants, 1)
 
 		// extended fetch posts page
-		l, err := th.App.GetPostsPage(model.GetPostsOptions{
+		l, err := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			UserId:                   user1.Id,
 			ChannelId:                channel.Id,
 			PerPage:                  int(10),
@@ -2569,7 +2569,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			CollapsedThreadsExtended: true,
 		}
 
-		l, err = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		l, err = th.App.GetPostThread(th.Context, postRoot.Id, opts, user1.Id)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 2)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
@@ -2824,7 +2824,7 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	r, err := th.App.GetLastAccessiblePostTime()
+	r, err := th.App.GetLastAccessiblePostTime(th.Context)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), r)
 
@@ -2835,20 +2835,20 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 	mockSystemStore := storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
-	r, err = th.App.GetLastAccessiblePostTime()
+	r, err = th.App.GetLastAccessiblePostTime(th.Context)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), r)
 
 	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
-	_, err = th.App.GetLastAccessiblePostTime()
+	_, err = th.App.GetLastAccessiblePostTime(th.Context)
 	assert.NotNil(t, err)
 
 	mockSystemStore = storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
-	r, err = th.App.GetLastAccessiblePostTime()
+	r, err = th.App.GetLastAccessiblePostTime(th.Context)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(10), r)
 }
@@ -2876,7 +2876,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
 
-	err := th.App.ComputeLastAccessiblePostTime()
+	err := th.App.ComputeLastAccessiblePostTime(th.Context)
 	assert.NoError(t, err)
 
 	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)

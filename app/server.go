@@ -350,7 +350,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ConfigFn:     s.platform.Config,
 		Metrics:      s.GetMetrics(),
 		Cluster:      s.Cluster,
-		LicenseFn:    func() *model.License { return s.License(c) },
+		LicenseFn:    s.License,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
@@ -543,7 +543,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
-		LicenseFn:          func() *model.License { return s.License(c) },
+		LicenseFn:          s.License,
 		GoFn:               s.Go,
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
@@ -686,7 +686,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.runEssentialJobs {
 		s.Go(func() {
 			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
+			s.runLicenseExpirationCheckJob(c)
 			s.runInactivityCheckJob(c)
 			runDNDStatusExpireJob(c, appInstance)
 			runPostReminderJob(c, appInstance)
@@ -720,7 +720,7 @@ func maxInt(a, b int) int {
 
 func (s *Server) runJobs(c request.CTX) {
 	s.Go(func() {
-		runSecurityJob(s)
+		runSecurityJob(c, s)
 	})
 	s.Go(func() {
 		firstRun, err := s.getFirstServerRunTimestamp()
@@ -1816,13 +1816,13 @@ func (s *Server) initJobs(c request.CTX) {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExpiryNotify,
-		expirynotify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
+		expirynotify.MakeWorker(c, s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
 		expirynotify.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeProductNotices,
-		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
+		product_notices.MakeWorker(c, s.Jobs, New(ServerConnector(s.Channels()))),
 		product_notices.MakeScheduler(s.Jobs),
 	)
 

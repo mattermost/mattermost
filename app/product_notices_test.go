@@ -641,7 +641,7 @@ func TestNoticeValidation(t *testing.T) {
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
 			}
-			if ok, err := noticeMatchesConditions(
+			if ok, err := noticeMatchesConditions(th.Context,
 				th.App.Config(),
 				th.App.Srv().Store.Preference(),
 				"test",
@@ -715,7 +715,7 @@ func TestNoticeFetch(t *testing.T) {
 	})
 
 	// fetch fake notices
-	appErr := th.App.UpdateProductNotices()
+	appErr := th.App.UpdateProductNotices(th.Context)
 	require.Nil(t, appErr)
 
 	// get them for specified user
@@ -743,7 +743,7 @@ func TestNoticeFetch(t *testing.T) {
 	})
 
 	// fetch fake notices
-	appErr = th.App.UpdateProductNotices()
+	appErr = th.App.UpdateProductNotices(th.Context)
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero

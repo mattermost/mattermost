@@ -1489,10 +1489,10 @@ func TestAddUserToChannel(t *testing.T) {
 
 	group := th.CreateGroup()
 
-	_, err := th.App.UpsertGroupMember(group.Id, user1.Id)
+	_, err := th.App.UpsertGroupMember(th.Context, group.Id, user1.Id)
 	require.Nil(t, err)
 
-	gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	gs, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		AutoAdd:     true,
 		SyncableId:  th.BasicChannel.Id,
 		Type:        model.GroupSyncableTypeChannel,
@@ -1514,11 +1514,11 @@ func TestAddUserToChannel(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, &user2)
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser2.Id)
 
-	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, user2.Id)
 	require.Nil(t, err)
 
 	gs.SchemeAdmin = true
-	_, err = th.App.UpdateGroupSyncable(gs)
+	_, err = th.App.UpdateGroupSyncable(th.Context, gs)
 	require.Nil(t, err)
 
 	err = th.App.JoinChannel(th.Context, th.BasicChannel, ruser2.Id)
@@ -1538,7 +1538,7 @@ func TestAddUserToChannel(t *testing.T) {
 	_, err = th.App.UpdateChannel(th.Context, privateChannel)
 	require.Nil(t, err)
 
-	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: privateChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -1577,10 +1577,10 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	group := th.CreateGroup()
-	_, err = th.App.UpsertGroupMember(group.Id, ruser.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, ruser.Id)
 	require.Nil(t, err)
 
-	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: privateChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -1900,8 +1900,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					require.Nil(t, err)
 					originalPermissions := higherScopedMemberRole.Permissions
 
-					th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &tc.HigherScopedMemberPermissions})
-					defer th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
+					th.App.PatchRole(th.Context, higherScopedMemberRole, &model.RolePatch{Permissions: &tc.HigherScopedMemberPermissions})
+					defer th.App.PatchRole(th.Context, higherScopedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
 				}
 
 				if tc.HigherScopedGuestPermissions != nil {
@@ -1909,8 +1909,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					require.Nil(t, err)
 					originalPermissions := higherScopedGuestRole.Permissions
 
-					th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &tc.HigherScopedGuestPermissions})
-					defer th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
+					th.App.PatchRole(th.Context, higherScopedGuestRole, &model.RolePatch{Permissions: &tc.HigherScopedGuestPermissions})
+					defer th.App.PatchRole(th.Context, higherScopedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
 				}
 			}
 
@@ -2058,6 +2058,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 		OAuthStore:   &mockOAuthStore,
 		ConfigFn:     th.App.ch.srv.platform.Config,
 		LicenseFn:    th.App.ch.srv.License,
+		Context:      th.Context,
 	})
 	require.NoError(t, err)
 	mockPreferenceStore := mocks.PreferenceStore{}

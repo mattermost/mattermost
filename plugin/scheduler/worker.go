@@ -4,13 +4,15 @@
 package scheduler
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type AppIface interface {
-	DeleteAllExpiredPluginKeys() *model.AppError
+	DeleteAllExpiredPluginKeys(c request.CTX) *model.AppError
+	Log() *mlog.Logger
 }
 
 type Worker struct {
@@ -20,6 +22,7 @@ type Worker struct {
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	app       AppIface
+	ctx       request.CTX
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
@@ -30,6 +33,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
 		app:       app,
+		ctx:       request.EmptyContext(app.Log()),
 	}
 
 	return &worker
@@ -80,7 +84,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	if err := worker.app.DeleteAllExpiredPluginKeys(); err != nil {
+	if err := worker.app.DeleteAllExpiredPluginKeys(worker.ctx); err != nil {
 		mlog.Error("Worker: Failed to delete expired keys", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 		return

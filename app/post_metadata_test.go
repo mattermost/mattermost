@@ -124,7 +124,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Message: message,
 		}
 
-		clientPost := th.App.PreparePostForClient(post, false, true)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, true)
 
 		t.Run("doesn't mutate provided post", func(t *testing.T) {
 			assert.NotEqual(t, clientPost, post, "should've returned a new post")
@@ -150,7 +150,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		post := th.CreatePost(th.BasicChannel)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		assert.False(t, clientPost == post, "should've returned a new post")
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
@@ -166,7 +166,7 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
 		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
@@ -193,7 +193,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		var clientPost *model.Post
 		assert.Eventually(t, func() bool {
-			clientPost = th.App.PreparePostForClient(post, false, false)
+			clientPost = th.App.PreparePostForClient(th.Context, post, false, false)
 			return assert.ObjectsAreEqual([]*model.FileInfo{fileInfo}, clientPost.Metadata.Files)
 		}, time.Second, 10*time.Millisecond)
 
@@ -229,7 +229,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Metadata.Emojis, "should've populated empty Emojis")
@@ -274,7 +274,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
@@ -306,7 +306,7 @@ func TestPreparePostForClient(t *testing.T) {
 			post.AddProp(model.PostPropsOverrideIconURL, url)
 			post.AddProp(model.PostPropsOverrideIconEmoji, emoji)
 
-			return th.App.PreparePostForClient(post, false, false)
+			return th.App.PreparePostForClient(th.Context, post, false, false)
 		}
 
 		emoji := "basketball"
@@ -360,7 +360,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
@@ -393,7 +393,7 @@ func TestPreparePostForClient(t *testing.T) {
 		post.AddProp(model.PostPropsOverrideIconEmoji, true)
 
 		require.NotPanics(t, func() {
-			_ = th.App.PreparePostForClient(post, false, false)
+			_ = th.App.PreparePostForClient(th.Context, post, false, false)
 		})
 	})
 
@@ -458,7 +458,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		ogData := firstEmbed.Data.(*opengraph.OpenGraph)
 
@@ -546,7 +546,7 @@ func TestPreparePostForClient(t *testing.T) {
 		// DeleteAt isn't set on the post returned by App.DeletePost
 		post.DeleteAt = model.GetMillis()
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 		assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata“")
 		assert.Equal(t, "", clientPost.Message, "should've cleaned post content")
@@ -760,7 +760,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(previewPost, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, previewPost, false, false)
 		firstEmbed := clientPost.Metadata.Embeds[0]
 		preview := firstEmbed.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview.PostID)
@@ -769,13 +769,13 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.EnablePermalinkPreviews = false
 		})
 
-		th.App.PreparePostForClient(previewPost, false, false)
+		th.App.PreparePostForClient(th.Context, previewPost, false, false)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnablePermalinkPreviews = true
 		})
 
-		clientPost2 := th.App.PreparePostForClient(previewPost, false, false)
+		clientPost2 := th.App.PreparePostForClient(th.Context, previewPost, false, false)
 		firstEmbed2 := clientPost2.Metadata.Embeds[0]
 		preview2 := firstEmbed2.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview2.PostID)
@@ -827,7 +827,7 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		Message:   fmt.Sprintf(postTemplate, imageURL),
 	}
 
-	clientPost := th.App.PreparePostForClient(post, false, false)
+	clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 
 	if shouldProxy {
 		assert.Equal(t, fmt.Sprintf(postTemplate, imageURL), post.Message, "should not have mutated original post")
@@ -2045,7 +2045,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		timestamp := int64(1547510400000)
 		title := "from database"
 
-		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
+		th.App.saveLinkMetadataToDatabase(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
 			linkCache.Purge()
@@ -2352,7 +2352,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil)
+		th.App.saveLinkMetadataToDatabase(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil)
 
 		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.Nil(t, og)
@@ -2521,7 +2521,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	}
 
 	t.Run("image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeImageReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeImageReader(), "image/png")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2533,7 +2533,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed image", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(imageURL, makeOpenGraphReader(), "image/png")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, imageURL, makeOpenGraphReader(), "image/png")
 		assert.Error(t, err)
 
 		assert.Nil(t, og)
@@ -2541,7 +2541,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeOpenGraphReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, og)
@@ -2552,7 +2552,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("malformed opengraph", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata(ogURL, makeImageReader(), "text/html; charset=utf-8")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, ogURL, makeImageReader(), "text/html; charset=utf-8")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2560,7 +2560,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("neither", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/test.wad", strings.NewReader("garbage"), "application/x-doom")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2568,7 +2568,7 @@ func TestParseLinkMetadata(t *testing.T) {
 	})
 
 	t.Run("svg", func(t *testing.T) {
-		og, dimensions, err := th.App.parseLinkMetadata("http://example.com/image.svg", nil, "image/svg+xml")
+		og, dimensions, err := th.App.parseLinkMetadata(th.Context, "http://example.com/image.svg", nil, "image/svg+xml")
 		assert.NoError(t, err)
 
 		assert.Nil(t, og)
@@ -2649,7 +2649,7 @@ func TestLooksLikeAPermalink(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			actual := looksLikeAPermalink(tc.input, tc.siteURL)
+			actual := looksLikeAPermalink(th.Context, tc.input, tc.siteURL)
 			assert.Equal(t, tc.expect, actual)
 		})
 	}
@@ -2685,7 +2685,7 @@ func TestContainsPermalink(t *testing.T) {
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
-			actual := th.App.containsPermalink(testCase.Post)
+			actual := th.App.containsPermalink(th.Context, testCase.Post)
 			assert.Equal(t, testCase.Expected, actual)
 		})
 	}

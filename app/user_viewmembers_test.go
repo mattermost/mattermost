@@ -60,11 +60,11 @@ func TestRestrictedViewMembers(t *testing.T) {
 	th.AddUserToChannel(user4, channel1)
 	th.AddUserToChannel(user4, channel3)
 
-	th.App.SetStatusOnline(user1.Id, true)
-	th.App.SetStatusOnline(user2.Id, true)
-	th.App.SetStatusOnline(user3.Id, true)
-	th.App.SetStatusOnline(user4.Id, true)
-	th.App.SetStatusOnline(user5.Id, true)
+	th.App.SetStatusOnline(th.Context, user1.Id, true)
+	th.App.SetStatusOnline(th.Context, user2.Id, true)
+	th.App.SetStatusOnline(th.Context, user3.Id, true)
+	th.App.SetStatusOnline(th.Context, user4.Id, true)
+	th.App.SetStatusOnline(th.Context, user5.Id, true)
 
 	t.Run("SearchUsers", func(t *testing.T) {
 		testCases := []struct {

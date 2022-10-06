@@ -3051,7 +3051,7 @@ func TestAddChannelMember(t *testing.T) {
 	})
 
 	// Associate group to team
-	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	_, appErr = th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: privateChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -3059,7 +3059,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -3921,9 +3921,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, appErr = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group1.Id, user1.Id)
 	require.Nil(t, appErr)
-	_, appErr = th.App.UpsertGroupMember(group2.Id, user2.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group2.Id, user2.Id)
 	require.Nil(t, appErr)
 
 	// No permissions
@@ -4037,7 +4037,7 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns value false and enabled false for permissions that are not present in higher scoped scheme when no channel scheme present", func(t *testing.T) {
 		scheme := th.SetupTeamScheme()
 		team.SchemeId = &scheme.Id
-		_, appErr := th.App.UpdateTeamScheme(team)
+		_, appErr := th.App.UpdateTeamScheme(th.Context, team)
 		require.Nil(t, appErr)
 
 		th.RemovePermissionFromRole(model.PermissionCreatePost.Id, scheme.DefaultChannelGuestRole)
@@ -4079,7 +4079,7 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns value false and enabled false for permissions that are not present in channel & team scheme", func(t *testing.T) {
 		teamScheme := th.SetupTeamScheme()
 		team.SchemeId = &teamScheme.Id
-		th.App.UpdateTeamScheme(team)
+		th.App.UpdateTeamScheme(th.Context, team)
 
 		scheme := th.SetupChannelScheme()
 		channel.SchemeId = &scheme.Id
@@ -4106,7 +4106,7 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns the correct value for manage_members depending on whether the channel is public or private", func(t *testing.T) {
 		scheme := th.SetupTeamScheme()
 		team.SchemeId = &scheme.Id
-		_, appErr := th.App.UpdateTeamScheme(team)
+		_, appErr := th.App.UpdateTeamScheme(th.Context, team)
 		require.Nil(t, appErr)
 
 		th.RemovePermissionFromRole(model.PermissionManagePublicChannelMembers.Id, scheme.DefaultChannelUserRole)
@@ -4152,7 +4152,7 @@ func TestGetChannelModerations(t *testing.T) {
 		th.App.Srv().Store = &mockStore
 
 		team.SchemeId = &scheme.Id
-		_, appErr := th.App.UpdateTeamScheme(team)
+		_, appErr := th.App.UpdateTeamScheme(th.Context, team)
 		require.Nil(t, appErr)
 
 		_, _, err := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
@@ -4296,7 +4296,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		th.App.Srv().Store = &mockStore
 
 		team.SchemeId = &scheme.Id
-		_, appErr := th.App.UpdateTeamScheme(team)
+		_, appErr := th.App.UpdateTeamScheme(th.Context, team)
 		require.Nil(t, appErr)
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
@@ -4364,14 +4364,14 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 	user := th.BasicUser
 	user.Timezone["useAutomaticTimezone"] = "false"
 	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
-	_, appErr := th.App.UpsertGroupMember(th.Group.Id, user.Id)
+	_, appErr := th.App.UpsertGroupMember(th.Context, th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 	_, _, err := th.SystemAdminClient.UpdateUser(user)
 	require.NoError(t, err)
 
 	user2 := th.BasicUser2
 	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
-	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user2.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, th.Group.Id, user2.Id)
 	require.Nil(t, appErr)
 	_, _, err = th.SystemAdminClient.UpdateUser(user2)
 	require.NoError(t, err)
@@ -4410,7 +4410,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 
 	_, appErr = th.App.CreateGroup(group)
 	require.Nil(t, appErr)
-	_, appErr = th.App.UpsertGroupMember(group.Id, user.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group.Id, user.Id)
 	require.Nil(t, appErr)
 
 	t.Run("Returns multiple groups with users in group with timezones", func(t *testing.T) {

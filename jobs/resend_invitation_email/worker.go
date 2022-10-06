@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
@@ -22,7 +23,7 @@ type AppIface interface {
 	configservice.ConfigService
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 }
 
 type ResendInvitationEmailWorker struct {
@@ -50,7 +51,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 	return &worker
 }
 
-func (rseworker *ResendInvitationEmailWorker) Run() {
+func (rseworker *ResendInvitationEmailWorker) Run(c request.CTX) {
 	mlog.Debug("Worker started", mlog.String("worker", rseworker.name))
 
 	defer func() {
@@ -65,7 +66,7 @@ func (rseworker *ResendInvitationEmailWorker) Run() {
 			return
 		case job := <-rseworker.jobs:
 			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", rseworker.name))
-			rseworker.DoJob(&job)
+			rseworker.DoJob(c, &job)
 		}
 	}
 }
@@ -84,10 +85,10 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 	return rseworker.jobs
 }
 
-func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) DoJob(c request.CTX, job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(job, "48")
+		rseworker.ResendEmails(c, job, "48")
 		rseworker.TearDown(job)
 	}
 }
@@ -169,7 +170,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
 	rseworker.setJobSuccess(job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(c request.CTX, job *model.Job, interval string) {
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -198,7 +199,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, inter
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(&memberInvite, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(c, &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)

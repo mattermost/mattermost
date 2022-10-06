@@ -20,7 +20,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		mockService.active = false
 		th.App.ch.srv.SetSharedChannelSyncService(mockService)
 
-		th.App.ch.srv.SharedChannelSyncHandler(&model.WebSocketEvent{})
+		th.App.ch.srv.SharedChannelSyncHandler(th.Context, &model.WebSocketEvent{})
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -35,7 +35,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventAddedToTeam, model.NewId(), channel.Id, "", nil, "")
 
-		th.App.ch.srv.SharedChannelSyncHandler(websocketEvent)
+		th.App.ch.srv.SharedChannelSyncHandler(th.Context, websocketEvent)
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -49,7 +49,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), model.NewId(), "", nil, "")
 
-		th.App.ch.srv.SharedChannelSyncHandler(websocketEvent)
+		th.App.ch.srv.SharedChannelSyncHandler(th.Context, websocketEvent)
 		assert.Empty(t, mockService.channelNotifications)
 	})
 
@@ -64,7 +64,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
 		websocketEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, model.NewId(), channel.Id, "", nil, "")
 
-		th.App.ch.srv.SharedChannelSyncHandler(websocketEvent)
+		th.App.ch.srv.SharedChannelSyncHandler(th.Context, websocketEvent)
 		assert.Len(t, mockService.channelNotifications, 1)
 		assert.Equal(t, channel.Id, mockService.channelNotifications[0])
 	})

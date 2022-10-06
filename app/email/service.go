@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
@@ -44,10 +45,11 @@ func condenseSiteURL(siteURL string) string {
 type Service struct {
 	config  func() *model.Config
 	goFn    func(f func())
-	license func() *model.License
+	license func(request.CTX) *model.License
 
 	userService *users.UserService
 	store       store.Store
+	ctx         request.CTX
 
 	templatesContainer      *templates.Container
 	perHourEmailRateLimiter *throttled.GCRARateLimiter
@@ -57,15 +59,16 @@ type Service struct {
 
 type ServiceConfig struct {
 	ConfigFn  func() *model.Config
-	LicenseFn func() *model.License
+	LicenseFn func(request.CTX) *model.License
 	GoFn      func(f func())
 
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
 	Store              store.Store
+	Context            request.CTX
 }
 
-func NewService(c request.CTX, config ServiceConfig) (*Service, error) {
+func NewService(config ServiceConfig) (*Service, error) {
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
@@ -75,12 +78,13 @@ func NewService(c request.CTX, config ServiceConfig) (*Service, error) {
 		license:            config.LicenseFn,
 		goFn:               config.GoFn,
 		store:              config.Store,
+		ctx:                config.Context,
 		userService:        config.UserService,
 	}
 	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err
 	}
-	service.InitEmailBatching(c)
+	service.InitEmailBatching()
 	return service, nil
 }
 
@@ -136,9 +140,9 @@ type ServiceInterface interface {
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
-	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error
-	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error
-	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error)
+	SendInviteEmails(c request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error
+	SendGuestInviteEmails(c request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error
+	SendInviteEmailsToTeamAndChannels(c request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string) error
@@ -168,4 +172,8 @@ func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
 
 func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
 	return es.perHourEmailRateLimiter
+}
+
+func (es *Service) Log() mlog.LoggerIFace {
+	return es.ctx.Logger()
 }

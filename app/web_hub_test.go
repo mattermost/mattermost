@@ -67,7 +67,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Server.HubStart()
+	th.Server.HubStart(th.Context)
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
@@ -85,12 +85,12 @@ func TestHubStopRaceCondition(t *testing.T) {
 	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
-	th.Server.HubStart()
+	th.Server.HubStart(th.Context)
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
 	hub := th.App.Srv().hubs[0]
-	th.Server.HubStop()
+	th.Server.HubStop(th.Context)
 
 	done := make(chan bool)
 	go func() {
@@ -425,12 +425,12 @@ func TestReliableWebSocketSend(t *testing.T) {
 
 	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
 	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
-	th.App.Publish(ev)
+	th.App.Publish(th.Context, ev)
 	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil, "")
 	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
 		ReliableClusterSend: true,
 	})
-	th.App.Publish(ev2)
+	th.App.Publish(th.Context, ev2)
 
 	messages := testCluster.GetMessages()
 
@@ -458,7 +458,7 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Server.HubStart()
+	th.Server.HubStart(th.Context)
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
@@ -529,7 +529,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Server.HubStart()
+	th.Server.HubStart(th.Context)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

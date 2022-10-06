@@ -168,7 +168,7 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok && len(postRootId) == 26 {
-		rootPost, err := c.App.GetSinglePost(postRootId, false)
+		rootPost, err := c.App.GetSinglePost(c.AppContext, postRootId, false)
 		if err != nil {
 			c.Err = err
 			return

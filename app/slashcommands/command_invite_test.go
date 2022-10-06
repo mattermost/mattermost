@@ -184,7 +184,7 @@ func TestInviteGroup(t *testing.T) {
 	_, _ = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser.Id)
 	_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
 	require.Nil(t, err)
-	th.BasicTeam, _ = th.App.UpdateTeam(th.BasicTeam)
+	th.BasicTeam, _ = th.App.UpdateTeam(th.Context, th.BasicTeam)
 
 	privateChannel := th.createChannel(th.BasicTeam, model.ChannelTypePrivate)
 

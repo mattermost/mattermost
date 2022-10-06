@@ -76,7 +76,7 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -93,17 +93,17 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 		})
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true)
+		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
 		require.NoError(t, err)
 	})
 
 	t.Run("SendGuestInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendGuestInviteEmails(
+		err := th.service.SendGuestInviteEmails(th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -130,7 +130,7 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 		})
 
-		err := th.service.SendGuestInviteEmails(
+		err := th.service.SendGuestInviteEmails(th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -143,7 +143,7 @@ func TestSendInviteEmails(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		err = th.service.SendGuestInviteEmails(
+		err = th.service.SendGuestInviteEmails(th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -162,7 +162,7 @@ func TestSendInviteEmails(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
 		message := `<a href="http://testserver">sanitized message</a>`
-		err := th.service.SendGuestInviteEmails(
+		err := th.service.SendGuestInviteEmails(th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",

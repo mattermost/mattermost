@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
+
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
@@ -24,7 +26,8 @@ type UserService struct {
 	metrics      einterfaces.MetricsInterface
 	cluster      einterfaces.ClusterInterface
 	config       func() *model.Config
-	license      func() *model.License
+	license      func(request.CTX) *model.License
+	ctx          request.CTX
 }
 
 // ServiceConfig is used to initialize the UserService.
@@ -34,10 +37,11 @@ type ServiceConfig struct {
 	SessionStore store.SessionStore
 	OAuthStore   store.OAuthStore
 	ConfigFn     func() *model.Config
-	LicenseFn    func() *model.License
+	LicenseFn    func(request.CTX) *model.License
 	// Optional fields
 	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface
+	Context request.CTX
 }
 
 func New(c ServiceConfig) (*UserService, error) {
@@ -73,6 +77,7 @@ func New(c ServiceConfig) (*UserService, error) {
 				return &model.Session{}
 			},
 		},
+		ctx: c.Context,
 	}, nil
 }
 

@@ -131,24 +131,24 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		t.Run(c.Description, func(t *testing.T) {
 			event = event.SetBroadcast(c.Broadcast)
 			if c.User1Expected {
-				assert.True(t, basicUserWc.shouldSendEvent(event), "expected user 1")
+				assert.True(t, basicUserWc.shouldSendEvent(th.Context, event), "expected user 1")
 			} else {
-				assert.False(t, basicUserWc.shouldSendEvent(event), "did not expect user 1")
+				assert.False(t, basicUserWc.shouldSendEvent(th.Context, event), "did not expect user 1")
 			}
 			if c.User2Expected {
-				assert.True(t, basicUser2Wc.shouldSendEvent(event), "expected user 2")
+				assert.True(t, basicUser2Wc.shouldSendEvent(th.Context, event), "expected user 2")
 			} else {
-				assert.False(t, basicUser2Wc.shouldSendEvent(event), "did not expect user 2")
+				assert.False(t, basicUser2Wc.shouldSendEvent(th.Context, event), "did not expect user 2")
 			}
 			if c.AdminExpected {
-				assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
+				assert.True(t, adminUserWc.shouldSendEvent(th.Context, event), "expected admin")
 			} else {
-				assert.False(t, adminUserWc.shouldSendEvent(event), "did not expect admin")
+				assert.False(t, adminUserWc.shouldSendEvent(th.Context, event), "did not expect admin")
 			}
 			if c.User1Conn2Expected {
-				assert.True(t, basicUserWc2.shouldSendEvent(event), "expected user 1 conn 2")
+				assert.True(t, basicUserWc2.shouldSendEvent(th.Context, event), "expected user 1 conn 2")
 			} else {
-				assert.False(t, basicUserWc2.shouldSendEvent(event), "did not expect user 1 conn 2")
+				assert.False(t, basicUserWc2.shouldSendEvent(th.Context, event), "did not expect user 1 conn 2")
 			}
 		})
 	}
@@ -156,17 +156,17 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	t.Run("should send to basic user in basic channel", func(t *testing.T) {
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: th.BasicChannel.Id})
 
-		assert.True(t, basicUserWc.shouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.shouldSendEvent(event), "did not expect user 2")
-		assert.False(t, adminUserWc.shouldSendEvent(event), "did not expect admin")
+		assert.True(t, basicUserWc.shouldSendEvent(th.Context, event), "expected user 1")
+		assert.False(t, basicUser2Wc.shouldSendEvent(th.Context, event), "did not expect user 2")
+		assert.False(t, adminUserWc.shouldSendEvent(th.Context, event), "did not expect admin")
 	})
 
 	t.Run("should send to basic user and admin in channel2", func(t *testing.T) {
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
 
-		assert.True(t, basicUserWc.shouldSendEvent(event), "expected user 1")
-		assert.False(t, basicUser2Wc.shouldSendEvent(event), "did not expect user 2")
-		assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
+		assert.True(t, basicUserWc.shouldSendEvent(th.Context, event), "expected user 1")
+		assert.False(t, basicUser2Wc.shouldSendEvent(th.Context, event), "did not expect user 2")
+		assert.True(t, adminUserWc.shouldSendEvent(th.Context, event), "expected admin")
 	})
 
 	t.Run("channel member cache invalidated after user added to channel", func(t *testing.T) {
@@ -174,17 +174,17 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		basicUser2Wc.InvalidateCache()
 
 		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
-		assert.True(t, basicUserWc.shouldSendEvent(event), "expected user 1")
-		assert.True(t, basicUser2Wc.shouldSendEvent(event), "expected user 2")
-		assert.True(t, adminUserWc.shouldSendEvent(event), "expected admin")
+		assert.True(t, basicUserWc.shouldSendEvent(th.Context, event), "expected user 1")
+		assert.True(t, basicUser2Wc.shouldSendEvent(th.Context, event), "expected user 2")
+		assert.True(t, adminUserWc.shouldSendEvent(th.Context, event), "expected admin")
 	})
 
 	event2 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, th.BasicTeam.Id, "", "", nil, "")
-	assert.True(t, basicUserWc.shouldSendEvent(event2))
-	assert.True(t, basicUser2Wc.shouldSendEvent(event2))
+	assert.True(t, basicUserWc.shouldSendEvent(th.Context, event2))
+	assert.True(t, basicUser2Wc.shouldSendEvent(th.Context, event2))
 
 	event3 := model.NewWebSocketEvent(model.WebsocketEventUpdateTeam, "wrongId", "", "", nil, "")
-	assert.False(t, basicUserWc.shouldSendEvent(event3))
+	assert.False(t, basicUserWc.shouldSendEvent(th.Context, event3))
 }
 
 func TestWebConnAddDeadQueue(t *testing.T) {
@@ -335,7 +335,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		defer wc.WebSocket.Close()
 		wc.clearDeadQueue()
 
-		err := wc.drainDeadQueue(0)
+		err := wc.drainDeadQueue(th.Context, 0)
 		require.NoError(t, err)
 	})
 
@@ -377,7 +377,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		ok, index := wc.isInDeadQueue(wc.Sequence)
 		require.True(t, ok)
 
-		err := wc.drainDeadQueue(index)
+		err := wc.drainDeadQueue(th.Context, index)
 		require.NoError(t, err)
 	}
 

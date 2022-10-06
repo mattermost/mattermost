@@ -70,7 +70,7 @@ func TestUpdateTeam(t *testing.T) {
 
 	th.BasicTeam.DisplayName = "Testing 123"
 
-	updatedTeam, err := th.App.UpdateTeam(th.BasicTeam)
+	updatedTeam, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 	require.Nil(t, err, "Should update the team")
 	require.Equal(t, "Testing 123", updatedTeam.DisplayName, "Wrong Team DisplayName")
 }
@@ -90,7 +90,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 	t.Run("allow user by domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -103,7 +103,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 	t.Run("block user by domain but allow bot", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -137,7 +137,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 	t.Run("block user with subdomain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -151,7 +151,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 	t.Run("allow users by multiple domains", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "foo.com, bar.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@foo.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -378,7 +378,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 	t.Run("group-constrained team", func(t *testing.T) {
 		th.BasicTeam.GroupConstrained = model.NewBool(true)
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		token := model.NewToken(
@@ -392,13 +392,13 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
 
 		th.BasicTeam.GroupConstrained = model.NewBool(false)
-		_, err = th.App.UpdateTeam(th.BasicTeam)
+		_, err = th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 	})
 
 	t.Run("block user", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -452,7 +452,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 	t.Run("block user", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
-		_, err := th.App.UpdateTeam(th.BasicTeam)
+		_, err := th.App.UpdateTeam(th.Context, th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -485,7 +485,7 @@ func TestSoftDeleteAllTeamsExcept(t *testing.T) {
 		teamId = team.Id
 	}
 
-	err := th.App.SoftDeleteAllTeamsExcept(teamId)
+	err := th.App.SoftDeleteAllTeamsExcept(th.Context, teamId)
 	assert.Nil(t, err)
 	allTeams, err := th.App.GetAllTeams()
 	require.Nil(t, err)
@@ -534,7 +534,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err := th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 
 		teamsList, err := th.App.GetTeams(teamIds)
@@ -572,7 +572,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 		activeLimit := len(expectedActiveTeams)
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err = th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 
 		actualTeamsList, err := th.App.GetAllTeams()
@@ -597,12 +597,12 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err := th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 		activeLimit = 10000 // make the limit extremely high so all teams are enabled
 		teamLimits = &model.TeamsLimits{Active: &activeLimit}
 
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err = th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 
 		teamsList, err := th.App.GetTeams(teamIds)
@@ -626,19 +626,19 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		activeLimit := 1
 		teamLimits := &model.TeamsLimits{Active: &activeLimit}
 
-		err := th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err := th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 
 		cloudLimitsArchived := false
 		patch := &model.TeamPatch{CloudLimitsArchived: &cloudLimitsArchived}
-		team, err := th.App.PatchTeam(teamIds[0], patch)
+		team, err := th.App.PatchTeam(th.Context, teamIds[0], patch)
 		require.Nil(t, err)
 		require.Equal(t, false, team.CloudLimitsArchived)
 
 		activeLimit = 10000 // make the limit extremely high so all teams are enabled
 		teamLimits = &model.TeamsLimits{Active: &activeLimit}
 
-		err = th.App.AdjustTeamsFromProductLimits(teamLimits)
+		err = th.App.AdjustTeamsFromProductLimits(th.Context, teamLimits)
 		require.Nil(t, err)
 
 		teamsList, err := th.App.GetTeams(teamIds)
@@ -742,7 +742,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
 		require.Empty(t, sanitized.InviteId, "should've sanitized inviteid")
 	})
@@ -760,7 +760,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
 		require.NotEmpty(t, sanitized.InviteId, "should have not sanitized inviteid")
 	})
@@ -778,7 +778,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
@@ -796,7 +796,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.Empty(t, sanitized.Email, "should've sanitized team")
 		require.Empty(t, sanitized.InviteId, "should've sanitized inviteid")
 	})
@@ -814,7 +814,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
@@ -832,7 +832,7 @@ func TestSanitizeTeam(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(th.Context, session, copyTeam())
 		require.NotEmpty(t, sanitized.Email, "shouldn't have sanitized team")
 		require.NotEmpty(t, sanitized.InviteId, "shouldn't have sanitized inviteid")
 	})
@@ -873,7 +873,7 @@ func TestSanitizeTeams(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeams(session, teams)
+		sanitized := th.App.SanitizeTeams(th.Context, session, teams)
 
 		require.Empty(t, sanitized[0].Email, "should've sanitized first team")
 		require.NotEmpty(t, sanitized[1].Email, "shouldn't have sanitized second team")
@@ -905,7 +905,7 @@ func TestSanitizeTeams(t *testing.T) {
 			},
 		}
 
-		sanitized := th.App.SanitizeTeams(session, teams)
+		sanitized := th.App.SanitizeTeams(th.Context, session, teams)
 		assert.NotEmpty(t, sanitized[0].Email, "shouldn't have sanitized first team")
 		assert.NotEmpty(t, sanitized[1].Email, "shouldn't have sanitized second team")
 	})
@@ -987,10 +987,10 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		group := th.CreateGroup()
 
-		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+		_, err = th.App.UpsertGroupMember(th.Context, group.Id, user1.Id)
 		require.Nil(t, err)
 
-		gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		gs, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 			AutoAdd:     true,
 			SyncableId:  team.Id,
 			Type:        model.GroupSyncableTypeTeam,
@@ -1009,11 +1009,11 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser2, _ := th.App.CreateUser(th.Context, &user2)
 		defer th.App.PermanentDeleteUser(th.Context, &user2)
 
-		_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+		_, err = th.App.UpsertGroupMember(th.Context, group.Id, user2.Id)
 		require.Nil(t, err)
 
 		gs.SchemeAdmin = true
-		_, err = th.App.UpdateGroupSyncable(gs)
+		_, err = th.App.UpdateGroupSyncable(th.Context, gs)
 		require.Nil(t, err)
 
 		tm2, appErr := th.App.JoinUserToTeam(th.Context, team, ruser2, "")
@@ -1106,7 +1106,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	mockID := model.NewString("x")
 	team.SchemeId = mockID
 
-	updatedTeam, err := th.App.UpdateTeamScheme(th.BasicTeam)
+	updatedTeam, err := th.App.UpdateTeamScheme(th.Context, th.BasicTeam)
 	require.Nil(t, err)
 	require.Equal(t, mockID, updatedTeam.SchemeId, "Wrong Team SchemeId")
 }
@@ -1295,7 +1295,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1306,7 +1306,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest")
 		require.NotNil(t, err, "Should fail when try to modify the guest role")
 	})
 
@@ -1317,7 +1317,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user team_admin")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_user team_admin")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1331,7 +1331,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest custom")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest custom")
 		require.Nil(t, err, "Should work when you not modify guest role")
 	})
 
@@ -1342,7 +1342,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 		_, _, err := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user")
+		_, err = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, ruser.Id, "team_guest team_user")
 		require.NotNil(t, err, "Should work when you not modify guest role")
 	})
 }
@@ -1433,7 +1433,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 	mockStore.On("Team").Return(&mockTeamStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	require.NoError(t, th.App.ClearTeamMembersCache("teamID"))
+	require.NoError(t, th.App.ClearTeamMembersCache(th.Context, "teamID"))
 }
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
@@ -1460,7 +1460,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1482,7 +1482,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		).Once().Return(email.SendMailError)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.NotNil(t, res[0].Error)
@@ -1508,7 +1508,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1530,7 +1530,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteNewUsersToTeamGracefully(memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
+		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1560,7 +1560,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		).Once().Return(nil)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)
@@ -1584,7 +1584,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		).Once().Return(email.SendMailError)
 		th.App.Srv().EmailService = &emailServiceMock
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
 		}, th.BasicUser.Id)

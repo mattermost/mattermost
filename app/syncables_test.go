@@ -75,17 +75,17 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("test group not created: %s", err.Error())
 	}
 
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(gleeGroup.Id, practiceChannel.Id, true))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(gleeGroup.Id, practiceChannel.Id, true))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}
 
-	scienceTeamGroupSyncable, err := th.App.UpsertGroupSyncable(model.NewGroupTeam(scienceGroup.Id, nerdsTeam.Id, false))
+	scienceTeamGroupSyncable, err := th.App.UpsertGroupSyncable(th.Context, model.NewGroupTeam(scienceGroup.Id, nerdsTeam.Id, false))
 	if err != nil {
 		t.Errorf("test groupteam not created: %s", err.Error())
 	}
 
-	scienceChannelGroupSyncable, err := th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, experimentsChannel.Id, false))
+	scienceChannelGroupSyncable, err := th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(scienceGroup.Id, experimentsChannel.Id, false))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}
@@ -93,12 +93,12 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	singer1 := th.BasicUser
 	scientist1 := th.BasicUser2
 
-	_, err = th.App.UpsertGroupMember(gleeGroup.Id, singer1.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, gleeGroup.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
 
-	scientistGroupMember, err := th.App.UpsertGroupMember(scienceGroup.Id, scientist1.Id)
+	scientistGroupMember, err := th.App.UpsertGroupMember(th.Context, scienceGroup.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
@@ -167,7 +167,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	// update AutoAdd to true
 	scienceTeamGroupSyncable.AutoAdd = true
-	_, err = th.App.UpdateGroupSyncable(scienceTeamGroupSyncable)
+	_, err = th.App.UpdateGroupSyncable(th.Context, scienceTeamGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
@@ -210,7 +210,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	// Update the channel syncable
 	scienceChannelGroupSyncable.AutoAdd = true
-	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(scienceChannelGroupSyncable)
+	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(th.Context, scienceChannelGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
@@ -277,7 +277,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// the channel syncable is updated
-	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(scienceChannelGroupSyncable)
+	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(th.Context, scienceChannelGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
@@ -339,7 +339,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		restrictedUser.Email = "restricted@mattermost.org"
 		_, err = th.App.UpdateUser(th.Context, restrictedUser, false)
 		require.Nil(t, err)
-		_, err = th.App.UpsertGroupMember(scienceGroup.Id, restrictedUser.Id)
+		_, err = th.App.UpsertGroupMember(th.Context, scienceGroup.Id, restrictedUser.Id)
 		require.Nil(t, err)
 
 		restrictedTeam, err := th.App.CreateTeam(th.Context, &model.Team{
@@ -350,7 +350,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			Type:           model.TeamOpen,
 		})
 		require.Nil(t, err)
-		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(scienceGroup.Id, restrictedTeam.Id, true))
+		_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupTeam(scienceGroup.Id, restrictedTeam.Id, true))
 		require.Nil(t, err)
 
 		restrictedChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
@@ -360,7 +360,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 			Type:        model.ChannelTypeOpen,
 		}, false)
 		require.Nil(t, err)
-		_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))
+		_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(scienceGroup.Id, restrictedChannel.Id, true))
 		require.Nil(t, err)
 
 		pErr = th.App.CreateDefaultMemberships(th.Context, 0, false)
@@ -398,7 +398,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	// make team group-constrained
 	team := th.BasicTeam
 	team.GroupConstrained = model.NewBool(true)
-	team, err = th.App.UpdateTeam(team)
+	team, err = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, err)
 	require.True(t, *team.GroupConstrained)
 
@@ -410,9 +410,9 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.True(t, *channel.GroupConstrained)
 
 	// create groupteam and groupchannel
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupTeam(group.Id, team.Id, true))
 	require.Nil(t, err)
-	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
+	_, err = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(group.Id, channel.Id, true))
 	require.Nil(t, err)
 
 	// verify the member count
@@ -425,7 +425,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Equal(t, 3, int(cmemberCount))
 
 	// add a user to the group
-	_, err = th.App.UpsertGroupMember(group.Id, th.SystemAdminUser.Id)
+	_, err = th.App.UpsertGroupMember(th.Context, group.Id, th.SystemAdminUser.Id)
 	require.Nil(t, err)
 
 	// run the delete
@@ -459,14 +459,14 @@ func TestSyncSyncableRoles(t *testing.T) {
 	user2 := th.CreateUser()
 	group := th.CreateGroup()
 
-	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	teamSyncable, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 		GroupId:    group.Id,
 	})
 	require.Nil(t, err)
 
-	channelSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	channelSyncable, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 		GroupId:    group.Id,
@@ -474,7 +474,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, err = th.App.UpsertGroupMember(group.Id, user.Id)
+		_, err = th.App.UpsertGroupMember(th.Context, group.Id, user.Id)
 		require.Nil(t, err)
 
 		var tm *model.TeamMember
@@ -487,17 +487,17 @@ func TestSyncSyncableRoles(t *testing.T) {
 	}
 
 	teamSyncable.SchemeAdmin = true
-	_, err = th.App.UpdateGroupSyncable(teamSyncable)
+	_, err = th.App.UpdateGroupSyncable(th.Context, teamSyncable)
 	require.Nil(t, err)
 
 	channelSyncable.SchemeAdmin = true
-	_, err = th.App.UpdateGroupSyncable(channelSyncable)
+	_, err = th.App.UpdateGroupSyncable(th.Context, channelSyncable)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(channel.Id, model.GroupSyncableTypeChannel)
+	err = th.App.SyncSyncableRoles(th.Context, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, err)
 
-	err = th.App.SyncSyncableRoles(team.Id, model.GroupSyncableTypeTeam)
+	err = th.App.SyncSyncableRoles(th.Context, team.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {

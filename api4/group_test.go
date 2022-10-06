@@ -858,13 +858,13 @@ func TestPatchGroupChannel(t *testing.T) {
 	role, appErr := th.App.GetRoleByName(context.Background(), "channel_user")
 	require.Nil(t, appErr)
 	originalPermissions := role.Permissions
-	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
+	_, appErr = th.App.PatchRole(th.Context, role, &model.RolePatch{Permissions: &[]string{}})
 	require.Nil(t, appErr)
 
 	_, response, _ = th.Client.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusForbidden, response.StatusCode)
 
-	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &originalPermissions})
+	_, appErr = th.App.PatchRole(th.Context, role, &model.RolePatch{Permissions: &originalPermissions})
 	require.Nil(t, appErr)
 
 	th.App.Srv().SetLicense(nil)
@@ -927,7 +927,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	groupSyncable, appErr := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	groupSyncable, appErr := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -981,7 +981,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	// set syncable to true
 	groupSyncable.SchemeAdmin = true
-	_, appErr = th.App.UpdateGroupSyncable(groupSyncable)
+	_, appErr = th.App.UpdateGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, appErr)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1012,7 +1012,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	groupSyncable, appErr := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	groupSyncable, appErr := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -1055,7 +1055,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	// set syncable to true
 	groupSyncable.SchemeAdmin = true
-	_, appErr = th.App.UpdateGroupSyncable(groupSyncable)
+	_, appErr = th.App.UpdateGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, appErr)
 
 	// ensure that SchemeAdmin field is updated
@@ -1090,7 +1090,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	groupSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+	groupSyncable, err := th.App.UpsertGroupSyncable(th.Context, &model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -1137,7 +1137,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 	// set syncable to true
 	groupSyncable.SchemeAdmin = true
-	_, err = th.App.UpdateGroupSyncable(groupSyncable)
+	_, err = th.App.UpdateGroupSyncable(th.Context, groupSyncable)
 	require.Nil(t, err)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -1306,7 +1306,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	assert.Nil(t, appErr)
 	user1.Password = "test-password-1"
-	_, appErr = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group1.Id, user1.Id)
 	assert.Nil(t, appErr)
 
 	id = model.NewId()
@@ -1319,7 +1319,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
-	_, appErr = th.App.UpsertGroupMember(group2.Id, user1.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group2.Id, user1.Id)
 	assert.Nil(t, appErr)
 
 	th.App.Srv().SetLicense(nil)
@@ -1393,7 +1393,7 @@ func TestGetGroupStats(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
 	assert.Nil(t, err)
-	_, appErr = th.App.UpsertGroupMember(group.Id, user1.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Context, group.Id, user1.Id)
 	assert.Nil(t, appErr)
 
 	t.Run("Returns stats for a group with members", func(t *testing.T) {
@@ -1444,7 +1444,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Contains(t, apiGroups, groups[2])
 
 	team.GroupConstrained = model.NewBool(true)
-	team, appErr = th.App.UpdateTeam(team)
+	team, appErr = th.App.UpdateTeam(th.Context, team)
 	require.Nil(t, appErr)
 
 	// team is group-constrained but has no associated groups
@@ -1453,7 +1453,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Len(t, apiGroups, 0)
 
 	for _, group := range []*model.Group{groups[0], groups[2], groups[3]} {
-		_, appErr = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		_, appErr = th.App.UpsertGroupSyncable(th.Context, model.NewGroupTeam(group.Id, team.Id, false))
 		require.Nil(t, appErr)
 	}
 
@@ -1476,7 +1476,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Len(t, apiGroups, 1)
 	require.Equal(t, apiGroups[0].Id, groups[3].Id)
 
-	_, appErr = th.App.UpsertGroupSyncable(model.NewGroupChannel(groups[0].Id, channel.Id, false))
+	_, appErr = th.App.UpsertGroupSyncable(th.Context, model.NewGroupChannel(groups[0].Id, channel.Id, false))
 	require.Nil(t, appErr)
 
 	// as usual it doesn't return groups already associated to the channel
@@ -1572,7 +1572,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Source:      model.GroupSourceCustom,
 		Description: "description_" + id,
 	}
-	group, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+	group, err := th.App.CreateGroupWithUserIds(th.Context, &model.GroupWithUserIds{
 		Group:   *g,
 		UserIds: []string{user1.Id, user2.Id},
 	})
@@ -1620,7 +1620,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 		Description: "description_" + ldapId,
 		RemoteId:    model.NewString(model.NewId()),
 	}
-	ldapGroup, err := th.App.CreateGroupWithUserIds(&model.GroupWithUserIds{
+	ldapGroup, err := th.App.CreateGroupWithUserIds(th.Context, &model.GroupWithUserIds{
 		Group:   *g1,
 		UserIds: []string{user1.Id, user2.Id},
 	})

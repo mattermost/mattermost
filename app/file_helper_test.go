@@ -36,7 +36,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 			},
 			Order: []string{"file_a", "file_b", "file_c", "file_d", "file_e"},
 		}
-		appErr := th.App.filterInaccessibleFiles(fileList, filterFileOptions{assumeSortedCreatedAt: true})
+		appErr := th.App.filterInaccessibleFiles(th.Context, fileList, filterFileOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -65,7 +65,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 			},
 			Order: []string{"file_e", "file_d", "file_c", "file_b", "file_a"},
 		}
-		appErr := th.App.filterInaccessibleFiles(fileList, filterFileOptions{assumeSortedCreatedAt: true})
+		appErr := th.App.filterInaccessibleFiles(th.Context, fileList, filterFileOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -95,7 +95,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 			},
 			Order: []string{"file_e", "file_b", "file_a", "file_d", "file_c"},
 		}
-		appErr := th.App.filterInaccessibleFiles(fileList, filterFileOptions{assumeSortedCreatedAt: false})
+		appErr := th.App.filterInaccessibleFiles(th.Context, fileList, filterFileOptions{assumeSortedCreatedAt: false})
 
 		require.Nil(t, appErr)
 
@@ -129,7 +129,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 
 	t.Run("ascending order returns correct files", func(t *testing.T) {
 		files := []*model.FileInfo{getFileWithCreateAt(0), getFileWithCreateAt(1), getFileWithCreateAt(2), getFileWithCreateAt(3), getFileWithCreateAt(4)}
-		filteredFiles, firstInaccessibleFileTime, appErr := th.App.getFilteredAccessibleFiles(files, filterFileOptions{assumeSortedCreatedAt: true})
+		filteredFiles, firstInaccessibleFileTime, appErr := th.App.getFilteredAccessibleFiles(th.Context, files, filterFileOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 		assert.Equal(t, []*model.FileInfo{getFileWithCreateAt(2), getFileWithCreateAt(3), getFileWithCreateAt(4)}, filteredFiles)
@@ -138,7 +138,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 
 	t.Run("descending order returns correct files", func(t *testing.T) {
 		files := []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(3), getFileWithCreateAt(2), getFileWithCreateAt(1), getFileWithCreateAt(0)}
-		filteredFiles, firstInaccessibleFileTime, appErr := th.App.getFilteredAccessibleFiles(files, filterFileOptions{assumeSortedCreatedAt: true})
+		filteredFiles, firstInaccessibleFileTime, appErr := th.App.getFilteredAccessibleFiles(th.Context, files, filterFileOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 		assert.Equal(t, []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(3), getFileWithCreateAt(2)}, filteredFiles)
@@ -147,7 +147,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
 		files := []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(1), getFileWithCreateAt(0), getFileWithCreateAt(3), getFileWithCreateAt(2)}
-		filteredFiles, _, appErr := th.App.getFilteredAccessibleFiles(files, filterFileOptions{assumeSortedCreatedAt: false})
+		filteredFiles, _, appErr := th.App.getFilteredAccessibleFiles(th.Context, files, filterFileOptions{assumeSortedCreatedAt: false})
 
 		require.Nil(t, appErr)
 		assert.Equal(t, []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(3), getFileWithCreateAt(2)}, filteredFiles)
@@ -165,12 +165,12 @@ func TestIsInaccessibleFile(t *testing.T) {
 	defer th.TearDown()
 
 	file := &model.FileInfo{CreateAt: 3}
-	firstInaccessibleFileTime, appErr := th.App.isInaccessibleFile(file)
+	firstInaccessibleFileTime, appErr := th.App.isInaccessibleFile(th.Context, file)
 	require.Nil(t, appErr)
 	assert.Equal(t, int64(0), firstInaccessibleFileTime)
 
 	file = &model.FileInfo{CreateAt: 1}
-	firstInaccessibleFileTime, appErr = th.App.isInaccessibleFile(file)
+	firstInaccessibleFileTime, appErr = th.App.isInaccessibleFile(th.Context, file)
 	require.Nil(t, appErr)
 	assert.Equal(t, int64(1), firstInaccessibleFileTime)
 }
@@ -191,7 +191,7 @@ func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
 
 	files := []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(1), getFileWithCreateAt(0), getFileWithCreateAt(3), getFileWithCreateAt(2)}
 
-	_, appErr := th.App.removeInaccessibleContentFromFilesSlice(files)
+	_, appErr := th.App.removeInaccessibleContentFromFilesSlice(th.Context, files)
 
 	require.Nil(t, appErr)
 	assert.Len(t, files, len(files))

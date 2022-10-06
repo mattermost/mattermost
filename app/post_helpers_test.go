@@ -216,7 +216,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_a", "post_b", "post_c", "post_d", "post_e"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true})
+		appErr := th.App.filterInaccessiblePosts(th.Context, postList, filterPostOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -245,7 +245,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_e", "post_d", "post_c", "post_b", "post_a"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true})
+		appErr := th.App.filterInaccessiblePosts(th.Context, postList, filterPostOptions{assumeSortedCreatedAt: true})
 
 		require.Nil(t, appErr)
 
@@ -275,7 +275,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_e", "post_b", "post_a", "post_d", "post_c"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: false})
+		appErr := th.App.filterInaccessiblePosts(th.Context, postList, filterPostOptions{assumeSortedCreatedAt: false})
 
 		require.Nil(t, appErr)
 
@@ -303,7 +303,7 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			},
 			Order: []string{"post_e", "post_a", "post_d", "post_b"},
 		}
-		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: false})
+		appErr := th.App.filterInaccessiblePosts(th.Context, postList, filterPostOptions{assumeSortedCreatedAt: false})
 
 		require.Nil(t, appErr)
 
@@ -335,7 +335,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("ascending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(0), postFromCreateAt(1), postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}
-		filteredPosts, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(th.Context, posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(2), postFromCreateAt(3), postFromCreateAt(4)}, filteredPosts)
@@ -344,7 +344,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("descending order returns correct posts", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2), postFromCreateAt(1), postFromCreateAt(0)}
-		filteredPosts, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true})
+		filteredPosts, firstInaccessiblePostTime, appErr := th.App.getFilteredAccessiblePosts(th.Context, posts, filterPostOptions{assumeSortedCreatedAt: true})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
@@ -353,7 +353,7 @@ func TestGetFilteredAccessiblePosts(t *testing.T) {
 
 	t.Run("handles mixed create at ordering correctly if correct options given", func(t *testing.T) {
 		posts := []*model.Post{postFromCreateAt(4), postFromCreateAt(1), postFromCreateAt(0), postFromCreateAt(3), postFromCreateAt(2)}
-		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: false})
+		filteredPosts, _, appErr := th.App.getFilteredAccessiblePosts(th.Context, posts, filterPostOptions{assumeSortedCreatedAt: false})
 
 		assert.Nil(t, appErr)
 		assert.Equal(t, []*model.Post{postFromCreateAt(4), postFromCreateAt(3), postFromCreateAt(2)}, filteredPosts)
@@ -371,12 +371,12 @@ func TestIsInaccessiblePost(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{CreateAt: 3}
-	firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(post)
+	firstInaccessiblePostTime, appErr := th.App.isInaccessiblePost(th.Context, post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, int64(0), firstInaccessiblePostTime)
 
 	post = &model.Post{CreateAt: 1}
-	firstInaccessiblePostTime, appErr = th.App.isInaccessiblePost(post)
+	firstInaccessiblePostTime, appErr = th.App.isInaccessiblePost(th.Context, post)
 	assert.Nil(t, appErr)
 	assert.Equal(t, int64(1), firstInaccessiblePostTime)
 }

@@ -591,7 +591,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		go func() {
 			for i := 0; i < 5; i++ {
 				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				posts, _ := th.App.GetPosts(th.Context, channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {
 					for _, post := range posts.Posts {
 						createdPost <- post

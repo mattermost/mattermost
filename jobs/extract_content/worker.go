@@ -6,6 +6,7 @@ package extract_content
 import (
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -22,10 +23,10 @@ var ignoredFiles = map[string]bool{
 const jobName = "ExtractContent"
 
 type AppIface interface {
-	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
+	ExtractContentFromFileInfo(c request.CTX, fileInfo *model.FileInfo) error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
+func MakeWorker(c request.CTX, jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -64,7 +65,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 			for _, fileInfo := range fileInfos {
 				if !ignoredFiles[fileInfo.Extension] {
 					mlog.Debug("extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-					err = app.ExtractContentFromFileInfo(fileInfo)
+					err = app.ExtractContentFromFileInfo(c, fileInfo)
 					if err != nil {
 						mlog.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
 						nErrs++

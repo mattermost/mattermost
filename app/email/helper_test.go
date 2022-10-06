@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
+
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -30,6 +32,8 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicUser    *model.User
 	BasicUser2   *model.User
+
+	Context request.CTX
 
 	SystemAdminUser *model.User
 	LogBuffer       *bytes.Buffer
@@ -88,7 +92,10 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Number = false
 	configStore.Set(config)
 
-	licenseFn := func() *model.License { return model.NewTestLicense() }
+	licenseFn := func(_ request.CTX) *model.License { return model.NewTestLicense() }
+
+	logger, _ := mlog.NewLogger()
+	c := request.EmptyContext(logger)
 
 	us, err := users.New(users.ServiceConfig{
 		UserStore:    s.User(),
@@ -96,6 +103,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		OAuthStore:   s.OAuth(),
 		ConfigFn:     configStore.Get,
 		LicenseFn:    licenseFn,
+		Context:      c,
 	})
 	if err != nil {
 		panic(err)
@@ -112,7 +120,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 
 	go func() {
 		for err2 := range errorsChan {
-			mlog.Error("Server templates error", mlog.Err(err2))
+			logger.Error("Server templates error", mlog.Err(err2))
 		}
 	}()
 
@@ -123,6 +131,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		config:             configStore.Get,
 		templatesContainer: htmlTemplateWatcher,
 		goFn:               func(f func()) { go f() },
+		ctx:                c,
 	}
 
 	if err := service.setUpRateLimiters(); err != nil {
@@ -135,6 +144,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		store:       s,
 		LogBuffer:   &bytes.Buffer{},
 		workspace:   tempWorkspace,
+		Context:     c,
 	}
 }
 
@@ -256,7 +266,7 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}
