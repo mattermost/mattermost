@@ -129,6 +129,23 @@ func (ch *Channels) syncPluginsActiveState() {
 			}
 
 			if pluginEnabled {
+				// Disable focalboard in product mode.
+				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct == true {
+					msg := "Plugin cannot run in product mode. Disabling."
+					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
+
+					// This is a mini-version of ch.disablePlugin.
+					// We don't call that directly, because that will recursively call
+					// this method.
+					ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+						cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: false}
+					})
+					pluginsEnvironment.SetPluginError(pluginID, msg)
+					ch.unregisterPluginCommands(pluginID)
+					disabledPlugins = append(disabledPlugins, plugin)
+					continue
+				}
+
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
 				disabledPlugins = append(disabledPlugins, plugin)
@@ -431,6 +448,10 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	if manifest == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
+	}
+
+	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct == true {
+		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {

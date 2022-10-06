@@ -5916,6 +5916,10 @@
     "translation": "Plugin is not installed."
   },
   {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} cannot be enabled in product mode."
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin."
   },
