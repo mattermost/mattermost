@@ -39,7 +39,7 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		GenerateThumbnailImage: a.generateThumbnailImage,
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
-		MaxPostSize:            func() int { return a.ch.srv.MaxPostSize() },
+		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, func(), error) {
 			img, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
@@ -49,13 +49,13 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		},
 	}
 
-	importer := slackimport.New(a.ch.srv.Store, actions, a.Config())
+	importer := slackimport.New(a.Srv().Store(), actions, a.Config())
 	return importer.SlackImport(c, fileData, fileSize, teamID)
 }
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)
-	text = replaceUserIds(a.Srv().Store.User(), text)
+	text = replaceUserIds(a.Srv().Store().User(), text)
 
 	return text
 }

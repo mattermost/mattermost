@@ -34,7 +34,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
 	"github.com/mattermost/mattermost-server/v6/web"
@@ -116,13 +115,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
 		// Adds the cache layer to the test store
-		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.GetMetrics(), s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
-		}))
+		options = append(options, app.StoreOverrideWithCache(dbStore))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))
 	}
@@ -151,8 +144,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	th.Context.SetLogger(testLogger)
 
-	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.SearchEngine.BleveEngine
+	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
+		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
@@ -307,7 +300,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -321,7 +314,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -335,7 +328,7 @@ func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHel
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -591,7 +584,7 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Pa$$word11"
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
@@ -777,7 +770,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := th.App.Srv().Store.Post().Save(&model.Post{
+	post, err := th.App.Srv().Store().Post().Save(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
@@ -1161,9 +1154,9 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store.Channel().UpdateMember(cm); err != nil {
+		if _, err = th.App.Srv().Store().Channel().UpdateMember(cm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1172,9 +1165,9 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1183,9 +1176,9 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
 		}
 	} else {
