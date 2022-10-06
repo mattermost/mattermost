@@ -1238,6 +1238,7 @@ func (api *PluginAPI) RegisterEvent(topic, description string, typ any) error {
 func (api *PluginAPI) SubscribeToEvent(topic, handlerId string) (string, error) {
 	id, err := api.app.SubscribeTopic(topic, func(ev eventbus.Event) error {
 		pluginsEnvironment := api.app.ch.pluginsEnvironment
+		ev.Context = nil
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			hooks.OnPluginReceiveEvent(handlerId, ev)
 			return true
