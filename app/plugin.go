@@ -130,7 +130,7 @@ func (ch *Channels) syncPluginsActiveState() {
 
 			if pluginEnabled {
 				// Disable focalboard in product mode.
-				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct == true {
+				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
 					msg := "Plugin cannot run in product mode. Disabling."
 					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
 
@@ -450,7 +450,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
-	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct == true {
+	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
 		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
 	}
 
