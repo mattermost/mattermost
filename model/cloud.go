@@ -40,12 +40,6 @@ const (
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
 
-const (
-	CloudSubscriptionSkuStarter      = "cloud-starter"
-	CloudSubscriptionSkuProfessional = "cloud-professional"
-	CloudSubscriptionSkuEnterprise   = "cloud-enterprise"
-)
-
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID                string             `json:"id"`

@@ -2916,14 +2916,6 @@
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
-    "id": "api.team.cloud.get_current_product.request_error",
-    "translation": "Error getting the current product"
-  },
-  {
-    "id": "api.team.cloud.get_subscription.request_error",
-    "translation": "Error getting the cloud subscription"
-  },
-  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },

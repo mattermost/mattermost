@@ -444,31 +444,66 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 }
 
 func TestGetCloudProducts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	cloudProducts := th.GetMockCloudProducts()
+	cloudProducts := []*model.Product{
+		{
+			ID:                "prod_test1",
+			Name:              "name",
+			Description:       "description",
+			PricePerSeat:      10,
+			SKU:               "sku",
+			PriceID:           "price_id",
+			Family:            "family",
+			RecurringInterval: "recurring_interval",
+			BillingScheme:     "billing_scheme",
+		},
+		{
+			ID:                "prod_test2",
+			Name:              "name2",
+			Description:       "description2",
+			PricePerSeat:      100,
+			SKU:               "sku2",
+			PriceID:           "price_id2",
+			Family:            "family2",
+			RecurringInterval: "recurring_interval2",
+			BillingScheme:     "billing_scheme2",
+		},
+		{
+			ID:                "prod_test3",
+			Name:              "name3",
+			Description:       "description3",
+			PricePerSeat:      1000,
+			SKU:               "sku3",
+			PriceID:           "price_id3",
+			Family:            "family3",
+			RecurringInterval: "recurring_interval3",
+			BillingScheme:     "billing_scheme3",
+		},
+	}
 
 	sanitizedProducts := []*model.Product{
 		{
 			ID:           "prod_test1",
 			Name:         "name",
 			PricePerSeat: 10,
-			SKU:          cloudProducts[0].SKU,
+			SKU:          "sku",
 		},
 		{
 			ID:           "prod_test2",
 			Name:         "name2",
 			PricePerSeat: 100,
-			SKU:          cloudProducts[1].SKU,
+			SKU:          "sku2",
 		},
 		{
 			ID:           "prod_test3",
 			Name:         "name3",
 			PricePerSeat: 1000,
-			SKU:          cloudProducts[2].SKU,
+			SKU:          "sku3",
 		},
 	}
 	t.Run("get products for admins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -488,6 +523,9 @@ func TestGetCloudProducts(t *testing.T) {
 	})
 
 	t.Run("get products for non admins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
@@ -510,7 +548,7 @@ func TestGetCloudProducts(t *testing.T) {
 		// make a more explicit check
 		require.Equal(t, returnedProducts[0].ID, "prod_test1")
 		require.Equal(t, returnedProducts[0].Name, "name")
-		require.Equal(t, returnedProducts[0].SKU, cloudProducts[0].SKU)
+		require.Equal(t, returnedProducts[0].SKU, "sku")
 		require.Equal(t, returnedProducts[0].PricePerSeat, float64(10))
 		require.Equal(t, returnedProducts[0].Description, "")
 		require.Equal(t, returnedProducts[0].PriceID, "")
@@ -520,7 +558,7 @@ func TestGetCloudProducts(t *testing.T) {
 
 		require.Equal(t, returnedProducts[1].ID, "prod_test2")
 		require.Equal(t, returnedProducts[1].Name, "name2")
-		require.Equal(t, returnedProducts[1].SKU, cloudProducts[1].SKU)
+		require.Equal(t, returnedProducts[1].SKU, "sku2")
 		require.Equal(t, returnedProducts[1].PricePerSeat, float64(100))
 		require.Equal(t, returnedProducts[1].Description, "")
 		require.Equal(t, returnedProducts[1].PriceID, "")
@@ -530,7 +568,7 @@ func TestGetCloudProducts(t *testing.T) {
 
 		require.Equal(t, returnedProducts[2].ID, "prod_test3")
 		require.Equal(t, returnedProducts[2].Name, "name3")
-		require.Equal(t, returnedProducts[2].SKU, cloudProducts[2].SKU)
+		require.Equal(t, returnedProducts[2].SKU, "sku3")
 		require.Equal(t, returnedProducts[2].PricePerSeat, float64(1000))
 		require.Equal(t, returnedProducts[2].Description, "")
 		require.Equal(t, returnedProducts[2].PriceID, "")

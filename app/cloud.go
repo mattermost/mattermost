@@ -49,11 +49,16 @@ func getCurrentPlanName(a *App) (string, *model.AppError) {
 		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	product, aErr := a.GetCurrentProduct(subscription.ProductID)
-	if aErr != nil {
+	products, err := a.Cloud().GetCloudProducts("", false)
+	if err != nil {
 		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return product.Name, nil
+	if products == nil {
+		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	planName := getCurrentProduct(subscription.ProductID, products).Name
+	return planName, nil
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
@@ -76,20 +81,13 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	return nil
 }
 
-func (a *App) GetCurrentProduct(subscriptionProductID string) (*model.Product, *model.AppError) {
-	products, err := a.Cloud().GetCloudProducts("", false)
-	if err != nil {
-		return nil, model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	if products == nil {
-		return nil, model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
-	}
+func getCurrentProduct(subscriptionProductID string, products []*model.Product) *model.Product {
 	for _, product := range products {
 		if product.ID == subscriptionProductID {
-			return product, nil
+			return product
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError {
