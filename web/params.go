@@ -91,7 +91,6 @@ type Params struct {
 	GroupSource               model.GroupSource
 	FilterHasMember           string
 	IncludeChannelMemberCount string
-	IncludeTimezones          bool
 
 	// Cloud
 	InvoiceId string
