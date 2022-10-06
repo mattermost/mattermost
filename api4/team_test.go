@@ -3361,34 +3361,18 @@ func TestInviteGuestsToTeam(t *testing.T) {
 	})
 }
 
-func TestCloudInviteGuest(t *testing.T) {
+func TestInviteGuest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	guest1 := th.GenerateTestEmail()
 	guest2 := th.GenerateTestEmail()
 
-	cloudProducts := th.GetMockCloudProducts()
-
 	emailList := []string{guest1, guest2}
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 
-	t.Run("When NOT in freeTrial and NOT paid subscription, guest invite must be disabled", func(t *testing.T) {
-		cloudLicense := model.NewTestLicense("Cloud")
-		th.App.Srv().SetLicense(cloudLicense)
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		productId := "prod_test1"
-		isFreeTrial := "false"
-		nonTrialSubscription := th.GetMockCloudSubscription(productId, isFreeTrial)
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(nonTrialSubscription, nil)
-		cloud.Mock.On("GetCloudProducts", mock.Anything, mock.Anything).Return(cloudProducts, nil)
+	t.Run("Guest Account not available in license returns forbidden", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
 
 		guestsInvite := model.GuestsInvite{
 			Emails:   emailList,
@@ -3400,27 +3384,13 @@ func TestCloudInviteGuest(t *testing.T) {
 
 		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", string(buf))
 
-		require.Equal(t, res.StatusCode, http.StatusForbidden)
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
 		require.True(t, strings.Contains(err.Error(), "Guest accounts are disabled"))
 		require.Error(t, err)
 	})
 
-	t.Run("When IN paid subscription, guest invite must work as expected", func(t *testing.T) {
-		cloudLicense := model.NewTestLicense("Cloud")
-		th.App.Srv().SetLicense(cloudLicense)
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		productId := "prod_test2"
-		isFreeTrial := "false"
-		nonTrialSubscription := th.GetMockCloudSubscription(productId, isFreeTrial)
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(nonTrialSubscription, nil)
-		cloud.Mock.On("GetCloudProducts", mock.Anything, mock.Anything).Return(cloudProducts, nil)
+	t.Run("Guest Account available in license returns OK", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
 
 		guestsInvite := model.GuestsInvite{
 			Emails:   emailList,
@@ -3432,39 +3402,7 @@ func TestCloudInviteGuest(t *testing.T) {
 
 		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", string(buf))
 
-		require.Equal(t, res.StatusCode, http.StatusOK)
-		require.NoError(t, err)
-	})
-
-	t.Run("When subscription is FREE TRIAL, guest invite must work as expected", func(t *testing.T) {
-		cloudLicense := model.NewTestLicense("Cloud")
-		th.App.Srv().SetLicense(cloudLicense)
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		productId := "prod_test3"
-		isFreeTrial := "true"
-		nonTrialSubscription := th.GetMockCloudSubscription(productId, isFreeTrial)
-
-		cloud.Mock.On("GetSubscription", mock.Anything).Return(nonTrialSubscription, nil)
-		cloud.Mock.On("GetCloudProducts", mock.Anything, mock.Anything).Return(cloudProducts, nil)
-
-		guestsInvite := model.GuestsInvite{
-			Emails:   emailList,
-			Channels: []string{th.BasicChannel.Id},
-			Message:  "test message",
-		}
-		buf, err := json.Marshal(guestsInvite)
-		require.NoError(t, err)
-
-		res, err := th.SystemAdminClient.DoAPIPost("/teams/"+th.BasicTeam.Id+"/invite-guests/email", string(buf))
-
-		require.Equal(t, res.StatusCode, http.StatusOK)
+		require.Equal(t, http.StatusOK, res.StatusCode)
 		require.NoError(t, err)
 	})
 }

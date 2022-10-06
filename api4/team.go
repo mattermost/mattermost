@@ -1485,27 +1485,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// restrict guest invites depending on the subscription type (see MM-47228)
-	isCloud := c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud
-	if isCloud {
-		subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-		if err != nil {
-			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getSubscription", "api.team.cloud.get_subscription.request_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
 
-		product, aErr := c.App.GetCurrentProduct(subscription.ProductID)
-		if aErr != nil {
-			c.Err = model.NewAppError("Api4.inviteGuestsToChannels.getCurrentProduct", "api.team.cloud.get_current_product.request_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		isPaidSubscription := product.SKU == model.CloudSubscriptionSkuEnterprise || product.SKU == model.CloudSubscriptionSkuProfessional
-
-		if subscription.IsFreeTrial == "false" && !isPaidSubscription {
-			c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
-			return
-		}
+	if !guestEnabled {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
+		return
 	}
 
 	var guestsInvite model.GuestsInvite
