@@ -84,16 +84,6 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 
 	newRootHTML := string(oldRootHTML)
 
-	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3([^"]*)">`)
-	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
-		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
-	}
-
-	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3%s">`,
-		GetSubpathScriptHash(subpath),
-	))
-
 	// Rewrite the root.html references to `/static/*` to include the given subpath.
 	// This potentially includes a previously injected inline script that needs to
 	// be updated (and isn't covered by the cases above).
