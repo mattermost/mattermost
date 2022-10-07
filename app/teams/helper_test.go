@@ -27,7 +27,7 @@ type TestHelper struct {
 
 type mockWebHub struct{}
 
-func (mockWebHub) Publish(*model.WebSocketEvent) {}
+func (mockWebHub) Publish(request.CTX, *model.WebSocketEvent) {}
 
 func Setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
@@ -75,7 +75,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			channelStore: s.Channel(),
 			groupStore:   s.Group(),
 			config:       configStore.Get,
-			license: func() *model.License {
+			license: func(request.CTX) *model.License {
 				return model.NewTestLicense()
 			},
 			wh: &mockWebHub{},

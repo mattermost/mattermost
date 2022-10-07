@@ -11621,7 +11621,7 @@ func (a *OpenTracingAppLayer) InvalidateCacheForUser(userID string) {
 	a.app.InvalidateCacheForUser(userID)
 }
 
-func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+func (a *OpenTracingAppLayer) InviteGuestsToChannels(c request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteGuestsToChannels")
 
@@ -11633,7 +11633,7 @@ func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamID string, guestsInvite
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InviteGuestsToChannels(teamID, guestsInvite, senderId)
+	resultVar0 := a.app.InviteGuestsToChannels(c, teamID, guestsInvite, senderId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11665,7 +11665,7 @@ func (a *OpenTracingAppLayer) InviteGuestsToChannelsGracefully(c request.CTX, te
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamID string, senderId string) *model.AppError {
+func (a *OpenTracingAppLayer) InviteNewUsersToTeam(c request.CTX, emailList []string, teamID string, senderId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteNewUsersToTeam")
 
@@ -11677,7 +11677,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamID st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InviteNewUsersToTeam(emailList, teamID, senderId)
+	resultVar0 := a.app.InviteNewUsersToTeam(c, emailList, teamID, senderId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

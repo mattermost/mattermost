@@ -4,8 +4,10 @@
 package notify_admin
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -14,7 +16,8 @@ const (
 )
 
 type AppIface interface {
-	DoCheckForAdminNotifications(trial bool) *model.AppError
+	DoCheckForAdminNotifications(c request.CTX, trial bool) *model.AppError
+	Log() *mlog.Logger
 }
 
 func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
@@ -22,7 +25,7 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(_ *model.Job) error {
-		appErr := app.DoCheckForAdminNotifications(false)
+		appErr := app.DoCheckForAdminNotifications(request.EmptyContext(app.Log()), false)
 		if appErr != nil {
 			return appErr
 		}
@@ -38,7 +41,7 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(_ *model.Job) error {
-		appErr := app.DoCheckForAdminNotifications(true)
+		appErr := app.DoCheckForAdminNotifications(request.EmptyContext(app.Log()), true)
 		if appErr != nil {
 			return appErr
 		}

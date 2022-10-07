@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -65,9 +67,12 @@ func TestExtractTarGz(t *testing.T) {
 		return archive
 	}
 
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	t.Run("empty dst", func(t *testing.T) {
 		archive := makeArchive(t, nil)
-		err := extractTarGz(&archive, "")
+		err := extractTarGz(ctx, &archive, "")
 		require.Error(t, err)
 	})
 
@@ -85,7 +90,7 @@ func TestExtractTarGz(t *testing.T) {
 		defer os.RemoveAll(dst)
 
 		archive := makeArchive(t, files)
-		err = extractTarGz(&archive, dst)
+		err = extractTarGz(ctx, &archive, dst)
 		require.NoError(t, err)
 	})
 
@@ -179,7 +184,7 @@ func TestExtractTarGz(t *testing.T) {
 			defer os.RemoveAll(dst)
 
 			archive := makeArchive(t, testCase.Files)
-			err = extractTarGz(&archive, dst)
+			err = extractTarGz(ctx, &archive, dst)
 			if testCase.ExpectedError {
 				require.Error(t, err)
 			} else {

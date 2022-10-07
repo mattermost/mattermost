@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,9 +25,12 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	`
 	ContentType := "text/html; utf-8"
 
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	b.Run("with converting", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
+			r := forceHTMLEncodingToUTF8(ctx, strings.NewReader(HTML), ContentType)
 
 			og := opengraph.NewOpenGraph()
 			og.ProcessHTML(r)
@@ -41,6 +46,9 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 }
 
 func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	for name, tc := range map[string]struct {
 		HTML       string
 		RequestURL string
@@ -112,7 +120,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			err := og.ProcessHTML(strings.NewReader(tc.HTML))
 			require.NoError(t, err)
 
-			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
+			makeOpenGraphURLsAbsolute(ctx, og, tc.RequestURL)
 
 			assert.Equalf(t, og.URL, tc.URL, "incorrect url, expected %v, got %v", tc.URL, og.URL)
 

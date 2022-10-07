@@ -1449,7 +1449,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write(js)
 	} else {
-		appErr := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.AppContext.Session().UserId)
+		appErr := c.App.InviteNewUsersToTeam(c.AppContext, emailList, c.Params.TeamId, c.AppContext.Session().UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -1530,7 +1530,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		w.Write(js)
 	} else {
-		appErr := c.App.InviteGuestsToChannels(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
+		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return

@@ -263,7 +263,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 				)
 			}
 		} else {
-			scs.app.NotifySharedChannelUserUpdate(userSaved)
+			scs.app.NotifySharedChannelUserUpdate(scs.ctx, userSaved)
 			return userSaved, nil
 		}
 	}
@@ -318,7 +318,7 @@ func (scs *Service) updateSyncUser(patch *model.UserPatch, user *model.User, cha
 			}
 		} else {
 			scs.app.InvalidateCacheForUser(update.New.Id)
-			scs.app.NotifySharedChannelUserUpdate(update.New)
+			scs.app.NotifySharedChannelUserUpdate(scs.ctx, update.New)
 			return update.New, nil
 		}
 	}

@@ -14,14 +14,15 @@ const jobName = "ProductNotices"
 
 type AppIface interface {
 	UpdateProductNotices(request.CTX) *model.AppError
+	Log() *mlog.Logger
 }
 
-func MakeWorker(c request.CTX, jobServer *jobs.JobServer, app AppIface) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
 	execute := func(job *model.Job) error {
-		if err := app.UpdateProductNotices(c); err != nil {
+		if err := app.UpdateProductNotices(request.EmptyContext(app.Log())); err != nil {
 			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
 			return err
 		}

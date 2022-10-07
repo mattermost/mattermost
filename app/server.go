@@ -394,7 +394,7 @@ func NewServer(options ...Option) (*Server, error) {
 		Users:        s.userService,
 		WebHub:       s,
 		ConfigFn:     s.platform.Config,
-		LicenseFn:    func() *model.License { return s.License(c) },
+		LicenseFn:    func(c request.CTX) *model.License { return s.License(c) },
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
@@ -1816,13 +1816,13 @@ func (s *Server) initJobs(c request.CTX) {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExpiryNotify,
-		expirynotify.MakeWorker(c, s.Jobs, New(ServerConnector(s.Channels())).NotifySessionsExpired),
+		expirynotify.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		expirynotify.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeProductNotices,
-		product_notices.MakeWorker(c, s.Jobs, New(ServerConnector(s.Channels()))),
+		product_notices.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		product_notices.MakeScheduler(s.Jobs),
 	)
 
@@ -1876,8 +1876,8 @@ func (s *Server) initJobs(c request.CTX) {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
+		last_accessible_file.MakeWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
+		last_accessible_file.MakeScheduler(s.Jobs, s.License(c)),
 	)
 
 	s.Jobs.RegisterJobType(

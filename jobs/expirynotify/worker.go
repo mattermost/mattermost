@@ -7,18 +7,24 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
 	JobName = "ExpiryNotify"
 )
 
-func MakeWorker(c request.CTX, jobServer *jobs.JobServer, notifySessionsExpired func(request.CTX) error) model.Worker {
+type AppIface interface {
+	NotifySessionsExpired(request.CTX) error
+	Log() *mlog.Logger
+}
+
+func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
 	execute := func(job *model.Job) error {
-		return notifySessionsExpired(c)
+		return app.NotifySessionsExpired(request.EmptyContext(app.Log()))
 	}
 	return jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
 }

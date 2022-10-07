@@ -4,8 +4,10 @@
 package last_accessible_post
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const (
@@ -13,7 +15,8 @@ const (
 )
 
 type AppIface interface {
-	ComputeLastAccessiblePostTime() error
+	ComputeLastAccessiblePostTime(request.CTX) error
+	Log() *mlog.Logger
 }
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
@@ -21,7 +24,7 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
 	execute := func(_ *model.Job) error {
-		return app.ComputeLastAccessiblePostTime()
+		return app.ComputeLastAccessiblePostTime(request.EmptyContext(app.Log()))
 	}
 	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
 	return worker

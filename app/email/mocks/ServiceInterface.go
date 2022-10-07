@@ -13,6 +13,8 @@ import (
 
 	model "github.com/mattermost/mattermost-server/v6/model"
 
+	request "github.com/mattermost/mattermost-server/v6/app/request"
+
 	templates "github.com/mattermost/mattermost-server/v6/shared/templates"
 
 	throttled "github.com/throttled/throttled"
@@ -293,13 +295,13 @@ func (_m *ServiceInterface) SendEmailChangeVerifyEmail(newUserEmail string, loca
 	return r0
 }
 
-// SendGuestInviteEmails provides a mock function with given fields: team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent
-func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
-	ret := _m.Called(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent)
+// SendGuestInviteEmails provides a mock function with given fields: c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent
+func (_m *ServiceInterface) SendGuestInviteEmails(c request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+	ret := _m.Called(c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, string, bool) error); ok {
-		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, string, bool) error); ok {
+		r0 = rf(c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, message, errorWhenNotSent)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -307,13 +309,13 @@ func (_m *ServiceInterface) SendGuestInviteEmails(team *model.Team, channels []*
 	return r0
 }
 
-// SendInviteEmails provides a mock function with given fields: team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent
-func (_m *ServiceInterface) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
-	ret := _m.Called(team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent)
+// SendInviteEmails provides a mock function with given fields: c, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent
+func (_m *ServiceInterface) SendInviteEmails(c request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+	ret := _m.Called(c, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Team, string, string, []string, string, *model.TeamInviteReminderData, bool) error); ok {
-		r0 = rf(team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, string, string, []string, string, *model.TeamInviteReminderData, bool) error); ok {
+		r0 = rf(c, team, senderName, senderUserId, invites, siteURL, reminderData, errorWhenNotSent)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -321,13 +323,13 @@ func (_m *ServiceInterface) SendInviteEmails(team *model.Team, senderName string
 	return r0
 }
 
-// SendInviteEmailsToTeamAndChannels provides a mock function with given fields: team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent
-func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error) {
-	ret := _m.Called(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
+// SendInviteEmailsToTeamAndChannels provides a mock function with given fields: c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent
+func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(c request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool) ([]*model.EmailInviteWithError, error) {
+	ret := _m.Called(c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
 
 	var r0 []*model.EmailInviteWithError
-	if rf, ok := ret.Get(0).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) []*model.EmailInviteWithError); ok {
-		r0 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) []*model.EmailInviteWithError); ok {
+		r0 = rf(c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.EmailInviteWithError)
@@ -335,8 +337,8 @@ func (_m *ServiceInterface) SendInviteEmailsToTeamAndChannels(team *model.Team, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) error); ok {
-		r1 = rf(team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Team, []*model.Channel, string, string, []byte, []string, string, *model.TeamInviteReminderData, string, bool) error); ok {
+		r1 = rf(c, team, channels, senderName, senderUserId, senderProfileImage, invites, siteURL, reminderData, message, errorWhenNotSent)
 	} else {
 		r1 = ret.Error(1)
 	}

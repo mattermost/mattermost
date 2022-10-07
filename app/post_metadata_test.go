@@ -23,9 +23,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 )
 
@@ -2647,9 +2649,12 @@ func TestLooksLikeAPermalink(t *testing.T) {
 		"siteURL without a trailing slash": {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURL), siteURL: siteURL, expect: true},
 	}
 
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			actual := looksLikeAPermalink(th.Context, tc.input, tc.siteURL)
+			actual := looksLikeAPermalink(ctx, tc.input, tc.siteURL)
 			assert.Equal(t, tc.expect, actual)
 		})
 	}

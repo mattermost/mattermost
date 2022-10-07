@@ -30,7 +30,7 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 	for i := 0; i < 22; i++ {
 		memberInvite.Emails[i] = "test-" + strconv.Itoa(i) + "@common.com"
 	}
-	err = th.App.InviteNewUsersToTeam(memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)
+	err = th.App.InviteNewUsersToTeam(th.Context, memberInvite.Emails, th.BasicTeam.Id, th.BasicUser.Id)
 	require.NotNil(t, err)
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)

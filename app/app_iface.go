@@ -874,9 +874,9 @@ type AppIface interface {
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateAllResendInviteEmailJobs() *model.AppError
 	InvalidateCacheForUser(userID string)
-	InviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
+	InviteGuestsToChannels(c request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(c request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
-	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
+	InviteNewUsersToTeam(c request.CTX, emailList []string, teamID, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsFirstUserAccount() bool

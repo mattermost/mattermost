@@ -25,6 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -52,16 +53,22 @@ func TestStartServerSuccess(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	serverErr := s.Start()
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
+	serverErr := s.Start(ctx)
 
 	client := &http.Client{}
 	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
-	s.Shutdown()
+	s.Shutdown(ctx)
 	require.NoError(t, serverErr)
 }
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	cfg := model.Config{}
 	cfg.SetDefaults()
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
@@ -93,7 +100,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
-		defer s.Shutdown()
+		defer s.Shutdown(ctx)
 		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
 		require.Len(t, s.platform.Config().SqlSettings.DataSourceReplicas, 1)
 	})
@@ -111,7 +118,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
-		defer s.Shutdown()
+		defer s.Shutdown(ctx)
 		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
 		require.Len(t, s.platform.Config().SqlSettings.DataSourceReplicas, 1)
 	})
@@ -128,7 +135,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
-		defer s.Shutdown()
+		defer s.Shutdown(ctx)
 		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
 		require.Len(t, s.platform.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
@@ -146,13 +153,16 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
-		defer s.Shutdown()
+		defer s.Shutdown(ctx)
 		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
 		require.Len(t, s.platform.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	s, err := NewServer()
 	require.NoError(t, err)
 
@@ -165,12 +175,15 @@ func TestStartServerPortUnavailable(t *testing.T) {
 		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
-	serverErr := s.Start()
-	s.Shutdown()
+	serverErr := s.Start(ctx)
+	s.Shutdown(ctx)
 	require.Error(t, serverErr)
 }
 
 func TestStartServerNoS3Bucket(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "localhost"
@@ -208,8 +221,8 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, s.Start())
-	defer s.Shutdown()
+	require.NoError(t, s.Start(ctx))
+	defer s.Shutdown(ctx)
 
 	// ensure that a new bucket was created
 	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
@@ -217,6 +230,9 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 }
 
 func TestStartServerTLSSuccess(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -227,7 +243,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	serverErr := s.Start()
+	serverErr := s.Start(ctx)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -236,7 +252,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	client := &http.Client{Transport: tr}
 	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
-	s.Shutdown()
+	s.Shutdown(ctx)
 	require.NoError(t, serverErr)
 }
 
@@ -269,6 +285,9 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	configStore, _ := config.NewMemoryStore()
 	store, _ := config.NewStoreFromBacking(configStore, nil, false)
 	cfg := store.Get()
@@ -285,7 +304,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	s, err := NewServer(ConfigStore(store))
 	require.NoError(t, err)
 
-	serverErr := s.Start()
+	serverErr := s.Start(ctx)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -310,11 +329,14 @@ func TestStartServerTLSVersion(t *testing.T) {
 		t.Errorf("Expected nil, got %s", err)
 	}
 
-	s.Shutdown()
+	s.Shutdown(ctx)
 	require.NoError(t, serverErr)
 }
 
 func TestStartServerTLSOverwriteCipher(t *testing.T) {
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	s, err := newServerWithConfig(t, func(cfg *model.Config) {
 		testDir, _ := fileutils.FindDir("tests")
 
@@ -329,10 +351,10 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = s.Start()
+	err = s.Start(ctx)
 	require.NoError(t, err)
 
-	defer s.Shutdown()
+	defer s.Shutdown(ctx)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -404,6 +426,8 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, err)
 	logger.LockConfiguration()
 
+	ctx := request.EmptyContext(logger)
+
 	// Creating a server with logger
 	s, err := NewServer()
 	require.NoError(t, err)
@@ -422,7 +446,7 @@ func TestPanicLog(t *testing.T) {
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := s.Start()
+	serverErr := s.Start(ctx)
 	require.NoError(t, serverErr)
 
 	// Calling panic route
@@ -435,7 +459,7 @@ func TestPanicLog(t *testing.T) {
 
 	err = logger.Flush()
 	assert.NoError(t, err, "flush should succeed")
-	s.Shutdown()
+	s.Shutdown(ctx)
 
 	// Checking whether panic was logged
 	var panicLogged = false
@@ -478,6 +502,9 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 
 	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
+		logger, _ := mlog.NewLogger()
+		ctx := request.EmptyContext(logger)
+
 		data := make(chan bool, 1)
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -506,8 +533,8 @@ func TestSentry(t *testing.T) {
 			panic("log this panic")
 		})
 
-		require.NoError(t, s.Start())
-		defer s.Shutdown()
+		require.NoError(t, s.Start(ctx))
+		defer s.Shutdown(ctx)
 
 		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 		require.Nil(t, resp)
@@ -523,6 +550,9 @@ func TestSentry(t *testing.T) {
 	})
 
 	t.Run("sentry is enabled, report should be received", func(t *testing.T) {
+		logger, _ := mlog.NewLogger()
+		ctx := request.EmptyContext(logger)
+
 		data := make(chan bool, 1)
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -551,8 +581,8 @@ func TestSentry(t *testing.T) {
 			panic("log this panic")
 		})
 
-		require.NoError(t, s.Start())
-		defer s.Shutdown()
+		require.NoError(t, s.Start(ctx))
+		defer s.Shutdown(ctx)
 
 		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 		require.Nil(t, resp)

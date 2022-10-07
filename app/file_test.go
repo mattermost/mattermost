@@ -16,10 +16,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/mocks"
 	filesStoreMocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
@@ -553,8 +555,11 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 		MimeType: "image/jpeg",
 	}
 
+	logger, _ := mlog.NewLogger()
+	ctx := request.EmptyContext(logger)
+
 	// Test that we don't process images.
-	require.NoError(t, app.ExtractContentFromFileInfo(fi))
+	require.NoError(t, app.ExtractContentFromFileInfo(ctx, fi))
 }
 
 func TestGetLastAccessibleFileTime(t *testing.T) {

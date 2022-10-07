@@ -24,9 +24,10 @@ const jobName = "ExtractContent"
 
 type AppIface interface {
 	ExtractContentFromFileInfo(c request.CTX, fileInfo *model.FileInfo) error
+	Log() *mlog.Logger
 }
 
-func MakeWorker(c request.CTX, jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -65,7 +66,7 @@ func MakeWorker(c request.CTX, jobServer *jobs.JobServer, app AppIface, store st
 			for _, fileInfo := range fileInfos {
 				if !ignoredFiles[fileInfo.Extension] {
 					mlog.Debug("extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-					err = app.ExtractContentFromFileInfo(c, fileInfo)
+					err = app.ExtractContentFromFileInfo(request.EmptyContext(app.Log()), fileInfo)
 					if err != nil {
 						mlog.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
 						nErrs++

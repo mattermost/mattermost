@@ -24,6 +24,7 @@ type AppIface interface {
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	Log() *mlog.Logger
 }
 
 type ResendInvitationEmailWorker struct {
@@ -51,7 +52,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store, tele
 	return &worker
 }
 
-func (rseworker *ResendInvitationEmailWorker) Run(c request.CTX) {
+func (rseworker *ResendInvitationEmailWorker) Run() {
 	mlog.Debug("Worker started", mlog.String("worker", rseworker.name))
 
 	defer func() {
@@ -66,7 +67,7 @@ func (rseworker *ResendInvitationEmailWorker) Run(c request.CTX) {
 			return
 		case job := <-rseworker.jobs:
 			mlog.Debug("Worker received a new candidate job.", mlog.String("worker", rseworker.name))
-			rseworker.DoJob(c, &job)
+			rseworker.DoJob(&job)
 		}
 	}
 }
@@ -85,10 +86,10 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 	return rseworker.jobs
 }
 
-func (rseworker *ResendInvitationEmailWorker) DoJob(c request.CTX, job *model.Job) {
+func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
-		rseworker.ResendEmails(c, job, "48")
+		rseworker.ResendEmails(job, "48")
 		rseworker.TearDown(job)
 	}
 }
@@ -170,7 +171,7 @@ func (rseworker *ResendInvitationEmailWorker) TearDown(job *model.Job) {
 	rseworker.setJobSuccess(job)
 }
 
-func (rseworker *ResendInvitationEmailWorker) ResendEmails(c request.CTX, job *model.Job, interval string) {
+func (rseworker *ResendInvitationEmailWorker) ResendEmails(job *model.Job, interval string) {
 	teamID := job.Data["teamID"]
 	emailListData := job.Data["emailList"]
 	channelListData := job.Data["channelList"]
@@ -199,7 +200,7 @@ func (rseworker *ResendInvitationEmailWorker) ResendEmails(c request.CTX, job *m
 		memberInvite.ChannelIds = channelList
 	}
 
-	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(c, &memberInvite, teamID, job.Data["senderID"], interval)
+	_, appErr := rseworker.app.InviteNewUsersToTeamGracefully(request.EmptyContext(rseworker.app.Log()), &memberInvite, teamID, job.Data["senderID"], interval)
 	if appErr != nil {
 		mlog.Error("Worker: Failed to send emails", mlog.String("worker", rseworker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
 		rseworker.setJobError(job, appErr)
