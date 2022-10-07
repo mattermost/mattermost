@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -59,7 +61,24 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	return us
 }
 
+func (us SqlUserStore) validateAutoResponderMessageSize(notifyProps model.StringMap) error {
+	if notifyProps != nil {
+		maxPostSize := us.Post().GetMaxPostSize()
+		msg := notifyProps[model.AutoResponderMessageNotifyProp]
+		msgSize := utf8.RuneCountInString(msg)
+		if msgSize > maxPostSize {
+			mlog.Warn("auto_responder_message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("received_size", msgSize))
+			return errors.New("Auto responder message size can't be more than the allowed Post size")
+		}
+	}
+	return nil
+}
+
 func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	query := `INSERT INTO Users
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
 			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing,
@@ -150,6 +169,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, err
 	}
 
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	oldUser := model.User{}
 	err := us.GetMasterX().Get(&oldUser, "SELECT * FROM Users WHERE Id=?", user.Id)
 	if err != nil {
@@ -228,6 +251,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if err := us.validateAutoResponderMessageSize(props); err != nil {
+		return err
+	}
+
 	buf, err := json.Marshal(props)
 	if err != nil {
 		return errors.Wrap(err, "failed marshalling session props")
