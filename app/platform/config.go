@@ -36,15 +36,6 @@ type ServiceConfig struct {
 	Cluster einterfaces.ClusterInterface
 }
 
-func (c *ServiceConfig) validate() error {
-	// Mandatory fields need to be checked here
-	if c.ConfigStore == nil {
-		return errors.New("ConfigStore is required")
-	}
-
-	return nil
-}
-
 // ensure the config wrapper implements `product.ConfigService`
 var _ product.ConfigService = (*PlatformService)(nil)
 
