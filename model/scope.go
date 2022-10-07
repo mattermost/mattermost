@@ -112,17 +112,17 @@ const (
 	ScopeUsersUpdate Scope = "users:update"
 )
 
-var searchAndCRUD = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
+var searchAndCRUDScopeOps = []ScopeOperation{ScopeCreate, ScopeRead, ScopeUpdate, ScopeDelete, ScopeSearch}
 
 var validScopes = map[ScopeResource][]ScopeOperation{
-	ScopeChannels: append(searchAndCRUD, ScopeJoin),
+	ScopeChannels: append(searchAndCRUDScopeOps, ScopeJoin),
 	ScopeCommands: {ScopeExecute},
-	ScopeEmojis:   searchAndCRUD,
-	ScopeFiles:    searchAndCRUD,
+	ScopeEmojis:   searchAndCRUDScopeOps,
+	ScopeFiles:    searchAndCRUDScopeOps,
 	ScopeOAuth2:   {ScopeManage},
-	ScopePosts:    searchAndCRUD,
-	ScopeTeams:    append(searchAndCRUD, ScopeJoin),
-	ScopeUsers:    searchAndCRUD,
+	ScopePosts:    searchAndCRUDScopeOps,
+	ScopeTeams:    append(searchAndCRUDScopeOps, ScopeJoin),
+	ScopeUsers:    searchAndCRUDScopeOps,
 }
 
 func (r ScopeResource) NewScope(op ScopeOperation) Scope {
