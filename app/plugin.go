@@ -422,11 +422,6 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
-	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
-	if appErr != nil {
-		return appErr
-	}
-
 	return a.ch.enablePlugin(id)
 }
 

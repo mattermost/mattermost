@@ -156,16 +156,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
-	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
-		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
-		return
-	}
-
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	// There are some settings that cannot be changed in a cloud env
 	if c.App.Channels().License().IsCloud() {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
@@ -302,11 +292,6 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "PluginSettings.MarketplaceURL"}, "", http.StatusForbidden)
 			return
 		}
-	}
-
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
-		return
 	}
 
 	// There are some settings that cannot be changed in a cloud env

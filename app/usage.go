@@ -10,16 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
-func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
-	appErr := a.checkIntegrationLimitsForConfigSave(oldConfig, newConfig)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
-
 // GetIntegrationsUsage returns usage information on enabled integrations
 func (a *App) GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
 	return a.ch.getIntegrationsUsage()
