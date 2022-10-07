@@ -1123,6 +1123,59 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	return list, nil
 }
 
+func (s *SqlPostStore) getParentPostsCollapsedThreads(posts []*postWithExtra, userId string, columns []string) ([]*postWithExtra, error) {
+	rootIdMap := make(map[string]string)
+	postsMap := make(map[string]string)
+
+	for _, p := range posts {
+		if p.GetProp("broadcasted_thread_reply") == true {
+			rootIdMap[p.RootId] = p.RootId
+		}
+	}
+
+	getParentPost := func(id string) (*postWithExtra, error) {
+		var post postWithExtra
+
+		postFetchQuery, args, err := s.getQueryBuilder().
+			Select(columns...).
+			From("Posts").
+			LeftJoin("Threads ON Threads.PostId = Id").
+			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", userId).
+			Where(sq.Eq{"Posts.DeleteAt": 0}).
+			Where(sq.Eq{"Posts.Id": id}).ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "getPostWithCollapsedThreads_ToSql2")
+		}
+
+		err = s.GetReplicaX().Get(&post, postFetchQuery, args...)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, store.NewErrNotFound("Post", id)
+			}
+
+			return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
+		}
+
+		return &post, nil
+	}
+
+	for _, p := range posts {
+		postsMap[p.Id] = p.Id
+	}
+
+	for key, rootId := range rootIdMap {
+		if _, ok := postsMap[key]; !ok {
+			parentPost, err := getParentPost(rootId)
+			if err != nil {
+				return nil, errors.Wrapf(err, "failed to get Post with id=%s", rootId)
+			}
+			posts = append(posts, parentPost)
+		}
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
@@ -1154,53 +1207,9 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	rootIdMap := make(map[string]string)
-	postsMap := make(map[string]string)
-
-	for _, p := range posts {
-		if p.GetProp("broadcasted_thread_reply") == true {
-			rootIdMap[p.RootId] = p.RootId
-		}
-	}
-
-	getParentPost := func(id string) (*postWithExtra, error) {
-		var post postWithExtra
-
-		postFetchQuery, args, err := s.getQueryBuilder().
-			Select(columns...).
-			From("Posts").
-			LeftJoin("Threads ON Threads.PostId = Id").
-			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Id AND ThreadMemberships.UserId = ?", options.UserId).
-			Where(sq.Eq{"Posts.DeleteAt": 0}).
-			Where(sq.Eq{"Posts.Id": id}).ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "getPostWithCollapsedThreads_ToSql2")
-		}
-
-		err = s.GetReplicaX().Get(&post, postFetchQuery, args...)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return nil, store.NewErrNotFound("Post", id)
-			}
-
-			return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
-		}
-
-		return &post, nil
-	}
-
-	for _, p := range posts {
-		postsMap[p.Id] = p.Id
-	}
-
-	for key, rootId := range rootIdMap {
-		if _, ok := postsMap[key]; !ok {
-			parentPost, err := getParentPost(rootId)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get Post with id=%s", rootId)
-			}
-			posts = append(posts, parentPost)
-		}
+	posts, err = s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+	if err != nil {
+		return nil, err
 	}
 
 	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
@@ -1290,6 +1299,9 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
+
+	s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+
 	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
