@@ -1450,6 +1450,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1472,6 +1473,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1495,6 +1497,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			ChannelIds: []string{th.BasicChannel.Id},
 		}
 		emailServiceMock.On("SendInviteEmailsToTeamAndChannels",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),
@@ -1520,6 +1523,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			Emails: []string{"idontexist@mattermost.com"},
 		}
 		emailServiceMock.On("SendInviteEmails",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("string"),
@@ -1548,6 +1552,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	t.Run("it return list of email with no error on success", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),
@@ -1572,6 +1577,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	t.Run("it should assign errors to emails when failing to send", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("SendGuestInviteEmails",
+			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("*model.Team"),
 			mock.AnythingOfType("[]*model.Channel"),
 			mock.AnythingOfType("string"),

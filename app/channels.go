@@ -27,8 +27,8 @@ import (
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
 type licenseSvc interface {
-	GetLicense() *model.License
-	RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
+	GetLicense(request.CTX) *model.License
+	RequestTrialLicense(c request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
 // Channels contains all channels related state.
@@ -299,12 +299,17 @@ func (ch *Channels) RemoveConfigListener(id string) {
 }
 
 func (ch *Channels) License() *model.License {
-	return ch.licenseSvc.GetLicense()
+	return ch.licenseSvc.GetLicense(request.EmptyContext(ch.srv.Log()))
 }
 
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
-	return ch.licenseSvc.RequestTrialLicense(requesterID, users, termsAccepted,
-		receiveEmailsAccepted)
+	return ch.licenseSvc.RequestTrialLicense(
+		request.EmptyContext(ch.srv.Log()),
+		requesterID,
+		users,
+		termsAccepted,
+		receiveEmailsAccepted,
+	)
 }
 
 // Ensure hooksService implements `product.HooksService`

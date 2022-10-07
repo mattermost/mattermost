@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -53,6 +54,7 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 		Session:   *session,
 		TFunc:     i18n.IdentityTfunc(),
 		Locale:    "en",
+		CTX:       request.EmptyContext(a.Log()),
 	}
 	wc := a.NewWebConn(cfg)
 	a.HubRegister(wc)

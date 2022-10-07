@@ -4,13 +4,11 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
 )
@@ -23,8 +21,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		err := th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, err)
 	})
 
@@ -34,8 +31,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "", true)
+		err := th.App.SendNotifyAdminPosts(th.Context, "", "", true)
 		require.Nil(t, err)
 	})
 
@@ -60,8 +56,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -108,8 +103,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", true)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", true)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -155,8 +149,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -168,7 +161,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// second time trying to notify is forbidden
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.NotNil(t, appErr)
 		require.Equal(t, appErr.Error(), "SendNotifyAdminPosts: Unable to send notification post., Cannot notify yet")
 	})
@@ -190,8 +183,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -205,7 +197,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		time.Sleep(5 * time.Second)
 
 		// no error sending second time
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 	})
 
@@ -232,8 +224,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
