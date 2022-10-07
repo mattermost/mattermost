@@ -208,9 +208,6 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	messageUser.Add("user_id", teamMember.UserId)
 	messageUser.Add("team_id", teamMember.TeamId)
 
-	broadcast := messageUser.GetBroadcast()
-	messageUser.SetBroadcast(broadcast)
-
 	ts.wh.Publish(messageUser)
 
 	// delete team member
