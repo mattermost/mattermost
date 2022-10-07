@@ -209,7 +209,6 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	messageUser.Add("team_id", teamMember.TeamId)
 
 	broadcast := messageUser.GetBroadcast()
-	broadcast.ReliableClusterSend = true
 	messageUser.SetBroadcast(broadcast)
 
 	ts.wh.Publish(messageUser)
