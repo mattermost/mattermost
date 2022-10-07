@@ -97,10 +97,6 @@ type PlatformService struct {
 
 // New creates a new PlatformService.
 func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
-	if err := sc.validate(); err != nil {
-		return nil, err
-	}
-
 	// Step 0: Create the PlatformService.
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
@@ -136,6 +132,21 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		if err := option(ps); err != nil {
 			return nil, fmt.Errorf("failed to apply option: %w", err)
 		}
+	}
+
+	// the config store is not set, we need to create a new one
+	if ps.configStore == nil {
+		innerStore, err := config.NewFileStore("config.json", true)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load config from file: %w", err)
+		}
+
+		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load config from file: %w", err)
+		}
+
+		ps.configStore = configStore
 	}
 
 	// Step 2: Start logging.
