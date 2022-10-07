@@ -1155,7 +1155,7 @@ func TestGetAllTeams(t *testing.T) {
 		require.True(t, found)
 	})
 	// Now actually create the policy and assign the team to it
-	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
 			PostDurationDays: model.NewInt64(30),
@@ -1469,7 +1469,7 @@ func TestSearchAllTeams(t *testing.T) {
 	CheckOKStatus(t, resp)
 	policyTeam := sysManagerTeams[0]
 	// Now actually create the policy and assign the team to it
-	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
 			PostDurationDays: model.NewInt64(30),
@@ -2148,7 +2148,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
-	require.NoError(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 	tm, _, err = client.AddTeamMemberFromInvite(token.Token, "")
 	require.NoError(t, err)
@@ -2159,7 +2159,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
+	_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 	require.Error(t, err, "The token must be deleted after be used")
 
 	tm, resp, err = client.AddTeamMemberFromInvite("junk", "")
@@ -2171,7 +2171,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	require.NoError(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 	_, resp, err = client.AddTeamMemberFromInvite(token.Token, "")
 	require.Error(t, err)
@@ -2184,7 +2184,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
 	)
-	require.NoError(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 	_, resp, err = client.AddTeamMemberFromInvite(token.Token, "")
 	require.Error(t, err)
@@ -2229,7 +2229,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
-	require.NoError(t, th.App.Srv().Store.Token().Save(token))
+	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 	_, _, err = client.AddTeamMemberFromInvite(token.Token, "")
 	CheckErrorID(t, err, "app.team.invite_token.group_constrained.error")
 

@@ -220,14 +220,14 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 }
 
 func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.AppError) {
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID, isCRTEnabled)
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled)
 	if err != nil {
 		return 0, model.NewAppError("getUserBadgeCount", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	badgeCount := int(unreadCount)
 
 	if isCRTEnabled {
-		threadUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
 		if err != nil {
 			return 0, model.NewAppError("getUserBadgeCount", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -483,7 +483,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
-	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userID)
+	sessions, err := a.Srv().Store().Session().GetSessionsWithActiveDeviceIds(userID)
 	if err != nil {
 		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
