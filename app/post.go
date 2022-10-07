@@ -294,7 +294,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if post.IsVoiceMessage() {
 		// make sure voice messages are allowed
-		if a.Config().FeatureFlags.EnableVoiceMessages && *a.Config().ExperimentalSettings.EnableVoiceMessages {
+		if a.Config().FeatureFlags.VoiceMessages && *a.Config().ExperimentalSettings.EnableVoiceMessages {
 			if err = a.validateVoiceMessage(post); err != nil {
 				return nil, err
 			}

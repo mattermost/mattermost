@@ -76,7 +76,7 @@ type FeatureFlags struct {
 
 	PostPriority bool
 
-	EnableVoiceMessages bool
+	VoiceMessages bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -105,7 +105,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.BoardsProduct = false
 	f.PlanUpgradeButtonText = "upgrade"
 	f.PostPriority = false
-	f.EnableVoiceMessages = false
+	f.VoiceMessages = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -944,10 +944,10 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("should successfully create a voice post", func(t *testing.T) {
 		// feature flag setup
-		ffInitialValue := os.Getenv("MM_FEATUREFLAGS_EnableVoiceMessages")
-		os.Setenv("MM_FEATUREFLAGS_EnableVoiceMessages", "true")
+		ffInitialValue := os.Getenv("MM_FEATUREFLAGS_VoiceMessages")
+		os.Setenv("MM_FEATUREFLAGS_VoiceMessages", "true")
 		defer func() {
-			os.Setenv("MM_FEATUREFLAGS_EnableVoiceMessages", ffInitialValue)
+			os.Setenv("MM_FEATUREFLAGS_VoiceMessages", ffInitialValue)
 		}()
 
 		th := Setup(t).InitBasic()
