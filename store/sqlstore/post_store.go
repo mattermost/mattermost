@@ -661,7 +661,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions, opts)
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1060,7 +1060,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool, options model.GetPostsOptions) (*model.PostList, error) {
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1137,7 +1137,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
-	postFetchQuery, argsPost, _ := s.getQueryBuilder().
+	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
@@ -1149,7 +1149,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
 
-	err := s.GetReplicaX().Select(&posts, postFetchQuery, argsPost...)
+	err := s.GetReplicaX().Select(&posts, postFetchQuery, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
@@ -1203,7 +1203,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		}
 	}
 
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions, options)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1290,15 +1290,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-
-	opts := model.GetPostsOptions{
-		SkipFetchThreads: options.SkipFetchThreads,
-		ChannelId:        options.ChannelId,
-		PerPage:          60,
-		Page:             0,
-	}
-
-	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions, opts)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 //nolint:unparam
@@ -1571,7 +1563,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions, options)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
