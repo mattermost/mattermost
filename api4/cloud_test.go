@@ -297,6 +297,7 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
 }
+
 func Test_validateBusinessEmail(t *testing.T) {
 	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()

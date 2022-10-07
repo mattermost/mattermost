@@ -964,7 +964,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		err error
 	)
 	if c.Params.IncludeTotalCount {
-		totalCount, cerr := c.App.Srv().Store.Group().GroupCount()
+		totalCount, cerr := c.App.Srv().Store().Group().GroupCount()
 		if cerr != nil {
 			c.Err = model.NewAppError("Api4.getGroups", "api.custom_groups.count_err", nil, "", http.StatusInternalServerError).Wrap(cerr)
 			return
