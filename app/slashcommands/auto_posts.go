@@ -17,31 +17,37 @@ import (
 )
 
 type AutoPostCreator struct {
-	a              *app.App
-	channelid      string
-	userid         string
-	Fuzzy          bool
-	TextLength     utils.Range
-	HasImage       bool
-	ImageFilenames []string
-	Users          []string
-	Mentions       utils.Range
-	Tags           utils.Range
+	a               *app.App
+	channelid       string
+	userid          string
+	Fuzzy           bool
+	TextLength      utils.Range
+	HasImage        bool
+	ImageFilenames  []string
+	Users           []string
+	UsersToPostFrom []string
+	Mentions        utils.Range
+	Tags            utils.Range
+	CreateTime      int64
+	postsCreated    int
 }
 
 // Automatic poster used for testing
 func NewAutoPostCreator(a *app.App, channelid, userid string) *AutoPostCreator {
 	return &AutoPostCreator{
-		a:              a,
-		channelid:      channelid,
-		userid:         userid,
-		Fuzzy:          false,
-		TextLength:     utils.Range{Begin: 100, End: 200},
-		HasImage:       false,
-		ImageFilenames: TestImageFileNames,
-		Users:          []string{},
-		Mentions:       utils.Range{Begin: 0, End: 5},
-		Tags:           utils.Range{Begin: 0, End: 7},
+		a:               a,
+		channelid:       channelid,
+		userid:          userid,
+		Fuzzy:           false,
+		TextLength:      utils.Range{Begin: 100, End: 200},
+		HasImage:        false,
+		ImageFilenames:  TestImageFileNames,
+		Users:           []string{},
+		UsersToPostFrom: []string{},
+		Mentions:        utils.Range{Begin: 0, End: 5},
+		Tags:            utils.Range{Begin: 0, End: 7},
+		CreateTime:      0,
+		postsCreated:    0,
 	}
 }
 
@@ -97,9 +103,25 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootId string)
 		Message:   postText,
 		FileIds:   fileIDs,
 	}
+	if cfg.CreateTime != 0 {
+		// Creating posts with the exact same timestamp results in some posts being skipped
+		// when they are retrieved by the API based on timestamp.
+		post.CreateAt = cfg.CreateTime + int64(cfg.postsCreated)
+		// We need the UpdateAt field to be in the present to beat the browser cache.
+		post.UpdateAt = model.GetMillis()
+	}
+	if len(cfg.UsersToPostFrom) != 0 {
+		i := utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.UsersToPostFrom)})
+		if i < len(cfg.UsersToPostFrom) {
+			post.UserId = cfg.UsersToPostFrom[i]
+		}
+	}
 	rpost, err := cfg.a.CreatePostMissingChannel(c, post, true)
 	if err != nil {
 		return nil, err
 	}
+
+	cfg.postsCreated += 1
+
 	return rpost, nil
 }

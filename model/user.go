@@ -436,7 +436,9 @@ func (u *User) PreSave() {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
-	u.CreateAt = GetMillis()
+	if u.CreateAt == 0 {
+		u.CreateAt = GetMillis()
+	}
 	u.UpdateAt = u.CreateAt
 
 	u.LastPasswordUpdate = u.CreateAt
