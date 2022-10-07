@@ -152,8 +152,8 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(userID string, deviceID str
 	return nil
 }
 
-func (us *PlatformService) RevokeSessionsForOAuthApp(appID string) error {
-	sessions, err := us.Store.Session().GetSessionsForOAuthApp(appID)
+func (ps *PlatformService) RevokeSessionsForOAuthApp(appID string) error {
+	sessions, err := ps.Store.Session().GetSessionsForOAuthApp(appID)
 	if err != nil {
 		return err
 	}
@@ -164,21 +164,20 @@ func (us *PlatformService) RevokeSessionsForOAuthApp(appID string) error {
 
 	defer func() {
 		for _, session := range sessions {
-			us.ClearUserSessionCache(session.UserId)
+			ps.ClearUserSessionCache(session.UserId)
 		}
 	}()
 
-	if err := us.Store.Session().RemoveSessions(tokens); err != nil {
+	if err := ps.Store.Session().RemoveSessions(tokens); err != nil {
 		return err
 	}
 
-	if err := us.Store.OAuth().RemoveMultipleAccessData(tokens); err != nil {
+	if err := ps.Store.OAuth().RemoveMultipleAccessData(tokens); err != nil {
 		return err
 	}
 
 	return nil
 }
-
 
 func (ps *PlatformService) RevokeSession(session *model.Session) error {
 	if session.IsOAuth {
