@@ -3,6 +3,7 @@
 
 package app
 
+// TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
