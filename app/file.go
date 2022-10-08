@@ -266,8 +266,8 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 
 	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
 	return info
@@ -724,8 +724,8 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
-	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.jpg"
-	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb.jpg"
+	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview." + getFileExtFromMimeType(t.fileinfo.MimeType)
+	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(t.fileinfo.MimeType)
 
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
@@ -799,16 +799,6 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 			return
 		}
 	}
-
-	updateFilePathExt := func(imgType, path string) string {
-		if imgType == "png" {
-			path = strings.TrimSuffix(path, filepath.Ext(path)) + ".png"
-		}
-		return path
-	}
-
-	t.fileinfo.ThumbnailPath = updateFilePathExt(imgType, t.fileinfo.ThumbnailPath)
-	t.fileinfo.PreviewPath = updateFilePathExt(imgType, t.fileinfo.PreviewPath)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -901,8 +891,8 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		}
 
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -1429,4 +1419,11 @@ func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	}
 
 	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
+}
+
+func getFileExtFromMimeType(mimeType string) string {
+	if mimeType == "image/png" {
+		return "png"
+	}
+	return "jpg"
 }
