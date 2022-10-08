@@ -318,11 +318,6 @@ type PostCountOptions struct {
 	AllowFromCache bool
 }
 
-type PostCreatedEvent struct {
-	PostId  string `json:"post_id"`
-	Message string `json:"message"`
-}
-
 func (o *Post) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }

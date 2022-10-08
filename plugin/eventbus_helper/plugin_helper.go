@@ -9,21 +9,23 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 )
 
+var pluginEventListeners map[string]*PluginEventListener
+
 type PluginEventListener struct {
 	ReceivedId    string
 	EventListener eventbus.Handler
+	Topic         string
 }
 
-var pluginEventListeners map[string]*PluginEventListener
+func init() {
+	pluginEventListeners = make(map[string]*PluginEventListener)
+}
 
 func HandleEvent(handlerId string, event eventbus.Event) {
 	pluginEventListeners[handlerId].EventListener(event)
 }
 
 func SubscribeToEvent(p plugin.API, topic string, handler eventbus.Handler) (string, error) {
-	if pluginEventListeners == nil {
-		pluginEventListeners = make(map[string]*PluginEventListener)
-	}
 
 	handlerId := model.NewId()
 	receivedId, err := p.SubscribeToEvent(topic, handlerId)
@@ -33,6 +35,19 @@ func SubscribeToEvent(p plugin.API, topic string, handler eventbus.Handler) (str
 	pluginEventListeners[handlerId] = &PluginEventListener{
 		ReceivedId:    receivedId,
 		EventListener: handler,
+		Topic:         topic,
 	}
-	return receivedId, err
+	return handlerId, err
+}
+
+func UnsubscribeFromEvent(p plugin.API, handlerId string) error {
+	listener := pluginEventListeners[handlerId]
+
+	err := p.UnsubscribeFromEvent(listener.Topic, listener.ReceivedId)
+	if err != nil {
+		return err
+	}
+
+	delete(pluginEventListeners, handlerId)
+	return nil
 }

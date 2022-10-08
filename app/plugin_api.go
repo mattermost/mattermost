@@ -142,7 +142,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.Srv().getSystemInstallDate()
+	return api.app.Srv().Platform().GetSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -289,12 +289,12 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
-	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
+	session, err := api.app.ch.srv.platform.GetSessionByID(sessionID)
 	if err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+	if err := api.app.ch.srv.platform.ExtendSessionExpiry(session, expiresAt); err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1093,7 +1093,7 @@ func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
 
 func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
 	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
-	return api.app.Srv().Store.Command().GetByTeam(teamID)
+	return api.app.Srv().Store().Command().GetByTeam(teamID)
 }
 
 func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
@@ -1129,7 +1129,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
-	return api.app.Srv().Store.Command().Get(commandID)
+	return api.app.Srv().Store().Command().Get(commandID)
 }
 
 func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
@@ -1149,11 +1149,11 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	return api.app.Srv().Store.Command().Update(updatedCmd)
+	return api.app.Srv().Store().Command().Update(updatedCmd)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) error {
-	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	err := api.app.Srv().Store().Command().Delete(commandID, model.GetMillis())
 	if err != nil {
 		return err
 	}

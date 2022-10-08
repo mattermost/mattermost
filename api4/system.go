@@ -648,7 +648,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("seconds", i)
 
-	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
+	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 
 	auditRec.Success()
@@ -664,7 +664,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	c.App.Srv().Busy.Clear()
+	c.App.Srv().Platform().Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
@@ -679,7 +679,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
-	sbsJSON, jsonErr := c.App.Srv().Busy.ToJSON()
+	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn(jsonErr.Error())
 	}

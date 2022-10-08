@@ -12,7 +12,7 @@ import (
 )
 
 func (a *App) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
-	u, err := a.Srv().Store.UserTermsOfService().GetByUser(userID)
+	u, err := a.Srv().Store().UserTermsOfService().GetByUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -33,7 +33,7 @@ func (a *App) SaveUserTermsOfService(userID, termsOfServiceId string, accepted b
 			TermsOfServiceId: termsOfServiceId,
 		}
 
-		if _, err := a.Srv().Store.UserTermsOfService().Save(userTermsOfService); err != nil {
+		if _, err := a.Srv().Store().UserTermsOfService().Save(userTermsOfService); err != nil {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &appErr):
@@ -43,7 +43,7 @@ func (a *App) SaveUserTermsOfService(userID, termsOfServiceId string, accepted b
 			}
 		}
 	} else {
-		if err := a.Srv().Store.UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {
+		if err := a.Srv().Store().UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {
 			return model.NewAppError("SaveUserTermsOfService", "app.user_terms_of_service.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
