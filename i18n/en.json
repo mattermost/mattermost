@@ -3009,7 +3009,7 @@
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
-    "translation": "SMTP is not configured in System Console"
+    "translation": "SMTP is not configured in System Console."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
