@@ -290,6 +290,11 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 
 	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 
+	a.PublishEvent("user_created", c, &model.UserCreatedEvent{
+		UserId:   ruser.Id,
+		UserName: ruser.Username,
+	})
+
 	// This message goes to everyone, so the teamID, channelID and userID are irrelevant
 	message := model.NewWebSocketEvent(model.WebsocketEventNewUser, "", "", "", nil, "")
 	message.Add("user_id", ruser.Id)

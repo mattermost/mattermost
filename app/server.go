@@ -522,6 +522,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// TODO: move this into somewhere more appropriate
 	s.bus.Register("post_created", "an event created when a post is created", &model.PostCreatedEvent{})
+	s.bus.Register("user_created", "an event created when a user is created", &model.UserCreatedEvent{})
+	s.bus.Register("channel_created", "an event created when a channel is created", &model.ChannelCreatedEvent{})
+	s.bus.Register("user_joined_channel", "an event created when a user joins a channel", &model.UserHasJoinedChannelEvent{})
+	s.bus.Register("user_joined_team", "an event created when a user joins a team", &model.UserHasJoinedTeamEvent{})
 
 	return s, nil
 }

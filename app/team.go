@@ -844,6 +844,11 @@ func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, 
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForUserTeams(user.Id)
 
+	a.PublishEvent("user_joined_team", c, &model.UserHasJoinedTeamEvent{
+		UserId: user.Id,
+		TeamId: team.Id,
+	})
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if userRequestorId != "" {

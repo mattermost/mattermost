@@ -169,6 +169,10 @@ func init() {
 	gob.Register(&model.PreviewPost{})
 	gob.Register(&request.Context{})
 	gob.Register(&model.PostCreatedEvent{})
+	gob.Register(&model.UserCreatedEvent{})
+	gob.Register(&model.ChannelCreatedEvent{})
+	gob.Register(&model.UserHasJoinedChannelEvent{})
+	gob.Register(&model.UserHasJoinedTeamEvent{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

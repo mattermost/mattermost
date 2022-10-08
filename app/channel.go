@@ -313,6 +313,11 @@ func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember boo
 		a.InvalidateCacheForUser(channel.CreatorId)
 	}
 
+	a.PublishEvent("channel_created", c, &model.ChannelCreatedEvent{
+		ChannelId: sc.Id,
+		TeamId:    sc.TeamId,
+	})
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
@@ -1528,6 +1533,11 @@ func (a *App) AddUserToChannel(c request.CTX, user *model.User, channel *model.C
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
+
+	a.PublishEvent("user_joined_channel", c, &model.UserHasJoinedChannelEvent{
+		UserId:    user.Id,
+		ChannelId: channel.Id,
+	})
 
 	return newMember, nil
 }
