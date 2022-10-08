@@ -122,6 +122,9 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if jobError.DetailedError != "" {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
+	if wrapped := jobError.Unwrap(); wrapped != nil {
+		job.Data["error"] += " — " + wrapped.Error()
+	}
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

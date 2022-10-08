@@ -364,8 +364,9 @@ func (s *PluginSetting) isValid() error {
 		pluginSettingType == Text ||
 		pluginSettingType == LongText ||
 		pluginSettingType == Number ||
-		pluginSettingType == Username) {
-		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+		pluginSettingType == Username ||
+		pluginSettingType == Custom) {
+		return errors.New("should not set Placeholder for setting type not in text, generated, number, username, or custom")
 	}
 
 	if s.Options != nil {

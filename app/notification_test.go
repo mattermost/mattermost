@@ -189,7 +189,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	t.Run("1-mention", func(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
-				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				channelUnread, appErr2 := th.Server.Store().Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
 				require.NoError(t, appErr2)
 				assert.Equal(t, int64(1), channelUnread.MentionCount)
 			})
@@ -209,7 +209,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 	t.Run("2-mentions", func(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
-				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
+				channelUnread, appErr2 := th.Server.Store().Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
 				require.NoError(t, appErr2)
 				assert.Equal(t, int64(2), channelUnread.MentionCount)
 			})

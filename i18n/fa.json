@@ -4896,10 +4896,6 @@
     "translation": "رمز ورود شما برای {{.TeamDisplayName}} در {{.TeamURL}} توسط {{.Method}} به روز شده است."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "اکنون رفع کنید"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "احراز هویت چند عاملی حذف شد"
   },
