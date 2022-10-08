@@ -26,22 +26,26 @@ func HandleEvent(handlerId string, event eventbus.Event) {
 }
 
 func SubscribeToEvent(p plugin.API, topic string, handler eventbus.Handler) (string, error) {
-
 	handlerId := model.NewId()
 	receivedId, err := p.SubscribeToEvent(topic, handlerId)
 	if err != nil {
 		return "", err
 	}
+
 	pluginEventListeners[handlerId] = &PluginEventListener{
 		ReceivedId:    receivedId,
 		EventListener: handler,
 		Topic:         topic,
 	}
+
 	return handlerId, err
 }
 
 func UnsubscribeFromEvent(p plugin.API, handlerId string) error {
-	listener := pluginEventListeners[handlerId]
+	listener, ok := pluginEventListeners[handlerId]
+	if !ok {
+		return nil
+	}
 
 	err := p.UnsubscribeFromEvent(listener.Topic, listener.ReceivedId)
 	if err != nil {
