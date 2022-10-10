@@ -617,7 +617,6 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 				excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 			}
 
@@ -626,11 +625,20 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 			}
 
+			wildcardAddedTerms := strings.Fields(terms)
+			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
+
+			if regExpErr == nil {
+				for index, term := range wildcardAddedTerms {
+					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, ":*")
+				}
+			}
+
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(wildcardAddedTerms, " | ") + ")" + excludeClause
 			} else {
-				queryTerms = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(wildcardAddedTerms, " & ") + ")" + excludeClause
 			}
 
 			query = query.Where(sq.Or{
@@ -649,6 +657,15 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				return model.NewFileInfoList(), nil
 			}
 
+			wildcardAddedTerms := strings.Fields(terms)
+			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
+
+			if regExpErr == nil {
+				for index, term := range wildcardAddedTerms {
+					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
+				}
+			}
+
 			excludeClause := ""
 			if excludedTerms != "" {
 				excludeClause = " -(" + excludedTerms + ")"
@@ -656,10 +673,10 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = terms + excludeClause
+				queryTerms = strings.Join(wildcardAddedTerms, " ") + excludeClause
 			} else {
 				splitTerms := []string{}
-				for _, t := range strings.Fields(terms) {
+				for _, t := range wildcardAddedTerms {
 					splitTerms = append(splitTerms, "+"+t)
 				}
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause
