@@ -997,7 +997,7 @@ func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
 	permissionsProductsRead := []string{model.PermissionSysconsoleReadProductsBoards.Id}
 	permissionsProductsWrite := []string{model.PermissionSysconsoleWriteProductsBoards.Id}
 
-	// Give the new subsection READ permissions to any user with SYSTEM_USER
+	// Give the new subsection READ permissions to any user with SYSTEM_MANAGER
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionOr(isRole(model.SystemManagerRoleId)),
 		Add: permissionsProductsRead,
