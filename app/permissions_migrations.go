@@ -999,7 +999,7 @@ func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with SYSTEM_USER
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionOr(isRole(model.SystemUserRoleId)),
+		On:  permissionOr(isRole(model.SystemManagerRoleId)),
 		Add: permissionsProductsRead,
 	})
 
