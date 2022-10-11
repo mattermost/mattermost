@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
@@ -41,6 +42,8 @@ type PlatformService struct {
 
 	serviceConfig *ServiceConfig
 	configStore   *config.Store
+
+	filestore filestore.FileBackend
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -207,6 +210,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				ps.Metrics(),
 			), nil
 		}
+	}
+
+	license := ps.License()
+	// Step 3: Initialize filestore
+	if ps.filestore == nil {
+		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err2 := filestore.NewFileBackend(ps.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
+		}
+
+		ps.filestore = backend
 	}
 
 	var err error
@@ -426,4 +441,8 @@ func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.App
 	}
 
 	return pluginStatuses, nil
+}
+
+func (ps *PlatformService) FileBackend() filestore.FileBackend {
+	return ps.filestore
 }

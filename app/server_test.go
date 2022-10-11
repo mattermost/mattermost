@@ -95,9 +95,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 		configStore, _ := config.NewFileStore("config.json", true)
 		store, _ := config.NewStoreFromBacking(configStore, nil, false)
 		var err error
-		server.platform, err = platform.New(platform.ServiceConfig{
-			ConfigStore: store,
-		})
+		server.platform, err = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
 		require.NoError(t, err)
 		server.platform.UpdateConfig(func(cfg *model.Config) {
 			cfg.FileSettings = model.FileSettings{
@@ -120,6 +118,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	defer s.Shutdown()
 
 	// ensure that a new bucket was created
+	require.IsType(t, &filestore.S3FileBackend{}, s.FileBackend())
 	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }

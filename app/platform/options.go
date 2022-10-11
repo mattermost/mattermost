@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
@@ -70,6 +71,13 @@ func Config(dsn string, readOnly bool, configDefaults *model.Config) Option {
 
 		ps.configStore = configStore
 
+		return nil
+	}
+}
+
+func SetFileStore(filestore filestore.FileBackend) Option {
+	return func(ps *PlatformService) error {
+		ps.filestore = filestore
 		return nil
 	}
 }
