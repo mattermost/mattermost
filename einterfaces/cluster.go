@@ -25,8 +25,8 @@ type ClusterInterface interface {
 	SendClusterMessageToNode(nodeID string, msg *model.ClusterMessage) error
 	NotifyMsg(buf []byte)
 	GetClusterStats() ([]*model.ClusterStats, *model.AppError)
-	GetLogs(page, perPage int) (map[string][]string, *model.AppError)
-	GetLogsOld(page, perPage int) ([]string, *model.AppError)
+	GetLogs(page, perPage int) ([]string, *model.AppError)
+	QueryLogs(page, perPage int) (map[string][]string, *model.AppError)
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
 }

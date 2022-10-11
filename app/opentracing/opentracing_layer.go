@@ -6918,7 +6918,7 @@ func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLogs(page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogs")
 
@@ -6930,29 +6930,7 @@ func (a *OpenTracingAppLayer) GetLogs(page int, perPage int, logFilter *model.Lo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogs(page, perPage, logFilter)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetLogsOld(page int, perPage int) ([]string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogsOld")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLogsOld(page, perPage)
+	resultVar0, resultVar1 := a.app.GetLogs(page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13250,6 +13228,28 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) QueryLogs(page int, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryLogs")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.QueryLogs(page, perPage, logFilter)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {

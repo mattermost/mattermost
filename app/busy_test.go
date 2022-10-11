@@ -140,10 +140,10 @@ func (c *ClusterMock) GetMyClusterInfo() *model.ClusterInfo                     
 func (c *ClusterMock) GetClusterInfos() []*model.ClusterInfo                     { return nil }
 func (c *ClusterMock) NotifyMsg(buf []byte)                                      {}
 func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError) { return nil, nil }
-func (c *ClusterMock) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
+func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return nil, nil
 }
-func (c *ClusterMock) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
+func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }

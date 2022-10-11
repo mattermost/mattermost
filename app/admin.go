@@ -24,7 +24,7 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 	Size: 1,
 })
 
-func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	license := s.License()
@@ -48,7 +48,7 @@ func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	lines = append(lines, melines...)
 
 	if s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
-		clines, err := s.Cluster.GetLogsOld(page, perPage)
+		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func (s *Server) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (s *Server) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
 	logData := make(map[string][]string)
 
 	serverName := "default"
@@ -85,7 +85,7 @@ func (s *Server) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[str
 	}
 
 	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.Cluster.GetLogs(page, perPage)
+		clusterLogs, err := s.Cluster.QueryLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -120,18 +120,12 @@ func AddLocalLogs(s *Server, page, perPage int, logData map[string][]string, ser
 	return nil
 }
 
-func AddClusterLogs(clusterLogs map[string][]string, logData map[string][]string) {
-	for nodeName, logs := range clusterLogs {
-		logData[nodeName] = logs
-	}
+func (a *App) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+	return a.Srv().QueryLogs(page, perPage, logFilter)
 }
 
-func (a *App) GetLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
-	return a.Srv().GetLogs(page, perPage, logFilter)
-}
-
-func (a *App) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
-	return a.Srv().GetLogsOld(page, perPage)
+func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogs(page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {
@@ -185,54 +179,13 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 					}
 
 					filtered := false
-
-					logLevels := logFilter.LogLevels
-					if len(logLevels) > 0 {
-						filtered = true
-						var entry *model.LogEntry
-						err := json.Unmarshal(line, &entry)
-						if err != nil {
-							mlog.Debug("Failed to parse line, skipping")
-							filtered = false
-						} else {
-							for _, level := range logLevels {
-								if entry.Level == level {
-									filtered = false
-								}
-							}
-						}
-					}
-
-					if logFilter.DateFrom != "" || logFilter.DateTo != "" {
-						dateFrom, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateFrom)
-						if err != nil {
-							dateFrom = time.Time{}
-						}
-						dateTo, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateTo)
-						if err != nil {
-							dateTo = time.Now()
-						}
-						filtered = true
-						var entry *model.LogEntry
-						err = json.Unmarshal(line, &entry)
-						if err != nil {
-							mlog.Debug("Failed to parse line, skipping")
-							filtered = false
-						} else {
-							mlog.Debug(entry.Timestamp)
-							timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
-							if err != nil {
-								mlog.Debug("Cannot parse timestamp, skipping")
-								filtered = false
-							} else {
-								if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
-									filtered = false
-								}
-								if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
-									filtered = false
-								}
-							}
-						}
+					var entry *model.LogEntry
+					err = json.Unmarshal(line, &entry)
+					if err != nil {
+						mlog.Debug("Failed to parse line, skipping")
+					} else {
+						filtered = IsLogFilteredByLevel(logFilter, entry) || filtered
+						filtered = IsLogFilteredByDate(logFilter, entry) || filtered
 					}
 
 					if filtered {
@@ -260,6 +213,51 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 	}
 
 	return lines, nil
+}
+
+func IsLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+	logLevels := logFilter.LogLevels
+	if len(logLevels) == 0 {
+		return false
+	}
+
+	for _, level := range logLevels {
+		if entry.Level == level {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
+		return false
+	}
+
+	dateFrom, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateFrom)
+	if err != nil {
+		dateFrom = time.Time{}
+	}
+	dateTo, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateTo)
+	if err != nil {
+		dateTo = time.Now()
+	}
+
+	timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
+	if err != nil {
+		mlog.Debug("Cannot parse timestamp, skipping")
+		return false
+	} else {
+		if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
+			return false
+		}
+		if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (a *App) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) ([]string, *model.AppError) {

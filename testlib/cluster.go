@@ -55,12 +55,12 @@ func (c *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.
 	return nil, nil
 }
 
-func (c *FakeClusterInterface) GetLogs(page, perPage int) (map[string][]string, *model.AppError) {
-	return make(map[string][]string), nil
+func (c *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return []string{}, nil
 }
 
-func (c *FakeClusterInterface) GetLogsOld(page, perPage int) ([]string, *model.AppError) {
-	return []string{}, nil
+func (c *FakeClusterInterface) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
+	return make(map[string][]string), nil
 }
 
 func (c *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {

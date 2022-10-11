@@ -46,8 +46,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods("POST")
 
-	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("POST")
-	api.BaseRoutes.APIRoot.Handle("/logs/old", api.APISessionRequired(getLogsOld)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods("POST")
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
@@ -326,12 +326,12 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("queryLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("getLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("queryLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -343,11 +343,11 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil {
-		c.Err = model.NewAppError("getLogs", "Invalid log filter", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("queryLogs", "Invalid log filter", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	logs, logerr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
+	logs, logerr := c.App.QueryLogs(c.Params.Page, c.Params.LogsPerPage, logFilter)
 	if err != nil {
 		c.Err = logerr
 		return
@@ -372,7 +372,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(model.ToJSON(logsJSON))
 }
 
-func getLogsOld(c *Context, w http.ResponseWriter, r *http.Request) {
+func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
@@ -386,7 +386,7 @@ func getLogsOld(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, appErr := c.App.GetLogsOld(c.Params.Page, c.Params.LogsPerPage)
+	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
