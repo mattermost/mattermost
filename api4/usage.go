@@ -18,8 +18,6 @@ func (api *API) InitUsage() {
 	api.BaseRoutes.Usage.Handle("/storage", api.APISessionRequired(getStorageUsage)).Methods("GET")
 	// GET /api/v4/usage/teams
 	api.BaseRoutes.Usage.Handle("/teams", api.APISessionRequired(getTeamsUsage)).Methods("GET")
-	// GET /api/v4/usage/integrations
-	api.BaseRoutes.Usage.Handle("/integrations", api.APISessionRequired(getIntegrationsUsage)).Methods("GET")
 }
 
 func getPostsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
