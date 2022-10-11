@@ -14,7 +14,7 @@ import (
 func TestFilterInaccessibleFiles(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
+	th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessibleFileTime,
 		Value: "2",
 	})
@@ -116,7 +116,7 @@ func TestFilterInaccessibleFiles(t *testing.T) {
 func TestGetFilteredAccessibleFiles(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
+	th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessibleFileTime,
 		Value: "2",
 	})
@@ -157,7 +157,7 @@ func TestGetFilteredAccessibleFiles(t *testing.T) {
 func TestIsInaccessibleFile(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
+	th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessibleFileTime,
 		Value: "2",
 	})
@@ -178,7 +178,7 @@ func TestIsInaccessibleFile(t *testing.T) {
 func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	th.App.Srv().Store.System().Save(&model.System{
+	th.App.Srv().Store().System().Save(&model.System{
 		Name:  model.SystemLastAccessibleFileTime,
 		Value: "2",
 	})

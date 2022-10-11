@@ -315,7 +315,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	team1, err = th.App.Srv().Store.Team().Save(team1)
+	team1, err = th.App.Srv().Store().Team().Save(team1)
 	require.NoError(t, err)
 
 	l2, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -323,7 +323,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
-	team1, err = th.App.Srv().Store.Team().Update(team1)
+	team1, err = th.App.Srv().Store().Team().Update(team1)
 	assert.NoError(t, err)
 
 	l3, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -337,7 +337,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TeamOpen,
 		SchemeId:    &scheme1.Id,
 	}
-	team2, err = th.App.Srv().Store.Team().Save(team2)
+	team2, err = th.App.Srv().Store().Team().Save(team2)
 	require.NoError(t, err)
 
 	l4, _, err := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -409,7 +409,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 	}
 
-	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
+	channel1, errCh := th.App.Srv().Store().Channel().Save(channel1, 1000000)
 	assert.NoError(t, errCh)
 
 	l2, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -417,7 +417,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	channel1.SchemeId = &scheme1.Id
-	channel1, err = th.App.Srv().Store.Channel().Update(channel1)
+	channel1, err = th.App.Srv().Store().Channel().Update(channel1)
 	assert.NoError(t, err)
 
 	l3, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -432,7 +432,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &scheme1.Id,
 	}
-	channel2, err = th.App.Srv().Store.Channel().Save(channel2, 1000000)
+	channel2, err = th.App.Srv().Store().Channel().Save(channel2, 1000000)
 	assert.NoError(t, err)
 
 	l4, _, err := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -630,7 +630,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		team, err := th.App.Srv().Store.Team().Save(&model.Team{
+		team, err := th.App.Srv().Store().Team().Save(&model.Team{
 			Name:        "zz" + model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
@@ -699,7 +699,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		channel, err := th.App.Srv().Store.Channel().Save(&model.Channel{
+		channel, err := th.App.Srv().Store().Channel().Save(&model.Channel{
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),

@@ -22,10 +22,10 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	_, err := th.App.Srv().Store.Job().Save(status)
+	_, err := th.App.Srv().Store().Job().Save(status)
 	require.NoError(t, err)
 
-	defer th.App.Srv().Store.Job().Delete(status.Id)
+	defer th.App.Srv().Store().Job().Delete(status.Id)
 
 	received, appErr := th.App.GetJob(status.Id)
 	require.Nil(t, appErr)
@@ -238,9 +238,9 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		_, err := th.App.Srv().Store.Job().Save(status)
+		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(status.Id)
+		defer th.App.Srv().Store().Job().Delete(status.Id)
 	}
 
 	received, err := th.App.GetJobsByType(jobType, 0, 2)
@@ -282,9 +282,9 @@ func TestGetJobsByTypes(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		_, err := th.App.Srv().Store.Job().Save(status)
+		_, err := th.App.Srv().Store().Job().Save(status)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(status.Id)
+		defer th.App.Srv().Store().Job().Delete(status.Id)
 	}
 
 	jobTypes := []string{jobType, jobType1, jobType2}

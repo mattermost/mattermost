@@ -15,33 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
-func TestSaveStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-
-	for _, statusString := range []string{
-		model.StatusOnline,
-		model.StatusAway,
-		model.StatusDnd,
-		model.StatusOffline,
-	} {
-		t.Run(statusString, func(t *testing.T) {
-			status := &model.Status{
-				UserId: user.Id,
-				Status: statusString,
-			}
-
-			th.App.SaveAndBroadcastStatus(th.Context, status)
-
-			after, err := th.App.GetStatus(user.Id)
-			require.Nil(t, err, "failed to get status after save: %v", err)
-			require.Equal(t, statusString, after.Status, "failed to save status, got %v, expected %v", after.Status, statusString)
-		})
-	}
-}
-
 func TestCustomStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

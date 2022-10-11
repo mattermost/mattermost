@@ -151,7 +151,7 @@ func (ch *Channels) servePluginRequest(c request.CTX, w http.ResponseWriter, r *
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := New(ServerConnector(ch)).GetSession(c, token)
-		defer ch.srv.userService.ReturnSessionToPool(session)
+		defer ch.srv.platform.ReturnSessionToPool(session)
 
 		csrfCheckPassed := false
 

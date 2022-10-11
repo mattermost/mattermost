@@ -5,15 +5,11 @@ package users
 
 import (
 	"errors"
-	"fmt"
-	"runtime"
-	"sync"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -21,8 +17,6 @@ type UserService struct {
 	store        store.UserStore
 	sessionStore store.SessionStore
 	oAuthStore   store.OAuthStore
-	sessionCache cache.Cache
-	sessionPool  sync.Pool
 	metrics      einterfaces.MetricsInterface
 	cluster      einterfaces.ClusterInterface
 	config       func() *model.Config
@@ -49,20 +43,6 @@ func New(c ServiceConfig) (*UserService, error) {
 		return nil, err
 	}
 
-	cacheProvider := cache.NewProvider()
-	if err := cacheProvider.Connect(); err != nil {
-		return nil, fmt.Errorf("could not connect to cache provider: %w", err)
-	}
-
-	sessionCache, err := cacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SessionCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not create session cache: %w", err)
-	}
-
 	return &UserService{
 		store:        c.UserStore,
 		sessionStore: c.SessionStore,
@@ -71,13 +51,6 @@ func New(c ServiceConfig) (*UserService, error) {
 		license:      c.LicenseFn,
 		metrics:      c.Metrics,
 		cluster:      c.Cluster,
-		sessionCache: sessionCache,
-		sessionPool: sync.Pool{
-			New: func() any {
-				return &model.Session{}
-			},
-		},
-		ctx: c.Context,
 	}, nil
 }
 

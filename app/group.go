@@ -15,7 +15,7 @@ import (
 )
 
 func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
-	group, err := a.Srv().Store.Group().Get(id)
+	group, err := a.Srv().Store().Group().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -27,7 +27,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 	}
 
 	if opts != nil && opts.IncludeMemberCount {
-		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
+		memberCount, err := a.Srv().Store().Group().GetMemberCount(id)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -38,7 +38,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 }
 
 func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	group, err := a.Srv().Store.Group().GetByName(name, opts)
+	group, err := a.Srv().Store().Group().GetByName(name, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -53,7 +53,7 @@ func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Gr
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
-	group, err := a.Srv().Store.Group().GetByRemoteID(remoteID, groupSource)
+	group, err := a.Srv().Store().Group().GetByRemoteID(remoteID, groupSource)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -68,7 +68,7 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource)
 }
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetAllBySource(groupSource)
+	groups, err := a.Srv().Store().Group().GetAllBySource(groupSource)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsBySource", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -77,7 +77,7 @@ func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, 
 }
 
 func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetByUser(userID)
+	groups, err := a.Srv().Store().Group().GetByUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsByUserId", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -91,7 +91,7 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		return nil, err
 	}
 
-	group, err := a.Srv().Store.Group().Create(group)
+	group, err := a.Srv().Store().Group().Create(group)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -113,7 +113,7 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 		return nil
 	}
 	var notFoundErr *store.ErrNotFound
-	user, err := a.Srv().Store.User().GetByUsername(val)
+	user, err := a.Srv().Store().User().GetByUsername(val)
 	if err != nil && !errors.As(err, &notFoundErr) {
 		return model.NewAppError("isUniqueToUsernames", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -129,7 +129,7 @@ func (a *App) CreateGroupWithUserIds(c request.CTX, group *model.GroupWithUserId
 		return nil, appErr
 	}
 
-	newGroup, err := a.Srv().Store.Group().CreateWithUserIds(group)
+	newGroup, err := a.Srv().Store().Group().CreateWithUserIds(group)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -147,7 +147,8 @@ func (a *App) CreateGroupWithUserIds(c request.CTX, group *model.GroupWithUserId
 	}
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
-	count, err := a.Srv().Store.Group().GetMemberCount(newGroup.Id)
+	count, err := a.Srv().Store().Group().GetMemberCount(newGroup.Id)
+
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -168,7 +169,7 @@ func (a *App) UpdateGroup(c request.CTX, group *model.Group) (*model.Group, *mod
 		return nil, appErr
 	}
 
-	updatedGroup, err := a.Srv().Store.Group().Update(group)
+	updatedGroup, err := a.Srv().Store().Group().Update(group)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var appErr *model.AppError
@@ -185,7 +186,7 @@ func (a *App) UpdateGroup(c request.CTX, group *model.Group) (*model.Group, *mod
 		}
 	}
 
-	count, err := a.Srv().Store.Group().GetMemberCount(updatedGroup.Id)
+	count, err := a.Srv().Store().Group().GetMemberCount(updatedGroup.Id)
 	if err != nil {
 		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -204,7 +205,7 @@ func (a *App) UpdateGroup(c request.CTX, group *model.Group) (*model.Group, *mod
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
+	deletedGroup, err := a.Srv().Store().Group().Delete(groupID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -219,7 +220,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 }
 
 func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+	count, err := a.Srv().Store().Group().GetMemberCount(groupID)
 	if err != nil {
 		return 0, model.NewAppError("GetGroupMemberCount", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -228,7 +229,7 @@ func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.Group().GetMemberUsers(groupID)
+	users, err := a.Srv().Store().Group().GetMemberUsers(groupID)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupMemberUsers", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -237,7 +238,7 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 }
 
 func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage)
+	members, err := a.Srv().Store().Group().GetMemberUsersPage(groupID, page, perPage)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -249,7 +250,7 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	return a.sanitizeProfiles(members, false), int(count), nil
 }
 func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
+	members, err := a.Srv().Store().Group().GetNonMemberUsersPage(groupID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -258,7 +259,7 @@ func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*
 }
 
 func (a *App) UpsertGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	groupMember, err := a.Srv().Store.Group().UpsertMember(groupID, userID)
+	groupMember, err := a.Srv().Store().Group().UpsertMember(groupID, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -280,7 +281,7 @@ func (a *App) UpsertGroupMember(c request.CTX, groupID string, userID string) (*
 }
 
 func (a *App) DeleteGroupMember(c request.CTX, groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	groupMember, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
+	groupMember, err := a.Srv().Store().Group().DeleteMember(groupID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -299,7 +300,7 @@ func (a *App) DeleteGroupMember(c request.CTX, groupID string, userID string) (*
 }
 
 func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	gs, err := a.Srv().Store.Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
+	gs, err := a.Srv().Store().Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
 	var notFoundErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &notFoundErr) {
 		return nil, model.NewAppError("UpsertGroupSyncable", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -307,7 +308,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 
 	// reject the syncable creation if the group isn't already associated to the parent team
 	if groupSyncable.Type == model.GroupSyncableTypeChannel {
-		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
+		channel, nErr := a.Srv().Store().Channel().Get(groupSyncable.SyncableId, true)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -319,7 +320,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 		}
 
 		var team *model.Team
-		team, nErr = a.Srv().Store.Team().Get(channel.TeamId)
+		team, nErr = a.Srv().Store().Team().Get(channel.TeamId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -331,7 +332,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 		}
 		if team.IsGroupConstrained() {
 			var teamGroups []*model.GroupWithSchemeAdmin
-			teamGroups, err = a.Srv().Store.Group().GetGroupsByTeam(channel.TeamId, model.GroupSearchOpts{})
+			teamGroups, err = a.Srv().Store().Group().GetGroupsByTeam(channel.TeamId, model.GroupSearchOpts{})
 			if err != nil {
 				return nil, model.NewAppError("UpsertGroupSyncable", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -354,7 +355,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 	}
 
 	if gs == nil {
-		gs, err = a.Srv().Store.Group().CreateGroupSyncable(groupSyncable)
+		gs, err = a.Srv().Store().Group().CreateGroupSyncable(groupSyncable)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			var appErr *model.AppError
@@ -368,7 +369,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 			}
 		}
 	} else {
-		gs, err = a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
+		gs, err = a.Srv().Store().Group().UpdateGroupSyncable(groupSyncable)
 		if err != nil {
 			var appErr *model.AppError
 			switch {
@@ -393,7 +394,7 @@ func (a *App) UpsertGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	group, err := a.Srv().Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
+	group, err := a.Srv().Store().Group().GetGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -408,7 +409,7 @@ func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType m
 }
 
 func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
+	groups, err := a.Srv().Store().Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupSyncables", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -419,7 +420,7 @@ func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncable
 func (a *App) UpdateGroupSyncable(c request.CTX, groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	if groupSyncable.DeleteAt == 0 {
 		// updating a *deleted* GroupSyncable, so no need to ensure the GroupTeam is present (as done in the upsert)
-		gs, err := a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
+		gs, err := a.Srv().Store().Group().UpdateGroupSyncable(groupSyncable)
 		if err != nil {
 			var appErr *model.AppError
 			switch {
@@ -443,7 +444,7 @@ func (a *App) UpdateGroupSyncable(c request.CTX, groupSyncable *model.GroupSynca
 }
 
 func (a *App) DeleteGroupSyncable(c request.CTX, groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	gs, err := a.Srv().Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
+	gs, err := a.Srv().Store().Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var nfErr *store.ErrNotFound
@@ -459,13 +460,13 @@ func (a *App) DeleteGroupSyncable(c request.CTX, groupID string, syncableID stri
 
 	// if a GroupTeam is being deleted delete all associated GroupChannels
 	if gs.Type == model.GroupSyncableTypeTeam {
-		allGroupChannels, err := a.Srv().Store.Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
+		allGroupChannels, err := a.Srv().Store().Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
 		if err != nil {
 			return nil, model.NewAppError("DeleteGroupSyncable", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, groupChannel := range allGroupChannels {
-			_, err = a.Srv().Store.Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
+			_, err = a.Srv().Store().Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
 			if err != nil {
 				var invErr *store.ErrInvalidInput
 				var nfErr *store.ErrNotFound
@@ -501,7 +502,7 @@ func (a *App) DeleteGroupSyncable(c request.CTX, groupID string, syncableID stri
 // If includeRemovedMembers is true, then team members who left or were removed from the team will
 // be included; otherwise, they will be excluded.
 func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, *model.AppError) {
-	userTeams, err := a.Srv().Store.Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
+	userTeams, err := a.Srv().Store().Group().TeamMembersToAdd(since, teamID, includeRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("TeamMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -516,7 +517,7 @@ func (a *App) TeamMembersToAdd(since int64, teamID *string, includeRemovedMember
 // If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 // be included; otherwise, they will be excluded.
 func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError) {
-	userChannels, err := a.Srv().Store.Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
+	userChannels, err := a.Srv().Store().Group().ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToAdd", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -525,7 +526,7 @@ func (a *App) ChannelMembersToAdd(since int64, channelID *string, includeRemoved
 }
 
 func (a *App) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Group().TeamMembersToRemove(teamID)
+	teamMembers, err := a.Srv().Store().Group().TeamMembersToRemove(teamID)
 	if err != nil {
 		return nil, model.NewAppError("TeamMembersToRemove", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -534,7 +535,7 @@ func (a *App) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.A
 }
 
 func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
-	channelMembers, err := a.Srv().Store.Group().ChannelMembersToRemove(teamID)
+	channelMembers, err := a.Srv().Store().Group().ChannelMembersToRemove(teamID)
 	if err != nil {
 		return nil, model.NewAppError("ChannelMembersToRemove", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -543,12 +544,12 @@ func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *m
 }
 
 func (a *App) GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroupsByChannel(channelID, opts)
+	groups, err := a.Srv().Store().Group().GetGroupsByChannel(channelID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	count, err := a.Srv().Store.Group().CountGroupsByChannel(channelID, opts)
+	count, err := a.Srv().Store().Group().CountGroupsByChannel(channelID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByChannel", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -558,12 +559,12 @@ func (a *App) GetGroupsByChannel(channelID string, opts model.GroupSearchOpts) (
 
 // GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 func (a *App) GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroupsByTeam(teamID, opts)
+	groups, err := a.Srv().Store().Group().GetGroupsByTeam(teamID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	count, err := a.Srv().Store.Group().CountGroupsByTeam(teamID, opts)
+	count, err := a.Srv().Store().Group().CountGroupsByTeam(teamID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -572,7 +573,7 @@ func (a *App) GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*mod
 }
 
 func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
-	groupsAssociatedByChannelId, err := a.Srv().Store.Group().GetGroupsAssociatedToChannelsByTeam(teamID, opts)
+	groupsAssociatedByChannelId, err := a.Srv().Store().Group().GetGroupsAssociatedToChannelsByTeam(teamID, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsAssociatedToChannelsByTeam", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -581,7 +582,7 @@ func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.Grou
 }
 
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts)
+	groups, err := a.Srv().Store().Group().GetGroups(page, perPage, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetGroups", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -595,7 +596,7 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 // The result can be used, for example, to determine the set of users who would be removed from a team if the team
 // were group-constrained with the given groups.
 func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	users, err := a.Srv().Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
+	users, err := a.Srv().Store().Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 	if err != nil {
 		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -641,7 +642,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 		}
 	}
 
-	totalCount, err := a.Srv().Store.Group().CountTeamMembersMinusGroupMembers(teamID, groupIDs)
+	totalCount, err := a.Srv().Store().Group().CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 	if err != nil {
 		return nil, 0, model.NewAppError("TeamMembersMinusGroupMembers", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -649,7 +650,7 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 }
 
 func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetByIDs(groupIDs)
+	groups, err := a.Srv().Store().Group().GetByIDs(groupIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsByIDs", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -663,7 +664,7 @@ func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError
 // The result can be used, for example, to determine the set of users who would be removed from a channel if the
 // channel were group-constrained with the given groups.
 func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	users, err := a.Srv().Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+	users, err := a.Srv().Store().Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 	if err != nil {
 		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -709,7 +710,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 		}
 	}
 
-	totalCount, err := a.Srv().Store.Group().CountChannelMembersMinusGroupMembers(channelID, groupIDs)
+	totalCount, err := a.Srv().Store().Group().CountChannelMembersMinusGroupMembers(channelID, groupIDs)
 	if err != nil {
 		return nil, 0, model.NewAppError("ChannelMembersMinusGroupMembers", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -719,7 +720,7 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 // UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 // admins in the given syncable.
 func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
-	groupIDs, err := a.Srv().Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+	groupIDs, err := a.Srv().Store().Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
 	if err != nil {
 		return false, model.NewAppError("UserIsInAdminRoleGroup", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -732,7 +733,7 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 }
 
 func (a *App) UpsertGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
-	members, err := a.Srv().Store.Group().UpsertMembers(groupID, userIDs)
+	members, err := a.Srv().Store().Group().UpsertMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
@@ -756,7 +757,7 @@ func (a *App) UpsertGroupMembers(c request.CTX, groupID string, userIDs []string
 }
 
 func (a *App) DeleteGroupMembers(c request.CTX, groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError) {
-	members, err := a.Srv().Store.Group().DeleteMembers(groupID, userIDs)
+	members, err := a.Srv().Store().Group().DeleteMembers(groupID, userIDs)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError

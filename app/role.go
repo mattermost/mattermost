@@ -18,7 +18,7 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	role, err := a.Srv().Store.Role().Get(id)
+	role, err := a.Srv().Store().Role().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -38,7 +38,7 @@ func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 }
 
 func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
-	roles, err := a.Srv().Store.Role().GetAll()
+	roles, err := a.Srv().Store().Role().GetAll()
 	if err != nil {
 		return nil, model.NewAppError("GetAllRoles", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -52,7 +52,7 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 }
 
 func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
-	role, nErr := s.Store.Role().GetByName(ctx, name)
+	role, nErr := s.Store().Role().GetByName(ctx, name)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -76,7 +76,7 @@ func (a *App) GetRoleByName(ctx context.Context, name string) (*model.Role, *mod
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	roles, nErr := a.Srv().Store.Role().GetByNames(names)
+	roles, nErr := a.Srv().Store().Role().GetByNames(names)
 	if nErr != nil {
 		return nil, model.NewAppError("GetRolesByNames", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -104,7 +104,7 @@ func (s *Server) mergeChannelHigherScopedPermissions(roles []*model.Role) *model
 		return nil
 	}
 
-	higherScopedPermissionsMap, err := s.Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
+	higherScopedPermissionsMap, err := s.Store().Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
 	if err != nil {
 		return model.NewAppError("mergeChannelHigherScopedPermissions", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -154,7 +154,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.SchemeManaged = false
 
 	var err error
-	role, err = a.Srv().Store.Role().Save(role)
+	role, err = a.Srv().Store().Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -169,7 +169,7 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(c request.CTX, role *model.Role) (*model.Role, *model.AppError) {
-	savedRole, err := a.Srv().Store.Role().Save(role)
+	savedRole, err := a.Srv().Store().Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -196,7 +196,7 @@ func (a *App) UpdateRole(c request.CTX, role *model.Role) (*model.Role, *model.A
 
 	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
-			roles, nErr := a.Srv().Store.Role().AllChannelSchemeRoles()
+			roles, nErr := a.Srv().Store().Role().AllChannelSchemeRoles()
 			if nErr != nil {
 				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -205,7 +205,7 @@ func (a *App) UpdateRole(c request.CTX, role *model.Role) (*model.Role, *model.A
 		}
 	} else {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
-			roles, nErr := a.Srv().Store.Role().ChannelRolesUnderTeamRole(savedRole.Name)
+			roles, nErr := a.Srv().Store().Role().ChannelRolesUnderTeamRole(savedRole.Name)
 			if nErr != nil {
 				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}

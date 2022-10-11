@@ -287,7 +287,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
-	th.Server.Cluster = testCluster
+	th.Server.Platform().SetCluster(testCluster)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true

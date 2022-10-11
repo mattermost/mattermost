@@ -56,7 +56,7 @@ func (a *App) DoCheckForAdminNotifications(c request.CTX, trial bool) *model.App
 }
 
 func (a *App) SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError) {
-	d, err := a.Srv().Store.NotifyAdmin().Save(data)
+	d, err := a.Srv().Store().NotifyAdmin().Save(data)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -101,7 +101,7 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 
 	now := model.GetMillis()
 
-	data, err := a.Srv().Store.NotifyAdmin().Get(trial)
+	data, err := a.Srv().Store().NotifyAdmin().Get(trial)
 	if err != nil {
 		return model.NewAppError("SendNotifyAdminPosts", "app.notify_admin.send_notification_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -161,7 +161,7 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 }
 
 func (a *App) UserAlreadyNotifiedOnRequiredFeature(user string, feature model.MattermostPaidFeature) bool {
-	data, err := a.Srv().Store.NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
+	data, err := a.Srv().Store().NotifyAdmin().GetDataByUserIdAndFeature(user, feature)
 	if err != nil {
 		return false
 	}
@@ -178,7 +178,7 @@ func (a *App) CanNotifyAdmin(c request.CTX, trial bool) bool {
 		systemVarName = lastTrialNotificationTimeStamp
 	}
 
-	sysVal, sysValErr := a.Srv().Store.System().GetByName(systemVarName)
+	sysVal, sysValErr := a.Srv().Store().System().GetByName(systemVarName)
 	if sysValErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(sysValErr, &nfErr) { // if no timestamps have been recorded before, system is free to notify
@@ -212,12 +212,12 @@ func (a *App) FinishSendAdminNotifyPost(c request.CTX, trial bool, now int64) {
 
 	val := strconv.FormatInt(model.GetMillis(), 10)
 	sysVar := &model.System{Name: systemVarName, Value: val}
-	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := a.Srv().Store().System().SaveOrUpdate(sysVar); err != nil {
 		c.Logger().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 
 	// all the notifications are now sent in a post and can safely be removed
-	if err := a.Srv().Store.NotifyAdmin().DeleteBefore(trial, now); err != nil {
+	if err := a.Srv().Store().NotifyAdmin().DeleteBefore(trial, now); err != nil {
 		c.Logger().Error("Unable to finish send admin notify post job", mlog.Err(err))
 	}
 

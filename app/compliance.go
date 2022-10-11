@@ -19,7 +19,7 @@ func (a *App) GetComplianceReports(c request.CTX, page, perPage int) (model.Comp
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	compliances, err := a.Srv().Store.Compliance().GetAll(page*perPage, perPage)
+	compliances, err := a.Srv().Store().Compliance().GetAll(page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetComplianceReports", "app.compliance.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -34,7 +34,7 @@ func (a *App) SaveComplianceReport(c request.CTX, job *model.Compliance) (*model
 
 	job.Type = model.ComplianceTypeAdhoc
 
-	job, err := a.Srv().Store.Compliance().Save(job)
+	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {
 		var appErr *model.AppError
 		switch {
@@ -61,7 +61,7 @@ func (a *App) GetComplianceReport(c request.CTX, reportId string) (*model.Compli
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	compliance, err := a.Srv().Store.Compliance().Get(reportId)
+	compliance, err := a.Srv().Store().Compliance().Get(reportId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

@@ -93,6 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
+	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
 }
 
 func (ch *Channels) syncPluginsActiveState(c request.CTX) {
@@ -129,6 +130,23 @@ func (ch *Channels) syncPluginsActiveState(c request.CTX) {
 			}
 
 			if pluginEnabled {
+				// Disable focalboard in product mode.
+				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+					msg := "Plugin cannot run in product mode. Disabling."
+					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
+
+					// This is a mini-version of ch.disablePlugin.
+					// We don't call that directly, because that will recursively call
+					// this method.
+					ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+						cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: false}
+					})
+					pluginsEnvironment.SetPluginError(pluginID, msg)
+					ch.unregisterPluginCommands(pluginID)
+					disabledPlugins = append(disabledPlugins, plugin)
+					continue
+				}
+
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
 				disabledPlugins = append(disabledPlugins, plugin)
@@ -148,7 +166,7 @@ func (ch *Channels) syncPluginsActiveState(c request.CTX) {
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
-					ch.srv.Publish(c, message)
+					ch.srv.platform.Publish(c, message)
 				}
 			}(plugin)
 		}
@@ -198,6 +216,10 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 
 func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	defer func() {
+		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+	}()
+
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()
@@ -431,6 +453,10 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	if manifest == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
+	}
+
+	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
@@ -840,9 +866,9 @@ func (ch *Channels) notifyPluginEnabled(c request.CTX, manifest *model.Manifest)
 
 	var statuses model.PluginStatuses
 
-	if ch.srv.Cluster != nil {
+	if ch.srv.platform.Cluster() != nil {
 		var err *model.AppError
-		statuses, err = ch.srv.Cluster.GetPluginStatuses()
+		statuses, err = ch.srv.platform.Cluster().GetPluginStatuses()
 		if err != nil {
 			return err
 		}
@@ -868,7 +894,7 @@ func (ch *Channels) notifyPluginEnabled(c request.CTX, manifest *model.Manifest)
 	// Notify all cluster peer clients.
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil, "")
 	message.Add("manifest", manifest.ClientManifest())
-	ch.srv.Publish(c, message)
+	ch.srv.platform.Publish(c, message)
 
 	return nil
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package platform
 
 import (
 	"net"
@@ -15,9 +15,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	platform_mocks "github.com/mattermost/mattermost-server/v6/app/platform/mocks"
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -39,12 +40,7 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
-	session, appErr := a.CreateSession(&model.Session{
-		UserId: userID,
-	})
-	require.Nil(t, appErr)
-
+func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
 	d := websocket.Dialer{}
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
@@ -56,8 +52,8 @@ func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *W
 		Locale:    "en",
 		CTX:       request.EmptyContext(a.Log()),
 	}
-	wc := a.NewWebConn(cfg)
-	a.HubRegister(wc)
+	wc := th.Service.NewWebConn(cfg, th.Suite, func() *plugin.Environment { return nil })
+	th.Service.HubRegister(wc)
 	go wc.Pump()
 	return wc
 }
@@ -69,10 +65,15 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Server.HubStart(th.Context)
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	session, err := th.Service.CreateSession(&model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	th.Service.Start(th.Context, th.Suite)
+	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 	defer wc2.Close()
 	defer wc3.Close()
@@ -87,17 +88,22 @@ func TestHubStopRaceCondition(t *testing.T) {
 	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
-	th.Server.HubStart(th.Context)
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	session, err := th.Service.CreateSession(&model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	th.Service.Start(th.Context, th.Suite)
+	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
-	hub := th.App.Srv().hubs[0]
-	th.Server.HubStop(th.Context)
+	hub := th.Service.hubs[0]
+	th.Service.HubStop(th.Context)
 
 	done := make(chan bool)
 	go func() {
-		wc4 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-		wc5 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+		wc4 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+		wc5 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 		hub.Register(wc4)
 		hub.Register(wc5)
 
@@ -133,7 +139,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 		LastActivityAt: 10000,
 	}
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.Service.Store.(*mocks.Store)
 
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
@@ -165,35 +171,28 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	userService, err := users.New(users.ServiceConfig{
-		UserStore:    &mockUserStore,
-		SessionStore: &mockSessionStore,
-		OAuthStore:   &mockOAuthStore,
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		Metrics:      th.App.Metrics(),
-		Cluster:      th.App.Cluster(),
-		LicenseFn:    th.App.ch.srv.License,
-	})
-	require.NoError(t, err)
-	th.App.ch.srv.userService = userService
-
 	// This needs to be false for the condition to trigger
-	th.App.UpdateConfig(func(cfg *model.Config) {
+	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ExtendSessionLengthWithActivity = false
 	})
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "testid")
-	hub := th.App.GetHubForUserId(wc1.UserId)
+	session, err := th.Service.CreateSession(&model.Session{
+		UserId: "testid",
+	})
+	require.NoError(t, err)
+
+	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+	hub := th.Service.GetHubForUserId(wc1.UserId)
 
 	done := make(chan bool)
 
 	time.Sleep(time.Second)
 	// We override the LastActivityAt which happens in NewWebConn.
 	// This is needed to call RevokeSessionById which triggers the race.
-	th.App.ch.srv.userService.AddSessionToCache(sess1)
+	th.Service.AddSessionToCache(sess1)
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
@@ -227,30 +226,34 @@ func TestHubConnIndex(t *testing.T) {
 
 	// User1
 	wc1 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 	wc1.SetConnectionID(model.NewId())
 	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 	wc2.SetConnectionID(model.NewId())
 	wc2.SetSession(&model.Session{})
 
 	wc3 := &WebConn{
-		App:    th.App,
-		UserId: wc2.UserId,
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
 	}
 	wc3.SetConnectionID(model.NewId())
 	wc3.SetSession(&model.Session{})
 
 	wc4 := &WebConn{
-		App:    th.App,
-		UserId: wc2.UserId,
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
 	}
 	wc4.SetConnectionID(model.NewId())
 	wc4.SetSession(&model.Session{})
@@ -313,8 +316,9 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 	// User1
 	wc1ID := model.NewId()
 	wc1 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 	wc1.SetConnectionID(wc1ID)
 	wc1.SetSession(&model.Session{})
@@ -322,16 +326,18 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 	// User2
 	wc2ID := model.NewId()
 	wc2 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 	wc2.SetConnectionID(wc2ID)
 	wc2.SetSession(&model.Session{})
 
 	wc3ID := model.NewId()
 	wc3 := &WebConn{
-		App:    th.App,
-		UserId: wc2.UserId,
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
 	}
 	wc3.SetConnectionID(wc3ID)
 	wc3.SetSession(&model.Session{})
@@ -371,26 +377,26 @@ func TestHubConnIndexInactive(t *testing.T) {
 
 	// User1
 	wc1 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
-		active: true,
+		Platform: th.Service,
+		UserId:   model.NewId(),
+		active:   true,
 	}
 	wc1.SetConnectionID("conn1")
 	wc1.SetSession(&model.Session{})
 
 	// User2
 	wc2 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
-		active: true,
+		Platform: th.Service,
+		UserId:   model.NewId(),
+		active:   true,
 	}
 	wc2.SetConnectionID("conn2")
 	wc2.SetSession(&model.Session{})
 
 	wc3 := &WebConn{
-		App:    th.App,
-		UserId: wc2.UserId,
-		active: false,
+		Platform: th.Service,
+		UserId:   wc2.UserId,
+		active:   false,
 	}
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
@@ -422,17 +428,18 @@ func TestHubConnIndexInactive(t *testing.T) {
 func TestReliableWebSocketSend(t *testing.T) {
 	testCluster := &testlib.FakeClusterInterface{}
 
-	th := SetupWithClusterMock(t, testCluster)
+	th := SetupWithCluster(t, testCluster)
 	defer th.TearDown()
 
 	ev := model.NewWebSocketEvent("test_unreliable_event", "", "", "", nil, "")
 	ev = ev.SetBroadcast(&model.WebsocketBroadcast{})
-	th.App.Publish(th.Context, ev)
+	th.Service.Publish(th.Context, ev)
 	ev2 := model.NewWebSocketEvent("test_reliable_event", "", "", "", nil, "")
+
 	ev2 = ev2.SetBroadcast(&model.WebsocketBroadcast{
 		ReliableClusterSend: true,
 	})
-	th.App.Publish(th.Context, ev2)
+	th.Service.Publish(th.Context, ev2)
 
 	messages := testCluster.GetMessages()
 
@@ -457,28 +464,42 @@ func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	session, err := th.Service.CreateSession(&model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	mockSuite := &platform_mocks.SuiteIFace{}
+	mockSuite.On("SetStatusOnline", th.BasicUser.Id, false).Return()
+	mockSuite.On("UpdateLastActivityAtIfNeeded", *session).Return()
+	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("IsUserAway", mock.Anything).Return(false)
+	mockSuite.On("SetStatusOffline", th.BasicUser.Id, false).Return()
+
+	th.Suite = mockSuite
+
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Server.HubStart(th.Context)
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	th.Service.Start(th.Context, th.Suite)
+	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
+	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 	defer wc2.Close()
 	defer wc3.Close()
 
 	session1 := wc1.session.Load().(*model.Session)
 
-	assert.True(t, th.App.SessionIsRegistered(*session1))
-	assert.True(t, th.App.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
-	assert.True(t, th.App.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+	assert.True(t, th.Service.SessionIsRegistered(*session1))
+	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
+	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
 
-	session4, appErr := th.App.CreateSession(&model.Session{
+	session4, err := th.Service.CreateSession(&model.Session{
 		UserId: th.BasicUser2.Id,
 	})
-	require.Nil(t, appErr)
-	assert.False(t, th.App.SessionIsRegistered(*session4))
+	require.NoError(t, err)
+	assert.False(t, th.Service.SessionIsRegistered(*session4))
 }
 
 // Always run this with -benchtime=0.1s
@@ -490,14 +511,16 @@ func BenchmarkHubConnIndex(b *testing.B) {
 
 	// User1
 	wc1 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 
 	// User2
 	wc2 := &WebConn{
-		App:    th.App,
-		UserId: model.NewId(),
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
 	}
 	b.ResetTimer()
 	b.Run("Add", func(b *testing.B) {
@@ -531,10 +554,10 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Server.HubStart(th.Context)
+	th.Service.Start(th.Context, th.Suite)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		hubSink = th.Server.GetHubForUserId(th.BasicUser.Id)
+		hubSink = th.Service.GetHubForUserId(th.BasicUser.Id)
 	}
 }

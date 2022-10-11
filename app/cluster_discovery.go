@@ -3,91 +3,10 @@
 
 package app
 
-import (
-	"time"
-
-	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-)
-
-const (
-	DiscoveryServiceWritePing = 60 * time.Second
-)
-
-type ClusterDiscoveryService struct {
-	model.ClusterDiscovery
-	srv  *Server
-	stop chan bool
-}
-
-func (s *Server) NewClusterDiscoveryService() *ClusterDiscoveryService {
-	ds := &ClusterDiscoveryService{
-		ClusterDiscovery: model.ClusterDiscovery{},
-		srv:              s,
-		stop:             make(chan bool),
-	}
-
-	return ds
-}
-
-func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
-	return a.Srv().NewClusterDiscoveryService()
-}
-
-func (cds *ClusterDiscoveryService) Start() {
-	err := cds.srv.Store.ClusterDiscovery().Cleanup()
-	if err != nil {
-		cds.srv.Log().Warn("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
-	}
-
-	exists, err := cds.srv.Store.ClusterDiscovery().Exists(&cds.ClusterDiscovery)
-	if err != nil {
-		cds.srv.Log().Warn("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
-	} else if exists {
-		if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
-			cds.srv.Log().Warn("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
-		}
-	}
-
-	if err := cds.srv.Store.ClusterDiscovery().Save(&cds.ClusterDiscovery); err != nil {
-		cds.srv.Log().Error("ClusterDiscoveryService failed to save", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
-		return
-	}
-
-	go func() {
-		cds.srv.Log().Debug("ClusterDiscoveryService ping writer started", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id))
-		ticker := time.NewTicker(DiscoveryServiceWritePing)
-		defer func() {
-			ticker.Stop()
-			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
-				cds.srv.Log().Warn("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
-			}
-			cds.srv.Log().Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id))
-		}()
-
-		for {
-			select {
-			case <-ticker.C:
-				if err := cds.srv.Store.ClusterDiscovery().SetLastPingAt(&cds.ClusterDiscovery); err != nil {
-					cds.srv.Log().Error("ClusterDiscoveryService failed to write ping", mlog.String("ClusterDiscoveryID", cds.ClusterDiscovery.Id), mlog.Err(err))
-				}
-			case <-cds.stop:
-				return
-			}
-		}
-	}()
-}
-
-func (cds *ClusterDiscoveryService) Stop() {
-	cds.stop <- true
-}
+import "github.com/mattermost/mattermost-server/v6/app/request"
 
 func (s *Server) IsLeader(c request.CTX) bool {
-	if s.License(c) != nil && *s.platform.Config().ClusterSettings.Enable && s.Cluster != nil {
-		return s.Cluster.IsLeader()
-	}
-	return true
+	return s.platform.IsLeader(c)
 }
 
 func (a *App) IsLeader(c request.CTX) bool {
@@ -95,9 +14,6 @@ func (a *App) IsLeader(c request.CTX) bool {
 }
 
 func (a *App) GetClusterId() string {
-	if a.Cluster() == nil {
-		return ""
-	}
 
-	return a.Cluster().GetClusterId()
+	return a.Srv().Platform().GetClusterId()
 }

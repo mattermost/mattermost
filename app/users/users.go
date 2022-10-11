@@ -208,12 +208,6 @@ func (us *UserService) DeactivateAllGuests() ([]string, error) {
 		return nil, err
 	}
 
-	for _, userID := range users {
-		if err := us.RevokeAllSessions(userID); err != nil {
-			return nil, err
-		}
-	}
-
 	return users, nil
 }
 

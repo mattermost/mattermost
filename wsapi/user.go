@@ -16,7 +16,7 @@ func (api *API) InitUser() {
 func (api *API) userTyping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	api.App.ExtendSessionExpiryIfNeeded(request.EmptyContext(api.App.Log()), &req.Session)
 
-	if api.App.Srv().Busy.IsBusy() {
+	if api.App.Srv().Platform().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return nil, NewServerBusyWebSocketError(req.Action)
 	}

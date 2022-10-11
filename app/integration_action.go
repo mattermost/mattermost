@@ -73,21 +73,21 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv().Store.Post().GetSingle(postID, false)
+		post, err := a.Srv().Store().Post().GetSingle(postID, false)
 		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
 
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv().Store.Channel().GetForPost(postID)
+		channel, err := a.Srv().Store().Channel().GetForPost(postID)
 		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(context.Background(), upstreamRequest.UserId)
+		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -111,7 +111,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
+		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -186,7 +186,7 @@ func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, se
 			return
 		}
 
-		team, err := a.Srv().Store.Team().Get(upstreamRequest.TeamId)
+		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, NErr: err}
 	}()
 
@@ -553,7 +553,7 @@ func (a *App) buildWarnMetricMailtoLink(c request.CTX, warnMetricId string, user
 	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]any{"Email": user.Email})
 	mailBody += "\r\n"
 
-	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		c.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {

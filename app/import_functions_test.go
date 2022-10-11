@@ -28,10 +28,10 @@ func TestImportImportScheme(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -68,7 +68,7 @@ func TestImportImportScheme(t *testing.T) {
 	err := th.App.importScheme(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
@@ -77,7 +77,7 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing an invalid scheme.
@@ -86,7 +86,7 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
@@ -95,7 +95,7 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	scheme, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -103,42 +103,42 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
+	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -152,7 +152,7 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
-	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -160,42 +160,42 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -208,7 +208,7 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -223,10 +223,10 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -255,7 +255,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err := th.App.importScheme(th.Context, &data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
@@ -264,7 +264,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing an invalid scheme.
@@ -273,7 +273,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	_, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
@@ -282,7 +282,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	scheme, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr := th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -290,42 +290,42 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
+	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -339,7 +339,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
-	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -347,42 +347,42 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultTeamGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelAdminRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelUserRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), scheme.DefaultChannelGuestRole)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
@@ -395,7 +395,7 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(th.Context, &data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	scheme, nErr = th.App.Srv().Store().Scheme().GetByName(*data.Name)
 	require.NoError(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
@@ -417,7 +417,7 @@ func TestImportImportRole(t *testing.T) {
 	err := th.App.importRole(th.Context, &data, true, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	_, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Should have failed to import.")
 
 	// Try importing the valid role in dryRun mode.
@@ -426,7 +426,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(th.Context, &data, true, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Role should not have imported as we are in dry run mode.")
 
 	// Try importing an invalid role.
@@ -435,7 +435,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(th.Context, &data, false, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	_, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.Error(t, nErr, "Role should not have imported.")
 
 	// Try importing a valid role with all params set.
@@ -446,7 +446,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(th.Context, &data, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, nErr := th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	role, nErr := th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
@@ -464,7 +464,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(th.Context, &data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
@@ -483,7 +483,7 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(th.Context, &data2, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, nErr = th.App.Srv().Store.Role().GetByName(context.Background(), rid1)
+	role, nErr = th.App.Srv().Store().Role().GetByName(context.Background(), rid1)
 	require.NoError(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data2.Name, role.Name)
@@ -499,17 +499,17 @@ func TestImportImportTeam(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	scheme1 := th.SetupTeamScheme()
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	teamsCount, err := th.App.Srv().Store.Team().AnalyticsTeamCount(nil)
+	teamsCount, err := th.App.Srv().Store().Team().AnalyticsTeamCount(nil)
 	require.NoError(t, err, "Failed to get team count.")
 
 	data := imports.TeamImportData{
@@ -589,10 +589,10 @@ func TestImportImportChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	scheme1 := th.SetupChannelScheme()
@@ -609,7 +609,7 @@ func TestImportImportChannel(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Check how many channels are in the database.
-	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
+	channelCount, nErr := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeOpen)
 	require.NoError(t, nErr, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
@@ -712,7 +712,7 @@ func TestImportImportUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many users are in the database.
-	userCount, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -726,7 +726,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Error(t, err, "Should have failed to import invalid user.")
 
 	// Check that no more users are in the DB.
-	userCount2, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount2, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -742,7 +742,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that no more users are in the DB.
-	userCount3, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount3, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -757,7 +757,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Error(t, err, "Should have failed to import invalid user.")
 
 	// Check that no more users are in the DB.
-	userCount4, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount4, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -780,7 +780,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that one more user is in the DB.
-	userCount5, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount5, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -823,7 +823,7 @@ func TestImportImportUser(t *testing.T) {
 	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 	// Check user count the same.
-	userCount6, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
+	userCount6, err := th.App.Srv().Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
 	})
@@ -1347,10 +1347,10 @@ func TestImportImportUser(t *testing.T) {
 	// to the appropriate scheme-managed-role booleans.
 
 	// Mark the phase 2 permissions migration as completed.
-	th.App.Srv().Store.System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
 
 	defer func() {
-		th.App.Srv().Store.System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
 	}()
 
 	teamSchemeData := &imports.SchemeImportData{
@@ -1387,7 +1387,7 @@ func TestImportImportUser(t *testing.T) {
 	appErr = th.App.importScheme(th.Context, teamSchemeData, false)
 	assert.Nil(t, appErr)
 
-	teamScheme, nErr := th.App.Srv().Store.Scheme().GetByName(*teamSchemeData.Name)
+	teamScheme, nErr := th.App.Srv().Store().Scheme().GetByName(*teamSchemeData.Name)
 	require.NoError(t, nErr, "Failed to import scheme")
 
 	teamData := &imports.TeamImportData{
@@ -1724,14 +1724,14 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+				teamMembers, nErr := th.App.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 				require.NoError(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
 					require.Equal(t, tc.expectedExplicitRoles, teamMembers[0].ExplicitRoles, "Not matching expected explicit roles")
 					require.Equal(t, tc.expectedRoles, teamMembers[0].Roles, "not matching expected roles")
 					if tc.expectedTheme != "" {
-						pref, prefErr := th.App.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryTheme, teamMembers[0].TeamId)
+						pref, prefErr := th.App.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryTheme, teamMembers[0].TeamId)
 						require.NoError(t, prefErr)
 						require.Equal(t, tc.expectedTheme, pref.Value)
 					}
@@ -1739,7 +1739,7 @@ func TestImportUserTeams(t *testing.T) {
 
 				totalMembers := 0
 				for _, teamMember := range teamMembers {
-					channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(teamMember.TeamId, user.Id)
+					channelMembers, err := th.App.Srv().Store().Channel().GetMembersForUser(teamMember.TeamId, user.Id)
 					require.NoError(t, err)
 					totalMembers += len(channelMembers)
 				}
@@ -1878,7 +1878,7 @@ func TestImportUserChannels(t *testing.T) {
 				} else {
 					require.Nil(t, appErr)
 				}
-				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
+				channelMembers, err := th.App.Srv().Store().Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
 				require.NoError(t, err)
 				require.Len(t, channelMembers, tc.expectedUserChannels)
 				if tc.expectedUserChannels == 1 {
@@ -1971,7 +1971,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
+	initialPostCount, nErr := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	// Try adding an invalid post in dry run mode.
@@ -2105,7 +2105,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2133,7 +2133,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2198,7 +2198,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, hashtagTime)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2243,7 +2243,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, flagsTime)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2282,7 +2282,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2291,7 +2291,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	postBool = post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || !post.HasReactions
 	require.False(t, postBool, "Post properties not as expected")
 
-	reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+	reactions, nErr := th.App.Srv().Store().Reaction().GetForPost(post.Id, false)
 	require.NoError(t, nErr, "Can't get reaction")
 
 	require.Len(t, reactions, 1, "Invalid number of reactions")
@@ -2323,7 +2323,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
 
 	// Check the post values.
-	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
+	posts, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyPostTime)
 	require.NoError(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2333,7 +2333,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.False(t, postBool, "Post properties not as expected")
 
 	// Check the reply values.
-	replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+	replies, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyTime)
 	require.NoError(t, nErr)
 
 	require.Len(t, replies, 1, "Unexpected number of posts found.")
@@ -2449,7 +2449,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 13, team.Id)
 
 	// Check the reply values.
-	replies, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, editedReplyTime)
+	replies, nErr = th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, editedReplyTime)
 	assert.NoError(t, nErr, "Expected success.")
 	reply = replies[0]
 	importReply := (*data.Post.Replies)[0]
@@ -2477,7 +2477,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get channel from database.")
 
 	// Count the number of posts in the team2.
-	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team2.Id})
+	initialPostCountForTeam2, nErr := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team2.Id})
 	require.NoError(t, nErr)
 
 	// Try adding two valid posts in apply mode.
@@ -2527,7 +2527,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, 0, errLine)
 
-	resultPosts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
+	resultPosts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *data.Post.CreateAt)
 	require.NoError(t, nErr, "Expected success.")
 	// Should be one post only created at this time.
 	require.Equal(t, 1, len(resultPosts))
@@ -2583,7 +2583,7 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
+	initialPostCount, nErr := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: team.Id})
 	require.NoError(t, nErr)
 
 	time := model.GetMillis()
@@ -2724,7 +2724,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2753,7 +2753,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, time)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2820,7 +2820,7 @@ func TestImportImportPost(t *testing.T) {
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, hashtagTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2858,7 +2858,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, flagsTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2898,7 +2898,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2907,7 +2907,7 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || !post.HasReactions
 		require.False(t, postBool, "Post properties not as expected")
 
-		reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		reactions, nErr := th.App.Srv().Store().Reaction().GetForPost(post.Id, false)
 		require.NoError(t, nErr, "Can't get reaction")
 
 		require.Len(t, reactions, 1, "Invalid number of reactions")
@@ -2938,7 +2938,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyPostTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -2948,7 +2948,7 @@ func TestImportImportPost(t *testing.T) {
 		require.False(t, postBool, "Post properties not as expected")
 
 		// Check the reply values.
-		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+		replies, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, replyTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
@@ -3057,7 +3057,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, posttypeTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, posttypeTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -3089,7 +3089,7 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 13, team.Id)
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, editatCreateTime)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, editatCreateTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -3124,7 +3124,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, now)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, now)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 2, "Unexpected number of posts found.")
 		require.NoError(t, th.TestLogger.Flush())
@@ -3146,10 +3146,10 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	directChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
+	directChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeDirect)
 	require.NoError(t, err, "Failed to get direct channel count.")
 
-	groupChannelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
+	groupChannelCount, err := th.App.Srv().Store().Channel().AnalyticsTypeCount("", model.ChannelTypeGroup)
 	require.NoError(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
@@ -3331,7 +3331,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	result, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
@@ -3422,7 +3422,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3453,7 +3453,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3525,7 +3525,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3562,7 +3562,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3592,7 +3592,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3624,7 +3624,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 7, "")
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3658,7 +3658,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3692,7 +3692,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	result, nErr := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 	require.NoError(t, nErr)
 	initialPostCount = result
 
@@ -3784,7 +3784,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3816,7 +3816,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3891,7 +3891,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3930,7 +3930,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 		require.Len(t, posts, 1)
 
@@ -3969,7 +3969,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -3978,7 +3978,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		postBool := post.Message != *data.DirectPost.Message || post.CreateAt != *data.DirectPost.CreateAt || post.UserId != th.BasicUser.Id || !post.HasReactions
 		require.False(t, postBool, "Post properties not as expected")
 
-		reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		reactions, nErr := th.App.Srv().Store().Reaction().GetForPost(post.Id, false)
 		require.NoError(t, nErr, "Can't get reaction")
 
 		require.Len(t, reactions, 1, "Invalid number of reactions")
@@ -4014,7 +4014,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
 
 		// Check the post values.
-		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		posts, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.NoError(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
@@ -4024,7 +4024,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.False(t, postBool, "Post properties not as expected")
 
 		// Check the reply values.
-		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		replies, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *replyTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
@@ -4129,7 +4129,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 12, "")
 
 		// Check the reply values.
-		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		replies, nErr := th.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *replyTime)
 		require.NoError(t, nErr)
 
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
@@ -4154,7 +4154,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr := th.App.importEmoji(th.Context, &data, true)
 	assert.NotNil(t, appErr, "Invalid emoji should have failed dry run")
 
-	emoji, nErr := th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr := th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.Nil(t, emoji, "Emoji should not have been imported")
 	assert.Error(t, nErr)
 
@@ -4174,7 +4174,7 @@ func TestImportImportEmoji(t *testing.T) {
 	appErr = th.App.importEmoji(th.Context, &data, false)
 	assert.Nil(t, appErr, "Valid emoji should have succeeded apply mode")
 
-	emoji, nErr = th.App.Srv().Store.Emoji().GetByName(context.Background(), *data.Name, true)
+	emoji, nErr = th.App.Srv().Store().Emoji().GetByName(context.Background(), *data.Name, true)
 	assert.NotNil(t, emoji, "Emoji should have been imported")
 	assert.NoError(t, nErr, "Emoji should have been imported without any error")
 

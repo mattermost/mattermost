@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -59,7 +61,24 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	return us
 }
 
+func (us SqlUserStore) validateAutoResponderMessageSize(notifyProps model.StringMap) error {
+	if notifyProps != nil {
+		maxPostSize := us.Post().GetMaxPostSize()
+		msg := notifyProps[model.AutoResponderMessageNotifyProp]
+		msgSize := utf8.RuneCountInString(msg)
+		if msgSize > maxPostSize {
+			mlog.Warn("auto_responder_message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("received_size", msgSize))
+			return errors.New("Auto responder message size can't be more than the allowed Post size")
+		}
+	}
+	return nil
+}
+
 func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	query := `INSERT INTO Users
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
 			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing,
@@ -150,6 +169,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, err
 	}
 
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	oldUser := model.User{}
 	err := us.GetMasterX().Get(&oldUser, "SELECT * FROM Users WHERE Id=?", user.Id)
 	if err != nil {
@@ -228,6 +251,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if err := us.validateAutoResponderMessageSize(props); err != nil {
+		return err
+	}
+
 	buf, err := json.Marshal(props)
 	if err != nil {
 		return errors.Wrap(err, "failed marshalling session props")
@@ -1509,34 +1536,17 @@ func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []any{}
-		var dbSpecificTerm string
-
-		if isPostgreSQL {
-			// Refer to https://www.postgresql.org/docs/current/functions-textsearch.html for the list of operators.
-			for _, c := range []string{":", "(", ")", "<", "!", "|"} {
-				// Escaping the special chars in case of a Postgres search.
-				term = strings.ReplaceAll(term, c, "\\"+c)
-			}
-		}
-
 		for _, field := range fields {
 			if isPostgreSQL {
-				if strings.TrimLeft(term, "@") == "" {
-					// For wildcard search, we need to fall back to pattern matching.
-					searchFields = append(searchFields, fmt.Sprintf("%s ILIKE ? escape '*' ", field))
-					dbSpecificTerm = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
-				} else {
-					searchFields = append(searchFields, fmt.Sprintf("to_tsvector(lower(%[1]s)) @@ to_tsquery(concat(lower(?),':*'))", field))
-					dbSpecificTerm = strings.TrimLeft(term, "@")
-				}
+				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(?) escape '*' ", field))
 			} else {
 				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
-				dbSpecificTerm = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
 			}
-			termArgs = append(termArgs, dbSpecificTerm)
+			termArgs = append(termArgs, fmt.Sprintf("%s%%", strings.TrimLeft(term, "@")))
 		}
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}
+
 	return query
 }
 

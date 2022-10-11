@@ -20,7 +20,7 @@ import (
 
 func TestNoticeValidation(t *testing.T) {
 	th := SetupWithStoreMock(t)
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockRoleStore := mocks.RoleStore{}
 	mockSystemStore := mocks.SystemStore{}
 	mockUserStore := mocks.UserStore{}
@@ -643,7 +643,7 @@ func TestNoticeValidation(t *testing.T) {
 			}
 			if ok, err := noticeMatchesConditions(th.Context,
 				th.App.Config(),
-				th.App.Srv().Store.Preference(),
+				th.App.Srv().Store().Preference(),
 				"test",
 				tt.args.client,
 				clientVersion,
@@ -733,7 +733,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Len(t, messages, 0)
 
 	// validate views table
-	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err := th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 1)
 
@@ -752,7 +752,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Len(t, messages, 0)
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
-	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	views, err = th.App.Srv().Store().ProductNotices().GetViews(th.BasicUser.Id)
 	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

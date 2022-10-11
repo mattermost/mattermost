@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 
@@ -48,11 +47,6 @@ type Channels struct {
 	pluginConfigListenerID string
 
 	imageProxy *imageproxy.ImageProxy
-
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
 
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
@@ -267,7 +261,8 @@ func (ch *Channels) Start() error {
 
 	})
 
-	if err := ch.ensureAsymmetricSigningKey(c); err != nil {
+	// TODO: This should be moved to the platform service.
+	if err := ch.srv.platform.EnsureAsymmetricSigningKey(c); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 

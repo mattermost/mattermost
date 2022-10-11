@@ -71,7 +71,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -79,7 +79,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -118,7 +118,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -126,7 +126,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -239,7 +239,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			if time.Since(begin) > timeout {
 				break
 			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
+			channel, err = th.App.Srv().Store().Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
 			if err == nil && channel != nil {
 				break
 			}
@@ -247,7 +247,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]

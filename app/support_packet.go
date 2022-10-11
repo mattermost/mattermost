@@ -59,9 +59,9 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, string)
 	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
-	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
-		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
+	if a.Srv().Platform().SearchEngine.ElasticsearchEngine != nil {
+		elasticServerVersion = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetFullVersion()
+		elasticServerPlugins = a.Srv().Platform().SearchEngine.ElasticsearchEngine.GetPlugins()
 	}
 
 	// Here we are getting information regarding LDAP
@@ -74,7 +74,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, string)
 	// Here we are getting information regarding the database (mysql/postgres + current schema version)
 	databaseType, databaseVersion := a.Srv().DatabaseTypeAndSchemaVersion()
 
-	uniqueUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "error while getting user count").Error()
 	}

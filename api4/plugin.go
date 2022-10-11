@@ -422,7 +422,7 @@ func setFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 		Value: "true",
 	}
 
-	if err := c.App.Srv().Store.System().SaveOrUpdate(&firstAdminVisitMarketplaceObj); err != nil {
+	if err := c.App.Srv().Store().System().SaveOrUpdate(&firstAdminVisitMarketplaceObj); err != nil {
 		c.Err = model.NewAppError("setFirstAdminVisitMarketplaceStatus", "api.error_set_first_admin_visit_marketplace_status", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -445,7 +445,7 @@ func getFirstAdminVisitMarketplaceStatus(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	firstAdminVisitMarketplaceObj, err := c.App.Srv().Store.System().GetByName(model.SystemFirstAdminVisitMarketplace)
+	firstAdminVisitMarketplaceObj, err := c.App.Srv().Store().System().GetByName(model.SystemFirstAdminVisitMarketplace)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

@@ -123,7 +123,7 @@ func resetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	a.Srv().Store.DropAllTables()
+	a.Srv().Store().DropAllTables()
 	CommandPrettyPrintln("Database successfully reset")
 
 	auditRec := a.MakeAuditRecord("reset", audit.Success)
