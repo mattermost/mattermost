@@ -74,30 +74,3 @@ func getTeamsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Write(json)
 }
-
-func getIntegrationsUsage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
-		json, err := json.Marshal(&model.IntegrationsUsage{})
-		if err != nil {
-			c.Err = model.NewAppError("Api4.getIntegrationsUsage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
-
-		w.Write(json)
-		return
-	}
-
-	usage, appErr := c.App.GetIntegrationsUsage()
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	json, err := json.Marshal(usage)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getIntegrationsUsage", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	w.Write(json)
-}

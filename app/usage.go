@@ -10,27 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// GetIntegrationsUsage returns usage information on enabled integrations
-func (a *App) GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
-	return a.ch.getIntegrationsUsage()
-}
-
-func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
-	installed, appErr := ch.getInstalledIntegrations()
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	var count = 0
-	for _, i := range installed {
-		if i.Enabled {
-			count++
-		}
-	}
-
-	return &model.IntegrationsUsage{Enabled: count}, nil
-}
-
 // GetPostsUsage returns the total posts count rounded down to the most
 // significant digit
 func (a *App) GetPostsUsage() (int64, *model.AppError) {
