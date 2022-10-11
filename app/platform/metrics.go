@@ -35,6 +35,14 @@ type platformMetrics struct {
 	cfgFn func() *model.Config
 }
 
+func (ps *PlatformService) metricsImpl() einterfaces.MetricsInterface {
+	if ps.metrics == nil {
+		return nil
+	}
+
+	return ps.metrics.metricsImpl
+}
+
 // resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
 func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) error {
 	if !*cfgFn().MetricsSettings.Enable {
@@ -173,12 +181,13 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 }
 
 func (ps *PlatformService) RestartMetrics() error {
-	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.serviceConfig.ConfigStore.Get)
+	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
 }
 
 func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 	if ps.metrics == nil {
 		return nil
 	}
-	return ps.metrics.metricsImpl
+
+	return ps.metricsImpl()
 }
