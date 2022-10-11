@@ -90,26 +90,29 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
+	configStore, _ := config.NewFileStore("config.json", true)
+	store, _ := config.NewStoreFromBacking(configStore, nil, false)
+
+	cfg := store.Get()
+	cfg.FileSettings = model.FileSettings{
+		DriverName:              model.NewString(model.ImageDriverS3),
+		AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
+		AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
+		AmazonS3Bucket:          model.NewString("nosuchbucket"),
+		AmazonS3Endpoint:        model.NewString(s3Endpoint),
+		AmazonS3Region:          model.NewString(""),
+		AmazonS3PathPrefix:      model.NewString(""),
+		AmazonS3SSL:             model.NewBool(false),
+	}
+	*cfg.ServiceSettings.ListenAddress = ":0"
+	_, _, err := store.Set(cfg)
+	require.NoError(t, err)
 
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore, nil, false)
-		var err error
-		server.platform, err = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
-		require.NoError(t, err)
-		server.platform.UpdateConfig(func(cfg *model.Config) {
-			cfg.FileSettings = model.FileSettings{
-				DriverName:              model.NewString(model.ImageDriverS3),
-				AmazonS3AccessKeyId:     model.NewString(model.MinioAccessKey),
-				AmazonS3SecretAccessKey: model.NewString(model.MinioSecretKey),
-				AmazonS3Bucket:          model.NewString("nosuchbucket"),
-				AmazonS3Endpoint:        model.NewString(s3Endpoint),
-				AmazonS3Region:          model.NewString(""),
-				AmazonS3PathPrefix:      model.NewString(""),
-				AmazonS3SSL:             model.NewBool(false),
-			}
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		})
+		var err2 error
+		server.platform, err2 = platform.New(platform.ServiceConfig{}, platform.ConfigStore(store))
+		require.NoError(t, err2)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -119,6 +122,7 @@ func TestStartServerNoS3Bucket(t *testing.T) {
 
 	// ensure that a new bucket was created
 	require.IsType(t, &filestore.S3FileBackend{}, s.FileBackend())
+
 	err = s.FileBackend().(*filestore.S3FileBackend).TestConnection()
 	require.NoError(t, err)
 }
