@@ -55,11 +55,11 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	if err != nil {
 		return err
 	}
-	_, err = a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = a.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
+	if _, nErr := a.Srv().Store().Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
 		var limitExceededErr *store.ErrLimitExceeded
@@ -100,12 +100,12 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	}
 
 	status := &model.Status{UserId: ruser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if err := cfg.app.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+	if err := cfg.app.Srv().Store().Status().SaveOrUpdate(status); err != nil {
 		return nil, err
 	}
 
 	// We need to cheat to verify the user's email
-	_, err := cfg.app.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err := cfg.app.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil, err
 	}

@@ -535,6 +535,13 @@ func (s SqlChannelStore) getSidebarCategoriesT(db dbSelecter, userId string, opt
 		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
 		From("SidebarCategories").
 		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
+		InnerJoin("Teams ON Teams.Id=SidebarCategories.TeamId").
+		InnerJoin("TeamMembers ON TeamMembers.TeamId=SidebarCategories.TeamId").
+		Where(sq.And{
+			sq.Eq{"TeamMembers.UserId": userId},
+			sq.Eq{"TeamMembers.DeleteAt": 0},
+			sq.Eq{"Teams.DeleteAt": 0},
+		}).
 		Where(sq.And{
 			sq.Eq{"SidebarCategories.UserId": userId},
 		}).

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -117,7 +118,7 @@ func TestUploadLicenseFile(t *testing.T) {
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
 		CheckErrorID(t, err, "api.license.request-trial.can-start-trial.not-allowed")
@@ -155,7 +156,7 @@ func TestUploadLicenseFile(t *testing.T) {
 
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(false, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
 		require.NoError(t, err)
@@ -202,7 +203,7 @@ func TestRequestTrialLicense(t *testing.T) {
 
 	licenseManagerMock := &mocks.LicenseInterface{}
 	licenseManagerMock.On("CanStartTrial").Return(true, nil)
-	th.App.Srv().LicenseManager = licenseManagerMock
+	th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065/" })
 
@@ -235,7 +236,7 @@ func TestRequestTrialLicense(t *testing.T) {
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		defer func(requestTrialURL string) {
 			app.RequestTrialURL = requestTrialURL
@@ -265,19 +266,19 @@ func TestRequestTrialLicense(t *testing.T) {
 		utils.LicenseValidator = &mockLicenseValidator
 		licenseManagerMock := &mocks.LicenseInterface{}
 		licenseManagerMock.On("CanStartTrial").Return(true, nil).Once()
-		th.App.Srv().LicenseManager = licenseManagerMock
+		th.App.Srv().Platform().SetLicenseManager(licenseManagerMock)
 
 		defer func(requestTrialURL string) {
-			app.RequestTrialURL = requestTrialURL
-		}(app.RequestTrialURL)
-		app.RequestTrialURL = testServer.URL
+			platform.RequestTrialURL = requestTrialURL
+		}(platform.RequestTrialURL)
+		platform.RequestTrialURL = testServer.URL
 
 		resp, err := th.SystemAdminClient.RequestTrialLicense(nUsers)
 		require.Error(t, err)
 		require.Equal(t, resp.StatusCode, 451)
 	})
 
-	th.App.Srv().LicenseManager = nil
+	th.App.Srv().Platform().SetLicenseManager(nil)
 	t.Run("trial license should fail if LicenseManager is nil", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.RequestTrialLicense(1)
 		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")

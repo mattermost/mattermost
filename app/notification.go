@@ -47,14 +47,14 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv().Store.User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
 		pchan <- store.StoreResult{Data: props, NErr: err}
 		close(pchan)
 	}()
 
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv().Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 		cmnchan <- store.StoreResult{Data: props, NErr: err}
 		close(cmnchan)
 	}()
@@ -73,7 +73,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
-			fileInfos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
+			fileInfos, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
 			fchan <- store.StoreResult{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
@@ -83,7 +83,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	if isCRTAllowed && post.RootId != "" {
 		tchan = make(chan store.StoreResult, 1)
 		go func() {
-			followers, err := a.Srv().Store.Thread().GetThreadFollowers(post.RootId, true)
+			followers, err := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
 			tchan <- store.StoreResult{Data: followers, NErr: err}
 			close(tchan)
 		}()
@@ -253,7 +253,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
-					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
+					membership, err := a.Srv().Store().Thread().GetMembershipForUser(userID, post.RootId)
 					var nfErr *store.ErrNotFound
 
 					if err != nil && !errors.As(err, &nfErr) {
@@ -278,7 +278,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
 				}
-				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
+				threadMembership, err := a.Srv().Store().Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 					return
@@ -305,7 +305,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
 
-	nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
+	nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "")
 	if nErr != nil {
 		mlog.Warn(
 			"Failed to update mention count",
@@ -587,7 +587,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", uid, nil, "")
 				threadMembership := participantMemberships[uid]
 				if threadMembership == nil {
-					tm, err := a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+					tm, err := a.Srv().Store().Thread().GetMembershipForUser(uid, post.RootId)
 					if err != nil {
 						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
 					}
@@ -596,7 +596,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					}
 					threadMembership = tm
 				}
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
@@ -620,7 +620,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 							UpdateViewedTimestamp: true,
 						}
 						// should set unread mentions, and unread replies to 0
-						_, err = a.Srv().Store.Thread().MaintainMembership(uid, post.RootId, opts)
+						_, err = a.Srv().Store().Thread().MaintainMembership(uid, post.RootId, opts)
 						if err != nil {
 							return nil, errors.Wrapf(err, "cannot maintain thread membership %q for user %q", post.RootId, uid)
 						}
@@ -755,7 +755,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		return nil, nil, nil
 	}
 
-	users, err := a.Srv().Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
+	users, err := a.Srv().Store().User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1067,9 +1067,9 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin
 		if channel.IsGroupConstrained() {
-			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
+			groups, err = a.Srv().Store().Group().GetGroupsByChannel(channel.Id, opts)
 		} else {
-			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
+			groups, err = a.Srv().Store().Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to get groups")
@@ -1082,7 +1082,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		return groupsMap, nil
 	}
 
-	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts, nil)
+	groups, err := a.Srv().Store().Group().GetGroups(0, 0, opts, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get groups")
 	}
@@ -1122,9 +1122,9 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	isGroupOrDirect := channel.IsGroupOrDirect()
 
 	if isGroupOrDirect {
-		groupMembers, err = a.Srv().Store.Group().GetMemberUsers(group.Id)
+		groupMembers, err = a.Srv().Store().Group().GetMemberUsers(group.Id)
 	} else {
-		groupMembers, err = a.Srv().Store.Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
+		groupMembers, err = a.Srv().Store().Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
 	}
 
 	if err != nil {
@@ -1369,7 +1369,7 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 		return model.ShowUsername
 	}
 
-	data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat)
+	data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat)
 	if err != nil {
 		return *a.Config().TeamSettings.TeammateNameDisplay
 	}
