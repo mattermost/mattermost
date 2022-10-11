@@ -169,12 +169,13 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
+	// Step 5: Init Metrics
 	if metricsInterfaceFn != nil {
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
-	// Step 5: Store.
-	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
+	// Step 6: Store.
+	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
 			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
@@ -213,10 +214,12 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	var err error
+	// if ps.Store == nil {
 	ps.Store, err = ps.newStore()
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
+	// }
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
@@ -237,16 +240,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
+	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
 	}
 
+	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
 	if ps.startMetrics {
-		if mErr := ps.resetMetrics(ps.metricsIFace, ps.configStore.Get); mErr != nil {
+		if mErr := ps.resetMetrics(); mErr != nil {
 			return nil, mErr
 		}
 	}
 
+	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
@@ -298,6 +304,7 @@ func (ps *PlatformService) Start(suite SuiteIFace) error {
 			return
 		}
 	})
+
 	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		ps.regenerateClientConfig()
 
