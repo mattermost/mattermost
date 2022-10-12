@@ -4242,7 +4242,7 @@ func (s *OpenTracingLayerGroupStore) GetMember(groupID string, userID string) (*
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -4251,7 +4251,25 @@ func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string, viewRestrict
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.GetMemberCount(groupID, viewRestrictions)
+	result, err := s.GroupStore.GetMemberCount(groupID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberCountWithRestrictions")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.GroupStore.GetMemberCountWithRestrictions(groupID, viewRestrictions)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

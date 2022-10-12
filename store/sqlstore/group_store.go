@@ -460,8 +460,11 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 	return groupMembers, nil
 }
 
-func (s *SqlGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, error) {
+	return s.GetMemberCountWithRestrictions(groupID, nil)
+}
 
+func (s *SqlGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(DISTINCT u.Id)").
 		From("GroupMembers").

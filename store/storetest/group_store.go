@@ -4182,7 +4182,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 	}
 
-	count, err := ss.Group().GetMemberCount(group.Id, nil)
+	count, err := ss.Group().GetMemberCount(group.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), count)
 
@@ -4190,7 +4190,7 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.User().Update(user, true)
 	require.NoError(t, nErr)
 
-	count, err = ss.Group().GetMemberCount(group.Id, nil)
+	count, err = ss.Group().GetMemberCount(group.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), count)
 }

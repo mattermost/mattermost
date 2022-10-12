@@ -6239,7 +6239,7 @@ func (a *OpenTracingAppLayer) GetGroupChannel(c request.CTX, userIDs []string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberCount")
 
@@ -6251,7 +6251,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID)
+	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

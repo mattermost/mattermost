@@ -679,7 +679,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := c.Params.GroupId
-	count, appErr := c.App.GetGroupMemberCount(groupID)
+	count, appErr := c.App.GetGroupMemberCount(groupID, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return

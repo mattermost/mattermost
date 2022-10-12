@@ -3861,10 +3861,10 @@ func (s *TimerLayerGroupStore) GetMember(groupID string, userID string) (*model.
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+func (s *TimerLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetMemberCount(groupID, viewRestrictions)
+	result, err := s.GroupStore.GetMemberCount(groupID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3873,6 +3873,22 @@ func (s *TimerLayerGroupStore) GetMemberCount(groupID string, viewRestrictions *
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.GetMemberCountWithRestrictions(groupID, viewRestrictions)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberCountWithRestrictions", success, elapsed)
 	}
 	return result, err
 }

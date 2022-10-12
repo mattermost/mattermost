@@ -26,7 +26,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *mo
 	}
 
 	if opts != nil && opts.IncludeMemberCount {
-		memberCount, err := a.Srv().Store().Group().GetMemberCount(id, viewRestrictions)
+		memberCount, err := a.Srv().Store().Group().GetMemberCountWithRestrictions(id, viewRestrictions)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -146,7 +146,7 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 	}
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
-	count, err := a.Srv().Store().Group().GetMemberCount(newGroup.Id, nil)
+	count, err := a.Srv().Store().Group().GetMemberCount(newGroup.Id)
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -184,7 +184,7 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 		}
 	}
 
-	count, err := a.Srv().Store().Group().GetMemberCount(updatedGroup.Id, nil)
+	count, err := a.Srv().Store().Group().GetMemberCount(updatedGroup.Id)
 	if err != nil {
 		return nil, model.NewAppError("UpdateGroup", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -217,8 +217,8 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, nil
 }
 
-func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().Store().Group().GetMemberCount(groupID, nil)
+func (a *App) GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+	count, err := a.Srv().Store().Group().GetMemberCountWithRestrictions(groupID, viewRestrictions)
 	if err != nil {
 		return 0, model.NewAppError("GetGroupMemberCount", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -241,7 +241,7 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, vie
 		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	count, appErr := a.GetGroupMemberCount(groupID)
+	count, appErr := a.GetGroupMemberCount(groupID, viewRestrictions)
 	if appErr != nil {
 		return nil, 0, appErr
 	}

@@ -692,8 +692,29 @@ func (_m *GroupStore) GetMember(groupID string, userID string) (*model.GroupMemb
 	return r0, r1
 }
 
-// GetMemberCount provides a mock function with given fields: groupID, viewRestrictions
-func (_m *GroupStore) GetMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+// GetMemberCount provides a mock function with given fields: groupID
+func (_m *GroupStore) GetMemberCount(groupID string) (int64, error) {
+	ret := _m.Called(groupID)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(groupID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMemberCountWithRestrictions provides a mock function with given fields: groupID, viewRestrictions
+func (_m *GroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
 	ret := _m.Called(groupID, viewRestrictions)
 
 	var r0 int64
