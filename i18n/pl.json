@@ -4761,11 +4761,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 44+"
+    "translation": "Wersja 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 100+"
+    "translation": "Wersja 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9542,5 +9542,29 @@
   {
     "id": "app.job.error",
     "translation": "Błąd podczas wykonywania zadania."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Błąd pobierania ostatniego dostępnego pliku"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nie można pobrać pliku, ponieważ przekroczony został limit planu chmury."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Twoja licencja nie wspiera kont gości"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konta gości są wyłączone"
   }
 ]
