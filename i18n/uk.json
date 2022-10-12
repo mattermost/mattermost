@@ -6858,5 +6858,17 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Помилка валідації кешу"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Повернутися до {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
   }
 ]
