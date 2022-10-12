@@ -1044,7 +1044,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 		fileInfo := &model.FileInfo{
 			Id:       "file_id_1",
 			Size:     maxSize + 1,
-			MimeType: "image/png",
+			MimeType: "plain/text",
 		}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
