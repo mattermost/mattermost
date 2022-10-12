@@ -214,12 +214,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	var err error
-	// if ps.Store == nil {
 	ps.Store, err = ps.newStore()
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
-	// }
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{

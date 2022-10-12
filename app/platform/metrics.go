@@ -36,13 +36,8 @@ type platformMetrics struct {
 	listenAddr string
 }
 
-func (ps *PlatformService) metricsImpl() einterfaces.MetricsInterface {
-	return ps.metricsIFace
-}
-
 // resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
 func (ps *PlatformService) resetMetrics() error {
-	fmt.Println("resetMetrics")
 	if !*ps.Config().MetricsSettings.Enable {
 		if ps.metrics != nil {
 			return ps.metrics.stopMetricsServer()
@@ -188,5 +183,5 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 		return nil
 	}
 
-	return ps.metricsImpl()
+	return ps.metricsIFace
 }
