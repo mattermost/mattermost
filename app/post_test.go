@@ -1042,23 +1042,23 @@ func TestValidateVoiceMessage(t *testing.T) {
 		const maxSize = 10
 		th.App.Config().FileSettings.MaxVoiceMessagesFileSize = model.NewInt64(maxSize)
 		fileInfo := &model.FileInfo{
-			Id:       "file_id_1",
+			Id:       "file_id_2",
 			Size:     maxSize + 1,
 			MimeType: "plain/text",
 		}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockFileInfoStore := storemocks.FileInfoStore{}
-		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
+		mockFileInfoStore.On("Get", "file_id_2").Return(fileInfo, nil)
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 		err := th.App.validateVoiceMessage(&model.Post{
 			Id:        "post_id",
 			ChannelId: "channel_id",
 			UserId:    "user_id",
-			FileIds:   []string{"file_id_1"},
+			FileIds:   []string{"file_id_2"},
 		})
-		require.ErrorContains(t, err, "Your voice message file size is too big")
+		require.ErrorContains(t, err, "The voice message file must be a mp3")
 	})
 
 	t.Run("should fail if the file is too big", func(t *testing.T) {
