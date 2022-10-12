@@ -338,7 +338,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
 		// when
-		th.App.generateThumbnailImage(img, thumbnailName)
+		th.App.generateThumbnailImage(img, "jpg", thumbnailName)
 		defer os.Remove(thumbnailPath)
 
 		// then
