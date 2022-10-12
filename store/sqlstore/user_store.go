@@ -1793,7 +1793,16 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 			`).
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
+		Where(sq.And{
+			sq.Eq{
+				"cm.UserId": userIds,
+			},
+			sq.Or{
+				sq.Eq{"c.Type": model.ChannelTypeOpen},
+				sq.Eq{"c.Type": model.ChannelTypeDirect},
+				sq.Eq{"c.Type": model.ChannelTypeGroup},
+			},
+		}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql2")

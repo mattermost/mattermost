@@ -4857,10 +4857,35 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.NoError(t, err)
 
+	cDM := &model.Channel{
+		Name: model.NewId() + "__" + model.NewId(),
+		Type: model.ChannelTypeDirect,
+	}
+	cm1 := &model.ChannelMember{
+		UserId:    u3.Id,
+		ChannelId: cDM.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cm2 := &model.ChannelMember{
+		UserId:    u2.Id,
+		ChannelId: cDM.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cDM, nErr = ss.Channel().SaveDirectChannel(cDM, cm1, cm2)
+	require.NoError(t, nErr)
+
 	// Getting all users
 	res1List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 100)
 	require.NoError(t, err)
 	assert.Len(t, res1List, 3)
+	for _, user := range res1List {
+		switch user.Id {
+		case u2.Id:
+			assert.ElementsMatch(t, user.ChannelsIds, []string{cPub1.Id, cPub2.Id, cDM.Id})
+		case u3.Id:
+			assert.ElementsMatch(t, user.ChannelsIds, []string{cPub2.Id, cDM.Id})
+		}
+	}
 
 	// Testing pagination
 	res2List, err := ss.User().GetUsersBatchForIndexing(u1.CreateAt-1, "", 1)

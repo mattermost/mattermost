@@ -196,15 +196,18 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
-			if nErr != nil {
-				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
-				continue
+			if channelId == "" {
+				listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+				if nErr != nil {
+					mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+					continue
+				}
+				if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
+					return &model.UserAutocompleteInChannel{}, nil
+				}
+				options.ListOfAllowedChannels = listOfAllowedChannels
 			}
-			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
-				return &model.UserAutocompleteInChannel{}, nil
-			}
-			options.ListOfAllowedChannels = listOfAllowedChannels
+
 			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
 			if nErr != nil {
 				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
