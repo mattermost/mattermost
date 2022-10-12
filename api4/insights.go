@@ -14,22 +14,22 @@ import (
 func (api *API) InitInsights() {
 	// Reactions
 	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(rejectGuests(getTopReactionsForUserSince))).Methods("GET")
 
 	// Channels
 	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(rejectGuests(getTopChannelsForUserSince))).Methods("GET")
 
 	// Threads
 	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(rejectGuests(getTopThreadsForUserSince))).Methods("GET")
 
 	// user DMs
-	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(rejectGuests(getTopDMsForUserSince))).Methods("GET")
 
 	// Inactive channels
 	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(rejectGuests(getTopInactiveChannelsForUserSince))).Methods("GET")
 
 	// New teammembers
 	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
