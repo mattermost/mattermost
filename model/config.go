@@ -120,7 +120,8 @@ const (
 
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
-	FileSettingsDefaultDirectory = "./data/"
+	FileSettingsDefaultDirectory   = "./data/"
+	FileSettingsDefaultMaxFileSize = 100 * 1024 * 1024
 
 	ImportSettingsDefaultDirectory     = "./import"
 	ImportSettingsDefaultRetentionDays = 30
@@ -959,6 +960,7 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
+	EnableVoiceMessages             *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -996,6 +998,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
+	}
+
+	if s.EnableVoiceMessages == nil {
+		s.EnableVoiceMessages = NewBool(true)
 	}
 }
 
@@ -1415,6 +1421,7 @@ type FileSettings struct {
 	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
 	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
 	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxVoiceMessagesFileSize           *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
@@ -1451,7 +1458,11 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(100 * 1024 * 1024) // 100MB (IEC)
+		s.MaxFileSize = NewInt64(FileSettingsDefaultMaxFileSize) // 100MB (IEC)
+	}
+
+	if s.MaxVoiceMessagesFileSize == nil {
+		s.MaxVoiceMessagesFileSize = NewInt64(*s.MaxFileSize)
 	}
 
 	if s.MaxImageResolution == nil {
@@ -3410,6 +3421,10 @@ func (s *SqlSettings) isValid() *AppError {
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxVoiceMessagesFileSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {

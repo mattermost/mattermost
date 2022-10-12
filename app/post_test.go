@@ -941,6 +941,149 @@ func TestCreatePost(t *testing.T) {
 
 		wg.Wait()
 	})
+
+	t.Run("should successfully create a voice post", func(t *testing.T) {
+		// feature flag setup
+		ffInitialValue := os.Getenv("MM_FEATUREFLAGS_VoiceMessages")
+		os.Setenv("MM_FEATUREFLAGS_VoiceMessages", "true")
+		defer func() {
+			os.Setenv("MM_FEATUREFLAGS_VoiceMessages", ffInitialValue)
+		}()
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ExperimentalSettings.EnableVoiceMessages = model.NewBool(true)
+		})
+
+		nowMillis := time.Now().UnixMilli()
+		fileInfo, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: th.BasicUser.Id,
+			Path:      "/path/to/file.mp3",
+			MimeType:  "audio/mpeg",
+			Size:      *th.App.Config().FileSettings.MaxVoiceMessagesFileSize - 1,
+			CreateAt:  nowMillis,
+			UpdateAt:  nowMillis,
+		})
+		require.NoError(t, err)
+
+		voicePost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Type:      model.PostTypeVoice,
+			FileIds:   []string{fileInfo.Id},
+		}, th.BasicChannel, false, false)
+		require.Nil(t, appErr)
+
+		require.Equal(t, model.PostTypeVoice, voicePost.Type)
+		require.Len(t, voicePost.Metadata.Files, 1)
+		require.Equal(t, fileInfo.Id, voicePost.Metadata.Files[0].Id)
+	})
+}
+
+func TestValidateVoiceMessage(t *testing.T) {
+	t.Run("should fail if there's no files attached", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		err := th.App.validateVoiceMessage(&model.Post{
+			Id:        "post_id",
+			ChannelId: "channel_id",
+			Message:   "",
+			UserId:    "user_id",
+		})
+		require.ErrorContains(t, err, "Voice message not found.")
+	})
+
+	t.Run("should fail if there's more than one file attached", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		err := th.App.validateVoiceMessage(&model.Post{
+			Id:        "post_id",
+			ChannelId: "channel_id",
+			Message:   "",
+			UserId:    "user_id",
+			FileIds:   []string{"file_id_1", "file_id_2"},
+		})
+		require.ErrorContains(t, err, "Voice message can only have one file.")
+	})
+
+	t.Run("should fail is we cannot retrieve the file info", func(t *testing.T) {
+		// make a store mock
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockFileInfoStore := storemocks.FileInfoStore{}
+		mockFileInfoStore.On("Get", "file_id_1").Return(nil, errors.New("some error"))
+		mockStore.On("FileInfo").Return(&mockFileInfoStore)
+
+		err := th.App.validateVoiceMessage(&model.Post{
+			Id:        "post_id",
+			ChannelId: "channel_id",
+			UserId:    "user_id",
+			FileIds:   []string{"file_id_1"},
+		})
+
+		require.ErrorContains(t, err, "Error while trying to retrieve your voice message")
+	})
+
+	t.Run("should fail if the file is not an audio file", func(t *testing.T) {
+		// make a store mock
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		const maxSize = 10
+		th.App.Config().FileSettings.MaxVoiceMessagesFileSize = model.NewInt64(maxSize)
+		fileInfo := &model.FileInfo{
+			Id:       "file_id_1",
+			Size:     maxSize + 1,
+			MimeType: "image/png",
+		}
+
+		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockFileInfoStore := storemocks.FileInfoStore{}
+		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
+		mockStore.On("FileInfo").Return(&mockFileInfoStore)
+
+		err := th.App.validateVoiceMessage(&model.Post{
+			Id:        "post_id",
+			ChannelId: "channel_id",
+			UserId:    "user_id",
+			FileIds:   []string{"file_id_1"},
+		})
+		require.ErrorContains(t, err, "Your voice message file size is too big")
+	})
+
+	t.Run("should fail if the file is too big", func(t *testing.T) {
+		// make a store mock
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		const maxSize = 10
+		th.App.Config().FileSettings.MaxVoiceMessagesFileSize = model.NewInt64(maxSize)
+		fileInfo := &model.FileInfo{
+			Id:       "file_id_1",
+			Size:     maxSize + 1,
+			MimeType: "audio/mpeg",
+		}
+
+		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockFileInfoStore := storemocks.FileInfoStore{}
+		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
+		mockStore.On("FileInfo").Return(&mockFileInfoStore)
+
+		err := th.App.validateVoiceMessage(&model.Post{
+			Id:        "post_id",
+			ChannelId: "channel_id",
+			UserId:    "user_id",
+			FileIds:   []string{"file_id_1"},
+		})
+		require.ErrorContains(t, err, "Your voice message file size is too big")
+	})
 }
 
 func TestPatchPost(t *testing.T) {

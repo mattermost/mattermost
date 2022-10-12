@@ -2250,6 +2250,10 @@
     "translation": "Invalid RootId parameter."
   },
   {
+    "id": "api.post.create_post.voice_messages_disabled.app_error",
+    "translation": "The voice message feature is not active."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post."
   },
@@ -2378,6 +2382,30 @@
   {
     "id": "api.post.update_post.system_message.app_error",
     "translation": "Unable to update system message."
+  },
+  {
+    "id": "api.post.validate_voice_post.file_not_found.app_error",
+    "translation": "Unable to retrieve your voice message."
+  },
+  {
+    "id": "api.post.validate_voice_post.file_too_big.app_error",
+    "translation": "Your voice message file size is too big."
+  },
+  {
+    "id": "api.post.validate_voice_post.invalid_file_type.app_error",
+    "translation": "The voice message file must be a mp3."
+  },
+  {
+    "id": "api.post.validate_voice_post.no_file.app_error",
+    "translation": "Voice message not found."
+  },
+  {
+    "id": "api.post.validate_voice_post.too_many_files.app_error",
+    "translation": "Voice message can only have one file."
+  },
+  {
+    "id": "api.post.validate_voice_post.unable_get_file_info.app_error",
+    "translation": "Error while trying to retrieve your voice message."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -3866,6 +3894,10 @@
   {
     "id": "api.unmarshal_error",
     "translation": "Failed to unmarshal."
+  },
+  {
+    "id": "api.update_post.cant_update_voice_message.app_error",
+    "translation": "You can not uodate a voice message."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -8374,6 +8406,10 @@
   {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_voice_messages_file_size.app_error",
+    "translation": "Invalid maximum voice message file size. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",

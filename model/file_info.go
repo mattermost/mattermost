@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	FileinfoSortByCreated = "CreateAt"
-	FileinfoSortBySize    = "Size"
+	FileinfoSortByCreated           = "CreateAt"
+	FileinfoSortBySize              = "Size"
+	VoiceMessagesSupportedMimeTypes = "audio/mpeg,audio/mp3,audio/x-mpeg,audio/x-mp3"
 )
 
 // GetFileInfosOptions contains options for getting FileInfos
@@ -187,4 +188,8 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 	}
 
 	return Etag(infos[0].PostId, maxUpdateAt)
+}
+
+func (fi *FileInfo) CanBeUsedForVoiceMessage() bool {
+	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(fi.MimeType))
 }
