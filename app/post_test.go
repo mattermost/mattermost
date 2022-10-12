@@ -961,7 +961,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		nowMillis := time.Now().UnixMilli()
-		fileInfo, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+		fileInfo, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 			Id:        model.NewId(),
 			CreatorId: th.BasicUser.Id,
 			Path:      "/path/to/file.mp3",
@@ -1019,7 +1019,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockFileInfoStore := storemocks.FileInfoStore{}
 		mockFileInfoStore.On("Get", "file_id_1").Return(nil, errors.New("some error"))
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
@@ -1047,7 +1047,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			MimeType: "image/png",
 		}
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockFileInfoStore := storemocks.FileInfoStore{}
 		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
@@ -1074,7 +1074,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			MimeType: "audio/mpeg",
 		}
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockFileInfoStore := storemocks.FileInfoStore{}
 		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
