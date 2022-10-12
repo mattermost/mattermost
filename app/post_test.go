@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -201,13 +202,13 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -219,7 +220,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
@@ -228,14 +229,14 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
 		})
 		require.NoError(t, err)
 
-		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -247,7 +248,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		appErr := th.App.attachFilesToPost(post)
 		assert.Nil(t, appErr)
 
-		infos, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
+		infos, _, appErr := th.App.GetFileInfosForPost(post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -453,7 +454,7 @@ func TestImageProxy(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockUserStore := storemocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := storemocks.PostStore{}
@@ -608,7 +609,9 @@ func TestMaxPostSize(t *testing.T) {
 			app := App{
 				ch: &Channels{
 					srv: &Server{
-						Store: mockStore,
+						platform: &platform.PlatformService{
+							Store: mockStore,
+						},
 					},
 				},
 			}
@@ -632,7 +635,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -1184,14 +1187,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1208,14 +1211,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp("from_webhook", "true")
 
-		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1239,14 +1242,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1313,7 +1316,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1326,7 +1329,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1349,7 +1352,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1362,7 +1365,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, nErr := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1612,9 +1615,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1639,9 +1642,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1663,9 +1666,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -1695,9 +1698,9 @@ func TestSearchPostsForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchPostsForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierMessages)
@@ -2588,7 +2591,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 		}, channel, false, true)
 		require.Nil(t, err)
-		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
+		thread, nErr := th.App.Srv().Store().Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
 		th.App.MarkChannelAsUnreadFromPost(th.Context, postRoot.Id, user1.Id, true)
@@ -2631,7 +2634,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			th.Server.Store.Post().PermanentDeleteByUser(user1.Id)
+			th.Server.Store().Post().PermanentDeleteByUser(user1.Id)
 		}()
 
 		require.NotPanics(t, func() {
@@ -2678,7 +2681,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			Message:   "reply",
 		}, channel, false, true)
 		require.Nil(t, err)
-		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
+		thread, nErr := th.App.Srv().Store().Thread().Get(postRoot.Id)
 		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 1)
 
@@ -2765,9 +2768,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -2780,7 +2783,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
 
-		assert.Len(t, remoteClusterService.channelNotifications, 1)
+		require.Len(t, remoteClusterService.channelNotifications, 1)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 	})
 
@@ -2789,9 +2792,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -2807,7 +2810,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(th.Context, post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		assert.Len(t, remoteClusterService.channelNotifications, 2)
+		require.Len(t, remoteClusterService.channelNotifications, 2)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 	})
@@ -2817,9 +2820,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		defer th.TearDown()
 
 		remoteClusterService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = remoteClusterService
+		th.Server.SetSharedChannelSyncService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -2836,7 +2839,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		require.Nil(t, err, "Deleting a post should not error")
 
 		// one creation and two deletes
-		assert.Len(t, remoteClusterService.channelNotifications, 3)
+		require.Len(t, remoteClusterService.channelNotifications, 3)
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[1])
 		assert.Equal(t, channel.Id, remoteClusterService.channelNotifications[2])
@@ -2869,7 +2872,7 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	require.Nil(t, err)
 
 	// unfollow thread
-	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
+	m, nErr := th.App.Srv().Store().Thread().MaintainMembership(user.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -2936,7 +2939,7 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	require.Nil(t, err)
 
 	// User2 unfollows thread
-	m, nErr := th.App.Srv().Store.Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
+	m, nErr := th.App.Srv().Store().Thread().MaintainMembership(user2.Id, p1.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
@@ -2973,7 +2976,7 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
 
 	mockSystemStore := storemocks.SystemStore{}
 	mockStore.On("System").Return(&mockSystemStore)
@@ -3011,7 +3014,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		},
 	}, nil)
 
-	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockPostStore := storemocks.PostStore{}
 	mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
 	mockSystemStore := storemocks.SystemStore{}
@@ -3195,7 +3198,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})

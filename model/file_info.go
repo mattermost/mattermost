@@ -189,7 +189,43 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 
 	return Etag(infos[0].PostId, maxUpdateAt)
 }
+<<<<<<< HEAD
 
 func (fi *FileInfo) CanBeUsedForVoiceMessage() bool {
 	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(fi.MimeType))
+}
+||||||| ad0705bbc
+=======
+
+func (fi *FileInfo) MakeContentInaccessible() {
+	if fi == nil {
+		return
+	}
+
+	fi.Archived = true
+	fi.Content = ""
+	fi.HasPreviewImage = false
+	fi.MiniPreview = nil
+	fi.Path = ""
+	fi.PreviewPath = ""
+	fi.ThumbnailPath = ""
+}
+>>>>>>> master
+
+func (fi *FileInfo) CanBeUsedForVoiceMessage() bool {
+	return strings.Contains(VoiceMessagesSupportedMimeTypes, strings.ToLower(fi.MimeType))
+}
+
+func (fi *FileInfo) MakeContentInaccessible() {
+	if fi == nil {
+		return
+	}
+
+	fi.Archived = true
+	fi.Content = ""
+	fi.HasPreviewImage = false
+	fi.MiniPreview = nil
+	fi.Path = ""
+	fi.PreviewPath = ""
+	fi.ThumbnailPath = ""
 }

@@ -305,6 +305,7 @@ type GetPostsOptions struct {
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	IncludeDeleted           bool
 }
 
 type PostCountOptions struct {

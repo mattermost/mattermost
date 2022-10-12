@@ -326,6 +326,25 @@ func NewTestLicense(features ...string) *License {
 	return ret
 }
 
+// NewTestLicense returns a license that expires in the future and set as false the given features.
+func NewTestLicenseWithFalseDefaults(features ...string) *License {
+	ret := &License{
+		ExpiresAt: GetMillis() + 90*DayInMilliseconds,
+		Customer:  &Customer{},
+		Features:  &Features{},
+	}
+	ret.Features.SetDefaults()
+
+	featureMap := map[string]bool{}
+	for _, feature := range features {
+		featureMap[feature] = false
+	}
+	featureJson, _ := json.Marshal(featureMap)
+	json.Unmarshal(featureJson, &ret.Features)
+
+	return ret
+}
+
 func NewTestLicenseSKU(skuShortName string, features ...string) *License {
 	lic := NewTestLicense(features...)
 	lic.SkuShortName = skuShortName
