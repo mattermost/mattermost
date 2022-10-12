@@ -1207,9 +1207,9 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	posts, err = s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
-	if err != nil {
-		return nil, err
+	posts, pErr := s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+	if pErr != nil {
+		return nil, pErr
 	}
 
 	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
@@ -1300,7 +1300,10 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+	posts, pErr := s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+	if pErr != nil {
+		return nil, pErr
+	}
 
 	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
@@ -1572,6 +1575,13 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		nErr = s.GetReplicaX().Select(&parents, rootQueryString, rootArgs...)
 		if nErr != nil {
 			return nil, errors.Wrapf(nErr, "failed to find Posts with channelId=%s", options.ChannelId)
+		}
+	}
+
+	if options.CollapsedThreads {
+		posts, err = s.getParentPostsCollapsedThreads(posts, options.UserId, columns)
+		if err != nil {
+			return nil, err
 		}
 	}
 
