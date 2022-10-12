@@ -5544,14 +5544,6 @@
     "translation": "Los canales de la invitación deben ser parte del equipo al cual fue invitado."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Las cuentas de huéspedes están deshabilitadas"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error al invalidar las invitaciones por correo electrónico."
   },
