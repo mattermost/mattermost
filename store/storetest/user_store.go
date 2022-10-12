@@ -130,7 +130,17 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	u2.Username = ""
 	_, err = ss.User().Save(&u2)
-	require.Error(t, err, "should be unique username")
+	require.Error(t, err, "should be non-empty username")
+
+	u3 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u3.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Save(&u3)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 
 	for i := 0; i < 49; i++ {
 		u := model.User{
@@ -234,6 +244,18 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	uNew, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, props, uNew.NotifyProps)
+
+	u4 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u4.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Update(&u4, false)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
+	err = ss.User().UpdateNotifyProps(u4.Id, u4.NotifyProps)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
