@@ -5576,14 +5576,6 @@
     "translation": "초대 채널은 초대한 팀의 채널이어야 합니다."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "게스트 계정을 지원하지 않는 라이선스입니다"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "게스트 계정이 비활성화되어 있습니다"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "전자우편 초대에서 유효하지 않는 오류가 발생했습니다."
   },

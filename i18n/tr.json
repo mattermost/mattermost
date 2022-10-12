@@ -5656,14 +5656,6 @@
     "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Çağrılan kanallar çağrı yapılan takımın bir parçası olmalıdır."
   },

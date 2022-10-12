@@ -5276,10 +5276,6 @@
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
     "id": "api.team.invate_guests_to_channels.disabled.error",
     "translation": "Gäståtkomst har inaktiverats"
   },

@@ -5608,14 +5608,6 @@
     "translation": "De kanalen van de uitgenodigde moet een kanaal dat deel uitmaakt van het team."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Je licentie ondersteunt geen gastgebruikers"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gast accounts zijn uitgeschakeld"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Fout bij afkeuren e-mailuitnodigingen."
   },
