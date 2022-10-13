@@ -1824,7 +1824,7 @@ func TestIsFirstAdmin(t *testing.T) {
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("GetFirstSystemAdminID").Return(model.NewId(), nil)
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("User").Return(&mockUserStore)
 
 		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
@@ -1840,7 +1840,7 @@ func TestIsFirstAdmin(t *testing.T) {
 
 		Id := model.NewId()
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("GetFirstSystemAdminID").Return(Id, nil)
 		mockStore.On("User").Return(&mockUserStore)

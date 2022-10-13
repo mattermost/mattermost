@@ -134,7 +134,7 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 
 		// A/B Test on the welcome post
 		if a.Config().FeatureFlags.SendWelcomePost && channelName == model.DefaultChannelName {
-			nbTeams, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{
+			nbTeams, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{
 				IncludeDeleted: model.NewBool(true),
 			})
 			if err != nil {

@@ -214,7 +214,7 @@ func (a *App) IsFirstAdmin(user *model.User) bool {
 		return false
 	}
 
-	adminID, err := a.Srv().Store.User().GetFirstSystemAdminID()
+	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
 	if err != nil {
 		return false
 	}
