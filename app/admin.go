@@ -184,8 +184,8 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 					if err != nil {
 						mlog.Debug("Failed to parse line, skipping")
 					} else {
-						filtered = IsLogFilteredByLevel(logFilter, entry) || filtered
-						filtered = IsLogFilteredByDate(logFilter, entry) || filtered
+						filtered = isLogFilteredByLevel(logFilter, entry) || filtered
+						filtered = isLogFilteredByDate(logFilter, entry) || filtered
 					}
 
 					if filtered {
@@ -215,7 +215,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int, logFilter *model.LogFilter) 
 	return lines, nil
 }
 
-func IsLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+func isLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	logLevels := logFilter.LogLevels
 	if len(logLevels) == 0 {
 		return false
@@ -230,7 +230,7 @@ func IsLogFilteredByLevel(logFilter *model.LogFilter, entry *model.LogEntry) boo
 	return true
 }
 
-func IsLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
+func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool {
 	if logFilter.DateFrom == "" && logFilter.DateTo == "" {
 		return false
 	}
