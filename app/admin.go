@@ -248,13 +248,13 @@ func isLogFilteredByDate(logFilter *model.LogFilter, entry *model.LogEntry) bool
 	if err != nil {
 		mlog.Debug("Cannot parse timestamp, skipping")
 		return false
-	} else {
-		if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
-			return false
-		}
-		if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
-			return false
-		}
+	}
+
+	if timestamp.Equal(dateFrom) || timestamp.Equal(dateTo) {
+		return false
+	}
+	if timestamp.After(dateFrom) && timestamp.Before(dateTo) {
+		return false
 	}
 
 	return true
