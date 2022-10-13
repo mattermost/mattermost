@@ -438,9 +438,7 @@ func (o *Post) PreSave() {
 		o.CreateAt = GetMillis()
 	}
 
-	if o.UpdateAt == 0 {
-		o.UpdateAt = o.CreateAt
-	}
+	o.UpdateAt = o.CreateAt
 	o.PreCommit()
 }
 
