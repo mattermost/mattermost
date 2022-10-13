@@ -2976,20 +2976,20 @@
     "translation": "Error invalidating email invites."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your license does not support guest accounts"
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Invalid or missing request body."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -5916,6 +5916,10 @@
     "translation": "Plugin is not installed."
   },
   {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} cannot be enabled in product mode."
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin."
   },
@@ -8644,6 +8648,10 @@
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
@@ -9465,11 +9473,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

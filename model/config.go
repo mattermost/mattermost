@@ -955,7 +955,6 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
@@ -976,10 +975,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.CloudBilling == nil {
-		s.CloudBilling = NewBool(false)
 	}
 
 	if s.UseNewSAMLLibrary == nil {
@@ -1959,6 +1954,7 @@ type TeamSettings struct {
 	CustomBrandText           *string `access:"site_customization"`
 	CustomDescriptionText     *string `access:"site_customization"`
 	RestrictDirectMessage     *string `access:"site_users_and_teams"`
+	EnableLastActiveTime      *bool   `access:"site_users_and_teams"`
 	// In seconds.
 	UserStatusAwayTimeout               *int64   `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64   `access:"site_users_and_teams"`
@@ -1996,6 +1992,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.EnableCustomUserStatuses == nil {
 		s.EnableCustomUserStatuses = NewBool(true)
+	}
+
+	if s.EnableLastActiveTime == nil {
+		s.EnableLastActiveTime = NewBool(true)
 	}
 
 	if s.EnableCustomBrand == nil {

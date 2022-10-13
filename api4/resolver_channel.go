@@ -107,7 +107,7 @@ func postProcessChannels(c *web.Context, channels []*model.Channel) ([]*channel,
 
 	// Avoiding unnecessary queries unless necessary.
 	if len(channelIDs) > 0 {
-		userInfo, err = c.App.Srv().Store.Channel().GetMembersInfoByChannelIds(channelIDs)
+		userInfo, err = c.App.Srv().Store().Channel().GetMembersInfoByChannelIds(channelIDs)
 		if err != nil {
 			return nil, err
 		}
