@@ -318,7 +318,7 @@ func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.Com
 	rng := utils.Range{Begin: 2, End: 5}
 	rangeParam := getMatch(rangeRE, cmd)
 	if rangeParam != "" {
-		rng, err = parseRangeParameter(rangeParam)
+		rng, err = parseRange(rangeParam)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -362,7 +362,7 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 	rng := utils.Range{Begin: 2, End: 5}
 	rangeParam := getMatch(rangeRE, cmd)
 	if rangeParam != "" {
-		rng, err = parseRangeParameter(rangeParam)
+		rng, err = parseRange(rangeParam)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -407,7 +407,7 @@ func (*LoadTestProvider) DMsCommand(a *app.App, c request.CTX, args *model.Comma
 	rng := utils.Range{Begin: 2, End: 5}
 	rangeParam := getMatch(rangeRE, cmd)
 	if rangeParam != "" {
-		rng, err = parseRangeParameter(rangeParam)
+		rng, err = parseRange(rangeParam)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add DMs: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -445,7 +445,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 	rng := utils.Range{Begin: 1000, End: 1000}
 	rangeParam := getMatch(rangeRE, cmd)
 	if rangeParam != "" {
-		rng, err = parseRangeParameter(rangeParam)
+		rng, err = parseRange(rangeParam)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create post: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -500,7 +500,7 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 	rng := utils.Range{Begin: 2, End: 5}
 	rangeParam := getMatch(rangeRE, cmd)
 	if rangeParam != "" {
-		rng, err = parseRangeParameter(rangeParam)
+		rng, err = parseRange(rangeParam)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to add posts: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 		}
@@ -705,7 +705,7 @@ func (*LoadTestProvider) JsonCommand(a *app.App, c request.CTX, args *model.Comm
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.CommandResponseTypeEphemeral}, nil
 }
 
-func parseRangeParameter(rng string) (utils.Range, error) {
+func parseRange(rng string) (utils.Range, error) {
 	tokens := strings.Split(rng, ",")
 	var begin int
 	var end int
@@ -728,31 +728,6 @@ func parseRangeParameter(rng string) (utils.Range, error) {
 		return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 	}
 	return utils.Range{Begin: begin, End: end}, nil
-}
-
-func parseRange(command string, cmd string) (utils.Range, bool) {
-	tokens := strings.Fields(strings.TrimPrefix(command, cmd))
-	var begin int
-	var end int
-	var err1 error
-	var err2 error
-	switch {
-	case len(tokens) == 1:
-		begin, err1 = strconv.Atoi(tokens[0])
-		end = begin
-		if err1 != nil {
-			return utils.Range{Begin: 0, End: 0}, false
-		}
-	case len(tokens) >= 2:
-		begin, err1 = strconv.Atoi(tokens[0])
-		end, err2 = strconv.Atoi(tokens[1])
-		if err1 != nil || err2 != nil {
-			return utils.Range{Begin: 0, End: 0}, false
-		}
-	default:
-		return utils.Range{Begin: 0, End: 0}, false
-	}
-	return utils.Range{Begin: begin, End: end}, true
 }
 
 func contains(items []string, token string) bool {
