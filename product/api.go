@@ -98,7 +98,7 @@ type TeamService interface {
 //
 // The service shall be registered via app.BotKey service key.
 type BotService interface {
-	EnsureBot(ctx *request.Context, productID string, bot *model.Bot) (string, error)
+	EnsureBot(ctx request.CTX, productID string, bot *model.Bot) (string, error)
 }
 
 // ConfigService shall be registered via app.ConfigKey service key.
