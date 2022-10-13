@@ -107,8 +107,6 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(c request.CTX, rootId string)
 		// Creating posts with the exact same timestamp results in some posts being skipped
 		// when they are retrieved by the API based on timestamp.
 		post.CreateAt = cfg.CreateTime + int64(cfg.postsCreated)
-		// We need the UpdateAt field to be in the present to beat the browser cache.
-		post.UpdateAt = model.GetMillis()
 	}
 	if len(cfg.UsersToPostFrom) != 0 {
 		i := utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.UsersToPostFrom)})

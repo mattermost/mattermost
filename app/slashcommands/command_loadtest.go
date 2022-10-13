@@ -30,7 +30,7 @@ var usage = `Mattermost testing commands to help configure the system
 		/test setup [teams] [fuzz] <Num Channels> <Num Users> <NumPosts>
 
 		Example:
-		/test setup teams fuzz 10 20 50
+			/test setup teams fuzz 10 20 50
 
 	Users - Add a specified number of random users with fuzz text to current team, at the specified time.
 		/test users [fuzz] [range=min[,max]] [time=user_join_timestamp]
@@ -46,25 +46,29 @@ var usage = `Mattermost testing commands to help configure the system
 
 		Default: range=2,5 time=
 
-		Example:
+		Examples:
 			/test channels fuzz range=5,10 time=1565076128000
 			/test channels range=1
 
-	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified time.
+	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
 		/test dms u=@username [range=min[,max]] [time=dm_create_timestamp]
 
 		Default: range=2,5 time=
 
-			Example:
-				/test dms u=@user range=5,10 time=1565076128000
-				/test dms u=@user range=2
+		Examples:
+			/test dms u=@user range=5,10 time=1565076128000
+			/test dms u=@user range=2
 
-	ThreadedPost - Create a threaded post
+	ThreadedPost - Create a threaded post with a specified number of replies at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
         /test threaded_post [range=min[,max]] [time=post_timestamp]
 
 		Default: range=1000 time=
 
-	Posts - Add some random posts with fuzz text to current channel, at the specified time.
+		Examples:
+			/test threaded_post
+			/test threaded_post range=100,200 time=1565076128000
+
+	Posts - Add some random posts with fuzz text to current channel, at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
 		/test posts [fuzz] [range=min[,max]] [images=max_images] [time=post_timestamp]
 
 		Default: range=2,5 images=0 time=
@@ -85,10 +89,10 @@ var usage = `Mattermost testing commands to help configure the system
 			/test http://www.example.com/sample_file.md
 
 	Json - Add a post using the JSON file as payload to the current channel.
-	        /test json url
+	    /test json url
 
-		Example
-		/test json http://www.example.com/sample_body.json
+		Example:
+			/test json http://www.example.com/sample_body.json
 
 `
 
