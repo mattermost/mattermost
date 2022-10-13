@@ -9196,10 +9196,6 @@
     "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
-  },
-  {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "デコーダーの並列数 {{.Value}} は不正です。正の数または-1であるべきです。"
   },

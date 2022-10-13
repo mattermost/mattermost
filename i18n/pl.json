@@ -9204,10 +9204,6 @@
     "translation": "Błąd pobierania ostatnich wyszukiwań"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Osiągnąłeś maksymalny limit {{.NumIntegrations}} włączonych integracji. Aby zainstalować nieograniczoną liczbę integracji, uaktualnij do jednego z naszych płatnych planów."
-  },
-  {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Nie można uzyskać liczby zespołów"
   },

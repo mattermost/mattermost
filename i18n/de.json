@@ -9203,10 +9203,6 @@
     "translation": "Fehler beim Holen der letzten Suchen"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
-  },
-  {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Kann Team-Zähler nicht abfragen"
   },

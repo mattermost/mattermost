@@ -9203,10 +9203,6 @@
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine geçin."
-  },
-  {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Takım sayısı alınamadı"
   },
