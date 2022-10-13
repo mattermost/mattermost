@@ -43,6 +43,7 @@ func TestGraphQLChannels(t *testing.T) {
 			TotalMsgCountRoot float64           `json:"totalMsgCountRoot"`
 			LastRootPostAt    float64           `json:"lastRootPostAt"`
 			Cursor            string            `json:"cursor"`
+			Props             map[string]any    `json:"props"`
 			Team              struct {
 				ID          string `json:"id"`
 				DisplayName string `json:"displayName"`
@@ -75,6 +76,7 @@ func TestGraphQLChannels(t *testing.T) {
 		totalMsgCountRoot
 		lastRootPostAt
 	    cursor
+	    props
 	  }
 	}
 	`,
@@ -97,6 +99,7 @@ func TestGraphQLChannels(t *testing.T) {
 			assert.NotEmpty(t, ch.PrettyDisplayName)
 			assert.NotEmpty(t, ch.CreateAt)
 			assert.NotEmpty(t, ch.UpdateAt)
+			assert.NotNil(t, ch.Props)
 			if ch.Type == model.ChannelTypeOpen {
 				numPublic++
 			} else if ch.Type == model.ChannelTypePrivate {

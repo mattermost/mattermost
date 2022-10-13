@@ -111,36 +111,40 @@ func Test_getCloudLimits(t *testing.T) {
 }
 
 func Test_GetSubscription(t *testing.T) {
+	deliquencySince := int64(2000000000)
+
 	subscription := &model.Subscription{
-		ID:          "MySubscriptionID",
-		CustomerID:  "MyCustomer",
-		ProductID:   "SomeProductId",
-		AddOns:      []string{},
-		StartAt:     1000000000,
-		EndAt:       2000000000,
-		CreateAt:    1000000000,
-		Seats:       10,
-		IsFreeTrial: "true",
-		DNS:         "some.dns.server",
-		IsPaidTier:  "false",
-		TrialEndAt:  2000000000,
-		LastInvoice: &model.Invoice{},
+		ID:              "MySubscriptionID",
+		CustomerID:      "MyCustomer",
+		ProductID:       "SomeProductId",
+		AddOns:          []string{},
+		StartAt:         1000000000,
+		EndAt:           2000000000,
+		CreateAt:        1000000000,
+		Seats:           10,
+		IsFreeTrial:     "true",
+		DNS:             "some.dns.server",
+		IsPaidTier:      "false",
+		TrialEndAt:      2000000000,
+		LastInvoice:     &model.Invoice{},
+		DelinquentSince: &deliquencySince,
 	}
 
 	userFacingSubscription := &model.Subscription{
-		ID:          "MySubscriptionID",
-		CustomerID:  "",
-		ProductID:   "SomeProductId",
-		AddOns:      []string{},
-		StartAt:     0,
-		EndAt:       0,
-		CreateAt:    0,
-		Seats:       0,
-		IsFreeTrial: "true",
-		DNS:         "",
-		IsPaidTier:  "",
-		TrialEndAt:  2000000000,
-		LastInvoice: &model.Invoice{},
+		ID:              "MySubscriptionID",
+		CustomerID:      "",
+		ProductID:       "SomeProductId",
+		AddOns:          []string{},
+		StartAt:         0,
+		EndAt:           0,
+		CreateAt:        0,
+		Seats:           0,
+		IsFreeTrial:     "true",
+		DNS:             "",
+		IsPaidTier:      "",
+		TrialEndAt:      2000000000,
+		LastInvoice:     &model.Invoice{},
+		DelinquentSince: &deliquencySince,
 	}
 
 	t.Run("NON Admin users receive the user facing subscription", func(t *testing.T) {
@@ -293,6 +297,7 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
 }
+
 func Test_validateBusinessEmail(t *testing.T) {
 	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()

@@ -50,7 +50,7 @@ func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 	targetUsername := splitMessage[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
+	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
 	if nErr != nil {
 		mlog.Error(nErr.Error())
 		return &model.CommandResponse{
