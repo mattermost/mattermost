@@ -51,6 +51,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			"Threads.TeamId",
 		).
 		From("Threads")
 
@@ -62,6 +63,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
+			"Threads.TeamId",
 		).
 		From("Threads")
 }
