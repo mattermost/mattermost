@@ -137,7 +137,6 @@ type Server struct {
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
-	filestore               filestore.FileBackend
 
 	platform         *platform.PlatformService
 	platformOptions  []platform.Option
@@ -239,15 +238,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
-	license := s.License()
-	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	// Step 3: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize filebackend")
-	}
-	s.filestore = backend
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -272,7 +262,7 @@ func NewServer(options ...Option) (*Server, error) {
 		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.platform,
 		LicenseKey:       s.licenseWrapper,
-		FilestoreKey:     s.filestore,
+		FilestoreKey:     s.platform.FileBackend(),
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
 		ClusterKey:       s.platform,
 		UserKey:          New(ServerConnector(s.Channels())),
@@ -439,6 +429,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
+	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -1425,7 +1416,7 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale
 }
 
 func (s *Server) FileBackend() filestore.FileBackend {
-	return s.filestore
+	return s.platform.FileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
