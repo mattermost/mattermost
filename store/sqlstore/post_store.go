@@ -2994,7 +2994,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			teamId, ok := teamIdByChannelId[channelId]
 			if !ok {
 				// get teamId for channel
-				var teamId string
 				err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", channelId)
 				if err != nil {
 					return err
