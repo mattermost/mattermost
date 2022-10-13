@@ -62,8 +62,8 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 	serverName := "default"
 
 	license := s.License()
-	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.platform.Config().ClusterSettings.Enable {
-		if info := s.Cluster.GetMyClusterInfo(); info != nil {
+	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
+		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			serverName = info.Hostname
 		} else {
 			mlog.Error("Could not get cluster info")
@@ -81,8 +81,8 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 		AddLocalLogs(s, page, perPage, logData, serverName, logFilter)
 	}
 
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		clusterLogs, err := s.Cluster.QueryLogs(page, perPage)
+	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
+		clusterLogs, err := s.platform.Cluster().QueryLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}

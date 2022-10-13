@@ -143,7 +143,7 @@ func (c *ClusterMock) GetClusterStats() ([]*model.ClusterStats, *model.AppError)
 func (c *ClusterMock) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return nil, nil
 }
-func (c *ClusterMock) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError) {
+func (c *ClusterMock) QueryLogs(page, perPage int) (map[string][]string, *model.AppError) {
 	return nil, nil
 }
 func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError) { return nil, nil }
