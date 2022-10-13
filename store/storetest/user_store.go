@@ -4862,13 +4862,13 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		Type: model.ChannelTypeDirect,
 	}
 	cm1 := &model.ChannelMember{
-		UserId:    u3.Id,
-		ChannelId: cDM.Id,
+		UserId:      u3.Id,
+		ChannelId:   cDM.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 	cm2 := &model.ChannelMember{
-		UserId:    u2.Id,
-		ChannelId: cDM.Id,
+		UserId:      u2.Id,
+		ChannelId:   cDM.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 	cDM, nErr = ss.Channel().SaveDirectChannel(cDM, cm1, cm2)
