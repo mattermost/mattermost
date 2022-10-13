@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
@@ -154,8 +155,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err)
 	}
 
+	c := request.EmptyContext(ps.logger)
+
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+	c.Logger().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
@@ -235,7 +238,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	if model.BuildEnterpriseReady == "true" {
-		ps.LoadLicense()
+		ps.LoadLicense(c)
 	}
 
 	if metricsInterface != nil {
@@ -248,7 +251,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		}
 	}
 
-	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
+	if err = ps.EnsureAsymmetricSigningKey(c); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
 
@@ -281,21 +284,21 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start(suite SuiteIFace) error {
-	ps.hubStart(suite)
+func (ps *PlatformService) Start(c request.CTX, suite SuiteIFace) error {
+	ps.hubStart(c, suite)
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()
 
 		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
 
-		message.Add("config", ps.ClientConfigWithComputed())
+		message.Add("config", ps.ClientConfigWithComputed(c))
 		ps.Go(func() {
-			ps.Publish(message)
+			ps.Publish(c, message)
 		})
 
 		if err := ps.ReconfigureLogger(); err != nil {
-			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
+			c.Logger().Error("Error re-configuring logging after config change", mlog.Err(err))
 			return
 		}
 	})
@@ -305,7 +308,7 @@ func (ps *PlatformService) Start(suite SuiteIFace) error {
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
 		ps.Go(func() {
-			ps.Publish(message)
+			ps.Publish(c, message)
 		})
 
 	})

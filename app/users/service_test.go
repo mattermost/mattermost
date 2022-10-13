@@ -6,7 +6,6 @@ package users
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +23,7 @@ func TestNew(t *testing.T) {
 		return &model.Config{}
 	}
 
-	lfn := func(request.CTX) *model.License {
+	lfn := func() *model.License {
 		return model.NewTestLicense()
 	}
 

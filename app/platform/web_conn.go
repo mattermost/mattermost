@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -60,6 +61,7 @@ type WebConnConfig struct {
 	ConnectionID string
 	Active       bool
 	ReuseCount   int
+	CTX          request.CTX
 
 	// These aren't necessary to be exported to api layer.
 	sequence         int
@@ -165,8 +167,8 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, envFn func() *plugin.Environment) *WebConn {
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
-			suite.SetStatusOnline(cfg.Session.UserId, false)
-			suite.UpdateLastActivityAtIfNeeded(cfg.Session)
+			suite.SetStatusOnline(cfg.CTX, cfg.Session.UserId, false)
+			suite.UpdateLastActivityAtIfNeeded(cfg.CTX, cfg.Session)
 		})
 	}
 
@@ -342,15 +344,18 @@ func (wc *WebConn) readPump() {
 	defer func() {
 		wc.WebSocket.Close()
 	}()
+
+	c := request.EmptyContext(wc.Platform.Log())
+
 	wc.WebSocket.SetReadLimit(model.SocketMaxMessageSizeKb)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 	wc.WebSocket.SetPongHandler(func(string) error {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
 		}
-		if wc.IsAuthenticated() {
+		if wc.IsAuthenticated(c) {
 			wc.Platform.Go(func() {
-				wc.Suite.SetStatusAwayIfNeeded(wc.UserId, false)
+				wc.Suite.SetStatusAwayIfNeeded(c, wc.UserId, false)
 			})
 		}
 		return nil
@@ -380,7 +385,7 @@ func (wc *WebConn) readPump() {
 		// Messages which actions are prefixed with the plugin prefix
 		// should only be dispatched to the plugins
 		if !strings.HasPrefix(req.Action, websocketMessagePluginPrefix) {
-			wc.Platform.WebSocketRouter.ServeWebSocket(wc, &req)
+			wc.Platform.WebSocketRouter.ServeWebSocket(c, wc, &req)
 		}
 
 		clonedReq, err := req.Clone()
@@ -635,19 +640,19 @@ func (wc *WebConn) InvalidateCache() {
 }
 
 // IsAuthenticated returns whether the given WebConn is authenticated or not.
-func (wc *WebConn) IsAuthenticated() bool {
+func (wc *WebConn) IsAuthenticated(c request.CTX) bool {
 	// Check the expiry to see if we need to check for a new session
 	if wc.GetSessionExpiresAt() < model.GetMillis() {
 		if wc.GetSessionToken() == "" {
 			return false
 		}
 
-		session, err := wc.Suite.GetSession(wc.GetSessionToken())
+		session, err := wc.Suite.GetSession(c, wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				mlog.Debug("Invalid session.", mlog.Err(err))
+				c.Logger().Debug("Invalid session.", mlog.Err(err))
 			} else {
-				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				c.Logger().Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 
 			wc.SetSessionToken("")
@@ -675,7 +680,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	return msg
 }
 
-func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
+func (wc *WebConn) ShouldSendEventToGuest(c request.CTX, msg *model.WebSocketEvent) bool {
 	var userID string
 	var canSee bool
 
@@ -693,7 +698,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		return true
 	}
 
-	canSee, err := wc.Suite.UserCanSeeOtherUser(wc.UserId, userID)
+	canSee, err := wc.Suite.UserCanSeeOtherUser(c, wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
@@ -703,9 +708,9 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 }
 
 // ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+func (wc *WebConn) ShouldSendEvent(c request.CTX, msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
-	if !wc.IsAuthenticated() {
+	if !wc.IsAuthenticated(c) {
 		return false
 	}
 
@@ -717,7 +722,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		case model.WebsocketEventTyping,
 			model.WebsocketEventStatusChange,
 			model.WebsocketEventChannelViewed:
-			mlog.Warn(
+			c.Logger().Warn(
 				"websocket.slow: dropping message",
 				mlog.String("user_id", wc.UserId),
 				mlog.String("type", msg.EventType()),
@@ -730,7 +735,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+		hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(c, wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -740,7 +745,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+			hasReadPrivateDataPermission = model.NewBool(wc.Suite.RolesGrantPermission(c, wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -794,11 +799,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the team for the event
 	if msg.GetBroadcast().TeamId != "" {
-		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
+		return wc.isMemberOfTeam(c, msg.GetBroadcast().TeamId)
 	}
 
 	if wc.GetSession().Props[model.SessionPropIsGuest] == "true" {
-		return wc.ShouldSendEventToGuest(msg)
+		return wc.ShouldSendEventToGuest(c, msg)
 	}
 
 	return true
@@ -806,16 +811,16 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 // IsMemberOfTeam returns whether the user of the WebConn
 // is a member of the given teamID or not.
-func (wc *WebConn) isMemberOfTeam(teamID string) bool {
+func (wc *WebConn) isMemberOfTeam(c request.CTX, teamID string) bool {
 	currentSession := wc.GetSession()
 
 	if currentSession == nil || currentSession.Token == "" {
-		session, err := wc.Suite.GetSession(wc.GetSessionToken())
+		session, err := wc.Suite.GetSession(c, wc.GetSessionToken())
 		if err != nil {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
-				mlog.Debug("Invalid session.", mlog.Err(err))
+				c.Logger().Debug("Invalid session.", mlog.Err(err))
 			} else {
-				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				c.Logger().Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
 			}
 			return false
 		}

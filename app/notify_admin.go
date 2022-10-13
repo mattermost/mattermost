@@ -44,7 +44,7 @@ func (a *App) SaveAdminNotification(userId string, notifyData *model.NotifyAdmin
 }
 
 func (a *App) DoCheckForAdminNotifications(c request.CTX, trial bool) *model.AppError {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil {
 		return model.NewAppError("DoCheckForAdminNotifications", "app.notify_admin.send_notification_post.app_error", nil, "No license found", http.StatusInternalServerError)
 	}

@@ -3,14 +3,12 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v6/app/request"
-
-func (s *Server) IsLeader(c request.CTX) bool {
-	return s.platform.IsLeader(c)
+func (s *Server) IsLeader() bool {
+	return s.platform.IsLeader()
 }
 
-func (a *App) IsLeader(c request.CTX) bool {
-	return a.Srv().IsLeader(c)
+func (a *App) IsLeader() bool {
+	return a.Srv().IsLeader()
 }
 
 func (a *App) GetClusterId() string {

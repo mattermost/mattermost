@@ -77,7 +77,7 @@ type AppIface interface {
 	CheckProviderAttributes(user *model.User, patch *model.UserPatch) string
 	// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
 	// Use GetLastAccessibleFileTime() to access the result.
-	ComputeLastAccessibleFileTime() error
+	ComputeLastAccessibleFileTime(c request.CTX) error
 	// ComputeLastAccessiblePostTime updates cache with CreateAt time of the last accessible post as per the cloud plan's limit.
 	// Use GetLastAccessiblePostTime() to access the result.
 	ComputeLastAccessiblePostTime(c request.CTX) error
@@ -179,7 +179,7 @@ type AppIface interface {
 	// If filter is not nil and returns false for a struct field, that field will be omitted.
 	GetEnvironmentConfig(filter func(reflect.StructField) bool) map[string]any
 	// GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-	GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
+	GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError)
 	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
@@ -191,7 +191,7 @@ type AppIface interface {
 	// direct and group channels.
 	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
-	GetLastAccessibleFileTime() (int64, *model.AppError)
+	GetLastAccessibleFileTime(c request.CTX) (int64, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
@@ -244,7 +244,7 @@ type AppIface interface {
 	// HubUnregister unregisters a connection from a hub.
 	HubUnregister(webConn *platform.WebConn)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
+	InstallPlugin(c request.CTX, pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
@@ -631,13 +631,13 @@ type AppIface interface {
 	GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 	GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
-	GetFile(fileID string) ([]byte, *model.AppError)
-	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
-	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
-	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFile(c request.CTX, fileID string) ([]byte, *model.AppError)
+	GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model.AppError)
+	GetFileInfos(c request.CTX, page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForPostWithMigration(c request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
+	GetFlaggedPosts(c request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForChannel(c request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForTeam(c request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
 	GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError)
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
@@ -872,7 +872,7 @@ type AppIface interface {
 	InviteNewUsersToTeamGracefully(c request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsFirstUserAccount() bool
-	IsLeader(c request.CTX) bool
+	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
 	IsPhase2MigrationCompleted() *model.AppError
 	IsUserAway(lastActivityAt int64) bool
@@ -883,7 +883,7 @@ type AppIface interface {
 	Ldap() einterfaces.LdapInterface
 	LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError
 	LeaveTeam(c request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError
-	License(c request.CTX) *model.License
+	License() *model.License
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
@@ -902,7 +902,7 @@ type AppIface interface {
 	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
-	NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API
+	NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
 	NotifyAndSetWarnMetricAck(c request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError

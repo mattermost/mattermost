@@ -585,7 +585,7 @@ func (a *App) GetMarketplacePlugins(c request.CTX, filter *model.MarketplacePlug
 	// shouldn't be shown in the Marketplace modal.
 	// This is a short term fix. The long term solution is to have a separate set of
 	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		appErr := a.mergePrepackagedPlugins(plugins)
 		if appErr != nil {
@@ -645,7 +645,7 @@ func (ch *Channels) getRemoteMarketplacePlugin(c request.CTX, pluginID, version 
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	filter := ch.getBaseMarketplaceFilter(c)
+	filter := ch.getBaseMarketplaceFilter()
 	filter.PluginId = pluginID
 
 	var plugin *model.BaseMarketplacePlugin
@@ -677,7 +677,7 @@ func (a *App) getRemotePlugins(c request.CTX) (map[string]*model.MarketplacePlug
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	filter := a.getBaseMarketplaceFilter(c)
+	filter := a.getBaseMarketplaceFilter()
 	// Fetch all plugins from marketplace.
 	filter.PerPage = -1
 
@@ -799,16 +799,16 @@ func (a *App) mergeLocalPlugins(c request.CTX, remoteMarketplacePlugins map[stri
 	return nil
 }
 
-func (a *App) getBaseMarketplaceFilter(c request.CTX) *model.MarketplacePluginFilter {
-	return a.ch.getBaseMarketplaceFilter(c)
+func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
+	return a.ch.getBaseMarketplaceFilter()
 }
 
-func (ch *Channels) getBaseMarketplaceFilter(c request.CTX) *model.MarketplacePluginFilter {
+func (ch *Channels) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 	filter := &model.MarketplacePluginFilter{
 		ServerVersion: model.CurrentVersion,
 	}
 
-	license := ch.srv.License(c)
+	license := ch.srv.License()
 	if license != nil && license.HasEnterpriseMarketplacePlugins() {
 		filter.EnterprisePlugins = true
 	}
@@ -1057,7 +1057,7 @@ func (ch *Channels) installFeatureFlagPlugins(c request.CTX) {
 
 		if version != "" && version != "control" {
 			// If we are on-prem skip installation if this is a downgrade
-			license := ch.srv.License(c)
+			license := ch.srv.License()
 			inCloud := license != nil && *license.Features.Cloud
 			if !inCloud && pluginExists {
 				parsedVersion, err := semver.Parse(version)

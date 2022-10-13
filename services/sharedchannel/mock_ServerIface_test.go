@@ -12,8 +12,6 @@ import (
 
 	remotecluster "github.com/mattermost/mattermost-server/v6/services/remotecluster"
 
-	request "github.com/mattermost/mattermost-server/v6/app/request"
-
 	store "github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -84,13 +82,13 @@ func (_m *MockServerIface) GetStore() store.Store {
 	return r0
 }
 
-// IsLeader provides a mock function with given fields: _a0
-func (_m *MockServerIface) IsLeader(_a0 request.CTX) bool {
-	ret := _m.Called(_a0)
+// IsLeader provides a mock function with given fields:
+func (_m *MockServerIface) IsLeader() bool {
+	ret := _m.Called()
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(request.CTX) bool); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}

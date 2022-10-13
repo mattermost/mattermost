@@ -250,7 +250,7 @@ func (a *App) GetProductNotices(c request.CTX, userID, teamID string, client mod
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
-	isCloud := a.Srv().License(c) != nil && *a.Srv().License(c).Features.Cloud
+	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 	dbName := *a.Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string

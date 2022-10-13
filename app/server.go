@@ -17,7 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -243,7 +242,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense(c)
 	}
 
-	license := s.License(c)
+	license := s.License()
 	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	// Step 3: Initialize filestore
 	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
@@ -263,7 +262,7 @@ func NewServer(options ...Option) (*Server, error) {
 		Users:        s.userService,
 		WebHub:       s.platform,
 		ConfigFn:     s.platform.Config,
-		LicenseFn:    func(c request.CTX) *model.License { return s.License(c) },
+		LicenseFn:    s.License,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")
@@ -400,9 +399,9 @@ func NewServer(options ...Option) (*Server, error) {
 	s.initJobs(c)
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		c.Logger().Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader(c)))
+		c.Logger().Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
-			s.Jobs.HandleClusterLeaderChange(s.IsLeader(c))
+			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
 		s.platform.SetupFeatureFlags()
 	})
@@ -827,26 +826,6 @@ func (s *Server) GoBuffered(f func()) {
 	s.platform.GoBuffered(f)
 }
 
-// GoBuffered acts like a semaphore which creates a goroutine, but maintains a record of it
-// to ensure that execution completes before the server is shutdown.
-func (s *Server) GoBuffered(f func()) {
-	s.goroutineBuffered <- struct{}{}
-
-	atomic.AddInt32(&s.goroutineCount, 1)
-
-	go func() {
-		f()
-
-		atomic.AddInt32(&s.goroutineCount, -1)
-		select {
-		case s.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-
-		<-s.goroutineBuffered
-	}()
-}
-
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
 func (s *Server) WaitForGoroutines() {
 	s.platform.WaitForGoroutines()
@@ -1131,7 +1110,7 @@ func (s *Server) Start(c request.CTX) error {
 		}
 	}
 
-	if err := s.startInterClusterServices(c, s.License(c)); err != nil {
+	if err := s.startInterClusterServices(c, s.License()); err != nil {
 		c.Logger().Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
@@ -1380,7 +1359,7 @@ func (s *Server) doLicenseExpirationCheck(c request.CTX) {
 		return
 	}
 
-	license := s.License(c)
+	license := s.License()
 
 	if license == nil {
 		c.Logger().Debug("License cannot be found.")
@@ -1566,14 +1545,14 @@ func (s *Server) initJobs(c request.CTX) {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeLastAccessiblePost,
-		last_accessible_post.MakeWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
-		last_accessible_post.MakeScheduler(s.Jobs, s.License(c)),
+		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License(c)),
+		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1584,14 +1563,14 @@ func (s *Server) initJobs(c request.CTX) {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeUpgradeNotifyAdmin,
-		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
-		notify_admin.MakeScheduler(s.Jobs, s.License(c), model.JobTypeUpgradeNotifyAdmin),
+		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeTrialNotifyAdmin,
-		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(c), New(ServerConnector(s.Channels()))),
-		notify_admin.MakeScheduler(s.Jobs, s.License(c), model.JobTypeTrialNotifyAdmin),
+		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
 	)
 
 	s.platform.Jobs = s.Jobs
@@ -1725,14 +1704,14 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 }
 
 func runDNDStatusExpireJob(c request.CTX, a *App) {
-	if a.IsLeader(c) {
+	if a.IsLeader() {
 		withMut(&a.ch.dndTaskMut, func() {
 			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", func() { a.UpdateDNDStatusOfUsers(c) }, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		c.Logger().Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader(c)))
-		if a.IsLeader(c) {
+		c.Logger().Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", func() { a.UpdateDNDStatusOfUsers(c) }, 5*time.Minute)
 			})
@@ -1743,14 +1722,14 @@ func runDNDStatusExpireJob(c request.CTX, a *App) {
 }
 
 func runPostReminderJob(c request.CTX, a *App) {
-	if a.IsLeader(c) {
+	if a.IsLeader() {
 		withMut(&a.ch.postReminderMut, func() {
 			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", func() { a.CheckPostReminders(c) }, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		c.Logger().Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader(c)))
-		if a.IsLeader(c) {
+		c.Logger().Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
 			withMut(&a.ch.postReminderMut, func() {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", func() { a.CheckPostReminders(c) }, 5*time.Minute)
 			})

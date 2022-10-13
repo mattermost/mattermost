@@ -452,7 +452,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 	}
 
 	matched := atMentionPattern.MatchString(post.Message)
-	if a.Srv().License(c) != nil && *a.Srv().License(c).Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(c, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
@@ -1407,7 +1407,7 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError) {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
@@ -1461,7 +1461,7 @@ func (a *App) ComputeLastAccessiblePostTime(c request.CTX) error {
 }
 
 func (a *App) getCloudMessagesHistoryLimit(c request.CTX) (int64, *model.AppError) {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
@@ -1615,20 +1615,9 @@ func (a *App) getFileInfosForPostIgnoreCloudLimit(c request.CTX, postID string, 
 		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(c, fileInfos)
+	_, appErr := a.removeInaccessibleContentFromFilesSlice(c, fileInfos)
 	if appErr != nil {
-		return nil, 0, appErr
-	}
-
-	a.generateMiniPreviewForInfos(c, fileInfos)
-
-	return fileInfos, firstInaccessibleFileTime, nil
-}
-
-func (a *App) getFileInfosForPostIgnoreCloudLimit(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
-	if err != nil {
-		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, appErr
 	}
 
 	a.generateMiniPreviewForInfos(c, fileInfos)

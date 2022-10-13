@@ -37,8 +37,8 @@ func (w *licenseWrapper) Name() ServiceKey {
 	return LicenseKey
 }
 
-func (w *licenseWrapper) GetLicense(c request.CTX) *model.License {
-	return w.srv.License(c)
+func (w *licenseWrapper) GetLicense() *model.License {
+	return w.srv.License()
 }
 
 func (w *licenseWrapper) RequestTrialLicense(c request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
@@ -87,8 +87,8 @@ type JWTClaims struct {
 	jwt.StandardClaims
 }
 
-func (s *Server) License(c request.CTX) *model.License {
-	return s.platform.License(c)
+func (s *Server) License() *model.License {
+	return s.platform.License()
 }
 
 func (s *Server) LoadLicense(c request.CTX) {
@@ -99,12 +99,12 @@ func (s *Server) SaveLicense(c request.CTX, licenseBytes []byte) (*model.License
 	return s.platform.SaveLicense(c, licenseBytes)
 }
 
-func (s *Server) SetLicense(c request.CTX, license *model.License) bool {
-	return s.platform.SetLicense(c, license)
+func (s *Server) SetLicense(license *model.License) bool {
+	return s.platform.SetLicense(license)
 }
 
-func (s *Server) ValidateAndSetLicenseBytes(c request.CTX, b []byte) bool {
-	return s.platform.ValidateAndSetLicenseBytes(c, b)
+func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
+	return s.platform.ValidateAndSetLicenseBytes(b)
 }
 
 func (s *Server) SetClientLicense(m map[string]string) {
@@ -133,10 +133,10 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 
 // GenerateRenewalToken returns a renewal token that expires after duration expiration
 func (s *Server) GenerateRenewalToken(c request.CTX, expiration time.Duration) (string, *model.AppError) {
-	return s.platform.GenerateRenewalToken(c, expiration)
+	return s.platform.GenerateRenewalToken(expiration)
 }
 
 // GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
 func (s *Server) GenerateLicenseRenewalLink(c request.CTX) (string, string, *model.AppError) {
-	return s.platform.GenerateLicenseRenewalLink(c)
+	return s.platform.GenerateLicenseRenewalLink()
 }

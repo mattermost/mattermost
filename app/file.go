@@ -94,7 +94,7 @@ func (a *App) TestFileStoreConnection() *model.AppError {
 }
 
 func (a *App) TestFileStoreConnectionWithConfig(c request.CTX, cfg *model.FileSettings) *model.AppError {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
@@ -1097,7 +1097,7 @@ func (a *App) GetFileInfo(c request.CTX, fileID string) (*model.FileInfo, *model
 		return nil, model.NewAppError("GetFileInfo", "app.file.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
-	a.generateMiniPreview(fileInfo)
+	a.generateMiniPreview(c, fileInfo)
 	return fileInfo, appErr
 }
 
@@ -1156,20 +1156,6 @@ func (a *App) GetFile(c request.CTX, fileID string) ([]byte, *model.AppError) {
 
 func (a *App) getFileIgnoreCloudLimit(c request.CTX, fileID string) ([]byte, *model.AppError) {
 	info, err := a.getFileInfoIgnoreCloudLimit(c, fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := a.ReadFile(info.Path)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-func (a *App) getFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
-	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
 	if err != nil {
 		return nil, err
 	}
@@ -1350,7 +1336,7 @@ func (a *App) ExtractContentFromFileInfo(c request.CTX, fileInfo *model.FileInfo
 
 // GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessibleFileTime(c request.CTX) (int64, *model.AppError) {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
@@ -1405,7 +1391,7 @@ func (a *App) ComputeLastAccessibleFileTime(c request.CTX) error {
 
 // getCloudFilesSizeLimit returns size in bytes
 func (a *App) getCloudFilesSizeLimit(c request.CTX) (int64, *model.AppError) {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}

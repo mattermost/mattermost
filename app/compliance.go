@@ -15,7 +15,7 @@ import (
 )
 
 func (a *App) GetComplianceReports(c request.CTX, page, perPage int) (model.Compliances, *model.AppError) {
-	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
+	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -28,7 +28,7 @@ func (a *App) GetComplianceReports(c request.CTX, page, perPage int) (model.Comp
 }
 
 func (a *App) SaveComplianceReport(c request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
+	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -57,7 +57,7 @@ func (a *App) SaveComplianceReport(c request.CTX, job *model.Compliance) (*model
 }
 
 func (a *App) GetComplianceReport(c request.CTX, reportId string) (*model.Compliance, *model.AppError) {
-	if license := a.Srv().License(c); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
+	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 

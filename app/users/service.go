@@ -20,7 +20,7 @@ type UserService struct {
 	metrics      einterfaces.MetricsInterface
 	cluster      einterfaces.ClusterInterface
 	config       func() *model.Config
-	license      func(request.CTX) *model.License
+	license      func() *model.License
 	ctx          request.CTX
 }
 
@@ -31,7 +31,7 @@ type ServiceConfig struct {
 	SessionStore store.SessionStore
 	OAuthStore   store.OAuthStore
 	ConfigFn     func() *model.Config
-	LicenseFn    func(request.CTX) *model.License
+	LicenseFn    func() *model.License
 	// Optional fields
 	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface

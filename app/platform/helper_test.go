@@ -9,9 +9,11 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
@@ -27,6 +29,7 @@ type TestHelper struct {
 	BasicUser2   *model.User
 	BasicChannel *model.Channel
 	// BasicPost    *model.Post
+	Context request.CTX
 
 	SystemAdminUser *model.User
 }
@@ -41,17 +44,19 @@ var userCache struct {
 type mockSuite struct {
 }
 
-func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64) {}
-func (ms *mockSuite) SetStatusOffline(userID string, manual bool)             {}
-func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                    { return false }
-func (ms *mockSuite) SetStatusOnline(userID string, manual bool)              {}
-func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)      {}
-func (ms *mockSuite) SetStatusAwayIfNeeded(userID string, manual bool)        {}
-func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) {
+func (ms *mockSuite) SetStatusLastActivityAt(c request.CTX, userID string, activityAt int64) {}
+func (ms *mockSuite) SetStatusOffline(c request.CTX, userID string, manual bool)             {}
+func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                                   { return false }
+func (ms *mockSuite) SetStatusOnline(c request.CTX, userID string, manual bool)              {}
+func (ms *mockSuite) UpdateLastActivityAtIfNeeded(c request.CTX, session model.Session)      {}
+func (ms *mockSuite) SetStatusAwayIfNeeded(c request.CTX, userID string, manual bool)        {}
+func (ms *mockSuite) GetSession(c request.CTX, token string) (*model.Session, *model.AppError) {
 	return &model.Session{}, nil
 }
-func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) RolesGrantPermission(c request.CTX, roleNames []string, permissionId string) bool {
+	return true
+}
+func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
 
@@ -154,9 +159,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
+	logger, _ := mlog.NewLogger()
 	th := &TestHelper{
 		Service: ps,
 		Suite:   &mockSuite{},
+		Context: request.EmptyContext(logger),
 	}
 
 	// Share same configuration with app.TestHelper
@@ -181,7 +188,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	th.Service.Start(th.Suite)
+	th.Service.Start(th.Context, th.Suite)
 
 	return th
 }

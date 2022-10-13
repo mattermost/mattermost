@@ -40,7 +40,7 @@ func (a *App) SlackImport(c request.CTX, fileData multipart.File, fileSize int64
 		GeneratePreviewImage:   a.generatePreviewImage,
 		InvalidateAllCaches:    func(c request.CTX) { a.ch.srv.InvalidateAllCaches(c) },
 		MaxPostSize:            func(c request.CTX) int { return a.ch.srv.platform.MaxPostSize() },
-		PrepareImage: func(c request.CTXfileData []byte) (image.Image, func(), error) {
+		PrepareImage: func(c request.CTX, fileData []byte) (image.Image, func(), error) {
 			img, release, err := prepareImage(c, a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
 				return nil, nil, err

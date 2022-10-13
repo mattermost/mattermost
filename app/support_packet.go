@@ -80,7 +80,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, string)
 	}
 
 	supportedUsers := 0
-	if license := a.Srv().License(c); license != nil {
+	if license := a.Srv().License(); license != nil {
 		supportedUsers = *license.Features.Users
 	}
 

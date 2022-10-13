@@ -16,7 +16,7 @@ func TestLoadLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.Service.LoadLicense()
+	th.Service.LoadLicense(th.Context)
 	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
 }
 
@@ -26,7 +26,7 @@ func TestSaveLicense(t *testing.T) {
 
 	b1 := []byte("junk")
 
-	_, err := th.Service.SaveLicense(b1)
+	_, err := th.Service.SaveLicense(th.Context, b1)
 	require.NotNil(t, err, "shouldn't have saved license")
 }
 
@@ -34,7 +34,7 @@ func TestRemoveLicense(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	err := th.Service.RemoveLicense()
+	err := th.Service.RemoveLicense(th.Context)
 	require.Nil(t, err, "should have removed license")
 }
 

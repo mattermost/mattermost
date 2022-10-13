@@ -120,7 +120,7 @@ func (s *Server) DoSecurityUpdateCheck(c request.CTX) {
 
 					for _, user := range users {
 						c.Logger().Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
-						license := s.License(c)
+						license := s.License()
 						mailConfig := s.MailServiceConfig()
 						mail.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), mailConfig, license != nil && *license.Features.Compliance, "", "", "", "")
 					}

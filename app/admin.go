@@ -24,7 +24,7 @@ var latestVersionCache = cache.NewLRU(cache.LRUOptions{
 func (s *Server) GetLogs(c request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	license := s.License(c)
+	license := s.License()
 	if license != nil && *license.Features.Cluster && s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
 		if info := s.platform.Cluster().GetMyClusterInfo(); info != nil {
 			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -134,7 +134,7 @@ func (a *App) TestEmail(c request.CTX, userID string, cfg *model.Config) *model.
 	}
 
 	T := i18n.GetUserTranslations(user.Locale)
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	mailConfig := a.Srv().MailServiceConfig()
 	if err := mail.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), mailConfig, license != nil && *license.Features.Compliance, "", "", "", ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)

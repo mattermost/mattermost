@@ -75,7 +75,7 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 			channelStore: s.Channel(),
 			groupStore:   s.Group(),
 			config:       configStore.Get,
-			license: func(request.CTX) *model.License {
+			license: func() *model.License {
 				return model.NewTestLicense()
 			},
 			wh: &mockWebHub{},

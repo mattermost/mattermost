@@ -45,7 +45,7 @@ func condenseSiteURL(siteURL string) string {
 type Service struct {
 	config  func() *model.Config
 	goFn    func(f func())
-	license func(request.CTX) *model.License
+	license func() *model.License
 
 	userService *users.UserService
 	store       store.Store
@@ -59,7 +59,7 @@ type Service struct {
 
 type ServiceConfig struct {
 	ConfigFn  func() *model.Config
-	LicenseFn func(request.CTX) *model.License
+	LicenseFn func() *model.License
 	GoFn      func(f func())
 
 	TemplatesContainer *templates.Container

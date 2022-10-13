@@ -218,7 +218,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.SetSession(session)
-	if a.Srv().License(c) != nil && *a.Srv().License(c).Features.LDAP && a.Ldap() != nil {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
@@ -346,5 +346,5 @@ func GetProtocol(r *http.Request) string {
 }
 
 func IsCWSLogin(c request.CTX, a *App, token string) bool {
-	return a.Srv().License(c) != nil && *a.Srv().License(c).Features.Cloud && token != ""
+	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
 }

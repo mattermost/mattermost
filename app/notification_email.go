@@ -82,7 +82,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EmailNotificationContentsFull
-	if license := a.Srv().License(c); license != nil && *license.Features.EmailNotificationContents {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 

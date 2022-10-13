@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -207,7 +208,7 @@ func (ps *PlatformService) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
-func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
+func (ps *PlatformService) EnsureAsymmetricSigningKey(c request.CTX) error {
 	if ps.AsymmetricSigningKey() != nil {
 		return nil
 	}
@@ -245,7 +246,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = ps.Store.System().Save(system); err != nil {
-			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
+			c.Logger().Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
 		}
@@ -298,7 +299,7 @@ func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
+func (ps *PlatformService) ClientConfigWithComputed(c request.CTX) map[string]string {
 	respCfg := map[string]string{}
 	for k, v := range ps.clientConfig.Load().(map[string]string) {
 		respCfg[k] = v
@@ -314,7 +315,7 @@ func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 	if ver, err := ps.Store.GetDBSchemaVersion(); err != nil {
-		mlog.Error("Could not get the schema version", mlog.Err(err))
+		c.Logger().Error("Could not get the schema version", mlog.Err(err))
 	} else {
 		respCfg["SchemaVersion"] = strconv.Itoa(ver)
 	}

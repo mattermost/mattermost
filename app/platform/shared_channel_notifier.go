@@ -38,7 +38,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(c request.CTX, event *model.
 	if isEligibleForEvents(syncService, event, sharedChannelEventsForSync) {
 		err := handleContentSync(ps, syncService, event)
 		if err != nil {
-			c.Logger().Warn(
+			ps.logger.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "content_sync"),
@@ -47,7 +47,7 @@ func (ps *PlatformService) SharedChannelSyncHandler(c request.CTX, event *model.
 	} else if isEligibleForEvents(syncService, event, sharedChannelEventsForInvitation) {
 		err := handleInvitation(ps, syncService, event)
 		if err != nil {
-			c.Logger().Warn(
+			ps.logger.Warn(
 				err.Error(),
 				mlog.String("event", event.EventType()),
 				mlog.String("action", "invitation"),

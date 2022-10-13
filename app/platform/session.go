@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
@@ -135,7 +136,7 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	return nil
 }
 
-func (ps *PlatformService) RevokeSessionsForDeviceId(userID string, deviceID string, currentSessionId string) error {
+func (ps *PlatformService) RevokeSessionsForDeviceId(c request.CTX, userID string, deviceID string, currentSessionId string) error {
 	sessions, err := ps.Store.Session().GetSessions(userID)
 	if err != nil {
 		return err
@@ -144,7 +145,7 @@ func (ps *PlatformService) RevokeSessionsForDeviceId(userID string, deviceID str
 		if session.DeviceId == deviceID && session.Id != currentSessionId {
 			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := ps.RevokeSession(session); err != nil {
-				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+				c.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
 			}
 		}
 	}
@@ -223,7 +224,7 @@ func (ps *PlatformService) ExtendSessionExpiry(session *model.Session, newExpiry
 	return nil
 }
 
-func (ps *PlatformService) UpdateSessionsIsGuest(userID string, isGuest bool) error {
+func (ps *PlatformService) UpdateSessionsIsGuest(c request.CTX, userID string, isGuest bool) error {
 	sessions, err := ps.GetSessions(userID)
 	if err != nil {
 		return err
@@ -233,7 +234,7 @@ func (ps *PlatformService) UpdateSessionsIsGuest(userID string, isGuest bool) er
 		session.AddProp(model.SessionPropIsGuest, fmt.Sprintf("%t", isGuest))
 		err := ps.Store.Session().UpdateProps(session)
 		if err != nil {
-			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
+			c.Logger().Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		ps.AddSessionToCache(session)

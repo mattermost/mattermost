@@ -29,7 +29,7 @@ func (a *App) canSendPushNotifications(c request.CTX) bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(c); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 		c.Logger().Warn("Push notifications have been disabled. Update your license or go to System Console > Environment > Push Notification Server to use a different server")
 		return false
 	}
@@ -1043,7 +1043,7 @@ func (a *App) allowChannelMentions(c request.CTX, post *model.Post, numProfiles 
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(c request.CTX, post *model.Post) bool {
-	if license := a.Srv().License(c); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return false
 	}
 

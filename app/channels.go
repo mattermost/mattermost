@@ -26,7 +26,7 @@ import (
 // licenseSvc is added to act as a starting point for future integrated products.
 // It has the same signature and functionality with the license related APIs of the plugin-api.
 type licenseSvc interface {
-	GetLicense(request.CTX) *model.License
+	GetLicense() *model.License
 	RequestTrialLicense(c request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 
@@ -294,7 +294,7 @@ func (ch *Channels) RemoveConfigListener(id string) {
 }
 
 func (ch *Channels) License() *model.License {
-	return ch.licenseSvc.GetLicense(request.EmptyContext(ch.srv.Log()))
+	return ch.licenseSvc.GetLicense()
 }
 
 func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {

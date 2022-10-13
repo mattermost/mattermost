@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	platform_mocks "github.com/mattermost/mattermost-server/v6/app/platform/mocks"
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -50,7 +49,7 @@ func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *
 		Session:   *session,
 		TFunc:     i18n.IdentityTfunc(),
 		Locale:    "en",
-		CTX:       request.EmptyContext(a.Log()),
+		CTX:       th.Context,
 	}
 	wc := th.Service.NewWebConn(cfg, th.Suite, func() *plugin.Environment { return nil })
 	th.Service.HubRegister(wc)
@@ -98,7 +97,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	defer wc1.Close()
 
 	hub := th.Service.hubs[0]
-	th.Service.HubStop(th.Context)
+	th.Service.HubStop()
 
 	done := make(chan bool)
 	go func() {
@@ -470,11 +469,11 @@ func TestHubIsRegistered(t *testing.T) {
 	require.NoError(t, err)
 
 	mockSuite := &platform_mocks.SuiteIFace{}
-	mockSuite.On("SetStatusOnline", th.BasicUser.Id, false).Return()
-	mockSuite.On("UpdateLastActivityAtIfNeeded", *session).Return()
-	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	mockSuite.On("SetStatusOnline", mock.AnythingOfType("*request.Context"), th.BasicUser.Id, false).Return()
+	mockSuite.On("UpdateLastActivityAtIfNeeded", mock.AnythingOfType("*request.Context"), *session).Return()
+	mockSuite.On("GetSession", mock.AnythingOfType("*request.Context"), session.Token).Return(session, nil)
 	mockSuite.On("IsUserAway", mock.Anything).Return(false)
-	mockSuite.On("SetStatusOffline", th.BasicUser.Id, false).Return()
+	mockSuite.On("SetStatusOffline", mock.AnythingOfType("*request.Context"), th.BasicUser.Id, false).Return()
 
 	th.Suite = mockSuite
 

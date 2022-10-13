@@ -92,7 +92,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.PasswordSettings.Number = false
 	configStore.Set(config)
 
-	licenseFn := func(_ request.CTX) *model.License { return model.NewTestLicense() }
+	licenseFn := func() *model.License { return model.NewTestLicense() }
 
 	logger, _ := mlog.NewLogger()
 	c := request.EmptyContext(logger)

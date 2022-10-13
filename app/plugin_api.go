@@ -127,7 +127,7 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
-	return api.app.Srv().License(api.ctx)
+	return api.app.Srv().License()
 }
 
 func (api *PluginAPI) IsEnterpriseReady() bool {

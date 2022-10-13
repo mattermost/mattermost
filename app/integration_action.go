@@ -455,7 +455,7 @@ func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRe
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	if license != nil {
 		c.Logger().Debug("License is present, skip this call")
 		return nil

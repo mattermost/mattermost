@@ -152,7 +152,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 
 	configService := &FakeConfigService{cfg}
 	serverIfaceMock.On("Config").Return(cfg)
-	serverIfaceMock.On("IsLeader", mock.AnythingOfType("*request.Context")).Return(true)
+	serverIfaceMock.On("IsLeader").Return(true)
 	pluginDir, _ := os.MkdirTemp("", "")
 	webappPluginDir, _ := os.MkdirTemp("", "")
 	cleanUp := func() {
@@ -169,9 +169,9 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 
 	if cloudLicense {
-		serverIfaceMock.On("License", mock.AnythingOfType("*request.Context")).Return(model.NewTestLicense("cloud"), nil)
+		serverIfaceMock.On("License").Return(model.NewTestLicense("cloud"), nil)
 	} else {
-		serverIfaceMock.On("License", mock.AnythingOfType("*request.Context")).Return(model.NewTestLicense(), nil)
+		serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
 	}
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", context.Background(), "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)

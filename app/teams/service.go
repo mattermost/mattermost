@@ -18,7 +18,7 @@ type TeamService struct {
 	users        Users
 	wh           WebHub
 	config       func() *model.Config
-	license      func(request.CTX) *model.License
+	license      func() *model.License
 	ctx          request.CTX
 }
 
@@ -31,7 +31,7 @@ type ServiceConfig struct {
 	Users        Users
 	WebHub       WebHub
 	ConfigFn     func() *model.Config
-	LicenseFn    func(request.CTX) *model.License
+	LicenseFn    func() *model.License
 	Context      request.CTX
 }
 

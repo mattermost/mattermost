@@ -1118,7 +1118,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 //
 // Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(c *Context, source model.GroupSource) *model.AppError {
-	lic := c.App.Srv().License(c.AppContext)
+	lic := c.App.Srv().License()
 
 	if lic == nil {
 		return model.NewAppError("", "api.license_error", nil, "", http.StatusForbidden)

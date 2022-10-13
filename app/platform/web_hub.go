@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -21,15 +22,15 @@ const (
 )
 
 type SuiteIFace interface {
-	SetStatusLastActivityAt(userID string, activityAt int64)
-	SetStatusOffline(userID string, manual bool)
+	SetStatusLastActivityAt(c request.CTX, userID string, activityAt int64)
+	SetStatusOffline(c request.CTX, userID string, manual bool)
 	IsUserAway(lastActivityAt int64) bool
-	SetStatusOnline(userID string, manual bool)
-	UpdateLastActivityAtIfNeeded(session model.Session)
-	SetStatusAwayIfNeeded(userID string, manual bool)
-	GetSession(token string) (*model.Session, *model.AppError)
-	RolesGrantPermission(roleNames []string, permissionId string) bool
-	UserCanSeeOtherUser(userID string, otherUserId string) (bool, *model.AppError)
+	SetStatusOnline(c request.CTX, userID string, manual bool)
+	UpdateLastActivityAtIfNeeded(c request.CTX, session model.Session)
+	SetStatusAwayIfNeeded(c request.CTX, userID string, manual bool)
+	GetSession(c request.CTX, token string) (*model.Session, *model.AppError)
+	RolesGrantPermission(c request.CTX, roleNames []string, permissionId string) bool
+	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
 }
 
 type webConnActivityMessage struct {
@@ -75,10 +76,11 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
+	ctx             request.CTX
 }
 
 // newWebHub creates a new Hub.
-func newWebHub(ps *PlatformService) *Hub {
+func newWebHub(c request.CTX, ps *PlatformService) *Hub {
 	return &Hub{
 		platform:        ps,
 		register:        make(chan *WebConn),
@@ -91,11 +93,12 @@ func newWebHub(ps *PlatformService) *Hub {
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
+		ctx:             c,
 	}
 }
 
 // hubStart starts all the hubs.
-func (ps *PlatformService) hubStart(suite SuiteIFace) {
+func (ps *PlatformService) hubStart(c request.CTX, suite SuiteIFace) {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
@@ -103,7 +106,7 @@ func (ps *PlatformService) hubStart(suite SuiteIFace) {
 	hubs := make([]*Hub, numberOfHubs)
 
 	for i := 0; i < numberOfHubs; i++ {
-		hubs[i] = newWebHub(ps)
+		hubs[i] = newWebHub(c, ps)
 		hubs[i].connectionIndex = i
 		hubs[i].Start(suite)
 	}
@@ -418,7 +421,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConn.IsAuthenticated() && webConn.reuseCount == 0 {
+				if webConn.IsAuthenticated(h.ctx) && webConn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
@@ -439,7 +442,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
 					h.platform.Go(func() {
-						suite.SetStatusOffline(webConn.UserId, false)
+						suite.SetStatusOffline(h.ctx, webConn.UserId, false)
 					})
 					continue
 				}
@@ -455,7 +458,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 
 				if suite.IsUserAway(latestActivity) {
 					h.platform.Go(func() {
-						suite.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+						suite.SetStatusLastActivityAt(h.ctx, webConn.UserId, latestActivity)
 					})
 				}
 			case userID := <-h.invalidateUser:
@@ -491,11 +494,11 @@ func (h *Hub) Start(suite SuiteIFace) {
 					if !connIndex.Has(webConn) {
 						return
 					}
-					if webConn.ShouldSendEvent(msg) {
+					if webConn.ShouldSendEvent(h.ctx, msg) {
 						select {
 						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							h.ctx.Logger().Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
 							close(webConn.send)
 							connIndex.Remove(webConn)
 						}
@@ -522,7 +525,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					suite.SetStatusOffline(webConn.UserId, false)
+					suite.SetStatusOffline(h.ctx, webConn.UserId, false)
 				}
 
 				h.explicitStop = true

@@ -4978,7 +4978,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.Srv().Platform().SaveAndBroadcastStatus(c.AppContext, &model.Status{
+		th.App.Srv().Platform().SaveAndBroadcastStatus(th.Context, &model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,

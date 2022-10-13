@@ -43,7 +43,7 @@ var (
 
 type ServerIface interface {
 	Config() *model.Config
-	IsLeader(request.CTX) bool
+	IsLeader() bool
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
@@ -222,7 +222,7 @@ func (rcs *Service) RemoveConnectionStateListener(listenerId string) {
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (rcs *Service) onClusterLeaderChange() {
-	if rcs.server.IsLeader(rcs.ctx) {
+	if rcs.server.IsLeader() {
 		rcs.resume()
 	} else {
 		rcs.pause()

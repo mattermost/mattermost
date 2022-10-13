@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -55,7 +56,7 @@ func (ps *PlatformService) ClusterPublishHandler(msg *model.ClusterMessage) {
 		return
 	}
 
-	ps.PublishSkipClusterSend(event)
+	ps.PublishSkipClusterSend(request.EmptyContext(ps.logger), event)
 }
 
 func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
@@ -68,7 +69,7 @@ func (ps *PlatformService) ClusterUpdateStatusHandler(msg *model.ClusterMessage)
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
-	ps.InvalidateAllCachesSkipSend()
+	ps.InvalidateAllCachesSkipSend(request.EmptyContext(ps.logger))
 }
 
 func (ps *PlatformService) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
@@ -143,7 +144,7 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
 	}
 }
 
-func (ps *PlatformService) InvalidateAllCachesSkipSend() {
+func (ps *PlatformService) InvalidateAllCachesSkipSend(c request.CTX) {
 	ps.logger.Info("Purging all caches")
 	ps.ClearAllUsersSessionCacheLocal()
 	ps.statusCache.Purge()
@@ -155,12 +156,12 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() {
 	ps.Store.Webhook().ClearCaches()
 
 	linkCache.Purge()
-	ps.LoadLicense()
+	ps.LoadLicense(c)
 }
 
-func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
+func (ps *PlatformService) InvalidateAllCaches(c request.CTX) *model.AppError {
 	debug.FreeOSMemory()
-	ps.InvalidateAllCachesSkipSend()
+	ps.InvalidateAllCachesSkipSend(c)
 
 	if ps.clusterIFace != nil {
 

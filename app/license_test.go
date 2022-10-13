@@ -17,7 +17,7 @@ func TestLoadLicense(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().LoadLicense(th.Context)
-	require.Nil(t, th.App.Srv().License(th.Context), "shouldn't have a valid license")
+	require.Nil(t, th.App.Srv().License(), "shouldn't have a valid license")
 }
 
 func TestSaveLicense(t *testing.T) {

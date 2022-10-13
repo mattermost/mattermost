@@ -71,7 +71,7 @@ func (ch *Channels) getInstalledIntegrations() ([]*model.InstalledIntegration, *
 }
 
 func (a *App) checkIfIntegrationsMeetFreemiumLimits(c request.CTX, originalPluginIds []string) *model.AppError {
-	if a.License(c) == nil || !*a.License(c).Features.Cloud {
+	if a.License() == nil || !*a.License().Features.Cloud {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(c request.CTX, originalPlugi
 
 	limits, err := a.Cloud().GetCloudLimits("")
 	if err != nil {
-		a.Log().Error("Error fetching cloud limits for enabled integrations", mlog.Err(err))
+		c.Logger().Error("Error fetching cloud limits for enabled integrations", mlog.Err(err))
 		return nil
 	}
 
@@ -94,7 +94,7 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(c request.CTX, originalPlugi
 
 	installed, appErr := a.ch.getInstalledIntegrations()
 	if appErr != nil {
-		a.Log().Error("Failed to get installed integrations to check cloud limit", mlog.Err(appErr))
+		c.Logger().Error("Failed to get installed integrations to check cloud limit", mlog.Err(appErr))
 		return nil
 	}
 

@@ -36,7 +36,7 @@ const (
 // Mocks can be re-generated with `make sharedchannel-mocks`.
 type ServerIface interface {
 	Config() *model.Config
-	IsLeader(request.CTX) bool
+	IsLeader() bool
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
@@ -174,7 +174,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
-	if scs.server.IsLeader(scs.ctx) {
+	if scs.server.IsLeader() {
 		scs.resume()
 	} else {
 		scs.pause()

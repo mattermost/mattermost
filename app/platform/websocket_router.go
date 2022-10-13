@@ -6,6 +6,7 @@ package platform
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -23,7 +24,7 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 	wr.handlers[action] = handler
 }
 
-func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
+func (wr *WebSocketRouter) ServeWebSocket(c request.CTX, conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		returnWebSocketError(conn.Platform, conn, r, err)
@@ -47,7 +48,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		session, err := conn.Suite.GetSession(token)
+		session, err := conn.Suite.GetSession(c, token)
 		if err != nil {
 			conn.WebSocket.Close()
 			return
@@ -59,8 +60,8 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.Platform.HubRegister(conn)
 
 		conn.Platform.Go(func() {
-			conn.Suite.SetStatusOnline(session.UserId, false)
-			conn.Suite.UpdateLastActivityAtIfNeeded(*session)
+			conn.Suite.SetStatusOnline(c, session.UserId, false)
+			conn.Suite.UpdateLastActivityAtIfNeeded(c, *session)
 		})
 
 		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
@@ -73,7 +74,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		return
 	}
 
-	if !conn.IsAuthenticated() {
+	if !conn.IsAuthenticated(c) {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		returnWebSocketError(conn.Platform, conn, r, err)
 		return

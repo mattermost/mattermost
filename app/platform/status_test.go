@@ -29,7 +29,7 @@ func TestSaveStatus(t *testing.T) {
 				Status: statusString,
 			}
 
-			th.Service.SaveAndBroadcastStatus(status)
+			th.Service.SaveAndBroadcastStatus(th.Context, status)
 
 			after, err := th.Service.GetStatus(user.Id)
 			require.Nil(t, err, "failed to get status after save: %v", err)

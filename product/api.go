@@ -48,8 +48,8 @@ type PermissionService interface {
 //
 // The service shall be registered via app.ClusterKey key.
 type ClusterService interface {
-	PublishPluginClusterEvent(productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
-	PublishWebSocketEvent(productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
+	PublishPluginClusterEvent(c request.CTX, productID string, ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
+	PublishWebSocketEvent(c request.CTX, productID string, event string, payload map[string]any, broadcast *model.WebsocketBroadcast)
 }
 
 // ChannelService provides channel related API  The service implementation is provided by
@@ -68,7 +68,7 @@ type ChannelService interface {
 //
 // The service shall be registered via app.LicenseKey service key.
 type LicenseService interface {
-	GetLicense(c request.CTX) *model.License
+	GetLicense() *model.License
 	RequestTrialLicense(c request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError
 }
 

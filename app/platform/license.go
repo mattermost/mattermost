@@ -14,6 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -52,7 +53,7 @@ func (ps *PlatformService) License() *model.License {
 	return license
 }
 
-func (ps *PlatformService) LoadLicense() {
+func (ps *PlatformService) LoadLicense(c request.CTX) {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
@@ -93,7 +94,7 @@ func (ps *PlatformService) LoadLicense() {
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
-			if _, err := ps.SaveLicense(licenseBytes); err != nil {
+			if _, err := ps.SaveLicense(c, licenseBytes); err != nil {
 				ps.logger.Error("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
@@ -112,7 +113,7 @@ func (ps *PlatformService) LoadLicense() {
 	ps.logger.Info("License key valid unlocking enterprise features.")
 }
 
-func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
+func (ps *PlatformService) SaveLicense(c request.CTX, licenseBytes []byte) (*model.License, *model.AppError) {
 	success, licenseStr := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if !success {
 		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest)
@@ -174,7 +175,7 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 
 	_, nErr := ps.Store.License().Save(record)
 	if nErr != nil {
-		ps.RemoveLicense()
+		ps.RemoveLicense(c)
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
@@ -188,12 +189,12 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 	sysVar.Name = model.SystemActiveLicenseId
 	sysVar.Value = license.Id
 	if err := ps.Store.System().SaveOrUpdate(sysVar); err != nil {
-		ps.RemoveLicense()
+		ps.RemoveLicense(c)
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	ps.InvalidateAllCaches(c)
 
 	return &license, nil
 }
@@ -252,7 +253,7 @@ func (ps *PlatformService) ClientLicense() map[string]string {
 	return map[string]string{"IsLicensed": "false"}
 }
 
-func (ps *PlatformService) RemoveLicense() *model.AppError {
+func (ps *PlatformService) RemoveLicense(c request.CTX) *model.AppError {
 	if license, _ := ps.licenseValue.Load().(*model.License); license == nil {
 		return nil
 	}
@@ -269,7 +270,7 @@ func (ps *PlatformService) RemoveLicense() *model.AppError {
 
 	ps.SetLicense(nil)
 	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	ps.InvalidateAllCaches(c)
 
 	return nil
 }
@@ -289,7 +290,7 @@ func (ps *PlatformService) GetSanitizedClientLicense() map[string]string {
 }
 
 // RequestTrialLicense request a trial license from the mattermost official license server
-func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
+func (ps *PlatformService) RequestTrialLicense(c request.CTX, trialRequest *model.TrialLicenseRequest) *model.AppError {
 	trialRequestJSON, err := json.Marshal(trialRequest)
 	if err != nil {
 		return model.NewAppError("RequestTrialLicense", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -321,12 +322,12 @@ func (ps *PlatformService) RequestTrialLicense(trialRequest *model.TrialLicenseR
 		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)
 	}
 
-	if _, err := ps.SaveLicense([]byte(licenseResponse["license"])); err != nil {
+	if _, err := ps.SaveLicense(c, []byte(licenseResponse["license"])); err != nil {
 		return err
 	}
 
 	ps.ReloadConfig()
-	ps.InvalidateAllCaches()
+	ps.InvalidateAllCaches(c)
 
 	return nil
 }

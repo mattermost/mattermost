@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -126,8 +125,8 @@ func (a *App) ImageProxy() *imageproxy.ImageProxy {
 func (a *App) Timezones() *timezones.Timezones {
 	return a.ch.srv.timezones
 }
-func (a *App) License(c request.CTX) *model.License {
-	return a.Srv().License(c)
+func (a *App) License() *model.License {
+	return a.Srv().License()
 }
 
 func (a *App) DBHealthCheckWrite() error {

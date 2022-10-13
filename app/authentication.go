@@ -242,7 +242,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(c request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	license := a.Srv().License(c)
+	license := a.Srv().License()
 	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.UserAuthServiceLdap {

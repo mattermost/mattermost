@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -157,7 +158,7 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 	return statusMap, nil
 }
 
-func (ps *PlatformService) BroadcastStatus(status *model.Status) {
+func (ps *PlatformService) BroadcastStatus(c request.CTX, status *model.Status) {
 	if ps.Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
@@ -165,17 +166,17 @@ func (ps *PlatformService) BroadcastStatus(status *model.Status) {
 	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil, "")
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	ps.Publish(event)
+	ps.Publish(c, event)
 }
 
-func (ps *PlatformService) SaveAndBroadcastStatus(status *model.Status) {
+func (ps *PlatformService) SaveAndBroadcastStatus(c request.CTX, status *model.Status) {
 	ps.AddStatusCache(status)
 
 	if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
+		c.Logger().Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
-	ps.BroadcastStatus(status)
+	ps.BroadcastStatus(c, status)
 }
 
 func (ps *PlatformService) GetStatusFromCache(userID string) *model.Status {

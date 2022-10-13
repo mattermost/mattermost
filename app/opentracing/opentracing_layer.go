@@ -1722,7 +1722,7 @@ func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(c request.CTX, service str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ComputeLastAccessibleFileTime() error {
+func (a *OpenTracingAppLayer) ComputeLastAccessibleFileTime(c request.CTX) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ComputeLastAccessibleFileTime")
 
@@ -1734,7 +1734,7 @@ func (a *OpenTracingAppLayer) ComputeLastAccessibleFileTime() error {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.ComputeLastAccessibleFileTime()
+	resultVar0 := a.app.ComputeLastAccessibleFileTime(c)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1744,7 +1744,7 @@ func (a *OpenTracingAppLayer) ComputeLastAccessibleFileTime() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime() error {
+func (a *OpenTracingAppLayer) ComputeLastAccessiblePostTime(c request.CTX) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ComputeLastAccessiblePostTime")
 
@@ -5997,7 +5997,7 @@ func (a *OpenTracingAppLayer) GetFileInfos(c request.CTX, page int, perPage int,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfosForPost(c request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPost")
 
@@ -6009,7 +6009,7 @@ func (a *OpenTracingAppLayer) GetFileInfosForPost(postID string, fromMaster bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetFileInfosForPost(postID, fromMaster, includeDeleted)
+	resultVar0, resultVar1, resultVar2 := a.app.GetFileInfosForPost(c, postID, fromMaster, includeDeleted)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -6828,7 +6828,7 @@ func (a *OpenTracingAppLayer) GetKnownUsers(userID string) ([]string, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLastAccessibleFileTime() (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLastAccessibleFileTime(c request.CTX) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLastAccessibleFileTime")
 
@@ -6840,7 +6840,7 @@ func (a *OpenTracingAppLayer) GetLastAccessibleFileTime() (int64, *model.AppErro
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetLastAccessibleFileTime()
+	resultVar0, resultVar1 := a.app.GetLastAccessibleFileTime(c)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6850,7 +6850,7 @@ func (a *OpenTracingAppLayer) GetLastAccessibleFileTime() (int64, *model.AppErro
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLastAccessiblePostTime() (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLastAccessiblePostTime(c request.CTX) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLastAccessiblePostTime")
 
@@ -11643,7 +11643,7 @@ func (a *OpenTracingAppLayer) IsFirstUserAccount() bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) IsLeader(c request.CTX) bool {
+func (a *OpenTracingAppLayer) IsLeader() bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsLeader")
 
@@ -11655,7 +11655,7 @@ func (a *OpenTracingAppLayer) IsLeader(c request.CTX) bool {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.IsLeader(c)
+	resultVar0 := a.app.IsLeader()
 
 	return resultVar0
 }
@@ -11853,7 +11853,7 @@ func (a *OpenTracingAppLayer) LeaveTeam(c request.CTX, team *model.Team, user *m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) License(c request.CTX) *model.License {
+func (a *OpenTracingAppLayer) License() *model.License {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.License")
 
@@ -11865,7 +11865,7 @@ func (a *OpenTracingAppLayer) License(c request.CTX) *model.License {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.License(c)
+	resultVar0 := a.app.License()
 
 	return resultVar0
 }
@@ -12356,7 +12356,7 @@ func (a *OpenTracingAppLayer) MoveFile(oldPath string, newPath string) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
+func (a *OpenTracingAppLayer) NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewPluginAPI")
 

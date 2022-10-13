@@ -6,7 +6,6 @@ package remotecluster
 import (
 	"context"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -36,7 +35,7 @@ func (ms *mockServer) SetUser(user *model.User) {
 
 func (ms *mockServer) Config() *model.Config                                  { return nil }
 func (ms *mockServer) GetMetrics() einterfaces.MetricsInterface               { return nil }
-func (ms *mockServer) IsLeader(request.CTX) bool                              { return true }
+func (ms *mockServer) IsLeader() bool                                         { return true }
 func (ms *mockServer) AddClusterLeaderChangedListener(listener func()) string { return model.NewId() }
 func (ms *mockServer) RemoveClusterLeaderChangedListener(id string)           {}
 func (ms *mockServer) Log() *mlog.Logger {
