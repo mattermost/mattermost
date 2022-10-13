@@ -56,7 +56,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["ExperimentalEnablePostMetadata"] = "true"
 
 	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
-	props["ExperimentalEnableVoiceMessage"] = strconv.FormatBool(*c.ExperimentalSettings.EnableVoiceMessages)
+	props["ExperimentalEnableVoiceMessages"] = strconv.FormatBool(*c.ExperimentalSettings.EnableVoiceMessages)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
