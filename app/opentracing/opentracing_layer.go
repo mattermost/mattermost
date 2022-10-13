@@ -13243,9 +13243,9 @@ func (a *OpenTracingAppLayer) QueryLogs(page int, perPage int, logFilter *model.
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.QueryLogs")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
