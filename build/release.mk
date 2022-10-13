@@ -151,6 +151,7 @@ package-general:
 	mkdir -p $(DIST_PATH_GENERIC)/bin
 	mkdir -p $(DIST_PATH_GENERIC)/logs
 	mkdir -p $(DIST_PATH_GENERIC)/prepackaged_plugins
+	mkdir -p $(DIST_PATH_GENERIC)/products
 
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
@@ -189,6 +190,17 @@ else
 		fi; \
 	done
 endif
+
+	@# Products
+
+	@if [ -d $(BUILD_BOARDS_DIR) ] ; then \
+		echo "Copying web app files for Boards product"; \
+		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
+		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
+		ls $(DIST_PATH_GENERIC)/client/products/boards; \
+	else \
+		echo "Unable to find files for Boards product"; \
+	fi
 
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
