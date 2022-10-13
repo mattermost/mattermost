@@ -4,47 +4,35 @@
 package platform
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/md5"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 // ServiceConfig is used to initialize the PlatformService.
 // The mandatory fields will be checked during the initialization of the service.
 type ServiceConfig struct {
 	// Mandatory fields
-	ConfigStore  *config.Store
-	Logger       *mlog.Logger
-	StartMetrics bool // TODO: find an elegant way to start/stop metrics server by default
+	ConfigStore *config.Store
+	Store       store.Store
 	// Optional fields
-	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface
-}
-
-func (c *ServiceConfig) validate() error {
-	// Mandatory fields need to be checked here
-	if c.ConfigStore == nil {
-		return errors.New("ConfigStore is required")
-	}
-
-	if c.Logger == nil {
-		var err error
-		// If Logger is not set, use a default logger temporarily.
-		// this should be removed once the logger is properly configured with the service config.
-		// MM-45841
-		c.Logger, err = mlog.NewLogger()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // ensure the config wrapper implements `product.ConfigService`
@@ -87,14 +75,14 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 		return nil, nil, model.NewAppError("saveConfig", "app.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if ps.serviceConfig.StartMetrics && *ps.Config().MetricsSettings.Enable {
+	if ps.startMetrics && *ps.Config().MetricsSettings.Enable {
 		ps.RestartMetrics()
 	} else {
 		ps.ShutdownMetrics()
 	}
 
-	if ps.cluster != nil {
-		err := ps.cluster.ConfigChanged(ps.configStore.RemoveEnvironmentOverrides(oldCfg),
+	if ps.clusterIFace != nil {
+		err := ps.clusterIFace.ConfigChanged(ps.configStore.RemoveEnvironmentOverrides(oldCfg),
 			ps.configStore.RemoveEnvironmentOverrides(newCfg), sendConfigChangeClusterMessage)
 		if err != nil {
 			return nil, nil, err
@@ -176,4 +164,215 @@ func (ps *PlatformService) HasConfigFile(name string) (bool, error) {
 
 func (ps *PlatformService) SetConfigReadOnlyFF(readOnly bool) {
 	ps.configStore.SetReadOnlyFF(readOnly)
+}
+
+func (ps *PlatformService) ClientConfigHash() string {
+	return ps.clientConfigHash.Load().(string)
+}
+
+func (ps *PlatformService) regenerateClientConfig() {
+	clientConfig := config.GenerateClientConfig(ps.Config(), ps.telemetryId, ps.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(ps.Config(), ps.telemetryId, ps.License())
+
+	if clientConfig["EnableCustomTermsOfService"] == "true" {
+		termsOfService, err := ps.Store.TermsOfService().GetLatest(true)
+		if err != nil {
+			mlog.Err(err)
+		} else {
+			clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+		}
+	}
+
+	if key := ps.AsymmetricSigningKey(); key != nil {
+		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
+		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+	}
+
+	clientConfigJSON, _ := json.Marshal(clientConfig)
+	ps.clientConfig.Store(clientConfig)
+	ps.limitedClientConfig.Store(limitedClientConfig)
+	ps.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
+}
+
+// AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
+func (ps *PlatformService) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	if key := ps.asymmetricSigningKey.Load(); key != nil {
+		return key.(*ecdsa.PrivateKey)
+	}
+	return nil
+}
+
+// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
+// AsymmetricSigningKey will always return a valid signing key.
+func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
+	if ps.AsymmetricSigningKey() != nil {
+		return nil
+	}
+
+	var key *model.SystemAsymmetricSigningKey
+
+	value, err := ps.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
+			return err
+		}
+	}
+
+	// If we don't already have a key, try to generate one.
+	if key == nil {
+		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			return err
+		}
+		newKey := &model.SystemAsymmetricSigningKey{
+			ECDSAKey: &model.SystemECDSAKey{
+				Curve: "P-256",
+				X:     newECDSAKey.X,
+				Y:     newECDSAKey.Y,
+				D:     newECDSAKey.D,
+			},
+		}
+		system := &model.System{
+			Name: model.SystemAsymmetricSigningKeyKey,
+		}
+		v, err := json.Marshal(newKey)
+		if err != nil {
+			return err
+		}
+		system.Value = string(v)
+		// If we were able to save the key, use it, otherwise log the error.
+		if err = ps.Store.System().Save(system); err != nil {
+			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
+		} else {
+			key = newKey
+		}
+	}
+
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
+	if key == nil {
+		value, err := ps.Store.System().GetByName(model.SystemAsymmetricSigningKeyKey)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
+			return err
+		}
+	}
+
+	var curve elliptic.Curve
+	switch key.ECDSAKey.Curve {
+	case "P-256":
+		curve = elliptic.P256()
+	default:
+		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+	}
+	ps.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     key.ECDSAKey.X,
+			Y:     key.ECDSAKey.Y,
+		},
+		D: key.ECDSAKey.D,
+	})
+	ps.regenerateClientConfig()
+	return nil
+}
+
+// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (ps *PlatformService) LimitedClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range ps.LimitedClientConfig() {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
+
+	return respCfg
+}
+
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (ps *PlatformService) ClientConfigWithComputed() map[string]string {
+	respCfg := map[string]string{}
+	for k, v := range ps.clientConfig.Load().(map[string]string) {
+		respCfg[k] = v
+	}
+
+	// These properties are not configurable, but nevertheless represent configuration expected
+	// by the client.
+	respCfg["NoAccounts"] = strconv.FormatBool(ps.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(ps.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(ps.isUpgradedFromTE())
+	respCfg["InstallationDate"] = ""
+	if installationDate, err := ps.GetSystemInstallDate(); err == nil {
+		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
+	}
+	if ver, err := ps.Store.GetDBSchemaVersion(); err != nil {
+		mlog.Error("Could not get the schema version", mlog.Err(err))
+	} else {
+		respCfg["SchemaVersion"] = strconv.Itoa(ver)
+	}
+
+	return respCfg
+}
+
+func (ps *PlatformService) LimitedClientConfig() map[string]string {
+	return ps.limitedClientConfig.Load().(map[string]string)
+}
+
+func (ps *PlatformService) IsFirstUserAccount() bool {
+	cachedSessions, err := ps.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := ps.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+		if err != nil {
+			return false
+		}
+		if count <= 0 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ps *PlatformService) MaxPostSize() int {
+	maxPostSize := ps.Store.Post().GetMaxPostSize()
+	if maxPostSize == 0 {
+		return model.PostMessageMaxRunesV1
+	}
+
+	return maxPostSize
+}
+
+func (ps *PlatformService) isUpgradedFromTE() bool {
+	val, err := ps.Store.System().GetByName(model.SystemUpgradedFromTeId)
+	if err != nil {
+		return false
+	}
+	return val.Value == "true"
+}
+
+func (ps *PlatformService) GetSystemInstallDate() (int64, *model.AppError) {
+	systemData, err := ps.Store.System().GetByName(model.SystemInstallationDateKey)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return value, nil
+}
+
+func (ps *PlatformService) ClientConfig() map[string]string {
+	return ps.clientConfig.Load().(map[string]string)
+
 }

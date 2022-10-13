@@ -179,3 +179,12 @@ type StoreService interface {
 type SystemService interface {
 	GetDiagnosticId() string
 }
+
+// PreferencesService is the API for accessing the Preferences service APIs.
+//
+// The service shall be registered via app.PreferencesKey service key.
+type PreferencesService interface {
+	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
+	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+}

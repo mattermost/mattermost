@@ -621,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Otwórz stronę pomocy Mattermost"
+    "translation": "Pokaż komunikat pomocy Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -1082,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Nie można załadować pliku (plików). Mam {{.NumClientIds}} client_ids dla plików {{.NumFiles}}."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Nie można przesłać plików. Podano niepoprawną liczbę plików."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -4577,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Zaktualizowano Warunki usługi GitLab. Przejdź na stronę gitlab.com, aby je zaakceptować, a następnie spróbuj zalogować się ponownie do Mattermost."
+    "translation": "Warunki korzystania z usług GitLab zostały zaktualizowane. Proszę przejść do {{.URL}}, aby je zaakceptować, a następnie spróbować ponownie zalogować się do Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -7336,10 +7332,6 @@
     "translation": "Funkcja wymaga aktualizacji do wersji Enterprise Edition."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nie można zamówić licencji próbnej. Proszę skonfigurować adres URL witryny w sekcji serwera WWW w konsoli systemowej Mattermost."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Nie można uzyskać licencji próbnej, proszę spróbować ponownie lub skontaktować się z support@mattermost.com. Nie można uzyskać informacji o liczbie zarejestrowanych użytkowników."
   },
@@ -8157,15 +8149,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Nieudana płatność"
+    "translation": "Płatność nie powiodła się"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Wymagane działanie: Nieudana płatność za Mattermost Cloud"
+    "translation": "Wymagane działanie: Płatność nie powiodła się dla Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Aby zapewnić nieprzerwaną subskrypcję Mattermost Cloud, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
+    "translation": "Aby zapewnić nieprzerwany dostęp do Mattermost {{.Plan}}, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8174,10 +8166,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Napraw teraz"
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -8852,10 +8840,6 @@
     "translation": "błąd wstawiania"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nie można uzyskać odpowiedzi."
-  },
-  {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Nie można zaimportować członków zespołu, ponieważ nie można dodać już więcej członków w tym zespole"
   },
@@ -8870,10 +8854,6 @@
   {
     "id": "app.import.generate_password.app_error",
     "translation": "Błąd generowania hasła."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Błąd podczas przetwarzania masowego importu załączników."
   },
   {
     "id": "app.import.attachment.read_file_data.error",
@@ -9004,10 +8984,6 @@
     "translation": "Odpowiedź SAML jest zbyt długa"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "Onboarding może być ukończony tylko przez administratora systemu."
   },
@@ -9016,28 +8992,8 @@
     "translation": "Nie udało się zdekodować kompletnego żądania."
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "Nazwa koliduje z istniejącą nazwą systemową emoji."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -9144,28 +9100,12 @@
     "translation": "Bleve Bulk Indexing Batch Size musi wynosić co najmniej {{.BatchSize}}."
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Przygotowana wersja wtyczki nie może być przetworzona."
   },
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Nie można uzyskać wszystkich zadań według typu i statusu."
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9212,14 +9152,6 @@
     "translation": "Nieprawidłowy post_id"
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelsLen }} kanałów w Zespole {{ .TeamDisplayName }}"
   },
@@ -9229,11 +9161,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
@@ -9246,14 +9178,6 @@
   {
     "id": "api.insights.feature_disabled",
     "translation": "Insights kryje się za flagą funkcji, która nie jest włączona."
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -9316,18 +9240,6 @@
     "translation": "Nieprawidłowa współbieżność dekodera {{.Wartość}}. Powinna być liczbą dodatnią lub -1."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
     "id": "app.post.get_top_threads_for_user_since.app_error",
     "translation": "Nie można uzyskać informacji o najważniejszych wątkach dla użytkownika."
   },
@@ -9338,14 +9250,6 @@
   {
     "id": "app.insights.feature_disabled",
     "translation": "Funkcja Insights jest wyłączona."
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": "Twoja licencja nie obsługuje funkcji Insights."
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9370,5 +9274,273 @@
   {
     "id": "app.upload.upload_data.gen_info.app_error",
     "translation": "Nie udało się wygenerować informacji o pliku z przesłanych danych."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Cześć, oto Twoje przypomnienie o tej wiadomości od @{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Błąd czyszczenia pamięci podręcznej członków zespołu"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Nie można uzyskać najlepszych DM dla użytkownika."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Polecenie marketplace nie jest obsługiwane w Twoim urządzeniu."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "Sklep"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Otwórz Sklep"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost to platforma open source służąca do bezpiecznej komunikacji, współpracy i zgrania pracy między narzędziami i zespołami.\nMattermost zawiera trzy kluczowe narzędzia:\n\n**Kanały** - Pozostań w kontakcie ze swoim zespołem poprzez wiadomości 1:1 i wiadomości grupowe.\n**[Playbooki](/playbooki)** - tworzenie i konfigurowanie powtarzalnych procesów w celu osiągnięcia określonych i przewidywalnych wyników.\n**[Tablice](/boards)** - Zarządzaj projektami i zadaniami w strukturze tablicy Kanban, aby pomóc swojemu zespołowi w osiągnięciu kluczowych kamieni milowych.\n\n[Zobacz dokumentację i przewodniki]({{.HelpLink}})"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktywne wtyczki i integracje"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Historia wiadomości"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Pliki"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Karty z twoich tablic"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Płatność nie została otrzymana"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Skontaktuj się ze swoją instytucją finansową, aby rozwiązać wszelkie problemy. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Nie byliśmy w stanie obciążyć karty kredytowej, którą mamy w pliku. Oznacza to, że Twój obszar roboczy może zostać zdegradowany do wersji Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Zaległa płatność za Twój Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Brak wymaganych pól do wysłania wiadomości e-mail o zaległościach."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Twój obszar roboczy zostanie zdegradowany do Cloud Starter. Funkcje Twojego {{.Plan}} zostaną zablokowane, a niektóre dane z Twojego obszaru roboczego mogą zostać zarchiwizowane do czasu uregulowania całego zaległego salda."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Jest to ostateczne przypomnienie, że nie otrzymaliśmy płatności za obszar roboczy Mattermost Cloud od {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Obniż na Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Twoja płatność nie została zrealizowana"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Aby utrzymać aktywność swojego planu {{.Plan}}, skontaktuj się jak najszybciej ze swoją instytucją finansową. Następnie, w razie potrzeby, zaktualizuj swoje dane dotyczące płatności."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Nie mogliśmy przetworzyć Twojej ostatniej płatności"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 30 dni"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Zaktualizuj swoje informacje o płatnościach teraz lub przejdź do wersji Cloud Starter poniżej."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Jeśli nie będziemy w stanie przetworzyć Twojej płatności, automatycznie obniżymy rangę Twojej przestrzeni roboczej w ciągu 30 dni."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Prosimy o rychłą aktualizację informacji o płatnościach w celu przetworzenia zaległych faktur."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Obniż na Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Zaktualizuj teraz informacje o swojej karcie kredytowej."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Zmniejszona przestrzeń robocza może negatywnie wpłynąć na krytyczne przepływy pracy, integracje i inne krytyczne dla biznesu działania prowadzone w przestrzeni roboczej."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Nie udało nam się zebrać płatności za zaległe faktury z datą {{.DelinquencyDate}}. Twój obszar roboczy jest zagrożony zdegradowaniem."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Uwaga: Twój Mattermost {{.Plan}} zostanie wkrótce zdegradowany"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Twój obszar roboczy zostanie wkrótce zdegradowany"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "jeśli nie zostaną podjęte żadne działania, Twój obszar roboczy zostanie zdegradowany, a następujące dane mogą zostać zarchiwizowane:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Masz czas na utrzymanie aktywności Mattermost {{.Plan}}, ale będziesz musiał rozwiązać problemy z metodą płatności."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Działaj, aby zachować Funkcjonalności twojego Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Twój obszar roboczy został zdegradowany"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Aby odarchiwizować swoje dane i zachować płatne funkcje, zaktualizuj informacje o płatności."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Ponadto Twoje dane mogły zostać zarchiwizowane z powodu ograniczeń Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Jeśli korzystasz z funkcji Cloud Professional lub Enterprise do ważnych operacji biznesowych, nie będą one już dostępne i doświadczysz pogorszenia wydajności."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Twój obszar roboczy Mattermost Cloud został zdegradowany"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Wyświetl Plany i Ceny"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Obszar roboczy Mattermost zostanie zdegradowany w ciągu 15 dni"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Zaktualizuj teraz swoje informacje o płatnościach lub przejdź do wersji Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Zobacz całą dokumentację dotyczącą limitów."
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Abonament nie jest zaległy"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Nie można odzyskać subskrypcji chmurowej"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Nie można pobrać produktów chmurowych"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nie można wysłać postu z powiadomieniem."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nie można zapisać danych powiadomienia."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali aktualizacji obszaru roboczego dla: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali aktualizacji obszaru roboczego dla: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Nie można uzyskać nazwy bieżącego planu"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML nie mógł pomyślnie załadować Identity Provider Public Certificate, skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nie mogliśmy uzyskać liczby odznak dla użytkownika."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Błąd podczas wykonywania zadania."
   }
 ]

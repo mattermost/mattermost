@@ -35,6 +35,7 @@ const (
 	HeaderRequestedWith             = "X-Requested-With"
 	HeaderRequestedWithXML          = "XMLHttpRequest"
 	HeaderFirstInaccessiblePostTime = "First-Inaccessible-Post-Time"
+	HeaderFirstInaccessibleFileTime = "First-Inaccessible-File-Time"
 	HeaderRange                     = "Range"
 	STATUS                          = "status"
 	StatusOk                        = "OK"
@@ -3642,6 +3643,41 @@ func (c *Client4) GetTopChannelsForUserSince(teamId string, timeRange string, pa
 	return topChannels, BuildResponse(r), nil
 }
 
+// GetTopInactiveChannelsForTeamSince will return an ordered list of the top channels in a given team.
+func (c *Client4) GetTopInactiveChannelsForTeamSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+	r, err := c.DoAPIGet(c.teamRoute(teamId)+"/top/inactive_channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topInactiveChannels *TopInactiveChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopInactiveChannelsForTeamSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topInactiveChannels, BuildResponse(r), nil
+}
+
+// GetTopInactiveChannelsForUserSince will return an ordered list of your top channels in a given team.
+func (c *Client4) GetTopInactiveChannelsForUserSince(teamId string, timeRange string, page int, perPage int) (*TopInactiveChannelList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	if teamId != "" {
+		query += fmt.Sprintf("&team_id=%v", teamId)
+	}
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/inactive_channels"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topInactiveChannels *TopInactiveChannelList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topInactiveChannels); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopInactiveChannelsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topInactiveChannels, BuildResponse(r), nil
+}
+
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
@@ -3890,10 +3926,14 @@ func (c *Client4) GetPostThreadWithOpts(postID string, etag string, opts GetPost
 }
 
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
-func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
+	}
+
+	if includeDeleted {
+		query += "&include_deleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
@@ -4015,10 +4055,13 @@ func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads b
 }
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
-func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
+	}
+	if includeDeleted {
+		query += "&include_deleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
@@ -4036,10 +4079,13 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 }
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
-func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*PostList, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
+	}
+	if includeDeleted {
+		query += "&include_deleted=true"
 	}
 	r, err := c.DoAPIGet(c.channelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
@@ -6698,6 +6744,21 @@ func (c *Client4) GetTopReactionsForUserSince(teamId string, timeRange string, p
 	return topReactions, BuildResponse(r), nil
 }
 
+func (c *Client4) GetTopDMsForUserSince(timeRange string, page int, perPage int) (*TopDMList, *Response, error) {
+	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
+
+	r, err := c.DoAPIGet(c.usersRoute()+"/me/top/dms"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var topDMs *TopDMList
+	if jsonErr := json.NewDecoder(r.Body).Decode(&topDMs); jsonErr != nil {
+		return nil, nil, NewAppError("GetTopReactionsForUserSince", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return topDMs, BuildResponse(r), nil
+}
+
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
@@ -7970,20 +8031,36 @@ func (c *Client4) ValidateWorkspaceBusinessEmail() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) int {
+func (c *Client4) NotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
 	nrJSON, err := json.Marshal(nr)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
-	r, err := c.DoAPIPost(c.cloudRoute()+"/notify-admin-to-upgrade", string(nrJSON))
+	r, err := c.DoAPIPost("/users/notify-admin", string(nrJSON))
 	if err != nil {
-		return r.StatusCode
+		return r.StatusCode, err
 	}
 
 	closeBody(r)
 
-	return r.StatusCode
+	return r.StatusCode, nil
+}
+
+func (c *Client4) TriggerNotifyAdmin(nr *NotifyAdminToUpgradeRequest) (int, error) {
+	nrJSON, err := json.Marshal(nr)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := c.DoAPIPost("/users/trigger-notify-admin-posts", string(nrJSON))
+	if err != nil {
+		return r.StatusCode, err
+	}
+
+	closeBody(r)
+
+	return r.StatusCode, nil
 }
 
 func (c *Client4) ValidateBusinessEmail(email *ValidateBusinessEmailRequest) (*Response, error) {

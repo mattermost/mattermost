@@ -1579,6 +1579,52 @@ func (_m *ChannelStore) GetTopChannelsForUserSince(userID string, teamID string,
 	return r0, r1
 }
 
+// GetTopInactiveChannelsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopInactiveChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopInactiveChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopInactiveChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopInactiveChannelsForUserSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopInactiveChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopInactiveChannelList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopInactiveChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with given fields:
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()

@@ -570,7 +570,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -599,7 +599,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -613,7 +613,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -627,7 +627,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
@@ -1135,7 +1135,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 	if settingsSchema != "" {
 		schema = settingsSchema
 	}
-	th.App.ch.srv.sqlStore = th.GetSqlStore()
+	th.App.ch.srv.platform.SetSqlStore(th.GetSqlStore()) // TODO: platform: check if necessary
 	setupPluginAPITest(t, code,
 		fmt.Sprintf(`{"id": "%v", "server": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
 		id, th.App, th.Context)
@@ -1360,7 +1360,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo.Id)
 		th.App.RemoveFile(fileInfo.Path)
 	}()
 
@@ -1381,6 +1381,25 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	actualPost, err := api.GetPost(post.Id)
 	require.Nil(t, err)
 	assert.Equal(t, model.StringArray{fileInfo.Id}, actualPost.FileIds)
+}
+
+func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	channelID := th.BasicChannel.Id
+	userID := th.BasicUser.Id
+	post, err := api.CreatePost(&model.Post{
+		Message:   "test",
+		ChannelId: channelID,
+		UserId:    userID,
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	assert.Equal(t, "true", actualPost.GetProp("from_plugin"))
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {

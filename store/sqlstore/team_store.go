@@ -1282,14 +1282,13 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 // in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
-func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, error) {
+func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (_ map[string]string, err error) {
 	var transaction *sqlxTxWrapper
-	var err error
 
 	if transaction, err = s.GetMasterX().Beginx(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	defer finalizeTransactionX(transaction)
+	defer finalizeTransactionX(transaction, &err)
 
 	teamMembers := []teamMember{}
 	if err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (?, ?) ORDER BY TeamId, UserId LIMIT 100", fromTeamId, fromUserId); err != nil {
@@ -1364,11 +1363,12 @@ func (s SqlTeamStore) ResetAllTeamSchemes() error {
 func (s SqlTeamStore) ClearCaches() {}
 
 // InvalidateAllTeamIdsForUser does not execute anything because the store does not handle the cache.
+//
 //nolint:unparam
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 // ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers.
-func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
+func (s SqlTeamStore) ClearAllCustomRoleAssignments() (err error) {
 
 	builtInRoles := model.MakeDefaultRoles()
 	lastUserId := strings.Repeat("0", 26)
@@ -1381,7 +1381,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
 		if transaction, err = s.GetMasterX().Beginx(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
-		defer finalizeTransactionX(transaction)
+		defer finalizeTransactionX(transaction, &err)
 
 		teamMembers := []*teamMember{}
 		if err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (?, ?) ORDER BY TeamId, UserId LIMIT 1000", lastTeamId, lastUserId); err != nil {
@@ -1464,6 +1464,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 }
 
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
+//
 //nolint:unparam
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
 	teamIds := []string{}
@@ -1533,7 +1534,7 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 	return members, nil
 }
 
-//UserBelongsToTeams returns true if the user denoted by userId is a member of the teams in the teamIds string array.
+// UserBelongsToTeams returns true if the user denoted by userId is a member of the teams in the teamIds string array.
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, error) {
 	idQuery := sq.Eq{
 		"UserId":   userId,

@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
@@ -796,7 +797,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
-		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log)
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
 		return th
 	}
@@ -1900,7 +1901,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		linkCache.Purge()
+		platform.PurgeLinkCache()
 
 		return th
 	}
@@ -2048,7 +2049,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2065,7 +2066,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 
 			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
@@ -2082,7 +2083,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if URL is different", func(t *testing.T) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 
 			differentURL := requestURL + "/other"
 
@@ -2100,7 +2101,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should not use database if timestamp is different", func(t *testing.T) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 
 			differentTimestamp := timestamp + 60*60*1000
 
@@ -2308,7 +2309,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
-		linkCache.Purge()
+		platform.PurgeLinkCache()
 		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
