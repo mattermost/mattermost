@@ -519,7 +519,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	custom := &model.CustomStatus{
-		Emoji: ":tada:",
+		Emoji: "tada",
 		Text:  "honk",
 	}
 
@@ -557,19 +557,23 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, csClear, userCs)
 
-	// Set a custom status for clearing it later
-	custom.Emoji = ":100"
+	custom.Emoji = "100"
 	custom.Text = "happy 100"
-
+	custom.SetByProduct = false
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
 	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
-	// Let plugin set a status
+	err = api.RestoreToPreviousCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	userCs, err = th.App.GetCustomStatus(user1.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, custom, userCs)
+
 	pluginCs := &model.CustomStatus{
-		Emoji:        ":calendar:",
+		Emoji:        "calendar",
 		Text:         "In meeting",
 		SetByProduct: true,
 	}
@@ -579,13 +583,11 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, pluginCs, userCs)
 
-	// Let plugin restore the status
 	err = api.RestoreToPreviousCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	userCs, err = th.App.GetCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
-
 }
 
 func TestPluginAPIGetFile(t *testing.T) {
