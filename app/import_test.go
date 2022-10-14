@@ -286,7 +286,7 @@ func TestImportBulkImportDryRun(t *testing.T) {
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	err, line = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, true, 2)
+	err, _ = th.App.BulkImport(th.Context, strings.NewReader(data2), nil, true, 2)
 	require.Nil(t, err, "Dryrun: Do not return error on invalid JSON on line 1.")
 
 	// Run bulk import using valid JSON but missing version line at the start.
