@@ -5,11 +5,8 @@ package api4
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -114,36 +111,40 @@ func Test_getCloudLimits(t *testing.T) {
 }
 
 func Test_GetSubscription(t *testing.T) {
+	deliquencySince := int64(2000000000)
+
 	subscription := &model.Subscription{
-		ID:          "MySubscriptionID",
-		CustomerID:  "MyCustomer",
-		ProductID:   "SomeProductId",
-		AddOns:      []string{},
-		StartAt:     1000000000,
-		EndAt:       2000000000,
-		CreateAt:    1000000000,
-		Seats:       10,
-		IsFreeTrial: "true",
-		DNS:         "some.dns.server",
-		IsPaidTier:  "false",
-		TrialEndAt:  2000000000,
-		LastInvoice: &model.Invoice{},
+		ID:              "MySubscriptionID",
+		CustomerID:      "MyCustomer",
+		ProductID:       "SomeProductId",
+		AddOns:          []string{},
+		StartAt:         1000000000,
+		EndAt:           2000000000,
+		CreateAt:        1000000000,
+		Seats:           10,
+		IsFreeTrial:     "true",
+		DNS:             "some.dns.server",
+		IsPaidTier:      "false",
+		TrialEndAt:      2000000000,
+		LastInvoice:     &model.Invoice{},
+		DelinquentSince: &deliquencySince,
 	}
 
 	userFacingSubscription := &model.Subscription{
-		ID:          "MySubscriptionID",
-		CustomerID:  "",
-		ProductID:   "SomeProductId",
-		AddOns:      []string{},
-		StartAt:     0,
-		EndAt:       0,
-		CreateAt:    0,
-		Seats:       0,
-		IsFreeTrial: "true",
-		DNS:         "",
-		IsPaidTier:  "",
-		TrialEndAt:  2000000000,
-		LastInvoice: &model.Invoice{},
+		ID:              "MySubscriptionID",
+		CustomerID:      "",
+		ProductID:       "SomeProductId",
+		AddOns:          []string{},
+		StartAt:         0,
+		EndAt:           0,
+		CreateAt:        0,
+		Seats:           0,
+		IsFreeTrial:     "true",
+		DNS:             "",
+		IsPaidTier:      "",
+		TrialEndAt:      2000000000,
+		LastInvoice:     &model.Invoice{},
+		DelinquentSince: &deliquencySince,
 	}
 
 	t.Run("NON Admin users receive the user facing subscription", func(t *testing.T) {
@@ -297,108 +298,6 @@ func Test_requestTrial(t *testing.T) {
 	})
 }
 
-func TestNotifyAdminToUpgrade(t *testing.T) {
-	t.Run("user can only notify admin once in cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic().InitLogin()
-		defer th.TearDown()
-
-		statusCode := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			CurrentTeamId: th.BasicTeam.Id,
-		})
-
-		bot, appErr := th.App.GetSystemBot()
-		require.Nil(t, appErr)
-
-		// message sending is async, wait time for it
-		var channel *model.Channel
-		var err error
-		var timeout = 5 * time.Second
-		begin := time.Now()
-		for {
-			if time.Since(begin) > timeout {
-				break
-			}
-			channel, err = th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
-			if err == nil && channel != nil {
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
-		}
-		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
-
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
-		require.NoError(t, err)
-
-		require.Equal(t, len(postList.Order), 1)
-
-		post := postList.Posts[postList.Order[0]]
-
-		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
-		require.Equal(t, bot.UserId, post.UserId)
-		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace.", th.BasicTeam.Name), post.Message)
-
-		require.Equal(t, http.StatusOK, statusCode)
-
-		// second time trying to call notify endpoint by same user is forbidden
-		statusCode = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			CurrentTeamId: th.BasicTeam.Id,
-		})
-		require.Equal(t, http.StatusForbidden, statusCode)
-	})
-
-	t.Run("user can only notify admin after cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic().InitLogin()
-		defer th.TearDown()
-
-		os.Setenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
-		defer os.Unsetenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
-
-		statusCode := th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			CurrentTeamId: th.BasicTeam.Id,
-		})
-
-		bot, appErr := th.App.GetSystemBot()
-		require.Nil(t, appErr)
-
-		channel, err := th.App.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(bot.UserId, th.SystemAdminUser.Id), false)
-		require.NoError(t, err)
-
-		postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
-		require.NoError(t, err)
-
-		require.Equal(t, len(postList.Order), 1)
-
-		post := postList.Posts[postList.Order[0]]
-
-		require.Equal(t, fmt.Sprintf("%sup_notification", model.PostCustomTypePrefix), post.Type)
-		require.Equal(t, bot.UserId, post.UserId)
-		require.Equal(t, fmt.Sprintf("A member of %s has notified you to upgrade this workspace.", th.BasicTeam.Name), post.Message)
-
-		require.Equal(t, http.StatusOK, statusCode)
-
-		time.Sleep(5 * time.Second)
-
-		// second time trying to call notify endpoint by same user is NOT forbidden because it is after cool off period set to 3 seconds
-		statusCode = th.Client.NotifyAdmin(&model.NotifyAdminToUpgradeRequest{
-			CurrentTeamId: th.BasicTeam.Id,
-		})
-
-		require.Equal(t, http.StatusOK, statusCode)
-	})
-
-	t.Run("can cloud/model.Notify", func(t *testing.T) {
-
-		os.Setenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS", "10") // set to 10 days
-		canNotify := model.CanNotify(model.GetMillis())
-		require.Equal(t, false, canNotify)
-
-		os.Setenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
-		canNotify = model.CanNotify(model.GetMillis())
-		time.Sleep(5 * time.Second)
-		require.Equal(t, false, canNotify)
-		os.Unsetenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
-	})
-}
 func Test_validateBusinessEmail(t *testing.T) {
 	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()

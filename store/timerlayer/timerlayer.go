@@ -32,6 +32,7 @@ type TimerLayer struct {
 	JobStore                  store.JobStore
 	LicenseStore              store.LicenseStore
 	LinkMetadataStore         store.LinkMetadataStore
+	NotifyAdminStore          store.NotifyAdminStore
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
@@ -111,6 +112,10 @@ func (s *TimerLayer) License() store.LicenseStore {
 
 func (s *TimerLayer) LinkMetadata() store.LinkMetadataStore {
 	return s.LinkMetadataStore
+}
+
+func (s *TimerLayer) NotifyAdmin() store.NotifyAdminStore {
+	return s.NotifyAdminStore
 }
 
 func (s *TimerLayer) OAuth() store.OAuthStore {
@@ -272,6 +277,11 @@ type TimerLayerLicenseStore struct {
 
 type TimerLayerLinkMetadataStore struct {
 	store.LinkMetadataStore
+	Root *TimerLayer
+}
+
+type TimerLayerNotifyAdminStore struct {
+	store.NotifyAdminStore
 	Root *TimerLayer
 }
 
@@ -3212,6 +3222,22 @@ func (s *TimerLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDe
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetUptoNSizeFileTime", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := time.Now()
 
@@ -4503,6 +4529,70 @@ func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("LinkMetadataStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
+	start := time.Now()
+
+	err := s.NotifyAdminStore.DeleteBefore(trial, now)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.DeleteBefore", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
+	start := time.Now()
+
+	result, err := s.NotifyAdminStore.Get(trial)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+	start := time.Now()
+
+	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.GetDataByUserIdAndFeature", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
+	start := time.Now()
+
+	result, err := s.NotifyAdminStore.Save(data)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("NotifyAdminStore.Save", success, elapsed)
 	}
 	return result, err
 }
@@ -9637,6 +9727,22 @@ func (s *TimerLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 	return result
 }
 
+func (s *TimerLayerUserStore) GetFirstSystemAdminID() (string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetFirstSystemAdminID()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetFirstSystemAdminID", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 	start := time.Now()
 
@@ -9909,10 +10015,10 @@ func (s *TimerLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetUnreadCount(userID string) (int64, error) {
+func (s *TimerLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetUnreadCount(userID)
+	result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11112,6 +11218,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.JobStore = &TimerLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &TimerLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &TimerLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
+	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}

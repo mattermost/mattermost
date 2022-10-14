@@ -24,7 +24,7 @@ var (
 )
 
 func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userID, 0, limit)
+	audits, err := a.Srv().Store().Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -38,7 +38,7 @@ func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError
 }
 
 func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userID, page*perPage, perPage)
+	audits, err := a.Srv().Store().Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {

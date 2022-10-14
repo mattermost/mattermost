@@ -41,7 +41,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true
-	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser)
+	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser, "")
 	evt1.Add("user_id", "somerandomid")
 	th.App.Publish(evt1)
 
@@ -69,7 +69,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	require.True(t, eventHit, "did not receive typing event")
 
-	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil)
+	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
 	th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
@@ -295,14 +295,14 @@ func TestWebSocketStatuses(t *testing.T) {
 	ruser, _, err := client.CreateUser(&user)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _, err := client.CreateUser(&user2)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser2, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
 	client.Login(user.Email, user.Password)

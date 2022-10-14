@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "Impossibile trovare gli utenti: {{.Users}}",
       "one": "Impossibile trovare l'utente: {{.Users}}",
-      "other": "Impossibile trovare gli utenti: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuove notifiche per {{.Day}} {{.Month}} {{.Year}}",
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nuove notifiche per {{.Day}} {{.Month}} {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1080,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Impossibile caricare i file. Ci sono {{.NumClientIds}} client_ids per {{.NumFiles}} file."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Impossibile caricare i file. Specifica numero di file non valido."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1352,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} file inviati: {{.Filenames}}",
       "one": "{{.Count}} file inviato: {{.Filenames}}",
-      "other": "{{.Count}} file inviati: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} immagini inviate: {{.Filenames}}",
       "one": "{{.Count}} immagine inviata: {{.Filenames}}",
-      "other": "{{.Count}} immagini inviate: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -5944,10 +5944,6 @@
     "translation": "Il parametro id squadra è richiesto per l'autocompletamento del canale."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Impossibile richiedere una licenza di prova. Configurare l'URL del sito nella sezione server web della console di sistema di Mattermost."
-  },
-  {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
   },
@@ -7128,10 +7124,6 @@
     "translation": " "
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_thread_membership_for_user.not_found",
     "translation": " "
   },
@@ -7149,10 +7141,6 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": " "
-  },
-  {
-    "id": "model.github_release_info.is_valid.id.app_error",
     "translation": " "
   },
   {
@@ -7180,15 +7168,7 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "api.config.patch_config.restricted_merge.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": " "
   },
   {
@@ -7476,10 +7456,6 @@
     "translation": " "
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": " "
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": " "
   },
@@ -7493,10 +7469,6 @@
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
     "translation": " "
   },
   {
@@ -7681,10 +7653,6 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.button",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
     "translation": " "
   },
   {
@@ -8040,18 +8008,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.group.no_rows",
     "translation": " "
   },
@@ -8168,10 +8124,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
     "id": "app.user.get_by_username.app_error",
     "translation": " "
   },
@@ -8245,10 +8197,6 @@
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
     "translation": " "
   },
   {
@@ -8428,10 +8376,6 @@
     "translation": " "
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "import_process.worker.do_job.missing_file",
     "translation": " "
   },
@@ -8465,10 +8409,6 @@
   },
   {
     "id": "model.session.is_valid.user_id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
     "translation": " "
   },
   {
@@ -8533,10 +8473,6 @@
   },
   {
     "id": "api.command_remote.displayname.hint",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
     "translation": " "
   },
   {
@@ -8764,10 +8700,6 @@
     "translation": " "
   },
   {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.config.reload_config.app_error",
     "translation": " "
   },
@@ -8856,10 +8788,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.member_count",
     "translation": " "
   },
@@ -8896,14 +8824,6 @@
     "translation": " "
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.permanent_delete_members_by_user.app_error",
     "translation": " "
   },
@@ -8933,10 +8853,6 @@
   },
   {
     "id": "api.templates.invite_body.subTitle",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
     "translation": " "
   },
   {
@@ -9144,10 +9060,6 @@
     "translation": " "
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.templates.verify_body.serverURL",
     "translation": " "
   },
@@ -9193,10 +9105,6 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
     "translation": " "
   },
   {

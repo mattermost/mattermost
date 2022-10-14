@@ -158,7 +158,7 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 }
 
 func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
-	if _, err := s.Store.System().GetByName(key); err == nil {
+	if _, err := s.Store().System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -172,7 +172,7 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
-		if _, err := s.Store.Role().Save(role); err != nil {
+		if _, err := s.Store().Role().Save(role); err != nil {
 			var invErr *store.ErrInvalidInput
 			switch {
 			case errors.As(err, &invErr):
@@ -183,7 +183,7 @@ func (s *Server) doPermissionsMigration(key string, migrationMap permissionsMap,
 		}
 	}
 
-	if err := s.Store.System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: key, Value: "true"}); err != nil {
 		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -1034,7 +1034,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
 	}
 
-	roles, err := s.Store.Role().GetAll()
+	roles, err := s.Store().Role().GetAll()
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 		Value: "true",
 	}
 
-	if err := a.Srv().Store.System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
+	if err := a.Srv().Store().System().SaveOrUpdate(&firstAdminCompleteSetupObj); err != nil {
 		return model.NewAppError("setFirstAdminCompleteSetup", "api.error_set_first_admin_complete_setup", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -72,7 +72,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 }
 
 func (a *App) GetOnboarding() (*model.System, *model.AppError) {
-	firstAdminCompleteSetupObj, err := a.Srv().Store.System().GetByName(model.SystemFirstAdminSetupComplete)
+	firstAdminCompleteSetupObj, err := a.Srv().Store().System().GetByName(model.SystemFirstAdminSetupComplete)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
