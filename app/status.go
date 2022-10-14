@@ -347,3 +347,36 @@ func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus
 
 	return nil
 }
+
+func (a *App) RestoreToPreviousCustomStatus(c request.CTX, userID string) *model.AppError {
+	cs, appErr := a.GetCustomStatus(userID)
+	if appErr != nil {
+		return appErr
+	}
+
+	// If user changed the custom status explicitly, don't restore to previous status
+	if cs == nil || !cs.SetByProduct {
+		return nil
+	}
+
+	rcs, err := a.GetRecentCustomStatuses(userID)
+	if err != nil {
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to get recent statuses to reset", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if len(rcs) == 0 {
+		err := a.RemoveCustomStatus(c, userID)
+		if err != nil {
+			return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to remove custom status", http.StatusInternalServerError).Wrap(err)
+		}
+
+		return nil
+	}
+
+	cserr := a.SetCustomStatus(c, userID, rcs[0])
+	if cserr != nil {
+		return model.NewAppError("RestoreToPreviousCustomStatus", "plugin.api.restore_to_previous_custom_status", nil, "failed to revert custom status", http.StatusInternalServerError).Wrap(cserr)
+	}
+
+	return nil
+}

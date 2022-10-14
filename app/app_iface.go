@@ -970,6 +970,7 @@ type AppIface interface {
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
 	RestoreChannel(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	RestoreTeam(teamID string) *model.AppError
+	RestoreToPreviousCustomStatus(c request.CTX, userID string) *model.AppError
 	RestrictUsersGetByPermissions(userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
 	ReturnSessionToPool(session *model.Session)
