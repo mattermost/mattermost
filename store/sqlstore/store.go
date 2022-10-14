@@ -108,6 +108,7 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	notifyAdmin          store.NotifyAdminStore
 }
 
 type SqlStore struct {
@@ -212,6 +213,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -436,6 +438,15 @@ func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
 	}
 
 	return dbs
+}
+
+func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return ss.GetMasterX().DB.DB
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum].DB.DB
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -912,6 +923,10 @@ func (ss *SqlStore) Group() store.GroupStore {
 
 func (ss *SqlStore) LinkMetadata() store.LinkMetadataStore {
 	return ss.stores.linkMetadata
+}
+
+func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
+	return ss.stores.notifyAdmin
 }
 
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {

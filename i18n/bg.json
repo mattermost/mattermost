@@ -4024,10 +4024,6 @@
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Оправи сега"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "Многофакторното удостоверяване бе премахнато"
   },
@@ -5354,10 +5350,6 @@
     "translation": "marshal грешка"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Не може да се поиска пробен лиценз. Моля, конфигурирайте URL адрес на сайта в секцията за уеб сървъра на Mattermost Системна конзола."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Не можете да получите пробен лиценз, моля, опитайте отново или се свържете със support@mattermost.com. Не може да се получи броят на регистрираните потребители."
   },
@@ -5496,10 +5488,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Файл над максималните размери не може да бъде качен: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Невъзможно качването на файл. Зададен е неправилен брой файлове."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -6298,10 +6286,6 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Не може да се прочете версията на файла за импортиране на данни."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Неуспешно построяване на заявката."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",

@@ -943,23 +943,26 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, re
 	return nil
 }
 
-func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, error) {
+func (es *Service) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, planName, siteURL string) (bool, error) {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.payment_failed.subject")
+	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.payment_failed.title")
-	data.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]any{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
-	data.Props["Info2"] = T("api.templates.payment_failed.info2")
-	data.Props["Info3"] = T("api.templates.payment_failed.info3")
-	data.Props["Button"] = T("api.templates.over_limit_fix_now")
+	data.Props["SubTitle1"] = T("api.templates.payment_failed.info1", map[string]any{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	data.Props["SubTitle2"] = T("api.templates.payment_failed.info2")
+	data.Props["FailedReason"] = failedPayment.FailureMessage
+	data.Props["SubTitle3"] = T("api.templates.payment_failed.info3", map[string]any{"Plan": planName})
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+	data.Props["Button"] = T("api.templates.delinquency_45.button")
+	data.Props["IncludeSecondaryActionButton"] = false
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	data.Props["Footer"] = T("api.templates.copyright")
-
-	data.Props["FailedReason"] = failedPayment.FailureMessage
 
 	body, err := es.templatesContainer.RenderToString("payment_failed_body", data)
 	if err != nil {

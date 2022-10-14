@@ -12,7 +12,7 @@
      <mj-text align="left" padding-bottom="24px" padding-top="0px" font-weight=400 color="#3F4350" font-size="16px" line-height="24px" font-family="Open Sans, sans-serif">
       {{.Props.SubTitle3}}
     </mj-text>
-    <mj-button href="{{.Props.SiteURL}}/admin_console/billing/payment_info" padding="0px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
+    <mj-button href="{{.Props.SiteURL}}/admin_console/billing/subscription?action=show_delinquency_modal" padding="0px" border-top="16px" font-weight="400 !important" css-class="button-cloud" font-family="Open Sans, sans-serif">
       {{.Props.Button}}
     </mj-button>
     {{if .IncludeSecondaryActionButton}}

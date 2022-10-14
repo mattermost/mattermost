@@ -50,25 +50,6 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
-}
-
-func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
-
-	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -86,20 +67,21 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// if it is an end user, return basic subscription data without sensitive information
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		subscription = &model.Subscription{
-			ID:          subscription.ID,
-			ProductID:   subscription.ProductID,
-			IsFreeTrial: subscription.IsFreeTrial,
-			TrialEndAt:  subscription.TrialEndAt,
-			CustomerID:  "",
-			AddOns:      []string{},
-			StartAt:     0,
-			EndAt:       0,
-			CreateAt:    0,
-			Seats:       0,
-			Status:      "",
-			DNS:         "",
-			IsPaidTier:  "",
-			LastInvoice: &model.Invoice{},
+			ID:              subscription.ID,
+			ProductID:       subscription.ProductID,
+			IsFreeTrial:     subscription.IsFreeTrial,
+			TrialEndAt:      subscription.TrialEndAt,
+			CustomerID:      "",
+			AddOns:          []string{},
+			StartAt:         0,
+			EndAt:           0,
+			CreateAt:        0,
+			Seats:           0,
+			Status:          "",
+			DNS:             "",
+			IsPaidTier:      "",
+			LastInvoice:     &model.Invoice{},
+			DelinquentSince: subscription.DelinquentSince,
 		}
 	}
 

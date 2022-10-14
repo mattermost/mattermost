@@ -62,7 +62,6 @@ type Channel {
 	totalMsgCount: Float!
 	totalMsgCountRoot: Float!
 	lastRootPostAt: Float!
-	stats: ChannelStats
 	extraUpdateAt: Float!
 	props: StringInterface!
 	policyId: String
@@ -203,6 +202,7 @@ type SidebarCategory {
 	collapsed: Boolean!
 	teamId: String!
 	channelIds: [String!]!
+	sortOrder: Float!
 }
 
 # Deliberately leaving out teamMembers.
@@ -218,11 +218,4 @@ type Session {
 	expiredNotify: Boolean!
 	props: StringMap!
 	local: Boolean!
-}
-
-type ChannelStats {
-	channelId: String!
-	memberCount: Float!
-	guestCount: Float!
-	pinnedPostCount: Float!
 }

@@ -7,8 +7,13 @@ on:
   schedule:
     - cron: '30 5,17 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
+    permissions:
+      security-events: write  # for github/codeql-action/autobuild to send a status report
     name: Analyze
     runs-on: ubuntu-latest
 

@@ -1084,10 +1084,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не вдається завантажити файли. Неправильне число вказаних файлів."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Не вдалося завантажити файл над максимальними розмірами: {{.Filename}}"
   },
