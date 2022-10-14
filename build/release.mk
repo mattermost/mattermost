@@ -151,7 +151,6 @@ package-general:
 	mkdir -p $(DIST_PATH_GENERIC)/bin
 	mkdir -p $(DIST_PATH_GENERIC)/logs
 	mkdir -p $(DIST_PATH_GENERIC)/prepackaged_plugins
-	mkdir -p $(DIST_PATH_GENERIC)/products
 
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"$(CURRENT_PACKAGE_ARCH)")
@@ -197,7 +196,6 @@ endif
 		echo "Copying web app files for Boards product"; \
 		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
 		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
-		ls $(DIST_PATH_GENERIC)/client/products/boards; \
 	else \
 		echo "Unable to find files for Boards product. Please ensure that the Focalboard repository is checked out alongside the server and run 'make build-product' in it."; \
 		exit 1; \
