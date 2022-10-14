@@ -243,42 +243,14 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 			return nil, appErr
 		}
 
-		// cannot find this bot user, save the user
-		user, nErr := a.Srv().Store().User().Save(model.UserFromBot(botDef))
-		if nErr != nil {
-			var appError *model.AppError
-			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(nErr, &appError):
-				return nil, appError
-			case errors.As(nErr, &invErr):
-				code := ""
-				switch invErr.Field {
-				case "email":
-					code = "app.user.save.email_exists.app_error"
-				case "username":
-					code = "app.user.save.username_exists.app_error"
-				default:
-					code = "app.user.save.existing.app_error"
-				}
-				return nil, model.NewAppError("getOrCreateBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
-			default:
-				return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
+		user, err := a.saveUserFromBotAndGet(botDef)
+		if err != nil {
+			return nil, err
 		}
-		botDef.UserId = user.Id
 
-		//save the bot
-		savedBot, nErr := a.Srv().Store().Bot().Save(botDef)
-		if nErr != nil {
-			a.Srv().Store().User().PermanentDelete(savedBot.UserId)
-			var nAppErr *model.AppError
-			switch {
-			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
-				return nil, nAppErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
+		savedBot, err := a.saveBotWithUserAndGet(botDef, user)
+		if err != nil {
+			return nil, err
 		}
 		return savedBot, nil
 	}
@@ -293,6 +265,51 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 		return nil, appErr
 	}
 
+	return savedBot, nil
+}
+
+func (a *App) saveUserFromBotAndGet(botDef *model.Bot) (*model.User, *model.AppError) {
+	user, nErr := a.Srv().Store().User().Save(model.UserFromBot(botDef))
+	if nErr != nil {
+		var appError *model.AppError
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(nErr, &appError):
+			return nil, appError
+		case errors.As(nErr, &invErr):
+			code := ""
+			switch invErr.Field {
+			case "email":
+				code = "app.user.save.email_exists.app_error"
+			case "username":
+				code = "app.user.save.username_exists.app_error"
+			default:
+				code = "app.user.save.existing.app_error"
+			}
+			return nil, model.NewAppError("getOrCreateBot", code, nil, "", http.StatusBadRequest).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("getOrCreateBot", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+	return user, nil
+}
+
+func (a *App) saveBotWithUserAndGet(botDef *model.Bot, user *model.User) (*model.Bot, *model.AppError) {
+	// cannot find this bot user, save the user
+	botDef.UserId = user.Id
+
+	//save the bot
+	savedBot, nErr := a.Srv().Store().Bot().Save(botDef)
+	if nErr != nil {
+		_ = a.Srv().Store().User().PermanentDelete(savedBot.UserId)
+		var nAppErr *model.AppError
+		switch {
+		case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
+			return nil, nAppErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("getOrCreateBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
 	return savedBot, nil
 }
 
