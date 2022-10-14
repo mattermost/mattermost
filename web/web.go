@@ -20,14 +20,20 @@ import (
 type Web struct {
 	srv        *app.Server
 	MainRouter *mux.Router
+
+	// The following are used for testing purposes only
+	knownEndpointsByScope map[model.Scope][]string
+	knownEndpointsByName  map[string]model.APIScopes
 }
 
 func New(srv *app.Server) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
-		srv:        srv,
-		MainRouter: srv.Router,
+		srv:                   srv,
+		MainRouter:            srv.Router,
+		knownEndpointsByScope: map[model.Scope][]string{},
+		knownEndpointsByName:  map[string]model.APIScopes{},
 	}
 
 	web.InitOAuth()

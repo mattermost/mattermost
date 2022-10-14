@@ -40,7 +40,7 @@ func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string
 }
 
 func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &Handler{
+	handler := &Handler{
 		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
@@ -50,6 +50,8 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsStatic:       false,
 		IsLocal:        false,
 	}
+	w.addTestEndpointScopeMapping(handler)
+	return handler
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
@@ -57,7 +59,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	// on server start and intentionally requires a restart to take effect.
 	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 
-	return &Handler{
+	handler := &Handler{
 		Srv:            w.srv,
 		HandleFunc:     h,
 		HandlerName:    GetHandlerName(h),
@@ -69,6 +71,8 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 
 		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
+	w.addTestEndpointScopeMapping(handler)
+	return handler
 }
 
 type Handler struct {
@@ -494,6 +498,7 @@ func (w *Web) APIHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		IsLocal:        false,
 		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
+	w.addTestEndpointScopeMapping(handler)
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -515,6 +520,7 @@ func (w *Web) APIHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		IsLocal:        false,
 		RequiredScopes: model.ScopeUnrestrictedAPI,
 	}
+	w.addTestEndpointScopeMapping(handler)
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
@@ -535,8 +541,35 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		IsLocal:        false,
 		RequiredScopes: model.NormalizeAPIScopes(scopes),
 	}
+	w.addTestEndpointScopeMapping(handler)
 	if *w.srv.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
 	}
 	return handler
+}
+
+// addTestEndpointScopeMapping is used to generate and test the API scope
+// assignments, see scope_test.go. It serves no other purpose.
+func (w *Web) addTestEndpointScopeMapping(h *Handler) {
+	scopes := h.RequiredScopes
+	if h.RequiredScopes.IsInternal() {
+		scopes = model.APIScopes{"internal_api"}
+	}
+
+	for _, s := range scopes {
+		found := false
+		for _, name := range w.knownEndpointsByScope[s] {
+			if name == h.HandlerName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			w.knownEndpointsByScope[s] = append(w.knownEndpointsByScope[s], h.HandlerName)
+		}
+	}
+
+	if !h.RequiredScopes.IsInternal() {
+		w.knownEndpointsByName[h.HandlerName] = h.RequiredScopes
+	}
 }
