@@ -8321,9 +8321,9 @@ func (a *OpenTracingAppLayer) GetRecentCustomStatuses(userID string) ([]*model.C
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentCustomStatuses")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
