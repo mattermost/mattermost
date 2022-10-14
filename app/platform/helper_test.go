@@ -55,7 +55,7 @@ func (ms *mockSuite) UserCanSeeOtherUser(userID string, otherUserId string) (boo
 	return true, nil
 }
 
-func Setup(tb testing.TB) *TestHelper {
+func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
@@ -64,7 +64,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb)
+	return setupTestHelper(dbStore, false, true, tb, options...)
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
@@ -96,9 +96,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	return th
 }
 
-func SetupWithStoreMock(tb testing.TB) *TestHelper {
+func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, tb)
+	th := setupTestHelper(mockStore, false, false, tb, options...)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -126,7 +126,7 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 	return th
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -149,7 +149,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	ps, err := New(ServiceConfig{
 		ConfigStore: configStore,
 		Store:       dbStore,
-	})
+	}, options...)
 	if err != nil {
 		panic(err)
 	}
@@ -181,7 +181,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		th.Service.SetLicense(nil)
 	}
 
-	th.Service.Start(th.Suite)
+	err = th.Service.Start(th.Suite)
+	if err != nil {
+		panic(err)
+	}
 
 	return th
 }

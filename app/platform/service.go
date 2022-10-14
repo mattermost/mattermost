@@ -39,8 +39,7 @@ type PlatformService struct {
 
 	WebSocketRouter *WebSocketRouter
 
-	serviceConfig *ServiceConfig
-	configStore   *config.Store
+	configStore *config.Store
 
 	cacheProvider cache.Provider
 	statusCache   cache.Cache
@@ -57,6 +56,7 @@ type PlatformService struct {
 
 	startMetrics bool
 	metrics      *platformMetrics
+	metricsIFace einterfaces.MetricsInterface
 
 	featureFlagSynchronizerMutex sync.Mutex
 	featureFlagSynchronizer      *featureflag.Synchronizer
@@ -100,7 +100,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 0: Create the PlatformService.
 	// ConfigStore is and should be handled on a upper level.
 	ps := &PlatformService{
-		serviceConfig:       &sc,
 		Store:               sc.Store,
 		configStore:         sc.ConfigStore,
 		clusterIFace:        sc.Cluster,
@@ -170,15 +169,20 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
-	// Step 5: Store.
-	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
+	// Step 5: Init Metrics
+	if metricsInterfaceFn != nil {
+		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
+	}
+
+	// Step 6: Store.
+	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
-			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.Metrics())
+			ps.sqlStore = sqlstore.New(ps.Config().SqlSettings, ps.metricsIFace)
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(ps.sqlStore),
-				ps.Metrics(),
+				ps.metricsIFace,
 				ps.clusterIFace,
 				ps.cacheProvider,
 			)
@@ -204,7 +208,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 			return timerlayer.New(
 				searchStore,
-				ps.Metrics(),
+				ps.metricsIFace,
 			), nil
 		}
 	}
@@ -234,20 +238,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
+	// Step 7: Init License
 	if model.BuildEnterpriseReady == "true" {
 		ps.LoadLicense()
 	}
 
-	if metricsInterface != nil {
-		sc.Metrics = metricsInterface(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
-	}
-
+	// Step 8: Init Metrics Server depends on step 6 (store) and 7 (license)
 	if ps.startMetrics {
-		if err = ps.resetMetrics(sc.Metrics, ps.configStore.Get); err != nil {
-			return nil, err
+		if mErr := ps.resetMetrics(); mErr != nil {
+			return nil, mErr
 		}
 	}
 
+	// Step 9: Init AsymmetricSigningKey depends on step 6 (store)
 	if err = ps.EnsureAsymmetricSigningKey(); err != nil {
 		return nil, fmt.Errorf("unable to ensure asymmetric signing key: %w", err)
 	}
@@ -299,6 +302,7 @@ func (ps *PlatformService) Start(suite SuiteIFace) error {
 			return
 		}
 	})
+
 	ps.licenseListenerId = ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		ps.regenerateClientConfig()
 
