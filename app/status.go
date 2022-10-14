@@ -467,10 +467,6 @@ func (a *App) GetRecentCustomStatuses(userID string) ([]*model.CustomStatus, err
 		return nil, jsonErr
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	return existingRCS, nil
 }
 
