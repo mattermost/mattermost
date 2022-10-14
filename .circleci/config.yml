@@ -80,7 +80,7 @@ jobs:
     working_directory: /mnt/ramdisk/
     docker:
       - image: cimg/go:1.18-node
-    resource_class: xlarge
+    resource_class: large
     steps:
       - attach_workspace:
           at: /mnt/ramdisk
