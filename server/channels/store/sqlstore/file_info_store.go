@@ -625,6 +625,18 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 			}
 
+			exactPhraseTerms := []string{}
+
+			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
+				for _, term := range exactPhraseRegExp.FindAllString(terms, -1) {
+					quoteRemovedTerm := strings.Trim(term, "\"")
+
+					exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
+				}
+
+				terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
+			}
+
 			wildcardAddedTerms := strings.Fields(terms)
 			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
 
@@ -636,9 +648,9 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = "(" + strings.Join(wildcardAddedTerms, " | ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(append(wildcardAddedTerms, exactPhraseTerms...), " | ") + ")" + excludeClause
 			} else {
-				queryTerms = "(" + strings.Join(wildcardAddedTerms, " & ") + ")" + excludeClause
+				queryTerms = "(" + strings.Join(append(wildcardAddedTerms, exactPhraseTerms...), " & ") + ")" + excludeClause
 			}
 
 			query = query.Where(sq.Or{
@@ -657,6 +669,13 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				return model.NewFileInfoList(), nil
 			}
 
+			exactPhraseTerms := []string{}
+
+			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
+				exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(terms, -1)...)
+				terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
+			}
+
 			wildcardAddedTerms := strings.Fields(terms)
 			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
 
@@ -666,6 +685,8 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 				}
 			}
 
+			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)
+
 			excludeClause := ""
 			if excludedTerms != "" {
 				excludeClause = " -(" + excludedTerms + ")"
@@ -673,14 +694,15 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			queryTerms := ""
 			if params.OrTerms {
-				queryTerms = strings.Join(wildcardAddedTerms, " ") + excludeClause
+				queryTerms = strings.Join(parsedTerms, " ") + excludeClause
 			} else {
 				splitTerms := []string{}
-				for _, t := range wildcardAddedTerms {
+				for _, t := range parsedTerms {
 					splitTerms = append(splitTerms, "+"+t)
 				}
 				queryTerms = strings.Join(splitTerms, " ") + excludeClause
 			}
+
 			query = query.Where(sq.Or{
 				sq.Expr("MATCH (FileInfo.Name) AGAINST (? IN BOOLEAN MODE)", queryTerms),
 				sq.Expr("MATCH (FileInfo.Content) AGAINST (? IN BOOLEAN MODE)", queryTerms),
