@@ -122,7 +122,7 @@ var searchFileInfoStoreTests = []searchTest{
 	{
 		Name: "Should always be able to support wildcard searches",
 		Fn:   testFileInfoAlwaysSupportWildcards,
-		Tags: []string{EngineMySql, EnginePostgres},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should not support search with preceding wildcards",

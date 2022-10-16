@@ -5,6 +5,7 @@ package bleveengine
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/blevesearch/bleve/v2"
@@ -708,7 +709,27 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 
 		if params.Terms != "" {
 			terms := []string{}
-			for _, term := range strings.Split(params.Terms, " ") {
+			exactPhraseTerms := []string{}
+
+			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
+				exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(params.Terms, -1)...)
+				params.Terms = exactPhraseRegExp.ReplaceAllLiteralString(params.Terms, "")
+			}
+
+			wildcardAddedTerms := strings.Fields(params.Terms)
+			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
+
+			if regExpErr == nil {
+				for index, term := range wildcardAddedTerms {
+					if !strings.HasPrefix(term, "*") {
+						wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
+					}
+				}
+			}
+
+			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)
+
+			for _, term := range parsedTerms {
 				if strings.HasSuffix(term, "*") {
 					nameQ := bleve.NewWildcardQuery(term)
 					nameQ.SetField("Name")
