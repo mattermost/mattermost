@@ -120,6 +120,11 @@ var searchFileInfoStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should always be able to support wildcard searches",
+		Fn:   testFileInfoAlwaysSupportWildcards,
+		Tags: []string{EngineMySql, EnginePostgres},
+	},
+	{
 		Name: "Should not support search with preceding wildcards",
 		Fn:   testFileInfoNotSupportPrecedingWildcards,
 		Tags: []string{EngineAll},
@@ -1176,6 +1181,43 @@ func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
 	t.Run("Wildcard search with another term placed after", func(t *testing.T) {
 		params := &model.SearchParams{
 			Terms: "sear* post",
+		}
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 1)
+		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+	})
+}
+
+func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
+	post, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "testmessage", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	p1, err := th.createFileInfo(th.User.Id, post.Id, "search post", "search post", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	p2, err := th.createFileInfo(th.User.Id, post.Id, "searching", "searching", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	_, err = th.createFileInfo(th.User.Id, post.Id, "another post", "another post", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	defer th.deleteUserFileInfos(th.User.Id)
+
+	t.Run("supports wildcard search without wildcards", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "search",
+		}
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 2)
+		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
+	})
+
+	t.Run("support wildcard search with another term placed after without wildcards", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "sear post",
 		}
 		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 		require.NoError(t, err)
