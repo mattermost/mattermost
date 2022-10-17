@@ -94,11 +94,16 @@ func (a *App) SetStatusOffline(userID string, manual bool) {
 	}
 
 	status, err := a.GetStatus(userID)
+	lastActivityAt := model.GetMillis()
+	// if it's a user with no activity, set LastActivityAt = 0 when automatically updating status
+	if err != nil && err.Id == "app.status.get.missing.app_error" && !manual {
+		lastActivityAt = 0
+	}
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 
-	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: lastActivityAt, ActiveChannel: ""}
 
 	a.Srv().Platform().SaveAndBroadcastStatus(status)
 }
