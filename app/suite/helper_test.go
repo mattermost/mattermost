@@ -83,13 +83,13 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	testLogger.LockConfiguration()
 	options = append(options, platform.SetLogger(testLogger))
 
-	p, err := platform.New(platform.ServiceConfig{}, options...)
-	if err != nil {
-		panic(err)
-	}
+	// p, err := platform.New(platform.ServiceConfig{}, options...)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	th := &TestHelper{
-		Suite:             NewSuiteService(p),
+		// Suite:             NewSuiteService(p),
 		Context:           request.EmptyContext(testLogger),
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,

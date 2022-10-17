@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -4128,23 +4129,6 @@ func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *mod
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) FileBackend() filestore.FileBackend {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileBackend")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.FileBackend()
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) FileExists(path string) (bool, *model.AppError) {
@@ -17952,7 +17936,7 @@ func (a *OpenTracingAppLayer) UploadFile(c request.CTX, data []byte, channelID s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UploadFileX(c *request.Context, channelID string, name string, input io.Reader, opts ...func(*app.UploadFileTask)) (*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) UploadFileX(c *request.Context, channelID string, name string, input io.Reader, opts ...func(*suite.UploadFileTask)) (*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFileX")
 

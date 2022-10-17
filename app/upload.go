@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -292,14 +293,14 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	// image post-processing
 	if info.IsImage() && !info.IsSvg() {
-		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+		if limitErr := suite.CheckImageResolutionLimit(info.Width, info.Height, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			return nil, model.NewAppError("uploadData", "app.upload.upload_data.large_image.app_error",
 				map[string]any{"Filename": us.Filename, "Width": info.Width, "Height": info.Height}, "", http.StatusBadRequest)
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
-		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
-		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
+		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview." + suite.GetFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb." + suite.GetFileExtFromMimeType(info.MimeType)
 		imgData, fileErr := a.ReadFile(uploadPath)
 		if fileErr != nil {
 			return nil, fileErr

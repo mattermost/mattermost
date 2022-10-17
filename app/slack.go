@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/slackimport"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -36,12 +37,12 @@ func (a *App) SlackImport(c *request.Context, fileData multipart.File, fileSize 
 		DoUploadFile: func(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 			return a.DoUploadFile(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 		},
-		GenerateThumbnailImage: a.generateThumbnailImage,
-		GeneratePreviewImage:   a.generatePreviewImage,
+		GenerateThumbnailImage: a.GenerateThumbnailImage,
+		GeneratePreviewImage:   a.GeneratePreviewImage,
 		InvalidateAllCaches:    func() { a.ch.srv.InvalidateAllCaches() },
 		MaxPostSize:            func() int { return a.ch.srv.platform.MaxPostSize() },
 		PrepareImage: func(fileData []byte) (image.Image, string, func(), error) {
-			img, imgType, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
+			img, imgType, release, err := suite.PrepareImage(a.ch.imgDecoder, bytes.NewReader(fileData))
 			if err != nil {
 				return nil, "", nil, err
 			}

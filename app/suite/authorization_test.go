@@ -17,8 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
@@ -67,62 +65,6 @@ func TestHasPermissionToTeam(t *testing.T) {
 	assert.True(t, th.Suite.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.Suite.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-}
-
-func TestSessionHasPermissionToChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	session := model.Session{
-		UserId: th.BasicUser.Id,
-	}
-
-	t.Run("basic user can access basic channel", func(t *testing.T) {
-		assert.True(t, th.Suite.SessionHasPermissionToChannel(th.Context, session, th.BasicChannel.Id, model.PermissionAddReaction))
-	})
-
-	t.Run("does not panic if fetching channel causes an error", func(t *testing.T) {
-		// Regression test for MM-29812
-		// Mock the channel store so getting the channel returns with an error, as per the bug report.
-		mockStore := mocks.Store{}
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
-		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.Suite.platform.Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
-		mockChannelStore.On("ClearCaches").Return()
-		mockStore.On("Channel").Return(&mockChannelStore)
-		mockStore.On("FileInfo").Return(th.Suite.platform.Store.FileInfo())
-		mockStore.On("License").Return(th.Suite.platform.Store.License())
-		mockStore.On("Post").Return(th.Suite.platform.Store.Post())
-		mockStore.On("Role").Return(th.Suite.platform.Store.Role())
-		mockStore.On("System").Return(th.Suite.platform.Store.System())
-		mockStore.On("Team").Return(th.Suite.platform.Store.Team())
-		mockStore.On("User").Return(th.Suite.platform.Store.User())
-		mockStore.On("Webhook").Return(th.Suite.platform.Store.Webhook())
-		mockStore.On("Close").Return(nil)
-		th.Suite.platform.Store = &mockStore
-
-		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
-		// are no session level permissions in this test case, the permission should be denied.
-		assert.False(t, th.Suite.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
-	})
-}
-
-func TestHasPermissionToCategory(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	session, err := th.Suite.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, err)
-
-	categories, err := th.Suite.channels.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
-	require.Nil(t, err)
-
-	_, err = th.Suite.GetSession(session.Token)
-	require.Nil(t, err)
-	require.True(t, th.Suite.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
-
-	categories2, err := th.Suite.channels.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id)
-	require.Nil(t, err)
-	require.False(t, th.Suite.SessionHasPermissionToCategory(th.Context, *session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
 }
 
 func TestSessionHasPermissionToGroup(t *testing.T) {

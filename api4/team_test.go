@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -2145,7 +2145,7 @@ func TestAddTeamMember(t *testing.T) {
 	client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
-		app.TokenTypeTeamInvitation,
+		suite.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2169,7 +2169,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TokenTypeTeamInvitation, "")
+	token = model.NewToken(suite.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
@@ -2181,7 +2181,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestId()
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		suite.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2226,7 +2226,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TokenTypeTeamInvitation,
+		suite.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": team.Id}),
 	)
 	require.NoError(t, th.App.Srv().Store().Token().Save(token))

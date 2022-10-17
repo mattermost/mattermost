@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v6/app/opentracing"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -216,7 +217,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	siteURLHeader := suite.GetProtocol(r) + "://" + r.Host + subpath
 	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
@@ -256,9 +257,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+	token, tokenLocation := suite.ParseAuthTokenFromRequest(r)
 
-	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
+	if token != "" && tokenLocation != suite.TokenLocationCloudHeader && tokenLocation != suite.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
 		defer c.App.ReturnSessionToPool(session)
 
@@ -270,7 +271,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.RemoveSessionCookie(w, r)
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
-		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
+		} else if !session.IsOAuth && tokenLocation == suite.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.AppContext.SetSession(session)
@@ -282,7 +283,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == suite.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -291,7 +292,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.AppContext.SetSession(session)
 		}
-	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
+	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.RemoteClusterService && tokenLocation == suite.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
 		if remoteId := c.GetRemoteID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //
@@ -407,8 +408,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
 // a CSRF check occurred and whether or not it succeeded.
-func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
-	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
+func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation suite.TokenLocation, session *model.Session) (checked bool, passed bool) {
+	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == suite.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
 	if csrfCheckNeeded {

@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -176,11 +176,11 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	auditRec.AddEventParameter("client_id", clientId)
 
 	info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, c.Params.Filename, r.Body,
-		app.UploadFileSetTeamId(FileTeamId),
-		app.UploadFileSetUserId(c.AppContext.Session().UserId),
-		app.UploadFileSetTimestamp(timestamp),
-		app.UploadFileSetContentLength(r.ContentLength),
-		app.UploadFileSetClientId(clientId))
+		suite.UploadFileSetTeamId(FileTeamId),
+		suite.UploadFileSetUserId(c.AppContext.Session().UserId),
+		suite.UploadFileSetTimestamp(timestamp),
+		suite.UploadFileSetContentLength(r.ContentLength),
+		suite.UploadFileSetClientId(clientId))
 	if appErr != nil {
 		c.Err = appErr
 		return nil
@@ -339,11 +339,11 @@ NextPart:
 		auditRec.AddEventParameter("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, filename, part,
-			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.AppContext.Session().UserId),
-			app.UploadFileSetTimestamp(timestamp),
-			app.UploadFileSetContentLength(-1),
-			app.UploadFileSetClientId(clientId))
+			suite.UploadFileSetTeamId(FileTeamId),
+			suite.UploadFileSetUserId(c.AppContext.Session().UserId),
+			suite.UploadFileSetTimestamp(timestamp),
+			suite.UploadFileSetContentLength(-1),
+			suite.UploadFileSetClientId(clientId))
 		if appErr != nil {
 			c.Err = appErr
 			c.LogAuditRec(auditRec)
@@ -442,11 +442,11 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		auditRec.AddEventParameter("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.AppContext, c.Params.ChannelId, fileHeader.Filename, f,
-			app.UploadFileSetTeamId(FileTeamId),
-			app.UploadFileSetUserId(c.AppContext.Session().UserId),
-			app.UploadFileSetTimestamp(timestamp),
-			app.UploadFileSetContentLength(-1),
-			app.UploadFileSetClientId(clientId))
+			suite.UploadFileSetTeamId(FileTeamId),
+			suite.UploadFileSetUserId(c.AppContext.Session().UserId),
+			suite.UploadFileSetTimestamp(timestamp),
+			suite.UploadFileSetContentLength(-1),
+			suite.UploadFileSetClientId(clientId))
 		f.Close()
 		if appErr != nil {
 			c.Err = appErr
@@ -667,7 +667,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if subtle.ConstantTimeCompare([]byte(hash), []byte(app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
+	if subtle.ConstantTimeCompare([]byte(hash), []byte(suite.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt))) != 1 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return

@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 )
 
-func checkImageResolutionLimit(w, h int, maxRes int64) error {
+func CheckImageResolutionLimit(w, h int, maxRes int64) error {
 	// This casting is done to prevent overflow on 32 bit systems (not needed
 	// in 64 bits systems because images can't have more than 32 bits height or
 	// width)
@@ -22,11 +22,11 @@ func checkImageResolutionLimit(w, h int, maxRes int64) error {
 	return nil
 }
 
-func checkImageLimits(imageData io.Reader, maxRes int64) error {
+func CheckImageLimits(imageData io.Reader, maxRes int64) error {
 	w, h, err := imaging.GetDimensions(imageData)
 	if err != nil {
 		return fmt.Errorf("failed to get image dimensions: %w", err)
 	}
 
-	return checkImageResolutionLimit(w, h, maxRes)
+	return CheckImageResolutionLimit(w, h, maxRes)
 }

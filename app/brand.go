@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -28,7 +29,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 	defer file.Close()
 
-	if err = checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
+	if err = suite.CheckImageLimits(file, *a.Config().FileSettings.MaxImageResolution); err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.check_image_limits.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
@@ -60,7 +61,7 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 
 	img, err := a.ReadFile(BrandFilePath + BrandFileName)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetBrandImage", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return img, nil

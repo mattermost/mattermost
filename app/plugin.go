@@ -348,18 +348,18 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
 			defer wg.Done()
-			reader, appErr := ch.srv.fileReader(plugin.path)
-			if appErr != nil {
-				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+			reader, err := ch.srv.FileBackend().Reader(plugin.path)
+			if err != nil {
+				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(err))
 				return
 			}
 			defer reader.Close()
 
 			var signature filestore.ReadCloseSeeker
 			if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
-				signature, appErr = ch.srv.fileReader(plugin.signaturePath)
-				if appErr != nil {
-					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+				signature, err = ch.srv.FileBackend().Reader(plugin.signaturePath)
+				if err != nil {
+					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(err))
 					return
 				}
 				defer signature.Close()
@@ -900,9 +900,9 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
-	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder, false)
-	if appErr != nil {
-		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	fileStorePaths, err := ch.srv.FileBackend().ListDirectory(fileStorePluginFolder)
+	if err != nil {
+		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return ch.getPluginsFromFilePaths(fileStorePaths), nil

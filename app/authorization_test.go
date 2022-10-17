@@ -46,29 +46,6 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 }
 
-func TestChannelRolesGrantPermission(t *testing.T) {
-	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		require.Equal(t, testData.shouldHavePermission, th.App.RolesGrantPermission([]string{testData.channelRole.Name}, testData.permission.Id), "row: %+v\n", testData.truthTableRow)
-	})
-}
-
-func TestHasPermissionToTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
-}
-
 func TestSessionHasPermissionToChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

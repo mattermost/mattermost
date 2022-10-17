@@ -246,7 +246,7 @@ func (a *SuiteService) GetGroupMemberUsersPage(groupID string, page int, perPage
 	if appErr != nil {
 		return nil, 0, appErr
 	}
-	return a.sanitizeProfiles(members, false), int(count), nil
+	return a.SanitizeProfiles(members, false), int(count), nil
 }
 func (a *SuiteService) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	members, err := a.platform.Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
@@ -254,7 +254,7 @@ func (a *SuiteService) GetUsersNotInGroupPage(groupID string, page int, perPage 
 		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(members, false), nil
+	return a.SanitizeProfiles(members, false), nil
 }
 
 func (a *SuiteService) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {

@@ -34,9 +34,13 @@ import (
 // Ensure the wrapper implements the product service.
 var _ product.TeamService = (*SuiteService)(nil)
 
-func (a *SuiteService) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
+func (a *SuiteService) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError) {
+	return a.AddTeamMember(ctx, teamID, userID)
+}
 
-func (a *SuiteService) GetMember(teamID string, userID string) (*model.TeamMember, *model.AppError)
+func (a *SuiteService) GetMember(teamID string, userID string) (*model.TeamMember, *model.AppError) {
+	return a.GetTeamMember(teamID, userID)
+}
 
 func (a *SuiteService) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
@@ -199,7 +203,7 @@ func (ss *SuiteService) CreateTeamWithUser(c *request.Context, team *model.Team,
 	return rteam, nil
 }
 
-func (a *SuiteService) normalizeDomains(domains string) []string {
+func NormalizeDomains(domains string) []string {
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
 	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
@@ -1014,7 +1018,6 @@ func (ss *SuiteService) GetTeamsForUser(userID string) ([]*model.Team, *model.Ap
 	return teams, nil
 }
 
-// golinkname GetMember
 func (ss *SuiteService) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := ss.platform.Store.Team().GetMember(sqlstore.WithMaster(context.Background()), teamID, userID)
 	if err != nil {
@@ -1074,7 +1077,6 @@ func (ss *SuiteService) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) 
 	return teamIDs, nil
 }
 
-// golinkname CreateMember
 func (ss *SuiteService) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	_, teamMember, err := ss.AddUserToTeam(c, teamID, userID, "")
 	if err != nil {
@@ -1214,7 +1216,7 @@ func (ss *SuiteService) RemoveUserFromTeam(c request.CTX, teamID string, userID 
 	return nil
 }
 
-func (ss *SuiteService) postProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
+func (ss *SuiteService) PostProcessTeamMemberLeave(c request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	if pluginsEnvironment := ss.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if requestorId != "" {
@@ -1317,7 +1319,7 @@ func (ss *SuiteService) LeaveTeam(c request.CTX, team *model.Team, user *model.U
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := ss.postProcessTeamMemberLeave(c, teamMember, requestorId); err != nil {
+	if err := ss.PostProcessTeamMemberLeave(c, teamMember, requestorId); err != nil {
 		return err
 	}
 
@@ -1455,7 +1457,7 @@ func (ss *SuiteService) InviteNewUsersToTeamGracefully(memberInvite *model.Membe
 
 	if len(goodEmails) > 0 {
 		nameFormat := *ss.platform.Config().TeamSettings.TeammateNameDisplay
-		senderProfileImage, _, err := ss.GetProfileImage(user)
+		senderProfileImage, _, err := ss.getProfileImage(user)
 		if err != nil {
 			ss.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
@@ -1581,7 +1583,7 @@ func (ss *SuiteService) InviteGuestsToChannelsGracefully(teamID string, guestsIn
 
 	if len(goodEmails) > 0 {
 		nameFormat := *ss.platform.Config().TeamSettings.TeammateNameDisplay
-		senderProfileImage, _, err := ss.GetProfileImage(user)
+		senderProfileImage, _, err := ss.getProfileImage(user)
 		if err != nil {
 			ss.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
@@ -1680,7 +1682,7 @@ func (a *SuiteService) InviteGuestsToChannels(teamID string, guestsInvite *model
 	}
 
 	nameFormat := *a.platform.Config().TeamSettings.TeammateNameDisplay
-	senderProfileImage, _, err2 := a.GetProfileImage(user)
+	senderProfileImage, _, err2 := a.getProfileImage(user)
 	if err2 != nil {
 		a.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err2))
 	}
@@ -2003,7 +2005,7 @@ func (a *SuiteService) SetTeamIconFromMultiPartFile(teamID string, file multipar
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if limitErr := checkImageLimits(file, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
+	if limitErr := CheckImageLimits(file, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.check_image_limits.app_error",
 			nil, "", http.StatusBadRequest).Wrap(limitErr)
 	}

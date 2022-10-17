@@ -13,6 +13,7 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -56,8 +57,8 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 	key := ""
 
 	if rl.useAuth {
-		token, tokenLocation := ParseAuthTokenFromRequest(r)
-		if tokenLocation != TokenLocationNotFound {
+		token, tokenLocation := suite.ParseAuthTokenFromRequest(r)
+		if tokenLocation != suite.TokenLocationNotFound {
 			key += token
 		} else if rl.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
 			key += utils.GetIPAddress(r, rl.trustedProxyIPHeader)

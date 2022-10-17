@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -32,7 +33,7 @@ type Context struct {
 
 // LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
-	c.LogAuditRecWithLevel(rec, app.LevelAPI)
+	c.LogAuditRecWithLevel(rec, suite.LevelAPI)
 }
 
 // LogAuditRec logs an audit record using specified Level.
@@ -46,7 +47,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level) {
 		rec.AddErrorCode(c.Err.StatusCode)
 		rec.AddErrorDesc(c.Err.Error())
 		if c.Err.Id == "api.context.permissions.app_error" {
-			level = app.LevelPerms
+			level = suite.LevelPerms
 		}
 		rec.Fail()
 	}

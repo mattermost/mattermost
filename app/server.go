@@ -258,19 +258,25 @@ func NewServer(options ...Option) (*Server, error) {
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
+	// Step 3: Init App for suite service providers
+	tmpApp := New(ServerConnector(s.Channels()))
+
 	serviceMap := map[ServiceKey]any{
 		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.platform,
 		LicenseKey:       s.licenseWrapper,
 		FilestoreKey:     s.platform.FileBackend(),
-		FileInfoStoreKey: &fileInfoWrapper{srv: s},
+		FileInfoStoreKey: tmpApp,
 		ClusterKey:       s.platform,
-		UserKey:          New(ServerConnector(s.Channels())),
+		UserKey:          tmpApp,
 		LogKey:           s.platform.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
 		KVStoreKey:       s.platform,
 		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		SystemKey:        &systemServiceAdapter{server: s},
+		BotKey:           tmpApp,
+		PreferencesKey:   tmpApp,
+		TeamKey:          tmpApp,
 	}
 
 	// Step 4: Initialize products.
@@ -1636,8 +1642,8 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		}
 
 		if user.LastPictureUpdate == 0 {
-			if _, err := s.writeFile(bytes.NewReader(img), path); err != nil {
-				return nil, false, err
+			if _, err := s.FileBackend().WriteFile(bytes.NewReader(img), path); err != nil {
+				return nil, false, model.NewAppError("GetProfileImage", "api.user.create_profile_image.default_font.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		return img, true, nil
@@ -1740,4 +1746,37 @@ func (s *Server) Log() *mlog.Logger {
 
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
+}
+
+func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
+	adt.OnQueueFull = s.onAuditTargetQueueFull
+	adt.OnError = s.onAuditError
+
+	var logConfigSrc config.LogConfigSrc
+	dsn := *s.platform.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
+	if bAllowAdvancedLogging && dsn != "" {
+		var err error
+		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
+		if err != nil {
+			return fmt.Errorf("invalid config source for audit, %w", err)
+		}
+		mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
+	}
+
+	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
+	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
+	if err != nil {
+		return fmt.Errorf("invalid config for audit, %w", err)
+	}
+
+	return adt.Configure(cfg)
+}
+
+func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
+	mlog.Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
+	return true // drop it
+}
+
+func (s *Server) onAuditError(err error) {
+	mlog.Error("Audit Error", mlog.Err(err))
 }

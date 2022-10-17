@@ -256,7 +256,7 @@ func (a *SuiteService) createUserOrGuest(c request.CTX, user *model.User, guest 
 			}
 		}
 
-		a.sendUpdatedUserEvent(*nUser)
+		a.SendUpdatedUserEvent(*nUser)
 	}
 
 	recommendedNextStepsPref := model.Preference{UserId: ruser.Id, Category: model.PreferenceRecommendedNextSteps, Name: "hide", Value: "false"}
@@ -479,7 +479,7 @@ func (a *SuiteService) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin
 		return nil, model.NewAppError("GetUsersInTeamPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
@@ -488,7 +488,7 @@ func (a *SuiteService) GetUsersNotInTeamPage(teamID string, groupConstrained boo
 		return nil, model.NewAppError("GetUsersNotInTeamPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
@@ -547,7 +547,7 @@ func (a *SuiteService) GetUsersInChannelPage(options *model.UserGetOptions, asAd
 	if err != nil {
 		return nil, err
 	}
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -555,7 +555,7 @@ func (a *SuiteService) GetUsersInChannelPageByStatus(options *model.UserGetOptio
 	if err != nil {
 		return nil, err
 	}
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersInChannelPageByAdmin(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -563,7 +563,7 @@ func (a *SuiteService) GetUsersInChannelPageByAdmin(options *model.UserGetOption
 	if err != nil {
 		return nil, err
 	}
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
@@ -597,7 +597,7 @@ func (a *SuiteService) GetUsersNotInChannelPage(teamID string, channelID string,
 		return nil, err
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -606,7 +606,7 @@ func (a *SuiteService) GetUsersWithoutTeamPage(options *model.UserGetOptions, as
 		return nil, model.NewAppError("GetUsersWithoutTeamPage", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
@@ -653,7 +653,7 @@ func (a *SuiteService) GetUsersByGroupChannelIds(c *request.Context, channelIDs 
 		return nil, model.NewAppError("GetUsersByGroupChannelIds", "app.user.get_profile_by_group_channel_ids_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for channelID, userList := range usersByChannelId {
-		usersByChannelId[channelID] = a.sanitizeProfiles(userList, asAdmin)
+		usersByChannelId[channelID] = a.SanitizeProfiles(userList, asAdmin)
 	}
 
 	return usersByChannelId, nil
@@ -664,10 +664,10 @@ func (a *SuiteService) GetUsersByUsernames(usernames []string, asAdmin bool, vie
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByUsernames", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *SuiteService) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
+func (a *SuiteService) SanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
 	for _, u := range users {
 		a.SanitizeProfile(u, asAdmin)
 	}
@@ -739,7 +739,7 @@ func (a *SuiteService) DeactivateMfa(userID string) *model.AppError {
 }
 
 func (a *SuiteService) SetDefaultProfileImage(c request.CTX, user *model.User) *model.AppError {
-	img, err := a.GetDefaultProfileImage(user)
+	img, err := a.getDefaultProfileImage(user)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.DefaultFontError):
@@ -788,7 +788,7 @@ func (a *SuiteService) SetProfileImage(c request.CTX, userID string, imageData *
 }
 
 func (a *SuiteService) SetProfileImageFromMultiPartFile(c request.CTX, userID string, file multipart.File) *model.AppError {
-	if limitErr := checkImageLimits(file, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
+	if limitErr := CheckImageLimits(file, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -947,7 +947,7 @@ func (a *SuiteService) UpdateActive(c request.CTX, user *model.User, active bool
 	a.invalidateUserChannelMembersCaches(c, user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
-	a.sendUpdatedUserEvent(*ruser)
+	a.SendUpdatedUserEvent(*ruser)
 
 	return ruser, nil
 }
@@ -1060,7 +1060,7 @@ func (a *SuiteService) UpdateUserAuth(userID string, userAuth *model.UserAuth) (
 	return userAuth, nil
 }
 
-func (a *SuiteService) sendUpdatedUserEvent(user model.User) {
+func (a *SuiteService) SendUpdatedUserEvent(user model.User) {
 	// exclude event creator user from admin, member user broadcast
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
@@ -1201,7 +1201,7 @@ func (a *SuiteService) UpdateUser(c request.CTX, user *model.User, sendNotificat
 				}
 			})
 		}
-		a.sendUpdatedUserEvent(*userUpdate.New)
+		a.SendUpdatedUserEvent(*userUpdate.New)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1812,7 +1812,7 @@ func (a *SuiteService) VerifyUserEmail(userID, email string) *model.AppError {
 		return err
 	}
 
-	a.sendUpdatedUserEvent(*user)
+	a.SendUpdatedUserEvent(*user)
 
 	return nil
 }
@@ -2195,7 +2195,7 @@ func (a *SuiteService) PromoteGuestToUser(c *request.Context, user *model.User, 
 	if err != nil {
 		c.Logger().Warn("Failed to get user on promote guest to user", mlog.Err(err))
 	} else {
-		a.sendUpdatedUserEvent(*promotedUser)
+		a.SendUpdatedUserEvent(*promotedUser)
 		if uErr := a.platform.UpdateSessionsIsGuest(promotedUser.Id, promotedUser.IsGuest()); uErr != nil {
 			c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", promotedUser.Id), mlog.Err(uErr))
 		}
@@ -2240,7 +2240,7 @@ func (a *SuiteService) DemoteUserToGuest(c request.CTX, user *model.User) *model
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	a.sendUpdatedUserEvent(*demotedUser)
+	a.SendUpdatedUserEvent(*demotedUser)
 	if uErr := a.platform.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest()); uErr != nil {
 		c.Logger().Warn("Unable to update user sessions", mlog.String("user_id", demotedUser.Id), mlog.Err(uErr))
 	}

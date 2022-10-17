@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -317,7 +317,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAuthActionSSOToEmail {
-		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
+		redirectURL = suite.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
 		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {

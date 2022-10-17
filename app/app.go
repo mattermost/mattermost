@@ -26,8 +26,8 @@ import (
 // It is a request-scoped struct constructed every time a request hits the server,
 // and its only purpose is to provide business logic to Server via its methods.
 type App struct {
-	suite suite.SuiteService
-	ch    *Channels
+	*suite.SuiteService
+	ch *Channels
 }
 
 func New(options ...AppOption) *App {
@@ -37,27 +37,28 @@ func New(options ...AppOption) *App {
 		option(app)
 	}
 
-	srv := app.Srv()
-	if srv == nil {
-		panic("app.Server is nil")
+	if app.ch != nil {
+		app.initSuite(app.ch)
 	}
 
-	app.suite = *suite.NewSuiteService(&suite.SuiteServiceConfig{
-		Channels:     app,
-		Platform:     srv.platform,
-		EmailService: srv.EmailService,
-		HTTPService:  srv.httpService,
-		Audit:        srv.Audit,
-		// SharedChannelSyncService: srv.sharedChannelService, TODO: uncomment once define the interface
-		Ldap:               app.ch.Ldap,
-		Saml:               app.ch.Saml,
-		Cloud:              srv.Cloud,
-		ImgDecoder:         app.ch.imgDecoder,
-		ImgEncoder:         app.ch.imgEncoder,
-		PluginsEnvironment: app.ch.pluginsEnvironment,
-	})
-
 	return app
+}
+
+func (a *App) initSuite(ch *Channels) {
+	a.SuiteService = suite.NewSuiteService(&suite.SuiteServiceConfig{
+		Channels:     a,
+		Platform:     a.ch.srv.platform,
+		EmailService: a.ch.srv.EmailService,
+		HTTPService:  a.ch.srv.httpService,
+		Audit:        a.ch.srv.Audit,
+		// SharedChannelSyncService: srv.sharedChannelService, TODO: uncomment once define the interface
+		Ldap:               a.ch.Ldap,
+		Saml:               a.ch.Saml,
+		Cloud:              a.ch.srv.Cloud,
+		ImgDecoder:         a.ch.imgDecoder,
+		ImgEncoder:         a.ch.imgEncoder,
+		PluginsEnvironment: a.ch.pluginsEnvironment,
+	})
 }
 
 func (a *App) TelemetryId() string {
@@ -175,6 +176,7 @@ func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
 
 func (a *App) SetChannels(ch *Channels) {
 	a.ch = ch
+	a.initSuite(a.ch)
 }
 
 func (a *App) SetServer(srv *Server) {

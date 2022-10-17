@@ -76,7 +76,7 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	}
 
 	for _, thread := range result.Threads {
-		a.sanitizeProfiles(thread.Participants, false)
+		a.SanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 	}
 
@@ -102,7 +102,7 @@ func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMemb
 	if thread == nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
 	}
-	a.sanitizeProfiles(thread.Participants, false)
+	a.SanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
 	return thread, nil
 }
@@ -186,7 +186,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 		}
 		return model.NewAppError("UpdateThreadFollowForUserFromChannelAdd", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	a.sanitizeProfiles(userThread.Participants, false)
+	a.SanitizeProfiles(userThread.Participants, false)
 	userThread.Post.SanitizeProps()
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, userThread.Post, userID)
 	if appErr != nil {

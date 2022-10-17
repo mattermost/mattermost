@@ -123,7 +123,7 @@ func (us *SuiteService) getUsersPage(options *model.UserGetOptions, asAdmin bool
 		return nil, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (us *SuiteService) getUsersEtag(restrictionsHash string) string {
@@ -138,7 +138,7 @@ func (us *SuiteService) getUsersByIds(userIDs []string, options *store.UserGetBy
 		return nil, err
 	}
 
-	return us.sanitizeProfiles(users, options.IsAdmin), nil
+	return us.SanitizeProfiles(users, options.IsAdmin), nil
 }
 
 func (us *SuiteService) getUsersInTeam(options *model.UserGetOptions) ([]*model.User, error) {
@@ -155,7 +155,7 @@ func (us *SuiteService) getUsersInTeamPage(options *model.UserGetOptions, asAdmi
 		return nil, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (us *SuiteService) getUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
@@ -164,7 +164,7 @@ func (us *SuiteService) getUsersNotInTeamPage(teamID string, groupConstrained bo
 		return nil, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (us *SuiteService) getUsersInTeamEtag(teamID string, restrictionsHash string) string {
@@ -181,7 +181,7 @@ func (us *SuiteService) getUsersWithoutTeamPage(options *model.UserGetOptions, a
 		return nil, err
 	}
 
-	return us.sanitizeProfiles(users, asAdmin), nil
+	return us.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (us *SuiteService) getUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, error) {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -1014,7 +1015,7 @@ func (a *App) PatchChannelModerationsForChannel(c request.CTX, channel *model.Ch
 		if err != nil {
 			return nil, err
 		}
-		if appErr := a.sendUpdatedRoleEvent(adminRole); appErr != nil {
+		if appErr := a.SendUpdatedRoleEvent(adminRole); appErr != nil {
 			return nil, appErr
 		}
 
@@ -1223,7 +1224,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 
 	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
+		member.ExplicitRoles = suite.RemoveRoles([]string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId}, member.ExplicitRoles)
 	}
 
 	return a.updateChannelMember(c, member)
@@ -2455,7 +2456,7 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if err = a.postProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
+			if err = a.PostProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
@@ -2690,7 +2691,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		a.sanitizeProfiles(thread.Participants, false)
+		a.SanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeProps()
 
 		if a.IsCRTEnabledForUser(c, userID) {
@@ -3485,7 +3486,7 @@ func (a *App) AddToDefaultChannelsWithToken(c request.CTX, teamID, userID string
 		return model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
+	if token.Type == suite.TokenTypeGuestInvitation || (token.Type == suite.TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(c, userID, channel, ChannelMemberOpts{})
 			if err != nil {

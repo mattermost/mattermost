@@ -120,7 +120,7 @@ func TestAdjustProfileImage(t *testing.T) {
 
 	// default image should require adjustment
 	user := th.BasicUser
-	image, err2 := th.Suite.GetDefaultProfileImage(user)
+	image, err2 := th.Suite.getDefaultProfileImage(user)
 	require.NoError(t, err2)
 	image2, err2 := th.Suite.AdjustImage(bytes.NewReader(image))
 	require.NoError(t, err2)

@@ -94,8 +94,12 @@ func (a *SuiteService) TestFileStoreConnectionWithConfig(cfg *model.FileSettings
 	return nil
 }
 
-func (a *SuiteService) ReadFile(path string) ([]byte, error) {
-	return a.platform.FileBackend().ReadFile(path)
+func (a *SuiteService) ReadFile(path string) ([]byte, *model.AppError) {
+	b, err := a.platform.FileBackend().ReadFile(path)
+	if err != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, nil
 }
 
 func (a *SuiteService) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
@@ -236,8 +240,8 @@ func (a *SuiteService) getInfoForFilename(post *model.Post, teamID, channelID, u
 
 	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + GetFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + GetFileExtFromMimeType(info.MimeType)
 	}
 
 	return info
@@ -766,14 +770,14 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Width = w
 	t.fileinfo.Height = h
 
-	if err = checkImageResolutionLimit(w, h, t.maxImageRes); err != nil {
+	if err = CheckImageResolutionLimit(w, h, t.maxImageRes); err != nil {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error", http.StatusBadRequest)
 	}
 
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
-	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview." + getFileExtFromMimeType(t.fileinfo.MimeType)
-	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(t.fileinfo.MimeType)
+	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview." + GetFileExtFromMimeType(t.fileinfo.MimeType)
+	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb." + GetFileExtFromMimeType(t.fileinfo.MimeType)
 
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
@@ -933,14 +937,14 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() && !info.IsSvg() {
-		if limitErr := checkImageResolutionLimit(info.Width, info.Height, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
+		if limitErr := CheckImageResolutionLimit(info.Width, info.Height, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, "", http.StatusBadRequest).Wrap(limitErr)
 			return nil, data, err
 		}
 
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + GetFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + GetFileExtFromMimeType(info.MimeType)
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -999,7 +1003,7 @@ func (a *SuiteService) HandleImages(previewPathList []string, thumbnailPathList 
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, imgType, release, err := prepareImage(a.imgDecoder, bytes.NewReader(fileData[i]))
+		img, imgType, release, err := PrepareImage(a.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
@@ -1007,12 +1011,12 @@ func (a *SuiteService) HandleImages(previewPathList []string, thumbnailPathList 
 		wg.Add(2)
 		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generateThumbnailImage(img, imgType, path)
+			a.GenerateThumbnailImage(img, imgType, path)
 		}(img, imgType, thumbnailPathList[i])
 
 		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generatePreviewImage(img, imgType, path)
+			a.GeneratePreviewImage(img, imgType, path)
 		}(img, imgType, previewPathList[i])
 
 		wg.Wait()
@@ -1020,7 +1024,7 @@ func (a *SuiteService) HandleImages(previewPathList []string, thumbnailPathList 
 	}
 }
 
-func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, imgType string, release func(), err error) {
+func PrepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, imgType string, release func(), err error) {
 	// Decode image bytes into Image object
 	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
@@ -1038,7 +1042,7 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 	return img, imgType, release, nil
 }
 
-func (a *SuiteService) generateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
+func (a *SuiteService) GenerateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
 	var buf bytes.Buffer
 
 	thumb := imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight)
@@ -1060,7 +1064,7 @@ func (a *SuiteService) generateThumbnailImage(img image.Image, imgType, thumbnai
 	}
 }
 
-func (a *SuiteService) generatePreviewImage(img image.Image, imgType, previewPath string) {
+func (a *SuiteService) GeneratePreviewImage(img image.Image, imgType, previewPath string) {
 	var buf bytes.Buffer
 
 	preview := imaging.GeneratePreview(img, imagePreviewWidth)
@@ -1092,7 +1096,7 @@ func (a *SuiteService) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer file.Close()
-		img, _, release, err := prepareImage(a.imgDecoder, file)
+		img, _, release, err := PrepareImage(a.imgDecoder, file)
 		if err != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
@@ -1115,7 +1119,7 @@ func (a *SuiteService) generateMiniPreview(fi *model.FileInfo) {
 	}
 }
 
-func (a *SuiteService) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
+func (a *SuiteService) GenerateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg := new(sync.WaitGroup)
 
 	wg.Add(len(fileInfos))
@@ -1194,7 +1198,7 @@ func (a *SuiteService) GetFileInfos(page, perPage int, opt *model.GetFileInfosOp
 		return nil, appErr
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.GenerateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, nil
 }
@@ -1213,7 +1217,7 @@ func (a *SuiteService) GetFile(fileID string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *SuiteService) getFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
+func (a *SuiteService) GetFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
 	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
 	if err != nil {
 		return nil, err
@@ -1530,7 +1534,7 @@ func (a *SuiteService) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
 }
 
-func getFileExtFromMimeType(mimeType string) string {
+func GetFileExtFromMimeType(mimeType string) string {
 	if mimeType == "image/png" {
 		return "png"
 	}

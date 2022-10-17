@@ -127,7 +127,7 @@ func (a *SuiteService) PatchRole(role *model.Role, patch *model.RolePatch) (*mod
 		return nil, err
 	}
 
-	if appErr := a.sendUpdatedRoleEvent(role); appErr != nil {
+	if appErr := a.SendUpdatedRoleEvent(role); appErr != nil {
 		return nil, appErr
 	}
 
@@ -216,7 +216,7 @@ func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppErro
 
 	for _, ir := range impactedRoles {
 		if ir.Name != role.Name {
-			appErr = a.sendUpdatedRoleEvent(ir)
+			appErr = a.SendUpdatedRoleEvent(ir)
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -248,7 +248,7 @@ func (a *SuiteService) CheckRolesExist(roleNames []string) *model.AppError {
 	return nil
 }
 
-func (a *SuiteService) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
+func (a *SuiteService) SendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {

@@ -206,23 +206,11 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		app: &App{ch: ch},
 	}
 
-	services[TeamKey] = &teamServiceWrapper{
-		app: &App{ch: ch},
-	}
-
-	services[BotKey] = &botServiceWrapper{
-		app: &App{ch: ch},
-	}
-
 	services[HooksKey] = &hooksService{
 		ch: ch,
 	}
 
 	services[UserKey] = &App{ch: ch}
-
-	services[PreferencesKey] = &preferencesServiceWrapper{
-		app: &App{ch: ch},
-	}
 
 	return ch, nil
 }

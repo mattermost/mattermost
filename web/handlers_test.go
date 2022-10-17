@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -573,7 +573,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -604,7 +604,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -655,7 +655,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -687,7 +687,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -717,7 +717,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -747,7 +747,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationHeader
+		tokenLocation := suite.TokenLocationHeader
 
 		c := &Context{
 			App:        th.App,
@@ -777,7 +777,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,
@@ -803,7 +803,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		}
 
 		token := "token"
-		tokenLocation := app.TokenLocationCookie
+		tokenLocation := suite.TokenLocationCookie
 
 		c := &Context{
 			App:        th.App,

@@ -5,11 +5,13 @@ package suite
 
 import (
 	"bytes"
+	"errors"
 	"hash/fnv"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
@@ -25,9 +28,9 @@ const (
 	imageProfilePixelDimension = 128
 )
 
-func (us *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, error) {
+func (us *SuiteService) getProfileImage(user *model.User) ([]byte, bool, error) {
 	if *us.platform.Config().FileSettings.DriverName == "" {
-		img, err := us.GetDefaultProfileImage(user)
+		img, err := us.getDefaultProfileImage(user)
 		if err != nil {
 			return nil, false, err
 		}
@@ -37,7 +40,7 @@ func (us *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, error) 
 	path := path.Join("users", user.Id, "profile.png")
 	data, err := us.ReadFile(path)
 	if err != nil {
-		img, appErr := us.GetDefaultProfileImage(user)
+		img, appErr := us.getDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr
 		}
@@ -53,12 +56,41 @@ func (us *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, error) 
 	return data, false, nil
 }
 
-func (us *SuiteService) GetDefaultProfileImage(user *model.User) ([]byte, error) {
+func (ss *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	data, isDefault, err := ss.getProfileImage(user)
+	if err != nil {
+		return nil, false, model.NewAppError("GetProfileImage", "api.user.get_profile_image.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return data, isDefault, nil
+}
+
+func (us *SuiteService) getDefaultProfileImage(user *model.User) ([]byte, error) {
 	if user.IsBot {
 		return botDefaultImage, nil
 	}
 
 	return createProfileImage(user.Username, user.Id, *us.platform.Config().FileSettings.InitialFont)
+}
+
+func (us *SuiteService) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	if user.IsBot {
+		return botDefaultImage, nil
+	}
+
+	data, err := us.getDefaultProfileImage(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.DefaultFontError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		case errors.Is(err, users.UserInitialsError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return data, nil
 }
 
 func createProfileImage(username string, userID string, initialFont string) ([]byte, error) {

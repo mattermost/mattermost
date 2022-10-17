@@ -1599,12 +1599,12 @@ func (a *App) GetFileInfosForPost(postID string, fromMaster bool, includeDeleted
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
+	firstInaccessibleFileTime, appErr := a.RemoveInaccessibleContentFromFilesSlice(fileInfos)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.GenerateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
 }
@@ -1615,7 +1615,7 @@ func (a *App) getFileInfosForPostIgnoreCloudLimit(postID string, fromMaster bool
 		return nil, model.NewAppError("getFileInfosForPostIgnoreCloudLimit", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.GenerateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, nil
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/markdown"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -411,7 +412,7 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 }
 
 func (a *App) isLinkAllowedForPreview(link string) bool {
-	domains := a.normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
+	domains := suite.NormalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
 	for _, d := range domains {
 		if strings.Contains(link, d) {
 			return false

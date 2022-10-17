@@ -96,60 +96,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 }
 
 func (a *App) DoEmojisPermissionsMigration() {
-	a.Srv().doEmojisPermissionsMigration()
-}
-
-func (s *Server) doEmojisPermissionsMigration() {
-	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(EmojisPermissionsMigrationKey); err == nil {
-		return
-	}
-
-	var role *model.Role
-	var systemAdminRole *model.Role
-	var err *model.AppError
-
-	mlog.Info("Migrating emojis config to database.")
-
-	// Emoji creation is set to all by default
-	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
-	if err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
-	}
-
-	if role != nil {
-		role.Permissions = append(role.Permissions, model.PermissionCreateEmojis.Id, model.PermissionDeleteEmojis.Id)
-		if _, nErr := s.Store().Role().Save(role); nErr != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(nErr))
-			return
-		}
-	}
-
-	systemAdminRole, err = s.GetRoleByName(context.Background(), model.SystemAdminRoleId)
-	if err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
-	}
-
-	systemAdminRole.Permissions = append(systemAdminRole.Permissions,
-		model.PermissionCreateEmojis.Id,
-		model.PermissionDeleteEmojis.Id,
-		model.PermissionDeleteOthersEmojis.Id,
-	)
-	if _, err := s.Store().Role().Save(systemAdminRole); err != nil {
-		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
-		return
-	}
-
-	system := model.System{
-		Name:  EmojisPermissionsMigrationKey,
-		Value: "true",
-	}
-
-	if err := s.Store().System().Save(&system); err != nil {
-		mlog.Critical("Failed to mark emojis permissions migration as completed.", mlog.Err(err))
-	}
+	a.SuiteService.DoEmojisPermissionsMigration()
 }
 
 func (a *App) DoGuestRolesCreationMigration() {
@@ -544,7 +491,6 @@ func (a *App) DoAppMigrations() {
 
 func (s *Server) doAppMigrations() {
 	s.doAdvancedPermissionsMigration()
-	s.doEmojisPermissionsMigration()
 	s.doGuestRolesCreationMigration()
 	s.doSystemConsoleRolesCreationMigration()
 	s.doCustomGroupAdminRoleCreationMigration()

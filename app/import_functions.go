@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -537,7 +538,7 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 			}
 		}
 		if hasNotifyPropsChanged {
-			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
+			if appErr = a.UpdateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
 				return appErr
 			}
 			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
@@ -587,7 +588,7 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 			c.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
 		} else {
 			defer file.Close()
-			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+			if limitErr := suite.CheckImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
 			if err := a.SetProfileImageFromFile(c, savedUser.Id, file); err != nil {
@@ -1235,7 +1236,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			}
 			// check md5
 			newHash := sha1.Sum(fileData)
-			oldFileData, err := a.getFileIgnoreCloudLimit(oldFile.Id)
+			oldFileData, err := a.GetFileIgnoreCloudLimit(oldFile.Id)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]any{"FilePath": *data.Path}, "", http.StatusBadRequest)
 			}

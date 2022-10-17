@@ -11,7 +11,7 @@ import (
 
 // removeInaccessibleContentFromFilesSlice removes content from the files beyond the cloud plan's limit
 // and also returns the firstInaccessibleFileTime
-func (a *SuiteService) removeInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
+func (a *SuiteService) RemoveInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
 	if len(files) == 0 {
 		return 0, nil
 	}

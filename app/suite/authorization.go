@@ -95,102 +95,6 @@ func (a *SuiteService) SessionHasPermissionToTeams(c request.CTX, session model.
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-func (a *SuiteService) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
-	if channelID == "" {
-		return false
-	}
-
-	ids, err := a.platform.Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
-
-	var channelRoles []string
-	if err == nil {
-		if roles, ok := ids[channelID]; ok {
-			channelRoles = strings.Fields(roles)
-			if a.RolesGrantPermission(channelRoles, permission.Id) {
-				return true
-			}
-		}
-	}
-
-	channel, appErr := a.channels.GetChannel(c, channelID)
-	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false
-	}
-
-	if session.IsUnrestricted() {
-		return true
-	}
-
-	if appErr == nil && channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-	}
-
-	return a.SessionHasPermissionTo(session, permission)
-}
-
-// SessionHasPermissionToChannels returns true only if user has access to all channels.
-func (a *SuiteService) SessionHasPermissionToChannels(c request.CTX, session model.Session, channelIDs []string, permission *model.Permission) bool {
-	if len(channelIDs) == 0 {
-		return true
-	}
-
-	for _, channelID := range channelIDs {
-		if channelID == "" {
-			return false
-		}
-	}
-
-	if session.IsUnrestricted() {
-		return true
-	}
-
-	ids, err := a.platform.Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
-
-	var channelRoles []string
-	uniqueRoles := make(map[string]bool)
-	if err == nil {
-		for _, channelID := range channelIDs {
-			if roles, ok := ids[channelID]; ok {
-				for _, role := range strings.Fields(roles) {
-					uniqueRoles[role] = true
-				}
-			}
-		}
-	}
-
-	for role := range uniqueRoles {
-		channelRoles = append(channelRoles, role)
-	}
-
-	if a.RolesGrantPermission(channelRoles, permission.Id) {
-		return true
-	}
-
-	channels, appErr := a.channels.GetChannels(c, channelIDs)
-	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
-		return false
-	}
-
-	// Get TeamIDs from channels
-	uniqueTeamIDs := make(map[string]bool)
-	for _, ch := range channels {
-		if ch.TeamId != "" {
-			uniqueTeamIDs[ch.TeamId] = true
-		}
-	}
-
-	var teamIDs []string
-	for teamID := range uniqueTeamIDs {
-		teamIDs = append(teamIDs, teamID)
-	}
-
-	if appErr == nil && len(teamIDs) > 0 {
-		return a.SessionHasPermissionToTeams(c, session, teamIDs, permission)
-	}
-
-	return a.SessionHasPermissionTo(session, permission)
-}
-
 func (a *SuiteService) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
 	groupMember, err := a.platform.Store.Group().GetMember(groupID, session.UserId)
 	// don't reject immediately on ErrNoRows error because there's further authz logic below for non-groupmembers
@@ -208,31 +112,6 @@ func (a *SuiteService) SessionHasPermissionToGroup(session model.Session, groupI
 
 	// ...otherwise check their system roles to see if they have the requested permission system-wide
 	return a.SessionHasPermissionTo(session, permission)
-}
-
-func (a *SuiteService) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.platform.Store.Channel().GetMemberForPost(postID, session.UserId); err == nil {
-
-		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
-			return true
-		}
-	}
-
-	if channel, err := a.platform.Store.Channel().GetForPost(postID); err == nil {
-		if channel.TeamId != "" {
-			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-		}
-	}
-
-	return a.SessionHasPermissionTo(session, permission)
-}
-
-func (a *SuiteService) SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool {
-	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) {
-		return true
-	}
-	category, err := a.channels.GetSidebarCategory(c, categoryId)
-	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
 func (a *SuiteService) SessionHasPermissionToUser(session model.Session, userID string) bool {
@@ -290,42 +169,6 @@ func (a *SuiteService) HasPermissionToTeam(askingUserId string, teamID string, p
 			return true
 		}
 	}
-	return a.HasPermissionTo(askingUserId, permission)
-}
-
-func (a *SuiteService) HasPermissionToChannel(c request.CTX, askingUserId string, channelID string, permission *model.Permission) bool {
-	if channelID == "" || askingUserId == "" {
-		return false
-	}
-
-	channelMember, err := a.channels.GetChannelMember(c, channelID, askingUserId)
-	if err == nil {
-		roles := channelMember.GetRoles()
-		if a.RolesGrantPermission(roles, permission.Id) {
-			return true
-		}
-	}
-
-	var channel *model.Channel
-	channel, err = a.channels.GetChannel(c, channelID)
-	if err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
-	}
-
-	return a.HasPermissionTo(askingUserId, permission)
-}
-
-func (a *SuiteService) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.platform.Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
-		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
-			return true
-		}
-	}
-
-	if channel, err := a.platform.Store.Channel().GetForPost(postID); err == nil {
-		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
-	}
-
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
@@ -399,8 +242,4 @@ func (a *SuiteService) SessionHasPermissionToManageBot(session model.Session, bo
 	}
 
 	return nil
-}
-
-func (a *SuiteService) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }

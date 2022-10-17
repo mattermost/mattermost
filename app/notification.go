@@ -627,7 +627,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeProfiles(userThread.Participants, false)
+					a.SanitizeProfiles(userThread.Participants, false)
 					userThread.Post.SanitizeProps()
 
 					sanitizedPost, err := a.SanitizePostMetadataForUser(c, userThread.Post, uid)

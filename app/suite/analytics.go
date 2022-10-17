@@ -328,7 +328,7 @@ func (a *SuiteService) GetRecentlyActiveUsersForTeamPage(teamID string, page, pe
 		return nil, model.NewAppError("GetRecentlyActiveUsersForTeamPage", "app.user.get_recently_active_users.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *SuiteService) GetNewUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
@@ -337,5 +337,5 @@ func (a *SuiteService) GetNewUsersForTeamPage(teamID string, page, perPage int, 
 		return nil, model.NewAppError("GetNewUsersForTeamPage", "app.user.get_new_users.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return a.sanitizeProfiles(users, asAdmin), nil
+	return a.SanitizeProfiles(users, asAdmin), nil
 }

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -139,7 +139,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TokenTypeGuestInvitation {
+		if token.Type == suite.TokenTypeGuestInvitation {
 			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -2124,7 +2124,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	maxAgeSeconds := *c.App.Config().ServiceSettings.SessionLengthMobileInHours * 60 * 60
 
 	secure := false
-	if app.GetProtocol(r) == "https" {
+	if suite.GetProtocol(r) == "https" {
 		secure = true
 	}
 

@@ -191,7 +191,7 @@ func TestRemoveInaccessibleContentFromFilesSlice(t *testing.T) {
 
 	files := []*model.FileInfo{getFileWithCreateAt(4), getFileWithCreateAt(1), getFileWithCreateAt(0), getFileWithCreateAt(3), getFileWithCreateAt(2)}
 
-	_, appErr := th.Suite.removeInaccessibleContentFromFilesSlice(files)
+	_, appErr := th.Suite.RemoveInaccessibleContentFromFilesSlice(files)
 
 	require.Nil(t, appErr)
 	assert.Len(t, files, len(files))

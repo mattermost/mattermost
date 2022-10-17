@@ -72,18 +72,18 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 		return
 	}
 
-	reader, appErr := ch.srv.fileReader(plugin.path)
-	if appErr != nil {
-		mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+	reader, err := ch.srv.FileBackend().Reader(plugin.path)
+	if err != nil {
+		mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(err))
 		return
 	}
 	defer reader.Close()
 
 	var signature filestore.ReadCloseSeeker
 	if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
-		signature, appErr = ch.srv.fileReader(plugin.signaturePath)
-		if appErr != nil {
-			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+		signature, err = ch.srv.FileBackend().Reader(plugin.signaturePath)
+		if err != nil {
+			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(err))
 			return
 		}
 		defer signature.Close()
@@ -151,15 +151,15 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 	if signature != nil {
 		signature.Seek(0, 0)
-		if _, appErr = ch.srv.writeFile(signature, getSignatureStorePath(manifest.Id)); appErr != nil {
-			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		if _, err := ch.srv.FileBackend().WriteFile(signature, getSignatureStorePath(manifest.Id)); err != nil {
+			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	// Store bundle in the file store to allow access from other servers.
 	pluginFile.Seek(0, 0)
-	if _, appErr := ch.srv.writeFile(pluginFile, getBundleStorePath(manifest.Id)); appErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	if _, err := ch.srv.FileBackend().WriteFile(pluginFile, getBundleStorePath(manifest.Id)); err != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	ch.notifyClusterPluginEvent(
@@ -430,18 +430,18 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 
 	// Remove bundle from the file store.
 	storePluginFileName := getBundleStorePath(id)
-	bundleExist, err := ch.srv.fileExists(storePluginFileName)
+	bundleExist, err := ch.srv.FileBackend().FileExists(storePluginFileName)
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !bundleExist {
 		return nil
 	}
-	if err = ch.srv.removeFile(storePluginFileName); err != nil {
+	if err = ch.srv.FileBackend().RemoveFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if err = ch.removeSignature(id); err != nil {
-		mlog.Warn("Can't remove signature", mlog.Err(err))
+	if appErr := ch.removeSignature(id); appErr != nil {
+		mlog.Warn("Can't remove signature", mlog.Err(appErr))
 	}
 
 	ch.notifyClusterPluginEvent(
@@ -500,7 +500,7 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 
 func (ch *Channels) removeSignature(pluginID string) *model.AppError {
 	filePath := getSignatureStorePath(pluginID)
-	exists, err := ch.srv.fileExists(filePath)
+	exists, err := ch.srv.FileBackend().FileExists(filePath)
 	if err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -508,7 +508,7 @@ func (ch *Channels) removeSignature(pluginID string) *model.AppError {
 		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginID))
 		return nil
 	}
-	if err = ch.srv.removeFile(filePath); err != nil {
+	if err = ch.srv.FileBackend().RemoveFile(filePath); err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil

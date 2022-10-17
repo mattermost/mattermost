@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -390,7 +391,7 @@ type AppIface interface {
 	// returns a filled-out FileInfo and an optional error. A plugin may reject the
 	// upload, returning a rejection error. In this case FileInfo would have
 	// contained the last "good" FileInfo before the execution of that plugin.
-	UploadFileX(c *request.Context, channelID, name string, input io.Reader, opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError)
+	UploadFileX(c *request.Context, channelID, name string, input io.Reader, opts ...func(*suite.UploadFileTask)) (*model.FileInfo, *model.AppError)
 	// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
@@ -560,7 +561,6 @@ type AppIface interface {
 	ExportPermissions(w io.Writer) error
 	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
-	FileBackend() filestore.FileBackend
 	FileExists(path string) (bool, *model.AppError)
 	FileModTime(path string) (time.Time, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)

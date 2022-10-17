@@ -10,7 +10,6 @@ import (
 	"os/user"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -103,37 +102,4 @@ func (a *SuiteService) MakeAuditRecord(event string, initialStatus string) *audi
 	}
 
 	return rec
-}
-
-func (s *SuiteService) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) error {
-	adt.OnQueueFull = s.onAuditTargetQueueFull
-	adt.OnError = s.onAuditError
-
-	var logConfigSrc config.LogConfigSrc
-	dsn := *s.platform.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
-	if bAllowAdvancedLogging && dsn != "" {
-		var err error
-		logConfigSrc, err = config.NewLogConfigSrc(dsn, s.platform.GetConfigStore())
-		if err != nil {
-			return fmt.Errorf("invalid config source for audit, %w", err)
-		}
-		mlog.Debug("Loaded audit configuration", mlog.String("source", dsn))
-	}
-
-	// ExperimentalAuditSettings provides basic file audit (E0, E10); logConfigSrc provides advanced config (E20).
-	cfg, err := config.MloggerConfigFromAuditConfig(s.platform.Config().ExperimentalAuditSettings, logConfigSrc)
-	if err != nil {
-		return fmt.Errorf("invalid config for audit, %w", err)
-	}
-
-	return adt.Configure(cfg)
-}
-
-func (s *SuiteService) onAuditTargetQueueFull(qname string, maxQSize int) bool {
-	mlog.Error("Audit queue full, dropping record.", mlog.String("qname", qname), mlog.Int("queueSize", maxQSize))
-	return true // drop it
-}
-
-func (s *SuiteService) onAuditError(err error) {
-	mlog.Error("Audit Error", mlog.Err(err))
 }

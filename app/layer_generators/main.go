@@ -83,7 +83,7 @@ type storeMetadata struct {
 func fixTypeName(t string) string {
 	// don't want to dive into AST to parse this, add exception
 	if t == "...func(*UploadFileTask)" {
-		t = "...func(*app.UploadFileTask)"
+		t = "...func(*suite.UploadFileTask)"
 	}
 	if strings.Contains(t, ".") || strings.Contains(t, "{}") || t == "map[string]any" {
 		return t
