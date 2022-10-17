@@ -59,7 +59,7 @@ func (ps *PlatformService) ClearUserSessionCacheLocal(userID string) {
 			if err := ps.sessionCache.Get(key, &session); err == nil {
 				if session.UserId == userID {
 					ps.sessionCache.Remove(key)
-					if m := ps.metricsImpl(); m != nil {
+					if m := ps.metricsIFace; m != nil {
 						m.IncrementMemCacheInvalidationCounterSession()
 					}
 				}
@@ -100,11 +100,11 @@ func (ps *PlatformService) ClearAllUsersSessionCache() {
 func (ps *PlatformService) GetSession(token string) (*model.Session, error) {
 	var session = ps.sessionPool.Get().(*model.Session)
 	if err := ps.sessionCache.Get(token, session); err == nil {
-		if m := ps.metricsImpl(); m != nil {
+		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheHitCounterSession()
 		}
 	} else {
-		if m := ps.metricsImpl(); m != nil {
+		if m := ps.metricsIFace; m != nil {
 			m.IncrementMemCacheMissCounterSession()
 		}
 	}

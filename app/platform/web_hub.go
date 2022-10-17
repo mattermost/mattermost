@@ -142,7 +142,7 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 func (ps *PlatformService) HubRegister(webConn *WebConn) {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
-		if metrics := ps.metricsImpl(); metrics != nil {
+		if metrics := ps.metricsIFace; metrics != nil {
 			metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
 		hub.Register(webConn)
@@ -153,7 +153,7 @@ func (ps *PlatformService) HubRegister(webConn *WebConn) {
 func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 	hub := ps.GetHubForUserId(webConn.UserId)
 	if hub != nil {
-		if metrics := ps.metricsImpl(); metrics != nil {
+		if metrics := ps.metricsIFace; metrics != nil {
 			metrics.DecrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
 		}
 		hub.Unregister(webConn)
@@ -317,7 +317,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
-		if metrics := h.platform.metricsImpl(); metrics != nil {
+		if metrics := h.platform.metricsIFace; metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
@@ -483,7 +483,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
-				if metrics := h.platform.metricsImpl(); metrics != nil {
+				if metrics := h.platform.metricsIFace; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
 				msg = msg.PrecomputeJSON()
