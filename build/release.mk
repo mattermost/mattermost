@@ -197,7 +197,8 @@ endif
 		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
 		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
 	else \
-		echo "Unable to find files for Boards product"; \
+		echo "Unable to find files for Boards product. Please ensure that the Focalboard repository is checked out alongside the server and run 'make build-product' in it."; \
+		exit 1; \
 	fi
 
 package-osx-amd64: package-prep
