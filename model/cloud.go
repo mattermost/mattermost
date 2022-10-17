@@ -52,7 +52,7 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
-	CrossSellsTo      string             `json:"cross_sells_to"`
+	CrossSellsTo      string             `json:"cross_sells_to,omitempty"`
 }
 
 type UserFacingProduct struct {
