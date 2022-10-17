@@ -207,7 +207,7 @@ func (ts *SuiteService) removeTeamMember(teamMember *model.TeamMember) error {
 }
 
 // GetMember return the team member from the team.
-func (ts *SuiteService) GetMember(teamID string, userID string) (*model.TeamMember, error) {
+func (ts *SuiteService) getTeamMember(teamID string, userID string) (*model.TeamMember, error) {
 	member, err := ts.platform.Store.Team().GetMember(context.Background(), teamID, userID)
 	if err != nil {
 		return nil, err

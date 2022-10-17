@@ -5,6 +5,7 @@ package suite
 
 import (
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -185,4 +186,82 @@ func (a *SuiteService) GetCookieDomain() string {
 		}
 	}
 	return ""
+}
+
+type accessibleBounds struct {
+	start int
+	end   int
+}
+
+func (b accessibleBounds) allAccessible(lenPosts int) bool {
+	return b.start == allAccessibleBounds(lenPosts).start && b.end == allAccessibleBounds(lenPosts).end
+}
+
+func (b accessibleBounds) noAccessible() bool {
+	return b.start == noAccessibleBounds.start && b.end == noAccessibleBounds.end
+}
+
+// assumes checking was already performed that at least one post is inaccessible
+func (b accessibleBounds) getInaccessibleRange(listLength int) (int, int) {
+	var start, end int
+	if b.start == 0 {
+		start = b.end + 1
+		end = listLength - 1
+	} else {
+		start = 0
+		end = b.start - 1
+	}
+	return start, end
+}
+
+func max(a, b int64) int64 {
+	if a < b {
+		return b
+	}
+	return a
+}
+
+var noAccessibleBounds = accessibleBounds{start: -1, end: -1}
+var allAccessibleBounds = func(lenPosts int) accessibleBounds { return accessibleBounds{start: 0, end: lenPosts - 1} }
+
+// getTimeSortedPostAccessibleBounds returns what the boundaries are for accessible posts.
+// It assumes that CreateAt time for posts is monotonically increasing or decreasing.
+// It could be either because posts can be returned in ascending or descending time order.
+// Special values (which can be checked with methods `allAccessible` and `allInaccessible`)
+// denote if all or none of the posts are accessible.
+func getTimeSortedPostAccessibleBounds(earliestAccessibleTime int64, lenPosts int, getCreateAt func(int) int64) accessibleBounds {
+	if lenPosts == 0 {
+		return allAccessibleBounds(lenPosts)
+	}
+	if lenPosts == 1 {
+		if getCreateAt(0) >= earliestAccessibleTime {
+			return allAccessibleBounds(lenPosts)
+		}
+		return noAccessibleBounds
+	}
+
+	ascending := getCreateAt(0) < getCreateAt(lenPosts-1)
+
+	idx := sort.Search(lenPosts, func(i int) bool {
+		if ascending {
+			// Ascending order automatically picks the left most post(at idx),
+			// in case multiple posts at idx, idx+1, idx+2... have the same time.
+			return getCreateAt(i) >= earliestAccessibleTime
+		}
+		// Special case(subtracting 1) for descending order to include the right most post(at idx+k),
+		// in case multiple posts at idx, idx+1, idx+2...idx+k have the same time.
+		return getCreateAt(i) <= earliestAccessibleTime-1
+	})
+
+	if ascending {
+		if idx == lenPosts {
+			return noAccessibleBounds
+		}
+		return accessibleBounds{start: idx, end: lenPosts - 1}
+	}
+
+	if idx == 0 {
+		return noAccessibleBounds
+	}
+	return accessibleBounds{start: 0, end: idx - 1}
 }

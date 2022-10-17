@@ -157,7 +157,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.getOrCreateDirectChannelWithUser(c, user, botOwner)
+		channel, err := a.GetOrCreateDirectChannelWithUser(c, user, botOwner)
 		if err != nil {
 			return nil, err
 		}

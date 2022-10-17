@@ -96,7 +96,7 @@ func (a *App) CreateUserWithToken(c request.CTX, user *model.User, token *model.
 		return nil, err
 	}
 
-	a.AddDirectChannels(c, team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser.Id)
 
 	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
@@ -149,7 +149,7 @@ func (a *App) CreateUserWithInviteId(c request.CTX, user *model.User, inviteId, 
 		return nil, err
 	}
 
-	a.AddDirectChannels(c, team.Id, ruser)
+	a.AddDirectChannels(c, team.Id, ruser.Id)
 
 	if err := a.Srv().EmailService.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		c.Logger().Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
@@ -365,7 +365,7 @@ func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Re
 			return nil, err
 		}
 
-		err = a.AddDirectChannels(c, teamID, user)
+		err = a.AddDirectChannels(c, teamID, user.Id)
 		if err != nil {
 			c.Logger().Warn("Failed to add direct channels", mlog.Err(err))
 		}

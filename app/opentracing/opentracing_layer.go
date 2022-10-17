@@ -163,7 +163,7 @@ func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostLi
 	a.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage, collapsedThreads)
 }
 
-func (a *OpenTracingAppLayer) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
+func (a *OpenTracingAppLayer) AddDirectChannels(c request.CTX, teamID string, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddDirectChannels")
 
@@ -175,7 +175,7 @@ func (a *OpenTracingAppLayer) AddDirectChannels(c request.CTX, teamID string, us
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.AddDirectChannels(c, teamID, user)
+	resultVar0 := a.app.AddDirectChannels(c, teamID, userID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -455,6 +455,28 @@ func (a *OpenTracingAppLayer) AddTeamsToRetentionPolicy(policyID string, teamIDs
 
 	defer span.Finish()
 	resultVar0 := a.app.AddTeamsToRetentionPolicy(policyID, teamIDs)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) AddToDefaultChannelsWithToken(c request.CTX, teamID string, userID string, token *model.Token) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddToDefaultChannelsWithToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddToDefaultChannelsWithToken(c, teamID, userID, token)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -7442,6 +7464,28 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(c request.CTX, userID str
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(c, userID, otherUserID, channelOptions...)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannelWithUser(c request.CTX, user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannelWithUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannelWithUser(c, user, otherUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

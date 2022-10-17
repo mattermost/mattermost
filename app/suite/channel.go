@@ -6,7 +6,6 @@ package suite
 import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 type ChannelsIFace interface {
@@ -18,7 +17,7 @@ type ChannelsIFace interface {
 	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	UpdateChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError)
-	AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError
+	AddDirectChannels(c request.CTX, teamID, userID string) *model.AppError
 	GetChannelsForTeamForUser(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError)
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
 	GetChannelMembersForUser(c request.CTX, teamID string, userID string) (model.ChannelMembers, *model.AppError)
@@ -27,6 +26,8 @@ type ChannelsIFace interface {
 	UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)
 	GetChannelGuestCount(c request.CTX, channelID string) (int64, *model.AppError)
 	GetChannelByName(c request.CTX, channelName, teamID string, includeDeleted bool) (*model.Channel, *model.AppError)
+	GetGroupChannel(c request.CTX, userIDs []string) (*model.Channel, *model.AppError)
+	AddToDefaultChannelsWithToken(c request.CTX, teamID, userID string, token *model.Token) *model.AppError
 
 	GetChannelMember(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
@@ -37,5 +38,4 @@ type ChannelsIFace interface {
 
 	GetSidebarCategory(c request.CTX, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoriesForTeamForUser(c request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError)
-	CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, *model.AppError)
 }

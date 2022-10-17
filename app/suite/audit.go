@@ -69,6 +69,7 @@ func (a *SuiteService) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level,
 		rec.AddErrorDesc(appErr.Error())
 		rec.Fail()
 	}
+
 	a.audit.LogRecord(level, *rec)
 }
 

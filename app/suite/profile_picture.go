@@ -10,7 +10,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,7 +18,6 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -45,7 +43,7 @@ func (us *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, error) 
 		}
 
 		if user.LastPictureUpdate == 0 {
-			if _, err := us.writeFile(bytes.NewReader(img), path); err != nil {
+			if _, err := us.platform.FileBackend().WriteFile(bytes.NewReader(img), path); err != nil {
 				return nil, false, err
 			}
 		}
@@ -53,41 +51,6 @@ func (us *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, error) 
 	}
 
 	return data, false, nil
-}
-
-func (us *SuiteService) FileBackend() (filestore.FileBackend, error) {
-	license := us.platform.License()
-	insecure := us.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(us.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
-	if err != nil {
-		return nil, err
-	}
-	return backend, nil
-}
-
-func (us *SuiteService) ReadFile(path string) ([]byte, error) {
-	backend, err := us.FileBackend()
-	if err != nil {
-		return nil, err
-	}
-	result, nErr := backend.ReadFile(path)
-	if nErr != nil {
-		return nil, nErr
-	}
-	return result, nil
-}
-
-func (us *SuiteService) writeFile(fr io.Reader, path string) (int64, error) {
-	backend, err := us.FileBackend()
-	if err != nil {
-		return 0, err
-	}
-
-	result, nErr := backend.WriteFile(fr, path)
-	if nErr != nil {
-		return result, nErr
-	}
-	return result, nil
 }
 
 func (us *SuiteService) GetDefaultProfileImage(user *model.User) ([]byte, error) {

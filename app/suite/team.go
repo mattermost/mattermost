@@ -34,6 +34,10 @@ import (
 // Ensure the wrapper implements the product service.
 var _ product.TeamService = (*SuiteService)(nil)
 
+func (a *SuiteService) CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
+
+func (a *SuiteService) GetMember(teamID string, userID string) (*model.TeamMember, *model.AppError)
+
 func (a *SuiteService) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
 	teams, appErr := a.GetAllTeams()
@@ -808,7 +812,7 @@ func (ss *SuiteService) JoinUserToTeam(c request.CTX, team *model.Team, user *mo
 		TeamID:      team.Id,
 		ExcludeTeam: false,
 	}
-	if _, err := ss.channels.CreateInitialSidebarCategories(user.Id, opts); err != nil {
+	if _, err := ss.platform.Store.Channel().CreateInitialSidebarCategories(user.Id, opts); err != nil {
 		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -1010,6 +1014,7 @@ func (ss *SuiteService) GetTeamsForUser(userID string) ([]*model.Team, *model.Ap
 	return teams, nil
 }
 
+// golinkname GetMember
 func (ss *SuiteService) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := ss.platform.Store.Team().GetMember(sqlstore.WithMaster(context.Background()), teamID, userID)
 	if err != nil {
@@ -1069,6 +1074,7 @@ func (ss *SuiteService) GetCommonTeamIDsForTwoUsers(userID, otherUserID string) 
 	return teamIDs, nil
 }
 
+// golinkname CreateMember
 func (ss *SuiteService) AddTeamMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	_, teamMember, err := ss.AddUserToTeam(c, teamID, userID, "")
 	if err != nil {
@@ -2020,7 +2026,7 @@ func (a *SuiteService) SetTeamIconFromFile(team *model.Team, file io.Reader) *mo
 	img = imaging.FillCenter(img, teamIconWidthAndHeight, teamIconWidthAndHeight)
 
 	buf := new(bytes.Buffer)
-	err = a.ch.imgEncoder.EncodePNG(buf, img)
+	err = a.imgEncoder.EncodePNG(buf, img)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -373,7 +373,7 @@ func (a *App) GetOrCreateDirectChannel(c request.CTX, userID, otherUserID string
 	return channel, nil
 }
 
-func (a *App) getOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (a *App) GetOrCreateDirectChannelWithUser(c request.CTX, user, otherUser *model.User) (*model.Channel, *model.AppError) {
 	channel, nErr := a.getDirectChannel(c, user.Id, otherUser.Id)
 	if nErr != nil {
 		return nil, nErr
@@ -1595,23 +1595,23 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 	return cm, nil
 }
 
-func (a *App) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
+func (a *App) AddDirectChannels(c request.CTX, teamID, userID string) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
 	profiles, err := a.Srv().Store().User().GetProfiles(options)
 	if err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": userID, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	var preferences model.Preferences
 
 	for _, profile := range profiles {
-		if profile.Id == user.Id {
+		if profile.Id == userID {
 			continue
 		}
 
 		preference := model.Preference{
-			UserId:   user.Id,
+			UserId:   userID,
 			Category: model.PreferenceCategoryDirectChannelShow,
 			Name:     profile.Id,
 			Value:    "true",
@@ -1625,7 +1625,7 @@ func (a *App) AddDirectChannels(c request.CTX, teamID string, user *model.User) 
 	}
 
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": user.Id, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]any{"UserId": userID, "TeamId": teamID, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -3471,4 +3471,28 @@ func (a *App) GetTopInactiveChannelsForUserSince(c request.CTX, teamID, userID s
 		return nil, model.NewAppError("GetTopInactiveChannelsForUserSince", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return topChannels, nil
+}
+
+func (a *App) AddToDefaultChannelsWithToken(c request.CTX, teamID, userID string, token *model.Token) *model.AppError {
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+
+	if appErr := a.AddDirectChannels(c, teamID, userID); appErr != nil {
+		return appErr
+	}
+
+	channels, nErr := a.Srv().Store().Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	if nErr != nil {
+		return model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
+		for _, channel := range channels {
+			_, err := a.AddChannelMember(c, userID, channel, ChannelMemberOpts{})
+			if err != nil {
+				c.Logger().Warn("Failed to add channel member", mlog.Err(err))
+			}
+		}
+	}
+
+	return nil
 }

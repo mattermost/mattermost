@@ -91,24 +91,10 @@ func (ss *SuiteService) CreateUserWithToken(c request.CTX, user *model.User, tok
 		return nil, err
 	}
 
-	// TODO: suite: This should be handled by the channels service
-	ss.channels.AddDirectChannels(c, team.Id, ruser)
-
-	channels, nErr := ss.platform.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
-	if nErr != nil {
-		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	err = ss.channels.AddToDefaultChannelsWithToken(c, team.Id, ruser.Id, token)
+	if err != nil {
+		c.Logger().Warn("Failed to add channel member", mlog.Err(err))
 	}
-
-	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
-		for _, channel := range channels {
-			_, err := ss.channels.AddChannelMember(c, ruser.Id, channel, ChannelMemberOpts{})
-			if err != nil {
-				c.Logger().Warn("Failed to add channel member", mlog.Err(err))
-			}
-		}
-	}
-
-	// TODO: End
 
 	if err := ss.DeleteToken(token); err != nil {
 		c.Logger().Warn("Error while deleting token", mlog.Err(err))
@@ -152,7 +138,7 @@ func (a *SuiteService) CreateUserWithInviteId(c request.CTX, user *model.User, i
 		return nil, err
 	}
 
-	a.channels.AddDirectChannels(c, team.Id, ruser)
+	a.channels.AddDirectChannels(c, team.Id, ruser.Id)
 
 	if err := a.email.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.DisableWelcomeEmail, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		c.Logger().Warn("Failed to send welcome email on create user with inviteId", mlog.Err(err))
@@ -368,7 +354,7 @@ func (a *SuiteService) CreateOAuthUser(c *request.Context, service string, userD
 			return nil, err
 		}
 
-		err = a.channels.AddDirectChannels(c, teamID, user)
+		err = a.channels.AddDirectChannels(c, teamID, user.Id)
 		if err != nil {
 			c.Logger().Warn("Failed to add direct channels", mlog.Err(err))
 		}
@@ -766,8 +752,8 @@ func (a *SuiteService) SetDefaultProfileImage(c request.CTX, user *model.User) *
 	}
 
 	path := getProfileImagePath(user.Id)
-	if _, err := a.WriteFile(bytes.NewReader(img), path); err != nil {
-		return err
+	if _, err := a.platform.FileBackend().WriteFile(bytes.NewReader(img), path); err != nil {
+		return model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.platform.Store.User().ResetLastPictureUpdate(user.Id); err != nil {
@@ -842,7 +828,7 @@ func (a *SuiteService) SetProfileImageFromFile(c request.CTX, userID string, fil
 		return nil
 	}
 
-	if _, err := a.WriteFile(buf, path); err != nil {
+	if _, err := a.platform.FileBackend().WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1607,7 +1593,7 @@ func (a *SuiteService) PermanentDeleteUser(c *request.Context, user *model.User)
 	}
 
 	for _, info := range infos {
-		res, err := a.FileExists(info.Path)
+		res, err := a.platform.FileBackend().FileExists(info.Path)
 		if err != nil {
 			c.Logger().Warn(
 				"Error checking existence of file",
@@ -1622,7 +1608,7 @@ func (a *SuiteService) PermanentDeleteUser(c *request.Context, user *model.User)
 			continue
 		}
 
-		err = a.RemoveFile(info.Path)
+		err = a.platform.FileBackend().RemoveFile(info.Path)
 
 		if err != nil {
 			c.Logger().Warn(
@@ -1636,7 +1622,7 @@ func (a *SuiteService) PermanentDeleteUser(c *request.Context, user *model.User)
 	// delete directory containing user's profile image
 	profileImageDirectory := getProfileImageDirectory(user.Id)
 	profileImagePath := getProfileImagePath(user.Id)
-	resProfileImageExists, errProfileImageExists := a.FileExists(profileImagePath)
+	resProfileImageExists, errProfileImageExists := a.platform.FileBackend().FileExists(profileImagePath)
 
 	fileHandlingErrorsFound := false
 
@@ -1650,7 +1636,7 @@ func (a *SuiteService) PermanentDeleteUser(c *request.Context, user *model.User)
 	}
 
 	if resProfileImageExists {
-		errRemoveDirectory := a.RemoveDirectory(profileImageDirectory)
+		errRemoveDirectory := a.platform.FileBackend().RemoveDirectory(profileImageDirectory)
 
 		if errRemoveDirectory != nil {
 			fileHandlingErrorsFound = true

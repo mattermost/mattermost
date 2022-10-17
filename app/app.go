@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/suite"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -25,7 +26,8 @@ import (
 // It is a request-scoped struct constructed every time a request hits the server,
 // and its only purpose is to provide business logic to Server via its methods.
 type App struct {
-	ch *Channels
+	suite suite.SuiteService
+	ch    *Channels
 }
 
 func New(options ...AppOption) *App {
@@ -34,6 +36,26 @@ func New(options ...AppOption) *App {
 	for _, option := range options {
 		option(app)
 	}
+
+	srv := app.Srv()
+	if srv == nil {
+		panic("app.Server is nil")
+	}
+
+	app.suite = *suite.NewSuiteService(&suite.SuiteServiceConfig{
+		Channels:     app,
+		Platform:     srv.platform,
+		EmailService: srv.EmailService,
+		HTTPService:  srv.httpService,
+		Audit:        srv.Audit,
+		// SharedChannelSyncService: srv.sharedChannelService, TODO: uncomment once define the interface
+		Ldap:               app.ch.Ldap,
+		Saml:               app.ch.Saml,
+		Cloud:              srv.Cloud,
+		ImgDecoder:         app.ch.imgDecoder,
+		ImgEncoder:         app.ch.imgEncoder,
+		PluginsEnvironment: app.ch.pluginsEnvironment,
+	})
 
 	return app
 }
