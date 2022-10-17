@@ -337,7 +337,7 @@ func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *m
 	case model.StatusOnline:
 		api.app.SetStatusOnline(userID, true)
 	case model.StatusOffline:
-		api.app.SetStatusOffline(userID, true)
+		api.app.SetStatusOffline(userID, true, true)
 	case model.StatusAway:
 		api.app.SetStatusAwayIfNeeded(userID, true)
 	case model.StatusDnd:

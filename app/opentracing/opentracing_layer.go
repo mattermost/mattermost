@@ -15946,7 +15946,7 @@ func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userID string, activityAt 
 	a.app.SetStatusLastActivityAt(userID, activityAt)
 }
 
-func (a *OpenTracingAppLayer) SetStatusOffline(userID string, manual bool) {
+func (a *OpenTracingAppLayer) SetStatusOffline(userID string, manual bool, updateLastActivityAt bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOffline")
 
@@ -15958,7 +15958,7 @@ func (a *OpenTracingAppLayer) SetStatusOffline(userID string, manual bool) {
 	}()
 
 	defer span.Finish()
-	a.app.SetStatusOffline(userID, manual)
+	a.app.SetStatusOffline(userID, manual, updateLastActivityAt)
 }
 
 func (a *OpenTracingAppLayer) SetStatusOnline(userID string, manual bool) {

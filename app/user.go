@@ -882,7 +882,7 @@ func (a *App) UpdatePasswordAsUser(c request.CTX, userID, currentPassword, newPa
 }
 
 func (a *App) userDeactivated(c request.CTX, userID string) *model.AppError {
-	a.SetStatusOffline(userID, false)
+	a.SetStatusOffline(userID, false, false)
 
 	user, err := a.GetUser(userID)
 	if err != nil {

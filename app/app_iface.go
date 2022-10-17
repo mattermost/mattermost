@@ -1057,7 +1057,7 @@ type AppIface interface {
 	SetServer(srv *Server)
 	SetStatusAwayIfNeeded(userID string, manual bool)
 	SetStatusDoNotDisturb(userID string)
-	SetStatusOffline(userID string, manual bool)
+	SetStatusOffline(userID string, manual bool, updateLastActivityAt bool)
 	SetStatusOnline(userID string, manual bool)
 	SetStatusOutOfOffice(userID string)
 	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError

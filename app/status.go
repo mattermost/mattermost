@@ -88,17 +88,25 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	}
 }
 
-func (a *App) SetStatusOffline(userID string, manual bool) {
+func (a *App) SetStatusOffline(userID string, manual bool, updateLastActivityAt bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
 	status, err := a.GetStatus(userID)
 	lastActivityAt := model.GetMillis()
+
 	// if it's a user with no activity, set LastActivityAt = 0 when automatically updating status
-	if err != nil && err.Id == "app.status.get.missing.app_error" && !manual {
-		lastActivityAt = 0
+	if !updateLastActivityAt {
+		// if there is no previous status - as is the case when user is new and deleted
+		if err != nil && err.Id == "app.status.get.missing.app_error" {
+			lastActivityAt = 0
+		}
+		if status != nil {
+			lastActivityAt = status.LastActivityAt
+		}
 	}
+
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}

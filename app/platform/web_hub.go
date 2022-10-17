@@ -22,7 +22,7 @@ const (
 
 type SuiteIFace interface {
 	SetStatusLastActivityAt(userID string, activityAt int64)
-	SetStatusOffline(userID string, manual bool)
+	SetStatusOffline(userID string, manual bool, updateLastActivityAt bool)
 	IsUserAway(lastActivityAt int64) bool
 	SetStatusOnline(userID string, manual bool)
 	UpdateLastActivityAtIfNeeded(session model.Session)
@@ -439,7 +439,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 || areAllInactive(conns) {
 					h.platform.Go(func() {
-						suite.SetStatusOffline(webConn.UserId, false)
+						suite.SetStatusOffline(webConn.UserId, false, true)
 					})
 					continue
 				}
@@ -522,7 +522,7 @@ func (h *Hub) Start(suite SuiteIFace) {
 			case <-h.stop:
 				for webConn := range connIndex.All() {
 					webConn.Close()
-					suite.SetStatusOffline(webConn.UserId, false)
+					suite.SetStatusOffline(webConn.UserId, false, true)
 				}
 
 				h.explicitStop = true

@@ -70,7 +70,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {
-		th.App.SetStatusOffline(th.BasicUser.Id, true)
+		th.App.SetStatusOffline(th.BasicUser.Id, true, true)
 		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
