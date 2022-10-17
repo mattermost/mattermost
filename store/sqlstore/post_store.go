@@ -1136,43 +1136,46 @@ func (s *SqlPostStore) getParentPostsCollapsedThreads(posts []*postWithExtra, us
 		columns = append(columns, "Posts."+c)
 	}
 
+	columns = append(columns,
+		"COALESCE(Threads.ReplyCount, 0) as ReplyCount",
+	)
+
 	var parents []*model.Post
 
 	for _, p := range posts {
+		postsMap[p.Id] = p.Id
+
 		if p.GetProp("broadcasted_thread_reply") == true {
 			rootIdMap[p.RootId] = p.RootId
 		}
 	}
 
 	getParentPost := func(id string) (*model.Post, error) {
-		var post model.Post
+		var p model.Post
 
 		postFetchQuery, args, err := s.getQueryBuilder().
 			Select(columns...).
 			From("Posts").
-			Where(sq.Eq{"Posts.DeleteAt": 0}).
-			Where(sq.Eq{"Posts.Id": id}).ToSql()
+			LeftJoin("Threads ON Threads.PostId = Posts.Id").
+			Where(sq.Eq{"Posts.Id": id}).
+			Where(sq.Eq{"Posts.DeleteAt": 0}).ToSql()
 		if err != nil {
 			return nil, errors.Wrap(err, "getParentPostsCollapsedThreads_ToSql")
 		}
 
-		err = s.GetReplicaX().Get(&post, postFetchQuery, args...)
+		err = s.GetReplicaX().Get(&p, postFetchQuery, args...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 		}
 
-		return &post, nil
-	}
-
-	for _, p := range posts {
-		postsMap[p.Id] = p.Id
+		return &p, nil
 	}
 
 	for key, rootId := range rootIdMap {
 		if _, ok := postsMap[key]; !ok {
 			parentPost, err := getParentPost(rootId)
 			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get Post with id=%s", rootId)
+				return nil, err
 			}
 			parents = append(parents, parentPost)
 		}
