@@ -40,6 +40,7 @@ const (
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
 
 type StringInterface map[string]any
+type StringSet map[string]struct{}
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {

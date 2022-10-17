@@ -101,13 +101,15 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
-	followers := make(model.StringArray, 0)
+	followers := make(model.StringSet, 0)
 	if tchan != nil {
 		result = <-tchan
 		if result.NErr != nil {
 			return nil, result.NErr
 		}
-		followers = result.Data.([]string)
+		for _, v := range result.Data.([]string) {
+			followers[v] = struct{}{}
+		}
 	}
 
 	groups := make(map[string]*model.Group)
@@ -235,6 +237,14 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 			threadParticipants[id] = true
 		}
 
+		if channel.Type != model.ChannelTypeDirect {
+			for id, propsMap := range channelMemberNotifyPropsMap {
+				if _, ok := followers[id]; !ok && propsMap[model.ChannelAutoFollowThreads] == "true" {
+					threadParticipants[id] = true
+				}
+			}
+		}
+
 		// sema is a counting semaphore to throttle the number of concurrent DB requests.
 		// A concurrency of 8 should be sufficient.
 		// We don't want to set a higher limit which can bring down the DB.
@@ -286,8 +296,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 				followersMutex.Lock()
 				// add new followers to existing followers
-				if threadMembership.Following && !followers.Contains(userID) {
-					followers = append(followers, userID)
+				if _, ok := followers[userID]; !ok && threadMembership.Following {
+					followers[userID] = struct{}{}
 					newParticipants[userID] = true
 				}
 				followersMutex.Unlock()
@@ -329,7 +339,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	notificationsForCRT := &CRTNotifiers{}
 	if isCRTAllowed && post.RootId != "" {
-		for _, uid := range followers {
+		for uid := range followers {
 			profile := profileMap[uid]
 			if profile == nil || !a.IsCRTEnabledForUser(c, uid) {
 				continue
@@ -577,7 +587,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	// If this is a reply in a thread, notify participants
 	if isCRTAllowed && post.RootId != "" {
-		for _, uid := range followers {
+		for uid := range followers {
 			// A user following a thread but had left the channel won't get a notification
 			// https://mattermost.atlassian.net/browse/MM-36769
 			if profileMap[uid] == nil {

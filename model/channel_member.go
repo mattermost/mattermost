@@ -19,6 +19,7 @@ const (
 	IgnoreChannelMentionsOff        = "off"
 	IgnoreChannelMentionsOn         = "on"
 	IgnoreChannelMentionsNotifyProp = "ignore_channel_mentions"
+	ChannelAutoFollowThreads        = "channel_auto_follow_threads"
 )
 
 type ChannelUnread struct {
