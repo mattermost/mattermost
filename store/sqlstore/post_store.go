@@ -1138,6 +1138,7 @@ func (s *SqlPostStore) getParentPostsCollapsedThreads(posts []*postWithExtra, us
 
 	columns = append(columns,
 		"COALESCE(Threads.ReplyCount, 0) as ReplyCount",
+		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
 	)
 
 	var parents []*model.Post
