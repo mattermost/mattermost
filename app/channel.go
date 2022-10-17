@@ -1261,6 +1261,10 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
 	}
 
+	if channelAutoFollowThreads, exists := data[model.ChannelAutoFollowThreads]; exists {
+		filteredProps[model.ChannelAutoFollowThreads] = channelAutoFollowThreads
+	}
+
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
