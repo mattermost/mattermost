@@ -397,8 +397,8 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 10",
 			names:                       []string{"10000x1.png"},
-			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"10000x1_expected_preview.jpeg"},
+			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.png"},
+			expectedImagePreviewNames:   []string{"10000x1_expected_preview.png"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{10000},
 			expectedImageHeights:        []int{1},
@@ -409,8 +409,8 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 11",
 			names:                       []string{"1x10000.png"},
-			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"1x10000_expected_preview.jpeg"},
+			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.png"},
+			expectedImagePreviewNames:   []string{"1x10000_expected_preview.png"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{1},
 			expectedImageHeights:        []int{10000},
@@ -678,8 +678,12 @@ func TestUploadFiles(t *testing.T) {
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
 
 					if tc.expectImage {
-						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb.jpg", expectedDir, name)
-						expectedPreviewPath := fmt.Sprintf("%s/%s_preview.jpg", expectedDir, name)
+						// We convert all other image types to jpeg, except pngs.
+						if ext != ".png" {
+							ext = ".jpg"
+						}
+						expectedThumbnailPath := fmt.Sprintf("%s/%s_thumb%s", expectedDir, name, ext)
+						expectedPreviewPath := fmt.Sprintf("%s/%s_preview%s", expectedDir, name, ext)
 						assert.Equal(t, dbInfo.ThumbnailPath, expectedThumbnailPath,
 							fmt.Sprintf("Thumbnail for %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.ThumbnailPath, expectedThumbnailPath))
 						assert.Equal(t, dbInfo.PreviewPath, expectedPreviewPath,

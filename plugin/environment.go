@@ -137,7 +137,7 @@ func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
 }
 
-func (env *Environment) setPluginError(id string, err string) {
+func (env *Environment) SetPluginError(id string, err string) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
 		p.Error = err
@@ -233,9 +233,9 @@ func (env *Environment) GetManifest(pluginId string) (*model.Manifest, error) {
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	defer func() {
 		if reterr != nil {
-			env.setPluginError(id, reterr.Error())
+			env.SetPluginError(id, reterr.Error())
 		} else {
-			env.setPluginError(id, "")
+			env.SetPluginError(id, "")
 		}
 	}()
 

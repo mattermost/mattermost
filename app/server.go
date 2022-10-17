@@ -201,20 +201,7 @@ func NewServer(options ...Option) (*Server, error) {
 	//
 	// Step 1: Platform.
 	if s.platform == nil {
-		innerStore, err := config.NewFileStore("config.json", true)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to load config")
-		}
-		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to load config")
-		}
-
-		platformCfg := platform.ServiceConfig{
-			ConfigStore: configStore,
-		}
-
-		ps, sErr := platform.New(platformCfg, s.platformOptions...)
+		ps, sErr := platform.New(platform.ServiceConfig{}, s.platformOptions...)
 		if sErr != nil {
 			return nil, errors.Wrap(sErr, "failed to initialize platform")
 		}
