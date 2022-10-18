@@ -8007,7 +8007,7 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscription, *Response, error) {
 	payload, err := json.Marshal(email)
 	if err != nil {
-		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	r, err := c.DoAPIPutBytes(c.cloudRoute()+"/request-trial", payload)
 	if err != nil {
