@@ -498,7 +498,7 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = c.App.Cloud().ConfirmCustomerPayment(c.AppContext.Session().UserId, confirmRequest)
+	err = c.App.Cloud().ConfirmCustomerPayment(c.AppContext, c.AppContext.Session().UserId, confirmRequest)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -642,7 +642,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.AdjustInProductLimits(c.AppContext, event.ProductLimits, event.Subscription)
 		}
 
-		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
+		if err := c.App.Cloud().UpdateSubscriptionFromHook(c.AppContext, event.ProductLimits, event.Subscription); err != nil {
 			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
