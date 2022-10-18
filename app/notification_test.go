@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
+	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -2820,4 +2821,75 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, membership)
 	})
+}
+
+func TestChannelAutoFollowThreads(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	u3 := th.CreateUser()
+	th.LinkUserToTeam(u3, th.BasicTeam)
+	c1 := th.BasicChannel
+	th.AddUserToChannel(u2, c1)
+	th.AddUserToChannel(u3, c1)
+
+	// Set auto-follow for user 2
+	member, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: "true"}, c1.Id, u2.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "true", member.NotifyProps[model.ChannelAutoFollowThreads])
+
+	// Enable CRT
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	rootPost := &model.Post{
+		ChannelId: c1.Id,
+		Message:   "root post by user3",
+		UserId:    u3.Id,
+	}
+	rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, false, true)
+	require.Nil(t, appErr)
+
+	replyPost1 := &model.Post{
+		ChannelId: c1.Id,
+		Message:   "reply post by user1",
+		UserId:    u1.Id,
+		RootId:    rpost.Id,
+	}
+	_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, false, true)
+	require.Nil(t, appErr)
+
+	// user-2 starts auto-following thread
+	threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+	require.Nil(t, appErr)
+	require.NotNil(t, threadMembership)
+	assert.True(t, threadMembership.Following)
+
+	// Set "following" to false
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(u2.Id, rpost.Id, store.ThreadMembershipOpts{
+		Following:       false,
+		UpdateFollowing: true,
+	})
+	require.Nil(t, err)
+
+	replyPost2 := &model.Post{
+		ChannelId: c1.Id,
+		Message:   "reply post 2 by user1",
+		UserId:    u1.Id,
+		RootId:    rpost.Id,
+	}
+	_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, false, true)
+	require.Nil(t, appErr)
+
+	// Do NOT start auto-following thread, once "un-followed"
+	threadMembership, appErr = th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+	require.Nil(t, appErr)
+	require.NotNil(t, threadMembership)
+	assert.False(t, threadMembership.Following)
 }
