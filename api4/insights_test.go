@@ -236,6 +236,14 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("get-top-reactions-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopReactionsForUserSince(t *testing.T) {
@@ -519,6 +527,14 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		assert.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("get-top-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopChannelsForUserSince(t *testing.T) {
@@ -680,6 +696,14 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 	topTeamThreadsByUser2IncludingPrivate, _, _ := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 10)
 	require.Nil(t, appErr)
 	require.Len(t, topTeamThreadsByUser2IncludingPrivate.Items, 2)
+
+	t.Run("get-top-threads-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopThreadsForTeamSince(th.BasicTeam.Id, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopThreadsForUserSince(t *testing.T) {
@@ -929,6 +953,14 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 			assert.Equal(t, expectedTopChannels[i].ID, channel.ID)
 		}
 	})
+
+	t.Run("get-top-inactive-channels-for-team-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := client.GetTopInactiveChannelsForUserSince(teamId, model.TimeRangeToday, 0, 5)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestGetTopDMsForUserSince(t *testing.T) {
@@ -1138,5 +1170,13 @@ func TestNewTeamMembersSince(t *testing.T) {
 		require.Equal(t, int(list.TotalCount), 3)
 		require.Len(t, list.Items, 1)
 		require.False(t, list.HasNext)
+	})
+
+	t.Run("get-new-team-members-since invalid license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		_, resp, err := th.Client.GetNewTeamMembersSince(team.Id, model.TimeRangeToday, 0, 2)
+		assert.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 }
