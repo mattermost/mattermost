@@ -22,7 +22,7 @@ type LdapInterface interface {
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.Group, *model.AppError)
 	GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
-	FirstLoginSync(c *request.Context, user *model.User, userAuthService, userAuthData, email string) *model.AppError
+	FirstLoginSync(c request.CTX, user *model.User, userAuthService, userAuthData, email string) *model.AppError
 	UpdateProfilePictureIfNecessary(request.CTX, model.User, model.Session)
 	GetADLdapIdFromSAMLId(authData string) string
 	GetSAMLIdFromADLdapId(authData string) string

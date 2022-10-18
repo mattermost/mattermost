@@ -4,16 +4,17 @@
 package einterfaces
 
 import (
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
-	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
+	UpdateSubscriptionFromHook(request.CTX, *model.ProductLimits, *model.Subscription) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
-	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
+	ConfirmCustomerPayment(c request.CTX, userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
 	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
