@@ -957,7 +957,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	t.Run("get-top-inactive-channels-for-team-since invalid license", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense(""))
 
-		_, resp, err := client.GetTopInactiveChannelsForUserSince(teamId, model.TimeRangeToday, 0, 5)
+		_, resp, err := client.GetTopInactiveChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotImplementedStatus(t, resp)
 	})
