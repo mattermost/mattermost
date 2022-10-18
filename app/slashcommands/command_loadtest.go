@@ -32,7 +32,7 @@ var usage = `Mattermost testing commands to help configure the system
 		Example:
 			/test setup teams fuzz 10 20 50
 
-	Users - Add a specified number of random users with fuzz text to current team, at the specified time.
+	Users - Add a specified number of random users with fuzz text to current team, at the specified Unix timestamp in milliseconds.
 		/test users [fuzz] [range=min[,max]] [time=user_join_timestamp]
 
 		Default: range=2,5 time=
@@ -41,7 +41,7 @@ var usage = `Mattermost testing commands to help configure the system
 			/test users fuzz range=3,8 time=1565076128000
 			/test users range=1
 
-	Channels - Add a specified number of random channels with fuzz text to current team, at the specified time.
+	Channels - Add a specified number of random channels with fuzz text to current team, at the specified Unix timestamp in milliseconds.
 		/test channels [fuzz] [range=min[,max]] [time=channel_create_timestamp]
 
 		Default: range=2,5 time=
@@ -50,7 +50,7 @@ var usage = `Mattermost testing commands to help configure the system
 			/test channels fuzz range=5,10 time=1565076128000
 			/test channels range=1
 
-	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
 		/test dms u=@username [range=min[,max]] [time=dm_create_timestamp]
 
 		Default: range=2,5 time=
@@ -59,7 +59,7 @@ var usage = `Mattermost testing commands to help configure the system
 			/test dms u=@user range=5,10 time=1565076128000
 			/test dms u=@user range=2
 
-	ThreadedPost - Create a threaded post with a specified number of replies at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+	ThreadedPost - Create a threaded post with a specified number of replies at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
         /test threaded_post [range=min[,max]] [time=post_timestamp]
 
 		Default: range=1000 time=
@@ -68,7 +68,7 @@ var usage = `Mattermost testing commands to help configure the system
 			/test threaded_post
 			/test threaded_post range=100,200 time=1565076128000
 
-	Posts - Add some random posts with fuzz text to current channel, at the specified time. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
+	Posts - Add some random posts with fuzz text to current channel, at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
 		/test posts [fuzz] [range=min[,max]] [images=max_images] [time=post_timestamp]
 
 		Default: range=2,5 images=0 time=
@@ -334,7 +334,7 @@ func (*LoadTestProvider) UsersCommand(a *app.App, c request.CTX, args *model.Com
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
 		time, err = strconv.ParseInt(timeParam, 10, 64)
-		if err != nil {
+		if err != nil || time < 0 {
 			return &model.CommandResponse{Text: "Failed to add users: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
@@ -378,7 +378,7 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
 		time, err = strconv.ParseInt(timeParam, 10, 64)
-		if err != nil {
+		if err != nil || time < 0 {
 			return &model.CommandResponse{Text: "Failed to add channels: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
@@ -418,7 +418,7 @@ func (*LoadTestProvider) DMsCommand(a *app.App, c request.CTX, args *model.Comma
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
 		time, err = strconv.ParseInt(timeParam, 10, 64)
-		if err != nil {
+		if err != nil || time < 0 {
 			return &model.CommandResponse{Text: "Failed to add DMs: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
@@ -456,7 +456,7 @@ func (*LoadTestProvider) ThreadedPostCommand(a *app.App, c request.CTX, args *mo
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
 		time, err = strconv.ParseInt(timeParam, 10, 64)
-		if err != nil {
+		if err != nil || time < 0 {
 			return &model.CommandResponse{Text: "Failed to create post: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
@@ -520,7 +520,7 @@ func (*LoadTestProvider) PostsCommand(a *app.App, c request.CTX, args *model.Com
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
 		time, err = strconv.ParseInt(timeParam, 10, 64)
-		if err != nil {
+		if err != nil || time < 0 {
 			return &model.CommandResponse{Text: "Failed to add posts: Invalid time parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid time parameter")
 		}
 	}
@@ -714,14 +714,14 @@ func parseRange(rng string) (utils.Range, error) {
 	switch {
 	case len(tokens) == 1:
 		begin, err1 = strconv.Atoi(tokens[0])
-		if err1 != nil {
+		if err1 != nil || begin < 0 {
 			return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 		}
 		end = begin
 	case len(tokens) == 2:
 		begin, err1 = strconv.Atoi(tokens[0])
 		end, err2 = strconv.Atoi(tokens[1])
-		if err1 != nil || err2 != nil {
+		if err1 != nil || err2 != nil || begin < 0 || end < begin {
 			return utils.Range{Begin: 0, End: 0}, errors.New("Invalid range parameter")
 		}
 	default:
