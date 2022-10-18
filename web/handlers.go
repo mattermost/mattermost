@@ -134,8 +134,8 @@ func generateDevCSP(c Context) string {
 
 	// Add flags for Webpack dev servers used by other products during development
 	if model.BuildNumber == "dev" {
-		boardsURL, ok := os.LookupEnv("MM_BOARDS_DEV_SERVER_URL")
-		if !ok {
+		boardsURL := os.Getenv("MM_BOARDS_DEV_SERVER_URL")
+		if boardsURL == "" {
 			// Focalboard runs on http://localhost:9006 by default
 			boardsURL = "http://localhost:9006"
 		}
