@@ -60,6 +60,7 @@ type UserFacingProduct struct {
 	Name         string  `json:"name"`
 	SKU          string  `json:"sku"`
 	PricePerSeat float64 `json:"price_per_seat"`
+	CrossSellsTo string  `json:"cross_sells_to"`
 }
 
 // AddOn represents an addon to a product.
