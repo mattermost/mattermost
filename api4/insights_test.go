@@ -242,8 +242,6 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
 	client := th.Client
 
 	userId := th.BasicUser.Id
@@ -527,8 +525,6 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
 	client := th.Client
 	userId := th.BasicUser.Id
 
@@ -689,7 +685,6 @@ func TestGetTopThreadsForTeamSince(t *testing.T) {
 func TestGetTopThreadsForUserSince(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	th.LoginBasic()
 	client := th.Client
@@ -946,7 +941,6 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 		*c.TeamSettings.EnableUserDeactivation = true
 	})
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	// basicuser1 - bu1, basicuser - bu
 	// create dm channels for  bu-bu, bu1-bu1, bu-bu1, bot-bu
