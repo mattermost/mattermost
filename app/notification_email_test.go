@@ -405,7 +405,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
-	storeMock := th.App.Srv().Store.(*mocks.Store)
+	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
