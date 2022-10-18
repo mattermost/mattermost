@@ -893,6 +893,10 @@ func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.Ap
 	return api.app.GetPluginStatus(id)
 }
 
+func (api *PluginAPI) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
+	return api.app.GetPluginStatuses()
+}
+
 func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	if !*api.app.Config().PluginSettings.Enable || !*api.app.Config().PluginSettings.EnableUploads {
 		return nil, model.NewAppError("installPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)

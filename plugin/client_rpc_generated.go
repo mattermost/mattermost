@@ -4587,6 +4587,34 @@ func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_G
 	return nil
 }
 
+type Z_GetPluginStatusesArgs struct {
+}
+
+type Z_GetPluginStatusesReturns struct {
+	A []*model.PluginStatus
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
+	_args := &Z_GetPluginStatusesArgs{}
+	_returns := &Z_GetPluginStatusesReturns{}
+	if err := g.client.Call("Plugin.GetPluginStatuses", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPluginStatuses API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPluginStatuses(args *Z_GetPluginStatusesArgs, returns *Z_GetPluginStatusesReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPluginStatuses()
+	} else {
+		return encodableError(fmt.Errorf("API GetPluginStatuses called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVSetArgs struct {
 	A string
 	B []byte
