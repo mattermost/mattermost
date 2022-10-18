@@ -94,7 +94,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("SearchMultilingual", func(t *testing.T) { testUserStoreSearchUsersMultilingual(t, ss, s) })
+	t.Run("GetFirstSystemAdminID", func(t *testing.T) { testUserStoreGetFirstSystemAdminID(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -126,12 +126,22 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(&u2)
 	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
-	_, err = ss.User().Save(&u1)
-	require.Error(t, err, "should be unique username")
+	_, err = ss.User().Save(&u2)
+	require.Error(t, err, "should be non-empty username")
+
+	u3 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u3.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Save(&u3)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 
 	for i := 0; i < 49; i++ {
 		u := model.User{
@@ -235,6 +245,18 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	uNew, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, props, uNew.NotifyProps)
+
+	u4 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u4.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Update(&u4, false)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
+	err = ss.User().UpdateNotifyProps(u4.Id, u4.NotifyProps)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
@@ -2809,36 +2831,6 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			},
 			[]*model.User{u3},
 		},
-		{
-			"escape :",
-			t1id,
-			"ji:m",
-			&model.UserSearchOptions{},
-			[]*model.User{},
-		},
-		{
-			"escape ( and )",
-			t1id,
-			"ji(bah)",
-			&model.UserSearchOptions{},
-			[]*model.User{},
-		},
-		{
-			"escape <",
-			t1id,
-			"ji(bah<",
-			&model.UserSearchOptions{},
-			[]*model.User{},
-		},
-		{
-			"wildcard search",
-			t1id,
-			"@",
-			&model.UserSearchOptions{
-				Limit: model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u2, u1, u3},
-		},
 	}
 
 	for _, testCase := range testCases {
@@ -4170,6 +4162,30 @@ func testCount(t *testing.T, ss store.Store) {
 			require.Equal(t, testCase.Expected, count)
 		})
 	}
+}
+
+func testUserStoreGetFirstSystemAdminID(t *testing.T, ss store.Store) {
+	sysAdmin := &model.User{}
+	sysAdmin.Email = MakeEmail()
+	sysAdmin.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+	sysAdmin, err := ss.User().Save(sysAdmin)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
+
+	// We need the second system admin to be created after the first one
+	// our granulirity is ms
+	time.Sleep(1 * time.Millisecond)
+
+	sysAdmin2 := &model.User{}
+	sysAdmin2.Email = MakeEmail()
+	sysAdmin2.Roles = model.SystemAdminRoleId + " " + model.SystemUserRoleId
+	sysAdmin2, err = ss.User().Save(sysAdmin2)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin2.Id)) }()
+
+	returnedId, err := ss.User().GetFirstSystemAdminID()
+	require.NoError(t, err)
+	require.Equal(t, sysAdmin.Id, returnedId)
 }
 
 func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
@@ -6049,175 +6065,4 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	users, err := ss.User().GetUsersWithInvalidEmails(0, 50, "localhost,simulator.amazonses.com")
 	require.NoError(t, err)
 	assert.Len(t, users, 1)
-}
-
-func testUserStoreSearchUsersMultilingual(t *testing.T, ss store.Store, s SqlStore) {
-	u1 := &model.User{
-		Username:  "test1" + model.NewId(),
-		FirstName: "Inígo",
-		LastName:  "Martínez",
-		Nickname:  "Berridi",
-		Email:     MakeEmail(),
-	}
-	_, err := ss.User().Save(u1)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
-
-	u2 := &model.User{
-		Username:  "test2" + model.NewId(),
-		FirstName: "Zinëdìne",
-		LastName:  "Zidanë",
-		Email:     MakeEmail(),
-	}
-	_, err = ss.User().Save(u2)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
-
-	u3 := &model.User{
-		Username:  "test3" + model.NewId(),
-		FirstName: "Thomas ",
-		LastName:  "Müller",
-		Nickname:  "Fußballspieler",
-		Email:     MakeEmail(),
-	}
-	_, err = ss.User().Save(u3)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-
-	u4 := &model.User{
-		Username:  "test4" + model.NewId(),
-		FirstName: "Jérémie ",
-		LastName:  "Jéry",
-		Email:     MakeEmail(),
-	}
-	_, err = ss.User().Save(u4)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
-
-	// The users returned from the database will have AuthData as an empty string.
-	nilAuthData := new(string)
-	*nilAuthData = ""
-	u1.AuthData = nilAuthData
-	u2.AuthData = nilAuthData
-	u3.AuthData = nilAuthData
-	u4.AuthData = nilAuthData
-
-	testCases := []struct {
-		Description      string
-		Term             string
-		Options          *model.UserSearchOptions
-		ExpectedPostgres []*model.User
-		ExpectedMysql    []*model.User
-		Language         string
-	}{
-		{
-			"search test1 player",
-			"inig",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u1},
-			[]*model.User{u1},
-			"spanish",
-		},
-		{
-			"search test2 player",
-			"zine",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u2},
-			[]*model.User{u2},
-			"french",
-		},
-		{
-			"search test2 player",
-			"zidane",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u2},
-			[]*model.User{u2},
-			"french",
-		},
-		{
-			"search test3 player",
-			"muller",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u3},
-			[]*model.User{u3},
-			"german",
-		},
-		{
-			"search test3 player",
-			"muller",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{},
-			[]*model.User{u3},
-			"english",
-		},
-		{
-			"search test4 player",
-			"jere",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{u4},
-			[]*model.User{u4},
-			"spanish",
-		},
-		{
-			"search test4 player",
-			"jere",
-			&model.UserSearchOptions{
-				AllowFullNames: true,
-				Limit:          model.UserSearchDefaultLimit,
-			},
-			[]*model.User{},
-			[]*model.User{u4},
-			"english",
-		},
-	}
-
-	var initialDefaultTextSearchConfig string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		error := s.GetMasterX().Get(&initialDefaultTextSearchConfig, `SHOW default_text_search_config`)
-		require.NoError(t, error)
-	}
-
-	for _, testCase := range testCases {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + testCase.Language + "'")
-			require.NoError(t, error)
-		}
-		t.Run(testCase.Description, func(t *testing.T) {
-			users, err := ss.User().SearchWithoutTeam(
-				testCase.Term,
-				testCase.Options,
-			)
-
-			if s.DriverName() != model.DatabaseDriverPostgres {
-				require.NoError(t, err)
-				assertUsers(t, testCase.ExpectedMysql, users)
-			} else {
-				require.NoError(t, err)
-				assertUsers(t, testCase.ExpectedPostgres, users)
-			}
-		})
-	}
-
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		_, error := s.GetMasterX().Exec("SET default_text_search_config TO '" + initialDefaultTextSearchConfig + "'")
-		require.NoError(t, error)
-	}
 }

@@ -17,9 +17,9 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/shared/markdown"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils/imgutils"
@@ -31,13 +31,7 @@ type linkMetadataCache struct {
 	Permalink *model.Permalink
 }
 
-const LinkCacheSize = 10000
-const LinkCacheDuration = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
-
-var linkCache = cache.NewLRU(cache.LRUOptions{
-	Size: LinkCacheSize,
-})
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -46,7 +40,7 @@ func (s *Server) initPostMetadata() {
 			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
 			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
 			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
-			linkCache.Purge()
+			platform.PurgeLinkCache()
 		}
 	})
 }
@@ -123,7 +117,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 	}
 
 	// Files
-	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
+	if fileInfos, _, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
 		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
@@ -210,9 +204,9 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
-		return nil, nil
+		return nil, 0, nil
 	}
 
 	return a.GetFileInfosForPost(post.Id, fromMaster, false)
@@ -642,7 +636,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
 	var cached linkMetadataCache
-	err := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
+	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
 		return nil, nil, nil, false
 	}
@@ -651,7 +645,7 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	linkMetadata, err := a.Srv().Store.LinkMetadata().Get(requestURL, timestamp)
+	linkMetadata, err := a.Srv().Store().LinkMetadata().Get(requestURL, timestamp)
 	if err != nil {
 		return nil, nil, false
 	}
@@ -684,7 +678,7 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LinkMetadataTypeNone
 	}
 
-	_, err := a.Srv().Store.LinkMetadata().Save(metadata)
+	_, err := a.Srv().Store().LinkMetadata().Save(metadata)
 	if err != nil {
 		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
@@ -697,7 +691,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		Permalink: permalink,
 	}
 
-	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)
+	platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {

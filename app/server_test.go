@@ -29,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
-	"github.com/mattermost/mattermost-server/v6/store/storetest"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -59,97 +58,6 @@ func TestStartServerSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
-}
-
-func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	cfg := model.Config{}
-	cfg.SetDefaults()
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DatabaseDriverPostgres
-	}
-	dsn := ""
-	if driverName == model.DatabaseDriverPostgres {
-		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
-	} else {
-		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
-	}
-	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName, false)
-	if dsn != "" {
-		cfg.SqlSettings.DataSource = &dsn
-	}
-	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
-	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
-
-	t.Run("Read Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			var err error
-			server.platform, err = platform.New(platform.ServiceConfig{
-				ConfigStore: configStore,
-			})
-			require.NoError(t, err)
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
-		require.Len(t, s.platform.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Read Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			var err error
-			server.platform, err = platform.New(platform.ServiceConfig{
-				ConfigStore: configStore,
-			})
-			require.NoError(t, err)
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetReplicaX())
-		require.Len(t, s.platform.Config().SqlSettings.DataSourceReplicas, 1)
-	})
-
-	t.Run("Search Replicas with no License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			var err error
-			server.platform, err = platform.New(platform.ServiceConfig{
-				ConfigStore: configStore,
-			})
-			require.NoError(t, err)
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.Same(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
-		require.Len(t, s.platform.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
-
-	t.Run("Search Replicas With License", func(t *testing.T) {
-		s, err := NewServer(func(server *Server) error {
-			configStore := config.NewTestMemoryStore()
-			configStore.Set(&cfg)
-			var err error
-			server.platform, err = platform.New(platform.ServiceConfig{
-				ConfigStore: configStore,
-			})
-			require.NoError(t, err)
-			server.licenseValue.Store(model.NewTestLicense())
-			return nil
-		})
-		require.NoError(t, err)
-		defer s.Shutdown()
-		require.NotSame(t, s.sqlStore.GetMasterX(), s.sqlStore.GetSearchReplicaX())
-		require.Len(t, s.platform.Config().SqlSettings.DataSourceSearchReplicas, 1)
-	})
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {

@@ -19,9 +19,9 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -54,9 +54,9 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -217,7 +217,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -388,7 +388,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 

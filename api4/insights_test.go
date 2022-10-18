@@ -153,7 +153,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -197,7 +197,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 				EmojiName: "confused",
 			}
 
-			_, err = th.App.Srv().Store.Reaction().Save(reaction)
+			_, err = th.App.Srv().Store().Reaction().Save(reaction)
 			require.NoError(t, err)
 		}
 
@@ -383,7 +383,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -830,7 +830,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})
