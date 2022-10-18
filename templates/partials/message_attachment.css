@@ -1,3 +1,7 @@
+.messageAttachments * {
+    font-family: Open Sans, sans-serif !important;
+}
+
 .messageAttachmentContent {
     padding: 0px;
     border: 1px solid rgba(63, 67, 80, 0.16);

@@ -357,6 +357,10 @@
       }
     }
 
+    .messageAttachments * {
+      font-family: Open Sans, sans-serif !important;
+    }
+
     .messageAttachmentContent {
       padding: 0px;
       border: 1px solid rgba(63, 67, 80, 0.16);
@@ -660,28 +664,28 @@
                             {{if .MessageAttachments}}
                             <div class="messageAttachments" style="margin-top: 22px;">
                               {{range .MessageAttachments}}
-                              <div class="messageAttachment" style="vertical-align:top;" width="100%">
-                                <div class="pretext" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
+                              <div class="messageAttachment" style="vertical-align: top; font-family: Open Sans, sans-serif;" width="100%">
+                                <div class="pretext" style="text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px; font-family: Open Sans, sans-serif;">
                                   {{.Pretext}}
                                 </div>
-                                <div class="messageAttachmentContent" style="border: 1px solid rgba(63, 67, 80, 0.16); margin-bottom: 20px; border-radius: 0 4px 4px 0; border-left: 4px solid {{.Color}}; padding: 12px;">
-                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="font-family: Open Sans, sans-serif; text-align: left; line-height: 20px; color: #3F4350; vertical-align: top; font-size: 14px;" width="100%" valign="top" align="left">
-                                    <tbody>
+                                <div class="messageAttachmentContent" style="border: 1px solid rgba(63, 67, 80, 0.16); margin-bottom: 20px; border-radius: 0 4px 4px 0; border-left: 4px solid {{.Color}}; padding: 12px; font-family: Open Sans, sans-serif;">
+                                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="text-align: left; line-height: 20px; color: #3F4350; vertical-align: top; font-size: 14px; font-family: Open Sans, sans-serif;" width="100%" valign="top" align="left">
+                                    <tbody style="font-family: Open Sans, sans-serif;">
                                       {{if or .AuthorIcon .AuthorName}}
-                                      <tr>
-                                        <td>
-                                          {{if .AuthorLink}}<a href="{{.AuthorLink}}" style="color: #1C58D9; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
-                                            {{if .AuthorIcon}}<img class="attachment__author-icon" alt="attachment author icon" src="{{.AuthorIcon}}" style="width: 14px; height: 14px; margin-right: 5px; border-radius: 50px; vertical-align: middle;" width="14" height="14">{{end}}
-                                            {{if .AuthorName}}<span class="attachment__author-name" style="opacity: 0.6;">{{.AuthorName}}</span>{{end}}
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          {{if .AuthorLink}}<a href="{{.AuthorLink}}" style="color: #1C58D9; font-family: Open Sans, sans-serif; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
+                                            {{if .AuthorIcon}}<img class="attachment__author-icon" alt="attachment author icon" src="{{.AuthorIcon}}" style="width: 14px; height: 14px; margin-right: 5px; border-radius: 50px; vertical-align: middle; font-family: Open Sans, sans-serif;" width="14" height="14">{{end}}
+                                            {{if .AuthorName}}<span class="attachment__author-name" style="opacity: 0.6; font-family: Open Sans, sans-serif;">{{.AuthorName}}</span>{{end}}
                                             {{if .AuthorLink}}</a>{{end}}
                                         </td>
                                       </tr>
                                       {{end}}
                                       {{if .Title}}
-                                      <tr>
-                                        <td>
-                                          <h1 class="attachment__title" style="padding: 0; margin: 5px 0; font-size: 14px; line-height: 18px; font-weight: 500;">
-                                            {{if .TitleLink}}<a href="{{.TitleLink}}" style="color: #1C58D9; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          <h1 class="attachment__title" style="padding: 0; margin: 5px 0; font-size: 14px; line-height: 18px; font-weight: 500; font-family: Open Sans, sans-serif;">
+                                            {{if .TitleLink}}<a href="{{.TitleLink}}" style="color: #1C58D9; font-family: Open Sans, sans-serif; text-decoration: none; background-color: unset; border: none; padding: unset;">{{end}}
                                               {{.Title}}
                                               {{if .Title}}</a>{{end}}
                                           </h1>
@@ -690,32 +694,32 @@
                                       {{end}}
                                     </tbody>
                                   </table>
-                                  <div class="attachment__wrapper" style="width: 100%; display: flex; flex-direction: row; gap: 12px;">
-                                    <div class="attachment__body" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; flex: 1;">
-                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; color: #3F4350;" width="100%">
-                                        <tbody>
-                                          <tr>
-                                            <td vertical-align="middle" class="messageButton">
-                                              <div>{{.Text}}</div>
+                                  <div class="attachment__wrapper" style="width: 100%; display: flex; flex-direction: row; gap: 12px; font-family: Open Sans, sans-serif;">
+                                    <div class="attachment__body" style="text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; flex: 1; font-family: Open Sans, sans-serif;">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top; font-size: 14px; color: #3F4350; font-family: Open Sans, sans-serif;" width="100%" valign="top">
+                                        <tbody style="font-family: Open Sans, sans-serif;">
+                                          <tr style="font-family: Open Sans, sans-serif;">
+                                            <td vertical-align="middle" class="messageButton" style="font-family: Open Sans, sans-serif;">
+                                              <div style="font-family: Open Sans, sans-serif;">{{.Text}}</div>
                                             </td>
                                           </tr>
                                           {{if .ImageURL}}
-                                          <tr>
-                                            <td>
-                                              <img class="attachment__image" src="{{.ImageURL}}" style="max-height: 300px; border: 1px solid transparent; margin-bottom: 1em;">
+                                          <tr style="font-family: Open Sans, sans-serif;">
+                                            <td style="font-family: Open Sans, sans-serif;">
+                                              <img class="attachment__image" src="{{.ImageURL}}" style="max-height: 300px; border: 1px solid transparent; margin-bottom: 1em; font-family: Open Sans, sans-serif;">
                                             </td>
                                           </tr>
                                           {{end}}
                                         </tbody>
                                       </table>
-                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em;" width="100%">
+                                      <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align: top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em; font-family: Open Sans, sans-serif;" width="100%" valign="top">
                                         {{range .FieldRows}}
-                                        <tr class="messageAttachment_row">
+                                        <tr class="messageAttachment_row" style="font-family: Open Sans, sans-serif;">
                                           {{ $length := len .Cells }}
                                           {{range .Cells}}
-                                          <td class="messageAttachment_field" {{ if eq $length 1 }}colspan="2" {{end}}>
-                                            <div class="messageAttachment_title" style="padding-top: 1em; font-weight: 600; margin-bottom: 4px;">{{.Title}}</div>
-                                            <div>{{.Value}}</div>
+                                          <td class="messageAttachment_field" {{ if eq $length 1 }}colspan="2" {{end}} style="font-family: Open Sans, sans-serif;">
+                                            <div class="messageAttachment_title" style="padding-top: 1em; font-weight: 600; margin-bottom: 4px; font-family: Open Sans, sans-serif;">{{.Title}}</div>
+                                            <div style="font-family: Open Sans, sans-serif;">{{.Value}}</div>
                                           </td>
                                           {{end}}
                                         </tr>
@@ -723,18 +727,18 @@
                                       </table>
                                     </div>
                                     {{if .ThumbURL}}
-                                    <div class="attachment__thumb-container" style="max-width: 80px; width: max-content;">
-                                      <img class="attachment__thumb-image" src="{{.ThumbURL}}" style="max-width: 100%; max-height: 75px;">
+                                    <div class="attachment__thumb-container" style="max-width: 80px; width: max-content; font-family: Open Sans, sans-serif;">
+                                      <img class="attachment__thumb-image" src="{{.ThumbURL}}" style="max-width: 100%; max-height: 75px; font-family: Open Sans, sans-serif;">
                                     </div>
                                     {{end}}
                                   </div>
                                   {{if .Footer}}
-                                  <table class="attachment__footer-container" border="0" cellpadding="0" cellspacing="0" role="presentation" style="font-family: Open Sans, sans-serif; text-align: left; line-height: 20px; color: #a3a3a3; vertical-align: top; font-size: 14px;" width="100%" valign="top" align="left">
-                                    <tbody>
-                                      <tr>
-                                        <td>
-                                          {{if .FooterIcon}}<img class="attachment__footer-icon" src="{{.FooterIcon}}" style="width: 16px; height: 16px; vertical-align: middle;" width="16" height="16">{{end}}
-                                          <span style="font-size: 12px;">{{.Footer}}</span>
+                                  <table class="attachment__footer-container" border="0" cellpadding="0" cellspacing="0" role="presentation" style="text-align: left; line-height: 20px; color: #a3a3a3; vertical-align: top; font-size: 14px; font-family: Open Sans, sans-serif;" width="100%" valign="top" align="left">
+                                    <tbody style="font-family: Open Sans, sans-serif;">
+                                      <tr style="font-family: Open Sans, sans-serif;">
+                                        <td style="font-family: Open Sans, sans-serif;">
+                                          {{if .FooterIcon}}<img class="attachment__footer-icon" src="{{.FooterIcon}}" style="width: 16px; height: 16px; vertical-align: middle; font-family: Open Sans, sans-serif;" width="16" height="16">{{end}}
+                                          <span style="font-size: 12px; font-family: Open Sans, sans-serif;">{{.Footer}}</span>
                                         </td>
                                       </tr>
                                     </tbody>
