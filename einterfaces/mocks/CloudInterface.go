@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	request "github.com/mattermost/mattermost-server/v6/app/request"
 	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -37,13 +38,13 @@ func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID strin
 	return r0, r1
 }
 
-// ConfirmCustomerPayment provides a mock function with given fields: userID, confirmRequest
-func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
-	ret := _m.Called(userID, confirmRequest)
+// ConfirmCustomerPayment provides a mock function with given fields: c, userID, confirmRequest
+func (_m *CloudInterface) ConfirmCustomerPayment(c request.CTX, userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error {
+	ret := _m.Called(c, userID, confirmRequest)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, *model.ConfirmPaymentMethodRequest) error); ok {
-		r0 = rf(userID, confirmRequest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.ConfirmPaymentMethodRequest) error); ok {
+		r0 = rf(c, userID, confirmRequest)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -316,13 +317,13 @@ func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *mod
 	return r0, r1
 }
 
-// UpdateSubscriptionFromHook provides a mock function with given fields: _a0, _a1
-func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _a1 *model.Subscription) error {
-	ret := _m.Called(_a0, _a1)
+// UpdateSubscriptionFromHook provides a mock function with given fields: _a0, _a1, _a2
+func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 request.CTX, _a1 *model.ProductLimits, _a2 *model.Subscription) error {
+	ret := _m.Called(_a0, _a1, _a2)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.ProductLimits, *model.Subscription) error); ok {
-		r0 = rf(_a0, _a1)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ProductLimits, *model.Subscription) error); ok {
+		r0 = rf(_a0, _a1, _a2)
 	} else {
 		r0 = ret.Error(0)
 	}

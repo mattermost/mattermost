@@ -2007,7 +2007,7 @@ func (a *OpenTracingAppLayer) CreateCommandWebhook(commandID string, args *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error {
+func (a *OpenTracingAppLayer) CreateDefaultMemberships(c request.CTX, since int64, includeRemovedMembers bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultMemberships")
 
@@ -3073,7 +3073,7 @@ func (a *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships(c *request.Context) error {
+func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships(c request.CTX) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupConstrainedMemberships")
 
@@ -13135,7 +13135,7 @@ func (a *OpenTracingAppLayer) ProcessSlackText(text string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError {
+func (a *OpenTracingAppLayer) PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PromoteGuestToUser")
 

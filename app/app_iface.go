@@ -93,7 +93,7 @@ type AppIface interface {
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
-	CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error
+	CreateDefaultMemberships(c request.CTX, since int64, includeRemovedMembers bool) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError)
@@ -117,7 +117,7 @@ type AppIface interface {
 	DeleteChannelScheme(c request.CTX, channel *model.Channel) (*model.Channel, *model.AppError)
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
-	DeleteGroupConstrainedMemberships(c *request.Context) error
+	DeleteGroupConstrainedMemberships(c request.CTX) error
 	// DeletePublicKey will delete plugin public key from the config.
 	DeletePublicKey(name string) *model.AppError
 	// DemoteUserToGuest Convert user's roles and all his membership's roles from
@@ -290,7 +290,7 @@ type AppIface interface {
 	PostCountsByDuration(c request.CTX, channelIDs []string, sinceUnixMillis int64, userID *string, grouping model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, *model.AppError)
 	// PromoteGuestToUser Convert user's roles and all his membership's roles from
 	// guest roles to regular user roles.
-	PromoteGuestToUser(c *request.Context, user *model.User, requestorId string) *model.AppError
+	PromoteGuestToUser(c request.CTX, user *model.User, requestorId string) *model.AppError
 	// Removes a listener function by the unique ID returned when AddConfigListener was called
 	RemoveConfigListener(id string)
 	// RenameChannel is used to rename the channel Name and the DisplayName fields
