@@ -2876,7 +2876,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		Following:       false,
 		UpdateFollowing: true,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	replyPost2 := &model.Post{
 		ChannelId: c1.Id,
