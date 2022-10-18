@@ -3445,7 +3445,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -9473,7 +9473,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 102+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",

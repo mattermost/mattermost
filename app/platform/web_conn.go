@@ -409,7 +409,7 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.drainDeadQueue", err)
 				return
 			}
-			if m := wc.Platform.metricsImpl(); m != nil {
+			if m := wc.Platform.metricsIFace; m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectFound)
 			}
 		} else if wc.hasMsgLoss() {
@@ -427,11 +427,11 @@ func (wc *WebConn) writePump() {
 				wc.logSocketErr("websocket.sendHello", err)
 				return
 			}
-			if m := wc.Platform.metricsImpl(); m != nil {
+			if m := wc.Platform.metricsIFace; m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
 			}
 		} else {
-			if m := wc.Platform.metricsImpl(); m != nil {
+			if m := wc.Platform.metricsIFace; m != nil {
 				m.IncrementWebsocketReconnectEvent(reconnectLossless)
 			}
 		}
@@ -488,7 +488,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 
-			if m := wc.Platform.metricsImpl(); m != nil {
+			if m := wc.Platform.metricsIFace; m != nil {
 				m.IncrementWebSocketBroadcast(msg.EventType())
 			}
 		case <-ticker.C:
