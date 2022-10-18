@@ -77,9 +77,9 @@ func (_m *SuiteIFace) SetStatusLastActivityAt(userID string, activityAt int64) {
 	_m.Called(userID, activityAt)
 }
 
-// SetStatusOffline provides a mock function with given fields: userID, manual
-func (_m *SuiteIFace) SetStatusOffline(userID string, manual bool) {
-	_m.Called(userID, manual)
+// SetStatusOffline provides a mock function with given fields: userID, manual, updateLastActivityAt
+func (_m *SuiteIFace) SetStatusOffline(userID string, manual bool, updateLastActivityAt bool) {
+	_m.Called(userID, manual, updateLastActivityAt)
 }
 
 // SetStatusOnline provides a mock function with given fields: userID, manual

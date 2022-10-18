@@ -41,12 +41,12 @@ var userCache struct {
 type mockSuite struct {
 }
 
-func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64) {}
-func (ms *mockSuite) SetStatusOffline(userID string, manual bool)             {}
-func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                    { return false }
-func (ms *mockSuite) SetStatusOnline(userID string, manual bool)              {}
-func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)      {}
-func (ms *mockSuite) SetStatusAwayIfNeeded(userID string, manual bool)        {}
+func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64)                {}
+func (ms *mockSuite) SetStatusOffline(userID string, manual bool, updateLastActivityAt bool) {}
+func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                                   { return false }
+func (ms *mockSuite) SetStatusOnline(userID string, manual bool)                             {}
+func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)                     {}
+func (ms *mockSuite) SetStatusAwayIfNeeded(userID string, manual bool)                       {}
 func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) {
 	return &model.Session{}, nil
 }

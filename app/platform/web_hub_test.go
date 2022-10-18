@@ -472,7 +472,7 @@ func TestHubIsRegistered(t *testing.T) {
 	mockSuite.On("UpdateLastActivityAtIfNeeded", *session).Return()
 	mockSuite.On("GetSession", session.Token).Return(session, nil)
 	mockSuite.On("IsUserAway", mock.Anything).Return(false)
-	mockSuite.On("SetStatusOffline", th.BasicUser.Id, false).Return()
+	mockSuite.On("SetStatusOffline", th.BasicUser.Id, false, true).Return()
 
 	th.Suite = mockSuite
 
