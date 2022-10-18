@@ -33,7 +33,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -46,7 +46,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
-	config := th.App.ClientConfigWithComputed()
+	config := th.App.Srv().Platform().ClientConfigWithComputed()
 	_, ok := config["NoAccounts"]
 	assert.True(t, ok, "expected NoAccounts in returned config")
 	_, ok = config["MaxPostSize"]
@@ -104,9 +104,9 @@ func TestEnsureInstallationDate(t *testing.T) {
 			}
 
 			if tc.PrevInstallationDate == nil {
-				th.App.Srv().Store.System().PermanentDeleteByName(model.SystemInstallationDateKey)
+				th.App.Srv().Store().System().PermanentDeleteByName(model.SystemInstallationDateKey)
 			} else {
-				th.App.Srv().Store.System().SaveOrUpdate(&model.System{
+				th.App.Srv().Store().System().SaveOrUpdate(&model.System{
 					Name:  model.SystemInstallationDateKey,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
@@ -119,7 +119,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				data, err := th.App.Srv().Store.System().GetByName(model.SystemInstallationDateKey)
+				data, err := th.App.Srv().Store().System().GetByName(model.SystemInstallationDateKey)
 				assert.NoError(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)

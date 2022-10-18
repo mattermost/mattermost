@@ -25,7 +25,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
-		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
+		teams, err := a.Srv().Store().Team().GetTeamsByUserId(user.Id)
 		if err != nil {
 			return errors.Wrap(err, "unable to get user teams")
 		}
@@ -50,7 +50,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
+		if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
@@ -70,7 +70,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 	translateFunc := i18n.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
+	if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = data.Value == "true"
@@ -113,7 +113,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
-	templateString := "<%s@mattermost.com>"
+	templateString := "<%s@" + utils.GetHostnameFromSiteURL(a.GetSiteURL()) + ">"
 	messageID := ""
 	inReplyTo := ""
 	references := ""

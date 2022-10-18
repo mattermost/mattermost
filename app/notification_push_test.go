@@ -555,7 +555,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -1133,7 +1133,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 		ExpiresAt: model.GetMillis() + 100000,
 	}
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
@@ -1209,7 +1209,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 		ExpiresAt: model.GetMillis() + 100000,
 	}
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
@@ -1282,7 +1282,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	)
 	defer pushServer.Close()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -1440,7 +1440,6 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		Store:     mockStore,
 		products:  make(map[string]Product),
 		Router:    mux.NewRouter(),
 		filestore: &fmocks.FileBackend{},
@@ -1449,6 +1448,7 @@ func TestPushNotificationRace(t *testing.T) {
 	s.platform, err = platform.New(platform.ServiceConfig{
 		ConfigStore: memoryStore,
 	})
+	s.SetStore(mockStore)
 	require.NoError(t, err)
 	serviceMap := map[ServiceKey]any{
 		ConfigKey:    s.platform,
@@ -1527,7 +1527,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	)
 	defer pushServer.Close()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)

@@ -111,9 +111,9 @@ func (r *resolver) Config(ctx context.Context) (model.StringMap, error) {
 	}
 
 	if c.AppContext.Session().UserId == "" {
-		return c.App.LimitedClientConfigWithComputed(), nil
+		return c.App.Srv().Platform().LimitedClientConfigWithComputed(), nil
 	}
-	return c.App.ClientConfigWithComputed(), nil
+	return c.App.Srv().Platform().ClientConfigWithComputed(), nil
 }
 
 // match with api4.getClientLicense
@@ -212,7 +212,7 @@ func (*resolver) ChannelsLeft(ctx context.Context, args struct {
 		return nil, c.Err
 	}
 
-	return c.App.Srv().Store.ChannelMemberHistory().GetChannelsLeftSince(args.UserID, int64(args.Since))
+	return c.App.Srv().Store().ChannelMemberHistory().GetChannelsLeftSince(args.UserID, int64(args.Since))
 }
 
 // match with api4.getChannelMember
@@ -296,7 +296,7 @@ func (*resolver) ChannelMembers(ctx context.Context, args struct {
 		LastUpdateAt: int(args.LastUpdateAt),
 		ExcludeTeam:  args.ExcludeTeam,
 	}
-	members, err := c.App.Srv().Store.Channel().GetMembersForUserWithCursor(args.UserID, args.TeamID, opts)
+	members, err := c.App.Srv().Store().Channel().GetMembersForUserWithCursor(args.UserID, args.TeamID, opts)
 	if err != nil {
 		return nil, err
 	}

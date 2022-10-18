@@ -87,19 +87,19 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockStore := mocks.Store{}
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
-		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
+		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
 		mockChannelStore.On("ClearCaches").Return()
 		mockStore.On("Channel").Return(&mockChannelStore)
-		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
-		mockStore.On("License").Return(th.App.Srv().Store.License())
-		mockStore.On("Post").Return(th.App.Srv().Store.Post())
-		mockStore.On("Role").Return(th.App.Srv().Store.Role())
-		mockStore.On("System").Return(th.App.Srv().Store.System())
-		mockStore.On("Team").Return(th.App.Srv().Store.Team())
-		mockStore.On("User").Return(th.App.Srv().Store.User())
-		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
 		mockStore.On("Close").Return(nil)
-		th.App.Srv().Store = &mockStore
+		th.App.Srv().SetStore(&mockStore)
 
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
