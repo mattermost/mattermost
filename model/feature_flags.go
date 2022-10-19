@@ -72,6 +72,9 @@ type FeatureFlags struct {
 
 	PlanUpgradeButtonText string
 
+	// A/B Test on posting a welcome message
+	SendWelcomePost bool
+
 	PostPriority bool
 
 	VoiceMessages bool
@@ -101,6 +104,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.PlanUpgradeButtonText = "upgrade"
+	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.VoiceMessages = false
 }

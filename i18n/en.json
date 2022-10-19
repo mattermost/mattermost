@@ -3473,7 +3473,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
