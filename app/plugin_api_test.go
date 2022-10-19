@@ -2024,9 +2024,13 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
 	err := api.RegisterCollectionAndTopic("collection1", "topic1")
 	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection1", "topic1")
+	assert.NoError(t, err)
 	err = api.RegisterCollectionAndTopic("collection1", "topic2")
 	assert.NoError(t, err)
-	err = api.RegisterCollectionAndTopic("collection2", "topic2")
+	err = api.RegisterCollectionAndTopic("collection2", "topic3")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection2", "topic1")
 	assert.Error(t, err)
 
 	pluginCode := `
@@ -2043,6 +2047,9 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 
 	func (p *MyPlugin) OnActivate() error {
 		if err := p.API.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some topic"); err != nil {
+			return errors.Wrap(err, "cannot register collection")
+		}
+		if err := p.API.RegisterCollectionAndTopic("some collection", "topicToBeRepeated"); err != nil {
 			return errors.Wrap(err, "cannot register collection")
 		}
 		return nil
@@ -2083,5 +2090,7 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	require.True(t, activated)
 
 	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
+	assert.Error(t, err)
+	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
 	assert.Error(t, err)
 }
