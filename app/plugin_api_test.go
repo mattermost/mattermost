@@ -2023,11 +2023,11 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	err := api.RegisterCollectionAndTopic("collection1", "topic1")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = api.RegisterCollectionAndTopic("collection1", "topic2")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = api.RegisterCollectionAndTopic("collection2", "topic2")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	pluginCode := `
     package main
@@ -2083,5 +2083,5 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	require.True(t, activated)
 
 	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
