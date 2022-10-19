@@ -4816,6 +4816,14 @@
     "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
   },
   {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Only allowed single collection type per plugin."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
+  },
+  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },

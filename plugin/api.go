@@ -1157,6 +1157,15 @@ type API interface {
 	//
 	// Minimum server version: 7.1
 	EnsureBotUser(bot *model.Bot) (string, error)
+
+	// RegisterCollectionAndTopic informs the server that this plugin handles
+	// the given collection and topic types.
+	//
+	// It is an error for different plugins to register the same pair of types,
+	// or even to register a new topic against another plugin's collection.
+	//
+	// Minimum server version: 7.5
+	RegisterCollectionAndTopic(collectionType, topicType string) error
 }
 
 var handshake = plugin.HandshakeConfig{

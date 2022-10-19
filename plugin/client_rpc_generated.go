@@ -807,6 +807,160 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["UserHasPermissionToCollection"] = UserHasPermissionToCollectionID
+}
+
+type Z_UserHasPermissionToCollectionArgs struct {
+	A *Context
+	B *model.User
+	C string
+	D string
+	E *model.Permission
+}
+
+type Z_UserHasPermissionToCollectionReturns struct {
+	A bool
+	B error
+}
+
+func (g *hooksRPCClient) UserHasPermissionToCollection(c *Context, user *model.User, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+	_args := &Z_UserHasPermissionToCollectionArgs{c, user, collectionType, collectionId, permission}
+	_returns := &Z_UserHasPermissionToCollectionReturns{}
+	if g.implemented[UserHasPermissionToCollectionID] {
+		if err := g.client.Call("Plugin.UserHasPermissionToCollection", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasPermissionToCollection to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) UserHasPermissionToCollection(args *Z_UserHasPermissionToCollectionArgs, returns *Z_UserHasPermissionToCollectionReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasPermissionToCollection(c *Context, user *model.User, collectionType, collectionId string, permission *model.Permission) (bool, error)
+	}); ok {
+		returns.A, returns.B = hook.UserHasPermissionToCollection(args.A, args.B, args.C, args.D, args.E)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasPermissionToCollection called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["GetAllCollectionIDsForUser"] = GetAllCollectionIDsForUserID
+}
+
+type Z_GetAllCollectionIDsForUserArgs struct {
+	A *Context
+	B string
+	C string
+}
+
+type Z_GetAllCollectionIDsForUserReturns struct {
+	A []string
+	B error
+}
+
+func (g *hooksRPCClient) GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error) {
+	_args := &Z_GetAllCollectionIDsForUserArgs{c, userID, collectionType}
+	_returns := &Z_GetAllCollectionIDsForUserReturns{}
+	if g.implemented[GetAllCollectionIDsForUserID] {
+		if err := g.client.Call("Plugin.GetAllCollectionIDsForUser", _args, _returns); err != nil {
+			g.log.Error("RPC call GetAllCollectionIDsForUser to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GetAllCollectionIDsForUser(args *Z_GetAllCollectionIDsForUserArgs, returns *Z_GetAllCollectionIDsForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
+	}); ok {
+		returns.A, returns.B = hook.GetAllCollectionIDsForUser(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GetAllCollectionIDsForUser called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["GetAllUserIdsForCollection"] = GetAllUserIdsForCollectionID
+}
+
+type Z_GetAllUserIdsForCollectionArgs struct {
+	A *Context
+	B string
+	C string
+}
+
+type Z_GetAllUserIdsForCollectionReturns struct {
+	A []string
+	B error
+}
+
+func (g *hooksRPCClient) GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error) {
+	_args := &Z_GetAllUserIdsForCollectionArgs{c, collectionType, collectionID}
+	_returns := &Z_GetAllUserIdsForCollectionReturns{}
+	if g.implemented[GetAllUserIdsForCollectionID] {
+		if err := g.client.Call("Plugin.GetAllUserIdsForCollection", _args, _returns); err != nil {
+			g.log.Error("RPC call GetAllUserIdsForCollection to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GetAllUserIdsForCollection(args *Z_GetAllUserIdsForCollectionArgs, returns *Z_GetAllUserIdsForCollectionReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
+	}); ok {
+		returns.A, returns.B = hook.GetAllUserIdsForCollection(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GetAllUserIdsForCollection called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["GetTopicRedirect"] = GetTopicRedirectID
+}
+
+type Z_GetTopicRedirectArgs struct {
+	A *Context
+	B string
+	C string
+}
+
+type Z_GetTopicRedirectReturns struct {
+	A string
+	B error
+}
+
+func (g *hooksRPCClient) GetTopicRedirect(c *Context, topicType, topicID string) (string, error) {
+	_args := &Z_GetTopicRedirectArgs{c, topicType, topicID}
+	_returns := &Z_GetTopicRedirectReturns{}
+	if g.implemented[GetTopicRedirectID] {
+		if err := g.client.Call("Plugin.GetTopicRedirect", _args, _returns); err != nil {
+			g.log.Error("RPC call GetTopicRedirect to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GetTopicRedirect(args *Z_GetTopicRedirectArgs, returns *Z_GetTopicRedirectReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.GetTopicRedirect(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GetTopicRedirect called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -5705,6 +5859,36 @@ func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_Ensur
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API EnsureBotUser called but not implemented."))
+	}
+	return nil
+}
+
+type Z_RegisterCollectionAndTopicArgs struct {
+	A string
+	B string
+}
+
+type Z_RegisterCollectionAndTopicReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterCollectionAndTopic(collectionType, topicType string) error {
+	_args := &Z_RegisterCollectionAndTopicArgs{collectionType, topicType}
+	_returns := &Z_RegisterCollectionAndTopicReturns{}
+	if err := g.client.Call("Plugin.RegisterCollectionAndTopic", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterCollectionAndTopic API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterCollectionAndTopic(args *Z_RegisterCollectionAndTopicArgs, returns *Z_RegisterCollectionAndTopicReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterCollectionAndTopic(collectionType, topicType string) error
+	}); ok {
+		returns.A = hook.RegisterCollectionAndTopic(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterCollectionAndTopic called but not implemented."))
 	}
 	return nil
 }

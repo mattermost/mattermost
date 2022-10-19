@@ -73,6 +73,73 @@ func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, fil
 	return r0, r1
 }
 
+// GetAllCollectionIDsForUser provides a mock function with given fields: c, userID, collectionType
+func (_m *Hooks) GetAllCollectionIDsForUser(c *plugin.Context, userID string, collectionType string) ([]string, error) {
+	ret := _m.Called(c, userID, collectionType)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string) []string); ok {
+		r0 = rf(c, userID, collectionType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string) error); ok {
+		r1 = rf(c, userID, collectionType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllUserIdsForCollection provides a mock function with given fields: c, collectionType, collectionID
+func (_m *Hooks) GetAllUserIdsForCollection(c *plugin.Context, collectionType string, collectionID string) ([]string, error) {
+	ret := _m.Called(c, collectionType, collectionID)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string) []string); ok {
+		r0 = rf(c, collectionType, collectionID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string) error); ok {
+		r1 = rf(c, collectionType, collectionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopicRedirect provides a mock function with given fields: c, topicType, topicID
+func (_m *Hooks) GetTopicRedirect(c *plugin.Context, topicType string, topicID string) (string, error) {
+	ret := _m.Called(c, topicType, topicID)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string) string); ok {
+		r0 = rf(c, topicType, topicID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string) error); ok {
+		r1 = rf(c, topicType, topicID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Implemented provides a mock function with given fields:
 func (_m *Hooks) Implemented() ([]string, error) {
 	ret := _m.Called()
@@ -297,6 +364,27 @@ func (_m *Hooks) UserHasLeftTeam(c *plugin.Context, teamMember *model.TeamMember
 // UserHasLoggedIn provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
+}
+
+// UserHasPermissionToCollection provides a mock function with given fields: c, user, collectionType, collectionId, permission
+func (_m *Hooks) UserHasPermissionToCollection(c *plugin.Context, user *model.User, collectionType string, collectionId string, permission *model.Permission) (bool, error) {
+	ret := _m.Called(c, user, collectionType, collectionId, permission)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User, string, string, *model.Permission) bool); ok {
+		r0 = rf(c, user, collectionType, collectionId, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.User, string, string, *model.Permission) error); ok {
+		r1 = rf(c, user, collectionType, collectionId, permission)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UserWillLogIn provides a mock function with given fields: c, user

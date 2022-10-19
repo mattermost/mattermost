@@ -486,6 +486,11 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
+	if collectionType, ok := ch.collectionTypes[id]; ok {
+		delete(ch.collectionTypes, id)
+		delete(ch.topicTypes, collectionType)
+	}
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)

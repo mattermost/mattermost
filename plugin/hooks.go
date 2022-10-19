@@ -43,6 +43,10 @@ const (
 	OnInstallID                     = 25
 	OnSendDailyTelemetryID          = 26
 	OnCloudLimitsUpdatedID          = 27
+	UserHasPermissionToCollectionID = 28
+	GetAllUserIdsForCollectionID    = 29
+	GetAllCollectionIDsForUserID    = 30
+	GetTopicRedirectID              = 31
 	TotalHooksID                    = iota
 )
 
@@ -270,4 +274,36 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
+
+	// UserHasPermissionToCollection determines if the given user has access to
+	// the given collection. Plugins are only expected to handle their own
+	// collections, and should return false for unknown collections.
+	//
+	// For Threads Everywhere, products are expected to support at least the
+	// following permissions: create_post, edit_post, delete_post,
+	// edit_others_posts, and delete_others_posts.
+	//
+	// Minimum server version: 7.5
+	UserHasPermissionToCollection(c *Context, user *model.User, collectionType, collectionId string, permission *model.Permission) (bool, error)
+
+	// GetAllCollectionIDsForUser returns the set of collection ids to which
+	// the given user has access. Plugins are only expected to handle their
+	// own collections, and should return an empty set for unknown types.
+	//
+	// Minimum server version: 7.5
+	GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
+
+	// GetAllCollectionIDsForUser returns the set of collection ids to which
+	// the given user has access. Plugins are only expected to handle their
+	// own collections, and should return an empty set for unknown types.
+	//
+	// Minimum server version: 7.5
+	GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
+
+	// GetTopicRedirect returns a relative URL to which to redirect a user
+	// following a topic permalink. Plugins are only expected to handle their
+	// own topic types, and should return an empty string and error for unknown // types.
+	//
+	// Minimum server version: 7.5
+	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
 }
