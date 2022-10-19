@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Du hast deine E-Mail-Adresse geändert"
+    "translation": "Du hast deine E-Mail-Adresse erfolgreich geändert"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4801,11 +4801,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 102+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -8380,7 +8380,7 @@
   },
   {
     "id": "app.notification.body.dm.subTitle",
-    "translation": "Währen du weg warst, hat dir {{.SenderName}} eine neue Direktnachricht gesendet."
+    "translation": "Während du weg warst, hat dir {{.SenderName}} eine neue Direktnachricht gesendet."
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
@@ -9537,5 +9537,21 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "Wir konnten den Nachrichtenzähler für den Benutzer nicht abfragen."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fehler bei der Auftragsausführung."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fehler beim Abrufen der letzten zugänglichen Datei"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Die Datei kann nicht abgerufen werden, da sie das Limit des Cloud-Plans überschritten hat."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "Gruppenname existiert bereits als reservierter Name"
   }
 ]
