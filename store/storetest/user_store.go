@@ -1003,6 +1003,36 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
+
+	t.Run("Filter by channel members and channel admins", func(t *testing.T) {
+		// save admin for c1
+		user2Admin, err := ss.User().Save(&model.User{
+			Email:    MakeEmail(),
+			Username: "bbb" + model.NewId(),
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(user2Admin.Id)) }()
+		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:     c1.Id,
+			UserId:        user2Admin.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			ExplicitRoles: "channel_admin",
+		})
+		require.NoError(t, nErr)
+		ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
+
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId:  c1.Id,
+			ChannelRoles: []string{model.ChannelAdminRoleId},
+			Page:         0,
+			PerPage:      5,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, user2Admin.Id, users[0].Id)
+	})
 }
 
 func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
