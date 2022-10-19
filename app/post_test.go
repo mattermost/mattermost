@@ -1093,7 +1093,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			}, nil
 		})
 
-		require.ErrorContains(t, appErr, "Your voice message file size is too long")
+		require.ErrorContains(t, appErr, "The voice message is too long")
 	})
 }
 
