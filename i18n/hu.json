@@ -5796,14 +5796,6 @@
     "translation": "A meghívás csatornáinak a meghívó csapat részének kell lenniük."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "A vendég fiókok le vannak tiltva"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Hiba történt az e-mail meghívók érvénytelenítésekor."
   },

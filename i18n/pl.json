@@ -5584,14 +5584,6 @@
     "translation": "Kanały do których chcesz zaprosić, muszą być częścią zespołu do którego chcesz zaprosić."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Twoja licencja nie obsługuje kont gości"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konta gości są wyłączone"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Błąd unieważniania zaproszenia E-Mail."
   },
