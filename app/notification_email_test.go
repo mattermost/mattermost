@@ -351,43 +351,43 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 	messageAttachments := []*model.SlackAttachment{
 		{
 			Color:      "#FF0000",
-			Pretext:    "slack attachment 1 pretext",
+			Pretext:    "message attachment 1 pretext",
 			AuthorName: "author name",
 			AuthorLink: "https://example.com/slack_attachment_1/author_link",
 			AuthorIcon: "https://example.com/slack_attachment_1/author_icon",
-			Title:      "slack attachment 1 title",
+			Title:      "message attachment 1 title",
 			TitleLink:  "https://example.com/slack_attachment_1/title_link",
-			Text:       "slack attachment 1 text",
+			Text:       "message attachment 1 text",
 			ImageURL:   "https://example.com/slack_attachment_1/image",
 			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
 			Fields: []*model.SlackAttachmentField{
 				{
 					Short: true,
-					Title: "slack attachment 1 field 1 title",
-					Value: "slack attachment 1 field 1 value",
+					Title: "message attachment 1 field 1 title",
+					Value: "message attachment 1 field 1 value",
 				},
 				{
 					Short: false,
-					Title: "slack attachment 1 field 2 title",
-					Value: "slack attachment 1 field 2 value",
+					Title: "message attachment 1 field 2 title",
+					Value: "message attachment 1 field 2 value",
 				},
 				{
 					Short: true,
-					Title: "slack attachment 1 field 3 title",
-					Value: "slack attachment 1 field 3 value",
+					Title: "message attachment 1 field 3 title",
+					Value: "message attachment 1 field 3 value",
 				},
 				{
 					Short: true,
-					Title: "slack attachment 1 field 4 title",
-					Value: "slack attachment 1 field 4 value",
+					Title: "message attachment 1 field 4 title",
+					Value: "message attachment 1 field 4 value",
 				},
 			},
 		},
 		{
 			Color:      "#FF0000",
-			Pretext:    "slack attachment 2 pretext",
+			Pretext:    "message attachment 2 pretext",
 			AuthorName: "author name 2",
-			Text:       "slack attachment 2 text",
+			Text:       "message attachment 2 text",
 		},
 	}
 
@@ -413,27 +413,27 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "#FF0000")
-	require.Contains(t, body, "slack attachment 1 pretext")
+	require.Contains(t, body, "message attachment 1 pretext")
 	require.Contains(t, body, "author name")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/author_link")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/author_icon")
-	require.Contains(t, body, "slack attachment 1 title")
+	require.Contains(t, body, "message attachment 1 title")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/title_link")
-	require.Contains(t, body, "slack attachment 1 text")
+	require.Contains(t, body, "message attachment 1 text")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/image")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/thumb")
-	require.Contains(t, body, "slack attachment 1 field 1 title")
-	require.Contains(t, body, "slack attachment 1 field 1 value")
-	require.Contains(t, body, "slack attachment 1 field 2 title")
-	require.Contains(t, body, "slack attachment 1 field 2 value")
-	require.Contains(t, body, "slack attachment 1 field 3 title")
-	require.Contains(t, body, "slack attachment 1 field 3 value")
-	require.Contains(t, body, "slack attachment 1 field 4 title")
-	require.Contains(t, body, "slack attachment 1 field 4 value")
+	require.Contains(t, body, "message attachment 1 field 1 title")
+	require.Contains(t, body, "message attachment 1 field 1 value")
+	require.Contains(t, body, "message attachment 1 field 2 title")
+	require.Contains(t, body, "message attachment 1 field 2 value")
+	require.Contains(t, body, "message attachment 1 field 3 title")
+	require.Contains(t, body, "message attachment 1 field 3 value")
+	require.Contains(t, body, "message attachment 1 field 4 title")
+	require.Contains(t, body, "message attachment 1 field 4 value")
 	require.Contains(t, body, "https://example.com/slack_attachment_1/thumb")
-	require.Contains(t, body, "slack attachment 2 pretext")
+	require.Contains(t, body, "message attachment 2 pretext")
 	require.Contains(t, body, "author name 2")
-	require.Contains(t, body, "slack attachment 2 text")
+	require.Contains(t, body, "message attachment 2 text")
 }
 
 // from here
