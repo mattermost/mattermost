@@ -1440,6 +1440,11 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 		return appErr
 	}
 
+	if limit == 0 {
+		// Cloud limit is not applicable
+		return nil
+	}
+
 	createdAt, err := a.Srv().GetStore().Post().GetNthRecentPostTime(limit)
 	if err != nil {
 		var nfErr *store.ErrNotFound
