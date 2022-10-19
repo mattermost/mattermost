@@ -5588,14 +5588,6 @@
     "translation": "Os canais do convite devem ser parte da equipe do convite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Sua licença não suporta contas convidado"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Contas convidado estão desativadas"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Erro ao invalidar convites por email."
   },

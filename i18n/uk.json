@@ -5584,14 +5584,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },

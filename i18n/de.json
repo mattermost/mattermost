@@ -5624,14 +5624,6 @@
     "translation": "Die Kanäle der Einladung müssen Teil des Teams der Einladung sein."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Deine Lizenz unterstützt Gastkonten nicht"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gastkonten sind deaktiviert"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Fehler beim Annulieren von E-Mail-Einladungen."
   },
