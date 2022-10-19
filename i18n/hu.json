@@ -3125,7 +3125,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a gitlab.com webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
+    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a {{.URL}} webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -5469,15 +5469,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Sikertelen fizetés"
+    "translation": "A fizetési művelet nem sikerült"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost Cloudra"
+    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost {{.Plan}} csomagra"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost Cloud zavartalan előfizetésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
+    "translation": "A Mattermost {{.Plan}} zavartalan elérésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5794,14 +5794,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "A meghívás csatornáinak a meghívó csapat részének kell lenniük."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "A vendég fiókok le vannak tiltva"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9354,5 +9346,45 @@
   {
     "id": "api.templates.delinquency_30.subject",
     "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nem sikerült elküldeni az értesítési bejegyzést."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nem sikerült elmenteni az értesítési beállításokat."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Hiba a művelet végrehajtása közben."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Nem sikerült lekérni a jelenlegi előfizetési csomag nevét"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktív bővítmények és integrációk"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nem sikerült lekérni a fájlt, mivel az meghaladta a felhőcsomag határértékét."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó jelvény számlálóját."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "csoport név létezik mint lefoglalt név"
   }
 ]
