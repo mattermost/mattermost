@@ -782,56 +782,11 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	b, appErr := getGroupsByChannelCommon(c, r)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-
-	var permission *model.Permission
-	if channel.Type == model.ChannelTypePrivate {
-		permission = model.PermissionReadPrivateChannelGroups
-	} else {
-		permission = model.PermissionReadPublicChannelGroups
-	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
-		c.SetPermissionError(permission)
-		return
-	}
-
-	opts := model.GroupSearchOpts{
-		Q:                    c.Params.Q,
-		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
-	}
-	if c.Params.Paginate == nil || *c.Params.Paginate {
-		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
-	}
-
-	groups, totalCount, appErr := c.App.GetGroupsByChannel(c.Params.ChannelId, opts)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	b, err := json.Marshal(struct {
-		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
-		Count  int                           `json:"total_group_count"`
-	}{
-		Groups: groups,
-		Count:  totalCount,
-	})
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
 	w.Write(b)
 }
 
@@ -845,9 +800,18 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+
+	b, appError := getGroupsByTeamCommon(c, r)
+	if appError != nil {
+		c.Err = appError
 		return
+	}
+	w.Write(b)
+}
+
+func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
 	opts := model.GroupSearchOpts{
@@ -861,8 +825,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	groups, totalCount, appErr := c.App.GetGroupsByTeam(c.Params.TeamId, opts)
 	if appErr != nil {
-		c.Err = appErr
-		return
+		return nil, appErr
 	}
 
 	b, err := json.Marshal(struct {
@@ -874,11 +837,56 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	w.Write(b)
+	return b, nil
+}
+func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var permission *model.Permission
+	if channel.Type == model.ChannelTypePrivate {
+		permission = model.PermissionReadPrivateChannelGroups
+	} else {
+		permission = model.PermissionReadPublicChannelGroups
+	}
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
+		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+	}
+
+	opts := model.GroupSearchOpts{
+		Q:                    c.Params.Q,
+		IncludeMemberCount:   c.Params.IncludeMemberCount,
+		FilterAllowReference: c.Params.FilterAllowReference,
+	}
+	if c.Params.Paginate == nil || *c.Params.Paginate {
+		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
+	}
+
+	groups, totalCount, appErr := c.App.GetGroupsByChannel(c.Params.ChannelId, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	b, err := json.Marshal(struct {
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
+	}{
+		Groups: groups,
+		Count:  totalCount,
+	})
+	if err != nil {
+		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, nil
 }
 
 func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
