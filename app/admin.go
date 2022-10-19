@@ -87,8 +87,7 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 			return nil, err
 		}
 
-		if clusterLogs != nil {
-			if len(serverNames) > 0 {
+		if clusterLogs != nil && len(serverNames) > 0 {
 				for _, filteredNodeName := range serverNames {
 					for nodeName, logs := range clusterLogs {
 						if nodeName == filteredNodeName {
