@@ -9387,7 +9387,5 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "csoport név létezik mint lefoglalt név"
-=======
->>>>>>> f2a337dea (Merge pull request #20935 from mattermost/weblate-fix-111111)
   }
 ]
