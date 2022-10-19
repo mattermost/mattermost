@@ -2388,10 +2388,6 @@
     "translation": "Unable to retrieve your voice message."
   },
   {
-    "id": "api.post.validate_voice_post.file_too_big.app_error",
-    "translation": "Your voice message file size is too big."
-  },
-  {
     "id": "api.post.validate_voice_post.invalid_file_type.app_error",
     "translation": "The voice message file must be a mp3."
   },
@@ -2400,12 +2396,24 @@
     "translation": "Voice message not found."
   },
   {
+    "id": "api.post.validate_voice_post.too_long.app_error",
+    "translation": "The voice message is too long."
+  },
+  {
     "id": "api.post.validate_voice_post.too_many_files.app_error",
     "translation": "Voice message can only have one file."
   },
   {
+    "id": "api.post.validate_voice_post.unable_get_file_content.app_error",
+    "translation": "Unable to read the voice message file."
+  },
+  {
     "id": "api.post.validate_voice_post.unable_get_file_info.app_error",
     "translation": "Error while trying to retrieve your voice message."
+  },
+  {
+    "id": "api.post.validate_voice_post.unable_to_parse_file.app_error",
+    "translation": "Unable to parse the voice message file."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
@@ -8420,8 +8428,8 @@
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.max_voice_messages_file_size.app_error",
-    "translation": "Invalid maximum voice message file size. Must be a whole number greater than zero."
+    "id": "model.config.is_valid.max_voice_messages_duration.app_error",
+    "translation": "Invalid maximum voice message duration. Must be a whole number greater or equal to zero."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",

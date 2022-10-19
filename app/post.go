@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/av/mp3"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -27,9 +28,10 @@ import (
 )
 
 const (
-	PendingPostIDsCacheSize = 25000
-	PendingPostIDsCacheTTL  = 30 * time.Second
-	PageDefault             = 0
+	PendingPostIDsCacheSize         = 25000
+	PendingPostIDsCacheTTL          = 30 * time.Second
+	PageDefault                     = 0
+	VoiceMessageDurationErrorMargin = 3
 )
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
@@ -299,7 +301,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	if post.IsVoiceMessage() {
 		// make sure voice messages are allowed
 		if a.Config().FeatureFlags.VoiceMessages && *a.Config().ExperimentalSettings.EnableVoiceMessages {
-			if err = a.validateVoiceMessage(post); err != nil {
+			if err = a.validateVoiceMessage(post, mp3.Parse); err != nil {
 				return nil, err
 			}
 		} else {
@@ -387,7 +389,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	return rpost, nil
 }
 
-func (a *App) validateVoiceMessage(post *model.Post) *model.AppError {
+func (a *App) validateVoiceMessage(post *model.Post, parser mp3.Parser) *model.AppError {
 	fileIds := post.FileIds
 	nbFiles := len(fileIds)
 	if nbFiles == 0 {
@@ -410,8 +412,20 @@ func (a *App) validateVoiceMessage(post *model.Post) *model.AppError {
 		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.invalid_file_type.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
 	}
 
-	if fileInfo.Size > *a.Config().FileSettings.MaxVoiceMessagesFileSize {
-		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.file_too_big.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+	if *a.Config().FileSettings.MaxVoiceMessagesDuration > 0 {
+		fileReader, readFileErr := a.FileReader(fileInfo.Path)
+		if readFileErr != nil {
+			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.unable_get_file_content.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusInternalServerError).Wrap(err)
+		}
+
+		mp3info, err := parser(fileReader)
+		if err != nil {
+			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.unable_to_parse_file.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusInternalServerError).Wrap(err)
+		}
+
+		if mp3info.Duration > float64(*a.Config().FileSettings.MaxVoiceMessagesDuration+VoiceMessageDurationErrorMargin) {
+			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.too_long.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+		}
 	}
 
 	return nil

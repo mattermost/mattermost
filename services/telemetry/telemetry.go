@@ -549,7 +549,7 @@ func (ts *TelemetryService) trackConfig() {
 		"amazon_s3_signv2":              *cfg.FileSettings.AmazonS3SignV2,
 		"amazon_s3_trace":               *cfg.FileSettings.AmazonS3Trace,
 		"max_file_size":                 *cfg.FileSettings.MaxFileSize,
-		"max_voice_messages_file_size":  *cfg.FileSettings.MaxVoiceMessagesFileSize,
+		"max_voice_messages_duration":   *cfg.FileSettings.MaxVoiceMessagesDuration,
 		"max_image_resolution":          *cfg.FileSettings.MaxImageResolution,
 		"max_image_decoder_concurrency": *cfg.FileSettings.MaxImageDecoderConcurrency,
 		"enable_file_attachments":       *cfg.FileSettings.EnableFileAttachments,

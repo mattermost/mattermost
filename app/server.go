@@ -1428,6 +1428,10 @@ func (s *Server) FileBackend() filestore.FileBackend {
 	return s.filestore
 }
 
+func (s *Server) SetFileBackend(backend filestore.FileBackend) {
+	s.filestore = backend
+}
+
 func (s *Server) TotalWebsocketConnections() int {
 	return s.Platform().TotalWebsocketConnections()
 }
