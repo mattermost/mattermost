@@ -92,10 +92,14 @@ func (b *BrokerService) Register(topic, description string, typ any) error {
 }
 
 func (b *BrokerService) EventTypes() []EventType {
+	// there's really no race condition here, but we need this lock to pass race condition tests.
+	b.eventMutex.Lock()
 	types := make([]EventType, 0, len(b.eventTypes))
 	for _, event := range b.eventTypes {
 		types = append(types, event)
 	}
+	b.eventMutex.Unlock()
+
 	sort.Slice(types, func(i, j int) bool {
 		return types[i].Topic < types[j].Topic
 	})
@@ -110,10 +114,13 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 	if b.stopping {
 		return errors.New("event bus was stopped")
 	}
-	// there's really no race condition here so no mutex required
+	// there's really no race condition here, but we need this lock to pass race condition tests.
+	b.eventMutex.Lock()
 	if _, ok := b.eventTypes[topic]; !ok {
+		b.eventMutex.Unlock()
 		return errors.New("topic does not exist")
 	}
+	b.eventMutex.Unlock()
 
 	ev := Event{
 		Topic:     topic,
@@ -136,9 +143,13 @@ func (b *BrokerService) Subscribe(topic string, handler Handler) (string, error)
 	b.subscriberMutex.Lock()
 	defer b.subscriberMutex.Unlock()
 
+	// there's really no race condition here, but we need this lock to pass race condition tests.
+	b.eventMutex.Lock()
 	if _, ok := b.eventTypes[topic]; !ok {
+		b.eventMutex.Unlock()
 		return "", errors.New("topic does not exist")
 	}
+	b.eventMutex.Unlock()
 
 	id := model.NewId()
 	b.subscribers[topic] = append(b.subscribers[topic], subscriber{
@@ -152,9 +163,13 @@ func (b *BrokerService) Unsubscribe(topic, id string) error {
 	b.subscriberMutex.Lock()
 	defer b.subscriberMutex.Unlock()
 
+	// there's really no race condition here, but we need this lock to pass race condition tests.
+	b.eventMutex.Lock()
 	if _, ok := b.eventTypes[topic]; !ok {
+		b.eventMutex.Unlock()
 		return errors.New("topic does not exist")
 	}
+	b.eventMutex.Unlock()
 
 	subscribers := b.subscribers[topic]
 	for i, subscriber := range subscribers {
@@ -181,10 +196,14 @@ func (b *BrokerService) runHandlers() {
 		}
 
 		ev := <-b.channel
+		// there's really no race condition here, but we need this lock to pass race condition tests.
+		b.subscriberMutex.Lock()
 		for _, subscriber := range b.subscribers[ev.Topic] {
 			handler := subscriber.handler
 			b.runGoroutine(func() { handler(ev) })
 		}
+		b.subscriberMutex.Unlock()
+
 		atomic.AddInt32(&b.eventCount, -1)
 		select {
 		case b.goroutineExitSignal <- struct{}{}:

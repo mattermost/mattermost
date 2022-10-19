@@ -171,6 +171,8 @@ func TestBrokerSubscribePublish(t *testing.T) {
 
 		// wait until all events are handled
 		time.Sleep(2 * time.Second)
+		mu.Lock()
+		defer mu.Unlock()
 		require.Equal(t, requestIdsExpected, requestIdsActual)
 	})
 
@@ -212,6 +214,8 @@ func TestBrokerSubscribePublish(t *testing.T) {
 
 		// wait some time to handle already published events
 		time.Sleep(5 * time.Second)
+		mu.Lock()
+		defer mu.Unlock()
 		require.Equal(t, requestIdsExpected, requestIdsActual)
 	})
 }
@@ -250,7 +254,8 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 
 		// wait some time so event is processed by handlers
 		time.Sleep(2 * time.Second)
-		require.Equal(t, int32(1000), numEvents)
+		actual := atomic.LoadInt32(&numEvents)
+		require.Equal(t, int32(1000), actual)
 
 		// run Unsubscribe from multiple goroutines
 		for i := 0; i < numGoroutines; i++ {
@@ -265,10 +270,11 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 
 		// wait some time to finish subscribing process
 		time.Sleep(2 * time.Second)
-		numEvents = 0
+		atomic.StoreInt32(&numEvents, 0)
 		bs.Publish("topic", request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil), nil)
 		time.Sleep(time.Second)
-		require.Equal(t, int32(0), numEvents)
+		actual = atomic.LoadInt32(&numEvents)
+		require.Equal(t, int32(0), actual)
 	})
 
 	t.Run("subscribe on topic that is not registered", func(t *testing.T) {
