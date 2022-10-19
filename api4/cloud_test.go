@@ -471,7 +471,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Error while grabbing the cloud customer returns forbidden", func(t *testing.T) {
+	t.Run("Error while grabbing the cloud customer returns bad request", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -482,7 +482,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		cloud := mocks.CloudInterface{}
 
 		cloudCustomerInfo := model.CloudCustomerInfo{
-			Email: "forbidden@gmail.com",
+			Email: "badrequest@gmail.com",
 		}
 
 		// return an error while getting the cloud customer so we validate the forbidden error return
@@ -501,7 +501,7 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-workspace-business-email", nil)
 		require.Error(t, err)
 		closeBody(r)
-		require.Equal(t, http.StatusForbidden, r.StatusCode, "Status Forbidden")
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
 	})
 }
 

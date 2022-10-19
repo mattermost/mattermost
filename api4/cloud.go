@@ -244,14 +244,14 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 
 	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if userErr != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, userErr.Error(), http.StatusForbidden)
+		c.Err = userErr
 		return
 	}
 
 	// get the cloud customer email to validate if is a valid business email
 	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
