@@ -4805,7 +4805,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 102+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -9545,5 +9545,17 @@
   {
     "id": "model.group.name.reserved_name.app_error",
     "translation": "Gruppenname existiert bereits als reservierter Name"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kann im Produktmodus nicht aktiviert werden."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Deine Lizenz unterstützt Gastkonten nicht"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gastkonten sind deaktiviert"
   }
 ]
