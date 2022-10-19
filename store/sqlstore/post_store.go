@@ -661,7 +661,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id, userID string, opts model
 		posts = posts[:len(posts)-1]
 	}
 
-	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, []*model.Post{}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
+	list, err := s.prepareThreadedResponse([]*postWithExtra{&post}, opts.CollapsedThreadsExtended, false, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -1060,7 +1060,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) (err error) {
 	return nil
 }
 
-func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, parents []*model.Post, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -1120,69 +1120,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, parents [
 		list.AddOrder(posts[idx].Id)
 	}
 
-	for _, p := range parents {
-		list.AddPost(p)
-	}
-
 	return list, nil
-}
-
-func (s *SqlPostStore) getParentPostsCollapsedThreads(posts []*postWithExtra, userId string) ([]*model.Post, error) {
-	rootIdMap := make(map[string]string)
-	postsMap := make(map[string]string)
-
-	var columns []string
-	for _, c := range postSliceColumns() {
-		columns = append(columns, "Posts."+c)
-	}
-
-	columns = append(columns,
-		"COALESCE(Threads.ReplyCount, 0) as ReplyCount",
-		"COALESCE(Threads.LastReplyAt, 0) as LastReplyAt",
-	)
-
-	var parents []*model.Post
-
-	for _, p := range posts {
-		postsMap[p.Id] = p.Id
-
-		if p.GetProp("broadcasted_thread_reply") == true {
-			rootIdMap[p.RootId] = p.RootId
-		}
-	}
-
-	getParentPost := func(id string) (*model.Post, error) {
-		var p model.Post
-
-		postFetchQuery, args, err := s.getQueryBuilder().
-			Select(columns...).
-			From("Posts").
-			LeftJoin("Threads ON Threads.PostId = Posts.Id").
-			Where(sq.Eq{"Posts.Id": id}).
-			Where(sq.Eq{"Posts.DeleteAt": 0}).ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "getParentPostsCollapsedThreads_ToSql")
-		}
-
-		err = s.GetReplicaX().Get(&p, postFetchQuery, args...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
-		}
-
-		return &p, nil
-	}
-
-	for key, rootId := range rootIdMap {
-		if _, ok := postsMap[key]; !ok {
-			parentPost, err := getParentPost(rootId)
-			if err != nil {
-				return nil, err
-			}
-			parents = append(parents, parentPost)
-		}
-	}
-
-	return parents, nil
 }
 
 func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1216,12 +1154,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	parents, pErr := s.getParentPostsCollapsedThreads(posts, options.UserId)
-	if pErr != nil {
-		return nil, pErr
-	}
-
-	return s.prepareThreadedResponse(posts, parents, options.CollapsedThreadsExtended, false, sanitizeOptions)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -1309,12 +1242,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	parents, pErr := s.getParentPostsCollapsedThreads(posts, options.UserId)
-	if pErr != nil {
-		return nil, pErr
-	}
-
-	return s.prepareThreadedResponse(posts, parents, options.CollapsedThreadsExtended, false, sanitizeOptions)
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
 //nolint:unparam
@@ -1587,16 +1515,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	var parentsCRT []*model.Post
-
-	if options.CollapsedThreads {
-		parentsCRT, err = s.getParentPostsCollapsedThreads(posts, options.UserId)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	list, err := s.prepareThreadedResponse(posts, parentsCRT, options.CollapsedThreadsExtended, !before, sanitizeOptions)
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before, sanitizeOptions)
 	if err != nil {
 		return nil, err
 	}

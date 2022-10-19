@@ -154,6 +154,16 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	} else if embed != nil {
 		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
+
+	// Broadcasted Thread Reply
+	if _, ok := post.GetProps()["broadcasted_thread_reply"]; ok {
+		if embed, err := a.getEmbedParentPostForBroadcastedThreadReply(post); err != nil {
+			mlog.Debug("Failed to get parent post for broadcasted thread reply", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else if embed != nil {
+			post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
+		}
+	}
+
 	post.Metadata.Images = a.getImagesForPost(c, post, images, isNewPost)
 	return post
 }
@@ -488,6 +498,15 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 	}
 
 	return images
+}
+
+func (a *App) getEmbedParentPostForBroadcastedThreadReply(post *model.Post) (*model.PostEmbed, error) {
+	parentPost, appErr := a.GetSinglePost(post.RootId, false)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return &model.PostEmbed{Type: model.PostEmbedParentPost, Data: parentPost}, nil
 }
 
 func looksLikeAPermalink(url, siteURL string) bool {

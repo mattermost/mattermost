@@ -10,6 +10,7 @@ const (
 	PostEmbedLink              PostEmbedType = "link"
 	PostEmbedPermalink         PostEmbedType = "permalink"
 	PostEmbedBoards            PostEmbedType = "boards"
+	PostEmbedParentPost        PostEmbedType = "parent_post"
 )
 
 type PostEmbedType string
