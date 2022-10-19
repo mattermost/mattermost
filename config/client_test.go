@@ -103,9 +103,7 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			"tag1",
 			&model.License{
-				Features: &model.Features{
-					MFA: model.NewBool(true),
-				},
+				Features: &model.Features{},
 			},
 			map[string]string{
 				"EnforceMultifactorAuthentication": "true",

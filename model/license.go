@@ -113,8 +113,9 @@ type Features struct {
 
 func (f *Features) ToMap() map[string]any {
 	return map[string]any{
-		"ldap":                        *f.LDAP,
-		"ldap_groups":                 *f.LDAPGroups,
+		"ldap":        *f.LDAP,
+		"ldap_groups": *f.LDAPGroups,
+		// MM-47383: "mfa" key is obsolete. This will soon be removed from license
 		"mfa":                         *f.MFA,
 		"google":                      *f.GoogleOAuth,
 		"office365":                   *f.Office365OAuth,
@@ -160,7 +161,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.MFA == nil {
-		f.MFA = NewBool(*f.FutureFeatures)
+		f.MFA = NewBool(true)
 	}
 
 	if f.GoogleOAuth == nil {

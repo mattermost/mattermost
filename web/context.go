@@ -153,7 +153,7 @@ func (c *Context) RemoteClusterTokenRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if license := c.App.Channels().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 

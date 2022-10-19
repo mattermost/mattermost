@@ -2834,6 +2834,34 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, user)
 	})
+
+	t.Run("EnforcedMFA", func(t *testing.T) {
+		th.App.UpdateConfig(func(c *model.Config) {
+			*c.ServiceSettings.EnforceMultifactorAuthentication = true
+		})
+		// rejects login without MFA
+		_, resp, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		require.NotNil(t, err)
+		require.Equal(t, resp.StatusCode, 401)
+		require.Equal(t, err.Error(), ": Invalid MFA token., unable to parse the token: invalid code")
+
+		// accepts login with MFA
+		secret, appErr := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		assert.Nil(t, appErr)
+
+		// Fake user has MFA enabled
+		err = th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
+		require.NoError(t, err)
+
+		err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+		require.NoError(t, err)
+
+		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+
+		user, _, err := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
+		require.NoError(t, err)
+		assert.NotNil(t, user)
+	})
 }
 
 func TestGenerateMfaSecret(t *testing.T) {
