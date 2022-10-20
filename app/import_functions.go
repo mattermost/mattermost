@@ -745,16 +745,19 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 		return err
 	}
 
-	teamThemePreferencesByID := map[string]model.Preferences{}
-	channels := map[string][]imports.UserChannelImportData{}
-	teamsByID := map[string]*model.Team{}
-	teamMemberByTeamID := map[string]*model.TeamMember{}
-	newTeamMembers := []*model.TeamMember{}
-	oldTeamMembers := []*model.TeamMember{}
-	rolesByTeamId := map[string]string{}
-	isGuestByTeamId := map[string]bool{}
-	isUserByTeamId := map[string]bool{}
-	isAdminByTeamId := map[string]bool{}
+	var (
+		teamThemePreferencesByID = map[string]model.Preferences{}
+		channels                 = map[string][]imports.UserChannelImportData{}
+		teamsByID                = map[string]*model.Team{}
+		teamMemberByTeamID       = map[string]*model.TeamMember{}
+		newTeamMembers           = []*model.TeamMember{}
+		oldTeamMembers           = []*model.TeamMember{}
+		rolesByTeamId            = map[string]string{}
+		isGuestByTeamId          = map[string]bool{}
+		isUserByTeamId           = map[string]bool{}
+		isAdminByTeamId          = map[string]bool{}
+	)
+
 	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -905,15 +908,18 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 		return err
 	}
 
-	channelsByID := map[string]*model.Channel{}
-	channelMemberByChannelID := map[string]*model.ChannelMember{}
-	newChannelMembers := []*model.ChannelMember{}
-	oldChannelMembers := []*model.ChannelMember{}
-	rolesByChannelId := map[string]string{}
-	channelPreferencesByID := map[string]model.Preferences{}
-	isGuestByChannelId := map[string]bool{}
-	isUserByChannelId := map[string]bool{}
-	isAdminByChannelId := map[string]bool{}
+	var (
+		channelsByID             = map[string]*model.Channel{}
+		channelMemberByChannelID = map[string]*model.ChannelMember{}
+		newChannelMembers        = []*model.ChannelMember{}
+		oldChannelMembers        = []*model.ChannelMember{}
+		rolesByChannelId         = map[string]string{}
+		channelPreferencesByID   = map[string]model.Preferences{}
+		isGuestByChannelId       = map[string]bool{}
+		isUserByChannelId        = map[string]bool{}
+		isAdminByChannelId       = map[string]bool{}
+	)
+
 	existingMemberships, nErr := a.Srv().Store().Channel().GetMembersForUser(team.Id, user.Id)
 	if nErr != nil {
 		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1107,9 +1113,11 @@ func (a *App) importReplies(c request.CTX, data []imports.ReplyImportData, post 
 		return err
 	}
 
-	postsWithData := []postAndData{}
-	postsForCreateList := []*model.Post{}
-	postsForOverwriteList := []*model.Post{}
+	var (
+		postsWithData         = []postAndData{}
+		postsForCreateList    = []*model.Post{}
+		postsForOverwriteList = []*model.Post{}
+	)
 
 	for _, replyData := range data {
 		replyData := replyData
@@ -1387,11 +1395,14 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	if err != nil {
 		return 0, err
 	}
-	postsWithData := []postAndData{}
-	postsForCreateList := []*model.Post{}
-	postsForCreateMap := map[string]int{}
-	postsForOverwriteList := []*model.Post{}
-	postsForOverwriteMap := map[string]int{}
+
+	var (
+		postsWithData         = []postAndData{}
+		postsForCreateList    = []*model.Post{}
+		postsForCreateMap     = map[string]int{}
+		postsForOverwriteList = []*model.Post{}
+		postsForOverwriteMap  = map[string]int{}
+	)
 
 	for _, line := range lines {
 		team := teams[strings.ToLower(*line.Post.Team)]
@@ -1677,11 +1688,13 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 		return 0, err
 	}
 
-	postsWithData := []postAndData{}
-	postsForCreateList := []*model.Post{}
-	postsForCreateMap := map[string]int{}
-	postsForOverwriteList := []*model.Post{}
-	postsForOverwriteMap := map[string]int{}
+	var (
+		postsWithData         = []postAndData{}
+		postsForCreateList    = []*model.Post{}
+		postsForCreateMap     = map[string]int{}
+		postsForOverwriteList = []*model.Post{}
+		postsForOverwriteMap  = map[string]int{}
+	)
 
 	for _, line := range lines {
 		var userIDs []string
