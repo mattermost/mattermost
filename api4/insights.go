@@ -13,31 +13,44 @@ import (
 
 func (api *API) InitInsights() {
 	// Reactions
-	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopReactionsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/reactions", api.APISessionRequired(getTopReactionsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/reactions", api.APISessionRequired(getTopReactionsForUserSince)).Methods("GET")
 
 	// Channels
-	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/channels", api.APISessionRequired(getTopChannelsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/channels", api.APISessionRequired(getTopChannelsForUserSince)).Methods("GET")
 
 	// Threads
-	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopThreadsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/threads", api.APISessionRequired(getTopThreadsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/threads", api.APISessionRequired(getTopThreadsForUserSince)).Methods("GET")
 
 	// user DMs
-	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopDMsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/dms", api.APISessionRequired(getTopDMsForUserSince)).Methods("GET")
 
 	// Inactive channels
-	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForTeamSince)))).Methods("GET")
-	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getTopInactiveChannelsForUserSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/inactive_channels", api.APISessionRequired(getTopInactiveChannelsForTeamSince)).Methods("GET")
+	api.BaseRoutes.InsightsForUser.Handle("/inactive_channels", api.APISessionRequired(getTopInactiveChannelsForUserSince)).Methods("GET")
 
 	// New teammembers
-	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(minimumProfessionalLicense(rejectGuests(getNewTeamMembersSince)))).Methods("GET")
+	api.BaseRoutes.InsightsForTeam.Handle("/team_members", api.APISessionRequired(getNewTeamMembersSince)).Methods("GET")
 }
 
 // Top Reactions
 
 func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -82,6 +95,18 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -133,6 +158,18 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 // Top Channels
 
 func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -184,6 +221,18 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -241,6 +290,18 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 
 // Top Threads
 func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -286,6 +347,18 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// restrict users with no access to team
@@ -336,6 +409,18 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 
 // Top DMs
 func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	user, err := c.App.GetUser(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -367,6 +452,18 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 // Top Channels
 
 func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -411,6 +508,18 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 // top inactive channels
 
 func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.Params.TeamId = r.URL.Query().Get("team_id")
 
 	// TeamId is an optional parameter
@@ -479,6 +588,18 @@ func postCountByDurationViewModel(c *Context, topChannelList *model.TopChannelLi
 }
 
 func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license and guest user check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+	permissionErr = rejectGuests(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
