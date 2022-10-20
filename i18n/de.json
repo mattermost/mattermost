@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Du hast deine E-Mail-Adresse geändert"
+    "translation": "Du hast deine E-Mail-Adresse erfolgreich geändert"
   },
   {
     "id": "api.templates.email_change_verify_subject",
