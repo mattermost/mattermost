@@ -16,9 +16,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/mocks"
 	filesStoreMocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
+	"github.com/mattermost/mattermost-server/v6/store"
+	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/fileutils"
 )
 
@@ -53,7 +56,7 @@ func TestDoUploadFile(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -63,7 +66,7 @@ func TestDoUploadFile(t *testing.T) {
 	info2, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 
@@ -73,7 +76,7 @@ func TestDoUploadFile(t *testing.T) {
 	info3, err := th.App.DoUploadFile(th.Context, time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info3.Id)
 		th.App.RemoveFile(info3.Path)
 	}()
 
@@ -83,7 +86,7 @@ func TestDoUploadFile(t *testing.T) {
 	info4, err := th.App.DoUploadFile(th.Context, time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamID, "../../"+channelID, "../../"+userID, "../../"+filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info4.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info4.Id)
 		th.App.RemoveFile(info4.Path)
 	}()
 
@@ -110,7 +113,7 @@ func TestUploadFile(t *testing.T) {
 	info1, err = th.App.UploadFile(th.Context, data, channelID, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -306,7 +309,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -316,7 +319,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 
@@ -335,7 +338,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 		thumbnailPath := filepath.Join(dataPath, thumbnailName)
 
 		// when
-		th.App.generateThumbnailImage(img, thumbnailName)
+		th.App.generateThumbnailImage(img, "jpg", thumbnailName)
 		defer os.Remove(thumbnailPath)
 
 		// then
@@ -362,7 +365,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		fileInfos := make([]*model.FileInfo, 7)
 		for i := 0; i < cap(fileInfos); i++ {
-			fileInfo, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+			fileInfo, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
 				CreatorId: th.BasicUser.Id,
 				PostId:    th.BasicPost.Id,
 				Name:      searchTerm,
@@ -445,9 +448,9 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
@@ -473,9 +476,9 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
@@ -498,9 +501,9 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
@@ -531,9 +534,9 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
-		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
-			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
 		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage, model.ModifierFiles)
@@ -552,4 +555,66 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 
 	// Test that we don't process images.
 	require.NoError(t, app.ExtractContentFromFileInfo(fi))
+}
+
+func TestGetLastAccessibleFileTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	r, err := th.App.GetLastAccessibleFileTime()
+	require.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+	mockSystemStore := storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, store.NewErrNotFound("", ""))
+	r, err = th.App.GetLastAccessibleFileTime()
+	require.Nil(t, err)
+	assert.Equal(t, int64(0), r)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(nil, errors.New("test"))
+	_, err = th.App.GetLastAccessibleFileTime()
+	require.NotNil(t, err)
+
+	mockSystemStore = storemocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}, nil)
+	r, err = th.App.GetLastAccessibleFileTime()
+	require.Nil(t, err)
+	assert.Equal(t, int64(10), r)
+}
+
+func TestComputeLastAccessibleFileTime(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	cloud := &eMocks.CloudInterface{}
+	th.App.Srv().Cloud = cloud
+
+	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+		Files: &model.FilesLimits{
+			TotalStorage: model.NewInt64(1),
+		},
+	}, nil)
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockFileStore := storemocks.FileInfoStore{}
+	mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
+	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+	mockStore.On("FileInfo").Return(&mockFileStore)
+	mockStore.On("System").Return(&mockSystemStore)
+
+	err := th.App.ComputeLastAccessibleFileTime()
+	require.NoError(t, err)
+
+	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
 }

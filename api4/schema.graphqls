@@ -62,7 +62,6 @@ type Channel {
 	totalMsgCount: Float!
 	totalMsgCountRoot: Float!
 	lastRootPostAt: Float!
-	stats: ChannelStats
 	extraUpdateAt: Float!
 	props: StringInterface!
 	policyId: String
@@ -220,11 +219,4 @@ type Session {
 	expiredNotify: Boolean!
 	props: StringMap!
 	local: Boolean!
-}
-
-type ChannelStats {
-	channelId: String!
-	memberCount: Float!
-	guestCount: Float!
-	pinnedPostCount: Float!
 }

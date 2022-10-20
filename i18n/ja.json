@@ -4565,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabの利用規約が更新されました。gitlab.comで新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
+    "translation": "GitLabの利用規約が更新されました。{{.URL}}で新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5578,14 +5578,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -7705,15 +7697,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "支払いができませんでした"
+    "translation": "支払いが正常に処理されませんでした"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "注意: Mattermost Cloudへの支払いができませんでした"
+    "translation": "注意: Mattermost {{.Plan}}の支払いができませんでした"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost Cloudへの支払いを続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
+    "translation": "Mattermost {{.Plan}}へアクセスし続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -9494,5 +9486,45 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "滞納メールを送信するための必須項目が不足しています。"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAMLがIDプロバイダ公開証明書を正常に読み込めなかったため、システム管理者に連絡してください。"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "ユーザーのバッジ数を取得できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "通知ポストを送信できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "通知データを保存できませんでした。"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "現在のプラン名を取得できませんでした"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "ジョブ実行中にエラーが発生しました。"
   }
 ]
