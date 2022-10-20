@@ -81,8 +81,8 @@ type Channels struct {
 	// collectionTypes maps collection types array to the registering plugin
 	collectionTypes map[string][]string
 	// topicTypes maps topic types array to collection types
-	topicTypes    map[string][]string
-	collectionMut sync.Mutex
+	topicTypes                 map[string][]string
+	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -105,7 +105,6 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		uploadLockMap:   map[string]bool{},
 		collectionTypes: map[string][]string{},
 		topicTypes:      map[string][]string{},
-		collectionMut:   sync.Mutex{},
 	}
 
 	// To get another service:

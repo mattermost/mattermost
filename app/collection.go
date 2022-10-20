@@ -12,12 +12,14 @@ import (
 
 func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType string) error {
 	// we have a race condition due to multiple plugins calling this method
-	a.ch.collectionMut.Lock()
-	defer a.ch.collectionMut.Unlock()
+	a.ch.collectionAndTopicTypesMut.Lock()
+	defer a.ch.collectionAndTopicTypesMut.Unlock()
 
 	// check if collectionType was already registered by other plugin
-	if pluginIDForCollection, found := getKeyWithValue(a.ch.collectionTypes, collectionType); found && pluginIDForCollection != pluginID {
-		return model.NewAppError("registerCollectionAndTopic", "app.collection.add_collection.exists.app_error", nil, "", http.StatusBadRequest)
+	for plugID, colTypes := range a.ch.collectionTypes {
+		if utils.StringInSlice(collectionType, colTypes) && plugID != pluginID {
+			return model.NewAppError("registerCollectionAndTopic", "app.collection.add_collection.exists.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	// check if topicType was already registered to other collection
@@ -27,29 +29,15 @@ func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType str
 		}
 	}
 
-	collectionTypesForPlugin, ok := a.ch.collectionTypes[pluginID]
-	if ok && !utils.StringInSlice(collectionType, collectionTypesForPlugin) {
-		collectionTypesForPlugin = append(collectionTypesForPlugin, collectionType)
-		a.ch.collectionTypes[pluginID] = collectionTypesForPlugin
-	} else if !ok {
-		a.ch.collectionTypes[pluginID] = []string{collectionType}
-	}
-
-	if topicTypes, ok := a.ch.topicTypes[collectionType]; ok {
-		topicTypes = append(topicTypes, topicType)
-		a.ch.topicTypes[collectionType] = topicTypes
-	} else {
-		a.ch.topicTypes[collectionType] = []string{topicType}
-	}
+	a.ch.collectionTypes[pluginID] = appendIfUnique(a.ch.collectionTypes[pluginID], collectionType)
+	a.ch.topicTypes[collectionType] = appendIfUnique(a.ch.topicTypes[collectionType], topicType)
 
 	return nil
 }
 
-func getKeyWithValue(m map[string][]string, value string) (string, bool) {
-	for key, arr := range m {
-		if utils.StringInSlice(value, arr) {
-			return key, true
-		}
+func appendIfUnique(slice []string, a string) []string {
+	if utils.StringInSlice(a, slice) {
+		return slice
 	}
-	return "", false
+	return append(slice, a)
 }
