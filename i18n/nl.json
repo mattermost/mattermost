@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Je hebt je e-mailadres bijgewerkt"
+    "translation": "Je hebt je e-mailadres succesvol bijgewerkt"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4781,11 +4781,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 44+"
+    "translation": "Versie 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 100+"
+    "translation": "Versie 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
