@@ -158,14 +158,14 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	// check if the email needs to be set
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
-	// we need to request a new email from the user via the request business email modal
+	// a new business email was provided via the request business email modal
 	var startTrialRequest *model.StartCloudTrialRequest
 	if err = json.Unmarshal(bodyBytes, &startTrialRequest); err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -199,20 +199,20 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	var emailToValidate *model.ValidateBusinessEmailRequest
 	err = json.Unmarshal(bodyBytes, &emailToValidate)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -244,14 +244,14 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 
 	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if userErr != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, userErr.Error(), http.StatusInternalServerError)
+		c.Err = userErr
 		return
 	}
 
 	// get the cloud customer email to validate if is a valid business email
 	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
