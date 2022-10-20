@@ -834,6 +834,43 @@ func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, erro
 	return &post, nil
 }
 
+func (s *SqlPostStore) GetSingleParent(id string, inclDeleted bool) (*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("p.*, COALESCE(Threads.LastReplyAt, 0) as LastReplyAt").
+		From("Posts p").
+		LeftJoin("Threads ON Threads.PostId = p.Id").
+		Where(sq.Eq{"p.Id": id})
+
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "getsingleparentincldeleted_tosql")
+	}
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get parent Post with id=%s", id)
+	}
+
+	var post model.Post
+	err = s.GetReplicaX().Get(&post, queryString, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
+	}
+	return &post, nil
+}
+
 type etagPosts struct {
 	Id       string
 	UpdateAt int64

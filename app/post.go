@@ -885,6 +885,29 @@ func (a *App) GetSinglePost(postID string, includeDeleted bool) (*model.Post, *m
 	return post, nil
 }
 
+func (a *App) GetSingleParentPost(postID string, includeDeleted bool) (*model.Post, *model.AppError) {
+	post, err := a.Srv().Store().Post().GetSingleParent(postID, includeDeleted)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetSingleParentPost", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetSingleParentPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if firstInaccessiblePostTime != 0 {
+		return nil, model.NewAppError("GetSingleParentPost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
+	}
+
+	return post, nil
+}
+
 func (a *App) GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError) {
 	posts, err := a.Srv().Store().Post().Get(context.Background(), postID, opts, userID, a.Config().GetSanitizeOptions())
 	if err != nil {

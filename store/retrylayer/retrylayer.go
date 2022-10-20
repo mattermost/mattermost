@@ -7005,6 +7005,27 @@ func (s *RetryLayerPostStore) GetSingle(id string, inclDeleted bool) (*model.Pos
 
 }
 
+func (s *RetryLayerPostStore) GetSingleParent(id string, inclDeleted bool) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetSingleParent(id, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
 
 	tries := 0

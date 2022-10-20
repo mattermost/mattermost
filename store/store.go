@@ -353,6 +353,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
+	GetSingleParent(id string, inclDeleted bool) (*model.Post, error)
 	Delete(postID string, timestamp int64, deleteByID string) error
 	PermanentDeleteByUser(userID string) error
 	PermanentDeleteByChannel(channelID string) error

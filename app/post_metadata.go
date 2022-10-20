@@ -501,7 +501,7 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 }
 
 func (a *App) getEmbedParentPostForBroadcastedThreadReply(post *model.Post) (*model.PostEmbed, error) {
-	parentPost, appErr := a.GetSinglePost(post.RootId, false)
+	parentPost, appErr := a.GetSingleParentPost(post.RootId, false)
 	if appErr != nil {
 		return nil, appErr
 	}

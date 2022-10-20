@@ -748,6 +748,29 @@ func (_m *PostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error)
 	return r0, r1
 }
 
+// GetSingleParent provides a mock function with given fields: id, inclDeleted
+func (_m *PostStore) GetSingleParent(id string, inclDeleted bool) (*model.Post, error) {
+	ret := _m.Called(id, inclDeleted)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
+		r0 = rf(id, inclDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(id, inclDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTopDMsForUserSince provides a mock function with given fields: userID, since, offset, limit
 func (_m *PostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
 	ret := _m.Called(userID, since, offset, limit)
