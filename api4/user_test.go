@@ -2841,7 +2841,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		})
 		// rejects login without MFA
 		_, resp, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-		require.NotNil(t, err)
+		require.NoError(t, err)
 		require.Equal(t, resp.StatusCode, 401)
 		require.Equal(t, err.Error(), ": Invalid MFA token., unable to parse the token: invalid code")
 
