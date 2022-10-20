@@ -41,13 +41,13 @@ var usage = `Mattermost testing commands to help configure the system
 			/test users fuzz range=3,8 time=1565076128000
 			/test users range=1
 
-	Channels - Add a specified number of random channels with fuzz text to current team, at the specified Unix timestamp in milliseconds.
-		/test channels [fuzz] [range=min[,max]] [time=channel_create_timestamp]
+	Channels - Add a specified number of random public (o) or private (p) channels with fuzz text to current team, at the specified Unix timestamp in milliseconds.
+		/test channels [fuzz] [range=min[,max]] [type=(o|p)] [time=channel_create_timestamp]
 
-		Default: range=2,5 time=
+		Default: range=2,5 type=o time=
 
 		Examples:
-			/test channels fuzz range=5,10 time=1565076128000
+			/test channels fuzz range=5,10 type=p time=1565076128000
 			/test channels range=1
 
 	DMs - Add a specified number of random DM messages between the current user and a specified user, at the specified Unix timestamp in milliseconds. If a timestamp is provided, posts are created one millisecond apart. Note: You may need to clear your browser cache in order to see these posts in the UI.
@@ -74,7 +74,8 @@ var usage = `Mattermost testing commands to help configure the system
 		Default: range=2,5 images=0 time=
 
 		Example:
-			/test posts fuzz range=5,10 images=3
+			/test posts fuzz range=5,10 images=3 time=1565076128000
+			/test posts range=2
 
 	Post - Add post to a channel as another user.
 		/test post u=@username p=passwd c=~channelname t=teamname "message"
@@ -110,6 +111,7 @@ var (
 	rangeRE   = regexp.MustCompile(`range=([^\s]+)`)
 	timeRE    = regexp.MustCompile(`time=([^\s]+)`)
 	imagesRE  = regexp.MustCompile(`images=([^\s]+)`)
+	typeRE    = regexp.MustCompile(`type=([^\s])+`)
 )
 
 type LoadTestProvider struct {
@@ -374,6 +376,18 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
 
+	typ := model.ChannelTypeOpen
+	typeParam := getMatch(typeRE, cmd)
+	if typeParam != "" {
+		switch strings.ToUpper(typeParam) {
+		case "O":
+		case "P":
+			typ = model.ChannelTypePrivate
+		default:
+			return &model.CommandResponse{Text: "Failed to add channels: Invalid type parameter", ResponseType: model.CommandResponseTypeEphemeral}, errors.New("Invalid type parameter")
+		}
+	}
+
 	time := int64(0)
 	timeParam := getMatch(timeRE, cmd)
 	if timeParam != "" {
@@ -386,6 +400,7 @@ func (*LoadTestProvider) ChannelsCommand(a *app.App, c request.CTX, args *model.
 	channelCreator := NewAutoChannelCreator(a, team, args.UserId)
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTime = time
+	channelCreator.ChannelType = typ
 	if _, err := channelCreator.CreateTestChannels(c, rng); err != nil {
 		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.CommandResponseTypeEphemeral}, err
 	}
