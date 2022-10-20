@@ -764,7 +764,7 @@ func (a *App) importUserTeams(c request.CTX, user *model.User, data *[]imports.U
 		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
 	}
 	for _, tdata := range *data {
-		team := allTeams[*tdata.Name]
+		team := allTeams[strings.ToLower(*tdata.Name)]
 
 		// Team-specific theme Preferences.
 		if tdata.Theme != nil {
@@ -923,7 +923,7 @@ func (a *App) importUserChannels(c request.CTX, user *model.User, team *model.Te
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
-		channel, ok := allChannels[*cdata.Name]
+		channel, ok := allChannels[strings.ToLower(*cdata.Name)]
 		if !ok {
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
 		}
@@ -1113,7 +1113,7 @@ func (a *App) importReplies(c request.CTX, data []imports.ReplyImportData, post 
 
 	for _, replyData := range data {
 		replyData := replyData
-		user := users[*replyData.User]
+		user := users[strings.ToLower(*replyData.User)]
 
 		// Check if this post already exists.
 		replies, nErr := a.Srv().Store().Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
@@ -1285,7 +1285,7 @@ func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *
 
 	users := make(map[string]*model.User)
 	for _, user := range allUsers {
-		users[user.Username] = user
+		users[strings.ToLower(user.Username)] = user
 	}
 	return users, nil
 }
@@ -1298,7 +1298,7 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 
 	teams := make(map[string]*model.Team)
 	for _, team := range allTeams {
-		teams[team.Name] = team
+		teams[strings.ToLower(team.Name)] = team
 	}
 	return teams, nil
 }
@@ -1311,7 +1311,7 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 
 	channels := make(map[string]*model.Channel)
 	for _, channel := range allChannels {
-		channels[channel.Name] = channel
+		channels[strings.ToLower(channel.Name)] = channel
 	}
 	return channels, nil
 }
@@ -1320,17 +1320,18 @@ func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*mod
 func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
 	teamChannels := make(map[string]map[string]*model.Channel)
 	for _, postData := range data {
-		teamName := *postData.Team
+		teamName := strings.ToLower(*postData.Team)
 		if _, ok := teamChannels[teamName]; !ok {
 			teamChannels[teamName] = make(map[string]*model.Channel)
 		}
-		if channel, ok := teamChannels[teamName][*postData.Channel]; !ok || channel == nil {
+		channelName := strings.ToLower(*postData.Channel)
+		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
 			var err error
 			channel, err = a.Srv().Store().Channel().GetByName(teams[teamName].Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
 			}
-			teamChannels[teamName][*postData.Channel] = channel
+			teamChannels[teamName][channelName] = channel
 		}
 	}
 	return teamChannels, nil
@@ -1393,9 +1394,9 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	postsForOverwriteMap := map[string]int{}
 
 	for _, line := range lines {
-		team := teams[*line.Post.Team]
+		team := teams[strings.ToLower(*line.Post.Team)]
 		channel := channels[*line.Post.Team][*line.Post.Channel]
-		user := users[*line.Post.User]
+		user := users[strings.ToLower(*line.Post.User)]
 
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
@@ -1495,7 +1496,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 			var preferences model.Preferences
 
 			for _, username := range *postWithData.postData.FlaggedBy {
-				user := users[username]
+				user := users[strings.ToLower(username)]
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -1582,7 +1583,7 @@ func (a *App) importDirectChannel(c request.CTX, data *imports.DirectChannelImpo
 		return err
 	}
 	for _, user := range *data.Members {
-		userIDs = append(userIDs, userMap[user].Id)
+		userIDs = append(userIDs, userMap[strings.ToLower(user)].Id)
 	}
 
 	var channel *model.Channel
@@ -1615,7 +1616,7 @@ func (a *App) importDirectChannel(c request.CTX, data *imports.DirectChannelImpo
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
 			preferences = append(preferences, model.Preference{
-				UserId:   userMap[favoriter].Id,
+				UserId:   userMap[strings.ToLower(favoriter)].Id,
 				Category: model.PreferenceCategoryFavoriteChannel,
 				Name:     channel.Id,
 				Value:    "true",
@@ -1686,7 +1687,7 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 		var userIDs []string
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
-			user := users[username]
+			user := users[strings.ToLower(username)]
 			userIDs = append(userIDs, user.Id)
 		}
 
@@ -1706,7 +1707,7 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 			channel = ch
 		}
 
-		user := users[*line.DirectPost.User]
+		user := users[strings.ToLower(*line.DirectPost.User)]
 
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
@@ -1804,7 +1805,7 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 			var preferences model.Preferences
 
 			for _, username := range *postWithData.directPostData.FlaggedBy {
-				user := users[username]
+				user := users[strings.ToLower(username)]
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
