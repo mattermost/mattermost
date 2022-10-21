@@ -70,7 +70,6 @@ func runServer(configStore *config.Store, interruptChan chan os.Signal) error {
 		app.ConfigStore(configStore),
 		app.RunEssentialJobs,
 		app.JoinCluster,
-		app.StartSearchEngine,
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {

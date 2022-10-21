@@ -296,7 +296,22 @@ func Test_requestTrial(t *testing.T) {
 		require.Equal(t, subscriptionChanged, subscription)
 		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
 	})
+
+	t.Run("Empty body returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		r, err := th.SystemAdminClient.DoAPIPutBytes("/cloud/request-trial", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
+	})
 }
+
 func Test_validateBusinessEmail(t *testing.T) {
 	t.Run("Returns forbidden for non admin executors", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -372,6 +387,20 @@ func Test_validateBusinessEmail(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, res.StatusCode, "200")
 	})
+
+	t.Run("Empty body returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-business-email", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
+	})
 }
 
 func Test_validateWorkspaceBusinessEmail(t *testing.T) {
@@ -440,6 +469,39 @@ func Test_validateWorkspaceBusinessEmail(t *testing.T) {
 
 		_, err := th.SystemAdminClient.ValidateWorkspaceBusinessEmail()
 		require.NoError(t, err)
+	})
+
+	t.Run("Error while grabbing the cloud customer returns bad request", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloudCustomerInfo := model.CloudCustomerInfo{
+			Email: "badrequest@gmail.com",
+		}
+
+		// return an error while getting the cloud customer so we validate the forbidden error return
+		cloud.Mock.On("GetCloudCustomer", th.SystemAdminUser.Id).Return(nil, errors.New("error while gettings the cloud customer"))
+
+		// required cloud mocks so the request doesn't fail
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, cloudCustomerInfo.Email).Return(errors.New("invalid email"))
+		cloud.Mock.On("ValidateBusinessEmail", th.SystemAdminUser.Id, th.SystemAdminUser.Email).Return(nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.SystemAdminClient.DoAPIPostBytes("/cloud/validate-workspace-business-email", nil)
+		require.Error(t, err)
+		closeBody(r)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
 	})
 }
 

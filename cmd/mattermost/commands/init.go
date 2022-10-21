@@ -45,7 +45,6 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 		// The option order is important as app.Config option reads app.StartMetrics option.
 		app.StartMetrics,
 		app.Config(configDSN, readOnlyConfigStore, nil),
-		app.StartSearchEngine,
 	)
 	if err != nil {
 		return nil, err
