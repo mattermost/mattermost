@@ -54,7 +54,7 @@ func ConfigStore(configStore *config.Store) Option {
 
 func SetFileStore(filestore filestore.FileBackend) Option {
 	return func(s *Server) error {
-		s.filestore = filestore
+		s.platformOptions = append(s.platformOptions, platform.SetFileStore(filestore))
 		return nil
 	}
 }

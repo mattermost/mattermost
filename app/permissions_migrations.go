@@ -991,6 +991,27 @@ func (a *App) getPlaybooksPermissionsAddManageRoles() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsProductsRead := []string{model.PermissionSysconsoleReadProductsBoards.Id}
+	permissionsProductsWrite := []string{model.PermissionSysconsoleWriteProductsBoards.Id}
+
+	// Give the new subsection READ permissions to any user with SYSTEM_MANAGER
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(isRole(model.SystemManagerRoleId)),
+		Add: permissionsProductsRead,
+	})
+
+	// Give the new subsection WRITE permissions to any user with SYSTEM_ADMIN
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(isRole(model.SystemAdminRoleId)),
+		Add: permissionsProductsWrite,
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1032,6 +1053,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddPlaybooksPermissions, Migration: a.getAddPlaybooksPermissions},
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissions, Migration: a.getAddCustomUserGroupsPermissions},
 		{Key: model.MigrationKeyAddPlayboosksManageRolesPermissions, Migration: a.getPlaybooksPermissionsAddManageRoles},
+		{Key: model.MigrationKeyAddProductsBoardsPermissions, Migration: a.getProductsBoardsPermissions},
 	}
 
 	roles, err := s.Store().Role().GetAll()
