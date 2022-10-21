@@ -7,7 +7,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -44,4 +47,27 @@ func TestConfigListener(t *testing.T) {
 
 	assert.True(t, listenerCalled, "listener should've been called")
 	assert.True(t, listener2Called, "listener 2 should've been called")
+}
+
+func TestConfigSave(t *testing.T) {
+	cm := &mocks.ClusterInterface{}
+	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
+	th := SetupWithCluster(t, cm)
+	defer th.TearDown()
+
+	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {
+		oldCfg := th.Service.Config()
+		newCfg := oldCfg.Clone()
+		newCfg.ServiceSettings.SiteURL = model.NewString("http://newhost.me")
+
+		sanitizedOldCfg := th.Service.configStore.RemoveEnvironmentOverrides(oldCfg)
+		sanitizedNewCfg := th.Service.configStore.RemoveEnvironmentOverrides(newCfg)
+		cm.On("ConfigChanged", sanitizedOldCfg, sanitizedNewCfg, true).Return(nil)
+
+		_, _, appErr := th.Service.SaveConfig(newCfg, true)
+		require.Nil(t, appErr)
+
+		updatedCfg := th.Service.Config()
+		assert.Equal(t, "http://newhost.me", *updatedCfg.ServiceSettings.SiteURL)
+	})
 }

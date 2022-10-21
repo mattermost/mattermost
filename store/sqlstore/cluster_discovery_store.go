@@ -59,10 +59,7 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 		return false, errors.Wrap(err, "failed to count rows affected")
 	}
 
-	if count == 0 {
-		return false, nil
-	}
-	return true, nil
+	return count != 0, nil
 }
 
 func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) (bool, error) {
@@ -82,10 +79,8 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 	if err := s.GetMasterX().Get(&count, queryString, args...); err != nil {
 		return false, errors.Wrap(err, "failed to count ClusterDiscovery")
 	}
-	if count == 0 {
-		return false, nil
-	}
-	return true, nil
+
+	return count != 0, nil
 }
 
 func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, error) {

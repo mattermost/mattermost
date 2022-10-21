@@ -123,22 +123,24 @@ func (o *IncomingWebhook) PreUpdate() {
 // try to handle that. An example invalid JSON string from an incoming webhook
 // might look like this (strings for both "text" and "fallback" attributes are
 // invalid JSON strings because they contain unescaped newlines and tabs):
-//  `{
-//    "text": "this is a test
-//						 that contains a newline and tabs",
-//    "attachments": [
-//      {
-//        "fallback": "Required plain-text summary of the attachment
-//										that contains a newline and tabs",
-//        "color": "#36a64f",
-//  			...
-//        "text": "Optional text that appears within the attachment
-//								 that contains a newline and tabs",
-//  			...
-//        "thumb_url": "http://example.com/path/to/thumb.png"
-//      }
-//    ]
-//  }`
+//
+//	 `{
+//	   "text": "this is a test
+//							 that contains a newline and tabs",
+//	   "attachments": [
+//	     {
+//	       "fallback": "Required plain-text summary of the attachment
+//											that contains a newline and tabs",
+//	       "color": "#36a64f",
+//	 			...
+//	       "text": "Optional text that appears within the attachment
+//									 that contains a newline and tabs",
+//	 			...
+//	       "thumb_url": "http://example.com/path/to/thumb.png"
+//	     }
+//	   ]
+//	 }`
+//
 // This function will search for `"key": "value"` pairs, and escape \n, \t
 // from the value.
 func escapeControlCharsFromPayload(by []byte) []byte {
@@ -191,7 +193,7 @@ func IncomingWebhookRequestFromJSON(data io.Reader) (*IncomingWebhookRequest, *A
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, NewAppError("IncomingWebhookRequestFromJSON", "model.incoming_hook.parse_data.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 

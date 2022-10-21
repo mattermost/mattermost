@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "更新當前頻道時錯誤。"
+    "translation": "更新當前頻道名稱時錯誤。"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "更新當前頻道時錯誤。"
+    "translation": "更新當前頻道用途時錯誤。"
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "開啟 Mattermost 說明頁面"
+    "translation": "顯示 Mattermost 說明頁面"
   },
   {
     "id": "api.command_help.name",
@@ -1078,10 +1078,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "無法上傳檔案。檔案數量不對。"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -5584,14 +5580,6 @@
     "translation": "邀請的頻道必須屬於邀請的團隊"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "授權不支援訪客帳號"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "訪客帳號已停用"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "使電子郵件邀請無效時失敗。"
   },
@@ -5986,10 +5974,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "無法取得保留中的文章。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "無法要求試用授權。請在 Mattermost 系統控制台的網頁伺服器區段設定站台 URL。"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -7266,5 +7250,101 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "無法解析要求本文。"
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "圖片大小超過上限，圖片解析度過高。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "返回至 {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "頻道"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "雲端 API 請求時發生內部錯誤。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "錯誤 無效快取"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "從 Webhook 更新訂閱時發生錯誤。"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS 處理請求錯誤。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "已通知管理者"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "您的授權不支援雲端請求。"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "無法恢復團隊，已達到團隊數量上限"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "無法建立團隊，已達到團隊數量上限"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "你的狀態已設為 “{{.EmojiName}} {{.StatusMessage}}”。您可以從頻道側邊欄中的狀態彈出視窗更改您的狀態。"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "狀態"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] 或清除"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "設定或清除您的狀態"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "狀態已清除。"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "清除狀態錯誤。"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "設定狀態錯誤。"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "輸入的文本超出字數限制。頻道用途不得超過 {{.MaxLength}} 個字數。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "輸入的文本超出字數限制。頻道標題不得超過 {{.MaxLength}} 個字數。"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "缺少發送拖欠電子郵件的必要欄位。"
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Webhook 事件未處理。事件可能遺失或無效。"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "無法在這些使用者間創建直連頻道因為他們不屬於同一個團隊。"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "無法寄出重設AuthData欄位失敗的電子郵件。"
   }
 ]

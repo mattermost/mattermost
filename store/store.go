@@ -73,6 +73,7 @@ type Store interface {
 	GetInternalMasterDB() *sql.DB
 	// GetInternalReplicaDBs allows access to the raw replica DB
 	// handles for the multi-product architecture.
+	GetInternalReplicaDB() *sql.DB
 	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
@@ -82,6 +83,7 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	NotifyAdmin() NotifyAdminStore
 }
 
 type RetentionPolicyStore interface {
@@ -298,6 +300,10 @@ type ChannelStore interface {
 	GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error)
 	GetTopChannelsForUserSince(userID string, teamID string, since int64, offset int, limit int) (*model.TopChannelList, error)
 	PostCountsByDuration(channelIDs []string, sinceUnixMillis int64, userID *string, duration model.PostCountGrouping, groupingLocation *time.Location) ([]*model.DurationPostCount, error)
+
+	// Insights - inactive channels
+	GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error)
+	GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -393,6 +399,9 @@ type PostStore interface {
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
+
+	// Insights - top DMs
+	GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error)
 }
 
 type UserStore interface {
@@ -439,7 +448,7 @@ type UserStore interface {
 	PermanentDelete(userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
 	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
-	GetUnreadCount(userID string) (int64, error)
+	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
 	GetRecentlyActiveUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -472,6 +481,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
@@ -690,6 +700,8 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
+	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
+	GetUptoNSizeFileTime(n int64) (int64, error)
 }
 
 type UploadSessionStore interface {
@@ -916,6 +928,13 @@ type LinkMetadataStore interface {
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
 }
 
+type NotifyAdminStore interface {
+	Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error)
+	GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error)
+	Get(trial bool) ([]*model.NotifyAdminData, error)
+	DeleteBefore(trial bool, now int64) error
+}
+
 type SharedChannelStore interface {
 	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
 	Get(channelId string) (*model.SharedChannel, error)
@@ -957,7 +976,6 @@ type SharedChannelStore interface {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	Term                     string
 	NotAssociatedToGroup     string

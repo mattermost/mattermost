@@ -13,9 +13,10 @@ const (
 	USERNAME = "Username"
 )
 
-//msgp:tuple TeamMember
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple TeamMember
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`

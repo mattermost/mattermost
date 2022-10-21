@@ -38,7 +38,7 @@ func (ms *mockServer) GetMetrics() einterfaces.MetricsInterface               { 
 func (ms *mockServer) IsLeader() bool                                         { return true }
 func (ms *mockServer) AddClusterLeaderChangedListener(listener func()) string { return model.NewId() }
 func (ms *mockServer) RemoveClusterLeaderChangedListener(id string)           {}
-func (ms *mockServer) GetLogger() mlog.LoggerIFace {
+func (ms *mockServer) Log() *mlog.Logger {
 	return ms.logger
 }
 func (ms *mockServer) GetStore() store.Store {

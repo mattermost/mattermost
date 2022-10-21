@@ -15,9 +15,9 @@ import (
 )
 
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
-	systemDataList, nErr := a.Srv().Store.System().Get()
+	systemDataList, nErr := a.Srv().Store().System().Get()
 	if nErr != nil {
-		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
@@ -148,7 +148,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 
 func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
-		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
+		data, nErr := a.Srv().Store().System().GetByName(warnMetric.Id)
 		if nErr == nil && data != nil && data.Value == model.WarnMetricStatusAck {
 			mlog.Debug("This metric warning has already been acknowledged", mlog.String("id", warnMetric.Id))
 			return nil
@@ -166,7 +166,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			data.Props["ContactEmailValue"] = sender.Email
 
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
-			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
+			registeredUsersCount, cerr := a.Srv().Store().User().Count(model.UserCountOptions{})
 			if cerr != nil {
 				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
@@ -213,7 +213,7 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 	}
 
 	// Inform client that this metric warning has been acked
-	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketWarnMetricStatusRemoved, "", "", "", nil, "")
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
 
@@ -232,11 +232,11 @@ func (a *App) setWarnMetricsStatus(status string) *model.AppError {
 
 func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *model.AppError {
 	mlog.Debug("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
-	if err := a.Srv().Store.System().SaveOrUpdateWithWarnMetricHandling(&model.System{
+	if err := a.Srv().Store().System().SaveOrUpdateWithWarnMetricHandling(&model.System{
 		Name:  warnMetricId,
 		Value: status,
 	}); err != nil {
-		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]any{"WarnMetricName": warnMetricId}, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]any{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
@@ -251,9 +251,9 @@ func (a *App) RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId st
 		return appErr
 	}
 
-	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Channels().RequestTrialLicense(c.Session().UserId, int(registeredUsersCount), true, true); err != nil {

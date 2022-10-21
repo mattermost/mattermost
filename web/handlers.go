@@ -87,16 +87,17 @@ type Handler struct {
 }
 
 func generateDevCSP(c Context) string {
+	var devCSP []string
+
 	// Add unsafe-eval to the content security policy for faster source maps in development mode
-	devCSPMap := make(map[string]bool)
 	if model.BuildNumber == "dev" {
-		devCSPMap["unsafe-eval"] = true
+		devCSP = append(devCSP, "'unsafe-eval'")
 	}
 
 	// Add unsafe-inline to unlock extensions like React & Redux DevTools in Firefox
 	// see https://github.com/reduxjs/redux-devtools/issues/380
 	if model.BuildNumber == "dev" {
-		devCSPMap["unsafe-inline"] = true
+		devCSP = append(devCSP, "'unsafe-inline'")
 	}
 
 	// Add supported flags for debugging during development, even if not on a dev build.
@@ -118,21 +119,29 @@ func generateDevCSP(c Context) string {
 			// Honour only supported keys
 			switch devFlagKey {
 			case "unsafe-eval", "unsafe-inline":
-				devCSPMap[devFlagKey] = true
+				if model.BuildNumber == "dev" {
+					// These flags are added automatically for dev builds
+					continue
+				}
+
+				devCSP = append(devCSP, "'"+devFlagKey+"'")
 			default:
 				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
 			}
 		}
 	}
-	var devCSP string
-	supportedCSPFlags := []string{"unsafe-eval", "unsafe-inline"}
-	for _, devCSPFlag := range supportedCSPFlags {
-		if devCSPMap[devCSPFlag] {
-			devCSP += fmt.Sprintf(" '%s'", devCSPFlag)
-		}
+
+	// Add flags for Webpack dev servers used by other products during development
+	if model.BuildNumber == "dev" {
+		// Focalboard runs on http://localhost:9006
+		devCSP = append(devCSP, "http://localhost:9006")
 	}
 
-	return devCSP
+	if len(devCSP) == 0 {
+		return ""
+	}
+
+	return " " + strings.Join(devCSP, " ")
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +202,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.AppContext.SetContext(ctx)
 
 		tmpSrv := *c.App.Srv()
-		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
+		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
@@ -316,7 +325,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
-	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
 		c.SetServerBusyError()
 	}
 

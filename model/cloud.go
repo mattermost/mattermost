@@ -4,8 +4,6 @@
 package model
 
 import (
-	"os"
-	"strconv"
 	"strings"
 )
 
@@ -15,6 +13,7 @@ const (
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
 	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
 var MockCWS string
@@ -40,9 +39,6 @@ const (
 	SubscriptionFamilyCloud  = SubscriptionFamily("cloud")
 	SubscriptionFamilyOnPrem = SubscriptionFamily("on-prem")
 )
-
-const defaultCloudNotifyAdminCoolOffDays = 30
-const CloudNotifyAdminInfo = "cloud_notify_admin_info"
 
 // Product model represents a product on the cloud system.
 type Product struct {
@@ -111,11 +107,12 @@ type ValidateBusinessEmailResponse struct {
 
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
-	Name             string `json:"name"`
-	Email            string `json:"email,omitempty"`
-	ContactFirstName string `json:"contact_first_name,omitempty"`
-	ContactLastName  string `json:"contact_last_name,omitempty"`
-	NumEmployees     int    `json:"num_employees"`
+	Name                                  string `json:"name"`
+	Email                                 string `json:"email,omitempty"`
+	ContactFirstName                      string `json:"contact_first_name,omitempty"`
+	ContactLastName                       string `json:"contact_last_name,omitempty"`
+	NumEmployees                          int    `json:"num_employees"`
+	MonthlySubscriptionIntentWireTransfer string `json:"monthly_subscription_intent_wire_transfer"`
 }
 
 // Address model represents a customer's address.
@@ -140,20 +137,21 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID          string   `json:"id"`
-	CustomerID  string   `json:"customer_id"`
-	ProductID   string   `json:"product_id"`
-	AddOns      []string `json:"add_ons"`
-	StartAt     int64    `json:"start_at"`
-	EndAt       int64    `json:"end_at"`
-	CreateAt    int64    `json:"create_at"`
-	Seats       int      `json:"seats"`
-	Status      string   `json:"status"`
-	DNS         string   `json:"dns"`
-	IsPaidTier  string   `json:"is_paid_tier"`
-	LastInvoice *Invoice `json:"last_invoice"`
-	IsFreeTrial string   `json:"is_free_trial"`
-	TrialEndAt  int64    `json:"trial_end_at"`
+	ID              string   `json:"id"`
+	CustomerID      string   `json:"customer_id"`
+	ProductID       string   `json:"product_id"`
+	AddOns          []string `json:"add_ons"`
+	StartAt         int64    `json:"start_at"`
+	EndAt           int64    `json:"end_at"`
+	CreateAt        int64    `json:"create_at"`
+	Seats           int      `json:"seats"`
+	Status          string   `json:"status"`
+	DNS             string   `json:"dns"`
+	IsPaidTier      string   `json:"is_paid_tier"`
+	LastInvoice     *Invoice `json:"last_invoice"`
+	IsFreeTrial     string   `json:"is_free_trial"`
+	TrialEndAt      int64    `json:"trial_end_at"`
+	DelinquentSince *int64   `json:"delinquent_since"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -188,13 +186,30 @@ type InvoiceLineItem struct {
 	Metadata     map[string]any `json:"metadata"`
 }
 
+type DelinquencyEmailTrigger struct {
+	EmailToTrigger string `json:"email_to_send"`
+}
+
+type DelinquencyEmail string
+
+const (
+	DelinquencyEmail7  DelinquencyEmail = "7"
+	DelinquencyEmail14 DelinquencyEmail = "14"
+	DelinquencyEmail30 DelinquencyEmail = "30"
+	DelinquencyEmail45 DelinquencyEmail = "45"
+	DelinquencyEmail60 DelinquencyEmail = "60"
+	DelinquencyEmail75 DelinquencyEmail = "75"
+	DelinquencyEmail90 DelinquencyEmail = "90"
+)
+
 type CWSWebhookPayload struct {
-	Event                             string               `json:"event"`
-	FailedPayment                     *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
-	ProductLimits                     *ProductLimits       `json:"product_limits"`
-	Subscription                      *Subscription        `json:"subscription"`
-	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
+	Event                             string                   `json:"event"`
+	FailedPayment                     *FailedPayment           `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner     `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits           `json:"product_limits"`
+	Subscription                      *Subscription            `json:"subscription"`
+	SubscriptionTrialEndUnixTimeStamp int64                    `json:"trial_end_time_stamp"`
+	DelinquencyEmail                  *DelinquencyEmailTrigger `json:"delinquency_email"`
 }
 
 type FailedPayment struct {
@@ -238,24 +253,4 @@ type ProductLimits struct {
 	Integrations *IntegrationsLimits `json:"integrations,omitempty"`
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
-}
-
-type NotifyAdminToUpgradeRequest struct {
-	CurrentTeamId string `json:"current_team_id"`
-}
-
-type AdminNotificationUserInfo struct {
-	LastUserIDToNotify        string
-	LastNotificationTimestamp int64
-}
-
-func CanNotify(lastNotificationTimestamp int64) bool {
-	coolOffPeriodDaysEnv := os.Getenv("MM_CLOUD_NOTIFY_ADMIN_COOL_OFF_DAYS")
-	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
-	if parseError != nil {
-		coolOffPeriodDays = defaultCloudNotifyAdminCoolOffDays
-	}
-	daysToMillis := coolOffPeriodDays * 24 * 60 * 60 * 1000
-	timeDiff := GetMillis() - lastNotificationTimestamp
-	return timeDiff >= int64(daysToMillis)
 }

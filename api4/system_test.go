@@ -208,6 +208,7 @@ func TestEmailTest(t *testing.T) {
 
 func TestGenerateSupportPacket(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	t.Run("As a System Administrator", func(t *testing.T) {
@@ -683,13 +684,13 @@ func TestSetServerBusy(t *testing.T) {
 		resp, err := th.Client.SetServerBusy(secs)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
+		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, err := c.SetServerBusy(secs)
 		require.NoError(t, err)
-		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
+		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
 	}, "as system admin")
 }
 
@@ -703,7 +704,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 			resp, err := c.SetServerBusy(p)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
-			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
+			require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
 	}, "as system admin, invalid param")
 }
@@ -712,19 +713,19 @@ func TestClearServerBusy(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.Srv().Busy.Set(time.Second * 30)
+	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
 		resp, err := th.Client.ClearServerBusy()
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
+		require.True(t, th.App.Srv().Platform().Busy.IsBusy(), "server should be marked busy")
 	})
 
-	th.App.Srv().Busy.Set(time.Second * 30)
+	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, err := c.ClearServerBusy()
 		require.NoError(t, err)
-		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
+		require.False(t, th.App.Srv().Platform().Busy.IsBusy(), "server should not be marked busy")
 	}, "as system admin")
 }
 
@@ -732,7 +733,7 @@ func TestGetServerBusy(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.Srv().Busy.Set(time.Second * 30)
+	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
 	t.Run("as system user", func(t *testing.T) {
 		_, resp, err := th.Client.GetServerBusy()
@@ -752,7 +753,7 @@ func TestServerBusy503(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.Srv().Busy.Set(time.Second * 30)
+	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
 	t.Run("search users while busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}
@@ -782,7 +783,7 @@ func TestServerBusy503(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
-	th.App.Srv().Busy.Clear()
+	th.App.Srv().Platform().Busy.Clear()
 
 	t.Run("search users while not busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}

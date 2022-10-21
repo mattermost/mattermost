@@ -192,10 +192,10 @@ func (s SqlChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (deleted int
 	)`
 	result, err := s.GetMasterX().Exec(query, limit)
 	if err != nil {
-		return
+		return 0, err
 	}
-	deleted, err = result.RowsAffected()
-	return
+
+	return result.RowsAffected()
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {

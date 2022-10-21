@@ -112,7 +112,7 @@ func TestUserMentionMap_ToURLValues(t *testing.T) {
 		// check is that the pairs are preserved, which can be checked converting
 		// back to a map with FromURLValues. We check that the test is well-formed
 		// by converting back the expected url.Values too.
-		require.Equal(t, len(actualValues), len(data.expected))
+		require.Len(t, actualValues, len(data.expected))
 
 		actualMentionMap, actualErr := UserMentionMapFromURLValues(actualValues)
 		expectedMentionMap, expectedErr := UserMentionMapFromURLValues(data.expected)
@@ -224,7 +224,7 @@ func TestChannelMentionMap_ToURLValues(t *testing.T) {
 		// check is that the pairs are preserved, which can be checked converting
 		// back to a map with FromURLValues. We check that the test is well-formed
 		// by converting back the expected url.Values too.
-		require.Equal(t, len(actualValues), len(data.expected))
+		require.Len(t, actualValues, len(data.expected))
 
 		actualMentionMap, actualErr := ChannelMentionMapFromURLValues(actualValues)
 		expectedMentionMap, expectedErr := ChannelMentionMapFromURLValues(data.expected)

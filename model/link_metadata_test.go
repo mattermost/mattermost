@@ -148,12 +148,12 @@ func TestLinkMetadataIsValid(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			err := test.Metadata.IsValid()
+			appErr := test.Metadata.IsValid()
 
 			if test.Expected {
-				assert.Nil(t, err)
+				assert.Nil(t, appErr)
 			} else {
-				assert.NotNil(t, err)
+				assert.NotNil(t, appErr)
 			}
 		})
 	}

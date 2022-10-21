@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 
@@ -48,11 +47,6 @@ type Channels struct {
 	pluginConfigListenerID string
 
 	imageProxy *imageproxy.ImageProxy
-
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
 
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
@@ -101,7 +95,7 @@ func init() {
 func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
 		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log),
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
 		uploadLockMap: map[string]bool{},
 	}
 
@@ -167,12 +161,12 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(); err != nil {
-			s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
 			if err := ch.Saml.ConfigureSP(); err != nil {
-				s.Log.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
 	}
@@ -224,12 +218,18 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 		ch: ch,
 	}
 
+	services[UserKey] = &App{ch: ch}
+
+	services[PreferencesKey] = &preferencesServiceWrapper{
+		app: &App{ch: ch},
+	}
+
 	return ch, nil
 }
 
 func (ch *Channels) Start() error {
 	// Start plugins
-	ctx := request.EmptyContext(ch.srv.GetLogger())
+	ctx := request.EmptyContext(ch.srv.Log())
 	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
 
 	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
@@ -237,7 +237,7 @@ func (ch *Channels) Start() error {
 		// to ensure we don't re-init plugins unnecessarily.
 		diffs, err := config.Diff(prevCfg, cfg)
 		if err != nil {
-			ch.srv.Log.Warn("Error in comparing configs", mlog.Err(err))
+			ch.srv.Log().Warn("Error in comparing configs", mlog.Err(err))
 			return
 		}
 
@@ -261,7 +261,8 @@ func (ch *Channels) Start() error {
 
 	})
 
-	if err := ch.ensureAsymmetricSigningKey(); err != nil {
+	// TODO: This should be moved to the platform service.
+	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 

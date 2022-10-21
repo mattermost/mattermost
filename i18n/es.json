@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "No se puede encontrar los usuarios: {{.Users}}",
       "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": "No se puede encontrar los usuarios: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -620,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Abrir la página de ayuda de Mattermost"
+    "translation": "Muestra el mensaje de ayuda de Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1080,10 +1082,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1352,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
       "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": "{{.Count}} archivos enviados: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": "{{.Count}} imágenes enviadas: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -1781,7 +1781,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Haz actualizado tu correo electrónico"
+    "translation": "Haz actualizado satisfactoriamente tu correo electrónico"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ver mensaje"
+    "translation": "Responder en Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3305,7 +3305,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "No se pueden migrar los usuarios de AD/LDAP con el campo especificado. Se ha detectado un entrada. Por favor, retire todos los duplicados e inténtalo de nuevo."
+    "translation": "No se pueden migrar los usuarios de AD/LDAP con el campo especificado. Se ha detectado un entrada duplicada. Por favor, elimina todos los duplicados e inténtalo de nuevo."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -4573,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Los Términos de Servicio de GitLab se han actualizado. Por favor, vaya a gitlab.com a aceptar y, a continuación, intente iniciar sesión en Mattermost de nuevo."
+    "translation": "Los Términos de Servicio de GitLab se han actualizado. Por favor, visita {{.URL}} para aceptarlos y, a continuación, intenta iniciar sesión en Mattermost nuevamente."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4753,7 +4753,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4761,19 +4761,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versión 12+"
+    "translation": "Versión 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versión 78+"
+    "translation": "Versión 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versión 44+"
+    "translation": "Versión 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versión 89+"
+    "translation": "Versión 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5544,14 +5544,6 @@
     "translation": "Los canales de la invitación deben ser parte del equipo al cual fue invitado."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Las cuentas de huéspedes están deshabilitadas"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error al invalidar las invitaciones por correo electrónico."
   },
@@ -5945,15 +5937,11 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sesión caducada: Inicie sesión para continuar recibiendo notificaciones. El administrador del sistema configura las sesiones para {{.siteName}} para que caduquen cada {{.daysCount}} día (s)."
+    "translation": "Sesión vencida: Inicie sesión para continuar recibiendo notificaciones. El administrador del sistema configura las sesiones para {{.siteName}} para que caduquen cada {{.hoursCount}} hora(s)."
   },
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "No se puede obtener el mensaje pendiente."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -7592,10 +7580,6 @@
     "translation": "error al insertar"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "Incapaz de ordenar la respuesta."
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "el miembro del grupo ya existe"
   },
@@ -7629,7 +7613,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Error all obtener el endpoint para Documento de Descubrimiento."
+    "translation": "Error al obtener el endpoint desde Documento de Descubrimiento."
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -7653,15 +7637,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Pago fallido"
+    "translation": "El pago ha fallado"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Se requiere una acción: El pago de Mattermost Cloud no se ha realizado"
+    "translation": "Se requiere una acción: El pago de {{.Plan}} Mattermost Cloud no se ha realizado"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Para asegurar una suscripción ininterrumpida a Mattermost Cloud, por favor, póngase en contacto con su institución financiera para arreglar el problema subyacente o actualizar su información de pago. Una vez actualizada la información de pago, Mattermost intentará liquidar cualquier saldo pendiente."
+    "translation": "Para asegurar un acceso ininterrumpido a {{.Plan}} Mattermost Cloud, por favor, póngase en contacto con su institución financiera para resolver el problema subyacente o actualizar su información de pago. Una vez actualizada la información de pago, Mattermost intentará liquidar cualquier saldo pendiente."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7670,10 +7654,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Arreglar ahora"
   },
   {
     "id": "api.oauth.redirecting_back",
@@ -7860,10 +7840,6 @@
     "translation": "Error al generar la contraseña."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error al procesar archivos adjuntos de importación masiva."
-  },
-  {
     "id": "app.import.attachment.read_file_data.error",
     "translation": "No se ha podido leer el archivo adjunto durante la importación."
   },
@@ -7997,7 +7973,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Envíenos un correo electrónico en cualquier momento a "
+    "translation": "¿Necesitas ayuda o tienes alguna pregunta? Envíanos un correo electrónico a "
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -8041,11 +8017,11 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "¡El período de prueba de 14 días de tu espacio de trabajo {{.WorkSpace}} está listo!"
+    "translation": "¡Tu espacio de trabajo ya está listo para usar!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8105,7 +8081,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Agiliza tu trabajo con herramientas como Github, Jira y Zoom. Explora todas las integraciones que tenemos en nuestro"
+    "translation": "Agiliza tu trabajo con herramientas como GitHub, Jira y Zoom. Explora todas las integraciones que tenemos en nuestro"
   },
   {
     "id": "api.command_share.unknown_action",
@@ -8996,15 +8972,7 @@
     "translation": "No se ha podido actualizar el estado personalizado. Por favor, añade un emoji o un estado de texto personalizado o ambos."
   },
   {
-    "id": "app.channel.get_post_count_by_day.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.upload.upload_data.gen_info.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_team_since.app_error",
     "translation": " "
   },
   {
@@ -9044,10 +9012,6 @@
     "translation": " "
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": " "
   },
@@ -9065,14 +9029,6 @@
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.insights.license_error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
     "translation": " "
   },
   {
@@ -9148,10 +9104,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": " "
   },
@@ -9172,14 +9124,6 @@
     "translation": " "
   },
   {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": " "
   },
@@ -9196,16 +9140,12 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": " "
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": " "
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -9213,10 +9153,6 @@
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
     "translation": " "
   },
   {
@@ -9248,14 +9184,6 @@
     "translation": " "
   },
   {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
     "id": "app.insights.feature_disabled",
     "translation": " "
   },
@@ -9269,14 +9197,6 @@
   },
   {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
-  },
-  {
-    "id": "api.license_error.professional_or_enterprise",
     "translation": " "
   },
   {
@@ -9309,7 +9229,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": " "
+    "translation": "{{ .SenderName }} te invitó a unirte al Canal {{ .ChannelName }} en el Equipo {{ .TeamDisplayName}}"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet",
@@ -9324,15 +9244,7 @@
     "translation": " "
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
     "id": "api.license.request_trial_license.embargoed",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
     "translation": " "
   },
   {
@@ -9348,19 +9260,303 @@
     "translation": " "
   },
   {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": " "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "La suscripción no es morosa"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "No se pudo recuperar la suscripción de la nube"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "No se puede obtener el nombre del plan actual"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "No se pudieron obtener los productos de la nube"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Tu workspace Mattermost ha sido degradado"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Para desarchivar tus datos y mantener las características de pago, actualiza tu información de pago."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Si usas características Cloud Professional o Enterprise para operaciones importantes de negocio, ya no estarán activas y experimentarás un rendimiento degradado."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Tu workspace Mattermost Cloud ha sido degradado"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Ver Planes y Precios"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Tu workspace será degradado en 15 días"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Tu workspace será degradado a Cloud Starter. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu workspace podrían ser archivados hasta que liquides completamente tu saldo pendiente."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Este es un aviso final de que no hemos recibido el pago por tu workspace Mattermost Cloud desde {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Degradar a Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Tu pago no se completó"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Para mantener tu plan {{.Plan}} activo, por favor contacta a tu institución financiera tan pronto como sea posible, Luego, actualiza tus detalles de pago según sea necesario."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "No pudimos procesar tu pago más reciente"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Tu workspace Mattermost será degradado en 30 días"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Starter abajo."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Degradaremos tu workspace automáticamente en 30 días si no somos capaces de procesar tu pago."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Por favor actualiza pronto tu información de pago para procesar tus facturas pendientes."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Acción requerida: El workspace será degradado en 30 días"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Degradar a Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Tu workspace será degradado pronto"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Actualiza la información de tu tarjeta de crédito ahora."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Un workspace degradado podría afectar negativamente los flujos de trabajo críticos, integraciones y otras actividades críticas de negocio realizadas en tu workspace."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "No fuimos capaces de cobrar el pago para las facturas con fecha {{.DelinquencyDate}}. Tu workspace está en riesgo de ser degradado."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Aviso: Tu {{.Plan}} Mattermost será degradado pronto"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Tu workspace será degradado pronto"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "si no se toma ninguna medida, tu workspace será degradado y los siguientes datos serán archivados:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Tienes tiempo para mantener activo tu {{.Plan}} Mattermost pero necesitarás resolver los problemas con tu método de pago."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Actúa para mantener las característica de tu {{.Plan}} Mattermost"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Ver toda la documentación de límites."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Plugins e integraciones activas"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Historial de mensajes"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Archivos"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Tarjetas de tus Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Pago no recibido"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Por favor contacta a tu institución financiera para resolver cualquier problema. Luego, actualiza los detalles de pago como sean necesarios."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu workspace está en riesgo de ser degradado a Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "El pago está vencido para tu {{.Plan}} Mattermost."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Actualizar pago"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Tu licencia no admite cuentas de invitado"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Las cuentas de invitado están deshabilitadas"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "El comando marketplace no es soportado por tu dispositivo."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Abre el Marketplace"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost es una plataforma de código abierto para comunicación segura, colaboración, y orquestación de trabajo entre herramientas y equipos.\nMattermost contiene tres herramientas clave:\n\n**Channels** - Mantente conectado con tu equipo vía 1:1 y en por mensajes grupales.\n**[Playbooks](/playbooks)** - Construye y configura procesos repetibles para lograr resultados específicos y predecibles.\n**[Tableros](/boards)** - Administra proyectos y tareas en una estructura de tablero Kanban para ayudar a que tú equipo logre los hitos clave.\n\n[Ver documentación y guías]({{.HelpLink}})"
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "los miembros {{.UsersNum}} del espacio de trabajo {{.WorkspaceName}} han solicitado comenzar la prueba Enterprise para acceder a: "
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Campos faltantes requeridos para enviar el correo electrónico de morosidad."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "el nombre de grupo ya existe como un nombre reservado"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Valor de timeout inválido {{.Value}}. Debe ser un número positivo."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML no pudo cargar satisfactoriamente el Identity Provider Public Certificate, por favor contacta a tu administrador del sistema."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "No pudimos obtener el recuento de insignias para el usuario."
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Error al limpiar el caché de los miembros del equipo"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hola, este es un recordatorio acerca de este mensaje de @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "No es posible obtener los DMs top para el usuario."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "El plugin {{.Name}} no se pudo activar en el modo producto."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "No es posible enviar la publicación de notificación."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "No es posible guardar los datos de notificación."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error al obtener el último archivo accesible"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error durante la ejecución de un job."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "No se puede obtener el archivo porque superó los límites del plan en la nube."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado una actualización del workspace para: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "los miembros {{.UsersNum}} del workspace {{.WorkspaceName}} han solicitado una actualización del workspace para: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado comenzar la prueba Enterprise para acceder a: "
   }
 ]

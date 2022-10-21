@@ -124,3 +124,7 @@ func (t *SidebarCategorySorting) UnmarshalGraphQL(input any) error {
 	*t = SidebarCategorySorting(chType)
 	return nil
 }
+
+func (t *SidebarCategory) SortOrder_() float64 {
+	return float64(t.SortOrder)
+}

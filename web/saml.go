@@ -91,7 +91,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		stateStr := ""
 		b, err := b64.StdEncoding.DecodeString(relayState)
 		if err != nil {
-			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
+			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusFound).Wrap(err)
 			return
 		}
 		stateStr = string(b)
@@ -165,7 +165,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
 			if err := c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.UserAuthServiceSaml)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError))
+				c.LogErrorByCode(model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err))
 			}
 		})
 	}

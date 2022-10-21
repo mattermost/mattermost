@@ -40,7 +40,7 @@ type ServerIface interface {
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
-	GetLogger() mlog.LoggerIFace
+	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 }
 
@@ -166,7 +166,7 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 		Message:   text,
 		CreateAt:  model.GetMillis(),
 	}
-	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.GetLogger()), userId, ephemeral)
+	scs.app.SendEphemeralPost(request.EmptyContext(scs.server.Log()), userId, ephemeral)
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -191,7 +191,7 @@ func (scs *Service) resume() {
 
 	go scs.syncLoop(scs.done)
 
-	scs.server.GetLogger().Debug("Shared Channel Service active")
+	scs.server.Log().Debug("Shared Channel Service active")
 }
 
 func (scs *Service) pause() {
@@ -206,7 +206,7 @@ func (scs *Service) pause() {
 	close(scs.done)
 	scs.done = nil
 
-	scs.server.GetLogger().Debug("Shared Channel Service inactive")
+	scs.server.Log().Debug("Shared Channel Service inactive")
 }
 
 // Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
@@ -229,7 +229,7 @@ func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError 
 		},
 	}
 
-	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(scs.server.GetLogger()), channel, readonlyChannelModerations)
+	_, err := scs.app.PatchChannelModerationsForChannel(request.EmptyContext(scs.server.Log()), channel, readonlyChannelModerations)
 	return err
 }
 
@@ -241,7 +241,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		scs.ForceSyncForRemote(rc)
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("remoteId", rc.RemoteId),
 		mlog.Bool("online", online),

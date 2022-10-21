@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost 도움말 페이지 열기"
+    "translation": "Mattermost 도움말 보기"
   },
   {
     "id": "api.command_help.name",
@@ -631,7 +631,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하세요."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하세요."
   },
   {
     "id": "api.command_invite.desc",
@@ -775,7 +775,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "채널{{.Channel}} 을(를) 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하십시오."
+    "translation": "{{.Channel}} 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) 을 사용하세요."
   },
   {
     "id": "api.command_mute.hint",
@@ -787,7 +787,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면[채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하십시오."
+    "translation": "지정한 채널을 찾을 수 없습니다. 채널을 식별하려면 [채널 핸들](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel)을 사용하세요."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -1078,10 +1078,6 @@
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "파일을 업로드 할 수 없습니다. 잘못된 파일 수가 지정되었습니다."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1813,7 +1809,7 @@
   },
   {
     "id": "api.templates.invite_body.title",
-    "translation": "{{ .SenderName }}가 당신을 {{ .TeamDisplayName }} 팀에 초대하였습니다."
+    "translation": "{{ .SenderName }} 님이 당신을 {{ .TeamDisplayName }} 팀에 초대하였습니다."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1853,7 +1849,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "메시지 보기"
+    "translation": "Mattermost에서 답장"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2137,7 +2133,7 @@
   },
   {
     "id": "api.user.reset_password.method",
-    "translation": "비밀번호 재설정 링크를 사용하세요."
+    "translation": "비밀번호 재설정 링크를 사용하세요"
   },
   {
     "id": "api.user.reset_password.sso.app_error",
@@ -2145,7 +2141,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML이 설정되지 않았거나 서버에서 지원하지 않습니다"
+    "translation": "SAML 2.0이 설정되지 않았거나 서버에서 지원하지 않습니다."
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -2177,7 +2173,7 @@
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "작업을 할 수 있는 권한이 없습니다"
+    "translation": "작업을 할 수 있는 권한이 없습니다."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2301,7 +2297,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "팀들간의 명령어를 업데이트 할 수 없음"
+    "translation": "팀들간의 웹훅을 업데이트 할 수 없습니다."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2309,7 +2305,7 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "적절하지 않은 {{.Name}} 파라미터"
+    "translation": "유효하지 않은 {{.Name}} 매개변수입니다."
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2661,11 +2657,11 @@
   },
   {
     "id": "app.import.validate_role_import_data.description_invalid.error",
-    "translation": "잘못된 설명"
+    "translation": "유효하지 않은 역할 설명입니다."
   },
   {
     "id": "app.import.validate_role_import_data.display_name_invalid.error",
-    "translation": "잘못된 표시명"
+    "translation": "유효하지 않은 역할 표시명입니다."
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
@@ -2673,19 +2669,19 @@
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
-    "translation": "유효하지 않은 사용자 이름"
+    "translation": "유효하지 않은 역할 이름입니다."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
-    "translation": "잘못된 설명"
+    "translation": "유효하지 않은 스키마 설명입니다."
   },
   {
     "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
-    "translation": "잘못된 표시명"
+    "translation": "유효하지 않은 스키마 표시명입니다."
   },
   {
     "id": "app.import.validate_scheme_import_data.name_invalid.error",
-    "translation": "유효하지 않은 사용자 이름"
+    "translation": "유효하지 않은 스키마 이름입니다."
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
@@ -3301,7 +3297,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "AD/LDAP 사용자를 마이그레이션 할 수 없습니다. 중복된 엔트리가 있습니다. 모든 중복을 제거한 후 다시 시도해보세요."
+    "translation": "AD/LDAP 사용자를 이관할 수 없습니다. 중복된 항목이 있습니다. 모든 중복을 제거한 후 다시 시도해보세요."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
@@ -4001,11 +3997,11 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file_missing.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "유효하지 않은 TLS 인증서 파일 - LetsEncrypt를 사용하거나 기존 인증서 파일의 경로를 설정해주세요."
   },
   {
     "id": "model.config.is_valid.tls_key_file_missing.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "유효하지 않은 TLS 키 파일 - LetsEncrypt를 사용하거나 기존 키 파일의 경로를 설정해주세요."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
@@ -4749,7 +4745,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "12버전 이상"
+    "translation": "14.1 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -4761,7 +4757,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "89 버전 이상"
+    "translation": "100 버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5329,7 +5325,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "팀 테마 설정을 저장할 수 없습니다."
+    "translation": "팀 테마 설정을 저장할 수 없습니다"
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
@@ -5345,27 +5341,27 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "커스텀 이모지 이미지를 복사 할 수 없습니다."
+    "translation": "사용자 정의 이모지 이미지를 복사 할 수 없습니다"
   },
   {
     "id": "app.emoji.get_list.internal_error",
-    "translation": "이모지를 가져올 수 없음"
+    "translation": "이모지를 가져올 수 없습니다."
   },
   {
     "id": "app.emoji.get_by_name.app_error",
-    "translation": "이모지를 가져올 수 없음"
+    "translation": "이모지를 가져올 수 없습니다."
   },
   {
     "id": "app.emoji.get.app_error",
-    "translation": "이모지를 가져올 수 없음"
+    "translation": "이모지를 가져올 수 없습니다."
   },
   {
     "id": "app.emoji.delete.no_results",
-    "translation": "삭제할 이모지를 찾을 수 없음"
+    "translation": "삭제할 이모지를 찾을 수 없습니다."
   },
   {
     "id": "app.emoji.delete.app_error",
-    "translation": "이모지를 삭제할 수 없음"
+    "translation": "이모지를 삭제하지 못했습니다."
   },
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
@@ -5377,11 +5373,11 @@
   },
   {
     "id": "app.channel.update.bad_id",
-    "translation": "채널 업데이트 실패"
+    "translation": "채널을 업데이트하지 못했습니다."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
-    "translation": "채널을 삭제하지 못했습니다"
+    "translation": "채널을 삭제하지 못했습니다."
   },
   {
     "id": "app.channel.get_deleted.missing.app_error",
@@ -5421,15 +5417,15 @@
   },
   {
     "id": "app.channel.delete.app_error",
-    "translation": "채널을 삭제하지 못했습니다"
+    "translation": "채널을 삭제하지 못했습니다."
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "개인 채널을 저장하지 못했습니다."
   },
   {
     "id": "app.channel.create_channel.internal_error",
-    "translation": "채널 업데이트에 실패하였습니다"
+    "translation": "채널을 저장하지 못했습니다."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -5461,7 +5457,7 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "타당한 URL이 아닙니다."
+    "translation": "유효한 URL이 아닙니다"
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
@@ -5489,11 +5485,11 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "게스트 액세스 기능이 설정되어 있지 않으므로 게스트 계정을 활성화할 수 없음"
+    "translation": "게스트 접근 기능이 설정되어 있지 않으므로 게스트 계정을 활성화할 수 없습니다."
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "재설정된 비밀번호 토큰을 분석 할 수 없습니다."
+    "translation": "비밀번호 재설정 토큰을 분석 할 수 없습니다"
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -5549,11 +5545,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "엔터프라이즈 에디션 라이선스가 만료되었으며 일부 기능이 비활성화될 수 있습니다. 지금 라이선스를 갱신해주세요."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "지금 라이센스를 갱신하세요"
+    "translation": "지금 라이선스를 갱신하세요"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -5578,14 +5574,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "초대 채널은 초대한 팀의 채널이어야 합니다."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "게스트 계정을 지원하지 않는 라이선스입니다"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "게스트 계정이 비활성화되어 있습니다"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -6241,7 +6229,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "현재 당신의 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    "translation": "현재 이 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -6281,7 +6269,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "세션 만료: 알림을 계속 받으려면 로그인하세요. {{.siteName}}의 세션은 시스템 관리자에 의해 {{.daysCount}}일마다 만료되도록 구성되어 있습니다."
+    "translation": "세션 만료: 알림을 계속 받으려면 로그인하세요. {{.siteName}}의 세션은 시스템 관리자에 의해 {{.hoursCount}} 시간마다 만료되도록 구성되어 있습니다."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -6294,10 +6282,6 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "보류 중인 게시물을 가져올 수 없음."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "평가판 라이선스를 요청할 수 없습니다. Mattermost 시스템 콘솔의 웹 서버 섹션에서 사이트 URL을 구성하십시오."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -7093,7 +7077,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 202ㅆ Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.invite_body_footer.title",
@@ -7121,7 +7105,7 @@
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": "상태 초기화 중 에러가 발생했습니다."
+    "translation": "상태 초기화 중 오류가 발생했습니다."
   },
   {
     "id": "api.command_custom_status.name",
@@ -7129,11 +7113,11 @@
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": "상태 설정 중 에러가 발생했습니다."
+    "translation": "상태 설정 중 오류가 발생했습니다."
   },
   {
     "id": "api.back_to_app",
-    "translation": "{{.SiteName}}(으)로 돌아가기"
+    "translation": "{{.SiteName}} 사이트로 돌아가기"
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
@@ -7145,11 +7129,11 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
-    "translation": "Desktop과 mobile 애플리케이션을 다운로드 받으세요"
+    "translation": "데스크탑과 모바일 애플리케이션을 다운로드 받으세요"
   },
   {
     "id": "api.unable_to_create_zip_file",
-    "translation": "zip 파일을 생성하는 동안 에러가 발생했습니다."
+    "translation": "zip 파일을 생성하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.templates.welcome_body.app_download_button",
@@ -7181,7 +7165,7 @@
   },
   {
     "id": "api.command_remote.incorrect_password.error",
-    "translation": "초대를 해독 할 수 없습니다. 잘못된 암호 또는 손상 초대: {{.Error}}"
+    "translation": "초대를 해독할 수 없습니다. 잘못된 암호 또는 손상 초대: {{.Error}}"
   },
   {
     "id": "api.command_remote.fetch_status.error",
@@ -7221,7 +7205,7 @@
   },
   {
     "id": "api.command_remote.accept_invitation",
-    "translation": "초대가 수락 및 확인되었습니다.\n사이트URL: {{.SiteURL}}"
+    "translation": "초대가 수락 및 확인되었습니다.\n사이트 URL: {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.accept.help",
@@ -7229,15 +7213,15 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
-    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 용도는 {{.MaxLength}}자로 제한됩니다."
+    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 용도는 {{.MaxLength}} 글자로 제한됩니다."
   },
   {
     "id": "api.command_channel_header.update_channel.max_length",
-    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 헤더는 {{.MaxLength}}자로 제한됩니다."
+    "translation": "입력한 텍스트가 글자수 제한을 초과했습니다. 채널 헤더는 {{.MaxLength}} 글자로 제한됩니다."
   },
   {
     "id": "api.cloud.cws_webhook_event_missing_error",
-    "translation": "Webhook 이벤트가 처리되지 않았습니다. 누락되었거나 유효하지 않습니다."
+    "translation": "웹훅 이벤트가 처리되지 않았습니다. 누락되었거나 유효하지 않습니다."
   },
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
@@ -7245,11 +7229,11 @@
   },
   {
     "id": "api.remote_cluster.invalid_id.app_error",
-    "translation": "잘못된 ID입니다."
+    "translation": "유효하지 않은 ID입니다."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
-    "translation": "잘못된 주제입니다."
+    "translation": "유효하지 않은 주제입니다."
   },
   {
     "id": "api.push_notification.title.collapsed_threads_dm",
@@ -7257,11 +7241,11 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "{{.channelName}}로 답장"
+    "translation": "{{.channelName}} 채널로 답장"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
-    "translation": "요청된 본문을 분석할 수 없습니다."
+    "translation": "요청 본문을 분석할 수 없습니다."
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -7301,7 +7285,7 @@
   },
   {
     "id": "api.config.reload_config.app_error",
-    "translation": "설정을 다시 로드하지 못했습니다."
+    "translation": "설정을 재구성하지 못했습니다."
   },
   {
     "id": "api.command_share.remote_table_header",
@@ -7373,7 +7357,7 @@
   },
   {
     "id": "api.command_share.desc",
-    "translation": "현재 채널을 외부 매터모스트 인스턴스와 공유합니다."
+    "translation": "현재 채널을 외부 Mattermost 인스턴스와 공유합니다."
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -7397,7 +7381,7 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "이 채널에 대한 공유 채널 보안 연결 `{{.RemoteId}}`이(가) 존재하지 않습니다."
+    "translation": "이 채널에 대한 `{{.RemoteId}}` 공유 채널 보안 연결이 존재하지 않습니다."
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
@@ -7405,7 +7389,7 @@
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "`{{.Name}}`을(를) 이 채널로 초대하는 동안 오류가 발생했습니다: {{.Error}}"
+    "translation": "`{{.Name}}`님을 이 채널로 초대하는 동안 오류가 발생했습니다: {{.Error}}"
   },
   {
     "id": "api.command_share.available_actions",
@@ -7449,7 +7433,7 @@
   },
   {
     "id": "api.command_remote.remote_table_header",
-    "translation": "| 보안 연결 | 표시 이름 | 연결 ID | 사이트 URL | 초대 수락 | 온라인 | 마지막 핑  |"
+    "translation": "| 보안 연결 | 표시 이름 | 연결 ID | 사이트 URL | 초대 수락 | 온라인 | 마지막 응답  |"
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
@@ -7473,15 +7457,15 @@
   },
   {
     "id": "api.command_remote.name",
-    "translation": "보안연결"
+    "translation": "보안 연결"
   },
   {
     "id": "api.command_remote.missing_empty",
-    "translation": "`{{.Arg}}`가 누락 또는 비어 있습니다"
+    "translation": "`{{.Arg}}`가 누락 또는 비어있음"
   },
   {
     "id": "bleveengine.delete_file.error",
-    "translation": "파일 삭제를 실패하였습니다."
+    "translation": "파일을 삭제하지 못했습니다."
   },
   {
     "id": "api.command_share.unshare_channel.help",
@@ -7509,7 +7493,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.button",
-    "translation": "매터모스트 열기"
+    "translation": "Mattermost 열기"
   },
   {
     "id": "api.context.remote_id_missing.app_error",
@@ -7537,7 +7521,7 @@
   },
   {
     "id": "api.config.migrate_config.app_error",
-    "translation": "지정된 구성을 병합하지 못했습니다."
+    "translation": "설정 저장소를 이관하지 못했습니다."
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
@@ -7549,7 +7533,7 @@
   },
   {
     "id": "api.command_share.share_read_only.hint",
-    "translation": "[읽기전용] 'Y' 혹은 'N'. 기본값은 'N'"
+    "translation": "[읽기 전용] 'Y' 혹은 'N'. 기본값은 'N'"
   },
   {
     "id": "api.command_share.share_channel.error",
@@ -7765,7 +7749,7 @@
   },
   {
     "id": "bleveengine.delete_files_batch.error",
-    "translation": "파일 삭제를 실패하였습니다."
+    "translation": "파일을 삭제하지 못했습니다."
   },
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
@@ -7773,11 +7757,11 @@
   },
   {
     "id": "api.custom_status.disabled",
-    "translation": "커스텀 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
+    "translation": "사용자 정의 상태 기능이 비활성화 되어 있습니다. 자세한 내용은 관리자에게 문의하세요."
   },
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",
-    "translation": "라이센스 갱신 링크를 생성하지 못했습니다"
+    "translation": "라이선스 갱신 링크를 생성하지 못했습니다"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7785,11 +7769,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "동일한 url의 보안 연결이 이미 존재합니다."
+    "translation": "동일한 URL을 갖는 보안 연결이 이미 존재합니다."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "보안 연결을 업데이트하는 동안 에러가 발생했습니다."
+    "translation": "보안 연결을 업데이트하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
@@ -7797,15 +7781,15 @@
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "보안 연결을 저장하는 동안 에러가 발생했습니다."
+    "translation": "보안 연결을 저장하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "보안 연결을 검색하는 동안 에러가 발생했습니다."
+    "translation": "보안 연결을 조회하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "보안 연결을 삭제하는 동안 에러가 발생했습니다."
+    "translation": "보안 연결을 삭제하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
@@ -7817,7 +7801,7 @@
   },
   {
     "id": "api.license.request-trial.can-start-trial.not-allowed",
-    "translation": "Mattermost 엔터프라이즈 에디션 체험용 라이센스 키가 만료되었으며 더이상 유효하지 않습니다. 체험 기간을 연장하시려면 [저희 세일즈 팀에 연락해주세요](https://mattermost.com/contact-us/)."
+    "translation": "Mattermost 엔터프라이즈 에디션 체험용 라이선스 키가 만료되었으며 더이상 유효하지 않습니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
   },
   {
     "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
@@ -7833,7 +7817,7 @@
   },
   {
     "id": "api.export.export_not_found.app_error",
-    "translation": "내보내기 파일을 찾을 수 없습니다."
+    "translation": "내보낼 파일을 찾을 수 없습니다."
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
@@ -7853,7 +7837,7 @@
   },
   {
     "id": "bleveengine.stop_file_index.error",
-    "translation": "파일 인덱스를 닫지 못했습니다."
+    "translation": "파일 색인을 닫지 못했습니다."
   },
   {
     "id": "brand.save_brand_image.check_image_limits.app_error",
@@ -7869,15 +7853,15 @@
   },
   {
     "id": "bleveengine.index_file.error",
-    "translation": "파일을 인덱싱하지 못했습니다."
+    "translation": "파일을 색인하지 못했습니다."
   },
   {
     "id": "bleveengine.purge_file_index.error",
-    "translation": "파일 인덱스를 정리하지 못했습니다."
+    "translation": "파일 색인를 정리하지 못했습니다."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "파일 배치를 인덱싱하지 못했습니다."
+    "translation": "파일 묶음을 색인하지 못했습니다."
   },
   {
     "id": "bleveengine.delete_user_files.error",
@@ -7885,11 +7869,11 @@
   },
   {
     "id": "bleveengine.delete_post_files.error",
-    "translation": "게시 된 파일을 삭제하지 못했습니다."
+    "translation": "게시된 파일을 삭제하지 못했습니다."
   },
   {
     "id": "Boards",
-    "translation": "게시판"
+    "translation": "보드"
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -7897,35 +7881,27 @@
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
-    "translation": "커스텀 상태를 갱신하지 못했습니다. 이모티콘이나 사용자 지정 텍스트 상태 또는 둘 다 추가하십시오."
+    "translation": "사용자 정의 상태를 갱신하지 못했습니다. 이모티콘이나 사용자 지정 텍스트 상태 또는 둘 다 추가해주세요."
   },
   {
     "id": "api.custom_groups.no_remote_id",
-    "translation": "커스텀 그룹의 경우 remote_id는 공백이어야 합니다"
+    "translation": "사용자 정의 그룹의 경우 remote_id는 공백이어야 합니다"
   },
   {
     "id": "api.custom_groups.must_be_referenceable",
-    "translation": "커스텀 그룹의 경우 allow_reference는 'true'이어야 합니다"
+    "translation": "사용자 정의 그룹의 경우 allow_reference는 'true'이어야 합니다"
   },
   {
     "id": "api.custom_groups.license_error",
-    "translation": "커스텀 그룹을 위한 라이센스가 없습니다"
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "{{.TeamName}} 멤버로부터 이 작업 영역을 업그레이드하라는 통지가 있었습니다."
+    "translation": "사용자 정의 그룹을 위한 라이선스가 없습니다"
   },
   {
     "id": "api.cloud.subscription.update_error",
-    "translation": "웹 훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
+    "translation": "웹훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
-    "translation": "관리자에게 통지됨"
-  },
-  {
-    "id": "api.authorization_error.guest",
-    "translation": " "
+    "translation": "이미 관리자에게 통지됨"
   },
   {
     "id": "Playbooks",
@@ -7937,11 +7913,11 @@
   },
   {
     "id": "api.custom_groups.feature_disabled",
-    "translation": "커스텀 그룹 기능은 비활성화되어 있습니다"
+    "translation": "사용자 정의 그룹 기능은 비활성화되어 있습니다"
   },
   {
     "id": "api.custom_groups.count_err",
-    "translation": "그룹 카운트 중 오류가 발생했습니다"
+    "translation": "그룹 갯수를 세는 중 오류가 발생했습니다"
   },
   {
     "id": "api.cloud.teams_limit_reached.restore",
@@ -7950,5 +7926,41 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "팀 제한에 도달했기 때문에 팀을 만들 수 없습니다"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "마켓플레이스 열기"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost는 도구와 팀을 넘나드는 안전한 소통, 협업, 작업 조율을 위한 오픈소스 플랫폼입니다.\nMattermost는 세가지 핵심 도구를 갖고 있습니다:\n\n**채널** - 1:1 및 그룹 채팅을 통해 팀과의 소통을 유지하세요.\n**[플레이북](/playbooks)** - 반복가능한 작업들을 구성하여 구체적이고 예측 가능한 결과를 만드세요.\n**[보드](/boards)** - 팀의 핵심 마일스톤에 도달하기 위해 칸반 보드에서 작업을 만들고 프로젝트를 관리하세요.\n\n[문서 및 가이드 살펴보기]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "연체 이메일을 보내기 위한 필수 항목이 누락되었습니다."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "스토어에서 첫 번째 관리자의 설정을 저장하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "스토어에서 첫 번째 관리자의 마켓플레이스 방문 상태를 검색하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "스토어에서 첫 번째 관리자 설정을 검색하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "AES-256으로 암호화된 초대를 비밀번호와 함께 외부 Mattermost 시스템 관리자에게 보냅니다. 초대를 받기 위해 `{{.Command}}` 슬래시 명령어를 사용합니다.\n\n```\n{{.Invitation}}\n```\n\n**보안 연결이 다음을 통해 Mattermost에 액세스할 수 있는지 확인하십시오** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "마켓플레이스 명령어는 현재 기기에서 지원하지 않습니다."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "마켓플레이스"
   }
 ]

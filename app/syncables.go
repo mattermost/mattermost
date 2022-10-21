@@ -202,9 +202,9 @@ func (a *App) deleteGroupConstrainedChannelMemberships(c request.CTX, channelID 
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
+	permittedAdmins, err := a.Srv().Store().Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
-		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Log().Info(
@@ -215,15 +215,15 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		return nil
 	case model.GroupSyncableTypeChannel:
-		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store().Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		return nil
 	default:
@@ -236,7 +236,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 func (a *App) SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
-	lastJob, _ := a.Srv().Store.Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
+	lastJob, _ := a.Srv().Store().Job().GetNewestJobByStatusAndType(model.JobStatusSuccess, model.JobTypeLdapSync)
 	var since int64
 	if lastJob != nil {
 		since = lastJob.StartAt

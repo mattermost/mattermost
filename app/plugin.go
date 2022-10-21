@@ -93,6 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
+	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -110,7 +111,7 @@ func (ch *Channels) syncPluginsActiveState() {
 	if *config.Enable {
 		availablePlugins, err := pluginsEnvironment.Available()
 		if err != nil {
-			ch.srv.Log.Error("Unable to get available plugins", mlog.Err(err))
+			ch.srv.Log().Error("Unable to get available plugins", mlog.Err(err))
 			return
 		}
 
@@ -129,6 +130,23 @@ func (ch *Channels) syncPluginsActiveState() {
 			}
 
 			if pluginEnabled {
+				// Disable focalboard in product mode.
+				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+					msg := "Plugin cannot run in product mode. Disabling."
+					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
+
+					// This is a mini-version of ch.disablePlugin.
+					// We don't call that directly, because that will recursively call
+					// this method.
+					ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+						cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: false}
+					})
+					pluginsEnvironment.SetPluginError(pluginID, msg)
+					ch.unregisterPluginCommands(pluginID)
+					disabledPlugins = append(disabledPlugins, plugin)
+					continue
+				}
+
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
 				disabledPlugins = append(disabledPlugins, plugin)
@@ -146,9 +164,9 @@ func (ch *Channels) syncPluginsActiveState() {
 
 				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil)
+					message := model.NewWebSocketEvent(model.WebsocketEventPluginDisabled, "", "", "", nil, "")
 					message.Add("manifest", plugin.Manifest.ClientManifest())
-					ch.srv.Publish(message)
+					ch.srv.platform.Publish(message)
 				}
 			}(plugin)
 		}
@@ -162,14 +180,14 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginID := plugin.Manifest.Id
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginID)
 				if err != nil {
-					plugin.WrapLogger(ch.srv.Log).Error("Unable to activate plugin", mlog.Err(err))
+					plugin.WrapLogger(ch.srv.Log()).Error("Unable to activate plugin", mlog.Err(err))
 					return
 				}
 
 				if activated {
 					// Notify all cluster clients if ready
 					if err := ch.notifyPluginEnabled(updatedManifest); err != nil {
-						ch.srv.Log.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+						ch.srv.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
 			}(plugin)
@@ -198,6 +216,10 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 
 func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
+	defer func() {
+		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+	}()
+
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()
@@ -209,7 +231,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		return
 	}
 
-	ch.srv.Log.Info("Starting up plugins")
+	ch.srv.Log().Info("Starting up plugins")
 
 	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
@@ -225,7 +247,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
 	}
 
-	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log, ch.srv.GetMetrics())
+	env, err := plugin.NewEnvironment(newAPIFunc, NewDriverImpl(ch.srv), pluginDir, webappPluginDir, ch.srv.Log(), ch.srv.GetMetrics())
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -263,7 +285,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
-					ch.srv.Log.Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+					ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 				}
 				return true
 			}, plugin.OnConfigurationChangeID)
@@ -292,7 +314,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	var wg sync.WaitGroup
@@ -416,7 +438,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	id = strings.ToLower(id)
@@ -433,6 +455,10 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
+	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
+	}
+
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
@@ -442,7 +468,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
-		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -467,7 +493,7 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	id = strings.ToLower(id)
@@ -491,7 +517,7 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
-		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -503,7 +529,7 @@ func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
 		return appErr
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil, "")
 	message.Add("usage", usage)
 	message.GetBroadcast().ContainsSensitiveData = true
 	ch.Publish(message)
@@ -519,7 +545,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	resp := &model.PluginsResponse{Active: []*model.PluginInfo{}, Inactive: []*model.PluginInfo{}}
 	for _, plugin := range availablePlugins {
@@ -616,7 +642,7 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 		ch.srv.HTTPService(),
 	)
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	filter := ch.getBaseMarketplaceFilter()
@@ -629,7 +655,7 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 		plugin, err = marketplaceClient.GetLatestPlugin(filter)
 	}
 	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return plugin, nil
@@ -648,7 +674,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 		a.HTTPService(),
 	)
 	if err != nil {
-		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	filter := a.getBaseMarketplaceFilter()
@@ -657,7 +683,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 
 	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
-		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, p := range marketplacePlugins {
@@ -701,13 +727,13 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		// If available in the marketplace, only overwrite if newer.
 		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
 		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
 		if err != nil {
-			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		if prepackagedVersion.GT(marketplaceVersion) {
@@ -727,7 +753,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 
 	localPlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, plugin := range localPlugins {
@@ -840,9 +866,9 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 
 	var statuses model.PluginStatuses
 
-	if ch.srv.Cluster != nil {
+	if ch.srv.platform.Cluster() != nil {
 		var err *model.AppError
-		statuses, err = ch.srv.Cluster.GetPluginStatuses()
+		statuses, err = ch.srv.platform.Cluster().GetPluginStatuses()
 		if err != nil {
 			return err
 		}
@@ -866,9 +892,9 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 	}
 
 	// Notify all cluster peer clients.
-	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginEnabled, "", "", "", nil, "")
 	message.Add("manifest", manifest.ClientManifest())
-	ch.srv.Publish(message)
+	ch.srv.platform.Publish(message)
 
 	return nil
 }
@@ -876,7 +902,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
 	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder, false)
 	if appErr != nil {
-		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	return ch.getPluginsFromFilePaths(fileStorePaths), nil
@@ -1018,7 +1044,7 @@ func (ch *Channels) installFeatureFlagPlugins() {
 		// Skip installing if the plugin has been previously disabled.
 		pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[pluginID]
 		if pluginState != nil && !pluginState.Enable {
-			ch.srv.Log.Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginID), mlog.String("version", version))
+			ch.srv.Log().Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginID), mlog.String("version", version))
 			continue
 		}
 
@@ -1036,17 +1062,17 @@ func (ch *Channels) installFeatureFlagPlugins() {
 			if !inCloud && pluginExists {
 				parsedVersion, err := semver.Parse(version)
 				if err != nil {
-					ch.srv.Log.Debug("Bad version from feature flag", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
+					ch.srv.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
 					return
 				}
 				parsedExistingVersion, err := semver.Parse(pluginStatus.Version)
 				if err != nil {
-					ch.srv.Log.Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					ch.srv.Log().Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
 					return
 				}
 
 				if parsedVersion.LTE(parsedExistingVersion) {
-					ch.srv.Log.Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					ch.srv.Log().Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", pluginStatus.Version))
 					return
 				}
 			}
@@ -1056,12 +1082,12 @@ func (ch *Channels) installFeatureFlagPlugins() {
 				Version: version,
 			})
 			if err != nil {
-				ch.srv.Log.Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
+				ch.srv.Log().Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
 			} else {
 				if err := ch.enablePlugin(pluginID); err != nil {
-					ch.srv.Log.Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
+					ch.srv.Log().Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginID), mlog.Err(err), mlog.String("version", version))
 				} else {
-					ch.srv.Log.Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginID), mlog.String("version", version))
+					ch.srv.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginID), mlog.String("version", version))
 				}
 			}
 		}

@@ -1084,10 +1084,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не вдається завантажити файли. Неправильне число вказаних файлів."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Не вдалося завантажити файл над максимальними розмірами: {{.Filename}}"
   },
@@ -5588,14 +5584,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -6862,5 +6850,17 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Помилка валідації кешу"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Повернутися до {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
   }
 ]

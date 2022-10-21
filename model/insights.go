@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"time"
 )
 
@@ -63,6 +64,22 @@ type TopChannel struct {
 	MessageCount int64       `json:"message_count"`
 }
 
+// Top Channels
+type TopInactiveChannelList struct {
+	InsightsListData
+	Items []*TopInactiveChannel `json:"items"`
+}
+
+type TopInactiveChannel struct {
+	ID             string      `json:"id"`
+	Type           ChannelType `json:"type"`
+	DisplayName    string      `json:"display_name"`
+	Name           string      `json:"name"`
+	LastActivityAt int64       `json:"last_activity_at"`
+	Participants   StringArray `json:"participants"`
+	MessageCount   int64       `json:"-"`
+}
+
 // Top Threads
 type TopThreadList struct {
 	InsightsListData
@@ -90,6 +107,10 @@ type InsightUserInformation struct {
 	Username          string `json:"username"`
 }
 
+type TopDMInsightUserInformation struct {
+	InsightUserInformation
+	Position string `json:"position"`
+}
 type NewTeamMembersList struct {
 	InsightsListData
 	Items      []*NewTeamMember `json:"items"`
@@ -113,6 +134,25 @@ type DurationPostCount struct {
 	PostCount int    `db:"postcount"`
 }
 
+// Top DMs
+type TopDM struct {
+	MessageCount         int64                        `json:"post_count"`
+	OutgoingMessageCount int64                        `json:"outgoing_message_count"`
+	Participants         string                       `json:"-"`
+	ChannelId            string                       `json:"-"`
+	SecondParticipant    *TopDMInsightUserInformation `json:"second_participant"`
+}
+
+type OutgoingMessageQueryResult struct {
+	ChannelId    string
+	MessageCount int
+}
+
+type TopDMList struct {
+	InsightsListData
+	Items []*TopDM `json:"items"`
+}
+
 func TimeRangeToNumberDays(timeRange string) int {
 	var n int
 	switch timeRange {
@@ -128,27 +168,30 @@ func TimeRangeToNumberDays(timeRange string) int {
 
 // ChannelPostCountByDuration contains a count of posts by channel id, grouped by ISO8601 date string.
 // Example 1 (grouped by day):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-12": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-12": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
+//
 // Example 2 (grouped by hour):
-//  cpc := model.ChannelPostCountByDuration{
-//  	"2009-11-11T01": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 90,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 201,
-//  	},
-//  	"2009-11-11T02": {
-//  		"ezbp7nqxzjgdir8riodyafr9ww": 45,
-//  		"p949c1xdojfgzffxma3p3s3ikr": 68,
-//  	},
-//  }
+//
+//	cpc := model.ChannelPostCountByDuration{
+//		"2009-11-11T01": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 90,
+//			"p949c1xdojfgzffxma3p3s3ikr": 201,
+//		},
+//		"2009-11-11T02": {
+//			"ezbp7nqxzjgdir8riodyafr9ww": 45,
+//			"p949c1xdojfgzffxma3p3s3ikr": 68,
+//		},
+//	}
 type ChannelPostCountByDuration map[string]map[string]int
 
 func blankChannelCountsMap(channelIDs []string) map[string]int {
@@ -218,6 +261,23 @@ func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Tim
 	return &resultTime
 }
 
+// GetStartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
+// Time range can be one of: "today", "7_day", or "28_day".
+func GetStartOfDayForTimeRange(timeRange string, location *time.Location) (*time.Time, *AppError) {
+	now := time.Now().In(location)
+	resultTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	switch timeRange {
+	case TimeRangeToday:
+	case TimeRange7Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-144))
+	case TimeRange28Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-648))
+	default:
+		return nil, NewAppError("GetStartOfDayForTimeRange", "model.insights.get_start_of_day_for_time_range.time_range.app_error", nil, "", http.StatusBadRequest)
+	}
+	return &resultTime, nil
+}
+
 // GetTopReactionListWithPagination adds a rank to each item in the given list of TopReaction and checks if there is
 // another page that can be fetched based on the given limit and offset. The given list of TopReaction is assumed to be
 // sorted by Count. Returns a TopReactionList.
@@ -258,6 +318,34 @@ func GetTopThreadListWithPagination(threads []*TopThread, limit int) *TopThreadL
 	}
 
 	return &TopThreadList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: threads}
+}
+
+// GetTopInactiveChannelListWithPagination adds a rank to each item in the given list of TopInactiveChannel and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopInactiveChannel is assumed to be
+// sorted by Score. Returns a TopInactiveChannelList.
+func GetTopInactiveChannelListWithPagination(channels []*TopInactiveChannel, limit int) *TopInactiveChannelList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(channels) == limit+1) {
+		hasNext = true
+		channels = channels[:len(channels)-1]
+	}
+
+	return &TopInactiveChannelList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: channels}
+}
+
+// GetTopDMListWithPagination adds a rank to each item in the given list of TopDM and checks if there is
+// another page that can be fetched based on the given limit and offset. The given list of TopDM is assumed to be
+// sorted by MessageCount(score). Returns a TopDMList.
+func GetTopDMListWithPagination(dms []*TopDM, limit int) *TopDMList {
+	// Add pagination support
+	var hasNext bool
+	if (limit != 0) && (len(dms) == limit+1) {
+		hasNext = true
+		dms = dms[:len(dms)-1]
+	}
+
+	return &TopDMList{InsightsListData: InsightsListData{HasNext: hasNext}, Items: dms}
 }
 
 func GetNewTeamMembersListWithPagination(teamMembers []*NewTeamMember, limit int) *NewTeamMembersList {

@@ -25,16 +25,17 @@ func (a jsonArray) Value() (driver.Value, error) {
 		if _, err := out.WriteString(strconv.Quote(item)); err != nil {
 			return nil, err
 		}
+
 		// Skip the last element.
 		if i < len(a)-1 {
-			out.WriteByte(',')
+			if err := out.WriteByte(','); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	if err := out.WriteByte(']'); err != nil {
-		return nil, err
-	}
-	return out.Bytes(), nil
+	err := out.WriteByte(']')
+	return out.Bytes(), err
 }
 
 type jsonStringVal string

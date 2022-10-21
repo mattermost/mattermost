@@ -33,6 +33,7 @@ type OpenTracingLayer struct {
 	JobStore                  store.JobStore
 	LicenseStore              store.LicenseStore
 	LinkMetadataStore         store.LinkMetadataStore
+	NotifyAdminStore          store.NotifyAdminStore
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
@@ -112,6 +113,10 @@ func (s *OpenTracingLayer) License() store.LicenseStore {
 
 func (s *OpenTracingLayer) LinkMetadata() store.LinkMetadataStore {
 	return s.LinkMetadataStore
+}
+
+func (s *OpenTracingLayer) NotifyAdmin() store.NotifyAdminStore {
+	return s.NotifyAdminStore
 }
 
 func (s *OpenTracingLayer) OAuth() store.OAuthStore {
@@ -273,6 +278,11 @@ type OpenTracingLayerLicenseStore struct {
 
 type OpenTracingLayerLinkMetadataStore struct {
 	store.LinkMetadataStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerNotifyAdminStore struct {
+	store.NotifyAdminStore
 	Root *OpenTracingLayer
 }
 
@@ -1795,6 +1805,42 @@ func (s *OpenTracingLayerChannelStore) GetTopChannelsForUserSince(userID string,
 
 	defer span.Finish()
 	result, err := s.ChannelStore.GetTopChannelsForUserSince(userID, teamID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopInactiveChannelsForTeamSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopInactiveChannelsForTeamSince(teamID, userID, since, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopInactiveChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTopInactiveChannelsForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetTopInactiveChannelsForUserSince(teamID, userID, since, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3481,6 +3527,24 @@ func (s *OpenTracingLayerFileInfoStore) GetStorageUsage(allowFromCache bool, inc
 	return result, err
 }
 
+func (s *OpenTracingLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetUptoNSizeFileTime")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetWithOptions")
@@ -4934,6 +4998,78 @@ func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadat
 	return result, err
 }
 
+func (s *OpenTracingLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.DeleteBefore")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.NotifyAdminStore.DeleteBefore(trial, now)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) Get(trial bool) ([]*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.Get(trial)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) GetDataByUserIdAndFeature(userId string, feature model.MattermostPaidFeature) ([]*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.GetDataByUserIdAndFeature")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.GetDataByUserIdAndFeature(userId, feature)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerNotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "NotifyAdminStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.NotifyAdminStore.Save(data)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.DeleteApp")
@@ -6035,6 +6171,24 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string, inclDeleted bool) (*mod
 
 	defer span.Finish()
 	result, err := s.PostStore.GetSingle(id, inclDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostStore) GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetTopDMsForUserSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetTopDMsForUserSince(userID, since, offset, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -10647,6 +10801,24 @@ func (s *OpenTracingLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) s
 	return result
 }
 
+func (s *OpenTracingLayerUserStore) GetFirstSystemAdminID() (string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetFirstSystemAdminID")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.GetFirstSystemAdminID()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetForLogin")
@@ -10953,7 +11125,7 @@ func (s *OpenTracingLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.U
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetUnreadCount(userID string) (int64, error) {
+func (s *OpenTracingLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetUnreadCount")
 	s.Root.Store.SetContext(newCtx)
@@ -10962,7 +11134,7 @@ func (s *OpenTracingLayerUserStore) GetUnreadCount(userID string) (int64, error)
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetUnreadCount(userID)
+	result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -12279,6 +12451,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.JobStore = &OpenTracingLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &OpenTracingLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &OpenTracingLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
+	newStore.NotifyAdminStore = &OpenTracingLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &OpenTracingLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &OpenTracingLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &OpenTracingLayerPostStore{PostStore: childStore.Post(), Root: &newStore}

@@ -15,7 +15,7 @@ import (
 func (a *App) checkIfRespondedToday(createdAt int64, channelId, userId string) (bool, error) {
 	y, m, d := model.GetTimeForMillis(createdAt).Date()
 	since := model.GetMillisForTime(time.Date(y, m, d, 0, 0, 0, 0, time.UTC))
-	return a.Srv().Store.Post().HasAutoResponsePostByUserSince(
+	return a.Srv().Store().Post().HasAutoResponsePostByUserSince(
 		model.GetPostsSinceOptions{ChannelId: channelId, Time: since},
 		userId,
 	)
@@ -43,7 +43,7 @@ func (a *App) SendAutoResponseIfNecessary(c request.CTX, channel *model.Channel,
 
 	autoResponded, err := a.checkIfRespondedToday(post.CreateAt, post.ChannelId, receiverId)
 	if err != nil {
-		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SendAutoResponseIfNecessary", "app.user.send_auto_response.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if autoResponded {
 		return false, nil

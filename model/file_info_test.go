@@ -187,8 +187,8 @@ func TestGetInfoForFile(t *testing.T) {
 
 	for _, tc := range ttc {
 		t.Run(tc.testName, func(t *testing.T) {
-			info, errApp := GetInfoForBytes(tc.filename, bytes.NewReader(tc.file), len(tc.file))
-			require.Nil(t, errApp)
+			info, appErr := GetInfoForBytes(tc.filename, bytes.NewReader(tc.file), len(tc.file))
+			require.Nil(t, appErr)
 
 			assert.Equalf(t, tc.filename, info.Name, "Got incorrect filename: %v", info.Name)
 			assert.Equalf(t, tc.expectedExtension, info.Extension, "Got incorrect extension: %v", info.Extension)

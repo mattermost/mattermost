@@ -19,9 +19,9 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -54,9 +54,9 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		sharedChannelService := NewMockSharedChannelService(nil)
-		th.App.ch.srv.sharedChannelService = sharedChannelService
+		th.Server.SetSharedChannelSyncService(sharedChannelService)
 		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
+		th.Server.Platform().SetCluster(testCluster)
 
 		user := th.BasicUser
 
@@ -217,7 +217,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -230,7 +230,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "sad", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "happy", Count: int64(2)}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-reactions-for-team-since", func(t *testing.T) {
 		topReactions, err := th.App.GetTopReactionsForTeamSince(teamId, userId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -388,7 +388,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -401,7 +401,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	expectedTopReactions[3] = &model.TopReaction{EmojiName: "heart", Count: int64(3)}
 	expectedTopReactions[4] = &model.TopReaction{EmojiName: "blush", Count: int64(2)}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-reactions-for-user-since", func(t *testing.T) {
 		topReactions, err := th.App.GetTopReactionsForUserSince(userId, teamId, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})

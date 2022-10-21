@@ -35,7 +35,7 @@ func TestStatusListToJSON(t *testing.T) {
 		panic(err)
 	}
 
-	assert.Equal(t, len(dat), 2)
+	assert.Len(t, dat, 2)
 
 	_, ok := dat[0]["active_channel"]
 	assert.False(t, ok)

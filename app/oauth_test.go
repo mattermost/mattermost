@@ -111,7 +111,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.Token = model.NewId()
 	session.Roles = model.SystemUserRoleId
 	session.IsOAuth = true
-	th.App.ch.srv.userService.SetSessionExpireInHours(session, 24)
+	th.App.ch.srv.platform.SetSessionExpireInHours(session, 24)
 
 	session, _ = th.App.CreateSession(session)
 
@@ -122,7 +122,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
+	_, nErr := th.App.Srv().Store().OAuth().SaveAccessData(accessData)
 	require.NoError(t, nErr)
 
 	err = th.App.DeleteOAuthApp(a1.Id)
@@ -210,7 +210,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
-		assert.NotEqual(t, "", err.DetailedError)
+		assert.Error(t, err.Unwrap())
 	})
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
@@ -218,7 +218,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		state := makeState(token)
 

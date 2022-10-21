@@ -115,7 +115,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
-				nil, fileErr.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(fileErr)
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
@@ -156,35 +156,35 @@ func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*mode
 		}
 	}
 
-	us, storeErr := a.Srv().Store.UploadSession().Save(us)
+	us, storeErr := a.Srv().Store().UploadSession().Save(us)
 	if storeErr != nil {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	return us, nil
 }
 
 func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError) {
-	us, err := a.Srv().Store.UploadSession().Get(uploadId)
+	us, err := a.Srv().Store().UploadSession().Get(uploadId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, nfErr.Error(), http.StatusNotFound)
+				nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUpload", "app.upload.get.app_error",
-				nil, err.Error(), http.StatusInternalServerError)
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return us, nil
 }
 
 func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError) {
-	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
+	uss, err := a.Srv().Store().UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
-			nil, err.Error(), http.StatusInternalServerError)
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return uss, nil
 }
@@ -252,8 +252,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 	if written > 0 {
 		us.FileOffset += written
-		if storeErr := a.Srv().Store.UploadSession().Update(us); storeErr != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		if storeErr := a.Srv().Store().UploadSession().Update(us); storeErr != nil {
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.update.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 	if err != nil {
@@ -268,14 +268,14 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	// upload is done, create FileInfo
 	file, err := a.FileReader(uploadPath)
 	if err != nil {
-		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// generate file info
 	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
 	file.Close()
 	if genErr != nil {
-		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, genErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, "", http.StatusInternalServerError).Wrap(genErr)
 	}
 
 	info.CreatorId = us.UserId
@@ -298,8 +298,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
-		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 		imgData, fileErr := a.ReadFile(uploadPath)
 		if fileErr != nil {
 			return nil, fileErr
@@ -309,18 +309,18 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 
 	if us.Type == model.UploadTypeImport {
 		if err := a.MoveFile(uploadPath, us.Path); err != nil {
-			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UploadData", "app.upload.upload_data.move_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store.FileInfo().Save(info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
 	}
 
@@ -335,7 +335,7 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 	}
 
 	// delete upload session
-	if storeErr := a.Srv().Store.UploadSession().Delete(us.Id); storeErr != nil {
+	if storeErr := a.Srv().Store().UploadSession().Delete(us.Id); storeErr != nil {
 		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 

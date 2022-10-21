@@ -6,19 +6,12 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v6/einterfaces/jobs"
-	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
 
 func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
-}
-
-var clusterInterface func(*Server) einterfaces.ClusterInterface
-
-func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
-	clusterInterface = f
 }
 
 var complianceInterface func(*App) einterfaces.ComplianceInterface
@@ -31,12 +24,6 @@ var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
 func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
-}
-
-var elasticsearchInterface func(*Server) searchengine.SearchEngineInterface
-
-func RegisterElasticsearchInterface(f func(*Server) searchengine.SearchEngineInterface) {
-	elasticsearchInterface = f
 }
 
 var jobsDataRetentionJobInterface func(*Server) ejobs.DataRetentionJobInterface
@@ -87,12 +74,6 @@ func RegisterCloudInterface(f func(*Server) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
-var metricsInterface func(*Server, string, string) einterfaces.MetricsInterface
-
-func RegisterMetricsInterface(f func(*Server, string, string) einterfaces.MetricsInterface) {
-	metricsInterface = f
-}
-
 var samlInterfaceNew func(*App) einterfaces.SamlInterface
 
 func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
@@ -105,24 +86,7 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
-var licenseInterface func(*Server) einterfaces.LicenseInterface
-
-func RegisterLicenseInterface(f func(*Server) einterfaces.LicenseInterface) {
-	licenseInterface = f
-}
-
 func (s *Server) initEnterprise() {
-	if clusterInterface != nil && s.Cluster == nil {
-		s.Cluster = clusterInterface(s)
-	}
-	if elasticsearchInterface != nil {
-		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
-	}
-
-	if licenseInterface != nil {
-		s.LicenseManager = licenseInterface(s)
-	}
-
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)
 	}

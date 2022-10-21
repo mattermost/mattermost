@@ -28,50 +28,50 @@ func TestPostIsValid(t *testing.T) {
 	o := Post{}
 	maxPostSize := 10000
 
-	err := o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr := o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Id = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.CreateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UpdateAt = GetMillis()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.UserId = NewId()
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.ChannelId = NewId()
 	o.RootId = "123"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.RootId = ""
 
 	o.Message = strings.Repeat("0", maxPostSize+1)
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Message = strings.Repeat("0", maxPostSize)
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 
 	o.Message = "test"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 	o.Type = "junk"
-	err = o.IsValid(maxPostSize)
-	require.NotNil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.NotNil(t, appErr)
 
 	o.Type = PostCustomTypePrefix + "type"
-	err = o.IsValid(maxPostSize)
-	require.Nil(t, err)
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
 }
 
 func TestPostPreSave(t *testing.T) {

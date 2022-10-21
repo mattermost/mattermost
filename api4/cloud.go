@@ -50,25 +50,6 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	api.BaseRoutes.Cloud.Handle("/notify-admin-to-upgrade", api.APISessionRequired(handleNotifyAdminToUpgrade)).Methods("POST")
-}
-
-func handleNotifyAdminToUpgrade(c *Context, w http.ResponseWriter, r *http.Request) {
-	var notifyAdminRequest *model.NotifyAdminToUpgradeRequest
-	err := json.NewDecoder(r.Body).Decode(&notifyAdminRequest)
-	if err != nil {
-		c.SetInvalidParamWithErr("notifyAdminRequest", err)
-		return
-	}
-
-	appErr := c.App.NotifySystemAdminsToUpgrade(c.AppContext, notifyAdminRequest.CurrentTeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -86,20 +67,21 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	// if it is an end user, return basic subscription data without sensitive information
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
 		subscription = &model.Subscription{
-			ID:          subscription.ID,
-			ProductID:   subscription.ProductID,
-			IsFreeTrial: subscription.IsFreeTrial,
-			TrialEndAt:  subscription.TrialEndAt,
-			CustomerID:  "",
-			AddOns:      []string{},
-			StartAt:     0,
-			EndAt:       0,
-			CreateAt:    0,
-			Seats:       0,
-			Status:      "",
-			DNS:         "",
-			IsPaidTier:  "",
-			LastInvoice: &model.Invoice{},
+			ID:              subscription.ID,
+			ProductID:       subscription.ProductID,
+			IsFreeTrial:     subscription.IsFreeTrial,
+			TrialEndAt:      subscription.TrialEndAt,
+			CustomerID:      "",
+			AddOns:          []string{},
+			StartAt:         0,
+			EndAt:           0,
+			CreateAt:        0,
+			Seats:           0,
+			Status:          "",
+			DNS:             "",
+			IsPaidTier:      "",
+			LastInvoice:     &model.Invoice{},
+			DelinquentSince: subscription.DelinquentSince,
 		}
 	}
 
@@ -176,14 +158,14 @@ func requestCloudTrial(c *Context, w http.ResponseWriter, r *http.Request) {
 	// check if the email needs to be set
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	// this value will not be empty when both emails (user admin and CWS customer) are not business email and
-	// we need to request a new email from the user via the request business email modal
+	// a new business email was provided via the request business email modal
 	var startTrialRequest *model.StartCloudTrialRequest
 	if err = json.Unmarshal(bodyBytes, &startTrialRequest); err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -217,20 +199,20 @@ func validateBusinessEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		c.Err = model.NewAppError("Api4.validateBusinessEmail", "api.cloud.request_error", nil, "", http.StatusForbidden).Wrap(appErr)
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	var emailToValidate *model.ValidateBusinessEmailRequest
 	err = json.Unmarshal(bodyBytes, &emailToValidate)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.requestCloudTrial", "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -262,14 +244,14 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 
 	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
 	if userErr != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, userErr.Error(), http.StatusInternalServerError)
+		c.Err = userErr
 		return
 	}
 
 	// get the cloud customer email to validate if is a valid business email
 	cloudCustomer, err := c.App.Cloud().GetCloudCustomer(user.Id)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 	emailErr := c.App.Cloud().ValidateBusinessEmail(user.Id, cloudCustomer.Email)
@@ -665,6 +647,18 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		c.Logger.Info("Updated subscription from webhook event")
+	case model.EventTypeTriggerDelinquencyEmail:
+		var emailToTrigger model.DelinquencyEmail
+		if event.DelinquencyEmail != nil {
+			emailToTrigger = model.DelinquencyEmail(event.DelinquencyEmail.EmailToTrigger)
+		} else {
+			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.delinquency_email.missing_email_to_trigger", nil, "", http.StatusInternalServerError)
+			return
+		}
+		if nErr := c.App.SendDelinquencyEmail(emailToTrigger); nErr != nil {
+			c.Err = nErr
+			return
+		}
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)

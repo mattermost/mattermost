@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 const jobName = "ImportProcess"
@@ -28,10 +29,11 @@ type AppIface interface {
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
+	Log() *mlog.Logger
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
-	appContext := request.EmptyContext(nil)
+	appContext := request.EmptyContext(app.Log())
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
@@ -61,7 +63,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 		importZipReader, err := zip.NewReader(importFile.(io.ReaderAt), importFileSize)
 		if err != nil {
-			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		// find JSONL import file.
@@ -77,7 +79,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 
 			jsonFile, err = f.Open()
 			if err != nil {
-				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.open_file", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			defer jsonFile.Close()

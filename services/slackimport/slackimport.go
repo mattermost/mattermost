@@ -91,11 +91,11 @@ type Actions struct {
 	CreateGroupChannel     func(request.CTX, []string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
-	GenerateThumbnailImage func(image.Image, string)
-	GeneratePreviewImage   func(image.Image, string)
+	GenerateThumbnailImage func(image.Image, string, string)
+	GeneratePreviewImage   func(image.Image, string, string)
 	InvalidateAllCaches    func()
 	MaxPostSize            func() int
-	PrepareImage           func(fileData []byte) (image.Image, func(), error)
+	PrepareImage           func(fileData []byte) (image.Image, string, func(), error)
 }
 
 // SlackImporter is a service that allows to import slack dumps into mattermost
@@ -122,7 +122,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
 		log.WriteString(i18n.T("api.slackimport.slack_import.zip.app_error"))
-		return model.NewAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error(), http.StatusBadRequest), log
+		return model.NewAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, "", http.StatusBadRequest).Wrap(err), log
 	}
 
 	var channels []slackChannel
@@ -138,7 +138,7 @@ func (si *SlackImporter) SlackImport(c request.CTX, fileData multipart.File, fil
 		fileReader, err := file.Open()
 		if err != nil {
 			log.WriteString(i18n.T("api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}))
-			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
+			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]any{"Filename": file.Name}, "", http.StatusInternalServerError).Wrap(err), log
 		}
 		reader := utils.NewLimitedReaderWithError(fileReader, slackImportMaxFileSize)
 		if file.Name == "channels.json" {
@@ -793,13 +793,13 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 	}
 
 	if fileInfo.IsImage() && !fileInfo.IsSvg() {
-		img, release, err := si.actions.PrepareImage(data)
+		img, imgType, release, err := si.actions.PrepareImage(data)
 		if err != nil {
 			return nil, err
 		}
 		defer release()
-		si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
-		si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath)
+		si.actions.GenerateThumbnailImage(img, imgType, fileInfo.ThumbnailPath)
+		si.actions.GeneratePreviewImage(img, imgType, fileInfo.PreviewPath)
 	}
 
 	return fileInfo, nil

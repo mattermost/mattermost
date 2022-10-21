@@ -18,14 +18,14 @@ func (ch *Channels) GetPluginStatus(id string) (*model.PluginStatus, *model.AppE
 
 	pluginStatuses, err := pluginsEnvironment.Statuses()
 	if err != nil {
-		return nil, model.NewAppError("GetPluginStatus", "app.plugin.get_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPluginStatus", "app.plugin.get_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	for _, status := range pluginStatuses {
 		if status.PluginId == id {
 			// Add our cluster ID
-			if ch.srv.Cluster != nil {
-				status.ClusterId = ch.srv.Cluster.GetClusterId()
+			if ch.srv.platform.Cluster() != nil {
+				status.ClusterId = ch.srv.platform.Cluster().GetClusterId()
 			}
 
 			return status, nil
@@ -49,13 +49,13 @@ func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) 
 
 	pluginStatuses, err := pluginsEnvironment.Statuses()
 	if err != nil {
-		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		if ch.srv.Cluster != nil {
-			status.ClusterId = ch.srv.Cluster.GetClusterId()
+		if ch.srv.platform.Cluster() != nil {
+			status.ClusterId = ch.srv.platform.Cluster().GetClusterId()
 		} else {
 			status.ClusterId = ""
 		}
@@ -80,10 +80,10 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 		return nil, err
 	}
 
-	if ch.srv.Cluster != nil && *ch.cfgSvc.Config().ClusterSettings.Enable {
-		clusterPluginStatuses, err := ch.srv.Cluster.GetPluginStatuses()
+	if ch.srv.platform.Cluster() != nil && *ch.cfgSvc.Config().ClusterSettings.Enable {
+		clusterPluginStatuses, err := ch.srv.platform.Cluster().GetPluginStatuses()
 		if err != nil {
-			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		pluginStatuses = append(pluginStatuses, clusterPluginStatuses...)
@@ -99,10 +99,10 @@ func (ch *Channels) notifyPluginStatusesChanged() error {
 	}
 
 	// Notify any system admins.
-	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
-	ch.srv.Publish(message)
+	ch.srv.platform.Publish(message)
 
 	return nil
 }
