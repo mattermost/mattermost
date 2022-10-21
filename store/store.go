@@ -73,6 +73,7 @@ type Store interface {
 	GetInternalMasterDB() *sql.DB
 	// GetInternalReplicaDBs allows access to the raw replica DB
 	// handles for the multi-product architecture.
+	GetInternalReplicaDB() *sql.DB
 	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
@@ -480,6 +481,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
@@ -698,6 +700,8 @@ type FileInfoStore interface {
 	GetFilesBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 	GetStorageUsage(allowFromCache, includeDeleted bool) (int64, error)
+	// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
+	GetUptoNSizeFileTime(n int64) (int64, error)
 }
 
 type UploadSessionStore interface {

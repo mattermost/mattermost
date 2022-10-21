@@ -2721,6 +2721,13 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
+
+	if !guestEnabled {
+		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
 	auditRec.AddEventParameter("user_id", c.Params.UserId)
 	defer c.LogAuditRec(auditRec)

@@ -153,7 +153,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -197,7 +197,7 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 				EmojiName: "confused",
 			}
 
-			_, err = th.App.Srv().Store.Reaction().Save(reaction)
+			_, err = th.App.Srv().Store().Reaction().Save(reaction)
 			require.NoError(t, err)
 		}
 
@@ -228,6 +228,12 @@ func TestGetTopReactionsForTeamSince(t *testing.T) {
 		_, resp, err = client.GetTopReactionsForTeamSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-reactions-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForTeamSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get-top-reactions-for-team-since not a member of team", func(t *testing.T) {
@@ -377,7 +383,7 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 	}
 
 	for _, userReaction := range userReactions {
-		_, err := th.App.Srv().Store.Reaction().Save(userReaction)
+		_, err := th.App.Srv().Store().Reaction().Save(userReaction)
 		require.NoError(t, err)
 	}
 
@@ -415,6 +421,12 @@ func TestGetTopReactionsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopReactionsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-reactions-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopReactionsForUserSince(teamId, "7_days", 0, 5)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get-top-reactions-for-user-since not a member of team", func(t *testing.T) {
@@ -515,6 +527,12 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("get-top-channels-for-team-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForTeamSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("get-top-channels-for-team-since not a member of team", func(t *testing.T) {
 		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
 		_, resp, err := client.GetTopChannelsForTeamSince(teamId, model.TimeRangeToday, 0, 5)
@@ -590,6 +608,12 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		_, resp, err = client.GetTopChannelsForUserSince(model.NewId(), model.TimeRangeToday, 0, 5)
 		assert.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get-top-channels-for-user-since invalid time range", func(t *testing.T) {
+		_, resp, err := client.GetTopChannelsForUserSince(teamId, "7_days", 0, 5)
+		assert.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("get-top-channels-for-user-since not a member of team", func(t *testing.T) {
@@ -806,7 +830,7 @@ func TestGetTopThreadsForUserSince(t *testing.T) {
 	_, appErr = th.App.DeletePost(th.Context, replyPostUser2InPrivate.Id, th.BasicUser2.Id)
 	require.Nil(t, appErr)
 	// unfollow thread
-	_, err := th.App.Srv().Store.Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
+	_, err := th.App.Srv().Store().Thread().MaintainMembership(th.BasicUser2.Id, rootPostPrivateChannel.Id, store.ThreadMembershipOpts{
 		Following:       false,
 		UpdateFollowing: true,
 	})

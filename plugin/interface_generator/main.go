@@ -406,6 +406,7 @@ type hooksAdapter struct {
 func newAdapter(productHooks any) (*hooksAdapter, error) {
 	a := &hooksAdapter{
 		implemented:  make(map[int]struct{}),
+		productHooks: productHooks,
 	}
 	var tt reflect.Type
 	ft := reflect.TypeOf(productHooks)

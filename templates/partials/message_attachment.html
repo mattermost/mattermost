@@ -1,0 +1,95 @@
+{{if .MessageAttachments}}
+<div class="messageAttachments">
+    {{range .MessageAttachments}}
+    <div class="messageAttachment" style="vertical-align:top;" width="100%">
+        <div class="pretext" style="font-family: Open Sans, sans-serif; text-align: left; font-size: 14px; line-height: 20px; color: #3F4350; padding: 0px;">
+            {{.Pretext}}
+        </div>
+        <div class="messageAttachmentContent" style="border-left: 4px solid {{.Color}}; padding: 12px;">
+            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px" width="100%">
+                <tbody>
+                {{if or .AuthorIcon .AuthorName}}
+                <tr>
+                    <td>
+                        {{if .AuthorLink}}<a href="{{.AuthorLink}}">{{end}}
+                        {{if .AuthorIcon}}<img class="attachment__author-icon" alt="attachment author icon" src="{{.AuthorIcon}}"/>{{end}}
+                        {{if .AuthorName}}<span class="attachment__author-name">{{.AuthorName}}</span>{{end}}
+                        {{if .AuthorLink}}</a>{{end}}
+                    </td>
+                </tr>
+                {{end}}
+                {{if .Title}}
+                <tr>
+                    <td>
+                        <h1 class="attachment__title">
+                            {{if .TitleLink}}<a href="{{.TitleLink}}">{{end}}
+                            {{.Title}}
+                            {{if .Title}}</a>{{end}}
+                        </h1>
+                    </td>
+                </tr>
+                {{end}}
+                </tbody>
+            </table>
+
+            <div class="attachment__wrapper">
+                <div class="attachment__body">
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; color: #3F4350;" width="100%">
+                        <tbody>
+                        <tr>
+                            <td vertical-align="middle" class="messageButton">
+                                <div>{{.Text}}</div>
+                            </td>
+                        </tr>
+                        {{if .ImageURL}}
+                        <tr>
+                            <td>
+                                <img class="attachment__image" src="{{.ImageURL}}"/>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </table>
+
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px; table-layout: fixed; margin-bottom: 0.7em;" width="100%">
+                        {{range .FieldRows}}
+                        <tr class="messageAttachment_row">
+                            {{ $length := len .Cells }}
+                            {{range .Cells}}
+                            <td
+                                    class="messageAttachment_field"
+                                    {{ if eq $length 1 }}colspan="2"{{end}}
+                            >
+                                <div class="messageAttachment_title">{{.Title}}</div>
+                                <div>{{.Value}}</div>
+                            </td>
+                            {{end}}
+                        </tr>
+                        {{end}}
+                    </table>
+                </div>
+
+                {{if .ThumbURL}}
+                <div class="attachment__thumb-container">
+                    <img class="attachment__thumb-image" src="{{.ThumbURL}}"/>
+                </div>
+                {{end}}
+            </div>
+
+            {{if .Footer}}
+            <table class="attachment__footer-container" border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top; font-size: 14px" width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        {{if .FooterIcon}}<img class="attachment__footer-icon" src="{{.FooterIcon}}" style="vertical-align: middle;"/>{{end}}
+                        <span style="font-size: 12px;">{{.Footer}}</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            {{end}}
+
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}
