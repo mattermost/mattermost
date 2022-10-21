@@ -253,7 +253,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4989,15 +4989,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
+    "translation": "The payment wasn't successful"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
+    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5018,10 +5018,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
@@ -5462,14 +5458,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your licence does not support guest accounts"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9259,10 +9247,6 @@
     "translation": "Already notified admin"
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "A member of {{.TeamName}} has asked you to upgrade this workspace."
-  },
-  {
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
@@ -9509,5 +9493,57 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "Missing required fields to send delinquency email."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Unable to send notification post."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Unable to save notify data."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "The user's badge couldn't be retrieved."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Unable to get current plan name"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Unable to retrieve file: cloud storage limit exceeded."
   }
 ]

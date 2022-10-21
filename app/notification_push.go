@@ -219,30 +219,42 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
+func (a *App) getUserBadgeCount(userID string, isCRTEnabled bool) (int, *model.AppError) {
+	unreadCount, err := a.Srv().Store().User().GetUnreadCount(userID, isCRTEnabled)
+	if err != nil {
+		return 0, model.NewAppError("getUserBadgeCount", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	badgeCount := int(unreadCount)
+
+	if isCRTEnabled {
+		threadUnreadMentions, err := a.Srv().Store().Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
+		if err != nil {
+			return 0, model.NewAppError("getUserBadgeCount", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		badgeCount += int(threadUnreadMentions)
+	}
+
+	return badgeCount, nil
+}
+
 func (a *App) clearPushNotificationSync(c request.CTX, currentSessionId, userID, channelID, rootID string) *model.AppError {
+	isCRTEnabled := a.IsCRTEnabledForUser(c, userID)
+
+	badgeCount, err := a.getUserBadgeCount(userID, isCRTEnabled)
+	if err != nil {
+		return model.NewAppError("clearPushNotificationSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	msg := &model.PushNotification{
 		Type:             model.PushTypeClear,
 		Version:          model.PushMessageV2,
 		ChannelId:        channelID,
 		RootId:           rootID,
 		ContentAvailable: 1,
-		Badge:            0,
-		IsCRTEnabled:     a.IsCRTEnabledForUser(c, userID),
+		Badge:            badgeCount,
+		IsCRTEnabled:     isCRTEnabled,
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
-	if err != nil {
-		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	msg.Badge = int(unreadCount)
-
-	if msg.IsCRTEnabled {
-		totalUnreadMentions, err := a.Srv().Store.Thread().GetTotalUnreadMentions(userID, "", model.GetUserThreadsOpts{})
-		if err != nil {
-			return model.NewAppError("clearPushNotificationSync", "app.user.get_thread_count_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		msg.Badge += int(totalUnreadMentions)
-	}
 	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
 
@@ -260,21 +272,19 @@ func (a *App) clearPushNotification(currentSessionId, userID, channelID, rootID 
 	}
 }
 
-func (a *App) updateMobileAppBadgeSync(userID string) *model.AppError {
+func (a *App) updateMobileAppBadgeSync(c request.CTX, userID string) *model.AppError {
+	badgeCount, err := a.getUserBadgeCount(userID, a.IsCRTEnabledForUser(c, userID))
+	if err != nil {
+		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	msg := &model.PushNotification{
 		Type:             model.PushTypeUpdateBadge,
 		Version:          model.PushMessageV2,
 		Sound:            "none",
 		ContentAvailable: 1,
+		Badge:            badgeCount,
 	}
-
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
-	if err != nil {
-		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	msg.Badge = int(unreadCount)
-
 	return a.sendPushNotificationToAllSessions(msg, userID, "")
 }
 
@@ -345,7 +355,7 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 						notification.replyToThreadType,
 					)
 				case notificationTypeUpdateBadge:
-					err = hub.app.updateMobileAppBadgeSync(notification.userID)
+					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
 				default:
 					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
@@ -473,7 +483,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
-	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userID)
+	sessions, err := a.Srv().Store().Session().GetSessionsWithActiveDeviceIds(userID)
 	if err != nil {
 		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -566,11 +576,12 @@ func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string,
 		msg = a.buildFullPushNotificationMessage(c, contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
+	badgeCount, err := a.getUserBadgeCount(user.Id, a.IsCRTEnabledForUser(c, user.Id))
 	if err != nil {
-		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_badge_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	msg.Badge = int(unreadCount)
+
+	msg.Badge = badgeCount
 
 	return msg, nil
 }

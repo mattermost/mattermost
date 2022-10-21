@@ -56,7 +56,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	th := setupTestHelper(tb, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -95,10 +95,12 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	}
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.GetMetrics(), s.Cluster, s.CacheProvider)
+		var st localcachelayer.LocalCacheStore
+		st, err = localcachelayer.NewLocalCacheLayer(s.Store(), s.GetMetrics(), s.Platform().Cluster(), s.Platform().CacheProvider())
 		if err != nil {
 			panic(err)
 		}
+		s.SetStore(st)
 	}
 
 	a := app.New(app.ServerConnector(s.Channels()))
@@ -123,7 +125,7 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool) *TestHelper {
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
 
-	s.Store.MarkSystemRanUnitTests()
+	s.Store().MarkSystemRanUnitTests()
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true

@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "Impossible de trouver les utilisateurs : {{.Users}}",
       "one": "Impossible de trouver l'utilisateur : {{.Users}}",
-      "other": "Impossible de trouver les utilisateurs : {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] New Notifications for {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1348,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} fichiers envoyés : {{.Filenames}}",
       "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
-      "other": "{{.Count}} fichiers envoyés : {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} images envoyées : {{.Filenames}}",
       "one": "{{.Count}} image envoyée : {{.Filenames}}",
-      "other": "{{.Count}} images envoyées : {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -5580,14 +5584,6 @@
     "translation": "Les canaux présents dans l'invitation doivent faire partie de la même équipe pour laquelle vous êtes invité."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Votre licence ne prend pas en charge les comptes invités."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Les comptes invités sont désactivés"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Une erreur s'est produite lors de l'invalidation des e-mails d'invitation."
   },
@@ -7924,10 +7920,6 @@
     "translation": "La raison suivante a été fournie :"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Résoudre maintenant"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
   },
@@ -8166,8 +8158,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
+      "many": "Vous avez des nouveaux messages",
       "one": "Vous avez un nouveau message",
-      "other": "Vous avez des nouveaux messages"
+      "other": ""
     }
   },
   {
@@ -8976,10 +8969,6 @@
   },
   {
     "id": "bleveengine.stop_file_index.error",
-    "translation": " "
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
     "translation": " "
   },
   {

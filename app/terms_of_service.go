@@ -22,7 +22,7 @@ func (a *App) CreateTermsOfService(text, userID string) (*model.TermsOfService, 
 	}
 
 	var err error
-	if termsOfService, err = a.Srv().Store.TermsOfService().Save(termsOfService); err != nil {
+	if termsOfService, err = a.Srv().Store().TermsOfService().Save(termsOfService); err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
@@ -39,7 +39,7 @@ func (a *App) CreateTermsOfService(text, userID string) (*model.TermsOfService, 
 }
 
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	termsOfService, err := a.Srv().Store.TermsOfService().GetLatest(true)
+	termsOfService, err := a.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -53,7 +53,7 @@ func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 }
 
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	termsOfService, err := a.Srv().Store.TermsOfService().Get(id, true)
+	termsOfService, err := a.Srv().Store().TermsOfService().Get(id, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

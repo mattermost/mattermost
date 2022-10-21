@@ -3957,6 +3957,27 @@ func (s *RetryLayerFileInfoStore) GetStorageUsage(allowFromCache bool, includeDe
 
 }
 
+func (s *RetryLayerFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetUptoNSizeFileTime(n)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 
 	tries := 0
@@ -12303,6 +12324,27 @@ func (s *RetryLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 
 }
 
+func (s *RetryLayerUserStore) GetFirstSystemAdminID() (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetFirstSystemAdminID()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 
 	tries := 0
@@ -12660,11 +12702,11 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 
 }
 
-func (s *RetryLayerUserStore) GetUnreadCount(userID string) (int64, error) {
+func (s *RetryLayerUserStore) GetUnreadCount(userID string, isCRTEnabled bool) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetUnreadCount(userID)
+		result, err := s.UserStore.GetUnreadCount(userID, isCRTEnabled)
 		if err == nil {
 			return result, nil
 		}
