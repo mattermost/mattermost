@@ -1174,6 +1174,11 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
+	broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+	if s.DriverName() == model.DatabaseDriverMysql {
+		broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+	}
+
 	postFetchQuery, args, _ := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
@@ -1181,7 +1186,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions, s
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}).
+		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
@@ -1258,6 +1263,11 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	)
 	var posts []*postWithExtra
 
+	broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+	if s.DriverName() == model.DatabaseDriverMysql {
+		broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+	}
+
 	postFetchQuery, args, err := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
@@ -1266,7 +1276,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
-		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}).
+		Where(sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
@@ -1490,7 +1500,12 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	if options.CollapsedThreads {
-		conditions = append(conditions, sq.Or{sq.Eq{"RootId": ""}, sq.Eq{"Props ->> 'broadcasted_thread_reply'": true}})
+		broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+		if s.DriverName() == model.DatabaseDriverMysql {
+			broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+		}
+
+		conditions = append(conditions, sq.Or{sq.Eq{"RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}})
 		query = query.LeftJoin("Threads ON Threads.PostId = p.Id").LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = p.Id AND ThreadMemberships.UserId=?", options.UserId)
 	} else {
 		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
@@ -1597,7 +1612,12 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}}
+		broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+		if s.DriverName() == model.DatabaseDriverMysql {
+			broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+		}
+
+		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}}}
 	}
 	query := s.getQueryBuilder().
 		Select("Id").
@@ -1638,7 +1658,12 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 		sq.Eq{"Posts.DeleteAt": int(0)},
 	}
 	if collapsedThreads {
-		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{"Posts.Props ->> 'broadcasted_thread_reply'": true}}}
+		broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+		if s.DriverName() == model.DatabaseDriverMysql {
+			broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+		}
+
+		conditions = sq.And{conditions, sq.Or{sq.Eq{"Posts.RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}}}
 	}
 	query := s.getQueryBuilder().
 		Select("*").

@@ -781,6 +781,36 @@ func TestPreparePostForClient(t *testing.T) {
 		preview2 := firstEmbed2.Data.(*model.PreviewPost)
 		require.Equal(t, referencedPost.Id, preview2.PostID)
 	})
+
+	t.Run("parent post embed", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		parentPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "parent post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "reply",
+			RootId:    parentPost.Id,
+			Props: model.StringInterface{
+				"broadcasted_thread_reply": true,
+			},
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+		embed := clientPost.Metadata.Embeds[0]
+		parentPostEmbed := embed.Data.(*model.Post)
+		require.Equal(t, parentPost.Id, parentPostEmbed.Id)
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
@@ -1891,6 +1921,38 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			assert.ElementsMatch(t, images, test.Expected)
 		})
 	}
+}
+
+func TestGetEmbedParentPostForBroadcastedThreadReply(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should get parent post with LastReplyAt", func(t *testing.T) {
+		parentPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:      th.BasicUser.Id,
+			ChannelId:   th.BasicChannel.Id,
+			Message:     "parent post",
+			LastReplyAt: int64(500),
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "reply",
+			RootId:    parentPost.Id,
+			Props: model.StringInterface{
+				"broadcasted_thread_reply": true,
+			},
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+		embed := clientPost.Metadata.Embeds[0]
+		parentPostEmbed := embed.Data.(*model.Post)
+		require.Equal(t, parentPost.Id, parentPostEmbed.Id)
+		require.Equal(t, parentPost.LastReplyAt, int64(500))
+	})
 }
 
 func TestGetLinkMetadata(t *testing.T) {
