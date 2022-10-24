@@ -6894,11 +6894,19 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
 	t.Run("with correct ReplyCount", func(t *testing.T) {
-		channelId := model.NewId()
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		userId := model.NewId()
 
 		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6907,7 +6915,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6916,7 +6924,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post3, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			RootId:    post1.Id,
 			Message:   "message",
@@ -6925,7 +6933,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		posts, err := ss.Channel().GetPinnedPosts(channelId)
+		posts, err := ss.Channel().GetPinnedPosts(channel.Id)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 3)
 		require.Equal(t, posts.Posts[post1.Id].ReplyCount, int64(1))
