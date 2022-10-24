@@ -91,9 +91,6 @@ func TestUploadLicenseFile(t *testing.T) {
 		mockLicenseValidator := mocks2.LicenseValidatorIface{}
 		defer testutils.ResetLicenseValidator()
 
-		//startTimestamp, err := time.Parse("2 Jan 2006 3:04 pm", "1 Jan 2021 12:00 am")
-		//require.Nil(t, err)
-
 		userCount := 100
 		mills := model.GetMillis()
 
@@ -123,6 +120,37 @@ func TestUploadLicenseFile(t *testing.T) {
 		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte("sadasdasdasdasdasdsa"))
 		CheckErrorID(t, err, "api.license.request-trial.can-start-trial.not-allowed")
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("try to get gone through trial, with TE build", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
+		th.App.Srv().Platform().SetLicenseManager(nil)
+
+		mockLicenseValidator := mocks2.LicenseValidatorIface{}
+		defer testutils.ResetLicenseValidator()
+
+		license := model.License{
+			Id: model.NewId(),
+			Features: &model.Features{
+				Users: model.NewInt(100),
+			},
+			Customer: &model.Customer{
+				Name: "Test",
+			},
+			StartsAt:  model.GetMillis() + 100,
+			ExpiresAt: model.GetMillis() + 100 + (30*(time.Hour*24) + (time.Hour * 8)).Milliseconds(),
+		}
+
+		mockLicenseValidator.On("LicenseFromBytes", mock.Anything).Return(&license, nil).Once()
+		licenseBytes, err := json.Marshal(license)
+		require.NoError(t, err)
+
+		mockLicenseValidator.On("ValidateLicense", mock.Anything).Return(true, string(licenseBytes))
+		utils.LicenseValidator = &mockLicenseValidator
+
+		resp, err := th.SystemAdminClient.UploadLicenseFile([]byte(""))
+		CheckErrorID(t, err, "api.license.upgrade_needed.app_error")
+		require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
 
 	t.Run("allow uploading sanctioned trials even if server already gone through trial", func(t *testing.T) {

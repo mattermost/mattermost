@@ -32,20 +32,13 @@ type platformMetrics struct {
 
 	metricsImpl einterfaces.MetricsInterface
 
-	cfgFn func() *model.Config
-}
-
-func (ps *PlatformService) metricsImpl() einterfaces.MetricsInterface {
-	if ps.metrics == nil {
-		return nil
-	}
-
-	return ps.metrics.metricsImpl
+	cfgFn      func() *model.Config
+	listenAddr string
 }
 
 // resetMetrics resets the metrics server. Clears the metrics if the metrics are disabled by the config.
-func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface, cfgFn func() *model.Config) error {
-	if !*cfgFn().MetricsSettings.Enable {
+func (ps *PlatformService) resetMetrics() error {
+	if !*ps.Config().MetricsSettings.Enable {
 		if ps.metrics != nil {
 			return ps.metrics.stopMetricsServer()
 		}
@@ -59,8 +52,8 @@ func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface
 	}
 
 	ps.metrics = &platformMetrics{
-		cfgFn:       cfgFn,
-		metricsImpl: metricsImpl,
+		cfgFn:       ps.Config,
+		metricsImpl: ps.metricsIFace,
 		logger:      ps.logger,
 	}
 
@@ -68,8 +61,8 @@ func (ps *PlatformService) resetMetrics(metricsImpl einterfaces.MetricsInterface
 		return err
 	}
 
-	if metricsImpl != nil {
-		metricsImpl.Register()
+	if ps.metricsIFace != nil {
+		ps.metricsIFace.Register()
 	}
 
 	return ps.metrics.startMetricsServer()
@@ -122,7 +115,8 @@ func (pm *platformMetrics) startMetricsServer() error {
 		}
 	}()
 
-	pm.logger.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
+	pm.listenAddr = l.Addr().String()
+	pm.logger.Info("Metrics and profiling server is started", mlog.String("address", pm.listenAddr))
 	return nil
 }
 
@@ -181,7 +175,7 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 }
 
 func (ps *PlatformService) RestartMetrics() error {
-	return ps.resetMetrics(ps.serviceConfig.Metrics, ps.configStore.Get)
+	return ps.resetMetrics()
 }
 
 func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
@@ -189,5 +183,5 @@ func (ps *PlatformService) Metrics() einterfaces.MetricsInterface {
 		return nil
 	}
 
-	return ps.metricsImpl()
+	return ps.metricsIFace
 }
