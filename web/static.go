@@ -161,5 +161,5 @@ func getOpenGraphMetaTags(c *Context) string {
 		descriptionHTML = fmt.Sprintf(descriptionTemplate, html.EscapeString(siteDescription))
 	}
 
-	return fmt.Sprintf("%s%s", titleHTML, descriptionHTML)
+	return titleHTML + descriptionHTML
 }
