@@ -2111,7 +2111,7 @@ func (a *App) ValidateMoveOrCopy(c *request.Context, wpl *model.WranglerPostList
 		}
 	}
 
-	if !originalChannel.IsGroupOrDirect && !targetChannel.IsGroupOrDirect() {
+	if !originalChannel.IsGroupOrDirect() && !targetChannel.IsGroupOrDirect() {
 		// DM and GM channels are "teamless" so it doesn't make sense to check
 		// the MoveThreadToAnotherTeamEnable config when dealing with those.
 		if !*config.MoveThreadToAnotherTeamEnable && targetChannel.TeamId != originalChannel.TeamId {
