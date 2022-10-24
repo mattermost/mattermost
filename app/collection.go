@@ -11,23 +11,20 @@ import (
 )
 
 func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType string) error {
-	if !a.Config().FeatureFlags.ThreadsEverywhere {
-		return model.NewAppError("registerCollectionAndTopic", "app.collection.feature_flag.app_error", nil, "", http.StatusBadRequest)
-	}
 	// we have a race condition due to multiple plugins calling this method
 	a.ch.collectionAndTopicTypesMut.Lock()
 	defer a.ch.collectionAndTopicTypesMut.Unlock()
 
 	// check if collectionType was already registered by other plugin
-	for plugID, colTypes := range a.ch.collectionTypes {
-		if utils.StringInSlice(collectionType, colTypes) && plugID != pluginID {
+	for existingPluginID, existingCollectionTypes := range a.ch.collectionTypes {
+		if existingPluginID != pluginID && utils.StringInSlice(collectionType, existingCollectionTypes) {
 			return model.NewAppError("registerCollectionAndTopic", "app.collection.add_collection.exists.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
 	// check if topicType was already registered to other collection
-	for collectionTypeForTopic, topicTypes := range a.ch.topicTypes {
-		if utils.StringInSlice(topicType, topicTypes) && collectionTypeForTopic != collectionType {
+	for existingCollectionType, existingTopicTypes := range a.ch.topicTypes {
+		if existingCollectionType != collectionType && utils.StringInSlice(topicType, existingTopicTypes) {
 			return model.NewAppError("registerCollectionAndTopic", "app.collection.add_topic.exists.app_error", nil, "", http.StatusBadRequest)
 		}
 	}

@@ -131,7 +131,11 @@ type GetTopicRedirectIFace interface {
 }
 
 type GetCollectionMetadataByIdsIFace interface {
-	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error)
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error)
+}
+
+type GetTopicMetadataByIdsIFace interface {
+	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
 }
 
 type hooksAdapter struct {
@@ -417,6 +421,15 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 		return nil, errors.New("hook has GetCollectionMetadataByIds method but does not implement plugin.GetCollectionMetadataByIds interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements GetTopicMetadataByIds interface.
+	tt = reflect.TypeOf((*GetTopicMetadataByIdsIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[GetTopicMetadataByIdsID] = struct{}{}
+	} else if _, ok := ft.MethodByName("GetTopicMetadataByIds"); ok {
+		return nil, errors.New("hook has GetTopicMetadataByIds method but does not implement plugin.GetTopicMetadataByIds interface")
+	}
+
 	return a, nil
 }
 
@@ -681,11 +694,20 @@ func (a *hooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (
 
 }
 
-func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error) {
+func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error) {
 	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
 		panic("product hooks must implement GetCollectionMetadataByIds")
 	}
 
 	return a.productHooks.(GetCollectionMetadataByIdsIFace).GetCollectionMetadataByIds(c, collectionType, collectionIds)
+
+}
+
+func (a *hooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+	if _, ok := a.implemented[GetTopicMetadataByIdsID]; !ok {
+		panic("product hooks must implement GetTopicMetadataByIds")
+	}
+
+	return a.productHooks.(GetTopicMetadataByIdsIFace).GetTopicMetadataByIds(c, topicType, topicIds)
 
 }

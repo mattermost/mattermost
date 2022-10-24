@@ -1164,7 +1164,7 @@ type API interface {
 	// It is an error for different plugins to register the same pair of types,
 	// or even to register a new topic against another plugin's collection.
 	//
-	// Minimum server version: 7.5
+	// Minimum server version: 7.6
 	RegisterCollectionAndTopic(collectionType, topicType string) error
 }
 
