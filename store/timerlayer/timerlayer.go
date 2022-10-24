@@ -9727,6 +9727,22 @@ func (s *TimerLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 	return result
 }
 
+func (s *TimerLayerUserStore) GetFirstSystemAdminID() (string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetFirstSystemAdminID()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetFirstSystemAdminID", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {
 	start := time.Now()
 

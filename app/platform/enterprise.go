@@ -26,8 +26,8 @@ func RegisterLicenseInterface(f func(*PlatformService) einterfaces.LicenseInterf
 	licenseInterface = f
 }
 
-var metricsInterface func(*PlatformService, string, string) einterfaces.MetricsInterface
+var metricsInterfaceFn func(*PlatformService, string, string) einterfaces.MetricsInterface
 
 func RegisterMetricsInterface(f func(*PlatformService, string, string) einterfaces.MetricsInterface) {
-	metricsInterface = f
+	metricsInterfaceFn = f
 }

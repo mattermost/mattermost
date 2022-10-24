@@ -196,6 +196,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
