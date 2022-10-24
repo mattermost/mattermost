@@ -2671,3 +2671,25 @@ func getProfileImagePath(userID string) string {
 func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
 }
+
+func (a *App) UserIsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	systemAdminUsers, errServer := a.Srv().Store.User().GetSystemAdminProfiles()
+	if errServer != nil {
+		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		return false
+	}
+
+	for _, systemAdminUser := range systemAdminUsers {
+		systemAdminUser := systemAdminUser
+
+		if systemAdminUser.CreateAt < user.CreateAt {
+			return false
+		}
+	}
+
+	return true
+}

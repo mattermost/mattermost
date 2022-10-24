@@ -18052,6 +18052,23 @@ func (a *OpenTracingAppLayer) UserCanSeeOtherUser(userID string, otherUserId str
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) UserIsFirstAdmin(user *model.User) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserIsFirstAdmin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UserIsFirstAdmin(user)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserIsInAdminRoleGroup")
