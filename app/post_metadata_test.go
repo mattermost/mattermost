@@ -1947,8 +1947,7 @@ func TestGetEmbedParentPostForBroadcastedThreadReply(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
-		embed := clientPost.Metadata.Embeds[0]
+		embed, _ := th.App.getEmbedParentPostForBroadcastedThreadReply(post)
 		parentPostEmbed := embed.Data.(*model.Post)
 		require.Equal(t, parentPost.Id, parentPostEmbed.Id)
 		require.Equal(t, parentPost.LastReplyAt, int64(500))
