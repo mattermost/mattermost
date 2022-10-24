@@ -5160,14 +5160,6 @@
     "translation": "کانال های دعوت باید بخشی از تیم دعوت باشند."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "مجوز شما از حساب های مهمان پشتیبانی نمی کند"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "حساب های مهمان غیرفعال شده است"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "خطا در عدم اعتبار دعوت نامه های ایمیل."
   },

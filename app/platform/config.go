@@ -32,7 +32,6 @@ type ServiceConfig struct {
 	ConfigStore *config.Store
 	Store       store.Store
 	// Optional fields
-	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface
 }
 
