@@ -76,6 +76,8 @@ type FeatureFlags struct {
 	SendWelcomePost bool
 
 	PostPriority bool
+
+	PeopleProduct bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -104,6 +106,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PlanUpgradeButtonText = "upgrade"
 	f.SendWelcomePost = true
 	f.PostPriority = false
+	f.PeopleProduct = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
