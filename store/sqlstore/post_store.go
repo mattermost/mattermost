@@ -2948,7 +2948,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	}
 
 	threadsByRoots := []*model.Thread{}
-	if err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
+	err = transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...)
+	if err != nil {
 		return err
 	}
 
@@ -2956,6 +2957,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	for _, thread := range threadsByRoots {
 		threadByRoot[thread.PostId] = thread
 	}
+
+	teamIdByChannelId := map[string]string{}
 
 	for rootId, posts := range postsByRoot {
 		if thread, found := threadByRoot[rootId]; !found {
@@ -2986,16 +2989,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return err
 			}
+
+			channelId := posts[0].ChannelId
+			teamId, ok := teamIdByChannelId[channelId]
+			if !ok {
+				// get teamId for channel
+				err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", channelId)
+				if err != nil {
+					return err
+				}
+
+				// store teamId for channel for efficiency
+				teamIdByChannelId[channelId] = teamId
+			}
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants)
+				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, TeamId)
 				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants)`, &model.Thread{
+				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
-				ChannelId:    posts[0].ChannelId,
+				ChannelId:    channelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
+				TeamId:       teamId,
 			}); err != nil {
 				return err
 			}

@@ -67,6 +67,7 @@ const (
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
 	TrackFeatureFlags            = "config_feature_flags"
+	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -825,6 +826,10 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigProducts, map[string]any{
+		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
 	})
 
 	// Convert feature flags to map[string]any for sending
