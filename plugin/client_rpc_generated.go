@@ -961,6 +961,44 @@ func (s *hooksRPCServer) GetTopicRedirect(args *Z_GetTopicRedirectArgs, returns 
 	return nil
 }
 
+func init() {
+	hookNameToId["GetCollectionMetadataByIds"] = GetCollectionMetadataByIdsID
+}
+
+type Z_GetCollectionMetadataByIdsArgs struct {
+	A *Context
+	B string
+	C []string
+}
+
+type Z_GetCollectionMetadataByIdsReturns struct {
+	A map[string][]model.CollectionMetadata
+	B error
+}
+
+func (g *hooksRPCClient) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+	_args := &Z_GetCollectionMetadataByIdsArgs{c, collectionType, collectionIds}
+	_returns := &Z_GetCollectionMetadataByIdsReturns{}
+	if g.implemented[GetCollectionMetadataByIdsID] {
+		if err := g.client.Call("Plugin.GetCollectionMetadataByIds", _args, _returns); err != nil {
+			g.log.Error("RPC call GetCollectionMetadataByIds to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GetCollectionMetadataByIds(args *Z_GetCollectionMetadataByIdsArgs, returns *Z_GetCollectionMetadataByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
+	}); ok {
+		returns.A, returns.B = hook.GetCollectionMetadataByIds(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GetCollectionMetadataByIds called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

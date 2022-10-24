@@ -4824,6 +4824,10 @@
     "translation": "Topic type already exists."
   },
   {
+    "id": "app.collection.feature_flag.app_error",
+    "translation": "ThreadsEverywhere is under feature flag which is not enabled"
+  },
+  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },

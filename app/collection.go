@@ -11,6 +11,9 @@ import (
 )
 
 func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType string) error {
+	if !a.Config().FeatureFlags.ThreadsEverywhere {
+		return model.NewAppError("registerCollectionAndTopic", "app.collection.feature_flag.app_error", nil, "", http.StatusBadRequest)
+	}
 	// we have a race condition due to multiple plugins calling this method
 	a.ch.collectionAndTopicTypesMut.Lock()
 	defer a.ch.collectionAndTopicTypesMut.Unlock()

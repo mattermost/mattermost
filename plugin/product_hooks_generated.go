@@ -130,6 +130,10 @@ type GetTopicRedirectIFace interface {
 	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
 }
 
+type GetCollectionMetadataByIdsIFace interface {
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
+}
+
 type hooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -404,6 +408,15 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 		return nil, errors.New("hook has GetTopicRedirect method but does not implement plugin.GetTopicRedirect interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements GetCollectionMetadataByIds interface.
+	tt = reflect.TypeOf((*GetCollectionMetadataByIdsIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[GetCollectionMetadataByIdsID] = struct{}{}
+	} else if _, ok := ft.MethodByName("GetCollectionMetadataByIds"); ok {
+		return nil, errors.New("hook has GetCollectionMetadataByIds method but does not implement plugin.GetCollectionMetadataByIds interface")
+	}
+
 	return a, nil
 }
 
@@ -665,5 +678,14 @@ func (a *hooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (
 	}
 
 	return a.productHooks.(GetTopicRedirectIFace).GetTopicRedirect(c, topicType, topicID)
+
+}
+
+func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
+		panic("product hooks must implement GetCollectionMetadataByIds")
+	}
+
+	return a.productHooks.(GetCollectionMetadataByIdsIFace).GetCollectionMetadataByIds(c, collectionType, collectionIds)
 
 }

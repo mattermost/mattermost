@@ -47,6 +47,7 @@ const (
 	GetAllUserIdsForCollectionID    = 29
 	GetAllCollectionIDsForUserID    = 30
 	GetTopicRedirectID              = 31
+	GetCollectionMetadataByIdsID    = 32
 	TotalHooksID                    = iota
 )
 
@@ -277,7 +278,7 @@ type Hooks interface {
 
 	// UserHasPermissionToCollection determines if the given user has access to
 	// the given collection. Plugins are only expected to handle their own
-	// collections, and should return false for unknown collections.
+	// collections, and should return an error for unknown collections.
 	//
 	// For Threads Everywhere, products are expected to support at least the
 	// following permissions: create_post, edit_post, delete_post,
@@ -288,14 +289,14 @@ type Hooks interface {
 
 	// GetAllCollectionIDsForUser returns the set of collection ids to which
 	// the given user has access. Plugins are only expected to handle their
-	// own collections, and should return an empty set for unknown types.
+	// own collections, and should return an error unknown types.
 	//
 	// Minimum server version: 7.5
 	GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
 
 	// GetAllCollectionIDsForUser returns the set of collection ids to which
 	// the given user has access. Plugins are only expected to handle their
-	// own collections, and should return an empty set for unknown types.
+	// own collections, and should return an error for unknown types.
 	//
 	// Minimum server version: 7.5
 	GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
@@ -306,4 +307,12 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.5
 	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
+
+	// GetCollectionMetadataByIds returns collection metadata for the passed ids.
+	// Returned type is a map with keys of collectionId and value CollectionMetadata.
+	// Plugins are only expected to handle their own collections, and should
+	// return an error for unknown types.
+	//
+	// Minimum server version: 7.5
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
 }

@@ -119,6 +119,29 @@ func (_m *Hooks) GetAllUserIdsForCollection(c *plugin.Context, collectionType st
 	return r0, r1
 }
 
+// GetCollectionMetadataByIds provides a mock function with given fields: c, collectionType, collectionIds
+func (_m *Hooks) GetCollectionMetadataByIds(c *plugin.Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+	ret := _m.Called(c, collectionType, collectionIds)
+
+	var r0 map[string][]model.CollectionMetadata
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []string) map[string][]model.CollectionMetadata); ok {
+		r0 = rf(c, collectionType, collectionIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]model.CollectionMetadata)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, []string) error); ok {
+		r1 = rf(c, collectionType, collectionIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTopicRedirect provides a mock function with given fields: c, topicType, topicID
 func (_m *Hooks) GetTopicRedirect(c *plugin.Context, topicType string, topicID string) (string, error) {
 	ret := _m.Called(c, topicType, topicID)
