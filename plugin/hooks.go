@@ -314,5 +314,5 @@ type Hooks interface {
 	// return an error for unknown types.
 	//
 	// Minimum server version: 7.5
-	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error)
 }

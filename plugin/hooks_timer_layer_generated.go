@@ -241,7 +241,7 @@ func (hooks *hooksTimerLayer) GetTopicRedirect(c *Context, topicType, topicID st
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+func (hooks *hooksTimerLayer) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.GetCollectionMetadataByIds(c, collectionType, collectionIds)
 	hooks.recordTime(startTime, "GetCollectionMetadataByIds", _returnsB == nil)

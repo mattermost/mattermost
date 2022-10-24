@@ -972,11 +972,11 @@ type Z_GetCollectionMetadataByIdsArgs struct {
 }
 
 type Z_GetCollectionMetadataByIdsReturns struct {
-	A map[string][]model.CollectionMetadata
+	A map[string]model.CollectionMetadata
 	B error
 }
 
-func (g *hooksRPCClient) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+func (g *hooksRPCClient) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error) {
 	_args := &Z_GetCollectionMetadataByIdsArgs{c, collectionType, collectionIds}
 	_returns := &Z_GetCollectionMetadataByIdsReturns{}
 	if g.implemented[GetCollectionMetadataByIdsID] {
@@ -989,7 +989,7 @@ func (g *hooksRPCClient) GetCollectionMetadataByIds(c *Context, collectionType s
 
 func (s *hooksRPCServer) GetCollectionMetadataByIds(args *Z_GetCollectionMetadataByIdsArgs, returns *Z_GetCollectionMetadataByIdsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
+		GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error)
 	}); ok {
 		returns.A, returns.B = hook.GetCollectionMetadataByIds(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)

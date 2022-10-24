@@ -120,15 +120,15 @@ func (_m *Hooks) GetAllUserIdsForCollection(c *plugin.Context, collectionType st
 }
 
 // GetCollectionMetadataByIds provides a mock function with given fields: c, collectionType, collectionIds
-func (_m *Hooks) GetCollectionMetadataByIds(c *plugin.Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+func (_m *Hooks) GetCollectionMetadataByIds(c *plugin.Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error) {
 	ret := _m.Called(c, collectionType, collectionIds)
 
-	var r0 map[string][]model.CollectionMetadata
-	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []string) map[string][]model.CollectionMetadata); ok {
+	var r0 map[string]model.CollectionMetadata
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []string) map[string]model.CollectionMetadata); ok {
 		r0 = rf(c, collectionType, collectionIds)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]model.CollectionMetadata)
+			r0 = ret.Get(0).(map[string]model.CollectionMetadata)
 		}
 	}
 

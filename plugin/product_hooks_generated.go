@@ -131,7 +131,7 @@ type GetTopicRedirectIFace interface {
 }
 
 type GetCollectionMetadataByIdsIFace interface {
-	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error)
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error)
 }
 
 type hooksAdapter struct {
@@ -681,7 +681,7 @@ func (a *hooksAdapter) GetTopicRedirect(c *Context, topicType, topicID string) (
 
 }
 
-func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string][]model.CollectionMetadata, error) {
+func (a *hooksAdapter) GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]model.CollectionMetadata, error) {
 	if _, ok := a.implemented[GetCollectionMetadataByIdsID]; !ok {
 		panic("product hooks must implement GetCollectionMetadataByIds")
 	}
