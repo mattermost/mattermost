@@ -2019,8 +2019,13 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 }
 
 func TestRegisterCollectionAndTopic(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
 	th := Setup(t)
 	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ThreadsEverywhere = true
+	})
 	api := th.SetupPluginAPI()
 
 	err := api.RegisterCollectionAndTopic("collection1", "topic1")
