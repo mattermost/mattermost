@@ -2677,7 +2677,7 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 		return false
 	}
 
-	systemAdminUsers, errServer := a.Srv().Store.User().GetSystemAdminProfiles()
+	systemAdminUsers, errServer := a.Srv().Store().User().GetSystemAdminProfiles()
 	if errServer != nil {
 		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
 		return false
