@@ -5612,10 +5612,6 @@
     "translation": "作废邮件邀请错误。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "您的许可证不支持访客帐号"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "无法从组受限团队移除用户。"
   },
@@ -5626,10 +5622,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "仅搜索公共团队不支持分页。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "访客帐号已停用"
   },
   {
     "id": "api.templates.remove_expired_license.subject",

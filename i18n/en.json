@@ -8740,6 +8740,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Invalid time range."
+  },
+  {
     "id": "model.job.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
