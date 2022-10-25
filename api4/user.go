@@ -815,7 +815,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if err != nil {
 			c.Err = err
 			return
@@ -827,7 +827,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, err = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if err != nil {
 			c.Err = err
 			return
@@ -861,7 +861,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
-	group, err := c.App.GetGroup(groupID, nil)
+	group, err := c.App.GetGroup(groupID, nil, nil)
 	if err != nil {
 		return err
 	}
