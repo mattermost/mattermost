@@ -124,6 +124,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
+		t.Skip("MM-47635")
 		th := Setup(t, StartMetrics())
 		defer th.TearDown()
 
