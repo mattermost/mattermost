@@ -99,13 +99,12 @@ func (j *Job) IsValid() *AppError {
 	}
 
 	switch j.Status {
-	case JobStatusPending,
-		JobStatusInProgress,
-		JobStatusSuccess,
-		JobStatusError,
-		JobStatusWarning,
-		JobStatusCancelRequested,
-		JobStatusCanceled:
+	case JobStatusPending:
+	case JobStatusInProgress:
+	case JobStatusSuccess:
+	case JobStatusError:
+	case JobStatusCancelRequested:
+	case JobStatusCanceled:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
