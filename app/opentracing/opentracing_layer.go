@@ -6207,7 +6207,7 @@ func (a *OpenTracingAppLayer) GetGlobalRetentionPolicy() (*model.GlobalRetention
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroup")
 
@@ -6219,7 +6219,7 @@ func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts) (*mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroup(id, opts)
+	resultVar0, resultVar1 := a.app.GetGroup(id, opts, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6295,7 +6295,7 @@ func (a *OpenTracingAppLayer) GetGroupChannel(c request.CTX, userIDs []string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberCount")
 
@@ -6307,7 +6307,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID)
+	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6339,7 +6339,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsers(groupID string) ([]*model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberUsersPage")
 
@@ -6351,7 +6351,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	resultVar0, resultVar1, resultVar2 := a.app.GetGroupMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -6405,7 +6405,7 @@ func (a *OpenTracingAppLayer) GetGroupSyncables(groupID string, syncableType mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroups")
 
@@ -6417,7 +6417,7 @@ func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupS
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroups(page, perPage, opts)
+	resultVar0, resultVar1 := a.app.GetGroups(page, perPage, opts, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10857,7 +10857,7 @@ func (a *OpenTracingAppLayer) GetUsersNotInChannelPage(teamID string, channelID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInGroupPage")
 
@@ -10869,7 +10869,7 @@ func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, p
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersNotInGroupPage(groupID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetUsersNotInGroupPage(groupID, page, perPage, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
