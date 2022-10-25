@@ -36,6 +36,8 @@ type subscriber struct {
 	handler Handler
 }
 
+const STOPPING = 1
+
 type BrokerService struct {
 	queueLimit            int
 	goroutineLimit        int
@@ -49,7 +51,7 @@ type BrokerService struct {
 	eventCount            int32
 	goroutineExitSignal   chan struct{}
 	goroutineLimitChannel chan struct{}
-	stopping              bool
+	stopping              int32
 	stoppedChannel        chan struct{}
 }
 
@@ -67,7 +69,7 @@ func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *Bro
 		eventCount:            0,
 		goroutineExitSignal:   make(chan struct{}, 1),
 		goroutineLimitChannel: make(chan struct{}, goroutineLimit),
-		stopping:              false,
+		stopping:              0,
 		stoppedChannel:        make(chan struct{}, 1),
 	}
 }
@@ -111,7 +113,8 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 	// this is done not to receive events after Stop() was called
 	// Since here we have not global mutex(for performance reasons) "couple of"
 	// events might pass through even after calling Stop(), but it should be Ok.
-	if b.stopping {
+	stopping := atomic.LoadInt32(&b.stopping) == STOPPING
+	if stopping {
 		return errors.New("event bus was stopped")
 	}
 	// there's really no race condition here, but we need this lock to pass race condition tests.
@@ -233,7 +236,7 @@ func (b *BrokerService) runGoroutine(f func()) {
 // Stop blocks until all goroutines created by runGoroutine are finish or exists
 // when time is out.
 func (b *BrokerService) Stop() error {
-	b.stopping = true
+	atomic.StoreInt32(&b.stopping, STOPPING)
 	done := make(chan struct{}, 1)
 	go func() {
 		// We are waiting for all goroutines to be finished and all published events to be handled
