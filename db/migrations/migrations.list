@@ -188,6 +188,8 @@ db/migrations/mysql/000093_notify_admin.down.sql
 db/migrations/mysql/000093_notify_admin.up.sql
 db/migrations/mysql/000094_threads_teamid.down.sql
 db/migrations/mysql/000094_threads_teamid.up.sql
+db/migrations/mysql/000095_remove_posts_parentid.down.sql
+db/migrations/mysql/000095_remove_posts_parentid.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -376,3 +378,5 @@ db/migrations/postgres/000093_notify_admin.down.sql
 db/migrations/postgres/000093_notify_admin.up.sql
 db/migrations/postgres/000094_threads_teamid.down.sql
 db/migrations/postgres/000094_threads_teamid.up.sql
+db/migrations/postgres/000095_remove_posts_parentid.down.sql
+db/migrations/postgres/000095_remove_posts_parentid.up.sql

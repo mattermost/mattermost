@@ -515,8 +515,9 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku",
 			PriceID:           "price_id",
 			Family:            "family",
-			RecurringInterval: "recurring_interval",
+			RecurringInterval: "monthly",
 			BillingScheme:     "billing_scheme",
+			CrossSellsTo:      "",
 		},
 		{
 			ID:                "prod_test2",
@@ -526,8 +527,9 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku2",
 			PriceID:           "price_id2",
 			Family:            "family2",
-			RecurringInterval: "recurring_interval2",
+			RecurringInterval: "monthly",
 			BillingScheme:     "billing_scheme2",
+			CrossSellsTo:      "prod_test3",
 		},
 		{
 			ID:                "prod_test3",
@@ -537,29 +539,36 @@ func TestGetCloudProducts(t *testing.T) {
 			SKU:               "sku3",
 			PriceID:           "price_id3",
 			Family:            "family3",
-			RecurringInterval: "recurring_interval3",
+			RecurringInterval: "yearly",
 			BillingScheme:     "billing_scheme3",
+			CrossSellsTo:      "prod_test2",
 		},
 	}
 
 	sanitizedProducts := []*model.Product{
 		{
-			ID:           "prod_test1",
-			Name:         "name",
-			PricePerSeat: 10,
-			SKU:          "sku",
+			ID:                "prod_test1",
+			Name:              "name",
+			PricePerSeat:      10,
+			SKU:               "sku",
+			RecurringInterval: "monthly",
+			CrossSellsTo:      "",
 		},
 		{
-			ID:           "prod_test2",
-			Name:         "name2",
-			PricePerSeat: 100,
-			SKU:          "sku2",
+			ID:                "prod_test2",
+			Name:              "name2",
+			PricePerSeat:      100,
+			SKU:               "sku2",
+			RecurringInterval: "monthly",
+			CrossSellsTo:      "prod_test3",
 		},
 		{
-			ID:           "prod_test3",
-			Name:         "name3",
-			PricePerSeat: 1000,
-			SKU:          "sku3",
+			ID:                "prod_test3",
+			Name:              "name3",
+			PricePerSeat:      1000,
+			SKU:               "sku3",
+			RecurringInterval: "yearly",
+			CrossSellsTo:      "prod_test2",
 		},
 	}
 	t.Run("get products for admins", func(t *testing.T) {
@@ -615,8 +624,9 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[0].Description, "")
 		require.Equal(t, returnedProducts[0].PriceID, "")
 		require.Equal(t, returnedProducts[0].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[0].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[0].RecurringInterval, model.RecurringInterval("monthly"))
 		require.Equal(t, returnedProducts[0].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[0].CrossSellsTo, "")
 
 		require.Equal(t, returnedProducts[1].ID, "prod_test2")
 		require.Equal(t, returnedProducts[1].Name, "name2")
@@ -625,8 +635,9 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[1].Description, "")
 		require.Equal(t, returnedProducts[1].PriceID, "")
 		require.Equal(t, returnedProducts[1].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[1].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[1].RecurringInterval, model.RecurringInterval("monthly"))
 		require.Equal(t, returnedProducts[1].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[1].CrossSellsTo, "prod_test3")
 
 		require.Equal(t, returnedProducts[2].ID, "prod_test3")
 		require.Equal(t, returnedProducts[2].Name, "name3")
@@ -635,7 +646,8 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].Description, "")
 		require.Equal(t, returnedProducts[2].PriceID, "")
 		require.Equal(t, returnedProducts[2].Family, model.SubscriptionFamily(""))
-		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval(""))
+		require.Equal(t, returnedProducts[2].RecurringInterval, model.RecurringInterval("yearly"))
 		require.Equal(t, returnedProducts[2].BillingScheme, model.BillingScheme(""))
+		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
 	})
 }
