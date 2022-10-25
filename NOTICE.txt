@@ -4,7 +4,7 @@ Mattermost Server
 NOTICES:
 --------
 
-This document includes a list of open source components used in Mattermost Server, including those that have been modified.
+This document includes a list of open source components used in Mattermost Server, including those that have been modified..
 
 -----
 
