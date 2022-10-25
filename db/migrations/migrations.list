@@ -184,6 +184,8 @@ db/migrations/mysql/000091_create_post_reminder.down.sql
 db/migrations/mysql/000091_create_post_reminder.up.sql
 db/migrations/mysql/000092_add_createat_to_teammembers.down.sql
 db/migrations/mysql/000092_add_createat_to_teammembers.up.sql
+db/migrations/mysql/000095_remove_posts_parentid.down.sql
+db/migrations/mysql/000095_remove_posts_parentid.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -368,3 +370,5 @@ db/migrations/postgres/000091_create_post_reminder.down.sql
 db/migrations/postgres/000091_create_post_reminder.up.sql
 db/migrations/postgres/000092_add_createat_to_teamembers.down.sql
 db/migrations/postgres/000092_add_createat_to_teamembers.up.sql
+db/migrations/postgres/000095_remove_posts_parentid.down.sql
+db/migrations/postgres/000095_remove_posts_parentid.up.sql
