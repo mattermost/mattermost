@@ -50,6 +50,9 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
+
+	// POST /api/v4/cloud/self-hosted-bootstrap
+	api.BaseRoutes.Cloud.Handle("/self-hosted-bootstrap", api.APISessionRequired(handleSelfHostedBootstrap)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -665,5 +668,32 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ReturnStatusOK(w)
+}
+
+func handleSelfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
+	license := c.App.Channels().License()
+
+	if license != nil && license.Features != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+		c.Err = model.NewAppError("blah", "placeholder", nil, "Cloud installations do not use self hosted signup", http.StatusInternalServerError)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
+		return
+	}
+
+	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	if userErr != nil {
+		c.Err = userErr
+		return
+	}
+
+	err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
+	if err != nil {
+		c.Err = model.NewAppError("blah", "placeholder", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	ReturnStatusOK(w)
 }

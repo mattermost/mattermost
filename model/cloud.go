@@ -254,3 +254,7 @@ type ProductLimits struct {
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
+
+type BootstrapSelfHostedSignupRequest struct {
+	Email string `json:"email"`
+}
