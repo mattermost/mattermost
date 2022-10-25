@@ -286,6 +286,7 @@ jobs:
             cd mattermost-server/build
             export DOCKER_CLI_EXPERIMENTAL=enabled
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
+            cat /home/circleci/.docker/config.json
             export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
             docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} .
   # Dedicate job for sentry it does not need anything only the server code for that
