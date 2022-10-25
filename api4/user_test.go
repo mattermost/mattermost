@@ -1027,8 +1027,9 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+// This test can flake if two calls to model.NewId can return the same value.
+// Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
-	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
