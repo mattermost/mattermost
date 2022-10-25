@@ -29,6 +29,10 @@ type permissionsServiceWrapper struct {
 	app AppIface
 }
 
+func (s *permissionsServiceWrapper) HasPermissionTo(userID string, permission *model.Permission) bool {
+	return s.app.HasPermissionTo(userID, permission)
+}
+
 func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
 	return s.app.HasPermissionToTeam(userID, teamID, permission)
 }
