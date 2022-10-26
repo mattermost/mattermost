@@ -413,7 +413,7 @@ func (s *SqlGroupStore) GetMemberUsersPage(groupID string, page int, perPage int
 		Where(sq.Eq{"GroupId": groupID}).
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
-		OrderBy("u.CreateAt DESC")
+		OrderBy("u.Username ASC")
 
 	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
@@ -444,7 +444,7 @@ func (s *SqlGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage 
 		Where("(GroupMembers.UserID IS NULL OR GroupMembers.DeleteAt != 0)").
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
-		OrderBy("u.CreateAt DESC")
+		OrderBy("u.Username ASC")
 
 	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 

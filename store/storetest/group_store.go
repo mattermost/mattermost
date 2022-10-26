@@ -807,7 +807,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "user1" + model.NewId(),
 	}
 	user1, nErr := ss.User().Save(u1)
 	require.NoError(t, nErr)
@@ -817,7 +817,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 
 	u2 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "user2" + model.NewId(),
 	}
 	user2, nErr := ss.User().Save(u2)
 	require.NoError(t, nErr)
@@ -827,7 +827,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 
 	u3 := &model.User{
 		Email:    MakeEmail(),
-		Username: model.NewId(),
+		Username: "user3" + model.NewId(),
 	}
 	user3, nErr := ss.User().Save(u3)
 	require.NoError(t, nErr)
@@ -844,14 +844,14 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
-	require.Equal(t, user3.Id, groupMembers[0].Id)
+	require.Equal(t, user1.Id, groupMembers[0].Id)
 	require.Equal(t, user2.Id, groupMembers[1].Id)
 
 	// Check page 2
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user1.Id, groupMembers[0].Id)
+	require.Equal(t, user3.Id, groupMembers[0].Id)
 
 	// Check madeup id
 	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100, nil)
