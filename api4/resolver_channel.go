@@ -29,36 +29,6 @@ func (ch *channel) Team(ctx context.Context) (*model.Team, error) {
 	return getGraphQLTeam(ctx, ch.TeamId)
 }
 
-// match with api4.getChannelStats
-func (ch *channel) Stats(ctx context.Context) (*model.ChannelStats, error) {
-	c, err := getCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), ch.Id, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return nil, c.Err
-	}
-
-	memberCount, appErr := c.App.GetChannelMemberCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	guestCount, appErr := c.App.GetChannelGuestCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	pinnedPostCount, appErr := c.App.GetChannelPinnedPostCount(c.AppContext, ch.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return &model.ChannelStats{ChannelId: ch.Id, MemberCount: memberCount, GuestCount: guestCount, PinnedPostCount: pinnedPostCount}, nil
-}
-
 func (ch *channel) Cursor() *string {
 	cursor := string(channelCursorPrefix) + "-" + ch.Id
 	encoded := base64.StdEncoding.EncodeToString([]byte(cursor))

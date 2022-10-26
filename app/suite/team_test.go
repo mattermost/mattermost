@@ -1439,6 +1439,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.Suite.email = &emailServiceMock
 
@@ -1461,6 +1463,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(email.SendMailError)
 		th.Suite.email = &emailServiceMock
 
@@ -1487,6 +1491,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			mock.Anything,
 			mock.AnythingOfType("string"),
 			true,
+			false,
+			false,
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		th.Suite.email = &emailServiceMock
 
@@ -1509,6 +1515,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			"",
 			mock.Anything,
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.Suite.email = &emailServiceMock
 
@@ -1539,6 +1547,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			"",
 			"",
 			true,
+			false,
+			false,
 		).Once().Return(nil)
 		th.Suite.email = &emailServiceMock
 
@@ -1563,6 +1573,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			"",
 			"",
 			true,
+			false,
+			false,
 		).Once().Return(email.SendMailError)
 		th.Suite.email = &emailServiceMock
 

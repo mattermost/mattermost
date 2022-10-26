@@ -1461,13 +1461,15 @@ func (ss *SuiteService) InviteNewUsersToTeamGracefully(memberInvite *model.Membe
 		if err != nil {
 			ss.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
+
+		userIsFirstAdmin := ss.UserIsFirstAdmin(user)
 		var eErr error
 		var invitesWithErrors2 []*model.EmailInviteWithError
 		if len(channels) > 0 {
-			invitesWithErrors2, eErr = ss.email.SendInviteEmailsToTeamAndChannels(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, ss.GetSiteURL(), reminderData, memberInvite.Message, true)
+			invitesWithErrors2, eErr = ss.email.SendInviteEmailsToTeamAndChannels(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, ss.GetSiteURL(), reminderData, memberInvite.Message, true, user.IsSystemAdmin(), userIsFirstAdmin)
 			inviteListWithErrors = append(inviteListWithErrors, invitesWithErrors2...)
 		} else {
-			eErr = ss.email.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, ss.GetSiteURL(), reminderData, true)
+			eErr = ss.email.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, ss.GetSiteURL(), reminderData, true, user.IsSystemAdmin(), userIsFirstAdmin)
 		}
 		if eErr != nil {
 			switch {
@@ -1587,7 +1589,8 @@ func (ss *SuiteService) InviteGuestsToChannelsGracefully(teamID string, guestsIn
 		if err != nil {
 			ss.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
-		eErr := ss.email.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, ss.GetSiteURL(), guestsInvite.Message, true)
+
+		eErr := ss.email.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, ss.GetSiteURL(), guestsInvite.Message, true, user.IsSystemAdmin(), ss.UserIsFirstAdmin(user))
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.SendMailError):
@@ -1644,7 +1647,7 @@ func (a *SuiteService) InviteNewUsersToTeam(emailList []string, teamID, senderId
 	}
 
 	nameFormat := *a.platform.Config().TeamSettings.TeammateNameDisplay
-	eErr := a.email.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil, false)
+	eErr := a.email.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(user))
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
@@ -1686,7 +1689,8 @@ func (a *SuiteService) InviteGuestsToChannels(teamID string, guestsInvite *model
 	if err2 != nil {
 		a.platform.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err2))
 	}
-	eErr := a.email.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false)
+
+	eErr := a.email.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(user))
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):

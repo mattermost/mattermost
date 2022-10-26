@@ -196,6 +196,19 @@ func (a *SuiteService) IsFirstUserAccount() bool {
 	return a.platform.IsFirstUserAccount()
 }
 
+func (a *SuiteService) IsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := a.platform.Store.User().GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *SuiteService) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -2386,4 +2399,26 @@ func (a *SuiteService) onUserProfileChange(userID string) {
 		return
 	}
 	syncService.NotifyUserProfileChanged(userID)
+}
+
+func (a *SuiteService) UserIsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	systemAdminUsers, errServer := a.platform.Store.User().GetSystemAdminProfiles()
+	if errServer != nil {
+		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		return false
+	}
+
+	for _, systemAdminUser := range systemAdminUsers {
+		systemAdminUser := systemAdminUser
+
+		if systemAdminUser.CreateAt < user.CreateAt {
+			return false
+		}
+	}
+
+	return true
 }

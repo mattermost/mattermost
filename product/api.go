@@ -39,6 +39,7 @@ type PostService interface {
 //
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
+	HasPermissionTo(userID string, permission *model.Permission) bool
 	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
 	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
 }

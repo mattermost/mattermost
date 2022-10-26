@@ -2747,6 +2747,20 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
+type ProductSettings struct {
+	EnablePublicSharedBoards *bool
+}
+
+func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
+	if s.EnablePublicSharedBoards == nil {
+		if p, ok := plugins[PluginIdFocalboard]; ok {
+			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
+		} else {
+			s.EnablePublicSharedBoards = NewBool(false)
+		}
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
@@ -3136,6 +3150,7 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
+	ProductSettings           ProductSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3235,6 +3250,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
