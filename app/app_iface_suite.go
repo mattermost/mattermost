@@ -445,7 +445,7 @@ type AppIFaceSuite interface {
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListDirectoryRecursively(path string) ([]string, *model.AppError)
 	LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
-	MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError
+	MakePermissionError(session *model.Session, permissions []*model.Permission) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)

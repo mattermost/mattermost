@@ -530,8 +530,8 @@ func (s *SuiteService) GetUsersInChannelByStatus(options *model.UserGetOptions) 
 	return users, nil
 }
 
-func (a *SuiteService) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	users, err := a.platform.Store.User().GetProfilesInChannelByAdmin(options)
+func (s *SuiteService) GetUsersInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	users, err := s.platform.Store.User().GetProfilesInChannelByAdmin(options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersInChannelByAdmin", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1852,14 +1852,14 @@ func (s *SuiteService) SearchUsers(props *model.UserSearch, options *model.UserS
 	return s.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
-func (a *SuiteService) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (s *SuiteService) SearchUsersInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
-	users, err := a.platform.Store.User().SearchInChannel(channelID, term, options)
+	users, err := s.platform.Store.User().SearchInChannel(channelID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	for _, user := range users {
-		a.SanitizeProfile(user, options.IsAdmin)
+		s.SanitizeProfile(user, options.IsAdmin)
 	}
 
 	return users, nil
@@ -2098,8 +2098,8 @@ func (s *SuiteService) filterNonGroupUsers(userIDs []string, groupUsers []*model
 	return nonMemberIds, nil
 }
 
-func (a *SuiteService) RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
-	restrictions, err := a.GetViewUsersRestrictions(userID)
+func (s *SuiteService) RestrictUsersSearchByPermissions(userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
+	restrictions, err := s.GetViewUsersRestrictions(userID)
 	if err != nil {
 		return nil, err
 	}

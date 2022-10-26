@@ -12423,7 +12423,7 @@ func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
+func (a *OpenTracingAppLayer) MakePermissionError(session *model.Session, permissions []*model.Permission) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakePermissionError")
 
@@ -12435,7 +12435,7 @@ func (a *OpenTracingAppLayer) MakePermissionError(s *model.Session, permissions 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MakePermissionError(s, permissions)
+	resultVar0 := a.app.MakePermissionError(session, permissions)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
