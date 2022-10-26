@@ -9493,7 +9493,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.15+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
