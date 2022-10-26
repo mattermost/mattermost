@@ -577,17 +577,17 @@ func (s *SuiteService) sendUpdatedMemberRoleEvent(userID string, member *model.T
 	return nil
 }
 
-func (ss *SuiteService) AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError) {
+func (s *SuiteService) AddUserToTeam(c request.CTX, teamID string, userID string, userRequestorId string) (*model.Team, *model.TeamMember, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
-		team, err := ss.platform.Store.Team().Get(teamID)
+		team, err := s.platform.Store.Team().Get(teamID)
 		tchan <- store.StoreResult{Data: team, NErr: err}
 		close(tchan)
 	}()
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := ss.platform.Store.User().Get(context.Background(), userID)
+		user, err := s.platform.Store.User().Get(context.Background(), userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -616,7 +616,7 @@ func (ss *SuiteService) AddUserToTeam(c request.CTX, teamID string, userID strin
 	}
 	user := result.Data.(*model.User)
 
-	teamMember, err := ss.JoinUserToTeam(c, team, user, userRequestorId)
+	teamMember, err := s.JoinUserToTeam(c, team, user, userRequestorId)
 	if err != nil {
 		return nil, nil, err
 	}

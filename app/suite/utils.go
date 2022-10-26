@@ -156,8 +156,8 @@ func (s *SuiteService) SanitizeUserrofile(user *model.User, asAdmin bool) {
 	user.SanitizeProfile(options)
 }
 
-func (us *SuiteService) getUserSanitizeOptions(asAdmin bool) map[string]bool {
-	options := us.platform.Config().GetSanitizeOptions()
+func (s *SuiteService) getUserSanitizeOptions(asAdmin bool) map[string]bool {
+	options := s.platform.Config().GetSanitizeOptions()
 	if asAdmin {
 		options["email"] = true
 		options["fullname"] = true

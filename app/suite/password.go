@@ -37,9 +37,9 @@ func ComparePassword(hash string, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-func (us *SuiteService) isPasswordValid(password string) error {
+func (s *SuiteService) isPasswordValid(password string) error {
 
-	return IsPasswordValidWithSettings(password, &us.platform.Config().PasswordSettings)
+	return IsPasswordValidWithSettings(password, &s.platform.Config().PasswordSettings)
 }
 
 // IsPasswordValidWithSettings is a utility functions that checks if the given password

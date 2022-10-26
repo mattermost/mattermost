@@ -1070,7 +1070,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	res, err2 := th.Suite.platform.FileBackend().FileExists(finfo.Path)
 
-	require.Nil(t, err2, "Unable to check whether file exists. err=%v", err2)
+	require.NoError(t, err2, "Unable to check whether file exists. err=%v", err2)
 
 	require.False(t, res, "File was not deleted on FS. err=%v", err2)
 
