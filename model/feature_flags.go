@@ -108,8 +108,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PlanUpgradeButtonText = "upgrade"
 	f.SendWelcomePost = true
 	f.PostPriority = false
-	f.ThreadsEverywhere = false
 	f.PeopleProduct = false
+	f.ThreadsEverywhere = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
