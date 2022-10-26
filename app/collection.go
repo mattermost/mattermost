@@ -4,10 +4,10 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -33,7 +33,7 @@ func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType str
 	a.ch.collectionTypes[pluginID] = appendIfUnique(a.ch.collectionTypes[pluginID], collectionType)
 	a.ch.topicTypes[collectionType] = appendIfUnique(a.ch.topicTypes[collectionType], topicType)
 
-	a.ch.srv.Log().Info(fmt.Sprintf("%s registered collection type %s and topic type %s", pluginID, collectionType, topicType))
+	a.ch.srv.Log().Info("registered collection and topic type", mlog.String("plugin_id", pluginID), mlog.String("collection_type", collectionType), mlog.String("topic_type", topicType))
 	return nil
 }
 
