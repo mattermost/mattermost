@@ -27,7 +27,8 @@ type Thread struct {
 	// named ThreadDeleteAt to avoid introducing a query conflict with older server versions.
 	DeleteAt int64 `json:"delete_at"`
 
-	// TeamId is a denormalized copy of the Channel's teamId.
+	// TeamId is a denormalized copy of the Channel's teamId. In the database, it's
+	// named ThreadTeamId to avoid introducing a query conflict with older server versions.
 	TeamId string `json:"team_id"`
 }
 

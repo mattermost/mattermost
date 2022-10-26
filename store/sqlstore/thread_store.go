@@ -51,7 +51,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
-			"COALESCE(Threads.TeamId, '') AS TeamId",
+			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
 		).
 		From("Threads")
 
@@ -63,7 +63,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
-			"COALESCE(Threads.TeamId, '') AS TeamId",
+			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
 		).
 		From("Threads")
 }
@@ -98,8 +98,8 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 	if teamId != "" {
 		query = query.
 			Where(sq.Or{
-				sq.Eq{"Threads.TeamId": teamId},
-				sq.Eq{"Threads.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -160,8 +160,8 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	if teamId != "" {
 		query = query.
 			Where(sq.Or{
-				sq.Eq{"Threads.TeamId": teamId},
-				sq.Eq{"Threads.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -225,8 +225,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	if teamId != "" {
 		query = query.
 			Where(sq.Or{
-				sq.Eq{"Threads.TeamId": teamId},
-				sq.Eq{"Threads.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -322,7 +322,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
-		sq.Eq{"Threads.TeamId": teamIDs},
+		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 	}
 
@@ -345,12 +345,12 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		repliesQuery := s.getQueryBuilder().
-			Select("COUNT(Threads.PostId) AS Count, TeamId").
+			Select("COUNT(Threads.PostId) AS Count, ThreadTeamId AS TeamId").
 			From("Threads").
 			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
 			Where(fetchConditions).
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
-			GroupBy("Threads.TeamId")
+			GroupBy("Threads.ThreadTeamId")
 
 		err := s.GetReplicaX().SelectBuilder(&unreadThreads, repliesQuery)
 		if err != nil {
@@ -362,11 +362,11 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		mentionsQuery := s.getQueryBuilder().
-			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 			From("ThreadMemberships").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			Where(fetchConditions).
-			GroupBy("Threads.TeamId")
+			GroupBy("Threads.ThreadTeamId")
 
 		err := s.GetReplicaX().SelectBuilder(&unreadMentions, mentionsQuery)
 		if err != nil {
@@ -461,7 +461,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		})
 
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Threads.TeamId": teamId}, sq.Eq{"Threads.TeamId": ""}},
+		sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}},
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
@@ -670,7 +670,7 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 		Select("ThreadMemberships.*").
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
-		Where(sq.Or{sq.Eq{"Threads.TeamId": teamId}, sq.Eq{"Threads.TeamId": ""}}).
+		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Where(sq.Eq{"ThreadMemberships.UserId": userId})
 
 	err := s.GetReplicaX().SelectBuilder(&memberships, query)
