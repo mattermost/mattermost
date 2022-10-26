@@ -29,6 +29,7 @@ var rateMap = map[int]int{
 	3: -1,
 }
 
+type Parser func(rd io.ReadSeeker) (ParseInfo, error)
 type ParseInfo struct {
 	SampleRate int
 	Duration   float64

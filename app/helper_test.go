@@ -162,8 +162,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	return SetupWithStoreMockAndOptions(tb)
+}
+
+func SetupWithStoreMockAndOptions(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, nil, tb)
+	th := setupTestHelper(mockStore, false, false, options, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)

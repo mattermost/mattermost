@@ -1416,7 +1416,7 @@ type FileSettings struct {
 	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
 	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
 	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxVoiceMessagesFileSize           *int64  `access:"environment_file_storage,cloud_restrictable"`
+	MaxVoiceMessagesDuration           *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
@@ -1456,8 +1456,8 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.MaxFileSize = NewInt64(FileSettingsDefaultMaxFileSize) // 100MB (IEC)
 	}
 
-	if s.MaxVoiceMessagesFileSize == nil {
-		s.MaxVoiceMessagesFileSize = NewInt64(*s.MaxFileSize)
+	if s.MaxVoiceMessagesDuration == nil {
+		s.MaxVoiceMessagesDuration = NewInt64(5 * 60) // 5 minutes
 	}
 
 	if s.MaxImageResolution == nil {
@@ -3439,8 +3439,8 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxVoiceMessagesFileSize <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_file_size.app_error", nil, "", http.StatusBadRequest)
+	if *s.MaxVoiceMessagesDuration < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_duration.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {

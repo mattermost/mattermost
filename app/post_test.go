@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -16,12 +17,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/av/mp3"
 	"github.com/mattermost/mattermost-server/v6/app/platform"
 	eMocks "github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/mocks"
+	filesStoreMocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/store/storetest"
@@ -958,6 +961,8 @@ func TestCreatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ExperimentalSettings.EnableVoiceMessages = model.NewBool(true)
+			// Disable max voice message duration verification
+			cfg.FileSettings.MaxVoiceMessagesDuration = model.NewInt64(0)
 		})
 
 		nowMillis := time.Now().UnixMilli()
@@ -966,7 +971,6 @@ func TestCreatePost(t *testing.T) {
 			CreatorId: th.BasicUser.Id,
 			Path:      "/path/to/file.mp3",
 			MimeType:  "audio/mpeg",
-			Size:      *th.App.Config().FileSettings.MaxVoiceMessagesFileSize - 1,
 			CreateAt:  nowMillis,
 			UpdateAt:  nowMillis,
 		})
@@ -996,7 +1000,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			ChannelId: "channel_id",
 			Message:   "",
 			UserId:    "user_id",
-		})
+		}, nil)
 		require.ErrorContains(t, err, "Voice message not found.")
 	})
 
@@ -1010,7 +1014,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			Message:   "",
 			UserId:    "user_id",
 			FileIds:   []string{"file_id_1", "file_id_2"},
-		})
+		}, nil)
 		require.ErrorContains(t, err, "Voice message can only have one file.")
 	})
 
@@ -1029,7 +1033,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 			ChannelId: "channel_id",
 			UserId:    "user_id",
 			FileIds:   []string{"file_id_1"},
-		})
+		}, nil)
 
 		require.ErrorContains(t, err, "Error while trying to retrieve your voice message")
 	})
@@ -1039,11 +1043,8 @@ func TestValidateVoiceMessage(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		const maxSize = 10
-		th.App.Config().FileSettings.MaxVoiceMessagesFileSize = model.NewInt64(maxSize)
 		fileInfo := &model.FileInfo{
 			Id:       "file_id_2",
-			Size:     maxSize + 1,
 			MimeType: "plain/text",
 		}
 
@@ -1057,21 +1058,24 @@ func TestValidateVoiceMessage(t *testing.T) {
 			ChannelId: "channel_id",
 			UserId:    "user_id",
 			FileIds:   []string{"file_id_2"},
-		})
+		}, nil)
 		require.ErrorContains(t, err, "The voice message file must be a mp3")
 	})
 
-	t.Run("should fail if the file is too big", func(t *testing.T) {
+	t.Run("should fail if the file is too long", func(t *testing.T) {
+		mockBackend := &filesStoreMocks.FileBackend{}
+		mockBackend.On("ListDirectory", mock.Anything).Return([]string{""}, nil)
+		mockBackend.On("TestConnection").Return(nil)
+		mockBackend.On("Reader", "path/to/file.mp3").Return(&filesStoreMocks.ReadCloseSeeker{}, nil)
+
 		// make a store mock
-		th := SetupWithStoreMock(t)
+		th := SetupWithStoreMockAndOptions(t, SetFileStore(mockBackend))
 		defer th.TearDown()
 
-		const maxSize = 10
-		th.App.Config().FileSettings.MaxVoiceMessagesFileSize = model.NewInt64(maxSize)
 		fileInfo := &model.FileInfo{
 			Id:       "file_id_1",
-			Size:     maxSize + 1,
 			MimeType: "audio/mpeg",
+			Path:     "path/to/file.mp3",
 		}
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
@@ -1079,13 +1083,22 @@ func TestValidateVoiceMessage(t *testing.T) {
 		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
-		err := th.App.validateVoiceMessage(&model.Post{
+		const maxVoiceMessagesDuration = 10
+		th.App.Config().FileSettings.MaxVoiceMessagesDuration = model.NewInt64(maxVoiceMessagesDuration)
+		appErr := th.App.validateVoiceMessage(&model.Post{
 			Id:        "post_id",
 			ChannelId: "channel_id",
 			UserId:    "user_id",
 			FileIds:   []string{"file_id_1"},
+		}, func(r io.ReadSeeker) (mp3.ParseInfo, error) {
+			return mp3.ParseInfo{
+				Duration: float64(maxVoiceMessagesDuration + VoiceMessageDurationErrorMargin + 1),
+			}, nil
 		})
-		require.ErrorContains(t, err, "Your voice message file size is too big")
+
+		t.Logf("appErr: %#v", appErr)
+		require.NotNil(t, appErr)
+		require.ErrorContains(t, appErr, "The voice message is too long")
 	})
 }
 
