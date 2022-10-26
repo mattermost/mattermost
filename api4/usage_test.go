@@ -33,9 +33,9 @@ func TestGetPostsUsage(t *testing.T) {
 			th.CreatePost()
 		}
 
-		total, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
+		total, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
 		require.NoError(t, err)
-		usersOnly, err := th.Server.Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true})
+		usersOnly, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true})
 		require.NoError(t, err)
 
 		require.GreaterOrEqual(t, usersOnly, int64(14))

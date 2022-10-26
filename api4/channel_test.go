@@ -1168,7 +1168,7 @@ func TestGetAllChannels(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	policyChannel := (sysManagerChannels)[0]
-	policy, err := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+	policy, err := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
 			PostDurationDays: model.NewInt64(30),
@@ -1661,7 +1661,7 @@ func TestSearchAllChannels(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 	policyChannel := sysManagerChannels[0]
-	policy, savePolicyErr := th.App.Srv().Store.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
+	policy, savePolicyErr := th.App.Srv().Store().RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
 			DisplayName:      "Policy 1",
 			PostDurationDays: model.NewInt64(30),
@@ -1779,6 +1779,7 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	t.Skip("MM-47465")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client
@@ -1923,7 +1924,7 @@ func TestDeleteChannel2(t *testing.T) {
 	// successful delete by channel admin
 	th.MakeUserChannelAdmin(user, publicChannel6)
 	th.MakeUserChannelAdmin(user, privateChannel7)
-	th.App.Srv().Store.Channel().ClearCaches()
+	th.App.Srv().Store().Channel().ClearCaches()
 
 	_, err = client.DeleteChannel(publicChannel6.Id)
 	require.NoError(t, err)
@@ -4139,17 +4140,17 @@ func TestGetChannelModerations(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockStore.On("Team").Return(th.App.Srv().Store.Team())
-		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
-		mockStore.On("User").Return(th.App.Srv().Store.User())
-		mockStore.On("Post").Return(th.App.Srv().Store.Post())
-		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
-		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
-		mockStore.On("System").Return(th.App.Srv().Store.System())
-		mockStore.On("License").Return(th.App.Srv().Store.License())
-		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
 		mockStore.On("Close").Return(nil)
-		th.App.Srv().Store = &mockStore
+		th.App.Srv().SetStore(&mockStore)
 
 		team.SchemeId = &scheme.Id
 		_, appErr := th.App.UpdateTeamScheme(team)
@@ -4283,17 +4284,17 @@ func TestPatchChannelModerations(t *testing.T) {
 		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
 		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockStore.On("Team").Return(th.App.Srv().Store.Team())
-		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
-		mockStore.On("User").Return(th.App.Srv().Store.User())
-		mockStore.On("Post").Return(th.App.Srv().Store.Post())
-		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
-		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
-		mockStore.On("System").Return(th.App.Srv().Store.System())
-		mockStore.On("License").Return(th.App.Srv().Store.License())
-		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
 		mockStore.On("Close").Return(nil)
-		th.App.Srv().Store = &mockStore
+		th.App.Srv().SetStore(&mockStore)
 
 		team.SchemeId = &scheme.Id
 		_, appErr := th.App.UpdateTeamScheme(team)
@@ -4548,7 +4549,7 @@ func TestRootMentionsCount(t *testing.T) {
 	channel := th.BasicChannel
 
 	// initially, MentionCountRoot is 0 in the database
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), channelMember.MentionCountRoot)
 	require.Equal(t, int64(0), channelMember.MentionCount)
@@ -4569,7 +4570,7 @@ func TestRootMentionsCount(t *testing.T) {
 	// regular count stays the same
 	require.Equal(t, int64(2), channelUnread.MentionCount)
 	// validate that DB is updated
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
 	require.NoError(t, err)
 	require.EqualValues(t, int64(1), channelMember.MentionCountRoot)
 

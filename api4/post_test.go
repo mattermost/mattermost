@@ -212,6 +212,53 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
 }
 
+func TestCreatePostWithOAuthClient(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	originalOAuthSetting := *th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = originalOAuthSetting
+	})
+
+	oAuthApp, appErr := th.App.CreateOAuthApp(&model.OAuthApp{
+		CreatorId:    th.SystemAdminUser.Id,
+		Name:         "name",
+		CallbackUrls: []string{"http://test.com"},
+		Homepage:     "http://test.com",
+	})
+	require.Nil(t, appErr, "should create an OAuthApp")
+
+	session, appErr := th.App.CreateSession(&model.Session{
+		UserId:  th.BasicUser.Id,
+		Token:   "token",
+		IsOAuth: true,
+		Props:   model.StringMap{model.SessionPropOAuthAppID: oAuthApp.Id},
+	})
+	require.Nil(t, appErr, "should create a session")
+
+	post, _, err := th.Client.CreatePost(&model.Post{
+		ChannelId: th.BasicPost.ChannelId,
+		Message:   "test message",
+	})
+	require.NoError(t, err)
+	assert.NotContains(t, post.GetProps(), "from_oauth_app", "contains from_oauth_app prop when not using OAuth client")
+
+	client := th.CreateClient()
+	client.SetOAuthToken(session.Token)
+	post, _, err = client.CreatePost(&model.Post{
+		ChannelId: th.BasicPost.ChannelId,
+		Message:   "test message",
+	})
+
+	require.NoError(t, err)
+	assert.Contains(t, post.GetProps(), "from_oauth_app", "missing from_oauth_app prop when using OAuth client")
+}
+
 func TestCreatePostEphemeral(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1433,18 +1480,18 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(nil, errors.New("some-error"))
 	mockPostStore.On("ClearCaches").Return()
-	mockStore.On("Team").Return(th.App.Srv().Store.Team())
-	mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
-	mockStore.On("User").Return(th.App.Srv().Store.User())
-	mockStore.On("Scheme").Return(th.App.Srv().Store.Scheme())
+	mockStore.On("Team").Return(th.App.Srv().Store().Team())
+	mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
+	mockStore.On("User").Return(th.App.Srv().Store().User())
+	mockStore.On("Scheme").Return(th.App.Srv().Store().Scheme())
 	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
-	mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
-	mockStore.On("System").Return(th.App.Srv().Store.System())
-	mockStore.On("License").Return(th.App.Srv().Store.License())
-	mockStore.On("Role").Return(th.App.Srv().Store.Role())
+	mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+	mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+	mockStore.On("System").Return(th.App.Srv().Store().System())
+	mockStore.On("License").Return(th.App.Srv().Store().License())
+	mockStore.On("Role").Return(th.App.Srv().Store().Role())
 	mockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &mockStore
+	th.App.Srv().SetStore(&mockStore)
 
 	_, resp, err = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
 	require.Error(t, err)
@@ -1851,12 +1898,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 20, 20, false)
 	require.NoError(t, err)
@@ -1872,12 +1919,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
 	require.NoError(t, err)
@@ -1896,12 +1943,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
 	require.NoError(t, err)
@@ -1923,12 +1970,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
 	require.NoError(t, err)
@@ -1948,12 +1995,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 3, 3, false)
 	require.NoError(t, err)
@@ -1987,12 +2034,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[post12.Id] = "post12 (reply to post4)"
 	postIdNames[post13.Id] = "post13"
 
-	channelMember, err = th.App.Srv().Store.Channel().GetMember(context.Background(), channelId, userId)
+	channelMember, err = th.App.Srv().Store().Channel().GetMember(context.Background(), channelId, userId)
 	require.NoError(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store().Channel().UpdateMember(channelMember)
 	require.NoError(t, err)
-	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, _, err = client.GetPostsAroundLastUnread(userId, channelId, 1, 2, false)
 	require.NoError(t, err)
@@ -3128,7 +3175,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 	}
 
 	// reset the cache so that channel member notify props includes all users
-	th.App.Srv().Store.Channel().ClearCaches()
+	th.App.Srv().Store().Channel().ClearCaches()
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
