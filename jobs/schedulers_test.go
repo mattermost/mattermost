@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
@@ -142,4 +143,12 @@ func TestScheduler(t *testing.T) {
 
 		wg.Wait()
 	})
+}
+
+func TestRandomDelay(t *testing.T) {
+	cases := []int64{5,10,100}
+	for _, c := range cases {
+		out := getRandomDelay(c)
+		require.Less(t, out.Milliseconds(), c)
+	}
 }
