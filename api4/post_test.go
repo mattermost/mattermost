@@ -3342,3 +3342,205 @@ func TestPostReminder(t *testing.T) {
 
 	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
 }
+
+func TestPostGetInfo(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	sysadminClient := th.SystemAdminClient
+
+	openChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
+	require.NoError(t, err)
+	openPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: openChannel.Id})
+	require.NoError(t, err)
+
+	privateChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, Name: "private-channel", DisplayName: "Private Channel"})
+	require.NoError(t, err)
+	privatePost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: privateChannel.Id})
+	require.NoError(t, err)
+
+	privateChannelBasicUser, _, err := client.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, Name: "private-channel-basic-user", DisplayName: "Private Channel - Basic User"})
+	require.NoError(t, err)
+	privatePostBasicUser, _, err := client.CreatePost(&model.Post{ChannelId: privateChannelBasicUser.Id})
+	require.NoError(t, err)
+
+	user3 := th.CreateUser()
+	gmChannel, _, err := client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+	require.NoError(t, err)
+	gmPost, _, err := client.CreatePost(&model.Post{ChannelId: gmChannel.Id})
+	require.NoError(t, err)
+
+	dmChannel, _, err := client.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.NoError(t, err)
+	dmPost, _, err := client.CreatePost(&model.Post{ChannelId: dmChannel.Id})
+	require.NoError(t, err)
+
+	openTeam, _, err := sysadminClient.CreateTeam(&model.Team{Type: model.TeamOpen, Name: "open-team", DisplayName: "Open Team"})
+	require.NoError(t, err)
+	openTeamOpenChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: openTeam.Id, Type: model.ChannelTypeOpen, Name: "open-team-open-channel", DisplayName: "Open Team - Open Channel"})
+	require.NoError(t, err)
+	openTeamOpenPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: openTeamOpenChannel.Id})
+	require.NoError(t, err)
+
+	inviteTeam, _, err := sysadminClient.CreateTeam(&model.Team{Type: model.TeamInvite, Name: "invite-team", DisplayName: "Invite Team"})
+	require.NoError(t, err)
+	inviteTeamOpenChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: inviteTeam.Id, Type: model.ChannelTypeOpen, Name: "invite-team-open-channel", DisplayName: "Invite Team - Open Channel"})
+	require.NoError(t, err)
+	inviteTeamOpenPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: inviteTeamOpenChannel.Id})
+	require.NoError(t, err)
+
+	testCases := []struct {
+		name      string
+		team      *model.Team
+		channel   *model.Channel
+		post      *model.Post
+		client    *model.Client4
+		hasAccess bool
+	}{
+		// Open channel - Current Team
+		{
+			name:      "Open post - Current team - Basic user",
+			team:      th.BasicTeam,
+			channel:   openChannel,
+			post:      openPost,
+			client:    client,
+			hasAccess: true,
+		},
+		{
+			name:      "Open post - Current team - Sysadmin user",
+			team:      th.BasicTeam,
+			channel:   openChannel,
+			post:      openPost,
+			client:    sysadminClient,
+			hasAccess: true,
+		},
+
+		// Private channel - Current Team
+		{
+			name:      "Private post by sysadmin - Current team - Basic user",
+			team:      th.BasicTeam,
+			channel:   privateChannel,
+			post:      privatePost,
+			client:    client,
+			hasAccess: false,
+		},
+		{
+			name:      "Private post by sysadmin - Current team - Sysadmin user",
+			team:      th.BasicTeam,
+			channel:   privateChannel,
+			post:      privatePost,
+			client:    sysadminClient,
+			hasAccess: true,
+		},
+		{
+			name:      "Private post by basic user - Current team - Basic user",
+			team:      th.BasicTeam,
+			channel:   privateChannelBasicUser,
+			post:      privatePostBasicUser,
+			client:    client,
+			hasAccess: true,
+		},
+		{
+			name:      "Private post by basic user - Current team - Sysadmin user",
+			team:      th.BasicTeam,
+			channel:   privateChannelBasicUser,
+			post:      privatePostBasicUser,
+			client:    sysadminClient,
+			hasAccess: true,
+		},
+
+		// GM channel
+		{
+			name:      "GM post - Current team - Basic user",
+			team:      nil,
+			channel:   gmChannel,
+			post:      gmPost,
+			client:    client,
+			hasAccess: true,
+		},
+		{
+			name:      "GM post - Current team - Sysadmin user",
+			team:      nil,
+			channel:   gmChannel,
+			post:      gmPost,
+			client:    sysadminClient,
+			hasAccess: false,
+		},
+
+		// DM channel
+		{
+			name:      "DM post - Current team - Basic user",
+			team:      nil,
+			channel:   dmChannel,
+			post:      dmPost,
+			client:    client,
+			hasAccess: true,
+		},
+		{
+			name:      "DM post - Current team - Sysadmin user",
+			team:      nil,
+			channel:   dmChannel,
+			post:      dmPost,
+			client:    sysadminClient,
+			hasAccess: false,
+		},
+
+		// Open channel - Open Team
+		{
+			name:      "Open post - Open team - Basic user",
+			team:      openTeam,
+			channel:   openTeamOpenChannel,
+			post:      openTeamOpenPost,
+			client:    client,
+			hasAccess: true,
+		},
+		{
+			name:      "Open post - Open team - Sysadmin user",
+			team:      openTeam,
+			channel:   openTeamOpenChannel,
+			post:      openTeamOpenPost,
+			client:    sysadminClient,
+			hasAccess: true,
+		},
+
+		// Open channel - Invite Team
+		{
+			name:      "Open post - Open team - Basic user",
+			team:      inviteTeam,
+			channel:   inviteTeamOpenChannel,
+			post:      inviteTeamOpenPost,
+			client:    client,
+			hasAccess: false,
+		},
+		{
+			name:      "Open post - Open team - Sysadmin user",
+			team:      inviteTeam,
+			channel:   inviteTeamOpenChannel,
+			post:      inviteTeamOpenPost,
+			client:    sysadminClient,
+			hasAccess: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, resp, err := tc.client.GetPostInfo(tc.post.Id)
+			if !tc.hasAccess {
+				require.Error(t, err)
+				CheckNotFoundStatus(t, resp)
+				return
+			}
+
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Equal(t, tc.channel.Id, info.ChannelId)
+			require.Equal(t, tc.channel.Type, info.ChannelType)
+			require.Equal(t, tc.channel.DisplayName, info.ChannelDisplayName)
+			if tc.team != nil {
+				require.Equal(t, tc.team.Id, info.TeamId)
+				require.Equal(t, tc.team.Type, info.TeamType)
+				require.Equal(t, tc.team.DisplayName, info.TeamDisplayName)
+			}
+		})
+	}
+}
