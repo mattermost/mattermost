@@ -1457,7 +1457,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxVoiceMessagesDuration == nil {
-		s.MaxVoiceMessagesDuration = NewInt64(0)
+		s.MaxVoiceMessagesDuration = NewInt64(5 * 60) // 5 minutes
 	}
 
 	if s.MaxImageResolution == nil {
