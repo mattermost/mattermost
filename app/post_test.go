@@ -960,9 +960,9 @@ func TestCreatePost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ExperimentalSettings.EnableVoiceMessages = model.NewBool(true)
+			cfg.ServiceSettings.EnableVoiceMessages = model.NewBool(true)
 			// Disable max voice message duration verification
-			cfg.FileSettings.MaxVoiceMessagesDuration = model.NewInt64(0)
+			cfg.ServiceSettings.MaxVoiceMessagesDuration = model.NewInt64(0)
 		})
 
 		nowMillis := time.Now().UnixMilli()
@@ -1084,7 +1084,7 @@ func TestValidateVoiceMessage(t *testing.T) {
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 		const maxVoiceMessagesDuration = 10
-		th.App.Config().FileSettings.MaxVoiceMessagesDuration = model.NewInt64(maxVoiceMessagesDuration)
+		th.App.Config().ServiceSettings.MaxVoiceMessagesDuration = model.NewInt64(maxVoiceMessagesDuration)
 		appErr := th.App.validateVoiceMessage(&model.Post{
 			Id:        "post_id",
 			ChannelId: "channel_id",

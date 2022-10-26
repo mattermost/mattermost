@@ -384,6 +384,8 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
+	EnableVoiceMessages                               *bool   `access:"site_posts"`
+	MaxVoiceMessagesDuration                          *int64  `access:"site_posts,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -848,6 +850,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.PostPriority == nil {
 		s.PostPriority = NewBool(false)
 	}
+
+	if s.EnableVoiceMessages == nil {
+		s.EnableVoiceMessages = NewBool(true)
+	}
+
+	if s.MaxVoiceMessagesDuration == nil {
+		s.MaxVoiceMessagesDuration = NewInt64(5 * 60) // 5 minutes
+	}
 }
 
 type ClusterSettings struct {
@@ -959,7 +969,6 @@ type ExperimentalSettings struct {
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
-	EnableVoiceMessages             *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -993,10 +1002,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableAppBar == nil {
 		s.EnableAppBar = NewBool(false)
-	}
-
-	if s.EnableVoiceMessages == nil {
-		s.EnableVoiceMessages = NewBool(true)
 	}
 }
 
@@ -1416,7 +1421,6 @@ type FileSettings struct {
 	EnableMobileUpload                 *bool   `access:"site_file_sharing_and_downloads"`
 	EnableMobileDownload               *bool   `access:"site_file_sharing_and_downloads"`
 	MaxFileSize                        *int64  `access:"environment_file_storage,cloud_restrictable"`
-	MaxVoiceMessagesDuration           *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageResolution                 *int64  `access:"environment_file_storage,cloud_restrictable"`
 	MaxImageDecoderConcurrency         *int64  `access:"environment_file_storage,cloud_restrictable"`
 	DriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
@@ -1454,10 +1458,6 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.MaxFileSize == nil {
 		s.MaxFileSize = NewInt64(FileSettingsDefaultMaxFileSize) // 100MB (IEC)
-	}
-
-	if s.MaxVoiceMessagesDuration == nil {
-		s.MaxVoiceMessagesDuration = NewInt64(5 * 60) // 5 minutes
 	}
 
 	if s.MaxImageResolution == nil {
@@ -3439,10 +3439,6 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxVoiceMessagesDuration < 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_duration.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3723,6 +3719,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.CollapsedThreads != CollapsedThreadsAlwaysOn &&
 		*s.CollapsedThreads != CollapsedThreadsDefaultOff {
 		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxVoiceMessagesDuration < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_voice_messages_duration.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

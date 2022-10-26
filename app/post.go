@@ -300,7 +300,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if post.IsVoiceMessage() {
 		// make sure voice messages are allowed
-		if a.Config().FeatureFlags.VoiceMessages && *a.Config().ExperimentalSettings.EnableVoiceMessages {
+		if a.Config().FeatureFlags.VoiceMessages && *a.Config().ServiceSettings.EnableVoiceMessages {
 			if err = a.validateVoiceMessage(post, mp3.Parse); err != nil {
 				return nil, err
 			}
@@ -412,7 +412,7 @@ func (a *App) validateVoiceMessage(post *model.Post, parser mp3.Parser) *model.A
 		return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.invalid_file_type.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
 	}
 
-	if *a.Config().FileSettings.MaxVoiceMessagesDuration > 0 {
+	if *a.Config().ServiceSettings.MaxVoiceMessagesDuration > 0 {
 		fileReader, readFileErr := a.FileReader(fileInfo.Path)
 		if readFileErr != nil {
 			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.unable_get_file_content.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusInternalServerError).Wrap(err)
@@ -423,7 +423,7 @@ func (a *App) validateVoiceMessage(post *model.Post, parser mp3.Parser) *model.A
 			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.unable_to_parse_file.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusInternalServerError).Wrap(err)
 		}
 
-		if mp3info.Duration > float64(*a.Config().FileSettings.MaxVoiceMessagesDuration+VoiceMessageDurationErrorMargin) {
+		if mp3info.Duration > float64(*a.Config().ServiceSettings.MaxVoiceMessagesDuration+VoiceMessageDurationErrorMargin) {
 			details := fmt.Sprintf("id=%s fileId=%s duration=%.0f", post.Id, fileIds[0], mp3info.Duration)
 			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.too_long.app_error", nil, details, http.StatusBadRequest)
 		}

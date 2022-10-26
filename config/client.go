@@ -51,12 +51,13 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableInlineLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableInlineLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
 	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
+	props["EnableVoiceMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableVoiceMessages)
+	props["MaxVoiceMessagesDuration"] = strconv.FormatInt(*c.ServiceSettings.MaxVoiceMessagesDuration, 10)
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
 
 	props["EnableAppBar"] = strconv.FormatBool(*c.ExperimentalSettings.EnableAppBar)
-	props["ExperimentalEnableVoiceMessages"] = strconv.FormatBool(*c.ExperimentalSettings.EnableVoiceMessages)
 
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
@@ -82,7 +83,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["GfycatApiKey"] = *c.ServiceSettings.GfycatAPIKey
 	props["GfycatApiSecret"] = *c.ServiceSettings.GfycatAPISecret
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
-	props["MaxVoiceMessagesDuration"] = strconv.FormatInt(*c.FileSettings.MaxVoiceMessagesDuration, 10)
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
 	props["EnableConfirmNotificationsToChannel"] = strconv.FormatBool(*c.TeamSettings.EnableConfirmNotificationsToChannel)
