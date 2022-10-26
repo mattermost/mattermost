@@ -52,7 +52,7 @@ const (
 // Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
 var _ product.FileInfoStoreService = (*SuiteService)(nil)
 
-func (a *SuiteService) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+func (s *SuiteService) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	fileBackendSettings := settings.ToFileBackendSettings(false, false)
 	err := fileBackendSettings.CheckMandatoryS3Fields()
 	if err != nil {
@@ -72,17 +72,17 @@ func connectionTestErrorToAppError(connTestErr error) *model.AppError {
 	}
 }
 
-func (a *SuiteService) TestFileStoreConnection() *model.AppError {
-	nErr := a.platform.FileBackend().TestConnection()
+func (s *SuiteService) TestFileStoreConnection() *model.AppError {
+	nErr := s.platform.FileBackend().TestConnection()
 	if nErr != nil {
 		return connectionTestErrorToAppError(nErr)
 	}
 	return nil
 }
 
-func (a *SuiteService) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
-	license := a.platform.License()
-	insecure := a.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
+func (s *SuiteService) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+	license := s.platform.License()
+	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	backend, err := filestore.NewFileBackend(cfg.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -94,40 +94,40 @@ func (a *SuiteService) TestFileStoreConnectionWithConfig(cfg *model.FileSettings
 	return nil
 }
 
-func (a *SuiteService) ReadFile(path string) ([]byte, *model.AppError) {
-	b, err := a.platform.FileBackend().ReadFile(path)
+func (s *SuiteService) ReadFile(path string) ([]byte, *model.AppError) {
+	b, err := s.platform.FileBackend().ReadFile(path)
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return b, nil
 }
 
-func (a *SuiteService) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
-	result, nErr := a.platform.FileBackend().Reader(path)
+func (s *SuiteService) FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError) {
+	result, nErr := s.platform.FileBackend().Reader(path)
 	if nErr != nil {
 		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
 
-func (a *SuiteService) FileExists(path string) (bool, *model.AppError) {
-	result, nErr := a.platform.FileBackend().FileExists(path)
+func (s *SuiteService) FileExists(path string) (bool, *model.AppError) {
+	result, nErr := s.platform.FileBackend().FileExists(path)
 	if nErr != nil {
 		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
 
-func (a *SuiteService) FileSize(path string) (int64, *model.AppError) {
-	size, nErr := a.platform.FileBackend().FileSize(path)
+func (s *SuiteService) FileSize(path string) (int64, *model.AppError) {
+	size, nErr := s.platform.FileBackend().FileSize(path)
 	if nErr != nil {
 		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return size, nil
 }
 
-func (a *SuiteService) FileModTime(path string) (time.Time, *model.AppError) {
-	modTime, nErr := a.platform.FileBackend().FileModTime(path)
+func (s *SuiteService) FileModTime(path string) (time.Time, *model.AppError) {
+	modTime, nErr := s.platform.FileBackend().FileModTime(path)
 	if nErr != nil {
 		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -135,44 +135,44 @@ func (a *SuiteService) FileModTime(path string) (time.Time, *model.AppError) {
 	return modTime, nil
 }
 
-func (a *SuiteService) MoveFile(oldPath, newPath string) *model.AppError {
-	nErr := a.platform.FileBackend().MoveFile(oldPath, newPath)
+func (s *SuiteService) MoveFile(oldPath, newPath string) *model.AppError {
+	nErr := s.platform.FileBackend().MoveFile(oldPath, newPath)
 	if nErr != nil {
 		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return nil
 }
 
-func (a *SuiteService) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	result, nErr := a.platform.FileBackend().WriteFile(fr, path)
+func (s *SuiteService) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+	result, nErr := s.platform.FileBackend().WriteFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
 
-func (a *SuiteService) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
-	result, nErr := a.platform.FileBackend().AppendFile(fr, path)
+func (s *SuiteService) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	result, nErr := s.platform.FileBackend().AppendFile(fr, path)
 	if nErr != nil {
 		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return result, nil
 }
 
-func (a *SuiteService) RemoveFile(path string) *model.AppError {
-	nErr := a.platform.FileBackend().RemoveFile(path)
+func (s *SuiteService) RemoveFile(path string) *model.AppError {
+	nErr := s.platform.FileBackend().RemoveFile(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 	return nil
 }
 
-func (a *SuiteService) ListDirectory(path string) ([]string, *model.AppError) {
-	return a.listDirectory(path, false)
+func (s *SuiteService) ListDirectory(path string) ([]string, *model.AppError) {
+	return s.listDirectory(path, false)
 }
 
-func (a *SuiteService) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
-	return a.listDirectory(path, true)
+func (s *SuiteService) ListDirectoryRecursively(path string) ([]string, *model.AppError) {
+	return s.listDirectory(path, true)
 }
 
 func (s *SuiteService) listDirectory(path string, recursion bool) ([]string, *model.AppError) {
@@ -193,8 +193,8 @@ func (s *SuiteService) listDirectory(path string, recursion bool) ([]string, *mo
 	return paths, nil
 }
 
-func (a *SuiteService) RemoveDirectory(path string) *model.AppError {
-	nErr := a.platform.FileBackend().RemoveDirectory(path)
+func (s *SuiteService) RemoveDirectory(path string) *model.AppError {
+	nErr := s.platform.FileBackend().RemoveDirectory(path)
 	if nErr != nil {
 		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -202,13 +202,13 @@ func (a *SuiteService) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func (a *SuiteService) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
+func (s *SuiteService) getInfoForFilename(post *model.Post, teamID, channelID, userID, oldId, filename string) *model.FileInfo {
 	name, _ := url.QueryUnescape(filename)
 	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelID, userID, oldId)
 	path := pathPrefix + name
 
 	// Open the file and populate the fields of the FileInfo
-	data, err := a.ReadFile(path)
+	data, err := s.ReadFile(path)
 	if err != nil {
 		mlog.Error(
 			"File not found when migrating post to use FileInfos",
@@ -247,11 +247,11 @@ func (a *SuiteService) getInfoForFilename(post *model.Post, teamID, channelID, u
 	return info
 }
 
-func (a *SuiteService) findTeamIdForFilename(post *model.Post, id, filename string) string {
+func (s *SuiteService) findTeamIdForFilename(post *model.Post, id, filename string) string {
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	teams, err := a.platform.Store.Team().GetTeamsByUserId(post.UserId)
+	teams, err := s.platform.Store.Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
 		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
@@ -264,7 +264,7 @@ func (a *SuiteService) findTeamIdForFilename(post *model.Post, id, filename stri
 
 	for _, team := range teams {
 		path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
-		if ok, err := a.FileExists(path); ok && err == nil {
+		if ok, err := s.FileExists(path); ok && err == nil {
 			// Found the team that this file was posted from
 			return team.Id
 		}
@@ -297,13 +297,13 @@ func parseOldFilenames(filenames []string, channelID, userID string) [][]string 
 }
 
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
-func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+func (s *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		mlog.Warn("Unable to migrate post to use FileInfos with an empty Filenames field", mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
-	channel, errCh := a.platform.Store.Channel().Get(post.ChannelId, true)
+	channel, errCh := s.platform.Store.Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
@@ -328,7 +328,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	var teamID string
 	if channel.TeamId == "" {
 		// This post was made in a cross-team DM channel, so we need to find where its files were saved
-		teamID = a.findTeamIdForFilename(post, parsedFilenames[0][2], parsedFilenames[0][3])
+		teamID = s.findTeamIdForFilename(post, parsedFilenames[0][2], parsedFilenames[0][3])
 	} else {
 		teamID = channel.TeamId
 	}
@@ -343,7 +343,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 		)
 	} else {
 		for _, parsed := range parsedFilenames {
-			info := a.getInfoForFilename(post, teamID, parsed[0], parsed[1], parsed[2], parsed[3])
+			info := s.getInfoForFilename(post, teamID, parsed[0], parsed[1], parsed[2], parsed[3])
 			if info == nil {
 				continue
 			}
@@ -356,7 +356,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.platform.Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.platform.Config().GetSanitizeOptions())
+	result, nErr := s.platform.Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", s.platform.Config().GetSanitizeOptions())
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -365,7 +365,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, nErr = a.platform.Store.FileInfo().GetForPost(post.Id, true, false, false)
+		fileInfos, nErr = s.platform.Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if nErr != nil {
 			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(nErr), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
@@ -380,7 +380,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIDs := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, nErr = a.platform.Store.FileInfo().Save(info); nErr != nil {
+		if _, nErr = s.platform.Store.FileInfo().Save(info); nErr != nil {
 			mlog.Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
@@ -402,7 +402,7 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	newPost.FileIds = fileIDs
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, nErr = a.platform.Store.Post().Update(newPost, post); nErr != nil {
+	if _, nErr = s.platform.Store.Post().Update(newPost, post); nErr != nil {
 		mlog.Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
@@ -415,8 +415,8 @@ func (a *SuiteService) MigrateFilenamesToFileInfos(post *model.Post) []*model.Fi
 	return savedInfos
 }
 
-func (a *SuiteService) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
-	hash := GeneratePublicLinkHash(info.Id, *a.platform.Config().FileSettings.PublicLinkSalt)
+func (s *SuiteService) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
+	hash := GeneratePublicLinkHash(info.Id, *s.platform.Config().FileSettings.PublicLinkSalt)
 	return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
 }
 
@@ -429,14 +429,14 @@ func GeneratePublicLinkHash(fileID, salt string) string {
 }
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
-func (a *SuiteService) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
-	_, err := a.channels.GetChannel(c, channelID)
+func (s *SuiteService) UploadFile(c request.CTX, data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
+	_, err := s.channels.GetChannel(c, channelID)
 	if err != nil && channelID != "" {
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]any{"channelId": channelID}, "", http.StatusBadRequest)
 	}
 
-	info, _, appError := a.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
+	info, _, appError := s.DoUploadFileExpectModification(c, time.Now(), "noteam", channelID, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -446,14 +446,14 @@ func (a *SuiteService) UploadFile(c request.CTX, data []byte, channelID string, 
 		thumbnailPathList := []string{info.ThumbnailPath}
 		imageDataList := [][]byte{data}
 
-		a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
+		s.HandleImages(previewPathList, thumbnailPathList, imageDataList)
 	}
 
 	return info, nil
 }
 
-func (a *SuiteService) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	info, _, err := a.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+func (s *SuiteService) DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	info, _, err := s.DoUploadFileExpectModification(c, now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
 	return info, err
 }
 
@@ -567,7 +567,7 @@ type UploadFileTask struct {
 	imgEncoder *imaging.Encoder
 }
 
-func (t *UploadFileTask) init(a *SuiteService) {
+func (t *UploadFileTask) init(s *SuiteService) {
 	t.buf = &bytes.Buffer{}
 	if t.ContentLength > 0 {
 		t.limit = t.ContentLength
@@ -593,9 +593,9 @@ func (t *UploadFileTask) init(a *SuiteService) {
 	}
 	t.teeInput = io.TeeReader(t.limitedInput, t.buf)
 
-	t.pluginsEnvironment = a.GetPluginsEnvironment()
-	t.writeFile = a.WriteFile
-	t.saveToDatabase = a.platform.Store.FileInfo().Save
+	t.pluginsEnvironment = s.GetPluginsEnvironment()
+	t.writeFile = s.WriteFile
+	t.saveToDatabase = s.platform.Store.FileInfo().Save
 }
 
 // UploadFileX uploads a single file as specified in t. It applies the upload
@@ -603,30 +603,30 @@ func (t *UploadFileTask) init(a *SuiteService) {
 // returns a filled-out FileInfo and an optional error. A plugin may reject the
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
-func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
+func (s *SuiteService) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
 	opts ...func(any)) (*model.FileInfo, *model.AppError) {
 
 	t := &UploadFileTask{
 		ChannelId:   filepath.Base(channelID),
 		Name:        filepath.Base(name),
 		Input:       input,
-		maxFileSize: *a.platform.Config().FileSettings.MaxFileSize,
-		maxImageRes: *a.platform.Config().FileSettings.MaxImageResolution,
-		imgDecoder:  a.imgDecoder,
-		imgEncoder:  a.imgEncoder,
+		maxFileSize: *s.platform.Config().FileSettings.MaxFileSize,
+		maxImageRes: *s.platform.Config().FileSettings.MaxImageResolution,
+		imgDecoder:  s.imgDecoder,
+		imgEncoder:  s.imgEncoder,
 	}
 	for _, o := range opts {
 		o(t)
 	}
 
-	if *a.platform.Config().FileSettings.DriverName == "" {
+	if *s.platform.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
-	t.init(a)
+	t.init(s)
 
 	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
@@ -642,7 +642,7 @@ func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, i
 	}
 
 	if written > t.maxFileSize {
-		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
+		if fileErr := s.RemoveFile(t.fileinfo.Path); fileErr != nil {
 			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
@@ -650,19 +650,19 @@ func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, i
 
 	t.fileinfo.Size = written
 
-	file, aerr := a.FileReader(t.fileinfo.Path)
+	file, aerr := s.FileReader(t.fileinfo.Path)
 	if aerr != nil {
 		return nil, aerr
 	}
 	defer file.Close()
 
-	aerr = a.runPluginsHook(c, t.fileinfo, file)
+	aerr = s.runPluginsHook(c, t.fileinfo, file)
 	if aerr != nil {
 		return nil, aerr
 	}
 
 	if !t.Raw && t.fileinfo.IsImage() {
-		file, aerr = a.FileReader(t.fileinfo.Path)
+		file, aerr = s.FileReader(t.fileinfo.Path)
 		if aerr != nil {
 			return nil, aerr
 		}
@@ -680,10 +680,10 @@ func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, i
 		}
 	}
 
-	if *a.platform.Config().FileSettings.ExtractContent {
+	if *s.platform.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.platform.GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+		s.platform.GoBuffered(func() {
+			err := s.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
@@ -693,8 +693,8 @@ func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, i
 	return t.fileinfo, nil
 }
 
-func (ss *SuiteService) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
-	pluginsEnvironment := ss.GetPluginsEnvironment()
+func (s *SuiteService) runPluginsHook(c *request.Context, info *model.FileInfo, file io.Reader) *model.AppError {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil
 	}
@@ -738,19 +738,19 @@ func (ss *SuiteService) runPluginsHook(c *request.Context, info *model.FileInfo,
 	}
 
 	tmpPath := filePath + ".tmp"
-	written, err := ss.WriteFile(r, tmpPath)
+	written, err := s.WriteFile(r, tmpPath)
 	if err != nil {
-		if fileErr := ss.RemoveFile(tmpPath); fileErr != nil {
+		if fileErr := s.RemoveFile(tmpPath); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
 
 	if err = <-errChan; err != nil {
-		if fileErr := ss.RemoveFile(info.Path); fileErr != nil {
+		if fileErr := s.RemoveFile(info.Path); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
-		if fileErr := ss.RemoveFile(tmpPath); fileErr != nil {
+		if fileErr := s.RemoveFile(tmpPath); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
@@ -758,12 +758,12 @@ func (ss *SuiteService) runPluginsHook(c *request.Context, info *model.FileInfo,
 
 	if written > 0 {
 		info.Size = written
-		if fileErr := ss.MoveFile(tmpPath, info.Path); fileErr != nil {
+		if fileErr := s.MoveFile(tmpPath, info.Path); fileErr != nil {
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
 				nil, "", http.StatusInternalServerError).Wrap(fileErr)
 		}
 	} else {
-		if fileErr := ss.RemoveFile(tmpPath); fileErr != nil {
+		if fileErr := s.RemoveFile(tmpPath); fileErr != nil {
 			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
@@ -933,7 +933,7 @@ func (t UploadFileTask) newAppError(id string, httpStatus int, extra ...any) *mo
 	return model.NewAppError("uploadFileTask", id, params, "", httpStatus)
 }
 
-func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+func (s *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelID := filepath.Base(rawChannelId)
@@ -961,7 +961,7 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() && !info.IsSvg() {
-		if limitErr := CheckImageResolutionLimit(info.Width, info.Height, *a.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
+		if limitErr := CheckImageResolutionLimit(info.Width, info.Height, *s.platform.Config().FileSettings.MaxImageResolution); limitErr != nil {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]any{"Filename": filename}, "", http.StatusBadRequest).Wrap(limitErr)
 			return nil, data, err
 		}
@@ -971,7 +971,7 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + GetFileExtFromMimeType(info.MimeType)
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+	if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
@@ -996,11 +996,11 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 		}
 	}
 
-	if _, err := a.WriteFile(bytes.NewReader(data), info.Path); err != nil {
+	if _, err := s.WriteFile(bytes.NewReader(data), info.Path); err != nil {
 		return nil, data, err
 	}
 
-	if _, err := a.platform.Store.FileInfo().Save(info); err != nil {
+	if _, err := s.platform.Store.FileInfo().Save(info); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -1010,10 +1010,10 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 		}
 	}
 
-	if *a.platform.Config().FileSettings.ExtractContent {
+	if *s.platform.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.platform.GoBuffered(func() {
-			err := a.ExtractContentFromFileInfo(&infoCopy)
+		s.platform.GoBuffered(func() {
+			err := s.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
@@ -1023,11 +1023,11 @@ func (a *SuiteService) DoUploadFileExpectModification(c request.CTX, now time.Ti
 	return info, data, nil
 }
 
-func (a *SuiteService) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (s *SuiteService) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, imgType, release, err := PrepareImage(a.imgDecoder, bytes.NewReader(fileData[i]))
+		img, imgType, release, err := PrepareImage(s.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
@@ -1035,12 +1035,12 @@ func (a *SuiteService) HandleImages(previewPathList []string, thumbnailPathList 
 		wg.Add(2)
 		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.GenerateThumbnailImage(img, imgType, path)
+			s.GenerateThumbnailImage(img, imgType, path)
 		}(img, imgType, thumbnailPathList[i])
 
 		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.GeneratePreviewImage(img, imgType, path)
+			s.GeneratePreviewImage(img, imgType, path)
 		}(img, imgType, previewPathList[i])
 
 		wg.Wait()
@@ -1066,45 +1066,45 @@ func PrepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 	return img, imgType, release, nil
 }
 
-func (a *SuiteService) GenerateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
+func (s *SuiteService) GenerateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
 	var buf bytes.Buffer
 
 	thumb := imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight)
 	if imgType == "png" {
-		if err := a.imgEncoder.EncodePNG(&buf, thumb); err != nil {
+		if err := s.imgEncoder.EncodePNG(&buf, thumb); err != nil {
 			mlog.Error("Unable to encode image as png", mlog.String("path", thumbnailPath), mlog.Err(err))
 			return
 		}
 	} else {
-		if err := a.imgEncoder.EncodeJPEG(&buf, thumb, jpegEncQuality); err != nil {
+		if err := s.imgEncoder.EncodeJPEG(&buf, thumb, jpegEncQuality); err != nil {
 			mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 			return
 		}
 	}
 
-	if _, err := a.WriteFile(&buf, thumbnailPath); err != nil {
+	if _, err := s.WriteFile(&buf, thumbnailPath); err != nil {
 		mlog.Error("Unable to upload thumbnail", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
 }
 
-func (a *SuiteService) GeneratePreviewImage(img image.Image, imgType, previewPath string) {
+func (s *SuiteService) GeneratePreviewImage(img image.Image, imgType, previewPath string) {
 	var buf bytes.Buffer
 
 	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 	if imgType == "png" {
-		if err := a.imgEncoder.EncodePNG(&buf, preview); err != nil {
+		if err := s.imgEncoder.EncodePNG(&buf, preview); err != nil {
 			mlog.Error("Unable to encode image as preview png", mlog.Err(err), mlog.String("path", previewPath))
 			return
 		}
 	} else {
-		if err := a.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
+		if err := s.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
 			mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
 			return
 		}
 	}
 
-	if _, err := a.WriteFile(&buf, previewPath); err != nil {
+	if _, err := s.WriteFile(&buf, previewPath); err != nil {
 		mlog.Error("Unable to upload preview", mlog.Err(err), mlog.String("path", previewPath))
 		return
 	}
@@ -1112,15 +1112,15 @@ func (a *SuiteService) GeneratePreviewImage(img image.Image, imgType, previewPat
 
 // generateMiniPreview updates mini preview if needed
 // will save fileinfo with the preview added
-func (a *SuiteService) generateMiniPreview(fi *model.FileInfo) {
+func (s *SuiteService) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && !fi.IsSvg() && fi.MiniPreview == nil {
-		file, appErr := a.FileReader(fi.Path)
+		file, appErr := s.FileReader(fi.Path)
 		if appErr != nil {
 			mlog.Debug("error reading image file", mlog.Err(appErr))
 			return
 		}
 		defer file.Close()
-		img, _, release, err := PrepareImage(a.imgDecoder, file)
+		img, _, release, err := PrepareImage(s.imgDecoder, file)
 		if err != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
@@ -1135,22 +1135,22 @@ func (a *SuiteService) generateMiniPreview(fi *model.FileInfo) {
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
-		if _, err = a.platform.Store.FileInfo().Upsert(fi); err != nil {
+		if _, err = s.platform.Store.FileInfo().Upsert(fi); err != nil {
 			mlog.Debug("creating mini preview failed", mlog.Err(err))
 		} else {
-			a.platform.Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
+			s.platform.Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
 	}
 }
 
-func (a *SuiteService) GenerateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
+func (s *SuiteService) GenerateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg := new(sync.WaitGroup)
 
 	wg.Add(len(fileInfos))
 	for _, fileInfo := range fileInfos {
 		go func(fi *model.FileInfo) {
 			defer wg.Done()
-			a.generateMiniPreview(fi)
+			s.generateMiniPreview(fi)
 		}(fileInfo)
 	}
 	wg.Wait()
@@ -1170,13 +1170,13 @@ func (s *SuiteService) getFileInfo(fileID string) (*model.FileInfo, *model.AppEr
 	return fileInfo, nil
 }
 
-func (a *SuiteService) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, appErr := a.getFileInfo(fileID)
+func (s *SuiteService) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, appErr := s.getFileInfo(fileID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(fileInfo)
+	firstInaccessibleFileTime, appErr := s.isInaccessibleFile(fileInfo)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1184,21 +1184,21 @@ func (a *SuiteService) GetFileInfo(fileID string) (*model.FileInfo, *model.AppEr
 		return nil, model.NewAppError("GetFileInfo", "app.file.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
-	a.generateMiniPreview(fileInfo)
+	s.generateMiniPreview(fileInfo)
 	return fileInfo, appErr
 }
 
-func (a *SuiteService) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, appErr := a.getFileInfo(fileID)
+func (s *SuiteService) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, appErr := s.getFileInfo(fileID)
 	if appErr == nil {
-		a.generateMiniPreview(fileInfo)
+		s.generateMiniPreview(fileInfo)
 	}
 
 	return fileInfo, appErr
 }
 
-func (a *SuiteService) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	fileInfos, err := a.platform.Store.FileInfo().GetWithOptions(page, perPage, opt)
+func (s *SuiteService) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	fileInfos, err := s.platform.Store.FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var ltErr *store.ErrLimitExceeded
@@ -1217,23 +1217,23 @@ func (a *SuiteService) GetFileInfos(page, perPage int, opt *model.GetFileInfosOp
 		filterOptions.assumeSortedCreatedAt = true
 	}
 
-	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
+	fileInfos, _, appErr := s.getFilteredAccessibleFiles(fileInfos, filterOptions)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	a.GenerateMiniPreviewForInfos(fileInfos)
+	s.GenerateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, nil
 }
 
-func (a *SuiteService) GetFile(fileID string) ([]byte, *model.AppError) {
-	info, err := a.GetFileInfo(fileID)
+func (s *SuiteService) GetFile(fileID string) ([]byte, *model.AppError) {
+	info, err := s.GetFileInfo(fileID)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err2 := a.platform.FileBackend().ReadFile(info.Path)
+	data, err2 := s.platform.FileBackend().ReadFile(info.Path)
 	if err2 != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err2)
 	}
@@ -1241,13 +1241,13 @@ func (a *SuiteService) GetFile(fileID string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *SuiteService) GetFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
-	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
+func (s *SuiteService) GetFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
+	info, err := s.getFileInfoIgnoreCloudLimit(fileID)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err2 := a.ReadFile(info.Path)
+	data, err2 := s.ReadFile(info.Path)
 	if err2 != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err2)
 	}
@@ -1255,13 +1255,13 @@ func (a *SuiteService) GetFileIgnoreCloudLimit(fileID string) ([]byte, *model.Ap
 	return data, nil
 }
 
-func (a *SuiteService) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+func (s *SuiteService) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()
 
 	for _, fileID := range fileIDs {
-		fileInfo, err := a.platform.Store.FileInfo().Get(fileID)
+		fileInfo, err := s.platform.Store.FileInfo().Get(fileID)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1278,7 +1278,7 @@ func (a *SuiteService) CopyFileInfos(userID string, fileIDs []string) ([]string,
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if _, err := a.platform.Store.FileInfo().Save(fileInfo); err != nil {
+		if _, err := s.platform.Store.FileInfo().Save(fileInfo); err != nil {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &appErr):
@@ -1296,7 +1296,7 @@ func (a *SuiteService) CopyFileInfos(userID string, fileIDs []string) ([]string,
 
 // This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
 // Ensure the zip file name ends with a .zip
-func (a *SuiteService) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+func (s *SuiteService) CreateZipFileAndAddFiles(fileBackend filestore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(zipFileName)
 	if err != nil {
@@ -1340,11 +1340,11 @@ func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
 	return nil
 }
 
-func (a *SuiteService) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.FileInfoList, *model.AppError) {
+func (s *SuiteService) SearchFilesInTeamForUser(c *request.Context, terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.FileInfoList, *model.AppError) {
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-	includeDeleted := includeDeletedChannels && *a.platform.Config().TeamSettings.ExperimentalViewArchivedChannels
+	includeDeleted := includeDeletedChannels && *s.platform.Config().TeamSettings.ExperimentalViewArchivedChannels
 
-	if !*a.platform.Config().ServiceSettings.EnableFileSearch {
+	if !*s.platform.Config().ServiceSettings.EnableFileSearch {
 		return nil, model.NewAppError("SearchFilesInTeamForUser", "store.sql_file_info.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
@@ -1357,12 +1357,12 @@ func (a *SuiteService) SearchFilesInTeamForUser(c *request.Context, terms string
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(c, params.InChannels, userId, teamId, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
+			params.InChannels = s.convertChannelNamesToChannelIds(c, params.InChannels, userId, teamId, includeDeletedChannels)
+			params.ExcludedChannels = s.convertChannelNamesToChannelIds(c, params.ExcludedChannels, userId, teamId, includeDeletedChannels)
 
 			// Convert usernames to user IDs
-			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
-			params.ExcludedUsers = a.convertUserNameToUserIds(params.ExcludedUsers)
+			params.FromUsers = s.convertUserNameToUserIds(params.FromUsers)
+			params.ExcludedUsers = s.convertUserNameToUserIds(params.ExcludedUsers)
 
 			finalParamsList = append(finalParamsList, params)
 		}
@@ -1373,7 +1373,7 @@ func (a *SuiteService) SearchFilesInTeamForUser(c *request.Context, terms string
 		return model.NewFileInfoList(), nil
 	}
 
-	fileInfoSearchResults, nErr := a.platform.Store.FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
+	fileInfoSearchResults, nErr := s.platform.Store.FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -1384,14 +1384,14 @@ func (a *SuiteService) SearchFilesInTeamForUser(c *request.Context, terms string
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
+	return fileInfoSearchResults, s.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
-func (a *SuiteService) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
+func (s *SuiteService) convertChannelNamesToChannelIds(c *request.Context, channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
-		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
+		channel, err := s.parseAndFetchChannelIdByNameFromInFilter(c, channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
-			a.platform.Log().Warn("error getting channel id by name from in filter", mlog.Err(err))
+			s.platform.Log().Warn("error getting channel id by name from in filter", mlog.Err(err))
 			continue
 		}
 		channels[idx] = channel.Id
@@ -1399,11 +1399,11 @@ func (a *SuiteService) convertChannelNamesToChannelIds(c *request.Context, chann
 	return channels
 }
 
-func (a *SuiteService) convertUserNameToUserIds(usernames []string) []string {
+func (s *SuiteService) convertUserNameToUserIds(usernames []string) []string {
 	for idx, username := range usernames {
-		user, err := a.GetUserByUsername(username)
+		user, err := s.GetUserByUsername(username)
 		if err != nil {
-			a.platform.Log().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
+			s.platform.Log().Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
 			continue
 		}
 		usernames[idx] = user.Id
@@ -1411,10 +1411,10 @@ func (a *SuiteService) convertUserNameToUserIds(usernames []string) []string {
 	return usernames
 }
 
-func (a *SuiteService) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (s *SuiteService) parseAndFetchChannelIdByNameFromInFilter(c *request.Context, channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIDs []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
+		users, err := s.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1422,7 +1422,7 @@ func (a *SuiteService) parseAndFetchChannelIdByNameFromInFilter(c *request.Conte
 			userIDs = append(userIDs, user.Id)
 		}
 
-		channel, err := a.channels.GetGroupChannel(c, userIDs)
+		channel, err := s.channels.GetGroupChannel(c, userIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -1430,37 +1430,37 @@ func (a *SuiteService) parseAndFetchChannelIdByNameFromInFilter(c *request.Conte
 	}
 
 	if strings.HasPrefix(channelName, "@") && !strings.Contains(channelName, ",") {
-		user, err := a.GetUserByUsername(channelName[1:])
+		user, err := s.GetUserByUsername(channelName[1:])
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.channels.GetOrCreateDirectChannel(c, userID, user.Id)
+		channel, err := s.channels.GetOrCreateDirectChannel(c, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
 		return channel, nil
 	}
 
-	channel, err := a.channels.GetChannelByName(c, channelName, teamID, includeDeleted)
+	channel, err := s.channels.GetChannelByName(c, channelName, teamID, includeDeleted)
 	if err != nil {
 		return nil, err
 	}
 	return channel, nil
 }
 
-func (a *SuiteService) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
+func (s *SuiteService) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 	// We don't process images.
 	if fileInfo.IsImage() {
 		return nil
 	}
 
-	file, aerr := a.FileReader(fileInfo.Path)
+	file, aerr := s.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
 	}
 	defer file.Close()
 	text, err := docextractor.Extract(fileInfo.Name, file, docextractor.ExtractSettings{
-		ArchiveRecursion: *a.platform.Config().FileSettings.ArchiveRecursion,
+		ArchiveRecursion: *s.platform.Config().FileSettings.ArchiveRecursion,
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to extract file content")
@@ -1469,27 +1469,27 @@ func (a *SuiteService) ExtractContentFromFileInfo(fileInfo *model.FileInfo) erro
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
-		if storeErr := a.platform.Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+		if storeErr := s.platform.Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")
 		}
-		reloadFileInfo, storeErr := a.platform.Store.FileInfo().Get(fileInfo.Id)
+		reloadFileInfo, storeErr := s.platform.Store.FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
 			mlog.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
 		} else {
-			a.platform.Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
+			s.platform.Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
 	}
 	return nil
 }
 
 // GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
-func (a *SuiteService) GetLastAccessibleFileTime() (int64, *model.AppError) {
-	license := a.platform.License()
+func (s *SuiteService) GetLastAccessibleFileTime() (int64, *model.AppError) {
+	license := s.platform.License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 
-	system, err := a.platform.Store.System().GetByName(model.SystemLastAccessibleFileTime)
+	system, err := s.platform.Store.System().GetByName(model.SystemLastAccessibleFileTime)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1511,13 +1511,13 @@ func (a *SuiteService) GetLastAccessibleFileTime() (int64, *model.AppError) {
 
 // ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
 // Use GetLastAccessibleFileTime() to access the result.
-func (a *SuiteService) ComputeLastAccessibleFileTime() error {
-	limit, appErr := a.getCloudFilesSizeLimit()
+func (s *SuiteService) ComputeLastAccessibleFileTime() error {
+	limit, appErr := s.getCloudFilesSizeLimit()
 	if appErr != nil {
 		return appErr
 	}
 
-	createdAt, err := a.platform.Store.FileInfo().GetUptoNSizeFileTime(limit)
+	createdAt, err := s.platform.Store.FileInfo().GetUptoNSizeFileTime(limit)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
@@ -1526,7 +1526,7 @@ func (a *SuiteService) ComputeLastAccessibleFileTime() error {
 	}
 
 	// Update Cache
-	err = a.platform.Store.System().SaveOrUpdate(&model.System{
+	err = s.platform.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SystemLastAccessibleFileTime,
 		Value: strconv.FormatInt(createdAt, 10),
 	})
@@ -1538,14 +1538,14 @@ func (a *SuiteService) ComputeLastAccessibleFileTime() error {
 }
 
 // getCloudFilesSizeLimit returns size in bytes
-func (a *SuiteService) getCloudFilesSizeLimit() (int64, *model.AppError) {
-	license := a.platform.License()
+func (s *SuiteService) getCloudFilesSizeLimit() (int64, *model.AppError) {
+	license := s.platform.License()
 	if license == nil || !*license.Features.Cloud {
 		return 0, nil
 	}
 
 	// limits is in bits
-	limits, err := a.cloud.GetCloudLimits("")
+	limits, err := s.cloud.GetCloudLimits("")
 	if err != nil {
 		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

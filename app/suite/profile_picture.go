@@ -28,9 +28,9 @@ const (
 	imageProfilePixelDimension = 128
 )
 
-func (us *SuiteService) getProfileImage(user *model.User) ([]byte, bool, error) {
-	if *us.platform.Config().FileSettings.DriverName == "" {
-		img, err := us.getDefaultProfileImage(user)
+func (s *SuiteService) getProfileImage(user *model.User) ([]byte, bool, error) {
+	if *s.platform.Config().FileSettings.DriverName == "" {
+		img, err := s.getDefaultProfileImage(user)
 		if err != nil {
 			return nil, false, err
 		}
@@ -38,15 +38,15 @@ func (us *SuiteService) getProfileImage(user *model.User) ([]byte, bool, error) 
 	}
 
 	path := path.Join("users", user.Id, "profile.png")
-	data, err := us.ReadFile(path)
+	data, err := s.ReadFile(path)
 	if err != nil {
-		img, appErr := us.getDefaultProfileImage(user)
+		img, appErr := s.getDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr
 		}
 
 		if user.LastPictureUpdate == 0 {
-			if _, err := us.platform.FileBackend().WriteFile(bytes.NewReader(img), path); err != nil {
+			if _, err := s.platform.FileBackend().WriteFile(bytes.NewReader(img), path); err != nil {
 				return nil, false, err
 			}
 		}
@@ -56,8 +56,8 @@ func (us *SuiteService) getProfileImage(user *model.User) ([]byte, bool, error) 
 	return data, false, nil
 }
 
-func (ss *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	data, isDefault, err := ss.getProfileImage(user)
+func (s *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	data, isDefault, err := s.getProfileImage(user)
 	if err != nil {
 		return nil, false, model.NewAppError("GetProfileImage", "api.user.get_profile_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -65,20 +65,20 @@ func (ss *SuiteService) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return data, isDefault, nil
 }
 
-func (us *SuiteService) getDefaultProfileImage(user *model.User) ([]byte, error) {
+func (s *SuiteService) getDefaultProfileImage(user *model.User) ([]byte, error) {
 	if user.IsBot {
 		return botDefaultImage, nil
 	}
 
-	return createProfileImage(user.Username, user.Id, *us.platform.Config().FileSettings.InitialFont)
+	return createProfileImage(user.Username, user.Id, *s.platform.Config().FileSettings.InitialFont)
 }
 
-func (us *SuiteService) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+func (s *SuiteService) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
 	if user.IsBot {
 		return botDefaultImage, nil
 	}
 
-	data, err := us.getDefaultProfileImage(user)
+	data, err := s.getDefaultProfileImage(user)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.DefaultFontError):

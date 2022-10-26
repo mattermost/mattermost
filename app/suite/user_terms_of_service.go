@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (ss *SuiteService) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
-	u, err := ss.platform.Store.UserTermsOfService().GetByUser(userID)
+func (s *SuiteService) GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError) {
+	u, err := s.platform.Store.UserTermsOfService().GetByUser(userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -26,14 +26,14 @@ func (ss *SuiteService) GetUserTermsOfService(userID string) (*model.UserTermsOf
 	return u, nil
 }
 
-func (ss *SuiteService) SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError {
+func (s *SuiteService) SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError {
 	if accepted {
 		userTermsOfService := &model.UserTermsOfService{
 			UserId:           userID,
 			TermsOfServiceId: termsOfServiceId,
 		}
 
-		if _, err := ss.platform.Store.UserTermsOfService().Save(userTermsOfService); err != nil {
+		if _, err := s.platform.Store.UserTermsOfService().Save(userTermsOfService); err != nil {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &appErr):
@@ -43,7 +43,7 @@ func (ss *SuiteService) SaveUserTermsOfService(userID, termsOfServiceId string, 
 			}
 		}
 	} else {
-		if err := ss.platform.Store.UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {
+		if err := s.platform.Store.UserTermsOfService().Delete(userID, termsOfServiceId); err != nil {
 			return model.NewAppError("SaveUserTermsOfService", "app.user_terms_of_service.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

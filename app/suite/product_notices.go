@@ -230,38 +230,38 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue any) boo
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *SuiteService) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
-	isSystemAdmin := a.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
+func (s *SuiteService) GetProductNotices(c *request.Context, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := s.SessionHasPermissionTo(*c.Session(), model.PermissionManageSystem)
+	isTeamAdmin := s.SessionHasPermissionToTeam(*c.Session(), teamID, model.PermissionManageTeam)
 
 	// check if notices for regular users are disabled
-	if !*a.platform.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
+	if !*s.platform.Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
 		return []model.NoticeMessage{}, nil
 	}
 
 	// check if notices for admins are disabled
-	if !*a.platform.Config().AnnouncementSettings.AdminNoticesEnabled && (isTeamAdmin || isSystemAdmin) {
+	if !*s.platform.Config().AnnouncementSettings.AdminNoticesEnabled && (isTeamAdmin || isSystemAdmin) {
 		return []model.NoticeMessage{}, nil
 	}
 
-	views, err := a.platform.Store.ProductNotices().GetViews(userID)
+	views, err := s.platform.Store.ProductNotices().GetViews(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	sku := a.platform.ClientLicense()["SkuShortName"]
-	isCloud := a.platform.License() != nil && *a.platform.License().Features.Cloud
-	dbName := *a.platform.Config().SqlSettings.DriverName
+	sku := s.platform.ClientLicense()["SkuShortName"]
+	isCloud := s.platform.License() != nil && *s.platform.License().Features.Cloud
+	dbName := *s.platform.Config().SqlSettings.DriverName
 
 	var searchEngineName, searchEngineVersion string
-	if engine := a.platform.SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
+	if engine := s.platform.SearchEngine; engine != nil && engine.ElasticsearchEngine != nil {
 		searchEngineName = engine.ElasticsearchEngine.GetName()
 		searchEngineVersion = engine.ElasticsearchEngine.GetFullVersion()
 	}
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
-	for noticeIndex, notice := range a.cachedNotices {
+	for noticeIndex, notice := range s.cachedNotices {
 		// check if the notice has been viewed already
 		var view *model.ProductNoticeViewState
 		for viewIndex, v := range views {
@@ -284,22 +284,22 @@ func (a *SuiteService) GetProductNotices(c *request.Context, userID, teamID stri
 			}
 		}
 		result, err := noticeMatchesConditions(
-			a.platform.Config(),
-			a.platform.Store.Preference(),
+			s.platform.Config(),
+			s.platform.Store.Preference(),
 			userID,
 			client,
 			clientVersion,
-			a.cachedPostCount,
-			a.cachedUserCount,
+			s.cachedPostCount,
+			s.cachedUserCount,
 			isSystemAdmin,
 			isTeamAdmin,
 			isCloud,
 			sku,
 			dbName,
-			a.cachedDBMSVersion,
+			s.cachedDBMSVersion,
 			searchEngineName,
 			searchEngineVersion,
-			&a.cachedNotices[noticeIndex])
+			&s.cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, "", http.StatusBadRequest).Wrap(err)
 		}
@@ -318,8 +318,8 @@ func (a *SuiteService) GetProductNotices(c *request.Context, userID, teamID stri
 }
 
 // UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
-func (a *SuiteService) UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError {
-	if err := a.platform.Store.ProductNotices().View(userID, noticeIds); err != nil {
+func (s *SuiteService) UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError {
+	if err := s.platform.Store.ProductNotices().View(userID, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return nil
@@ -327,49 +327,49 @@ func (a *SuiteService) UpdateViewedProductNotices(userID string, noticeIds []str
 
 // UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
 // user as viewed in order to avoid showing them imminently on first login
-func (a *SuiteService) UpdateViewedProductNoticesForNewUser(userID string) {
+func (s *SuiteService) UpdateViewedProductNoticesForNewUser(userID string) {
 	var noticeIds []string
-	for _, notice := range a.cachedNotices {
+	for _, notice := range s.cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)
 	}
-	if err := a.platform.Store.ProductNotices().View(userID, noticeIds); err != nil {
+	if err := s.platform.Store.ProductNotices().View(userID, noticeIds); err != nil {
 		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
 	}
 }
 
 // UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
-func (a *SuiteService) UpdateProductNotices() *model.AppError {
-	url := *a.platform.Config().AnnouncementSettings.NoticesURL
-	skip := *a.platform.Config().AnnouncementSettings.NoticesSkipCache
+func (s *SuiteService) UpdateProductNotices() *model.AppError {
+	url := *s.platform.Config().AnnouncementSettings.NoticesURL
+	skip := *s.platform.Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var err error
-	a.cachedPostCount, err = a.platform.Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+	s.cachedPostCount, err = s.platform.Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
 	if err != nil {
 		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	a.cachedUserCount, err = a.platform.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	s.cachedUserCount, err = s.platform.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
 		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
-	a.cachedDBMSVersion, err = a.platform.Store.GetDbVersion(false)
+	s.cachedDBMSVersion, err = s.platform.Store.GetDbVersion(false)
 	if err != nil {
 		mlog.Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
 	}
 
-	a.cachedDBMSVersion = strings.Split(a.cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
+	s.cachedDBMSVersion = strings.Split(s.cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
 
 	data, err := utils.GetURLWithCache(url, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	a.cachedNotices, err = model.UnmarshalProductNotices(data)
+	s.cachedNotices, err = model.UnmarshalProductNotices(data)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if err := a.platform.Store.ProductNotices().ClearOldNotices(a.cachedNotices); err != nil {
+	if err := s.platform.Store.ProductNotices().ClearOldNotices(s.cachedNotices); err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return nil

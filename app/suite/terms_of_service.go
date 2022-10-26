@@ -11,18 +11,18 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (ss *SuiteService) CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError) {
+func (s *SuiteService) CreateTermsOfService(text, userID string) (*model.TermsOfService, *model.AppError) {
 	termsOfService := &model.TermsOfService{
 		Text:   text,
 		UserId: userID,
 	}
 
-	if _, appErr := ss.GetUser(userID); appErr != nil {
+	if _, appErr := s.GetUser(userID); appErr != nil {
 		return nil, appErr
 	}
 
 	var err error
-	if termsOfService, err = ss.platform.Store.TermsOfService().Save(termsOfService); err != nil {
+	if termsOfService, err = s.platform.Store.TermsOfService().Save(termsOfService); err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
@@ -38,8 +38,8 @@ func (ss *SuiteService) CreateTermsOfService(text, userID string) (*model.TermsO
 	return termsOfService, nil
 }
 
-func (ss *SuiteService) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	termsOfService, err := ss.platform.Store.TermsOfService().GetLatest(true)
+func (s *SuiteService) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
+	termsOfService, err := s.platform.Store.TermsOfService().GetLatest(true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -52,8 +52,8 @@ func (ss *SuiteService) GetLatestTermsOfService() (*model.TermsOfService, *model
 	return termsOfService, nil
 }
 
-func (ss *SuiteService) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	termsOfService, err := ss.platform.Store.TermsOfService().Get(id, true)
+func (s *SuiteService) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
+	termsOfService, err := s.platform.Store.TermsOfService().Get(id, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

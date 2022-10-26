@@ -19,14 +19,14 @@ import (
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
 //
 //	['town-square', 'game-of-thrones', 'wow']
-func (ss *SuiteService) defaultChannelNames() []string {
+func (s *SuiteService) defaultChannelNames() []string {
 	names := []string{"town-square"}
 
-	if len(ss.platform.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
+	if len(s.platform.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
 		names = append(names, "off-topic")
 	} else {
 		seenChannels := map[string]bool{"town-square": true}
-		for _, channelName := range ss.platform.Config().TeamSettings.ExperimentalDefaultChannels {
+		for _, channelName := range s.platform.Config().TeamSettings.ExperimentalDefaultChannels {
 			if !seenChannels[channelName] {
 				names = append(names, channelName)
 				seenChannels[channelName] = true
@@ -58,25 +58,25 @@ func IsEmailAddressAllowed(email string, allowedDomains []string) bool {
 	return true
 }
 
-func (ss *SuiteService) IsTeamEmailAllowed(user *model.User, team *model.Team) bool {
+func (s *SuiteService) IsTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	if user.IsBot {
 		return true
 	}
 	email := strings.ToLower(user.Email)
-	allowedDomains := ss.GetAllowedDomains(user, team)
+	allowedDomains := s.GetAllowedDomains(user, team)
 	return IsEmailAddressAllowed(email, allowedDomains)
 }
 
-func (ss *SuiteService) GetAllowedDomains(user *model.User, team *model.Team) []string {
+func (s *SuiteService) GetAllowedDomains(user *model.User, team *model.Team) []string {
 	if user.IsGuest() {
-		return []string{*ss.platform.Config().GuestAccountsSettings.RestrictCreationToDomains}
+		return []string{*s.platform.Config().GuestAccountsSettings.RestrictCreationToDomains}
 	}
 	// First check per team allowedDomains, then app wide restrictions
-	return []string{team.AllowedDomains, *ss.platform.Config().TeamSettings.RestrictCreationToDomains}
+	return []string{team.AllowedDomains, *s.platform.Config().TeamSettings.RestrictCreationToDomains}
 }
 
-func (ss *SuiteService) checkValidDomains(team *model.Team) error {
-	validDomains := normalizeDomains(*ss.platform.Config().TeamSettings.RestrictCreationToDomains)
+func (s *SuiteService) checkValidDomains(team *model.Team) error {
+	validDomains := normalizeDomains(*s.platform.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range normalizeDomains(team.AllowedDomains) {
 			matched := false
@@ -103,8 +103,8 @@ func normalizeDomains(domains string) []string {
 
 // UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
 // admins in the given syncable.
-func (ss *SuiteService) userIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, error) {
-	groupIDs, err := ss.platform.Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+func (s *SuiteService) userIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, error) {
+	groupIDs, err := s.platform.Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
 	if err != nil {
 		return false, err
 	}
@@ -116,8 +116,8 @@ func (ss *SuiteService) userIsInAdminRoleGroup(userID, syncableID string, syncab
 	return true, nil
 }
 
-func (ss *SuiteService) GetSiteURL() string {
-	return *ss.platform.Config().ServiceSettings.SiteURL
+func (s *SuiteService) GetSiteURL() string {
+	return *s.platform.Config().ServiceSettings.SiteURL
 }
 
 // CheckUserDomain checks that a user's email domain matches a list of space-delimited domains as a string.
@@ -142,16 +142,16 @@ func CheckEmailDomain(email string, domains string) bool {
 	return false
 }
 
-func (us *SuiteService) sanitizeUserProfiles(users []*model.User, asAdmin bool) []*model.User {
+func (s *SuiteService) sanitizeUserProfiles(users []*model.User, asAdmin bool) []*model.User {
 	for _, u := range users {
-		us.SanitizeProfile(u, asAdmin)
+		s.SanitizeProfile(u, asAdmin)
 	}
 
 	return users
 }
 
-func (us *SuiteService) SanitizeUserrofile(user *model.User, asAdmin bool) {
-	options := us.GetSanitizeOptions(asAdmin)
+func (s *SuiteService) SanitizeUserrofile(user *model.User, asAdmin bool) {
+	options := s.GetSanitizeOptions(asAdmin)
 
 	user.SanitizeProfile(options)
 }
@@ -167,21 +167,21 @@ func (us *SuiteService) getUserSanitizeOptions(asAdmin bool) map[string]bool {
 }
 
 // IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
-func (us *SuiteService) IsUsernameTaken(name string) bool {
+func (s *SuiteService) IsUsernameTaken(name string) bool {
 	if !model.IsValidUsername(name) {
 		return false
 	}
 
-	if _, err := us.platform.Store.User().GetByUsername(name); err != nil {
+	if _, err := s.platform.Store.User().GetByUsername(name); err != nil {
 		return false
 	}
 
 	return true
 }
 
-func (a *SuiteService) GetCookieDomain() string {
-	if *a.platform.Config().ServiceSettings.AllowCookiesForSubdomains {
-		if siteURL, err := url.Parse(*a.platform.Config().ServiceSettings.SiteURL); err == nil {
+func (s *SuiteService) GetCookieDomain() string {
+	if *s.platform.Config().ServiceSettings.AllowCookiesForSubdomains {
+		if siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL); err == nil {
 			return siteURL.Hostname()
 		}
 	}

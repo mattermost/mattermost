@@ -16,8 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-func (a *SuiteService) GetRole(id string) (*model.Role, *model.AppError) {
-	role, err := a.platform.Store.Role().Get(id)
+func (s *SuiteService) GetRole(id string) (*model.Role, *model.AppError) {
+	role, err := s.platform.Store.Role().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -28,7 +28,7 @@ func (a *SuiteService) GetRole(id string) (*model.Role, *model.AppError) {
 		}
 	}
 
-	appErr := a.mergeChannelHigherScopedPermissions([]*model.Role{role})
+	appErr := s.mergeChannelHigherScopedPermissions([]*model.Role{role})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -36,13 +36,13 @@ func (a *SuiteService) GetRole(id string) (*model.Role, *model.AppError) {
 	return role, nil
 }
 
-func (a *SuiteService) GetAllRoles() ([]*model.Role, *model.AppError) {
-	roles, err := a.platform.Store.Role().GetAll()
+func (s *SuiteService) GetAllRoles() ([]*model.Role, *model.AppError) {
+	roles, err := s.platform.Store.Role().GetAll()
 	if err != nil {
 		return nil, model.NewAppError("GetAllRoles", "app.role.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	appErr := a.mergeChannelHigherScopedPermissions(roles)
+	appErr := s.mergeChannelHigherScopedPermissions(roles)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -50,8 +50,8 @@ func (a *SuiteService) GetAllRoles() ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
-func (a *SuiteService) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
-	role, nErr := a.platform.Store.Role().GetByName(ctx, name)
+func (s *SuiteService) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
+	role, nErr := s.platform.Store.Role().GetByName(ctx, name)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -62,7 +62,7 @@ func (a *SuiteService) GetRoleByName(ctx context.Context, name string) (*model.R
 		}
 	}
 
-	err := a.mergeChannelHigherScopedPermissions([]*model.Role{role})
+	err := s.mergeChannelHigherScopedPermissions([]*model.Role{role})
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +70,13 @@ func (a *SuiteService) GetRoleByName(ctx context.Context, name string) (*model.R
 	return role, nil
 }
 
-func (a *SuiteService) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	roles, nErr := a.platform.Store.Role().GetByNames(names)
+func (s *SuiteService) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
+	roles, nErr := s.platform.Store.Role().GetByNames(names)
 	if nErr != nil {
 		return nil, model.NewAppError("GetRolesByNames", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	err := a.mergeChannelHigherScopedPermissions(roles)
+	err := s.mergeChannelHigherScopedPermissions(roles)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (a *SuiteService) GetRolesByNames(names []string) ([]*model.Role, *model.Ap
 
 // mergeChannelHigherScopedPermissions updates the permissions based on the role type, whether the permission is
 // moderated, and the value of the permission on the higher-scoped scheme.
-func (ss *SuiteService) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
+func (s *SuiteService) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
 	var higherScopeNamesToQuery []string
 
 	for _, role := range roles {
@@ -99,7 +99,7 @@ func (ss *SuiteService) mergeChannelHigherScopedPermissions(roles []*model.Role)
 		return nil
 	}
 
-	higherScopedPermissionsMap, err := ss.platform.Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
+	higherScopedPermissionsMap, err := s.platform.Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
 	if err != nil {
 		return model.NewAppError("mergeChannelHigherScopedPermissions", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -115,26 +115,26 @@ func (ss *SuiteService) mergeChannelHigherScopedPermissions(roles []*model.Role)
 	return nil
 }
 
-func (a *SuiteService) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+func (s *SuiteService) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil
 	}
 
 	role.Patch(patch)
-	role, err := a.UpdateRole(role)
+	role, err := s.UpdateRole(role)
 	if err != nil {
 		return nil, err
 	}
 
-	if appErr := a.SendUpdatedRoleEvent(role); appErr != nil {
+	if appErr := s.SendUpdatedRoleEvent(role); appErr != nil {
 		return nil, appErr
 	}
 
 	return role, err
 }
 
-func (a *SuiteService) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
+func (s *SuiteService) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.Id = ""
 	role.CreateAt = 0
 	role.UpdateAt = 0
@@ -143,7 +143,7 @@ func (a *SuiteService) CreateRole(role *model.Role) (*model.Role, *model.AppErro
 	role.SchemeManaged = false
 
 	var err error
-	role, err = a.platform.Store.Role().Save(role)
+	role, err = s.platform.Store.Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -157,8 +157,8 @@ func (a *SuiteService) CreateRole(role *model.Role) (*model.Role, *model.AppErro
 	return role, nil
 }
 
-func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	savedRole, err := a.platform.Store.Role().Save(role)
+func (s *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	savedRole, err := s.platform.Store.Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -185,7 +185,7 @@ func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppErro
 
 	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
-			roles, nErr := a.platform.Store.Role().AllChannelSchemeRoles()
+			roles, nErr := s.platform.Store.Role().AllChannelSchemeRoles()
 			if nErr != nil {
 				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -194,7 +194,7 @@ func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppErro
 		}
 	} else {
 		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
-			roles, nErr := a.platform.Store.Role().ChannelRolesUnderTeamRole(savedRole.Name)
+			roles, nErr := s.platform.Store.Role().ChannelRolesUnderTeamRole(savedRole.Name)
 			if nErr != nil {
 				return nil, model.NewAppError("UpdateRole", "app.role.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
@@ -209,14 +209,14 @@ func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppErro
 	}
 	impactedRoles = append(impactedRoles, role)
 
-	appErr = a.mergeChannelHigherScopedPermissions(impactedRoles)
+	appErr = s.mergeChannelHigherScopedPermissions(impactedRoles)
 	if appErr != nil {
 		return nil, appErr
 	}
 
 	for _, ir := range impactedRoles {
 		if ir.Name != role.Name {
-			appErr = a.SendUpdatedRoleEvent(ir)
+			appErr = s.SendUpdatedRoleEvent(ir)
 			if appErr != nil {
 				return nil, appErr
 			}
@@ -226,8 +226,8 @@ func (a *SuiteService) UpdateRole(role *model.Role) (*model.Role, *model.AppErro
 	return savedRole, nil
 }
 
-func (a *SuiteService) CheckRolesExist(roleNames []string) *model.AppError {
-	roles, err := a.GetRolesByNames(roleNames)
+func (s *SuiteService) CheckRolesExist(roleNames []string) *model.AppError {
+	roles, err := s.GetRolesByNames(roleNames)
 	if err != nil {
 		return err
 	}
@@ -248,14 +248,14 @@ func (a *SuiteService) CheckRolesExist(roleNames []string) *model.AppError {
 	return nil
 }
 
-func (a *SuiteService) SendUpdatedRoleEvent(role *model.Role) *model.AppError {
+func (s *SuiteService) SendUpdatedRoleEvent(role *model.Role) *model.AppError {
 	message := model.NewWebSocketEvent(model.WebsocketEventRoleUpdated, "", "", "", nil, "")
 	roleJSON, jsonErr := json.Marshal(role)
 	if jsonErr != nil {
 		return model.NewAppError("sendUpdatedRoleEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("role", string(roleJSON))
-	a.platform.Publish(message)
+	s.platform.Publish(message)
 	return nil
 }
 

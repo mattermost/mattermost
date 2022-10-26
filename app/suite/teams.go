@@ -24,8 +24,8 @@ import (
 // 	return rteam, nil
 // }
 
-func (ss *SuiteService) getTeam(teamID string) (*model.Team, error) {
-	team, err := ss.platform.Store.Team().Get(teamID)
+func (s *SuiteService) getTeam(teamID string) (*model.Team, error) {
+	team, err := s.platform.Store.Team().Get(teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +33,8 @@ func (ss *SuiteService) getTeam(teamID string) (*model.Team, error) {
 	return team, nil
 }
 
-func (ss *SuiteService) getTeams(teamIDs []string) ([]*model.Team, error) {
-	teams, err := ss.platform.Store.Team().GetMany(teamIDs)
+func (s *SuiteService) getTeams(teamIDs []string) ([]*model.Team, error) {
+	teams, err := s.platform.Store.Team().GetMany(teamIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +43,13 @@ func (ss *SuiteService) getTeams(teamIDs []string) ([]*model.Team, error) {
 }
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-func (ss *SuiteService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
+func (s *SuiteService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
 		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
 	}
 	channels := []*model.Channel{}
-	defaultChannelNames := ss.defaultChannelNames()
+	defaultChannelNames := s.defaultChannelNames()
 	for _, name := range defaultChannelNames {
 		displayName := i18n.TDefault(displayNames[name], name)
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
@@ -57,7 +57,7 @@ func (ss *SuiteService) createDefaultChannels(teamID string) ([]*model.Channel, 
 		// and let the subscribers do the job, in this case it would be the channels service.
 		// Currently we are adding services to the server and because of that we are using
 		// the channel store here. This should be replaced in the future.
-		if _, err := ss.platform.Store.Channel().Save(channel, *ss.platform.Config().TeamSettings.MaxChannelsPerTeam); err != nil {
+		if _, err := s.platform.Store.Channel().Save(channel, *s.platform.Config().TeamSettings.MaxChannelsPerTeam); err != nil {
 			return nil, err
 		}
 		channels = append(channels, channel)
@@ -70,17 +70,17 @@ type UpdateOptions struct {
 	Imported  bool
 }
 
-func (ss *SuiteService) updateTeam(team *model.Team, opts UpdateOptions) (*model.Team, error) {
+func (s *SuiteService) updateTeam(team *model.Team, opts UpdateOptions) (*model.Team, error) {
 	oldTeam := team
 	var err error
 
 	if !opts.Imported {
-		oldTeam, err = ss.platform.Store.Team().Get(team.Id)
+		oldTeam, err = s.platform.Store.Team().Get(team.Id)
 		if err != nil {
 			return nil, err
 		}
 
-		if err = ss.checkValidDomains(team); err != nil {
+		if err = s.checkValidDomains(team); err != nil {
 			return nil, err
 		}
 	}
@@ -95,7 +95,7 @@ func (ss *SuiteService) updateTeam(team *model.Team, opts UpdateOptions) (*model
 		oldTeam.GroupConstrained = team.GroupConstrained
 	}
 
-	oldTeam, err = ss.platform.Store.Team().Update(oldTeam)
+	oldTeam, err = s.platform.Store.Team().Update(oldTeam)
 	if err != nil {
 		return team, err
 	}
@@ -103,8 +103,8 @@ func (ss *SuiteService) updateTeam(team *model.Team, opts UpdateOptions) (*model
 	return oldTeam, nil
 }
 
-func (ps *SuiteService) patchTeam(teamID string, patch *model.TeamPatch) (*model.Team, error) {
-	team, err := ps.platform.Store.Team().Get(teamID)
+func (s *SuiteService) patchTeam(teamID string, patch *model.TeamPatch) (*model.Team, error) {
+	team, err := s.platform.Store.Team().Get(teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +114,11 @@ func (ps *SuiteService) patchTeam(teamID string, patch *model.TeamPatch) (*model
 		team.InviteId = model.NewId()
 	}
 
-	if err = ps.checkValidDomains(team); err != nil {
+	if err = s.checkValidDomains(team); err != nil {
 		return nil, err
 	}
 
-	team, err = ps.platform.Store.Team().Update(team)
+	team, err = s.platform.Store.Team().Update(team)
 	if err != nil {
 		return team, err
 	}
@@ -130,8 +130,8 @@ func (ps *SuiteService) patchTeam(teamID string, patch *model.TeamPatch) (*model
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ss *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
-	if !ss.IsTeamEmailAllowed(user, team) {
+func (s *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+	if !s.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
 
@@ -144,7 +144,7 @@ func (ss *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*mod
 	}
 
 	if !user.IsGuest() {
-		userShouldBeAdmin, err := ss.userIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+		userShouldBeAdmin, err := s.userIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
 		if err != nil {
 			return nil, false, err
 		}
@@ -155,10 +155,10 @@ func (ss *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*mod
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := ss.platform.Store.Team().GetMember(context.Background(), team.Id, user.Id)
+	rtm, err := s.platform.Store.Team().GetMember(context.Background(), team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr, nErr := ss.platform.Store.Team().SaveMember(tm, *ss.platform.Config().TeamSettings.MaxUsersPerTeam)
+		tmr, nErr := s.platform.Store.Team().SaveMember(tm, *s.platform.Config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
 			return nil, false, nErr
 		}
@@ -171,16 +171,16 @@ func (ss *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*mod
 		return rtm, true, nil
 	}
 
-	membersCount, err := ss.platform.Store.Team().GetActiveMemberCount(tm.TeamId, nil)
+	membersCount, err := s.platform.Store.Team().GetActiveMemberCount(tm.TeamId, nil)
 	if err != nil {
 		return nil, false, MemberCountError
 	}
 
-	if membersCount >= int64(*ss.platform.Config().TeamSettings.MaxUsersPerTeam) {
+	if membersCount >= int64(*s.platform.Config().TeamSettings.MaxUsersPerTeam) {
 		return nil, false, MaxMemberCountError
 	}
 
-	member, nErr := ss.platform.Store.Team().UpdateMember(tm)
+	member, nErr := s.platform.Store.Team().UpdateMember(tm)
 	if nErr != nil {
 		return nil, false, nErr
 	}
@@ -190,16 +190,16 @@ func (ss *SuiteService) joinUserToTeam(team *model.Team, user *model.User) (*mod
 
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
-func (ts *SuiteService) removeTeamMember(teamMember *model.TeamMember) error {
+func (s *SuiteService) removeTeamMember(teamMember *model.TeamMember) error {
 	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil, "")
 	message.Add("user_id", teamMember.UserId)
 	message.Add("team_id", teamMember.TeamId)
-	ts.platform.Publish(message)
+	s.platform.Publish(message)
 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
-	if _, nErr := ts.platform.Store.Team().UpdateMember(teamMember); nErr != nil {
+	if _, nErr := s.platform.Store.Team().UpdateMember(teamMember); nErr != nil {
 		return nErr
 	}
 
@@ -207,8 +207,8 @@ func (ts *SuiteService) removeTeamMember(teamMember *model.TeamMember) error {
 }
 
 // GetMember return the team member from the team.
-func (ts *SuiteService) getTeamMember(teamID string, userID string) (*model.TeamMember, error) {
-	member, err := ts.platform.Store.Team().GetMember(context.Background(), teamID, userID)
+func (s *SuiteService) getTeamMember(teamID string, userID string) (*model.TeamMember, error) {
+	member, err := s.platform.Store.Team().GetMember(context.Background(), teamID, userID)
 	if err != nil {
 		return nil, err
 	}

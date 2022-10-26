@@ -11,12 +11,12 @@ import (
 
 // removeInaccessibleContentFromFilesSlice removes content from the files beyond the cloud plan's limit
 // and also returns the firstInaccessibleFileTime
-func (a *SuiteService) RemoveInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
+func (s *SuiteService) RemoveInaccessibleContentFromFilesSlice(files []*model.FileInfo) (int64, *model.AppError) {
 	if len(files) == 0 {
 		return 0, nil
 	}
 
-	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
+	lastAccessibleFileTime, appErr := s.GetLastAccessibleFileTime()
 	if appErr != nil {
 		return 0, model.NewAppError("removeInaccessibleFileListContent", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -39,12 +39,12 @@ func (a *SuiteService) RemoveInaccessibleContentFromFilesSlice(files []*model.Fi
 }
 
 // filterInaccessibleFiles filters out the files, past the cloud limit
-func (a *SuiteService) filterInaccessibleFiles(fileList *model.FileInfoList, options filterFileOptions) *model.AppError {
+func (s *SuiteService) filterInaccessibleFiles(fileList *model.FileInfoList, options filterFileOptions) *model.AppError {
 	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
 		return nil
 	}
 
-	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
+	lastAccessibleFileTime, appErr := s.GetLastAccessibleFileTime()
 	if appErr != nil {
 		return model.NewAppError("filterInaccessibleFiles", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -106,7 +106,7 @@ func (a *SuiteService) filterInaccessibleFiles(fileList *model.FileInfoList, opt
 }
 
 // isInaccessibleFile indicates if the file is past the cloud plan's limit.
-func (a *SuiteService) isInaccessibleFile(file *model.FileInfo) (int64, *model.AppError) {
+func (s *SuiteService) isInaccessibleFile(file *model.FileInfo) (int64, *model.AppError) {
 	if file == nil {
 		return 0, nil
 	}
@@ -116,18 +116,18 @@ func (a *SuiteService) isInaccessibleFile(file *model.FileInfo) (int64, *model.A
 		FileInfos: map[string]*model.FileInfo{file.Id: file},
 	}
 
-	appErr := a.filterInaccessibleFiles(fl, filterFileOptions{assumeSortedCreatedAt: true})
+	appErr := s.filterInaccessibleFiles(fl, filterFileOptions{assumeSortedCreatedAt: true})
 	return fl.FirstInaccessibleFileTime, appErr
 }
 
 // getFilteredAccessibleFiles returns accessible files filtered as per the cloud plan's limit and also indicates if there were any inaccessible files
-func (a *SuiteService) getFilteredAccessibleFiles(files []*model.FileInfo, options filterFileOptions) ([]*model.FileInfo, int64, *model.AppError) {
+func (s *SuiteService) getFilteredAccessibleFiles(files []*model.FileInfo, options filterFileOptions) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(files) == 0 {
 		return files, 0, nil
 	}
 
 	filteredFiles := []*model.FileInfo{}
-	lastAccessibleFileTime, appErr := a.GetLastAccessibleFileTime()
+	lastAccessibleFileTime, appErr := s.GetLastAccessibleFileTime()
 	if appErr != nil {
 		return filteredFiles, 0, model.NewAppError("getFilteredAccessibleFiles", "app.last_accessible_file.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	} else if lastAccessibleFileTime == 0 {

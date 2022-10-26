@@ -22,8 +22,8 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *SuiteService) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
-	audits, err := a.platform.Store.Audit().Get(userID, 0, limit)
+func (s *SuiteService) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+	audits, err := s.platform.Store.Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -36,8 +36,8 @@ func (a *SuiteService) GetAudits(userID string, limit int) (model.Audits, *model
 	return audits, nil
 }
 
-func (a *SuiteService) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
-	audits, err := a.platform.Store.Audit().Get(userID, page*perPage, perPage)
+func (s *SuiteService) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+	audits, err := s.platform.Store.Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -51,12 +51,12 @@ func (a *SuiteService) GetAuditsPage(userID string, page int, perPage int) (mode
 }
 
 // LogAuditRec logs an audit record using default LvlAuditCLI.
-func (a *SuiteService) LogAuditRec(rec *audit.Record, err error) {
-	a.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
+func (s *SuiteService) LogAuditRec(rec *audit.Record, err error) {
+	s.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *SuiteService) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
+func (s *SuiteService) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -69,11 +69,11 @@ func (a *SuiteService) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level,
 		rec.Fail()
 	}
 
-	a.audit.LogRecord(level, *rec)
+	s.audit.LogRecord(level, *rec)
 }
 
 // MakeAuditRecord creates a audit record pre-populated with defaults.
-func (a *SuiteService) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+func (s *SuiteService) MakeAuditRecord(event string, initialStatus string) *audit.Record {
 	var userID string
 	user, err := user.Current()
 	if err == nil {
@@ -85,7 +85,7 @@ func (a *SuiteService) MakeAuditRecord(event string, initialStatus string) *audi
 		Status:    initialStatus,
 		Meta: map[string]interface{}{
 			audit.KeyAPIPath:   "",
-			audit.KeyClusterID: a.platform.GetClusterId(),
+			audit.KeyClusterID: s.platform.GetClusterId(),
 		},
 		Actor: audit.EventActor{
 			UserId:    userID,

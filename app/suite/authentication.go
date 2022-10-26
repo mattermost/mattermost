@@ -44,13 +44,13 @@ func (tl TokenLocation) String() string {
 	}
 }
 
-func (a *SuiteService) IsPasswordValid(password string) *model.AppError {
+func (s *SuiteService) IsPasswordValid(password string) *model.AppError {
 
-	if err := users.IsPasswordValidWithSettings(password, &a.platform.Config().PasswordSettings); err != nil {
+	if err := users.IsPasswordValidWithSettings(password, &s.platform.Config().PasswordSettings); err != nil {
 		var invErr *users.ErrInvalidPassword
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.platform.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest).Wrap(err)
+			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *s.platform.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -59,17 +59,17 @@ func (a *SuiteService) IsPasswordValid(password string) *model.AppError {
 	return nil
 }
 
-func (a *SuiteService) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+func (s *SuiteService) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+	if err := s.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
 	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := s.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
-		a.InvalidateCacheForUser(user.Id)
+		s.InvalidateCacheForUser(user.Id)
 
 		var invErr *users.ErrInvalidPassword
 		switch {
@@ -80,27 +80,27 @@ func (a *SuiteService) CheckPasswordAndAllCriteria(user *model.User, password st
 		}
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := s.CheckUserMfa(user, mfaToken); err != nil {
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
-			if passErr := a.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			if passErr := s.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
 
-		a.InvalidateCacheForUser(user.Id)
+		s.InvalidateCacheForUser(user.Id)
 
 		return err
 	}
 
-	if passErr := a.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := s.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	s.InvalidateCacheForUser(user.Id)
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := s.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -108,17 +108,17 @@ func (a *SuiteService) CheckPasswordAndAllCriteria(user *model.User, password st
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *SuiteService) DoubleCheckPassword(user *model.User, password string) *model.AppError {
-	if err := checkUserLoginAttempts(user, *a.platform.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
+func (s *SuiteService) DoubleCheckPassword(user *model.User, password string) *model.AppError {
+	if err := checkUserLoginAttempts(user, *s.platform.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
 	if err := users.CheckUserPassword(user, password); err != nil {
-		if passErr := a.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := s.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 		}
 
-		a.InvalidateCacheForUser(user.Id)
+		s.InvalidateCacheForUser(user.Id)
 
 		var invErr *users.ErrInvalidPassword
 		switch {
@@ -129,28 +129,28 @@ func (a *SuiteService) DoubleCheckPassword(user *model.User, password string) *m
 		}
 	}
 
-	if passErr := a.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := s.platform.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	s.InvalidateCacheForUser(user.Id)
 
 	return nil
 }
 
-func (a *SuiteService) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	if a.ldap == nil || ldapId == nil {
+func (s *SuiteService) checkLdapUserPasswordAndAllCriteria(c *request.Context, ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+	if s.ldap == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.ldap.DoLogin(c, *ldapId, password)
+	ldapUser, err := s.ldap.DoLogin(c, *ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	}
 
-	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
+	if err := s.CheckUserMfa(ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -162,19 +162,19 @@ func (a *SuiteService) checkLdapUserPasswordAndAllCriteria(c *request.Context, l
 	return ldapUser, nil
 }
 
-func (a *SuiteService) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+func (s *SuiteService) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := s.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
-	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+	if err := s.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *SuiteService) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (s *SuiteService) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
@@ -183,31 +183,31 @@ func (a *SuiteService) CheckUserPreflightAuthenticationCriteria(user *model.User
 		return err
 	}
 
-	if err := checkUserLoginAttempts(user, *a.platform.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
+	if err := checkUserLoginAttempts(user, *s.platform.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *SuiteService) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && *a.platform.Config().EmailSettings.RequireEmailVerification {
+func (s *SuiteService) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+	if !user.EmailVerified && *s.platform.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
 	return nil
 }
 
-func (a *SuiteService) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if !user.MfaActive || !*a.platform.Config().ServiceSettings.EnableMultifactorAuthentication {
+func (s *SuiteService) CheckUserMfa(user *model.User, token string) *model.AppError {
+	if !user.MfaActive || !*s.platform.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
-	if !*a.platform.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if !*s.platform.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.New(a.platform.Store.User()).ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(s.platform.Store.User()).ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -241,9 +241,9 @@ func checkUserNotBot(user *model.User) *model.AppError {
 	return nil
 }
 
-func (a *SuiteService) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	license := a.platform.License()
-	ldapAvailable := *a.platform.Config().LdapSettings.Enable && a.ldap != nil && license != nil && *license.Features.LDAP
+func (s *SuiteService) authenticateUser(c *request.Context, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+	license := s.platform.License()
+	ldapAvailable := *s.platform.Config().LdapSettings.Enable && s.ldap != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.UserAuthServiceLdap {
 		if !ldapAvailable {
@@ -251,7 +251,7 @@ func (a *SuiteService) authenticateUser(c *request.Context, user *model.User, pa
 			return user, err
 		}
 
-		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
+		ldapUser, err := s.checkLdapUserPasswordAndAllCriteria(c, user.AuthData, password, mfaToken)
 		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
@@ -270,7 +270,7 @@ func (a *SuiteService) authenticateUser(c *request.Context, user *model.User, pa
 		return user, err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+	if err := s.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return user, err
 	}

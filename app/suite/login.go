@@ -26,7 +26,7 @@ import (
 
 const cwsTokenEnv = "CWS_CLOUD_TOKEN"
 
-func (a *SuiteService) CheckForClientSideCert(r *http.Request) (string, string, string) {
+func (s *SuiteService) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
@@ -43,34 +43,34 @@ func (a *SuiteService) CheckForClientSideCert(r *http.Request) (string, string, 
 	return pem, subject, email
 }
 
-func (a *SuiteService) AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (s *SuiteService) AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
-		if a.platform.Metrics() != nil {
+		if s.platform.Metrics() != nil {
 			if user == nil || err != nil {
-				a.platform.Metrics().IncrementLoginFail()
+				s.platform.Metrics().IncrementLoginFail()
 			} else {
-				a.platform.Metrics().IncrementLogin()
+				s.platform.Metrics().IncrementLogin()
 			}
 		}
 	}()
 
-	if password == "" && !IsCWSLogin(a, cwsToken) {
+	if password == "" && !IsCWSLogin(s, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
-	if user, err = a.GetUserForLogin(id, loginId); err != nil {
+	if user, err = s.GetUserForLogin(id, loginId); err != nil {
 		return nil, err
 	}
 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
-	if IsCWSLogin(a, cwsToken) {
+	if IsCWSLogin(s, cwsToken) {
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
-		token, err := a.platform.Store.Token().GetByToken(cwsToken)
+		token, err := s.platform.Store.Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -88,7 +88,7 @@ func (a *SuiteService) AuthenticateUserForLogin(c *request.Context, id, loginId,
 				CreateAt: model.GetMillis(),
 				Type:     TokenTypeCWSAccess,
 			}
-			err := a.platform.Store.Token().Save(token)
+			err := s.platform.Store.Token().Save(token)
 			if err != nil {
 				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -103,7 +103,7 @@ func (a *SuiteService) AuthenticateUserForLogin(c *request.Context, id, loginId,
 	// If client side cert is enable and it's checking as a primary source
 	// then trust the proxy and cert that the correct user is supplied and allow
 	// them access
-	if *a.platform.Config().ExperimentalSettings.ClientSideCertEnable && *a.platform.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
+	if *s.platform.Config().ExperimentalSettings.ClientSideCertEnable && *s.platform.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
 		// Unless the user is a bot.
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
@@ -113,20 +113,20 @@ func (a *SuiteService) AuthenticateUserForLogin(c *request.Context, id, loginId,
 	}
 
 	// and then authenticate them
-	if user, err = a.authenticateUser(c, user, password, mfaToken); err != nil {
+	if user, err = s.authenticateUser(c, user, password, mfaToken); err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (a *SuiteService) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
-	enableUsername := *a.platform.Config().EmailSettings.EnableSignInWithUsername
-	enableEmail := *a.platform.Config().EmailSettings.EnableSignInWithEmail
+func (s *SuiteService) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+	enableUsername := *s.platform.Config().EmailSettings.EnableSignInWithUsername
+	enableEmail := *s.platform.Config().EmailSettings.EnableSignInWithEmail
 
 	// If we are given a userID then fail if we can't find a user with that ID
 	if id != "" {
-		user, err := a.GetUser(id)
+		user, err := s.GetUser(id)
 		if err != nil {
 			if err.Id != MissingAccountError {
 				err.StatusCode = http.StatusInternalServerError
@@ -139,14 +139,14 @@ func (a *SuiteService) GetUserForLogin(id, loginId string) (*model.User, *model.
 	}
 
 	// Try to get the user by username/email
-	if user, err := a.platform.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+	if user, err := s.platform.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
 		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled
-	if *a.platform.Config().LdapSettings.Enable && a.ldap != nil {
-		if ldapUser, err := a.ldap.GetUser(loginId); err == nil {
-			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.UserAuthServiceLdap); err == nil {
+	if *s.platform.Config().LdapSettings.Enable && s.ldap != nil {
+		if ldapUser, err := s.ldap.GetUser(loginId); err == nil {
+			if user, err := s.GetUserByAuth(ldapUser.AuthData, model.UserAuthServiceLdap); err == nil {
 				return user, nil
 			}
 			return ldapUser, nil
@@ -156,8 +156,8 @@ func (a *SuiteService) GetUserForLogin(id, loginId string) (*model.User, *model.
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+func (s *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
+	if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
@@ -178,19 +178,19 @@ func (a *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *htt
 	session.GenerateCSRF()
 
 	if deviceID != "" {
-		a.platform.SetSessionExpireInHours(session, *a.platform.Config().ServiceSettings.SessionLengthMobileInHours)
+		s.platform.SetSessionExpireInHours(session, *s.platform.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
-		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
+		if err := s.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
 			return err
 		}
 	} else if isMobile {
-		a.platform.SetSessionExpireInHours(session, *a.platform.Config().ServiceSettings.SessionLengthMobileInHours)
+		s.platform.SetSessionExpireInHours(session, *s.platform.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if isOAuthUser || isSaml {
-		a.platform.SetSessionExpireInHours(session, *a.platform.Config().ServiceSettings.SessionLengthSSOInHours)
+		s.platform.SetSessionExpireInHours(session, *s.platform.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
-		a.platform.SetSessionExpireInHours(session, *a.platform.Config().ServiceSettings.SessionLengthWebInHours)
+		s.platform.SetSessionExpireInHours(session, *s.platform.Config().ServiceSettings.SessionLengthWebInHours)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -210,7 +210,7 @@ func (a *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *htt
 	}
 
 	var err *model.AppError
-	if session, err = a.CreateSession(session); err != nil {
+	if session, err = s.CreateSession(session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
 		return err
 	}
@@ -218,16 +218,16 @@ func (a *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *htt
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.SetSession(session)
-	if a.platform.License() != nil && *a.platform.License().Features.LDAP && a.ldap != nil {
+	if s.platform.License() != nil && *s.platform.License().Features.LDAP && s.ldap != nil {
 		userVal := *user
 		sessionVal := *session
-		a.platform.Go(func() {
-			a.ldap.UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
+		s.platform.Go(func() {
+			s.ldap.UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.platform.Go(func() {
+	if pluginsEnvironment := s.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		s.platform.Go(func() {
 			pluginContext := pluginContext(c)
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)
@@ -239,18 +239,18 @@ func (a *SuiteService) DoLogin(c *request.Context, w http.ResponseWriter, r *htt
 	return nil
 }
 
-func (a *SuiteService) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
+func (s *SuiteService) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
 	}
 
-	maxAgeSeconds := *a.platform.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
-	subpath, _ := utils.GetSubpathFromConfig(a.platform.Config())
+	maxAgeSeconds := *s.platform.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
+	subpath, _ := utils.GetSubpathFromConfig(s.platform.Config())
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 
 	domain := ""
-	if siteURL, err := url.Parse(a.GetSiteURL()); err == nil {
+	if siteURL, err := url.Parse(s.GetSiteURL()); err == nil {
 		domain = siteURL.Hostname()
 	}
 
@@ -286,15 +286,15 @@ func (a *SuiteService) AttachCloudSessionCookie(c *request.Context, w http.Respo
 
 }
 
-func (a *SuiteService) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
+func (s *SuiteService) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
 	}
 
-	maxAgeSeconds := *a.platform.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
-	domain := a.GetCookieDomain()
-	subpath, _ := utils.GetSubpathFromConfig(a.platform.Config())
+	maxAgeSeconds := *s.platform.Config().ServiceSettings.SessionLengthWebInHours * 60 * 60
+	domain := s.GetCookieDomain()
+	subpath, _ := utils.GetSubpathFromConfig(s.platform.Config())
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAgeSeconds), 0)
 	sessionCookie := &http.Cookie{
@@ -333,8 +333,8 @@ func (a *SuiteService) AttachSessionCookies(c *request.Context, w http.ResponseW
 	http.SetCookie(w, csrfCookie)
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if a.platform.License() != nil && *a.platform.License().Features.Cloud {
-		a.AttachCloudSessionCookie(c, w, r)
+	if s.platform.License() != nil && *s.platform.License().Features.Cloud {
+		s.AttachCloudSessionCookie(c, w, r)
 	}
 }
 
