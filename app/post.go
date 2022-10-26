@@ -424,7 +424,8 @@ func (a *App) validateVoiceMessage(post *model.Post, parser mp3.Parser) *model.A
 		}
 
 		if mp3info.Duration > float64(*a.Config().FileSettings.MaxVoiceMessagesDuration+VoiceMessageDurationErrorMargin) {
-			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.too_long.app_error", nil, "id="+post.Id+" fileId="+fileIds[0], http.StatusBadRequest)
+			debugInfo := fmt.Sprintf("id=%s fileId=%s duration=%.0f", post.Id, fileIds[0], mp3info.Duration)
+			return model.NewAppError("validateVoicePost", "api.post.validate_voice_post.too_long.app_error", nil, debugInfo, http.StatusBadRequest)
 		}
 	}
 
