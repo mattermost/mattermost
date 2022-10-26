@@ -19,7 +19,7 @@ import (
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
 //
 //	['town-square', 'game-of-thrones', 'wow']
-func (ss *SuiteService) DefaultChannelNames() []string {
+func (ss *SuiteService) defaultChannelNames() []string {
 	names := []string{"town-square"}
 
 	if len(ss.platform.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {

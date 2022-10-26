@@ -49,7 +49,7 @@ func (ss *SuiteService) createDefaultChannels(teamID string) ([]*model.Channel, 
 		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
 	}
 	channels := []*model.Channel{}
-	defaultChannelNames := ss.DefaultChannelNames()
+	defaultChannelNames := ss.defaultChannelNames()
 	for _, name := range defaultChannelNames {
 		displayName := i18n.TDefault(displayNames[name], name)
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
