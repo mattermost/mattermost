@@ -2751,9 +2751,13 @@ type ProductSettings struct {
 	EnablePublicSharedBoards *bool
 }
 
-func (s *ProductSettings) SetDefaults() {
+func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
 	if s.EnablePublicSharedBoards == nil {
-		s.EnablePublicSharedBoards = NewBool(false)
+		if p, ok := plugins[PluginIdFocalboard]; ok {
+			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
+		} else {
+			s.EnablePublicSharedBoards = NewBool(false)
+		}
 	}
 }
 
@@ -3246,7 +3250,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
-	o.ProductSettings.SetDefaults()
+	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
