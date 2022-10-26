@@ -52,13 +52,16 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
+	CrossSellsTo      string             `json:"cross_sells_to"`
 }
 
 type UserFacingProduct struct {
-	ID           string  `json:"id"`
-	Name         string  `json:"name"`
-	SKU          string  `json:"sku"`
-	PricePerSeat float64 `json:"price_per_seat"`
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	SKU               string            `json:"sku"`
+	PricePerSeat      float64           `json:"price_per_seat"`
+	RecurringInterval RecurringInterval `json:"recurring_interval"`
+	CrossSellsTo      string            `json:"cross_sells_to"`
 }
 
 // AddOn represents an addon to a product.

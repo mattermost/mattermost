@@ -1440,20 +1440,19 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		products:  make(map[string]Product),
-		Router:    mux.NewRouter(),
-		filestore: &fmocks.FileBackend{},
+		products: make(map[string]Product),
+		Router:   mux.NewRouter(),
 	}
 	var err error
 	s.platform, err = platform.New(platform.ServiceConfig{
 		ConfigStore: memoryStore,
-	})
+	}, platform.SetFileStore(&fmocks.FileBackend{}))
 	s.SetStore(mockStore)
 	require.NoError(t, err)
 	serviceMap := map[ServiceKey]any{
 		ConfigKey:    s.platform,
 		LicenseKey:   &licenseWrapper{s},
-		FilestoreKey: s.filestore,
+		FilestoreKey: s.FileBackend(),
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)

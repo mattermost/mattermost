@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost 도움말 페이지 열기"
+    "translation": "Mattermost 도움말 보기"
   },
   {
     "id": "api.command_help.name",
@@ -5576,14 +5576,6 @@
     "translation": "초대 채널은 초대한 팀의 채널이어야 합니다."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "게스트 계정을 지원하지 않는 라이선스입니다"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "게스트 계정이 비활성화되어 있습니다"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "전자우편 초대에서 유효하지 않는 오류가 발생했습니다."
   },
@@ -7934,5 +7926,41 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "팀 제한에 도달했기 때문에 팀을 만들 수 없습니다"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "마켓플레이스 열기"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost는 도구와 팀을 넘나드는 안전한 소통, 협업, 작업 조율을 위한 오픈소스 플랫폼입니다.\nMattermost는 세가지 핵심 도구를 갖고 있습니다:\n\n**채널** - 1:1 및 그룹 채팅을 통해 팀과의 소통을 유지하세요.\n**[플레이북](/playbooks)** - 반복가능한 작업들을 구성하여 구체적이고 예측 가능한 결과를 만드세요.\n**[보드](/boards)** - 팀의 핵심 마일스톤에 도달하기 위해 칸반 보드에서 작업을 만들고 프로젝트를 관리하세요.\n\n[문서 및 가이드 살펴보기]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "연체 이메일을 보내기 위한 필수 항목이 누락되었습니다."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "스토어에서 첫 번째 관리자의 설정을 저장하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.error_get_first_admin_visit_marketplace_status",
+    "translation": "스토어에서 첫 번째 관리자의 마켓플레이스 방문 상태를 검색하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "스토어에서 첫 번째 관리자 설정을 검색하는 동안 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "AES-256으로 암호화된 초대를 비밀번호와 함께 외부 Mattermost 시스템 관리자에게 보냅니다. 초대를 받기 위해 `{{.Command}}` 슬래시 명령어를 사용합니다.\n\n```\n{{.Invitation}}\n```\n\n**보안 연결이 다음을 통해 Mattermost에 액세스할 수 있는지 확인하십시오** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "마켓플레이스 명령어는 현재 기기에서 지원하지 않습니다."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "마켓플레이스"
   }
 ]

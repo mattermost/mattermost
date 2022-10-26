@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -416,4 +418,16 @@ func TestWebSocketStatuses(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	WebSocketClient.Close()
+}
+
+func TestWebSocketUpgrade(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	resp, err := http.Get(url)
+	require.NoError(t, err)
+	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
 }

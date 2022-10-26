@@ -78,6 +78,8 @@ type FeatureFlags struct {
 	PostPriority bool
 
 	VoiceMessages bool
+
+	PeopleProduct bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -107,6 +109,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.VoiceMessages = false
+	f.PeopleProduct = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

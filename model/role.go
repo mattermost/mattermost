@@ -261,6 +261,7 @@ func init() {
 		PermissionSysconsoleReadExperimentalFeatures.Id,
 		PermissionSysconsoleReadExperimentalFeatureFlags.Id,
 		PermissionSysconsoleReadExperimentalBleve.Id,
+		PermissionSysconsoleReadProductsBoards.Id,
 	}
 
 	SystemManagerDefaultPermissions = []string{
@@ -339,6 +340,8 @@ func init() {
 		PermissionSysconsoleWriteIntegrationsBotAccounts.Id,
 		PermissionSysconsoleWriteIntegrationsGif.Id,
 		PermissionSysconsoleWriteIntegrationsCors.Id,
+		PermissionSysconsoleReadProductsBoards.Id,
+		PermissionSysconsoleWriteProductsBoards.Id,
 	}
 
 	SystemCustomGroupAdminDefaultPermissions = []string{

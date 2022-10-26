@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Je hebt je e-mailadres bijgewerkt"
+    "translation": "Je hebt je e-mailadres succesvol bijgewerkt"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4325,7 +4325,7 @@
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd bevatten"
+    "translation": "Aangemaakt op moet een geldige tijd bevatten."
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
@@ -4781,11 +4781,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 44+"
+    "translation": "Versie 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 100+"
+    "translation": "Versie 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5606,14 +5606,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "De kanalen van de uitgenodigde moet een kanaal dat deel uitmaakt van het team."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Je licentie ondersteunt geen gastgebruikers"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gast accounts zijn uitgeschakeld"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9537,5 +9529,33 @@
   {
     "id": "api.templates.delinquency_90.title",
     "translation": "Jouw Mattermost-werkruimte werd gedowngraded"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fout tijdens het uitvoeren van de opdracht."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "groepsnaam bestaat al als een gereserveerde naam"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kan niet worden ingeschakeld in de productmodus."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fout bij het ophalen van het laatst toegankelijke bestand"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Kan het bestand niet ophalen omdat dit bestand over de limiet van het cloud plan is."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Jouw licentie ondersteunt geen gastaccounts"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gastaccounts zijn uitgeschakeld"
   }
 ]
