@@ -76,7 +76,7 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -93,10 +93,10 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 		})
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true)
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 	})
 
@@ -112,6 +112,8 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
+			false,
 			false,
 		)
 		require.NoError(t, err)
@@ -140,6 +142,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			false,
+			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -153,6 +157,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			true,
+			false,
+			false,
 		)
 		require.Error(t, err)
 
@@ -172,6 +178,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			message,
 			false,
+			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -179,6 +187,66 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NotContains(t, email.Body.HTML, message)
 		require.Contains(t, email.Body.HTML, "sanitized message")
 		require.Contains(t, email.Body.Text, "sanitized message")
+	})
+
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system user", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			false,
+			false,
+		)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=su")
+	})
+
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system admin", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			true,
+			false,
+		)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=sa")
+	})
+
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for first system admin", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			true,
+			true,
+		)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=fa")
 	})
 }
 
