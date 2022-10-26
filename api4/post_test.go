@@ -36,31 +36,76 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PropsAddChannelMember: "no good"}, DeleteAt: 101}
+	t.Run("successfully create root and reply post", func(t *testing.T) {
+		rootPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "#hashtag a" + model.NewId() + "a",
+			Props:     model.StringInterface{model.PropsAddChannelMember: "no good"},
+			DeleteAt:  101,
+		}
 
-	rpost, resp, err2 := client.CreatePost(post)
-	require.NoError(t, err2)
-	CheckCreatedStatus(t, resp)
+		actualRootPost, resp, err := client.CreatePost(rootPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 
-	require.Equal(t, post.Message, rpost.Message, "message didn't match")
-	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
-	require.Empty(t, rpost.FileIds)
-	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
-	require.Equal(t, 0, int(rpost.DeleteAt), "newly created post shouldn't have DeleteAt set")
+		require.Equal(t, rootPost.Message, actualRootPost.Message, "message didn't match")
+		require.Equal(t, "#hashtag", actualRootPost.Hashtags, "hashtag didn't match")
+		require.Empty(t, actualRootPost.FileIds)
+		require.Equal(t, 0, int(actualRootPost.EditAt), "newly created post shouldn't have EditAt set")
+		require.Nil(t, actualRootPost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+		require.Equal(t, 0, int(actualRootPost.DeleteAt), "newly created post shouldn't have DeleteAt set")
 
-	post.RootId = rpost.Id
-	_, _, err2 = client.CreatePost(post)
-	require.NoError(t, err2)
+		replyPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			RootId:    rootPost.Id,
+			Message:   "reply #hashtag a" + model.NewId() + "a",
+			Props:     model.StringInterface{model.PropsAddChannelMember: "no good"},
+			DeleteAt:  101,
+		}
+		actualReplyPost, resp, err := client.CreatePost(replyPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 
-	post.RootId = "junk"
-	_, resp, err2 = client.CreatePost(post)
-	require.Error(t, err2)
-	CheckBadRequestStatus(t, resp)
+		require.Equal(t, replyPost.Message, actualReplyPost.Message, "message didn't match")
+		require.Equal(t, "#hashtag", actualReplyPost.Hashtags, "hashtag didn't match")
+		require.Empty(t, actualReplyPost.FileIds)
+		require.Equal(t, 0, int(actualReplyPost.EditAt), "newly created post shouldn't have EditAt set")
+		require.Nil(t, actualReplyPost.GetProp(model.PropsAddChannelMember), "newly created post shouldn't have Props['add_channel_member'] set")
+		require.Equal(t, 0, int(actualReplyPost.DeleteAt), "newly created post shouldn't have DeleteAt set")
+	})
 
-	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
-	rpost2, _, _ := client.CreatePost(post2)
-	require.NotEqual(t, post2.CreateAt, rpost2.CreateAt, "create at should not match")
+	t.Run("invalid root post id", func(t *testing.T) {
+		actualReplyPost, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			RootId:    "junk",
+			Message:   "reply to invalid root post",
+		})
+		require.Error(t, err)
+		require.Nil(t, actualReplyPost)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-existing root post", func(t *testing.T) {
+		actualReplyPost, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			RootId:    model.NewId(),
+			Message:   "reply to invalid root post",
+		})
+		require.Error(t, err)
+		require.Nil(t, actualReplyPost)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("server should ignore client-provided CreateAt", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel2.Id,
+			Message:   "zz" + model.NewId() + "a",
+			CreateAt:  123,
+		}
+		actualPost, _, err := client.CreatePost(post)
+		require.NoError(t, err)
+		require.NotEqual(t, post.CreateAt, actualPost.CreateAt, "create at should not match")
+	})
 
 	t.Run("with file uploaded by same user", func(t *testing.T) {
 		fileResp, _, err := client.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
@@ -125,9 +170,17 @@ func TestCreatePost(t *testing.T) {
 
 		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
 
-		post.RootId = rpost.Id
-		post.Message = "a post with no channel mentions"
-		_, _, err = client.CreatePost(post)
+		rootPost, _, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		})
+		require.NoError(t, err)
+
+		_, _, err = client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a reply post with no channel mentions",
+			RootId:    rootPost.Id,
+		})
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
@@ -142,19 +195,25 @@ func TestCreatePost(t *testing.T) {
 			}
 		}
 
-		post.RootId = rpost.Id
-		post.Message = "a post with @channel"
-		_, _, err = client.CreatePost(post)
+		_, _, err = client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a post with @channel",
+			RootId:    rootPost.Id,
+		})
 		require.NoError(t, err)
 
-		post.RootId = rpost.Id
-		post.Message = "a post with @all"
-		_, _, err = client.CreatePost(post)
+		_, _, err = client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a post with @all",
+			RootId:    rootPost.Id,
+		})
 		require.NoError(t, err)
 
-		post.RootId = rpost.Id
-		post.Message = "a post with @here"
-		_, _, err = client.CreatePost(post)
+		_, _, err = client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a post with @here",
+			RootId:    rootPost.Id,
+		})
 		require.NoError(t, err)
 
 		timeout = time.After(2 * time.Second)
@@ -173,43 +232,81 @@ func TestCreatePost(t *testing.T) {
 		}
 	})
 
-	post.RootId = ""
-	post.Type = model.PostTypeSystemGeneric
-	_, resp, err := client.CreatePost(post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("attempt to create system post", func(t *testing.T) {
+		_, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Type:      model.PostTypeSystemGeneric,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	post.Type = ""
-	post.RootId = rpost2.Id
-	_, resp, err = client.CreatePost(post)
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+	t.Run("attempt to reply to reply", func(t *testing.T) {
+		rootPost, _, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		})
+		require.NoError(t, err)
 
-	post.RootId = ""
-	post.ChannelId = "junk"
-	_, resp, err = client.CreatePost(post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		replyPost, _, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "reply post",
+			RootId:    rootPost.Id,
+		})
+		require.NoError(t, err)
 
-	post.ChannelId = model.NewId()
-	_, resp, err = client.CreatePost(post)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		_, resp, err := client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			RootId:    replyPost.Id,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	r, err := client.DoAPIPost("/posts", "garbage")
-	require.Error(t, err)
-	require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	t.Run("attempt to post to invalid channel id", func(t *testing.T) {
+		_, resp, err := client.CreatePost(&model.Post{
+			ChannelId: "junk",
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	client.Logout()
-	_, resp, err = client.CreatePost(post)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("attempt to post to non-existent channel", func(t *testing.T) {
+		_, resp, err := client.CreatePost(&model.Post{
+			ChannelId: model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	post.ChannelId = th.BasicChannel.Id
-	post.CreateAt = 123
-	rpost, _, err = th.SystemAdminClient.CreatePost(post)
-	require.NoError(t, err)
-	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
+	t.Run("attempt to hit endpoint with invalid payload", func(t *testing.T) {
+		r, err := client.DoAPIPost("/posts", "garbage")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode)
+	})
+
+	t.Run("attempt to post after logout", func(t *testing.T) {
+		loggedOutClient := th.CreateClient()
+
+		_, resp, err := loggedOutClient.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+		})
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("set CreateAt as system admin", func(t *testing.T) {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  123,
+		}
+
+		actualPost, resp, err := th.SystemAdminClient.CreatePost(post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, post.CreateAt, actualPost.CreateAt, "create at should match")
+	})
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
