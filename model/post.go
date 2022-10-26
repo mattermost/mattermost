@@ -112,6 +112,12 @@ type Post struct {
 	Participants []*User       `json:"participants"`
 	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
+
+	// Incoming metadata for use in replying to a topic.
+	//
+	// These properties are not populated when querying for posts.
+	TopicType string `json:"topic_type"`
+	TopicId   string `json:"topic_id"`
 }
 
 func (o *Post) Auditable() map[string]interface{} {
@@ -135,6 +141,8 @@ func (o *Post) Auditable() map[string]interface{} {
 		"last_reply_at":   o.LastReplyAt,
 		"is_following":    o.IsFollowing,
 		"metadata":        o.Metadata,
+		"topic_type":      o.GetTopicType(),
+		"topic_id":        o.GetTopicId(),
 	}
 }
 
@@ -250,6 +258,8 @@ func (o *Post) ShallowCopy(dst *Post) error {
 		dst.IsFollowing = NewBool(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
+	dst.TopicType = o.TopicType
+	dst.TopicId = o.TopicId
 	return nil
 }
 
@@ -340,7 +350,18 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(o.ChannelId) {
+	// Require a channel or a topic.
+	if o.ChannelId == "" && (o.GetTopicType() == "" || o.GetTopicId() == "") {
+		return NewAppError("Post.IsValid", "model.post.is_valid.channel_or_topic_must_be_specified.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Disallow a channel and topic specified at the same time.
+	if o.ChannelId != "" && (o.GetTopicType() != "" || o.GetTopicId() != "") {
+		return NewAppError("Post.IsValid", "model.post.is_valid.channel_and_topic_specified.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Require a valid channel if specified.
+	if o.ChannelId != "" && !IsValidId(o.ChannelId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -768,5 +789,37 @@ func (o *Post) GetPreviewedPostProp() string {
 	if val, ok := o.GetProp(PostPropsPreviewedPost).(string); ok {
 		return val
 	}
+	return ""
+}
+
+// GetTopicType returns the topic type for the post, either set explicitly or previously saved
+// as a prop. Unlike the channel, the topic relationship is not saved on all posts in a thread but
+// is available on root posts and the thread data model itself.
+func (o *Post) GetTopicType() string {
+	if o.TopicType != "" {
+		return o.TopicType
+	}
+
+	props := o.GetProps()
+	if topicType, ok := props["topic_type"].(string); ok {
+		return topicType
+	}
+
+	return ""
+}
+
+// GetTopicId returns the topic id for the post, either set explicitly or previously saved
+// as a prop. Unlike the channel, the topic relationship is not saved on all posts in a thread but
+// is available on root posts and the thread data model itself.
+func (o *Post) GetTopicId() string {
+	if o.TopicId != "" {
+		return o.TopicId
+	}
+
+	props := o.GetProps()
+	if topicId, ok := props["topic_id"].(string); ok {
+		return topicId
+	}
+
 	return ""
 }

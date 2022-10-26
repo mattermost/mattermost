@@ -225,6 +225,10 @@ func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*mode
 	}
 
 	for channelId, count := range channelNewPosts {
+		if channelId == "" {
+			continue
+		}
+
 		countRoot := channelNewRootPosts[channelId]
 
 		if _, err = s.GetMasterX().NamedExec(`UPDATE Channels
@@ -377,8 +381,11 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	}
 
 	time := model.GetMillis()
-	if _, err := s.GetMasterX().Exec("UPDATE Channels SET LastPostAt = ?  WHERE Id = ? AND LastPostAt < ?", time, newPost.ChannelId, time); err != nil {
-		return nil, errors.Wrap(err, "failed to update lastpostat of channels")
+
+	if newPost.ChannelId != "" {
+		if _, err := s.GetMasterX().Exec("UPDATE Channels SET LastPostAt = ?  WHERE Id = ? AND LastPostAt < ?", time, newPost.ChannelId, time); err != nil {
+			return nil, errors.Wrap(err, "failed to update lastpostat of channels")
+		}
 	}
 
 	if newPost.RootId != "" {
@@ -2398,6 +2405,7 @@ func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) 
 			SELECT Posts.Id FROM Posts
 			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
 			WHERE Channels.Id IS NULL
+			AND COALESCE(Posts.ChannelId, '') <> ''
 			LIMIT ?
 		) AS A
 	)`
@@ -3290,4 +3298,95 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	}
 
 	return meta, nil
+}
+
+// GetOrMaterializeTopicalRootPost returns the root post id for the given topic, creating it if it
+// doesn't already exist.
+func (s *SqlPostStore) GetOrMaterializeTopicalRootPost(productBotUserId, teamId, collectionType, collectionID, topicType, topicID string) (string, error) {
+	topicalThreadExistsQuery := s.getQueryBuilder().
+		Select("Threads.PostId").
+		From("Threads").
+		Where(sq.And{
+			sq.Eq{"Threads.TopicType": topicType},
+			sq.Eq{"Threads.TopicID": topicID},
+		})
+
+	var postID string
+	err := s.GetReplicaX().GetBuilder(&postID, topicalThreadExistsQuery)
+	if err != nil && err != sql.ErrNoRows {
+		return "", errors.Wrapf(err, "failed to check if `%s` topic with id `%s` exists", topicType, topicID)
+	}
+	if postID != "" {
+		return postID, nil
+	}
+
+	// Create the post and thread in a transaction, relying on the unique index for threads
+	// to ensure atomicity for topic materialization.
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return "", errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	rootPost := &model.Post{
+		UserId:    productBotUserId,
+		ChannelId: "",
+		// Type?
+	}
+	rootPost.PreSave()
+
+	// Remember the topic type and id on the root post, but not subsequent replies. This
+	// simplifies downstream code handling tremendously.
+	rootPost.SetProps(model.StringInterface{
+		"topic_type": topicType,
+		"topic_id":   topicID,
+	})
+
+	query := s.getQueryBuilder().
+		Insert("Posts").
+		Columns(postSliceColumns()...).
+		Values(postToSlice(rootPost)...)
+
+	_, err = s.GetMasterX().ExecBuilder(query)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to insert the root post for `%s` topic with id `%s`", topicType, topicID)
+	}
+
+	_, err = transaction.NamedExec(
+		`INSERT INTO Threads
+		(PostId, ReplyCount, LastReplyAt, Participants, ThreadTeamId, CollectionType, CollectionId, TopicType, TopicId)
+		VALUES
+		(:PostId, :ReplyCount, :LastReplyAt, :Participants, :TeamId, :CollectionType, :CollectionId, :topicType, :TopicId)`,
+		&model.Thread{
+			PostId:         rootPost.Id,
+			ReplyCount:     0,
+			LastReplyAt:    0,
+			Participants:   model.StringArray{},
+			TeamId:         teamId,
+			CollectionType: collectionType,
+			CollectionId:   collectionID,
+			TopicType:      topicType,
+			TopicId:        topicID,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: Use IsUniqueConstraintError to transparently recover from an insert race.
+
+	if err = transaction.Commit(); err != nil {
+		return "", errors.Wrap(err, "commit_transaction")
+	}
+
+	mlog.Debug(
+		"Materialized root post for topic",
+		mlog.String("post_id", rootPost.Id),
+		mlog.String("collection_type", collectionType),
+		mlog.String("collection_id", collectionID),
+		mlog.String("topic_type", topicType),
+		mlog.String("topic_id", topicID),
+	)
+
+	return rootPost.Id, nil
 }

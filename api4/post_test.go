@@ -307,6 +307,37 @@ func TestCreatePost(t *testing.T) {
 
 		require.Equal(t, post.CreateAt, actualPost.CreateAt, "create at should match")
 	})
+
+	t.Run("create post against topic, missing topic type", func(t *testing.T) {
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create post against topic, missing topic id", func(t *testing.T) {
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   "",
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	// TODO: need some way of hosting and running a plugin in this context
+	// t.Run("create post against topic", func(t *testing.T) {
+	// 	topicType := "topic_type"
+	// 	topicId := model.NewId()
+
+	// 	_, resp, err := client.CreatePost(&model.Post{
+	// 		TopicType: topicType,
+	// 		TopicId:   topicId,
+	// 	})
+	// 	require.NoError(t, err)
+	// 	CheckCreatedStatus(t, resp)
+	// })
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {

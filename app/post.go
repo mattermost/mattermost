@@ -47,11 +47,16 @@ func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) 
 }
 
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
-	// Check that channel has not been deleted
-	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
-	if errCh != nil {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
-		return nil, err
+	var channel *model.Channel
+	var errCh error
+
+	if post.ChannelId != "" {
+		// Check that channel has not been deleted
+		channel, errCh = a.Srv().Store().Channel().Get(post.ChannelId, true)
+		if errCh != nil {
+			err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
+			return nil, err
+		}
 	}
 
 	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
@@ -59,9 +64,11 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
-	if channel.DeleteAt != 0 {
-		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
+	if post.ChannelId != "" {
+		if channel.DeleteAt != 0 {
+			err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
+			return nil, err
+		}
 	}
 
 	rp, err := a.CreatePost(c, post, channel, true, setOnline)
@@ -74,21 +81,23 @@ func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId
 		return nil, err
 	}
 
-	// Update the Channel LastViewAt only if:
-	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
-	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
-	// the post is NOT a reply post with CRT enabled
-	_, fromWebhook := post.GetProps()["from_webhook"]
-	_, fromBot := post.GetProps()["from_bot"]
-	isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
-	if !fromWebhook && !fromBot && !isCRTReply {
-		if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
-			c.Logger().Warn(
-				"Encountered error updating last viewed",
-				mlog.String("channel_id", post.ChannelId),
-				mlog.String("user_id", post.UserId),
-				mlog.Err(err),
-			)
+	if post.ChannelId != "" {
+		// Update the Channel LastViewAt only if:
+		// the post does NOT have from_webhook prop set (e.g. Zapier app), and
+		// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and
+		// the post is NOT a reply post with CRT enabled
+		_, fromWebhook := post.GetProps()["from_webhook"]
+		_, fromBot := post.GetProps()["from_bot"]
+		isCRTReply := post.RootId != "" && a.IsCRTEnabledForUser(c, post.UserId)
+		if !fromWebhook && !fromBot && !isCRTReply {
+			if _, err := a.MarkChannelsAsViewed(c, []string{post.ChannelId}, post.UserId, currentSessionId, true); err != nil {
+				c.Logger().Warn(
+					"Encountered error updating last viewed",
+					mlog.String("channel_id", post.ChannelId),
+					mlog.String("user_id", post.UserId),
+					mlog.Err(err),
+				)
+			}
 		}
 	}
 
@@ -208,16 +217,18 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	var ephemeralPost *model.Post
-	if post.Type == "" && !a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
-		mention := post.DisableMentionHighlights()
-		if mention != "" {
-			T := i18n.GetUserTranslations(user.Locale)
-			ephemeralPost = &model.Post{
-				UserId:    user.Id,
-				RootId:    post.RootId,
-				ChannelId: channel.Id,
-				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
-				Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
+	if channel != nil {
+		if post.Type == "" && !a.HasPermissionToChannel(c, user.Id, channel.Id, model.PermissionUseChannelMentions) {
+			mention := post.DisableMentionHighlights()
+			if mention != "" {
+				T := i18n.GetUserTranslations(user.Locale)
+				ephemeralPost = &model.Post{
+					UserId:    user.Id,
+					RootId:    post.RootId,
+					ChannelId: channel.Id,
+					Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
+					Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
+				}
 			}
 		}
 	}
@@ -230,19 +241,55 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 		parentPostList = result.Data.(*model.PostList)
-		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
-			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
+		rootPost := parentPostList.Posts[post.RootId]
+
+		// The root post must be found.
+		if rootPost == nil {
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		rootPost := parentPostList.Posts[post.RootId]
+		// The root post must not itself be a reply.
 		if rootPost.RootId != "" {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		// If a channel is provided, it must belong to the same channel as the root post.
+		// TODO: Do we need to support replying to a topical thread by root post? (It's redundant if the topic is specified.)
+		if post.ChannelId != "" && rootPost.ChannelId != post.ChannelId {
+			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
+		}
+	}
+
+	var teamID string
+	if channel != nil {
+		teamID = channel.TeamId
+	} else if post.TopicType != "" && post.TopicId != "" {
+		var topicMetadata *model.TopicMetadata
+		topicMetadata, nErr = a.GetTopicMetadataById(post.TopicType, post.TopicId)
+		if nErr != nil {
+			return nil, model.NewAppError("createPost", "app.thread.materialize.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		} else if topicMetadata == nil {
+			return nil, model.NewAppError("createPost", "app.thread.materialize.app_error", nil, "", http.StatusNotFound)
+		}
+
+		teamID = topicMetadata.TeamId
+
+		// Materialize the root post for topical threads, if necessary. We do this after
+		// the parent/child relationships above to avoid checking work we already know to
+		// be correct.
+		var rootPostId string
+		rootPostId, err = a.getOrMaterializeTopicalRootPost(post)
+		if err != nil {
+			return nil, err
+		}
+
+		// Reply to the materialized topic's root post.
+		post.RootId = rootPostId
 	}
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if err = a.FillInPostProps(c, post, channel); err != nil {
+	if err = a.FillInPostPropsGivenTeamId(c, post, teamID); err != nil {
 		return nil, err
 	}
 
@@ -373,6 +420,32 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	return rpost, nil
 }
 
+func (a *App) getOrMaterializeTopicalRootPost(post *model.Post) (string, *model.AppError) {
+	if !a.Config().FeatureFlags.ThreadsEverywhere {
+		return "", model.NewAppError("getOrMaterializeTopicalRootPost", "app.thread.materialize.feature_flag_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	userID, err := a.GetUserIdForTopicType(post.TopicType)
+	if err != nil {
+		return "", model.NewAppError("getOrMaterializeTopicalRootPost", "app.thread.materialize.user_id.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	topicMetadata, err := a.GetTopicMetadataById(post.TopicType, post.TopicId)
+	if err != nil {
+		return "", model.NewAppError("getOrMaterializeTopicalRootPost", "app.thread.materialize.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if topicMetadata == nil {
+		return "", model.NewAppError("getOrMaterializeTopicalRootPost", "app.thread.materialize.app_error", nil, "", http.StatusNotFound)
+	}
+
+	rootPostId, err := a.Srv().Store().Post().GetOrMaterializeTopicalRootPost(userID, topicMetadata.TeamId, topicMetadata.CollectionType, topicMetadata.CollectionId, topicMetadata.TopicType, topicMetadata.Id)
+	if err != nil {
+		return "", model.NewAppError("getOrMaterializeTopicalRootPost", "app.thread.materialize.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Reply to the materialized topic's root post.
+	return rootPostId, nil
+}
+
 func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
 	previewPost := post.GetPreviewPost()
 	if previewPost != nil {
@@ -413,19 +486,27 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
+	if channel == nil {
+		postChannel, err := a.Srv().Store().Channel().Get(post.ChannelId, true)
+		if err != nil {
+			return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(err)
+		}
+		channel = postChannel
+	}
+
+	return a.FillInPostPropsGivenTeamId(c, post, channel.TeamId)
+}
+
+// FillInPostProps should be invoked before saving posts to fill in properties such as
+// channel_mentions.
+//
+// If channel is nil, FillInPostProps will look up the channel corresponding to the post.
+func (a *App) FillInPostPropsGivenTeamId(c request.CTX, post *model.Post, teamID string) *model.AppError {
 	channelMentions := post.ChannelMentions()
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
-		if channel == nil {
-			postChannel, err := a.Srv().Store().Channel().GetForPost(post.Id)
-			if err != nil {
-				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]any{"Name": "post.channel_id"}, "", http.StatusBadRequest).Wrap(err)
-			}
-			channel = postChannel
-		}
-
-		mentionedChannels, err := a.GetChannelsByNames(c, channelMentions, channel.TeamId)
+		mentionedChannels, err := a.GetChannelsByNames(c, channelMentions, teamID)
 		if err != nil {
 			return err
 		}
@@ -434,7 +515,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 			if mentioned.Type == model.ChannelTypeOpen {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
-					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", teamID), mlog.String("channel_id", mentioned.Id), mlog.Err(err))
 					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]any{
@@ -460,7 +541,13 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 }
 
 func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
+	// TODO: support post events for non-channel threads.
+	if channel == nil {
+		return nil
+	}
+
 	var team *model.Team
+
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
@@ -1672,9 +1759,14 @@ func (a *App) MaxPostSize() int {
 
 // countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
 func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.Post, teamID string, timestamp int64) (int64, *model.AppError) {
-	channel, err := a.GetChannel(c, post.ChannelId)
-	if err != nil {
-		return 0, err
+	var channel *model.Channel
+	var err *model.AppError
+
+	if post.ChannelId != "" {
+		channel, err = a.GetChannel(c, post.ChannelId)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	keywords := addMentionKeywordsForUser(
@@ -1692,7 +1784,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 
 	count := 0
 
-	if channel.Type == model.ChannelTypeDirect {
+	if channel != nil && channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
 		otherId := channel.GetOtherUserIdForDM(user.Id)
 		for _, p := range posts {
@@ -1712,9 +1804,12 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		}
 	}
 
-	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
-	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	var groups map[string]*model.Group
+	if channel != nil {
+		groups, nErr = a.getGroupsAllowedForReferenceInChannel(channel, team)
+		if nErr != nil {
+			return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
 
 	for _, p := range posts {
@@ -1885,17 +1980,24 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		return nil, err
 	}
 
-	channel, err := a.GetChannel(c, post.ChannelId)
-	if err != nil {
-		return nil, err
-	}
+	if post.ChannelId != "" {
+		channel, err := a.GetChannel(c, post.ChannelId)
+		if err != nil {
+			return nil, err
+		}
 
-	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
-		if channel.Type == model.ChannelTypeOpen {
-			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
-				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+		if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannel) {
+			if channel.Type == model.ChannelTypeOpen {
+				if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
+					return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+				}
+			} else {
+				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
 			}
-		} else {
+		}
+	} else if post.GetTopicType() != "" && post.GetTopicId() != "" {
+		// TODO: Use an appropriate permission.
+		if !a.SessionHasPermissionToTopic(c, *session, post.GetTopicType(), post.GetTopicId(), model.PermissionReadChannel) {
 			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
 		}
 	}

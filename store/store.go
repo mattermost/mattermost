@@ -403,6 +403,8 @@ type PostStore interface {
 
 	// Insights - top DMs
 	GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error)
+
+	GetOrMaterializeTopicalRootPost(productBotUserId, teamID, collectionType, collectionID, topicType, topicID string) (string, error)
 }
 
 type UserStore interface {

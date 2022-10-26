@@ -404,3 +404,32 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
 	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannel) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(userID, channel.TeamId, model.PermissionReadPublicChannel))
 }
+
+// SessionHasPermissionToTopic returns true if the given session has the given permission for the
+// given topic.
+func (a *App) SessionHasPermissionToTopic(c request.CTX, session model.Session, topicType, topicID string, permission *model.Permission) bool {
+	if topicType == "" || topicID == "" {
+		return false
+	}
+
+	topicMetadata, err := a.GetTopicMetadataById(topicType, topicID)
+	if err != nil {
+		return false
+	} else if topicMetadata == nil {
+		return false
+	}
+
+	hasPermission, err := a.PluginGivesUserPermissionToCollection(session.UserId, topicMetadata.CollectionType, topicMetadata.CollectionId, permission)
+	if err != nil {
+		return false
+	}
+	if hasPermission {
+		return true
+	}
+
+	if a.SessionHasPermissionToTeam(session, topicMetadata.TeamId, permission) {
+		return true
+	}
+
+	return a.SessionHasPermissionTo(session, permission)
+}

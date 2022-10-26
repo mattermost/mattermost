@@ -316,6 +316,9 @@ type AppIface interface {
 	SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError
 	// SessionHasPermissionToTeams returns true only if user has access to all teams.
 	SessionHasPermissionToTeams(c request.CTX, session model.Session, teamIDs []string, permission *model.Permission) bool
+	// SessionHasPermissionToTopic returns true if the given session has the given permission for the
+	// given topic.
+	SessionHasPermissionToTopic(c request.CTX, session model.Session, topicType, topicID string, permission *model.Permission) bool
 	// SessionIsRegistered determines if a specific session has been registered
 	SessionIsRegistered(session model.Session) bool
 	// SetSessionExpireInHours sets the session's expiry the specified number of hours
@@ -701,6 +704,8 @@ type AppIface interface {
 	GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError)
 	GetPermalinkPost(c request.CTX, postID string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(c request.CTX, channelID string) (*model.PostList, *model.AppError)
+	GetPluginIdForCollectionType(collectionType string) (string, error)
+	GetPluginIdForTopicType(topicType string) (string, error)
 	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
 	GetPlugins() (*model.PluginsResponse, *model.AppError)
 	GetPostAfterTime(channelID string, time int64, collapsedThreads bool) (*model.Post, *model.AppError)
@@ -801,6 +806,7 @@ type AppIface interface {
 	GetTopReactionsForUserSince(userID string, teamID string, opts *model.InsightsOpts) (*model.TopReactionList, *model.AppError)
 	GetTopThreadsForTeamSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
 	GetTopThreadsForUserSince(c request.CTX, teamID, userID string, opts *model.InsightsOpts) (*model.TopThreadList, *model.AppError)
+	GetTopicMetadataById(topicType, topicId string) (*model.TopicMetadata, error)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
@@ -811,6 +817,7 @@ type AppIface interface {
 	GetUserByEmail(email string) (*model.User, *model.AppError)
 	GetUserByUsername(username string) (*model.User, *model.AppError)
 	GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
+	GetUserIdForTopicType(topicType string) (string, error)
 	GetUserTermsOfService(userID string) (*model.UserTermsOfService, *model.AppError)
 	GetUsers(userIDs []string) ([]*model.User, *model.AppError)
 	GetUsersByGroupChannelIds(c *request.Context, channelIDs []string, asAdmin bool) (map[string][]*model.User, *model.AppError)
@@ -923,6 +930,7 @@ type AppIface interface {
 	PermanentDeleteTeamId(c request.CTX, teamID string) *model.AppError
 	PermanentDeleteUser(c *request.Context, user *model.User) *model.AppError
 	PluginCommandsForTeam(teamID string) []*model.Command
+	PluginGivesUserPermissionToCollection(userID, collectionType, collectionID string, permission *model.Permission) (bool, error)
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(c request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch

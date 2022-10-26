@@ -30,6 +30,11 @@ type JoinedThread struct {
 	Participants   model.StringArray
 	ThreadDeleteAt int64
 	TeamId         string
+	CollectionType string
+	CollectionId   string
+	TopicType      string
+	TopicId        string
+
 	model.Post
 }
 
@@ -83,6 +88,10 @@ func (s *SqlThreadStore) initializeQueries() {
 		Select(
 			"Threads.PostId",
 			"Threads.ChannelId",
+			"COALESCE(Threads.CollectionType, '') AS CollectionType",
+			"COALESCE(Threads.CollectionId, '') AS CollectionId",
+			"COALESCE(Threads.TopicType, '') AS TopicType",
+			"COALESCE(Threads.TopicId, '') AS TopicId",
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
@@ -95,6 +104,10 @@ func (s *SqlThreadStore) initializeQueries() {
 		Select(
 			"Threads.PostId",
 			"Threads.ChannelId",
+			"COALESCE(Threads.CollectionType, '') AS CollectionType",
+			"COALESCE(Threads.CollectionId, '') AS CollectionId",
+			"COALESCE(Threads.TopicType, '') AS TopicType",
+			"COALESCE(Threads.TopicId, '') AS TopicId",
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
@@ -104,11 +117,12 @@ func (s *SqlThreadStore) initializeQueries() {
 		From("Threads")
 }
 
-func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
+// Get fetches a single thread by its unique identifier: the id of the root post of the thread.
+func (s *SqlThreadStore) Get(postId string) (*model.Thread, error) {
 	var thread model.Thread
 
 	query := s.threadsSelectQuery.
-		Where(sq.Eq{"PostId": id})
+		Where(sq.Eq{"PostId": postId})
 
 	err := s.GetReplicaX().GetBuilder(&thread, query)
 	if err != nil {
@@ -116,8 +130,9 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 			return nil, nil
 		}
 
-		return nil, errors.Wrapf(err, "failed to get thread with id=%s", id)
+		return nil, errors.Wrapf(err, "failed to get thread with post_id=%s", postId)
 	}
+
 	return &thread, nil
 }
 
@@ -146,8 +161,13 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 	return query
 }
 
-// GetTotalUnreadThreads counts the number of unread threads for the given user, optionally
-// constrained to the given team + DMs/GMs.
+// GetTotalUnreadThreads counts the number of unread, undeleted threads for the given user,
+// optionally constrained to the given team.
+//
+// If opts.Deleted is true, count deleted threads as well.
+//
+// Note that the team id is effectively ignored when counting unread threads in DMs/GMs, as such
+// threads effectively appear in all teams from the user's perspective.
 func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
 	query := s.getTotalThreadsQuery(userId, teamId, opts).
 		Where(sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt"))
@@ -161,8 +181,13 @@ func (s *SqlThreadStore) GetTotalUnreadThreads(userId, teamId string, opts model
 	return totalUnreadThreads, nil
 }
 
-// GetTotalUnreadThreads counts the number of threads for the given user, optionally constrained
-// to the given team + DMs/GMs.
+// GetTotalThreads counts the number of undeleted threads for the given user, optionally
+// constrained to a given team.
+//
+// If opts.Deleted is true, count deleted threads as well.
+//
+// Note that the team id is effectively ignored when counting threads in DMs/GMs, as such threads
+// effectively appear in all teams from the user's perspective.
 func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
 	if opts.Unread {
 		return 0, errors.New("GetTotalThreads does not support the Unread flag; use GetTotalUnreadThreads instead")
@@ -180,7 +205,12 @@ func (s *SqlThreadStore) GetTotalThreads(userId, teamId string, opts model.GetUs
 }
 
 // GetTotalUnreadMentions counts the number of unread mentions for the given user, optionally
-// constrained to the given team + DMs/GMs.
+// constrained to the given team.
+//
+// If opts.Deleted is true, count mentions in deleted threads as well.
+//
+// Note that the team id is effectively ignored when counting threads in a DM, as mentions in such
+// threads effectively appear in all teams from the user's perspective.
 func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts model.GetUserThreadsOpts) (int64, error) {
 	var totalUnreadMentions int64
 
@@ -197,6 +227,7 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 		query = query.
 			Where(sq.Or{
 				sq.Eq{"Threads.ThreadTeamId": teamId},
+				// Include DMs & GMs
 				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
@@ -213,6 +244,7 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 	return totalUnreadMentions, nil
 }
 
+// GetThreadsForUser returns threads for the given user and team.
 func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
@@ -249,6 +281,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		query = query.
 			Where(sq.Or{
 				sq.Eq{"Threads.ThreadTeamId": teamId},
+				// Include DMs & GMs
 				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
@@ -451,7 +484,11 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		})
 
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}},
+		sq.Or{
+			sq.Eq{"Threads.ThreadTeamId": teamId},
+			// Include DMs & GMs
+			sq.Eq{"Threads.ThreadTeamId": ""},
+		},
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
@@ -842,6 +879,8 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 
 // DeleteOrphanedRows removes orphaned rows from Threads and ThreadMemberships
 func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// Find threads belonging to channels that no longer exist, while excluding non-channel
+	// threads. Products are responsible for deleting their own orphaned threads.
 	// We need the extra level of nesting to deal with MySQL's locking
 	const threadsQuery = `
 	DELETE FROM Threads WHERE PostId IN (
@@ -849,6 +888,7 @@ func (s *SqlThreadStore) DeleteOrphanedRows(limit int) (deleted int64, err error
 			SELECT Threads.PostId FROM Threads
 			LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
 			WHERE Channels.Id IS NULL
+			AND COALESCE(Threads.ChannelId, '') <> ''
 			LIMIT ?
 		) AS A
 	)`

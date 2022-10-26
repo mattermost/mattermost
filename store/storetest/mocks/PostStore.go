@@ -354,6 +354,27 @@ func (_m *PostStore) GetOldestEntityCreationTime() (int64, error) {
 	return r0, r1
 }
 
+// GetOrMaterializeTopicalRootPost provides a mock function with given fields: productBotUserId, teamID, collectionType, collectionID, topicType, topicID
+func (_m *PostStore) GetOrMaterializeTopicalRootPost(productBotUserId string, teamID string, collectionType string, collectionID string, topicType string, topicID string) (string, error) {
+	ret := _m.Called(productBotUserId, teamID, collectionType, collectionID, topicType, topicID)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string) string); ok {
+		r0 = rf(productBotUserId, teamID, collectionType, collectionID, topicType, topicID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, string) error); ok {
+		r1 = rf(productBotUserId, teamID, collectionType, collectionID, topicType, topicID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterID
 func (_m *PostStore) GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error) {
 	ret := _m.Called(limit, afterID)

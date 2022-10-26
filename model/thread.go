@@ -3,15 +3,30 @@
 
 package model
 
-// Thread tracks the metadata associated with a root post and its reply posts.
+// Thread tracks the metadata associated with a set of posts forming a thread.
 //
-// Note that Thread metadata does not exist until the first reply to a root post.
+// Note that Thread metadata may not exist until the first reply to thread.
 type Thread struct {
 	// PostId is the root post of the thread.
 	PostId string `json:"id"`
 
 	// ChannelId is the channel in which the thread was posted.
 	ChannelId string `json:"channel_id"`
+
+	// CollectionType is the type of collection to which CollectionId refers. If empty, the
+	// collection is a channel.
+	CollectionType string `json:"collection_type"`
+
+	// CollectionId is collection to which the thread belongs. If empty, the ChannelId acts
+	// as the collection.
+	CollectionId string `json:"collection_id"`
+
+	// TopicType is the type of topic to which TopicId refers. If empty, the topic is a
+	// traditional channel root post.
+	TopicType string `json:"topic_type"`
+
+	// TopicId is the root of the thread. If empty, the PostId acts as the topic.
+	TopicId string `json:"topic_id"`
 
 	// ReplyCount is the number of replies to the thread (excluding deleted posts).
 	ReplyCount int64 `json:"reply_count"`
@@ -25,6 +40,9 @@ type Thread struct {
 
 	// DeleteAt is a denormalized copy of the root posts's DeleteAt. In the database, it's
 	// named ThreadDeleteAt to avoid introducing a query conflict with older server versions.
+	//
+	// For non-Channel threads, this property should also match the timestamp when the
+	// underlying topic was marked as deleted.
 	DeleteAt int64 `json:"delete_at"`
 
 	// TeamId is a denormalized copy of the Channel's teamId. In the database, it's

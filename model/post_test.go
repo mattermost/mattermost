@@ -25,53 +25,131 @@ func TestPostToJSON(t *testing.T) {
 }
 
 func TestPostIsValid(t *testing.T) {
-	o := Post{}
 	maxPostSize := 10000
 
-	appErr := o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+	t.Run("general tests", func(t *testing.T) {
+		o := Post{}
 
-	o.Id = NewId()
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		appErr := o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.CreateAt = GetMillis()
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.Id = NewId()
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.UpdateAt = GetMillis()
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.CreateAt = GetMillis()
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.UserId = NewId()
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.UpdateAt = GetMillis()
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.ChannelId = NewId()
-	o.RootId = "123"
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.UserId = NewId()
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.RootId = ""
+		o.ChannelId = NewId()
+		o.RootId = "123"
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.Message = strings.Repeat("0", maxPostSize+1)
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.RootId = ""
 
-	o.Message = strings.Repeat("0", maxPostSize)
-	appErr = o.IsValid(maxPostSize)
-	require.Nil(t, appErr)
+		o.Message = strings.Repeat("0", maxPostSize+1)
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
 
-	o.Message = "test"
-	appErr = o.IsValid(maxPostSize)
-	require.Nil(t, appErr)
-	o.Type = "junk"
-	appErr = o.IsValid(maxPostSize)
-	require.NotNil(t, appErr)
+		o.Message = strings.Repeat("0", maxPostSize)
+		appErr = o.IsValid(maxPostSize)
+		require.Nil(t, appErr)
 
-	o.Type = PostCustomTypePrefix + "type"
-	appErr = o.IsValid(maxPostSize)
-	require.Nil(t, appErr)
+		o.Message = "test"
+		appErr = o.IsValid(maxPostSize)
+		require.Nil(t, appErr)
+		o.Type = "junk"
+		appErr = o.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+
+		o.Type = PostCustomTypePrefix + "type"
+		appErr = o.IsValid(maxPostSize)
+		require.Nil(t, appErr)
+	})
+
+	now := GetMillis()
+	validPost := Post{
+		Id:        NewId(),
+		CreateAt:  now,
+		UpdateAt:  now,
+		UserId:    NewId(),
+		ChannelId: NewId(),
+	}
+	require.Nil(t, validPost.IsValid(maxPostSize))
+
+	t.Run("no channel or topic", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = ""
+		post.TopicId = ""
+		post.TopicType = ""
+
+		appErr := post.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.post.is_valid.channel_or_topic_must_be_specified.app_error", appErr.Id)
+	})
+
+	t.Run("invalid channel id", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = "a"
+		post.TopicId = ""
+		post.TopicType = ""
+
+		appErr := post.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.post.is_valid.channel_id.app_error", appErr.Id)
+	})
+
+	t.Run("only topic type", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = ""
+		post.TopicId = ""
+		post.TopicType = "topic_type"
+
+		appErr := post.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.post.is_valid.channel_or_topic_must_be_specified.app_error", appErr.Id)
+	})
+
+	t.Run("only topic id", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = ""
+		post.TopicId = NewId()
+		post.TopicType = ""
+
+		appErr := post.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.post.is_valid.channel_or_topic_must_be_specified.app_error", appErr.Id)
+	})
+
+	t.Run("channel and topic", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = NewId()
+		post.TopicId = NewId()
+		post.TopicType = "topic_type"
+
+		appErr := post.IsValid(maxPostSize)
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.post.is_valid.channel_and_topic_specified.app_error", appErr.Id)
+	})
+
+	t.Run("valid topic", func(t *testing.T) {
+		post := validPost.Clone()
+		post.ChannelId = ""
+		post.TopicId = NewId()
+		post.TopicType = "topic_type"
+
+		appErr := post.IsValid(maxPostSize)
+		require.Nil(t, appErr)
+	})
 }
 
 func TestPostPreSave(t *testing.T) {

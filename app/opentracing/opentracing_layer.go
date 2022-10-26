@@ -7649,6 +7649,50 @@ func (a *OpenTracingAppLayer) GetPinnedPosts(c request.CTX, channelID string) (*
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetPluginIdForCollectionType(collectionType string) (string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginIdForCollectionType")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetPluginIdForCollectionType(collectionType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetPluginIdForTopicType(topicType string) (string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginIdForTopicType")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetPluginIdForTopicType(topicType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetPluginKey(pluginID string, key string) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginKey")
@@ -10107,6 +10151,28 @@ func (a *OpenTracingAppLayer) GetTopThreadsForUserSince(c request.CTX, teamID st
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetTopicMetadataById(topicType string, topicId string) (*model.TopicMetadata, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTopicMetadataById")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetTopicMetadataById(topicType, topicId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTotalUsersStats")
@@ -10340,6 +10406,28 @@ func (a *OpenTracingAppLayer) GetUserForLogin(id string, loginId string) (*model
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetUserForLogin(id, loginId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetUserIdForTopicType(topicType string) (string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserIdForTopicType")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetUserIdForTopicType(topicType)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12865,6 +12953,28 @@ func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamID string) []*model.Comm
 	resultVar0 := a.app.PluginCommandsForTeam(teamID)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) PluginGivesUserPermissionToCollection(userID string, collectionType string, collectionID string, permission *model.Permission) (bool, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginGivesUserPermissionToCollection")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PluginGivesUserPermissionToCollection(userID, collectionType, collectionID, permission)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) PopulateWebConnConfig(s *model.Session, cfg *platform.WebConnConfig, seqVal string) (*platform.WebConnConfig, error) {
@@ -15502,6 +15612,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToTeams(c request.CTX, session
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionToTeams(c, session, teamIDs, permission)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToTopic(c request.CTX, session model.Session, topicType string, topicID string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToTopic")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToTopic(c, session, topicType, topicID, permission)
 
 	return resultVar0
 }

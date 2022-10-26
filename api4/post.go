@@ -57,11 +57,17 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventParameter("post", &post)
 
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
-		hasPermission = true
-	} else if channel, err := c.App.GetChannel(c.AppContext, post.ChannelId); err == nil {
-		// Temporary permission check method until advanced permissions, please do not copy
-		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
+	if post.ChannelId != "" {
+		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionCreatePost) {
+			hasPermission = true
+		} else if channel, err := c.App.GetChannel(c.AppContext, post.ChannelId); err == nil {
+			// Temporary permission check method until advanced permissions, please do not copy
+			if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
+				hasPermission = true
+			}
+		}
+	} else if post.GetTopicType() != "" && post.GetTopicId() != "" {
+		if c.App.SessionHasPermissionToTopic(c.AppContext, *c.AppContext.Session(), post.GetTopicType(), post.GetTopicId(), model.PermissionCreatePost) {
 			hasPermission = true
 		}
 	}
