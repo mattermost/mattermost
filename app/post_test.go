@@ -961,6 +961,8 @@ func TestCreatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ExperimentalSettings.EnableVoiceMessages = model.NewBool(true)
+			// Disable max voice message duration verification
+			cfg.FileSettings.MaxVoiceMessagesDuration = model.NewInt64(0)
 		})
 
 		nowMillis := time.Now().UnixMilli()
@@ -1061,8 +1063,13 @@ func TestValidateVoiceMessage(t *testing.T) {
 	})
 
 	t.Run("should fail if the file is too long", func(t *testing.T) {
+		mockBackend := &filesStoreMocks.FileBackend{}
+		mockBackend.On("ListDirectory", mock.Anything).Return([]string{""}, nil)
+		mockBackend.On("TestConnection").Return(nil)
+		mockBackend.On("Reader", "path/to/file.mp3").Return(&filesStoreMocks.ReadCloseSeeker{}, nil)
+
 		// make a store mock
-		th := SetupWithStoreMock(t)
+		th := SetupWithStoreMockAndOptions(t, SetFileStore(mockBackend))
 		defer th.TearDown()
 
 		fileInfo := &model.FileInfo{
@@ -1075,10 +1082,6 @@ func TestValidateVoiceMessage(t *testing.T) {
 		mockFileInfoStore := storemocks.FileInfoStore{}
 		mockFileInfoStore.On("Get", "file_id_1").Return(fileInfo, nil)
 		mockStore.On("FileInfo").Return(&mockFileInfoStore)
-
-		mockBackend := &filesStoreMocks.FileBackend{}
-		mockBackend.On("Reader", "path/to/file.mp3").Return(&filesStoreMocks.ReadCloseSeeker{}, nil)
-		SetFileStore(mockBackend)(th.Server)
 
 		const maxVoiceMessagesDuration = 10
 		th.App.Config().FileSettings.MaxVoiceMessagesDuration = model.NewInt64(maxVoiceMessagesDuration)
@@ -1093,6 +1096,8 @@ func TestValidateVoiceMessage(t *testing.T) {
 			}, nil
 		})
 
+		t.Logf("appErr: %#v", appErr)
+		require.NotNil(t, appErr)
 		require.ErrorContains(t, appErr, "The voice message is too long")
 	})
 }
