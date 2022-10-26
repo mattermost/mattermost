@@ -662,13 +662,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" {
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" && sort != "status" && sort != "admin" && sort != "display_name" {
 		c.SetInvalidURLParam("sort")
 		return
 	}
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
+	// or sort="display_name" on inGroupId
 	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "" || notInGroupId != "") {
 		c.SetInvalidURLParam("sort")
 		return
@@ -678,6 +679,10 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if sort == "admin" && inChannelId == "" {
+		c.SetInvalidURLParam("sort")
+		return
+	}
+	if sort == "display_name" && (inGroupId == "" || notInGroupId != "" || inTeamId != "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
 		c.SetInvalidURLParam("sort")
 		return
 	}
@@ -829,10 +834,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
-		if appErr != nil {
-			c.Err = appErr
-			return
+		if sort == "display_name" {
+			var user *model.User
+
+			user, appErr = c.App.GetUser(c.AppContext.Session().UserId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+
+			profiles, _, appErr = c.App.GetGroupMemberUsersSortedPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions, c.App.GetNotificationNameFormat(user))
+		} else {
+			profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		}
 	} else if notInGroupId != "" {
 		appErr = requireGroupAccess(c, notInGroupId)
