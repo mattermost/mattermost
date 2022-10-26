@@ -6,7 +6,7 @@
 
 package app
 
-// AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
-type AppIface interface {
+// {{.Name}} is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
+type {{.Name}} interface {
 	{{.Content}}
 }

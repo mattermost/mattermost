@@ -457,39 +457,63 @@ func (a *SuiteService) DoUploadFile(c request.CTX, now time.Time, rawTeamId stri
 	return info, err
 }
 
-func UploadFileSetTeamId(teamID string) func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.TeamId = filepath.Base(teamID)
+func UploadFileSetTeamId(teamID string) func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.TeamId = filepath.Base(teamID)
 	}
 }
 
-func UploadFileSetUserId(userID string) func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.UserId = filepath.Base(userID)
+func UploadFileSetUserId(userID string) func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.UserId = filepath.Base(userID)
 	}
 }
 
-func UploadFileSetTimestamp(timestamp time.Time) func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.Timestamp = timestamp
+func UploadFileSetTimestamp(timestamp time.Time) func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.Timestamp = timestamp
 	}
 }
 
-func UploadFileSetContentLength(contentLength int64) func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.ContentLength = contentLength
+func UploadFileSetContentLength(contentLength int64) func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.ContentLength = contentLength
 	}
 }
 
-func UploadFileSetClientId(clientId string) func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.ClientId = clientId
+func UploadFileSetClientId(clientId string) func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.ClientId = clientId
 	}
 }
 
-func UploadFileSetRaw() func(t *UploadFileTask) {
-	return func(t *UploadFileTask) {
-		t.Raw = true
+func UploadFileSetRaw() func(t any) {
+	return func(t any) {
+		task, ok := t.(*UploadFileTask)
+		if !ok {
+			return
+		}
+		task.Raw = true
 	}
 }
 
@@ -580,7 +604,7 @@ func (t *UploadFileTask) init(a *SuiteService) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *SuiteService) UploadFileX(c *request.Context, channelID, name string, input io.Reader,
-	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
+	opts ...func(any)) (*model.FileInfo, *model.AppError) {
 
 	t := &UploadFileTask{
 		ChannelId:   filepath.Base(channelID),

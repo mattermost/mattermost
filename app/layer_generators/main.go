@@ -24,7 +24,7 @@ import (
 var (
 	reserved           = []string{"AcceptLanguage", "AccountMigration", "Cluster", "Compliance", "Context", "DataRetention", "Elasticsearch", "HTTPService", "ImageProxy", "IpAddress", "Ldap", "Log", "MessageExport", "Metrics", "Notification", "NotificationsLog", "Path", "RequestId", "Saml", "Session", "SetIpAddress", "SetRequestId", "SetSession", "SetStore", "SetT", "Srv", "Store", "T", "Timezones", "UserAgent", "SetUserAgent", "SetAcceptLanguage", "SetPath", "SetContext", "SetServer", "GetT"}
 	outputFile         string
-	inputFile          string
+	inputFiles         string
 	outputFileTemplate string
 	basicTypes         = map[string]bool{"int": true, "uint": true, "string": true, "float": true, "bool": true, "byte": true, "int64": true, "uint64": true, "error": true}
 	textRegexp         = regexp.MustCompile(`\w+$`)
@@ -41,7 +41,7 @@ func isError(typeName string) bool {
 }
 
 func init() {
-	flag.StringVar(&inputFile, "in", path.Join("..", "app_iface.go"), "App interface file")
+	flag.StringVar(&inputFiles, "in", path.Join("..", "app_iface.go"), "App interface file")
 	flag.StringVar(&outputFile, "out", path.Join("..", "opentracing_layer.go"), "Output file")
 	flag.StringVar(&outputFileTemplate, "template", "opentracing_layer.go.tmpl", "Output template file")
 }
@@ -154,30 +154,30 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	return methodData{Params: params, Results: results, ParamsToTrace: paramsToTrace}
 }
 
-func extractStoreMetadata() (*storeMetadata, error) {
+func (m *storeMetadata) extractStoreMetadata(inputFile string) error {
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 
 	file, err := os.Open(inputFile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open %s file: %w", inputFile, err)
-	}
-	src, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	f, err := parser.ParseFile(fset, "../app_iface.go", src, parser.AllErrors|parser.ParseComments)
-	if err != nil {
-		return nil, err
+		return fmt.Errorf("unable to open %s file: %w", inputFile, err)
 	}
 
-	metadata := storeMetadata{Methods: map[string]methodData{}}
+	src, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	f, err := parser.ParseFile(fset, inputFile, nil, parser.AllErrors|parser.ParseComments)
+	if err != nil {
+		return err
+	}
 
 	ast.Inspect(f, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.TypeSpec:
-			if x.Name.Name == "AppIface" {
+			if x.Name.Name == "AppIFaceLegacy" || x.Name.Name == "AppIFaceSuite" {
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name
 					found := false
@@ -190,21 +190,30 @@ func extractStoreMetadata() (*storeMetadata, error) {
 					if found {
 						continue
 					}
-					metadata.Methods[methodName] = extractMethodMetadata(method, src)
+					m.Methods[methodName] = extractMethodMetadata(method, src)
 				}
 			}
 		}
 
 		return true
 	})
-	return &metadata, err
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func generateLayer(name, templateFile string) ([]byte, error) {
 	out := bytes.NewBufferString("")
-	metadata, err := extractStoreMetadata()
-	if err != nil {
-		return nil, err
+	metadata := storeMetadata{Methods: map[string]methodData{}}
+	fs := strings.Split(inputFiles, " ")
+	for _, inputFile := range fs {
+		err := metadata.extractStoreMetadata(inputFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 	metadata.Name = name
 
@@ -278,7 +287,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 	}
 
 	t := template.Must(template.New("opentracing_layer.go.tmpl").Funcs(myFuncs).ParseFiles(templateFile))
-	err = t.Execute(out, metadata)
+	err := t.Execute(out, metadata)
 	if err != nil {
 		return nil, err
 	}
