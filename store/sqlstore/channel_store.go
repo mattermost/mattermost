@@ -4159,8 +4159,8 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) GetTopChannelsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopChannelList, error) {
 	channels := make([]*model.TopChannel, 0)
 	var args []any
-	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
-	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+	postgresPropQuery := `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
+	mySqlPropsQuery := `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 
 	query := `
 		SELECT
@@ -4263,9 +4263,9 @@ func (s SqlChannelStore) GetTopChannelsForUserSince(userID string, teamID string
 
 	var propsQuery string
 	if s.DriverName() == model.DatabaseDriverMysql {
-		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+		propsQuery = `AND (JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+		propsQuery = `AND (Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
 	}
 
 	query = `
@@ -4337,48 +4337,45 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			LastActivityAt
 		FROM
 			((SELECT
-				Posts.ChannelId AS ID,
+				PublicChannels.Id AS ID,
 				'O' AS Type,
 				PublicChannels.DisplayName AS DisplayName,
 				PublicChannels.Name AS Name,
-				count(Posts.Id) AS MessageCount,
-				max(Posts.CreateAt) AS LastActivityAt
+				COALESCE(count(Posts.Id), 0) AS MessageCount,
+				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 			FROM
-				Posts
-				LEFT JOIN PublicChannels on Posts.ChannelId = PublicChannels.Id
+				PublicChannels
+				LEFT JOIN Posts on Posts.ChannelId = PublicChannels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
+				LEFT JOIN Channels on Channels.Id = PublicChannels.Id
 			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-				AND PublicChannels.TeamId = ?
+				PublicChannels.TeamId = ?
 				AND PublicChannels.DeleteAt = 0
+				AND Channels.CreateAt < ?
 			GROUP BY
-				Posts.ChannelId,
+				PublicChannels.Id,
 				PublicChannels.DisplayName,
 				PublicChannels.Name,
 				PublicChannels.TeamId)
 		UNION ALL
 			(SELECT
-				Posts.ChannelId AS ID,
+				Channels.Id AS ID,
 				Channels.Type AS Type,
 				Channels.DisplayName AS DisplayName,
 				Channels.Name AS Name,
-				count(Posts.Id) AS MessageCount,
-				max(Posts.CreateAt) AS LastActivityAt
+				COALESCE(count(Posts.Id), 0) AS MessageCount,
+				COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 			FROM
-				Posts
-				LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-				LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+				Channels
+				LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
+				LEFT JOIN ChannelMembers on Channels.Id = ChannelMembers.ChannelId
 			WHERE
-				Posts.DeleteAt = 0
-				AND Posts.CreateAt > ?
-				AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-				AND Channels.TeamId = ?
+				Channels.TeamId = ?
+				AND Channels.CreateAt < ?
 				AND Channels.Type = 'P'
 				AND Channels.DeleteAt = 0
 				AND ChannelMembers.UserId = ?
 			GROUP BY
-				Posts.ChannelId,
+				Channels.Id,
 				Channels.Type,
 				Channels.DisplayName,
 				Channels.Name)) AS A
@@ -4387,8 +4384,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForTeamSince(teamID string, userI
 			Name ASC
 		LIMIT ?
 		OFFSET ?`
-	args = append(args, since, teamID, since, teamID, userID, limit+1, offset)
-
+	args = append(args, since, teamID, since, since, teamID, since, userID, limit+1, offset)
 	if err := s.GetReplicaX().Select(&channels, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to get top Channels")
 	}
@@ -4411,25 +4407,23 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 
 	query = `
 		SELECT
-			Posts.ChannelId AS ID,
+			Channels.Id AS ID,
 			Channels.Type AS Type,
 			Channels.DisplayName AS DisplayName,
 			Channels.Name AS Name,
-			count(Posts.Id) AS MessageCount,
-			max(Posts.CreateAt) AS LastActivityAt
+			COALESCE(count(Posts.Id), 0) AS MessageCount,
+			COALESCE(max(Posts.CreateAt), 0) AS LastActivityAt
 		FROM
-			Posts
-			LEFT JOIN Channels on Posts.ChannelId = Channels.Id
-			LEFT JOIN ChannelMembers on Posts.ChannelId = ChannelMembers.ChannelId
+			Channels
+			LEFT JOIN Posts on Posts.ChannelId = Channels.Id AND Posts.Type = '' AND Posts.CreateAt > ? AND Posts.DeleteAt = 0
+			LEFT JOIN ChannelMembers on Channels.Id = ChannelMembers.ChannelId
 		WHERE
-			Posts.DeleteAt = 0
-			AND Posts.CreateAt > ?
-			AND (Posts.Type = '' OR Posts.Type = 'system_join_channel')
-			AND Channels.DeleteAt = 0
+			Channels.DeleteAt = 0
+			AND Channels.CreateAt < ?
 			AND (Channels.Type = 'O' OR Channels.Type = 'P')
 			AND ChannelMembers.UserId = ? `
 
-	args = []any{since, userID}
+	args = []any{since, since, userID}
 
 	if teamID != "" {
 		query += `
@@ -4439,7 +4433,7 @@ func (s SqlChannelStore) GetTopInactiveChannelsForUserSince(teamID string, userI
 
 	query += `
 		Group By
-			Posts.ChannelId,
+			Channels.Id,
 			Channels.Type,
 			Channels.DisplayName,
 			Channels.Name
@@ -4525,14 +4519,14 @@ func (s SqlChannelStore) PostCountsByDuration(channelIDs []string, sinceUnixMill
 		} else {
 			unixSelect = `DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(Posts.CreateAt / 1000), 'GMT', '` + loc + `'),'%Y-%m-%dT%H') AS duration`
 		}
-		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false')`
+		propsQuery = `(JSON_EXTRACT(Posts.Props, '$.from_bot') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_bot') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_webhook') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_webhook') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_plugin') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_plugin') = 'false') AND (JSON_EXTRACT(Posts.Props, '$.from_oauth_app') IS NULL OR JSON_EXTRACT(Posts.Props, '$.from_oauth_app') = 'false')`
 	} else if s.DriverName() == model.DatabaseDriverPostgres {
 		if duration == model.PostsByDay {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD') AS duration`, loc)
 		} else {
 			unixSelect = fmt.Sprintf(`TO_CHAR(TO_TIMESTAMP(Posts.CreateAt / 1000) AT TIME ZONE '%s', 'YYYY-MM-DD"T"HH24') AS duration`, loc)
 		}
-		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false')`
+		propsQuery = `(Posts.Props ->> 'from_bot' IS NULL OR Posts.Props ->> 'from_bot' = 'false') AND (Posts.Props ->> 'from_webhook' IS NULL OR Posts.Props ->> 'from_webhook' = 'false') AND (Posts.Props ->> 'from_oauth_app' IS NULL OR Posts.Props ->> 'from_oauth_app' = 'false') AND (Posts.Props ->> 'from_plugin' IS NULL OR Posts.Props ->> 'from_plugin' = 'false')`
 	}
 	query := sq.
 		Select("Posts.ChannelId AS channelid", unixSelect, "count(Posts.Id) AS postcount").

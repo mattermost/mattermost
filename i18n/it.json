@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "Impossibile trovare gli utenti: {{.Users}}",
       "one": "Impossibile trovare l'utente: {{.Users}}",
-      "other": "Impossibile trovare gli utenti: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Nuove notifiche per {{.Day}} {{.Month}} {{.Year}}",
       "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nuove notifiche per {{.Day}} {{.Month}} {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1348,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} file inviati: {{.Filenames}}",
       "one": "{{.Count}} file inviato: {{.Filenames}}",
-      "other": "{{.Count}} file inviati: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} immagini inviate: {{.Filenames}}",
       "one": "{{.Count}} immagine inviata: {{.Filenames}}",
-      "other": "{{.Count}} immagini inviate: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -5208,10 +5212,6 @@
     "translation": "Questa squadra è gestita dai gruppi.  Questo utente non appartiene a un gruppo sincronizzato con questa squadra."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gli account ospite sono disattivati"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Impossibile rimuovere un utente da una squadra con vincoli di gruppo."
   },
@@ -5638,10 +5638,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Errore invalidando gli inviti email."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "La tua licenza non supporta gli account ospite"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -7452,10 +7448,6 @@
     "translation": " "
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": " "
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": " "
   },
@@ -9105,10 +9097,6 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": " "
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
     "translation": " "
   },
   {

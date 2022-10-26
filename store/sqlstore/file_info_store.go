@@ -181,6 +181,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 			"Width":           info.Width,
 			"Height":          info.Height,
 			"HasPreviewImage": info.HasPreviewImage,
+			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
 		}).
@@ -752,4 +753,50 @@ func (fs SqlFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted bool) 
 		return int64(0), errors.Wrap(err, "failed to get storage usage")
 	}
 	return size, nil
+}
+
+// GetUptoNSizeFileTime returns the CreateAt time of the last accessible file with a running-total size upto n bytes.
+func (fs *SqlFileInfoStore) GetUptoNSizeFileTime(n int64) (int64, error) {
+	if n <= 0 {
+		return 0, errors.New("n can't be less than 1")
+	}
+
+	var sizeSubQuery sq.SelectBuilder
+	// Separate query for MySql, as current min-version 5.x doesn't support window-functions
+	if fs.DriverName() == model.DatabaseDriverMysql {
+		sizeSubQuery = sq.
+			Select("(@runningSum := @runningSum + fi.Size) RunningTotal", "fi.CreateAt").
+			From("FileInfo fi").
+			Join("(SELECT @runningSum := 0) as tmp").
+			Where(sq.Eq{"fi.DeleteAt": 0}).
+			OrderBy("fi.CreateAt DESC, fi.Id")
+	} else {
+		sizeSubQuery = sq.
+			Select("SUM(fi.Size) OVER(ORDER BY CreateAt DESC, fi.Id) RunningTotal", "fi.CreateAt").
+			From("FileInfo fi").
+			Where(sq.Eq{"fi.DeleteAt": 0})
+	}
+
+	builder := fs.getQueryBuilder().
+		Select("fi2.CreateAt").
+		FromSelect(sizeSubQuery, "fi2").
+		Where(sq.LtOrEq{"fi2.RunningTotal": n}).
+		OrderBy("fi2.CreateAt").
+		Limit(1)
+
+	query, queryArgs, err := builder.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "GetUptoNSizeFileTime_tosql")
+	}
+
+	var createAt int64
+	if err := fs.GetReplicaX().Get(&createAt, query, queryArgs...); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, store.NewErrNotFound("File", "none")
+		}
+
+		return 0, errors.Wrapf(err, "failed to get the File for size upto=%d", n)
+	}
+
+	return createAt, nil
 }

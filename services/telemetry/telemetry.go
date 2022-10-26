@@ -67,6 +67,7 @@ const (
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
 	TrackFeatureFlags            = "config_feature_flags"
+	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -448,6 +449,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_file_search":                                      *cfg.ServiceSettings.EnableFileSearch,
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
+		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -455,6 +457,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_open_server":                      *cfg.TeamSettings.EnableOpenServer,
 		"enable_user_deactivation":                *cfg.TeamSettings.EnableUserDeactivation,
 		"enable_custom_user_statuses":             *cfg.TeamSettings.EnableCustomUserStatuses,
+		"enable_last_active_time":                 *cfg.TeamSettings.EnableLastActiveTime,
 		"enable_custom_brand":                     *cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                 *cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":           *cfg.TeamSettings.MaxNotificationsPerChannel,
@@ -726,7 +729,6 @@ func (ts *TelemetryService) trackConfig() {
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
-		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 		"enable_remote_cluster_service":      *cfg.ExperimentalSettings.EnableRemoteClusterService && cfg.FeatureFlags.EnableRemoteClusterService,
 		"enable_app_bar":                     *cfg.ExperimentalSettings.EnableAppBar,
@@ -824,6 +826,10 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigProducts, map[string]any{
+		"enable_public_shared_boards": *cfg.ProductSettings.EnablePublicSharedBoards,
 	})
 
 	// Convert feature flags to map[string]any for sending

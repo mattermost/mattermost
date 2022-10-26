@@ -8,18 +8,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"hash/maphash"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -46,6 +43,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/extract_content"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_delete"
 	"github.com/mattermost/mattermost-server/v6/jobs/import_process"
+	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost-server/v6/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost-server/v6/jobs/migrations"
 	"github.com/mattermost/mattermost-server/v6/jobs/notify_admin"
@@ -58,7 +56,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/httpservice"
 	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
-	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v6/services/searchengine/bleveengine/indexer"
 	"github.com/mattermost/mattermost-server/v6/services/sharedchannel"
@@ -72,11 +69,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v6/store/retrylayer"
-	"github.com/mattermost/mattermost-server/v6/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v6/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -108,10 +100,6 @@ const (
 )
 
 type Server struct {
-	sqlStore        *sqlstore.SqlStore
-	Store           store.Store
-	WebSocketRouter *WebSocketRouter
-
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
 
@@ -126,19 +114,12 @@ type Server struct {
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
-	Busy        *Busy
 
 	localModeServer *http.Server
 
 	didFinishListen chan struct{}
 
-	goroutineCount      int32
-	goroutineExitSignal chan struct{}
-
 	EmailService email.ServiceInterface
-
-	hubs     []*Hub
-	hashSeed maphash.Seed
 
 	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
@@ -147,59 +128,53 @@ type Server struct {
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
 
-	clusterLeaderListeners sync.Map
-	clusterWrapper         *clusterWrapper
-
-	licenseValue       atomic.Value
-	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func(*model.License, *model.License)
-	licenseWrapper     *licenseWrapper
+	licenseWrapper *licenseWrapper
 
 	timezones *timezones.Timezones
 
-	newStore func() (store.Store, error)
-
 	htmlTemplateWatcher     *templates.Container
 	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache
 	openGraphDataCache      cache.Cache
-	configListenerId        string
-	licenseListenerId       string
 	clusterLeaderListenerId string
-	searchConfigListenerId  string
-	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	filestore               filestore.FileBackend
 
 	platform         *platform.PlatformService
+	platformOptions  []platform.Option
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
-	sharedChannelService SharedChannelServiceIFace
+	sharedChannelService SharedChannelServiceIFace // TODO: platform: move to platform package
 
 	phase2PermissionsMigrationComplete bool
 
 	Audit *audit.Audit
 
-	joinCluster       bool
-	startMetrics      bool
-	startSearchEngine bool
-	skipPostInit      bool
+	joinCluster bool
+	// startSearchEngine bool
+	skipPostInit bool
 
-	SearchEngine *searchengine.Broker
-
-	Cluster        einterfaces.ClusterInterface
-	Cloud          einterfaces.CloudInterface
-	LicenseManager einterfaces.LicenseInterface
-
-	CacheProvider cache.Provider
+	Cloud einterfaces.CloudInterface
 
 	tracer *tracing.Tracer
 
 	products map[string]Product
+}
+
+func (s *Server) Store() store.Store {
+	if s.platform != nil {
+		return s.platform.Store
+	}
+
+	return nil
+}
+
+func (s *Server) SetStore(st store.Store) {
+	if s.platform != nil {
+		s.platform.Store = st
+	}
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -207,16 +182,10 @@ func NewServer(options ...Option) (*Server, error) {
 	localRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal: make(chan struct{}, 1),
-		RootRouter:          rootRouter,
-		LocalRouter:         localRouter,
-		WebSocketRouter: &WebSocketRouter{
-			handlers: make(map[string]webSocketHandler),
-		},
-		licenseListeners: map[string]func(*model.License, *model.License){},
-		hashSeed:         maphash.MakeSeed(),
-		timezones:        timezones.New(),
-		products:         make(map[string]Product),
+		RootRouter:  rootRouter,
+		LocalRouter: localRouter,
+		timezones:   timezones.New(),
+		products:    make(map[string]Product),
 	}
 
 	for _, option := range options {
@@ -229,35 +198,13 @@ func NewServer(options ...Option) (*Server, error) {
 	// performed during server bootup. They are sensitive to order
 	// and has dependency requirements with the previous step.
 	//
-	// Step 1: Config.
+	// Step 1: Platform.
 	if s.platform == nil {
-		innerStore, err := config.NewFileStore("config.json", true)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to load config")
-		}
-		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to load config")
-		}
-
-		platformCfg := platform.ServiceConfig{
-			ConfigStore:  configStore,
-			StartMetrics: s.startMetrics,
-			Cluster:      s.Cluster,
-		}
-		if metricsInterface != nil {
-			platformCfg.Metrics = metricsInterface(s, *configStore.Get().SqlSettings.DriverName, *configStore.Get().SqlSettings.DataSource)
-		}
-
-		ps, sErr := platform.New(platformCfg)
+		ps, sErr := platform.New(platform.ServiceConfig{}, s.platformOptions...)
 		if sErr != nil {
 			return nil, errors.Wrap(sErr, "failed to initialize platform")
 		}
 		s.platform = ps
-
-		if s.licenseValue.Load() != nil {
-			ps.SetLicense(s.licenseValue.Load().(*model.License)) // in case license is set in server options
-		}
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(s.platform.Config())
@@ -266,97 +213,24 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
-	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
-
 	s.httpService = httpservice.MakeHTTPService(s.platform)
 
-	// Step 3: Search Engine
-	// Depends on Step 1 (config).
-	searchEngine := searchengine.NewBroker(s.platform.Config())
-	bleveEngine := bleveengine.NewBleveEngine(s.platform.Config())
-	if err := bleveEngine.Start(); err != nil {
-		return nil, err
-	}
-	searchEngine.RegisterBleveEngine(bleveEngine)
-	s.SearchEngine = searchEngine
-
-	// Step 4: Init Enterprise
-	// Depends on step 3 (s.SearchEngine must be non-nil)
+	// Step 2: Init Enterprise
+	// Depends on step 1 (s.Platform must be non-nil)
 	s.initEnterprise()
-
-	// Step 5: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = cache.NewProvider()
-	if err2 := s.CacheProvider.Connect(); err2 != nil {
-		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
-	}
-
-	// Step 6: Store.
-	// Depends on Step 1 (config), 4 (metrics, cluster) and 5 (cacheProvider).
-	if s.newStore == nil {
-		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.platform.Config().SqlSettings, s.GetMetrics())
-
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(
-				retrylayer.New(s.sqlStore),
-				s.GetMetrics(),
-				s.Cluster,
-				s.CacheProvider,
-			)
-			if err2 != nil {
-				return nil, errors.Wrap(err2, "cannot create local cache layer")
-			}
-
-			searchStore := searchlayer.NewSearchLayer(
-				lcl,
-				s.SearchEngine,
-				s.platform.Config(),
-			)
-
-			s.platform.AddConfigListener(func(prevCfg, cfg *model.Config) {
-				searchStore.UpdateConfig(cfg)
-			})
-
-			s.sqlStore.UpdateLicense(s.License())
-			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-				s.sqlStore.UpdateLicense(newLicense)
-			})
-
-			return timerlayer.New(
-				searchStore,
-				s.GetMetrics(),
-			), nil
-		}
-	}
-
-	s.Store, err = s.newStore()
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot create store")
-	}
 
 	// Needed to run before loading license.
 	s.userService, err = users.New(users.ServiceConfig{
-		UserStore:    s.Store.User(),
-		SessionStore: s.Store.Session(),
-		OAuthStore:   s.Store.OAuth(),
+		UserStore:    s.Store().User(),
+		SessionStore: s.Store().Session(),
+		OAuthStore:   s.Store().OAuth(),
 		ConfigFn:     s.platform.Config,
 		Metrics:      s.GetMetrics(),
-		Cluster:      s.Cluster,
+		Cluster:      s.platform.Cluster(),
 		LicenseFn:    s.License,
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	// Needed before loading license
-	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.StatusCacheSize,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create status cache")
 	}
 
 	if model.BuildEnterpriseReady == "true" {
@@ -364,29 +238,16 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
-	license := s.License()
-	insecure := s.platform.Config().ServiceSettings.EnableInsecureOutgoingConnections
-	// Step 7: Initialize filestore
-	backend, err := filestore.NewFileBackend(s.platform.Config().FileSettings.ToFileBackendSettings(license != nil && *license.Features.Compliance, insecure != nil && *insecure))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize filebackend")
-	}
-	s.filestore = backend
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
 
-	s.clusterWrapper = &clusterWrapper{
-		srv: s,
-	}
-
 	s.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    s.Store.Team(),
-		ChannelStore: s.Store.Channel(),
-		GroupStore:   s.Store.Group(),
+		TeamStore:    s.Store().Team(),
+		ChannelStore: s.Store().Channel(),
+		GroupStore:   s.Store().Group(),
 		Users:        s.userService,
-		WebHub:       s,
+		WebHub:       s.platform,
 		ConfigFn:     s.platform.Config,
 		LicenseFn:    s.License,
 	})
@@ -401,18 +262,18 @@ func NewServer(options ...Option) (*Server, error) {
 		ChannelKey:       &channelsWrapper{srv: s},
 		ConfigKey:        s.platform,
 		LicenseKey:       s.licenseWrapper,
-		FilestoreKey:     s.filestore,
+		FilestoreKey:     s.platform.FileBackend(),
 		FileInfoStoreKey: &fileInfoWrapper{srv: s},
-		ClusterKey:       s.clusterWrapper,
+		ClusterKey:       s.platform,
 		UserKey:          New(ServerConnector(s.Channels())),
-		LogKey:           s.Log(),
+		LogKey:           s.platform.Log(),
 		CloudKey:         &cloudWrapper{cloud: s.Cloud},
-		KVStoreKey:       &kvStoreWrapper{srv: s},
-		StoreKey:         store.NewStoreServiceAdapter(s.Store),
+		KVStoreKey:       s.platform,
+		StoreKey:         store.NewStoreServiceAdapter(s.Store()),
 		SystemKey:        &systemServiceAdapter{server: s},
 	}
 
-	// Step 8: Initialize products.
+	// Step 4: Initialize products.
 	// Depends on s.httpService.
 	err = s.initializeProducts(products, serviceMap)
 	if err != nil {
@@ -421,8 +282,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
-	// Step 9: Hub depends on s.Channels() (step 8)
-	s.HubStart()
+	// Step 5: Start hub in platform which the hub depends on s.Channels() (step 4)
+	s.platform.Start(New(ServerConnector(s.Channels())))
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -472,12 +333,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+	if s.seenPendingPostIdsCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
-	if s.openGraphDataCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
@@ -504,35 +365,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.htmlTemplateWatcher = htmlTemplateWatcher
 
-	s.configListenerId = s.platform.AddConfigListener(func(_, _ *model.Config) {
-		ch := s.Channels()
-		ch.regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventConfigChanged, "", "", "", nil, "")
-
-		appInstance := New(ServerConnector(ch))
-		message.Add("config", appInstance.ClientConfigWithComputed())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-		if err = s.platform.ReconfigureLogger(); err != nil {
-			mlog.Error("Error re-configuring logging after config change", mlog.Err(err))
-			return
-		}
-	})
-	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.Channels().regenerateClientConfig()
-
-		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
-		message.Add("license", s.GetSanitizedClientLicense())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-	})
-
-	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store, s.SearchEngine, s.Log())
+	s.telemetryService = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log())
 	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
@@ -596,6 +429,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
+	license := s.License()
 	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
 
 	if s.Audit == nil {
@@ -613,36 +447,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
 	})
-
-	// Enable developer settings if this is a "dev" build
-	if model.BuildNumber == "dev" {
-		s.platform.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
-	}
-
-	if s.startMetrics {
-		if err := s.platform.RestartMetrics(); err != nil {
-			return nil, errors.Wrap(err, "failed to start metrics")
-		}
-	}
-
-	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !s.startMetrics {
-			return
-		}
-
-		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
-			return
-		}
-
-		if err := s.platform.RestartMetrics(); err != nil {
-			s.Log().Error("Failed to reset metrics server", mlog.Err(err))
-		}
-	})
-
-	s.SearchEngine.UpdateConfig(s.platform.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
-	s.searchConfigListenerId = searchConfigListenerId
-	s.searchLicenseListenerId = searchLicenseListenerId
 
 	// if enabled - perform initial product notices fetch
 	if *s.platform.Config().AnnouncementSettings.AdminNoticesEnabled || *s.platform.Config().AnnouncementSettings.UserNoticesEnabled {
@@ -703,13 +507,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	return s, nil
-}
-
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func (s *Server) runJobs() {
@@ -775,7 +572,7 @@ func (s *Server) Channels() *Channels {
 
 // Return Database type (postgres or mysql) and current version of the schema
 func (s *Server) DatabaseTypeAndSchemaVersion() (string, string) {
-	schemaVersion, _ := s.Store.GetDBSchemaVersion()
+	schemaVersion, _ := s.Store().GetDBSchemaVersion()
 	return *s.platform.Config().SqlSettings.DriverName, strconv.Itoa(schemaVersion)
 }
 
@@ -833,6 +630,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	if err != nil {
 		return err
 	}
+	s.platform.SetSharedChannelService(scs)
 
 	if err = scs.Start(); err != nil {
 		return err
@@ -874,8 +672,6 @@ func (s *Server) Shutdown() {
 
 	defer sentry.Flush(2 * time.Second)
 
-	s.HubStop()
-	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
@@ -912,8 +708,7 @@ func (s *Server) Shutdown() {
 
 	s.WaitForGoroutines()
 
-	s.platform.RemoveConfigListener(s.configListenerId)
-	s.stopSearchEngine()
+	s.platform.StopSearchEngine()
 
 	s.Audit.Shutdown()
 
@@ -923,8 +718,8 @@ func (s *Server) Shutdown() {
 		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
-	if s.Cluster != nil {
-		s.Cluster.StopInterNodeCommunication()
+	if s.platform.Cluster() != nil {
+		s.platform.Cluster().StopInterNodeCommunication()
 	}
 
 	if err = s.platform.ShutdownMetrics(); err != nil {
@@ -953,14 +748,8 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	if s.Store != nil {
-		s.Store.Close()
-	}
-
-	if s.CacheProvider != nil {
-		if err = s.CacheProvider.Close(); err != nil {
-			s.Log().Warn("Unable to cleanly shutdown cache", mlog.Err(err))
-		}
+	if err = s.platform.Shutdown(); err != nil {
+		s.Log().Warn("Failed to stop platform", mlog.Err(err))
 	}
 
 	s.Log().Info("Server stopped")
@@ -996,14 +785,6 @@ func (s *Server) Restart() error {
 	return syscall.Exec(argv0, os.Args, os.Environ())
 }
 
-func (s *Server) isUpgradedFromTE() bool {
-	val, err := s.Store.System().GetByName(model.SystemUpgradedFromTeId)
-	if err != nil {
-		return false
-	}
-	return val.Value == "true"
-}
-
 func (s *Server) CanIUpgradeToE0() error {
 	return upgrader.CanIUpgradeToE0()
 }
@@ -1013,7 +794,7 @@ func (s *Server) UpgradeToE0() error {
 		return err
 	}
 	upgradedFromTE := &model.System{Name: model.SystemUpgradedFromTeId, Value: "true"}
-	s.Store.System().Save(upgradedFromTE)
+	s.Store().System().Save(upgradedFromTE)
 	return nil
 }
 
@@ -1024,24 +805,18 @@ func (s *Server) UpgradeToE0Status() (int64, error) {
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
 func (s *Server) Go(f func()) {
-	atomic.AddInt32(&s.goroutineCount, 1)
+	s.platform.Go(f)
+}
 
-	go func() {
-		f()
-
-		atomic.AddInt32(&s.goroutineCount, -1)
-		select {
-		case s.goroutineExitSignal <- struct{}{}:
-		default:
-		}
-	}()
+// GoBuffered acts like a semaphore which creates a goroutine, but maintains a record of it
+// to ensure that execution completes before the server is shutdown.
+func (s *Server) GoBuffered(f func()) {
+	s.platform.GoBuffered(f)
 }
 
 // WaitForGoroutines blocks until all goroutines created by App.Go exit.
 func (s *Server) WaitForGoroutines() {
-	for atomic.LoadInt32(&s.goroutineCount) != 0 {
-		<-s.goroutineExitSignal
-	}
+	s.platform.WaitForGoroutines()
 }
 
 var corsAllowedMethods = []string{
@@ -1089,9 +864,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if s.joinCluster && s.Cluster != nil {
+	if s.joinCluster && s.platform.Cluster() != nil {
 		s.registerClusterHandlers()
-		s.Cluster.StartInterNodeCommunication()
+		s.platform.Cluster().StartInterNodeCommunication()
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
@@ -1102,7 +877,7 @@ func (s *Server) Start() error {
 		return errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	if err := s.Store.Status().ResetAll(); err != nil {
+	if err := s.Store().Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
@@ -1170,7 +945,6 @@ func (s *Server) Start() error {
 		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
-	s.Busy = NewBusy(s.Cluster)
 
 	// Creating a logger for logging errors from http.Server at error level
 	errStdLog := s.Log().With(mlog.String("source", "httpserver")).StdLogger(mlog.LvlError)
@@ -1448,7 +1222,7 @@ func runReportToAWSMeterJob(s *Server) {
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
-	awsMeter := awsmeter.New(s.Store, s.platform.Config())
+	awsMeter := awsmeter.New(s.Store(), s.platform.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
@@ -1468,11 +1242,11 @@ func doTokenCleanup(s *Server) {
 
 	mlog.Debug("Cleaning up token store.")
 
-	s.Store.Token().Cleanup(expiry)
+	s.Store().Token().Cleanup(expiry)
 }
 
 func doCommandWebhookCleanup(s *Server) {
-	s.Store.CommandWebhook().Cleanup()
+	s.Store().CommandWebhook().Cleanup()
 }
 
 const (
@@ -1482,7 +1256,7 @@ const (
 
 func doSessionCleanup(s *Server) {
 	mlog.Debug("Cleaning up session store.")
-	err := s.Store.Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
+	err := s.Store().Session().Cleanup(model.GetMillis(), sessionsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
@@ -1496,7 +1270,7 @@ func doJobsCleanup(s *Server) {
 
 	dur := time.Duration(*s.platform.Config().JobSettings.CleanupJobsThresholdDays) * time.Hour * 24
 	expiry := model.GetMillisForTime(time.Now().Add(-dur))
-	err := s.Store.Job().Cleanup(expiry, jobsCleanupBatchSize)
+	err := s.Store().Job().Cleanup(expiry, jobsCleanupBatchSize)
 	if err != nil {
 		mlog.Warn("Error while cleaning up jobs", mlog.Err(err))
 	}
@@ -1519,7 +1293,7 @@ func (s *Server) HandleMetrics(route string, h http.Handler) {
 
 func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
 	key := model.LicenseUpForRenewalEmailSent + license.Id
-	if _, err := s.Store.System().GetByName(key); err == nil {
+	if _, err := s.Store().System().GetByName(key); err == nil {
 		// return early because the key already exists and that means we already executed the code below to send email successfully
 		return nil
 	}
@@ -1555,7 +1329,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 		Value: "true",
 	}
 
-	if err := s.Store.System().Save(&system); err != nil {
+	if err := s.Store().System().Save(&system); err != nil {
 		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
 	}
 
@@ -1585,7 +1359,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	users, err := s.Store.User().GetSystemAdminProfiles()
+	users, err := s.Store().User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -1641,109 +1415,24 @@ func (s *Server) SendRemoveExpiredLicenseEmail(email string, renewalLink, locale
 	return nil
 }
 
-func (s *Server) StartSearchEngine() (string, string) {
-	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-		s.Go(func() {
-			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-				s.Log().Error(err.Error())
-			}
-		})
-	}
-
-	configListenerId := s.platform.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if s.SearchEngine == nil {
-			return
-		}
-		s.SearchEngine.UpdateConfig(newConfig)
-
-		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			s.Go(func() {
-				if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if s.SearchEngine.ElasticsearchEngine != nil && *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionURL != *newConfig.ElasticsearchSettings.ConnectionURL || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			s.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
-					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
-					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
-					}
-				}
-			})
-		}
-	})
-
-	licenseListenerId := s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if s.SearchEngine == nil {
-			return
-		}
-		if oldLicense == nil && newLicense != nil {
-			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-				s.Go(func() {
-					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						mlog.Error(err.Error())
-					}
-				})
-			}
-		} else if oldLicense != nil && newLicense == nil {
-			if s.SearchEngine.ElasticsearchEngine != nil {
-				s.Go(func() {
-					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
-				})
-			}
-		}
-	})
-
-	return configListenerId, licenseListenerId
-}
-
-func (s *Server) stopSearchEngine() {
-	s.platform.RemoveConfigListener(s.searchConfigListenerId)
-	s.RemoveLicenseListener(s.searchLicenseListenerId)
-	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
-		s.SearchEngine.ElasticsearchEngine.Stop()
-	}
-	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
-		s.SearchEngine.BleveEngine.Stop()
-	}
-}
-
 func (s *Server) FileBackend() filestore.FileBackend {
-	return s.filestore
+	return s.platform.FileBackend()
 }
 
 func (s *Server) TotalWebsocketConnections() int {
-	// This method is only called after the hub is initialized.
-	// Therefore, no mutex is needed to protect s.hubs.
-	count := int64(0)
-	for _, hub := range s.hubs {
-		count = count + atomic.LoadInt64(&hub.connectionCount)
-	}
-
-	return int(count)
+	return s.Platform().TotalWebsocketConnections()
 }
 
 func (s *Server) ClusterHealthScore() int {
-	return s.Cluster.HealthScore()
+	return s.platform.Cluster().HealthScore()
 }
 
 func (ch *Channels) ClientConfigHash() string {
-	return ch.clientConfigHash.Load().(string)
+	return ch.srv.Platform().ClientConfigHash()
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s.platform, s.Store, s.GetMetrics())
+	s.Jobs = jobs.NewJobServer(s.platform, s.Store(), s.GetMetrics())
 
 	if jobsDataRetentionJobInterface != nil {
 		builder := jobsDataRetentionJobInterface(s)
@@ -1772,14 +1461,14 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeBlevePostIndexing,
-		indexer.MakeWorker(s.Jobs, s.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
+		indexer.MakeWorker(s.Jobs, s.platform.SearchEngine.BleveEngine.(*bleveengine.BleveEngine)),
 		nil,
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,
-		migrations.MakeWorker(s.Jobs, s.Store),
-		migrations.MakeScheduler(s.Jobs, s.Store),
+		migrations.MakeWorker(s.Jobs, s.Store()),
+		migrations.MakeScheduler(s.Jobs, s.Store()),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1808,7 +1497,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeImportDelete,
-		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		import_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		import_delete.MakeScheduler(s.Jobs),
 	)
 
@@ -1826,19 +1515,19 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeActiveUsers,
-		active_users.MakeWorker(s.Jobs, s.Store, func() einterfaces.MetricsInterface { return s.GetMetrics() }),
+		active_users.MakeWorker(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		active_users.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
-		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store, s.telemetryService),
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
 		nil,
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeExtractContent,
-		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store),
+		extract_content.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		nil,
 	)
 
@@ -1846,6 +1535,12 @@ func (s *Server) initJobs() {
 		model.JobTypeLastAccessiblePost,
 		last_accessible_post.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		last_accessible_post.MakeScheduler(s.Jobs, s.License()),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeLastAccessibleFile,
+		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
+		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
 	)
 
 	s.Jobs.RegisterJobType(
@@ -1859,6 +1554,8 @@ func (s *Server) initJobs() {
 		notify_admin.MakeTrialNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeTrialNotifyAdmin),
 	)
+
+	s.platform.Jobs = s.Jobs
 }
 
 func (s *Server) TelemetryId() string {
@@ -1875,7 +1572,7 @@ func (s *Server) HTTPService() httpservice.HTTPService {
 // GetStore returns the server's Store. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetStore() store.Store {
-	return s.Store
+	return s.Store()
 }
 
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
@@ -1917,6 +1614,7 @@ func (s *Server) SetSharedChannelSyncService(sharedChannelService SharedChannelS
 	s.serviceMux.Lock()
 	defer s.serviceMux.Unlock()
 	s.sharedChannelService = sharedChannelService
+	s.platform.SetSharedChannelService(sharedChannelService)
 }
 
 func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
@@ -2024,7 +1722,7 @@ func runPostReminderJob(a *App) {
 }
 
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
-	table, err := a.Srv().Store.GetAppliedMigrations()
+	table, err := a.Srv().Store().GetAppliedMigrations()
 	if err != nil {
 		return nil, model.NewAppError("GetDBSchemaTable", "api.file.read_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

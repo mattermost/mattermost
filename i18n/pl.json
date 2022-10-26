@@ -4573,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Zaktualizowano Warunki usługi GitLab. Przejdź na stronę gitlab.com, aby je zaakceptować, a następnie spróbuj zalogować się ponownie do Mattermost."
+    "translation": "Warunki korzystania z usług GitLab zostały zaktualizowane. Proszę przejść do {{.URL}}, aby je zaakceptować, a następnie spróbować ponownie zalogować się do Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4761,11 +4761,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 44+"
+    "translation": "Wersja 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 100+"
+    "translation": "Wersja 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5582,14 +5582,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Kanały do których chcesz zaprosić, muszą być częścią zespołu do którego chcesz zaprosić."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Twoja licencja nie obsługuje kont gości"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konta gości są wyłączone"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -8149,15 +8141,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Nieudana płatność"
+    "translation": "Płatność nie powiodła się"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Wymagane działanie: Nieudana płatność za Mattermost Cloud"
+    "translation": "Wymagane działanie: Płatność nie powiodła się dla Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Aby zapewnić nieprzerwaną subskrypcję Mattermost Cloud, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
+    "translation": "Aby zapewnić nieprzerwany dostęp do Mattermost {{.Plan}}, należy skontaktować się ze swoją instytucją finansową w celu rozwiązania problemu lub zaktualizować informacje dotyczące płatności. Po zaktualizowaniu informacji o płatności, Mattermost podejmie próbę uregulowania wszelkich zaległości."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -8166,10 +8158,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Twoja instytucja finansowa odrzuciła płatność z Twojej {{.CardBrand}} ****{{.LastFour}} powiązanej z obszarem roboczym Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Napraw teraz"
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -9256,10 +9244,6 @@
     "translation": "Funkcja Insights jest wyłączona."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Członek {{.TeamName}} powiadomił Cię o aktualizacji tego obszaru roboczego."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Administrator został już powiadomiony"
   },
@@ -9510,5 +9494,69 @@
   {
     "id": "api.templates.delinquency_30.button",
     "translation": "Aktualizacja płatności"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nie można wysłać postu z powiadomieniem."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nie można zapisać danych powiadomienia."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali aktualizacji obszaru roboczego dla: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali aktualizacji obszaru roboczego dla: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} członkowie obszaru roboczego {{.WorkspaceName}} zażądali rozpoczęcia wersji próbnej Enterprise w celu uzyskania dostępu do: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Nie można uzyskać nazwy bieżącego planu"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML nie mógł pomyślnie załadować Identity Provider Public Certificate, skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nie mogliśmy uzyskać liczby odznak dla użytkownika."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Błąd podczas wykonywania zadania."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Błąd pobierania ostatniego dostępnego pliku"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nie można pobrać pliku, ponieważ przekroczony został limit planu chmury."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Twoja licencja nie wspiera kont gości"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konta gości są wyłączone"
   }
 ]

@@ -2305,6 +2305,73 @@ func testPostStoreGetPosts(t *testing.T, ss store.Store) {
 		assert.Equal(t, int64(1), postList.Posts[post5.Id].ReplyCount)
 		assert.Equal(t, int64(1), postList.Posts[post6.Id].ReplyCount)
 	})
+
+	t.Run("should return all posts in a channel included deleted posts", func(t *testing.T) {
+		err := ss.Post().Delete(post1.Id, 1, userId)
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+			post4.Id,
+			post3.Id,
+			post2.Id,
+			post1.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 6)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+		assert.NotNil(t, postList.Posts[post4.Id])
+		assert.NotNil(t, postList.Posts[post5.Id])
+		assert.NotNil(t, postList.Posts[post6.Id])
+	})
+
+	t.Run("should return all posts in a channel included deleted posts without threads", func(t *testing.T) {
+		err := ss.Post().Delete(post5.Id, 1, userId)
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+			post4.Id,
+			post3.Id,
+			post2.Id,
+			post1.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 6)
+		assert.NotNil(t, postList.Posts[post5.Id])
+		assert.NotNil(t, postList.Posts[post6.Id])
+		assert.Equal(t, int64(1), postList.Posts[post5.Id].ReplyCount)
+		assert.Equal(t, int64(1), postList.Posts[post6.Id].ReplyCount)
+	})
+
+	t.Run("should return the lasts posts created in channel without include deleted posts", func(t *testing.T) {
+		err := ss.Post().Delete(post6.Id, 1, userId)
+		require.NoError(t, err)
+
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{
+			post4.Id,
+			post3.Id,
+			post2.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 3)
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+		assert.NotNil(t, postList.Posts[post4.Id])
+	})
 }
 
 func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
@@ -4579,6 +4646,8 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	u2 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	u3 := model.User{Email: MakeEmail(), Username: model.NewId()}
 	u4 := model.User{Email: MakeEmail(), Username: model.NewId()}
+	u5 := model.User{Email: MakeEmail(), Username: model.NewId()}
+
 	_, err := ss.User().Save(&user)
 	require.NoError(t, err)
 	_, err = ss.User().Save(&u1)
@@ -4589,6 +4658,17 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, err)
 	_, err = ss.User().Save(&u4)
 	require.NoError(t, err)
+	_, err = ss.User().Save(&u5)
+	require.NoError(t, err)
+	bot := &model.Bot{
+		Username:    "bot_user",
+		Description: "bot",
+		OwnerId:     model.NewId(),
+		UserId:      u5.Id,
+	}
+
+	savedBot, nErr := ss.Bot().Save(bot)
+	require.NoError(t, nErr)
 	// user direct messages
 	chUser1, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
 	require.NoError(t, nErr)
@@ -4599,6 +4679,17 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	// other user direct message
 	chUser3User4, nErr := ss.Channel().CreateDirectChannel(&u3, &u4)
 	require.NoError(t, nErr)
+
+	// bot direct message - should be ignored by top DMs
+	botUser, err := ss.User().Get(context.Background(), savedBot.UserId)
+	require.NoError(t, err)
+	chBot, nErr := ss.Channel().CreateDirectChannel(&user, botUser)
+	require.NoError(t, nErr)
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chBot.Id,
+		UserId:    botUser.Id,
+	})
+	require.NoError(t, err)
 
 	// sample post data
 	// for u1
@@ -4616,6 +4707,13 @@ func testGetTopDMsForUserSince(t *testing.T, ss store.Store, s SqlStore) {
 	postToDelete, err := ss.Post().Save(&model.Post{
 		ChannelId: chUser2.Id,
 		UserId:    u2.Id,
+	})
+	require.NoError(t, err)
+	// create second post for u2: modify create at to a very old date to make sure it isn't counted
+	_, err = ss.Post().Save(&model.Post{
+		ChannelId: chUser2.Id,
+		UserId:    u2.Id,
+		CreateAt:  100,
 	})
 	require.NoError(t, err)
 	// for user-u3: 3 posts

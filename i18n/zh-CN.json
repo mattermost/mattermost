@@ -5612,10 +5612,6 @@
     "translation": "作废邮件邀请错误。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "您的许可证不支持访客帐号"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "无法从组受限团队移除用户。"
   },
@@ -5626,10 +5622,6 @@
   {
     "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
     "translation": "仅搜索公共团队不支持分页。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "访客帐号已停用"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -7460,10 +7452,6 @@
     "translation": "无法获取帖子的文件信息。"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "立刻修复"
-  },
-  {
     "id": "api.templates.email_us_anytime_at",
     "translation": "随时通过电子邮件发送给我们 "
   },
@@ -9246,10 +9234,6 @@
   {
     "id": "app.install_integration.reached_max_limit.error",
     "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
-  },
-  {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "{{.TeamName}} 的成员已通知您升级此工作区。"
   },
   {
     "id": "app.usage.get_storage_usage.app_error",

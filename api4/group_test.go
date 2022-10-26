@@ -154,6 +154,16 @@ func TestCreateGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
+	reservedNameGroup := &model.Group{
+		DisplayName:    "dn_" + model.NewId(),
+		Name:           model.NewString("here"),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+	}
+	_, response, err = th.SystemAdminClient.CreateGroup(reservedNameGroup)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
+
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.CreateGroup(g)
 	require.Error(t, err)
@@ -293,6 +303,12 @@ func TestPatchGroup(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
 	require.Equal(t, true, patchedG2.AllowReference)
+
+	_, response, err = th.SystemAdminClient.PatchGroup(g2.Id, &model.GroupPatch{
+		Name: model.NewString("here"),
+	})
+	require.Error(t, err)
+	CheckBadRequestStatus(t, response)
 
 	th.SystemAdminClient.Logout()
 	_, response, err = th.SystemAdminClient.PatchGroup(group.Id, gp)
@@ -1502,7 +1518,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	assert.Len(t, groupMembers, 2)
 
-	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
 	assert.Nil(t, countErr)
 
 	assert.Equal(t, count, int64(2))

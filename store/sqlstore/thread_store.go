@@ -51,6 +51,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			"COALESCE(Threads.TeamId, '') AS TeamId",
 		).
 		From("Threads")
 
@@ -62,6 +63,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
+			"COALESCE(Threads.TeamId, '') AS TeamId",
 		).
 		From("Threads")
 }
@@ -190,6 +192,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		UnreadMentions int64
 		Participants   model.StringArray
 		ThreadDeleteAt int64
+		TeamId         string
 		model.Post
 	}
 
@@ -444,6 +447,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		UnreadMentions int64
 		Participants   model.StringArray
 		ThreadDeleteAt int64
+		TeamId         string
 		model.Post
 	}
 

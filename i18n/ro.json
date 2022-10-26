@@ -5588,14 +5588,6 @@
     "translation": "Canalele invitației trebuie să facă parte din echipa invitației."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Licența dvs. nu acceptă conturile de invitați"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Conturile oaspeților sunt dezactivate"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Eroare la invalidarea invitațiilor de e-mail."
   },
@@ -7282,10 +7274,6 @@
   {
     "id": "api.cloud.app_error",
     "translation": "Eroare internă la solicitarea api cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Repară acum"
   },
   {
     "id": "api.templates.email_us_anytime_at",

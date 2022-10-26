@@ -598,8 +598,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "Não foi possível achar os usuários: {{.Users}}",
       "one": "Não foi possível achar o usuário: {{.Users}}",
-      "other": "Não foi possível achar os usuários: {{.Users}}"
+      "other": ""
     }
   },
   {
@@ -620,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Abrir a página de ajuda do Mattermost"
+    "translation": "Exibir descrição de ajuda do Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -981,8 +982,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "[{{.SiteName}}] Novas Notificações de {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nova Notificação de {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Novas Notificações de {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -1171,7 +1173,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Falha para marshal."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1348,15 +1350,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} arquivos enviados: {{.Filenames}}",
       "one": "{{.Count}} arquivo enviado: {{.Filenames}}",
-      "other": "{{.Count}} arquivos enviados: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imagens enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagem enviada: {{.Filenames}}",
-      "other": "{{.Count}} imagens enviadas: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -1785,7 +1789,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Para alterar suas preferencias de notificação, faça login no site da sua equipe e vá para Configurações de Conta > Notificações."
+    "translation": "Para alterar suas preferencias de notificação, faça login no site da sua equipe e vá para Configurações > Notificações."
   },
   {
     "id": "api.templates.email_info1",
@@ -1809,7 +1813,7 @@
   },
   {
     "id": "api.templates.invite_body.button",
-    "translation": "Entrar na Equipe"
+    "translation": "Entrar agora"
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1853,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Ir Para a Publicação"
+    "translation": "Responder no Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -1861,7 +1865,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Você solicitou uma redefinição de senha"
+    "translation": "Redefina sua senha"
   },
   {
     "id": "api.templates.reset_subject",
@@ -4329,11 +4333,11 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ids do arquivo inválido. Observe que os uploads estão limitados a cinco arquivos no máximo. Por favor, use publicações adicionais para mais arquivos."
+    "translation": "Ids do arquivo inválido. Observe que os uploads estão limitados a 10 arquivos no máximo. Por favor, use publicações adicionais para mais arquivos."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Nomes de arquivo inválidos"
+    "translation": "Nomes de arquivo inválidos."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
@@ -4569,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Os Termos de Serviço do GitLab foram atualizados. Por favor vá até gitlab.com para aceitar os termos e depois tente se logar novamente no Mattermost."
+    "translation": "Os Termos de Serviço do GitLab foram atualizados. Por favor vá até {{.URL}} para aceitar os termos e depois tente se logar novamente no Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4741,19 +4745,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "Windows 8.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Versão 12+"
+    "translation": "Versão 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versão 60+"
+    "translation": "Versão 91+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -4761,7 +4765,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versão 61+"
+    "translation": "Version 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5584,14 +5588,6 @@
     "translation": "Os canais do convite devem ser parte da equipe do convite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Sua licença não suporta contas convidado"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Contas convidado estão desativadas"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Erro ao invalidar convites por email."
   },
@@ -5941,7 +5937,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessão expirada: faça login para continuar recebendo notificações. As sessões para {{.siteName}} estão configuradas pelo Administrador do Sistema para expirar a cada {{.daysCount}} dia(s)."
+    "translation": "Sessão expirada: faça login para continuar recebendo notificações. As sessões para {{.siteName}} estão configuradas pelo Administrador do Sistema para expirar a cada {{.hoursCount}} hour(s)."
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -6185,7 +6181,7 @@
   },
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "Encontramos um erro enquanto excluía as preferências."
+    "translation": "Encontramos um erro enquanto excluiamos as preferências."
   },
   {
     "id": "app.preference.get_category.app_error",
@@ -6893,7 +6889,7 @@
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
-    "translation": "Valor inválido para user_id."
+    "translation": "Valor inválido para UserId"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -6901,15 +6897,15 @@
   },
   {
     "id": "model.upload_session.is_valid.path.app_error",
-    "translation": "Valor inválido para path."
+    "translation": "Valor inválido para path"
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": "Valor inválido para id."
+    "translation": "Valor inválido para id"
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": "Valor inválido para create_at."
+    "translation": "Valor inválido para Create_At"
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
@@ -7597,7 +7593,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
@@ -7641,15 +7637,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Pagamento Falhou"
+    "translation": "O Pagamento não foi bem sucedido"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Ação necessária: Falha no pagamento para Mattermost Cloud"
+    "translation": "Ação necessária: Falha no pagamento para Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Para garantir a assinatura ininterrupta do Mattermost Cloud, entre em contato com sua instituição financeira para corrigir o problema subjacente ou atualize suas informações de pagamento. Assim que as informações de pagamento forem atualizadas, a Mattermost tentará liquidar o saldo pendente."
+    "translation": "Para garantir a acesso ininterrupto do Mattermost {{.Plan}}, entre em contato com sua instituição financeira para corrigir o problema subjacente ou atualize suas informações de pagamento. Assim que as informações de pagamento forem atualizadas, a Mattermost tentará liquidar o saldo pendente."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7658,10 +7654,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{.LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Corrigir Agora"
   },
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
@@ -8069,7 +8061,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Erro ao recuperar o endpoint da Descoberta de Documento."
+    "translation": "Erro ao recuperar o endpoint do Documento de Descoberta."
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
@@ -8117,11 +8109,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Envie-nos um email a qualquer momento em "
+    "translation": "Precisa de ajuda ou tem dúvidas? Envie-nos um e-mail em "
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8333,7 +8325,7 @@
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Não foi possível encontrar o id do cluster remoto {{.RemoteId}}."
+    "translation": "Não foi possível encontrar o ID de uma conexão segura {{.RemoteId}}."
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -8357,15 +8349,15 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Remoto `{{.RemoteId}}` sem convite."
+    "translation": "Conexão segura `{{.RemoteId}}` sem convite."
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "O id do cluster remoto é inválido: {{.Error}}"
+    "translation": "O ID de conexão segura é inválido: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
-    "translation": "Id de uma instância remota existente. Veja o comando `remote` para adicionar uma instância remota."
+    "translation": "ID de uma conexão segura existente. Veja o comando `remote` para adicionar uma conexão segura."
   },
   {
     "id": "api.command_share.permission_required",
@@ -8437,7 +8429,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info2",
-    "translation": "para a melhor experiência em PC, Mac, iOS e Android."
+    "translation": "para a melhor experiência em Windows, Linux, Mac, iOS e Android."
   },
   {
     "id": "api.templates.cloud_welcome_email.signin_sub_info",
@@ -8469,7 +8461,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Otimize seu trabalho com ferramentas como Github, Google Agenda e Chrome. Explore todas as integrações que temos"
+    "translation": "Otimize seu trabalho com ferramentas como GitHub, Jira e Zoom. Explore todas as integrações que temos em nosso"
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_info",
@@ -8481,11 +8473,11 @@
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
-    "translation": "Já existe um cluster remoto com a mesmo url."
+    "translation": "Já existe uma conexão segura com a mesmo url."
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": "Encontramos um erro ao atualizar o cluster remoto."
+    "translation": "Encontramos um erro ao atualizar a conexão segura."
   },
   {
     "id": "api.remote_cluster.service_not_enabled.app_error",
@@ -8493,11 +8485,11 @@
   },
   {
     "id": "api.remote_cluster.save_not_unique.app_error",
-    "translation": "O cluster remoto já foi adicionado."
+    "translation": "A conexão segura já foi adicionada."
   },
   {
     "id": "api.remote_cluster.save.app_error",
-    "translation": "Encontramos um erro ao salvar o cluster remoto."
+    "translation": "Encontramos um erro ao salvar a conexão segura."
   },
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
@@ -8509,11 +8501,11 @@
   },
   {
     "id": "api.remote_cluster.get.app_error",
-    "translation": "Encontramos um erro ao recuperar um cluster remoto."
+    "translation": "Encontramos um erro ao recuperar uma conexão segura."
   },
   {
     "id": "api.remote_cluster.delete.app_error",
-    "translation": "Encontramos um erro ao excluir o cluster remoto."
+    "translation": "Encontramos um erro ao excluir uma conexão segura."
   },
   {
     "id": "api.job.unable_to_create_job.incorrect_job_type",
@@ -8533,11 +8525,11 @@
   },
   {
     "id": "api.context.remote_id_missing.app_error",
-    "translation": "Falta a id do cluster remoto."
+    "translation": "Falta a ID de conexão sergura."
   },
   {
     "id": "api.context.remote_id_mismatch.app_error",
-    "translation": "Incompatibilidade de id do cluster remoto."
+    "translation": "Incompatibilidade de ID da conexão segura."
   },
   {
     "id": "api.context.invitation_expired.error",
@@ -8549,11 +8541,11 @@
   },
   {
     "id": "api.command_share.uninvite_remote_id.help",
-    "translation": "Id da instância remota para desconvidar."
+    "translation": "ID de uma conexão segura para desconvidar."
   },
   {
     "id": "api.command_share.uninvite_remote.help",
-    "translation": "Cancela o convite de uma instância remota deste canal compartilhado"
+    "translation": "Cancela o convite de uma conexão segura deste canal compartilhado"
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -8569,11 +8561,11 @@
   },
   {
     "id": "api.command_share.remote_not_valid",
-    "translation": "Deve especificar um cluster remoto válido para cancelar o convite"
+    "translation": "Deve especificar uma ID de conexão segura válida para cancelar o convite"
   },
   {
     "id": "api.command_share.remote_already_invited",
-    "translation": "O cluster remoto já foi convidado."
+    "translation": "A conexão segura já foi convidada."
   },
   {
     "id": "api.command_share.not_shared_channel_unshare",
@@ -8581,15 +8573,15 @@
   },
   {
     "id": "api.command_share.no_remote_invited",
-    "translation": "Nenhum remoto foi convidado para este canal compartilhado."
+    "translation": "Nenhuma conexão remota foi convidada a este canal."
   },
   {
     "id": "api.command_share.name",
-    "translation": "compartilhar"
+    "translation": "compartilhar-canal"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
-    "translation": "Deve especificar um ID de conjunto remoto válido para convidar."
+    "translation": "Deve especificar um ID de conjunto válido seguro para convidar."
   },
   {
     "id": "api.command_share.missing_action",
@@ -8628,10 +8620,6 @@
     "translation": "Não foi possível redefinir o campo AuthData para o e-mail."
   },
   {
-    "id": "api.cloud.upgrade_plan_bot_message",
-    "translation": "Um membro do {{.TeamName}} notificou você para fazer upgrade deste espaço de trabalho."
-  },
-  {
     "id": "api.cloud.teams_limit_reached.restore",
     "translation": "Não foi possível restaurar a equipe porque o limite de equipes foi atingido"
   },
@@ -8654,5 +8642,13 @@
   {
     "id": "Boards",
     "translation": "Quadros"
+  },
+  {
+    "id": "Playbooks",
+    "translation": "Playbooks"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Campos faltando para envio de email."
   }
 ]
