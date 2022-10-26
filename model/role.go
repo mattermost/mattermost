@@ -417,8 +417,8 @@ type Role struct {
 	BuiltIn       bool     `json:"built_in"`
 }
 
-func (r *Role) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (r *Role) Auditable() map[string]any {
+	return map[string]any{
 		"id":             r.Id,
 		"name":           r.Name,
 		"display_name":   r.DisplayName,

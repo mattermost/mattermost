@@ -42,8 +42,8 @@ type GroupSyncable struct {
 	TeamID             string `db:"-" json:"-"`
 }
 
-func (syncable *GroupSyncable) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (syncable *GroupSyncable) Auditable() map[string]any {
+	return map[string]any{
 		"group_id":             syncable.GroupId,
 		"syncable_id":          syncable.SyncableId,
 		"auto_add":             syncable.AutoAdd,

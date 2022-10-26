@@ -64,14 +64,14 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 			Client:    c.AppContext.UserAgent(),
 			IpAddress: c.AppContext.IPAddress(),
 		},
-		Meta: map[string]interface{}{
+		Meta: map[string]any{
 			audit.KeyAPIPath:   c.AppContext.Path(),
 			audit.KeyClusterID: c.App.GetClusterId(),
 		},
 		EventData: audit.EventData{
-			Parameters:  map[string]interface{}{},
-			PriorState:  map[string]interface{}{},
-			ResultState: map[string]interface{}{},
+			Parameters:  map[string]any{},
+			PriorState:  map[string]any{},
+			ResultState: map[string]any{},
 			ObjectType:  "",
 		},
 	}

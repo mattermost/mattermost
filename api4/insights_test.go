@@ -1007,7 +1007,7 @@ func TestGetTopDMsForUserSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// create 2 posts in channelBu, 1 in channelBu1, 3 in channelBu12
-	postsGenConfig := []map[string]interface{}{
+	postsGenConfig := []map[string]any{
 		{
 			"chId":      channelBuBu.Id,
 			"postCount": 2,

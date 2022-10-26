@@ -5,20 +5,20 @@ package audit
 
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
-	EventName string                 `json:"event_name"`
-	Status    string                 `json:"status"`
-	EventData EventData              `json:"event"`
-	Actor     EventActor             `json:"actor"`
-	Meta      map[string]interface{} `json:"meta"`
-	Error     EventError             `json:"error,omitempty"`
+	EventName string         `json:"event_name"`
+	Status    string         `json:"status"`
+	EventData EventData      `json:"event"`
+	Actor     EventActor     `json:"actor"`
+	Meta      map[string]any `json:"meta"`
+	Error     EventError     `json:"error,omitempty"`
 }
 
 // EventData contains all event specific data about the modified entity
 type EventData struct {
-	Parameters  map[string]interface{} `json:"parameters"`      // Payload and parameters being processed as part of the request
-	PriorState  map[string]interface{} `json:"prior_state"`     // Prior state of the object being modified, nil if no prior state
-	ResultState map[string]interface{} `json:"resulting_state"` // Resulting object after creating or modifying it
-	ObjectType  string                 `json:"object_type"`     // String representation of the object type. eg. "post"
+	Parameters  map[string]any `json:"parameters"`      // Payload and parameters being processed as part of the request
+	PriorState  map[string]any `json:"prior_state"`     // Prior state of the object being modified, nil if no prior state
+	ResultState map[string]any `json:"resulting_state"` // Resulting object after creating or modifying it
+	ObjectType  string         `json:"object_type"`     // String representation of the object type. eg. "post"
 }
 
 // EventActor is the subject triggering the event
@@ -45,7 +45,7 @@ type EventError struct {
 // AuditableObject returns. For example: it's likely OK to write a user object to the
 // audit logs, but not the user password in cleartext or hashed form
 type Auditable interface {
-	Auditable() map[string]interface{}
+	Auditable() map[string]any
 }
 
 // Success marks the audit record status as successful.
@@ -59,9 +59,9 @@ func (rec *Record) Fail() {
 }
 
 // AddEventParameter adds a parameter, e.g. query or post body, to the event
-func (rec *Record) AddEventParameter(key string, val interface{}) {
+func (rec *Record) AddEventParameter(key string, val any) {
 	if rec.EventData.Parameters == nil {
-		rec.EventData.Parameters = make(map[string]interface{})
+		rec.EventData.Parameters = make(map[string]any)
 	}
 
 	if auditableVal, ok := val.(Auditable); ok {
@@ -88,7 +88,7 @@ func (rec *Record) AddEventObjectType(objectType string) {
 
 // AddMeta adds a key/value entry to the audit record that can be used for related information not directly related to
 // the modified object, e.g. authentication method
-func (rec *Record) AddMeta(name string, val interface{}) {
+func (rec *Record) AddMeta(name string, val any) {
 	rec.Meta[name] = val
 }
 

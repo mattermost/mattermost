@@ -119,7 +119,7 @@ func (c *Context) AppError() *model.AppError {
 }
 
 type CTX interface {
-	T(string, ...interface{}) string
+	T(string, ...any) string
 	Session() *model.Session
 	RequestId() string
 	IPAddress() string

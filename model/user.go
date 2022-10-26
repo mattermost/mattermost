@@ -105,8 +105,8 @@ type User struct {
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 }
 
-func (u *User) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *User) Auditable() map[string]any {
+	return map[string]any{
 		"id":                         u.Id,
 		"create_at":                  u.CreateAt,
 		"update_at":                  u.UpdateAt,
@@ -165,8 +165,8 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
-func (u *UserPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserPatch) Auditable() map[string]any {
+	return map[string]any{
 		"username":     u.Username,
 		"nickname":     u.Nickname,
 		"first_name":   u.FirstName,
@@ -188,8 +188,8 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
-func (u *UserAuth) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserAuth) Auditable() map[string]any {
+	return map[string]any{
 		"auth_service": u.AuthService,
 	}
 }

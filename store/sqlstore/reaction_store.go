@@ -34,7 +34,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (re *model.Reaction, e
 	if reaction.ChannelId == "" {
 		// get channelId, if not already populated
 		var channelIds []string
-		var args []interface{}
+		var args []any
 		query := "SELECT ChannelId from Posts where Id = ?"
 		args = append(args, reaction.PostId)
 		err = transaction.Select(&channelIds, query, args...)

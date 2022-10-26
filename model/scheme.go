@@ -39,8 +39,8 @@ type Scheme struct {
 	DefaultRunMemberRole      string `json:"default_run_member_role"`
 }
 
-func (scheme *Scheme) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (scheme *Scheme) Auditable() map[string]any {
+	return map[string]any{
 		"id":                           scheme.Id,
 		"name":                         scheme.Name,
 		"display_name":                 scheme.DisplayName,
@@ -116,8 +116,8 @@ type SchemeRoles struct {
 	SchemeGuest bool `json:"scheme_guest"`
 }
 
-func (s *SchemeRoles) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
+func (s *SchemeRoles) Auditable() map[string]any {
+	return map[string]any{}
 }
 
 func (scheme *Scheme) IsValid() bool {

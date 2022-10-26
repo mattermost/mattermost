@@ -58,8 +58,8 @@ type Session struct {
 	Local          bool          `json:"local" db:"-"`
 }
 
-func (s *Session) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (s *Session) Auditable() map[string]any {
+	return map[string]any{
 		"id":               s.Id,
 		"create_at":        s.CreateAt,
 		"expires_at":       s.ExpiresAt,

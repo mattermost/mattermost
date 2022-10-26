@@ -99,11 +99,11 @@ func (ps *PlatformService) ReloadConfig() error {
 	return nil
 }
 
-func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return ps.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (ps *PlatformService) GetEnvironmentOverrides() map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverrides() map[string]any {
 	return ps.configStore.GetEnvironmentOverrides()
 }
 

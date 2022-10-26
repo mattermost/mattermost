@@ -1426,7 +1426,7 @@ func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 
 	lastAccessiblePostTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
+		return 0, model.NewAppError("GetLastAccessiblePostTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return lastAccessiblePostTime, nil
