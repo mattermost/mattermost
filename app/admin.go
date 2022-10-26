@@ -74,11 +74,11 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 	if len(serverNames) > 0 {
 		for _, nodeName := range serverNames {
 			if nodeName == "default" {
-				AddLocalLogs(s, page, perPage, logData, nodeName, logFilter)
+				AddLocalLogs(logData, s, page, perPage, nodeName, logFilter)
 			}
 		}
 	} else {
-		AddLocalLogs(s, page, perPage, logData, serverName, logFilter)
+		AddLocalLogs(logData, s, page, perPage, serverName, logFilter)
 	}
 
 	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
@@ -88,17 +88,12 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 		}
 
 		if clusterLogs != nil && len(serverNames) > 0 {
-				for _, filteredNodeName := range serverNames {
-					for nodeName, logs := range clusterLogs {
-						if nodeName == filteredNodeName {
-							logData[nodeName] = logs
-						}
-					}
-				}
-			} else {
-				for nodeName, logs := range clusterLogs {
-					logData[nodeName] = logs
-				}
+			for _, filteredNodeName := range serverNames {
+				logData[filteredNodeName] = clusterLogs[filteredNodeName]
+			}
+		} else {
+			for nodeName, logs := range clusterLogs {
+				logData[nodeName] = logs
 			}
 		}
 	}
@@ -106,7 +101,7 @@ func (s *Server) QueryLogs(page, perPage int, logFilter *model.LogFilter) (map[s
 	return logData, nil
 }
 
-func AddLocalLogs(s *Server, page, perPage int, logData map[string][]string, serverName string, logFilter *model.LogFilter) *model.AppError {
+func AddLocalLogs(logData map[string][]string, s *Server, page, perPage int, serverName string, logFilter *model.LogFilter) *model.AppError {
 	currentServerLogs, err := s.GetLogsSkipSend(page, perPage, logFilter)
 	if err != nil {
 		return err
