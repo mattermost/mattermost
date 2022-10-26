@@ -5236,10 +5236,6 @@
     "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Невозможно удалить пользователя из управляемой группами команды."
   },
@@ -5674,10 +5670,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Ошибка аннулирования e-mail приглашений."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Гостевые учётные записи отключены"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
