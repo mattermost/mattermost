@@ -80,5 +80,5 @@ func getRandomDelay(limit int64) time.Duration {
 	if err != nil {
 		return time.Millisecond
 	}
-	return time.Millisecond*time.Duration(num.Int64())
+	return time.Millisecond * time.Duration(num.Int64())
 }

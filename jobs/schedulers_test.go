@@ -146,7 +146,7 @@ func TestScheduler(t *testing.T) {
 }
 
 func TestRandomDelay(t *testing.T) {
-	cases := []int64{5,10,100}
+	cases := []int64{5, 10, 100}
 	for _, c := range cases {
 		out := getRandomDelay(c)
 		require.Less(t, out.Milliseconds(), c)
