@@ -87,8 +87,8 @@ func (s *SuiteService) CreateUserWithToken(c request.CTX, user *model.User, toke
 		return nil, err
 	}
 
-	if _, err := s.JoinUserToTeam(c, team, ruser, ""); err != nil {
-		return nil, err
+	if _, err2 := s.JoinUserToTeam(c, team, ruser, ""); err2 != nil {
+		return nil, err2
 	}
 
 	err = s.channels.AddToDefaultChannelsWithToken(c, team.Id, ruser.Id, token)

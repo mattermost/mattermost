@@ -142,14 +142,6 @@ func CheckEmailDomain(email string, domains string) bool {
 	return false
 }
 
-func (s *SuiteService) sanitizeUserProfiles(users []*model.User, asAdmin bool) []*model.User {
-	for _, u := range users {
-		s.SanitizeProfile(u, asAdmin)
-	}
-
-	return users
-}
-
 func (s *SuiteService) SanitizeUserrofile(user *model.User, asAdmin bool) {
 	options := s.GetSanitizeOptions(asAdmin)
 

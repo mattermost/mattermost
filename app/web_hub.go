@@ -50,10 +50,6 @@ func (a *App) InvalidateCacheForUser(userID string) {
 	a.Srv().Platform().InvalidateCacheForUser(userID)
 }
 
-func (a *App) invalidateCacheForUserTeams(userID string) {
-	a.Srv().Platform().InvalidateCacheForUserTeams(userID)
-}
-
 // UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
 func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64) {
 	a.Srv().Platform().UpdateWebConnUserActivity(session, activityAt)

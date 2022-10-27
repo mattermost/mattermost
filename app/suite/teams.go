@@ -205,13 +205,3 @@ func (s *SuiteService) removeTeamMember(teamMember *model.TeamMember) error {
 
 	return nil
 }
-
-// GetMember return the team member from the team.
-func (s *SuiteService) getTeamMember(teamID string, userID string) (*model.TeamMember, error) {
-	member, err := s.platform.Store.Team().GetMember(context.Background(), teamID, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	return member, err
-}

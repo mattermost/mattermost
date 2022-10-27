@@ -48,13 +48,6 @@ type Channels struct {
 
 	imageProxy *imageproxy.ImageProxy
 
-	// cached counts that are used during notice condition validation
-	cachedPostCount   int64
-	cachedUserCount   int64
-	cachedDBMSVersion string
-	// previously fetched notices
-	cachedNotices model.ProductNotices
-
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
