@@ -5,6 +5,7 @@ package jobs
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -491,6 +492,65 @@ func TestUpdateInProgressJobData(t *testing.T) {
 
 		err := jobServer.UpdateInProgressJobData(job)
 		require.Nil(t, err)
+	})
+}
+
+func TestHandleJobPanic(t *testing.T) {
+	t.Run("no panic", func(t *testing.T) {
+		jobServer, _, _ := makeJobServer(t)
+
+		job := &model.Job{
+			Type:   model.JobTypeImportProcess,
+			Status: model.JobStatusInProgress,
+		}
+
+		f := func() {
+			defer jobServer.HandleJobPanic(job)
+			fmt.Println("OK")
+		}
+
+		require.NotPanics(t, f)
+		require.Equal(t, model.JobStatusInProgress, job.Status)
+	})
+
+	t.Run("with panic string", func(t *testing.T) {
+		jobServer, mockStore, metrics := makeJobServer(t)
+
+		job := &model.Job{
+			Type:   model.JobTypeImportProcess,
+			Status: model.JobStatusInProgress,
+		}
+
+		f := func() {
+			defer jobServer.HandleJobPanic(job)
+			panic("not OK")
+		}
+
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		metrics.On("DecrementJobActive", model.JobTypeImportProcess)
+
+		require.Panics(t, f)
+		require.Equal(t, model.JobStatusError, job.Status)
+	})
+
+	t.Run("with panic error", func(t *testing.T) {
+		jobServer, mockStore, metrics := makeJobServer(t)
+
+		job := &model.Job{
+			Type:   model.JobTypeImportProcess,
+			Status: model.JobStatusInProgress,
+		}
+
+		f := func() {
+			defer jobServer.HandleJobPanic(job)
+			panic(fmt.Errorf("not OK"))
+		}
+
+		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
+		metrics.On("DecrementJobActive", model.JobTypeImportProcess)
+
+		require.Panics(t, f)
+		require.Equal(t, model.JobStatusError, job.Status)
 	})
 }
 
