@@ -85,6 +85,8 @@ func (rseworker *ResendInvitationEmailWorker) JobChannel() chan<- model.Job {
 }
 
 func (rseworker *ResendInvitationEmailWorker) DoJob(job *model.Job) {
+	defer rseworker.jobServer.HandleJobPanic(job)
+
 	elapsedTimeSinceSchedule, DurationInMillis := rseworker.GetDurations(job)
 	if elapsedTimeSinceSchedule > DurationInMillis {
 		rseworker.ResendEmails(job, "48")
