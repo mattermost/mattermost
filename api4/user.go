@@ -709,11 +709,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("channelRoles")
 			return
 		}
+		channelRolesValid := model.AreValidChannelRoleNames(strings.Split(channelRolesString, ","))
+		if !channelRolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
 	}
 	teamRoles := []string{}
 	if teamRolesString != "" && inTeamId != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+
+		teamRolesValid := model.AreValidTeamRoleNames(strings.Split(teamRolesString, ","))
+		if !teamRolesValid {
 			c.SetInvalidParam("teamRoles")
 			return
 		}
