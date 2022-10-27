@@ -115,7 +115,7 @@ type OnCloudLimitsUpdatedIFace interface {
 }
 
 type UserHasPermissionToCollectionIFace interface {
-	UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error)
+	UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
 }
 
 type GetAllCollectionIDsForUserIFace interface {
@@ -658,12 +658,12 @@ func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 
 }
 
-func (a *hooksAdapter) UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+func (a *hooksAdapter) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
 	if _, ok := a.implemented[UserHasPermissionToCollectionID]; !ok {
 		panic("product hooks must implement UserHasPermissionToCollection")
 	}
 
-	return a.productHooks.(UserHasPermissionToCollectionIFace).UserHasPermissionToCollection(c, userId, collectionType, collectionId, permission)
+	return a.productHooks.(UserHasPermissionToCollectionIFace).UserHasPermissionToCollection(c, userID, collectionType, collectionId, permission)
 
 }
 

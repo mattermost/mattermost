@@ -824,8 +824,8 @@ type Z_UserHasPermissionToCollectionReturns struct {
 	B error
 }
 
-func (g *hooksRPCClient) UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
-	_args := &Z_UserHasPermissionToCollectionArgs{c, userId, collectionType, collectionId, permission}
+func (g *hooksRPCClient) UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+	_args := &Z_UserHasPermissionToCollectionArgs{c, userID, collectionType, collectionId, permission}
 	_returns := &Z_UserHasPermissionToCollectionReturns{}
 	if g.implemented[UserHasPermissionToCollectionID] {
 		if err := g.client.Call("Plugin.UserHasPermissionToCollection", _args, _returns); err != nil {
@@ -837,7 +837,7 @@ func (g *hooksRPCClient) UserHasPermissionToCollection(c *Context, userId string
 
 func (s *hooksRPCServer) UserHasPermissionToCollection(args *Z_UserHasPermissionToCollectionArgs, returns *Z_UserHasPermissionToCollectionReturns) error {
 	if hook, ok := s.impl.(interface {
-		UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error)
+		UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
 	}); ok {
 		returns.A, returns.B = hook.UserHasPermissionToCollection(args.A, args.B, args.C, args.D, args.E)
 		returns.B = encodableError(returns.B)

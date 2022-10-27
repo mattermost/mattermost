@@ -412,20 +412,20 @@ func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 
-// UserHasPermissionToCollection provides a mock function with given fields: c, userId, collectionType, collectionId, permission
-func (_m *Hooks) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType string, collectionId string, permission *model.Permission) (bool, error) {
-	ret := _m.Called(c, userId, collectionType, collectionId, permission)
+// UserHasPermissionToCollection provides a mock function with given fields: c, userID, collectionType, collectionId, permission
+func (_m *Hooks) UserHasPermissionToCollection(c *plugin.Context, userID string, collectionType string, collectionId string, permission *model.Permission) (bool, error) {
+	ret := _m.Called(c, userID, collectionType, collectionId, permission)
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string, string, *model.Permission) bool); ok {
-		r0 = rf(c, userId, collectionType, collectionId, permission)
+		r0 = rf(c, userID, collectionType, collectionId, permission)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string, string, *model.Permission) error); ok {
-		r1 = rf(c, userId, collectionType, collectionId, permission)
+		r1 = rf(c, userID, collectionType, collectionId, permission)
 	} else {
 		r1 = ret.Error(1)
 	}
