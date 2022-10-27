@@ -213,9 +213,9 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
 }
 
-func (hooks *hooksTimerLayer) UserHasPermissionToCollection(c *Context, user *model.User, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+func (hooks *hooksTimerLayer) UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.UserHasPermissionToCollection(c, user, collectionType, collectionId, permission)
+	_returnsA, _returnsB := hooks.hooksImpl.UserHasPermissionToCollection(c, userId, collectionType, collectionId, permission)
 	hooks.recordTime(startTime, "UserHasPermissionToCollection", _returnsB == nil)
 	return _returnsA, _returnsB
 }

@@ -288,7 +288,7 @@ type Hooks interface {
 	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
 	//
 	// Minimum server version: 7.6
-	UserHasPermissionToCollection(c *Context, user *model.User, collectionType, collectionId string, permission *model.Permission) (bool, error)
+	UserHasPermissionToCollection(c *Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error)
 
 	// GetAllCollectionIDsForUser returns the set of collection ids to which
 	// the given user has access. Plugins are only expected to handle their
