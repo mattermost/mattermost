@@ -515,7 +515,7 @@ func checkUsersIntegrity(ss *SqlStore, results chan<- model.IntegrityCheckResult
 func checkThreadsTeamsIntegrity(ss *SqlStore) model.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
 		parentName:         "Teams",
-		parentIdAttr:       "TeamId",
+		parentIdAttr:       "ThreadTeamId",
 		childName:          "Threads",
 		childIdAttr:        "PostId",
 		canParentIdBeEmpty: false,
