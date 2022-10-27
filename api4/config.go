@@ -157,7 +157,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
-		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
 		return
 	}
 

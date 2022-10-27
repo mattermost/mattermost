@@ -456,7 +456,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 	}
 
 	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
-		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
+		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
