@@ -38,6 +38,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		return true
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		importFileName, ok := job.Data["import_file"]
 		if !ok {
 			return model.NewAppError("ImportProcessWorker", "import_process.worker.do_job.missing_file", nil, "", http.StatusBadRequest)
