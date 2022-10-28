@@ -299,8 +299,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	return ps, nil
 }
 
-func (ps *PlatformService) Start(suite SuiteIFace) error {
-	ps.hubStart(suite)
+func (ps *PlatformService) Start() error {
+	ps.hubStart()
 
 	ps.configListenerId = ps.AddConfigListener(func(_, _ *model.Config) {
 		ps.regenerateClientConfig()
