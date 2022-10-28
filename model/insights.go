@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"time"
 )
 
@@ -258,6 +259,23 @@ func StartOfDayForTimeRange(timeRange string, location *time.Location) *time.Tim
 		resultTime = resultTime.Add(time.Hour * time.Duration(-648))
 	}
 	return &resultTime
+}
+
+// GetStartOfDayForTimeRange gets the unix start time in milliseconds from the given time range.
+// Time range can be one of: "today", "7_day", or "28_day".
+func GetStartOfDayForTimeRange(timeRange string, location *time.Location) (*time.Time, *AppError) {
+	now := time.Now().In(location)
+	resultTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	switch timeRange {
+	case TimeRangeToday:
+	case TimeRange7Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-144))
+	case TimeRange28Day:
+		resultTime = resultTime.Add(time.Hour * time.Duration(-648))
+	default:
+		return nil, NewAppError("GetStartOfDayForTimeRange", "model.insights.get_start_of_day_for_time_range.time_range.app_error", nil, "", http.StatusBadRequest)
+	}
+	return &resultTime, nil
 }
 
 // GetTopReactionListWithPagination adds a rank to each item in the given list of TopReaction and checks if there is

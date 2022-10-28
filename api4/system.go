@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/cache"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -71,6 +72,13 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
 	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
+
+	// GET /api/v4/system/events/topics
+	api.BaseRoutes.System.Handle("/events/topics", api.APISessionRequired(getEventsTopics)).Methods("GET")
+	// GET /api/v4/system/events/topics/<topicId>
+	api.BaseRoutes.System.Handle("/events/topics/{topic_id}", api.APISessionRequired(getEventsTopic)).Methods("GET")
+	// GET /api/v4/system/events/schemas/<topicId>
+	api.BaseRoutes.System.Handle("/events/schemas/{topic_id}", api.APISessionRequired(getEventsSchema)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -640,7 +648,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventParameter("seconds", i)
 
-	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
+	c.App.Srv().Platform().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
 
 	auditRec.Success()
@@ -656,7 +664,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	c.App.Srv().Busy.Clear()
+	c.App.Srv().Platform().Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
 
 	auditRec.Success()
@@ -671,7 +679,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
-	sbsJSON, jsonErr := c.App.Srv().Busy.ToJSON()
+	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn(jsonErr.Error())
 	}
@@ -1007,4 +1015,89 @@ func checkHasNilFields(value any) bool {
 	}
 
 	return false
+}
+
+func getEventsTopics(c *Context, w http.ResponseWriter, r *http.Request) {
+	// parameter withSchema is to be parsed
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
+	}
+	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
+
+	topics := c.App.EventBroker().EventTypes()
+
+	if !withSchema {
+		for i := range topics {
+			topics[i].Schema = ""
+		}
+	}
+
+	// calls broker to get a list of topics
+	if err := json.NewEncoder(w).Encode(topics); err != nil {
+		c.Err = model.NewAppError("getTopics", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func getEventsTopic(c *Context, w http.ResponseWriter, r *http.Request) {
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
+	}
+	c.RequireTopicId()
+	if c.Err != nil {
+		return
+	}
+
+	// parameter withSchema is to be parsed
+	// parameter topicId
+	// parameter withSchema is to be parsed
+	withSchema, _ := strconv.ParseBool(r.FormValue("withSchema"))
+	topicId := c.Params.TopicId
+
+	topics := c.App.EventBroker().EventTypes()
+
+	topic := getTopicByIdFromTopics(topicId, topics)
+
+	if !withSchema {
+		topic.Schema = ""
+	}
+
+	// calls broker to get details of topic with id=topicId
+	if err := json.NewEncoder(w).Encode(topic); err != nil {
+		c.Err = model.NewAppError("getTopics", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func getEventsSchema(c *Context, w http.ResponseWriter, r *http.Request) {
+	// restrict only for admins
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("getEventsTopics", "api.get_events_topics.permission_error", nil, "", http.StatusForbidden)
+	}
+	// calls broker to get a list of topics
+	// parameter topicId
+	c.RequireTopicId()
+	topicId := c.Params.TopicId
+
+	topics := c.App.EventBroker().EventTypes()
+
+	topic := getTopicByIdFromTopics(topicId, topics)
+
+	if _, err := w.Write([]byte(topic.Schema)); err != nil {
+		c.Err = model.NewAppError("getTopics", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func getTopicByIdFromTopics(topicId string, topics []eventbus.EventType) eventbus.EventType {
+	var topic eventbus.EventType
+	for _, t := range topics {
+		if t.Topic == topicId {
+			topic = t
+			break
+		}
+	}
+	return topic
 }

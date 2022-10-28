@@ -81,7 +81,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
-	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+	if err := c.App.Srv().Store().Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
@@ -93,7 +93,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
-	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+	if err := c.App.Srv().Store().Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
@@ -745,6 +745,18 @@ func (c *Context) RequireInvoiceId() *Context {
 
 	if len(c.Params.InvoiceId) != 27 {
 		c.SetInvalidURLParam("invoice_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireTopicId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.TopicId == "" {
+		c.SetInvalidURLParam("topic_id")
 	}
 
 	return c

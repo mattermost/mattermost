@@ -16,6 +16,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -140,7 +142,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.Srv().getSystemInstallDate()
+	return api.app.Srv().Platform().GetSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -287,12 +289,12 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
-	session, err := api.app.ch.srv.userService.GetSessionByID(sessionID)
+	session, err := api.app.ch.srv.platform.GetSessionByID(sessionID)
 	if err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := api.app.ch.srv.userService.ExtendSessionExpiry(session, expiresAt); err != nil {
+	if err := api.app.ch.srv.platform.ExtendSessionExpiry(session, expiresAt); err != nil {
 		return model.NewAppError("extendSessionExpiry", "app.session.extend_session_expiry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -608,7 +610,7 @@ func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppEr
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
-	return api.app.GetGroup(groupId, nil)
+	return api.app.GetGroup(groupId, nil, nil)
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
@@ -616,7 +618,7 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 }
 
 func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
 
 	return users, err
 }
@@ -630,6 +632,8 @@ func (api *PluginAPI) GetGroupsForUser(userID string) ([]*model.Group, *model.Ap
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
+	post.AddProp("from_plugin", "true")
+
 	post, appErr := api.app.CreatePostMissingChannel(api.ctx, post, true)
 	if post != nil {
 		post = post.ForPlugin()
@@ -1089,7 +1093,7 @@ func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
 
 func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
 	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
-	return api.app.Srv().Store.Command().GetByTeam(teamID)
+	return api.app.Srv().Store().Command().GetByTeam(teamID)
 }
 
 func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
@@ -1125,7 +1129,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
-	return api.app.Srv().Store.Command().Get(commandID)
+	return api.app.Srv().Store().Command().Get(commandID)
 }
 
 func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
@@ -1145,11 +1149,11 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	return api.app.Srv().Store.Command().Update(updatedCmd)
+	return api.app.Srv().Store().Command().Update(updatedCmd)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) error {
-	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	err := api.app.Srv().Store().Command().Delete(commandID, model.GetMillis())
 	if err != nil {
 		return err
 	}
@@ -1225,4 +1229,29 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	}
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
+}
+
+func (api *PluginAPI) RegisterEvent(topic, description string, typ any) error {
+	return api.app.RegisterTopic(topic, description, typ)
+}
+
+func (api *PluginAPI) SubscribeToEvent(topic, handlerId string) (string, error) {
+	id, err := api.app.SubscribeTopic(topic, func(ev eventbus.Event) error {
+		pluginsEnvironment := api.app.ch.pluginsEnvironment
+		ev.Context = nil
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.OnPluginReceiveEvent(handlerId, ev)
+			return true
+		}, plugin.OnPluginReceiveEventID)
+		return nil
+	})
+	return id, err
+}
+
+func (api *PluginAPI) UnsubscribeFromEvent(topic, id string) error {
+	return api.app.UnsubscribeTopic(topic, id)
+}
+
+func (api *PluginAPI) PublishEvent(topic string, data any) error {
+	return api.app.PublishEvent(topic, api.ctx, data)
 }

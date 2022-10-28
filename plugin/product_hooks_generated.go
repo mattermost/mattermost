@@ -12,6 +12,7 @@ import (
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/eventbus"
 )
 
 type OnConfigurationChangeIFace interface {
@@ -114,6 +115,10 @@ type OnCloudLimitsUpdatedIFace interface {
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
 }
 
+type OnPluginReceiveEventIFace interface {
+	OnPluginReceiveEvent(handlerId string, event eventbus.Event)
+}
+
 type hooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -121,7 +126,8 @@ type hooksAdapter struct {
 
 func newAdapter(productHooks any) (*hooksAdapter, error) {
 	a := &hooksAdapter{
-		implemented: make(map[int]struct{}),
+		implemented:  make(map[int]struct{}),
+		productHooks: productHooks,
 	}
 	var tt reflect.Type
 	ft := reflect.TypeOf(productHooks)
@@ -351,6 +357,15 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 		return nil, errors.New("hook has OnCloudLimitsUpdated method but does not implement plugin.OnCloudLimitsUpdated interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements OnPluginReceiveEvent interface.
+	tt = reflect.TypeOf((*OnPluginReceiveEventIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnPluginReceiveEventID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnPluginReceiveEvent"); ok {
+		return nil, errors.New("hook has OnPluginReceiveEvent method but does not implement plugin.OnPluginReceiveEvent interface")
+	}
+
 	return a, nil
 }
 
@@ -576,5 +591,14 @@ func (a *hooksAdapter) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 	}
 
 	a.productHooks.(OnCloudLimitsUpdatedIFace).OnCloudLimitsUpdated(limits)
+
+}
+
+func (a *hooksAdapter) OnPluginReceiveEvent(handlerId string, event eventbus.Event) {
+	if _, ok := a.implemented[OnPluginReceiveEventID]; !ok {
+		panic("product hooks must implement OnPluginReceiveEvent")
+	}
+
+	a.productHooks.(OnPluginReceiveEventIFace).OnPluginReceiveEvent(handlerId, event)
 
 }

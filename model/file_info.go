@@ -188,3 +188,17 @@ func GetEtagForFileInfos(infos []*FileInfo) string {
 
 	return Etag(infos[0].PostId, maxUpdateAt)
 }
+
+func (fi *FileInfo) MakeContentInaccessible() {
+	if fi == nil {
+		return
+	}
+
+	fi.Archived = true
+	fi.Content = ""
+	fi.HasPreviewImage = false
+	fi.MiniPreview = nil
+	fi.Path = ""
+	fi.PreviewPath = ""
+	fi.ThumbnailPath = ""
+}

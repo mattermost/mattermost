@@ -156,6 +156,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
+	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
+		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
+		return
+	}
+
 	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
 		c.Err = appErr
 		return
@@ -239,9 +244,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var config map[string]string
 	if c.AppContext.Session().UserId == "" {
-		config = c.App.LimitedClientConfigWithComputed()
+		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()
 	} else {
-		config = c.App.ClientConfigWithComputed()
+		config = c.App.Srv().Platform().ClientConfigWithComputed()
 	}
 
 	w.Write([]byte(model.MapToJSON(config)))

@@ -5580,14 +5580,6 @@
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "電子メール招待の無効化でエラーが発生しました。"
   },
@@ -9530,5 +9522,9 @@
   {
     "id": "app.cloud.get_current_plan_name.app_error",
     "translation": "現在のプラン名を取得できませんでした"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "ジョブ実行中にエラーが発生しました。"
   }
 ]

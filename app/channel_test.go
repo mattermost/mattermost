@@ -267,10 +267,10 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	defer th.TearDown()
 
 	// figure out the initial number of users in town square
-	channel, err := th.App.Srv().Store.Channel().GetByName(th.BasicTeam.Id, "town-square", true)
+	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.NoError(t, err)
 	townSquareChannelId := channel.Id
-	users, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
 	require.NoError(t, nErr)
 	initialNumTownSquareUsers := len(users)
 
@@ -279,7 +279,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
@@ -298,10 +298,10 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	defer th.TearDown()
 
 	// figure out the initial number of users in off-topic
-	channel, err := th.App.Srv().Store.Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
+	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
 	require.NoError(t, err)
 	offTopicChannelId := channel.Id
-	users, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
 	require.NoError(t, nErr)
 	initialNumTownSquareUsers := len(users)
 
@@ -310,7 +310,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
@@ -382,7 +382,7 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	publicChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypeOpen)
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
+	histories, err := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
 	require.NoError(t, err)
 	assert.Len(t, histories, 1)
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
@@ -397,7 +397,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	privateChannel := th.createChannel(th.Context, th.BasicTeam, model.ChannelTypePrivate)
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, privateChannel.Id)
+	histories, err := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, privateChannel.Id)
 	require.NoError(t, err)
 	assert.Len(t, histories, 1)
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
@@ -485,7 +485,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	channel, err := th.App.CreateGroupChannel(th.Context, groupUserIds, th.BasicUser.Id)
 
 	require.Nil(t, err, "Failed to create group channel.")
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 3)
 
@@ -510,7 +510,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	channel, err := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 	require.Nil(t, err, "Failed to create direct channel.")
 
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 
@@ -538,7 +538,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	require.Nil(t, err, "Failed to create direct channel.")
 
 	// there should be a ChannelMemberHistory record for both users
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 
@@ -573,7 +573,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -660,7 +660,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -670,7 +670,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, nErr := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+	postList, nErr := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -2036,7 +2036,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Get", context.Background(), "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
 	mockChannelStore := mocks.ChannelStore{}
@@ -2076,7 +2076,7 @@ func TestClearChannelMembersCache(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
 	cms := model.ChannelMembers{}
 	for i := 0; i < 200; i++ {
@@ -2099,7 +2099,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
 	cmc := []*model.ChannelMemberCountByGroup{}
 	for i := 0; i < 5; i++ {
@@ -2143,7 +2143,7 @@ func TestViewChannelCollapsedThreadsTurnedOff(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(preferences)
+	err := th.App.Srv().Store().Preference().Save(preferences)
 	require.NoError(t, err)
 
 	// mention the user in a root post
@@ -2219,7 +2219,7 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv().Store.Preference().Save(preferences)
+	err := th.App.Srv().Store().Preference().Save(preferences)
 	require.NoError(t, err)
 
 	// user2: first root mention @user1
@@ -2392,7 +2392,7 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 
 			th.App.Config().ServiceSettings.CollapsedThreads = &tc.appCRT
 
-			mockStore := th.App.Srv().Store.(*mocks.Store)
+			mockStore := th.App.Srv().Store().(*mocks.Store)
 			mockPreferenceStore := mocks.PreferenceStore{}
 			mockPreferenceStore.On("Get", mock.Anything, model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: tc.pref.val}, tc.pref.err)
 			mockStore.On("Preference").Return(&mockPreferenceStore)
@@ -2411,7 +2411,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
-	_, err := th.Server.Store.Post().Save(&model.Post{
+	_, err := th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -2424,12 +2424,46 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 
 	// add a webhook post to ensure it's not counted
-	_, err = th.Server.Store.Post().Save(&model.Post{
+	_, err = th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
 		UserId:    th.BasicUser.Id,
 		Props: model.StringInterface{
 			"from_webhook": true,
+		},
+	})
+	require.NoError(t, err)
+
+	// add an oauth app post to ensure it's not counted
+	_, err = th.Server.Store().Post().Save(&model.Post{
+		Message:   "hello from an ouath app",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_oauth_app": true,
+		},
+	})
+	require.NoError(t, err)
+
+	// add a plugin post to ensure it's not counted
+	_, err = th.Server.Store().Post().Save(&model.Post{
+		Message:   "hello from a plugin",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_plugin": true,
+		},
+	})
+	require.NoError(t, err)
+
+	// add a system post to ensure it's not counted
+	_, err = th.Server.Store().Post().Save(&model.Post{
+		Message:   "system message",
+		Type:      "system_join_channel",
+		ChannelId: channel3.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			"from_oauth_app": true,
 		},
 	})
 	require.NoError(t, err)
@@ -2464,7 +2498,7 @@ func TestGetTopChannelsForTeamSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2489,7 +2523,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
 	// add a bot post to ensure it's not counted
-	_, err := th.Server.Store.Post().Save(&model.Post{
+	_, err := th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -2502,7 +2536,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 
 	// add a webhook post to ensure it's not counted
-	_, err = th.Server.Store.Post().Save(&model.Post{
+	_, err = th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
 		UserId:    th.BasicUser.Id,
@@ -2542,7 +2576,7 @@ func TestGetTopChannelsForUserSince(t *testing.T) {
 		{ID: channel5.Id, MessageCount: 2},
 	}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopChannelsForUserSince(th.Context, th.BasicUser.Id, "", &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2711,7 +2745,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// add a bot post to ensure it's counted
-	_, err := th.Server.Store.Post().Save(&model.Post{
+	_, err := th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -2722,7 +2756,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 	require.NoError(t, err)
 
 	// add a webhook post to ensure it's counted
-	_, err = th.Server.Store.Post().Save(&model.Post{
+	_, err = th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
 		UserId:    th.BasicUser.Id,
@@ -2753,7 +2787,7 @@ func TestGetTopInactiveChannelsForTeamSince(t *testing.T) {
 		{ID: channel2.Id, MessageCount: 6},
 	}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-team-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopInactiveChannelsForTeamSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 5})
@@ -2798,7 +2832,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 
 	// add a bot post to ensure it's counted
-	_, err := th.Server.Store.Post().Save(&model.Post{
+	_, err := th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a bot",
 		ChannelId: channel2.Id,
 		UserId:    th.BasicUser.Id,
@@ -2811,7 +2845,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 	channel3 := th.CreatePrivateChannel(th.Context, th.BasicTeam, WithCreateAt(1))
 
 	// add a webhook post to ensure it's counted
-	_, err = th.Server.Store.Post().Save(&model.Post{
+	_, err = th.Server.Store().Post().Save(&model.Post{
 		Message:   "hello from a webhook",
 		ChannelId: channel3.Id,
 		UserId:    th.BasicUser.Id,
@@ -2851,7 +2885,7 @@ func TestGetTopInactiveChannelsForUserSince(t *testing.T) {
 		{ID: channel2.Id, MessageCount: 6},
 	}
 
-	timeRange := model.StartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
+	timeRange, _ := model.GetStartOfDayForTimeRange(model.TimeRangeToday, time.Now().Location())
 
 	t.Run("get-top-channels-for-user-since", func(t *testing.T) {
 		topChannels, err := th.App.GetTopInactiveChannelsForUserSince(th.Context, th.BasicChannel.TeamId, th.BasicUser.Id, &model.InsightsOpts{StartUnixMilli: timeRange.UnixMilli(), Page: 0, PerPage: 4})

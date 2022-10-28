@@ -20,6 +20,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		return *cfg.AnnouncementSettings.AdminNoticesEnabled || *cfg.AnnouncementSettings.UserNoticesEnabled
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		if err := app.UpdateProductNotices(); err != nil {
 			mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", model.JobTypeProductNotices), mlog.String("job_id", job.Id), mlog.Err(err))
 			return err
