@@ -876,7 +876,6 @@ type AppIface interface {
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
 	IsPhase2MigrationCompleted() *model.AppError
-	IsUserAway(lastActivityAt int64) bool
 	IsUserSignUpAllowed() *model.AppError
 	JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	JoinDefaultChannels(c request.CTX, teamID string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError
@@ -1100,7 +1099,6 @@ type AppIface interface {
 	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
 	UpdateHashedPasswordByUserId(userID, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(c request.CTX, activate bool, userID, token string) *model.AppError
 	UpdateMobileAppBadge(userID string)
 	UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)

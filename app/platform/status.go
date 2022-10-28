@@ -216,38 +216,38 @@ func (ps *PlatformService) GetStatus(userID string) (*model.Status, *model.AppEr
 // SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 // status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 // while an 'away' device is still connected
-func (a *PlatformService) SetStatusLastActivityAt(userID string, activityAt int64) {
+func (ps *PlatformService) SetStatusLastActivityAt(userID string, activityAt int64) {
 	var status *model.Status
 	var err *model.AppError
-	if status, err = a.GetStatus(userID); err != nil {
+	if status, err = ps.GetStatus(userID); err != nil {
 		return
 	}
 
 	status.LastActivityAt = activityAt
 
-	a.AddStatusCacheSkipClusterSend(status)
-	a.SetStatusAwayIfNeeded(userID, false)
+	ps.AddStatusCacheSkipClusterSend(status)
+	ps.SetStatusAwayIfNeeded(userID, false)
 }
 
-func (a *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
+func (ps *PlatformService) UpdateLastActivityAtIfNeeded(session model.Session) {
 	now := model.GetMillis()
 
-	a.UpdateWebConnUserActivity(session, now)
+	ps.UpdateWebConnUserActivity(session, now)
 
 	if now-session.LastActivityAt < model.SessionActivityTimeout {
 		return
 	}
 
-	if err := a.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
+	if err := ps.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
 		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now
-	a.AddSessionToCache(&session)
+	ps.AddSessionToCache(&session)
 }
 
-func (a *PlatformService) SetStatusOnline(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusOnline(userID string, manual bool) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
@@ -259,7 +259,7 @@ func (a *PlatformService) SetStatusOnline(userID string, manual bool) {
 	var status *model.Status
 	var err *model.AppError
 
-	if status, err = a.GetStatus(userID); err != nil {
+	if status, err = ps.GetStatus(userID); err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
 	} else {
@@ -280,48 +280,48 @@ func (a *PlatformService) SetStatusOnline(userID string, manual bool) {
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	a.AddStatusCache(status)
+	ps.AddStatusCache(status)
 
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
 		if broadcast {
-			if err := a.Store.Status().SaveOrUpdate(status); err != nil {
+			if err := ps.Store.Status().SaveOrUpdate(status); err != nil {
 				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		} else {
-			if err := a.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+			if err := ps.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
 	}
 
 	if broadcast {
-		a.BroadcastStatus(status)
+		ps.BroadcastStatus(status)
 	}
 }
 
-func (a *PlatformService) SetStatusOffline(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusOffline(userID string, manual bool) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userID)
+	status, err := ps.GetStatus(userID)
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
 
 	status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	a.SaveAndBroadcastStatus(status)
+	ps.SaveAndBroadcastStatus(status)
 }
 
-func (a *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userID)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: manual, LastActivityAt: 0, ActiveChannel: ""}
@@ -336,7 +336,7 @@ func (a *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 			return
 		}
 
-		if !a.isUserAway(status.LastActivityAt) {
+		if !ps.isUserAway(status.LastActivityAt) {
 			return
 		}
 	}
@@ -345,17 +345,17 @@ func (a *PlatformService) SetStatusAwayIfNeeded(userID string, manual bool) {
 	status.Manual = manual
 	status.ActiveChannel = ""
 
-	a.SaveAndBroadcastStatus(status)
+	ps.SaveAndBroadcastStatus(status)
 }
 
 // SetStatusDoNotDisturbTimed takes endtime in unix epoch format in UTC
 // and sets status of given userId to dnd which will be restored back after endtime
-func (a *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int64) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userId)
+	status, err := ps.GetStatus(userId)
 
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
@@ -367,15 +367,15 @@ func (a *PlatformService) SetStatusDoNotDisturbTimed(userId string, endtime int6
 
 	status.DNDEndTime = endtime
 
-	a.SaveAndBroadcastStatus(status)
+	ps.SaveAndBroadcastStatus(status)
 }
 
-func (a *PlatformService) SetStatusDoNotDisturb(userID string) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusDoNotDisturb(userID string) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userID)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
@@ -384,15 +384,15 @@ func (a *PlatformService) SetStatusDoNotDisturb(userID string) {
 	status.Status = model.StatusDnd
 	status.Manual = true
 
-	a.SaveAndBroadcastStatus(status)
+	ps.SaveAndBroadcastStatus(status)
 }
 
-func (a *PlatformService) SetStatusOutOfOffice(userID string) {
-	if !*a.Config().ServiceSettings.EnableUserStatuses {
+func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
+	if !*ps.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := a.GetStatus(userID)
+	status, err := ps.GetStatus(userID)
 
 	if err != nil {
 		status = &model.Status{UserId: userID, Status: model.StatusOutOfOffice, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
@@ -401,9 +401,9 @@ func (a *PlatformService) SetStatusOutOfOffice(userID string) {
 	status.Status = model.StatusOutOfOffice
 	status.Manual = true
 
-	a.SaveAndBroadcastStatus(status)
+	ps.SaveAndBroadcastStatus(status)
 }
 
-func (a *PlatformService) isUserAway(lastActivityAt int64) bool {
-	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
+func (ps *PlatformService) isUserAway(lastActivityAt int64) bool {
+	return model.GetMillis()-lastActivityAt >= *ps.Config().TeamSettings.UserStatusAwayTimeout*1000
 }

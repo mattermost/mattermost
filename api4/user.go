@@ -221,7 +221,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -864,7 +864,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if etag != "" {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
-	c.App.UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
+	c.App.Srv().Platform().UpdateLastActivityAtIfNeeded(*c.AppContext.Session())
 
 	js, err := json.Marshal(profiles)
 	if err != nil {
