@@ -76,6 +76,8 @@ type FeatureFlags struct {
 	PostPriority bool
 
 	PeopleProduct bool
+
+	AnnualSubscription bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -104,6 +106,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.PeopleProduct = false
+	f.AnnualSubscription = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
