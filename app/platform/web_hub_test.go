@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	platform_mocks "github.com/mattermost/mattermost-server/v6/app/platform/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -465,6 +466,10 @@ func TestHubIsRegistered(t *testing.T) {
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
+
+	mockSuite := &platform_mocks.SuiteIFace{}
+	mockSuite.On("GetSession", session.Token).Return(session, nil)
+	th.Suite = mockSuite
 
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
