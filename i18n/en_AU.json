@@ -5460,14 +5460,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your licence does not support guest accounts"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -9537,5 +9529,21 @@
   {
     "id": "app.cloud.get_current_plan_name.app_error",
     "translation": "Unable to get current plan name"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Unable to retrieve file: cloud storage limit exceeded."
   }
 ]

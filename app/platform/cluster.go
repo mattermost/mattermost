@@ -180,8 +180,8 @@ func (ps *PlatformService) InvokeClusterLeaderChangedListeners() {
 }
 
 func (ps *PlatformService) Publish(message *model.WebSocketEvent) {
-	if ps.metricsImpl() != nil {
-		ps.metricsImpl().IncrementWebsocketEvent(message.EventType())
+	if ps.metricsIFace != nil {
+		ps.metricsIFace.IncrementWebsocketEvent(message.EventType())
 	}
 
 	ps.PublishSkipClusterSend(message)

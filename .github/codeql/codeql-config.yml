@@ -1,0 +1,14 @@
+name: "CodeQL config"
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
+  - exclude:
+      id: go/log-injection
+
+paths-ignore:
+  - templates
+  - tests
+  - 'api4/*_local.go'

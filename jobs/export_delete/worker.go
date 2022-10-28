@@ -28,6 +28,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		return *cfg.ExportSettings.Directory != "" && *cfg.ExportSettings.RetentionDays > 0
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		exportPath := *app.Config().ExportSettings.Directory
 		retentionTime := time.Duration(*app.Config().ExportSettings.RetentionDays) * 24 * time.Hour
 		exports, appErr := app.ListDirectory(exportPath)

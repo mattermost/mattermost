@@ -18,90 +18,102 @@ import (
 
 func (api *API) InitGroup() {
 	// GET /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(requireLicense(getGroups))).Methods("GET")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(getGroups)).Methods("GET")
 
 	// POST /api/v4/groups
-	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(requireLicense(createGroup))).Methods("POST")
+	api.BaseRoutes.Groups.Handle("", api.APISessionRequired(createGroup)).Methods("POST")
 
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(requireLicense(getGroup))).Methods("GET")
+		api.APISessionRequired(getGroup)).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(requireLicense(patchGroup))).Methods("PUT")
+		api.APISessionRequired(patchGroup)).Methods("PUT")
 
 	// POST /api/v4/groups/:group_id/teams/:team_id/link
 	// POST /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(requireLicense(linkGroupSyncable))).Methods("POST")
+		api.APISessionRequired(linkGroupSyncable)).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/teams/:team_id/link
 	// DELETE /api/v4/groups/:group_id/channels/:channel_id/link
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/link",
-		api.APISessionRequired(requireLicense(unlinkGroupSyncable))).Methods("DELETE")
+		api.APISessionRequired(unlinkGroupSyncable)).Methods("DELETE")
 
 	// GET /api/v4/groups/:group_id/teams/:team_id
 	// GET /api/v4/groups/:group_id/channels/:channel_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(requireLicense(getGroupSyncable))).Methods("GET")
+		api.APISessionRequired(getGroupSyncable)).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/teams
 	// GET /api/v4/groups/:group_id/channels
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}",
-		api.APISessionRequired(requireLicense(getGroupSyncables))).Methods("GET")
+		api.APISessionRequired(getGroupSyncables)).Methods("GET")
 
 	// PUT /api/v4/groups/:group_id/teams/:team_id/patch
 	// PUT /api/v4/groups/:group_id/channels/:channel_id/patch
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
-		api.APISessionRequired(requireLicense(patchGroupSyncable))).Methods("PUT")
+		api.APISessionRequired(patchGroupSyncable)).Methods("PUT")
 
 	// GET /api/v4/groups/:group_id/stats
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
-		api.APISessionRequired(requireLicense(getGroupStats))).Methods("GET")
+		api.APISessionRequired(getGroupStats)).Methods("GET")
 
 	// GET /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(requireLicense(getGroupMembers))).Methods("GET")
+		api.APISessionRequired(getGroupMembers)).Methods("GET")
 
 	// GET /api/v4/users/:user_id/groups
 	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(requireLicense(getGroupsByUserId))).Methods("GET")
+		api.APISessionRequired(getGroupsByUserId)).Methods("GET")
 
 	// GET /api/v4/channels/:channel_id/groups
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(requireLicense(getGroupsByChannel))).Methods("GET")
+		api.APISessionRequired(getGroupsByChannel)).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
-		api.APISessionRequired(requireLicense(getGroupsByTeam))).Methods("GET")
+		api.APISessionRequired(getGroupsByTeam)).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups_by_channels
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
-		api.APISessionRequired(requireLicense(getGroupsAssociatedToChannelsByTeam))).Methods("GET")
+		api.APISessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
 
 	// DELETE /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
-		api.APISessionRequired(requireLicense(deleteGroup))).Methods("DELETE")
+		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(requireLicense(addGroupMembers))).Methods("POST")
+		api.APISessionRequired(addGroupMembers)).Methods("POST")
 
 	// DELETE /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
-		api.APISessionRequired(requireLicense(deleteGroupMembers))).Methods("DELETE")
+		api.APISessionRequired(deleteGroupMembers)).Methods("DELETE")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
-	})
+	}, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -130,6 +142,11 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	var group *model.GroupWithUserIds
 	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
 		c.SetInvalidParamWithErr("group", err)
@@ -185,12 +202,17 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -277,6 +299,11 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -300,7 +327,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -368,6 +395,11 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -411,6 +443,11 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -448,6 +485,11 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -529,6 +571,11 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -606,12 +653,17 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -629,7 +681,13 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage, restrictions)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -651,6 +709,11 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
@@ -667,7 +730,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := c.Params.GroupId
-	count, appErr := c.App.GetGroupMemberCount(groupID)
+	count, appErr := c.App.GetGroupMemberCount(groupID, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -686,6 +749,11 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireUserId()
 	if c.Err != nil {
 		return
@@ -717,71 +785,45 @@ func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
 	}
-
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	b, appErr := getGroupsByChannelCommon(c, r)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-
-	var permission *model.Permission
-	if channel.Type == model.ChannelTypePrivate {
-		permission = model.PermissionReadPrivateChannelGroups
-	} else {
-		permission = model.PermissionReadPublicChannelGroups
-	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
-		c.SetPermissionError(permission)
-		return
-	}
-
-	opts := model.GroupSearchOpts{
-		Q:                    c.Params.Q,
-		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
-	}
-	if c.Params.Paginate == nil || *c.Params.Paginate {
-		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
-	}
-
-	groups, totalCount, appErr := c.App.GetGroupsByChannel(c.Params.ChannelId, opts)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	b, err := json.Marshal(struct {
-		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
-		Count  int                           `json:"total_group_count"`
-	}{
-		Groups: groups,
-		Count:  totalCount,
-	})
-	if err != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
 	w.Write(b)
 }
 
 func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
 	}
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+
+	b, appError := getGroupsByTeamCommon(c, r)
+	if appError != nil {
+		c.Err = appError
 		return
+	}
+	w.Write(b)
+}
+
+func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
 	opts := model.GroupSearchOpts{
@@ -795,8 +837,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	groups, totalCount, appErr := c.App.GetGroupsByTeam(c.Params.TeamId, opts)
 	if appErr != nil {
-		c.Err = appErr
-		return
+		return nil, appErr
 	}
 
 	b, err := json.Marshal(struct {
@@ -808,14 +849,64 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	w.Write(b)
+	return b, nil
+}
+func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
+	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
+		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var permission *model.Permission
+	if channel.Type == model.ChannelTypePrivate {
+		permission = model.PermissionReadPrivateChannelGroups
+	} else {
+		permission = model.PermissionReadPublicChannelGroups
+	}
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
+		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+	}
+
+	opts := model.GroupSearchOpts{
+		Q:                    c.Params.Q,
+		IncludeMemberCount:   c.Params.IncludeMemberCount,
+		FilterAllowReference: c.Params.FilterAllowReference,
+	}
+	if c.Params.Paginate == nil || *c.Params.Paginate {
+		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
+	}
+
+	groups, totalCount, appErr := c.App.GetGroupsByChannel(c.Params.ChannelId, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	b, err := json.Marshal(struct {
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
+	}{
+		Groups: groups,
+		Count:  totalCount,
+	})
+	if err != nil {
+		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return b, nil
 }
 
 func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -855,6 +946,11 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	var teamID, channelID string
 
 	source := c.Params.GroupSource
@@ -927,10 +1023,31 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	groups, appErr := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	var (
+		groups      = []*model.Group{}
+		canSee bool = true
+	)
+
+	if opts.FilterHasMember != "" {
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if canSee {
+		groups, appErr = c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts, restrictions)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	var (
@@ -961,12 +1078,17 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -1004,12 +1126,17 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1058,12 +1185,17 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, appErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if appErr != nil {
 		c.Err = appErr
 		return

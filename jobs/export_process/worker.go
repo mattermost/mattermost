@@ -26,6 +26,8 @@ type AppIface interface {
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool { return true }
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		opts := model.BulkExportOpts{
 			CreateArchive: true,
 		}
