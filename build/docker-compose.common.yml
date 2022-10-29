@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:5.7.40"
     restart: always
     networks:
       - mm-test
@@ -19,7 +19,7 @@ services:
     volumes:
       - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:5.7.40"
     restart: always
     networks:
       - mm-test
