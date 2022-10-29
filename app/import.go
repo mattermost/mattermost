@@ -199,23 +199,20 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 		var line imports.LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			if dryRun {
-				c.Logger().Warn("Invalid Json.", mlog.Err(err))
-			} else {
-				return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
-			}
+			c.Logger().Warn("Invalid Json.", mlog.Err(err))
+			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
 
 		}
 
 		if err := processAttachments(&line, importPath, attachedFiles); err != nil {
-			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err))
+			c.Logger().Warn("Error while processing import attachments. Objects might be broken.", mlog.Err(err), mlog.Int("line_num", lineNumber))
 		}
 
 		if lineNumber == 1 {
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
 			if appErr != nil {
 				if dryRun {
-					c.Logger().Warn("Error in parsing Data file version", mlog.Err(appErr))
+					c.Logger().Warn("Error in parsing Data file version", mlog.Err(appErr), mlog.Int("line_num", lineNumber))
 				} else {
 					return appErr, lineNumber
 				}
@@ -223,7 +220,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 			if importDataFileVersion != 1 {
 				if dryRun {
-					c.Logger().Warn("Unsupported version error", mlog.Err(appErr))
+					c.Logger().Warn("Unsupported version error", mlog.Err(appErr), mlog.Int("line_num", lineNumber))
 				} else {
 					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
 				}
@@ -244,7 +241,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 					err := <-errorsChan
 					if stopOnError(c, err) {
 						if dryRun {
-							c.Logger().Warn("File parsing error", mlog.Err(err.Error))
+							c.Logger().Warn("File parsing error", mlog.Err(err.Error), mlog.Int("line_num", lineNumber))
 						} else {
 							return err.Error, err.LineNumber
 						}
@@ -266,7 +263,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		case err := <-errorsChan:
 			if stopOnError(c, err) {
 				if dryRun {
-					c.Logger().Warn("File parsing error", mlog.Err(err.Error))
+					c.Logger().Warn("File parsing error", mlog.Err(err.Error), mlog.Int("line_num", lineNumber))
 				} else {
 					close(linesChan)
 					wg.Wait()
@@ -287,7 +284,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 		err := <-errorsChan
 		if stopOnError(c, err) {
 			if dryRun {
-				c.Logger().Warn("File parsing error", mlog.Err(err.Error))
+				c.Logger().Warn("File parsing error", mlog.Err(err.Error), mlog.Int("line_num", lineNumber))
 			} else {
 				return err.Error, err.LineNumber
 			}
@@ -296,7 +293,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 	if err := scanner.Err(); err != nil {
 		if dryRun {
-			c.Logger().Warn("File parsing error", mlog.Err(err))
+			c.Logger().Warn("File parsing error", mlog.Err(err), mlog.Int("line_num", lineNumber))
 		} else {
 			return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err), 0
 		}
