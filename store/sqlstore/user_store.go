@@ -742,6 +742,8 @@ func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*m
 		query = query.Where("u.DeleteAt = 0")
 	}
 
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, us.DriverName() == model.DatabaseDriverPostgres)
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_profiles_in_channel_tosql")
@@ -1748,6 +1750,16 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
+func (us SqlUserStore) GetFirstSystemAdminID() (string, error) {
+	var id string
+	err := us.GetReplicaX().Get(&id, "SELECT Id FROM Users WHERE Roles LIKE ? ORDER BY CreateAt ASC LIMIT 1", "%system_admin%")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get first system admin")
+	}
+
+	return id, nil
+}
+
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, err := us.usersQuery.
@@ -1793,7 +1805,16 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 			`).
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
+		Where(sq.And{
+			sq.Eq{
+				"cm.UserId": userIds,
+			},
+			sq.Or{
+				sq.Eq{"c.Type": model.ChannelTypeOpen},
+				sq.Eq{"c.Type": model.ChannelTypeDirect},
+				sq.Eq{"c.Type": model.ChannelTypeGroup},
+			},
+		}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql2")

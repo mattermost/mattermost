@@ -3781,10 +3781,10 @@ func (s *TimerLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetGroups(page, perPage, opts)
+	result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3877,6 +3877,22 @@ func (s *TimerLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.GetMemberCountWithRestrictions(groupID, viewRestrictions)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberCountWithRestrictions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	start := time.Now()
 
@@ -3925,10 +3941,10 @@ func (s *TimerLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3941,10 +3957,10 @@ func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *TimerLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+	result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -9725,6 +9741,22 @@ func (s *TimerLayerUserStore) GetEtagForProfilesNotInTeam(teamID string) string 
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetEtagForProfilesNotInTeam", success, elapsed)
 	}
 	return result
+}
+
+func (s *TimerLayerUserStore) GetFirstSystemAdminID() (string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetFirstSystemAdminID()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetFirstSystemAdminID", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerUserStore) GetForLogin(loginID string, allowSignInWithUsername bool, allowSignInWithEmail bool) (*model.User, error) {

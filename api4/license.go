@@ -106,7 +106,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// skip the restrictions if license is a sanctioned trial
 	if !license.IsSanctionedTrial() && license.IsTrialLicense() {
-		canStartTrialLicense, err := c.App.Srv().Platform().LicenseManager().CanStartTrial()
+		lm := c.App.Srv().Platform().LicenseManager()
+		if lm == nil {
+			c.Err = model.NewAppError("addLicense", "api.license.upgrade_needed.app_error", nil, "", http.StatusInternalServerError)
+			return
+		}
+
+		canStartTrialLicense, err := lm.CanStartTrial()
 		if err != nil {
 			c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusInternalServerError)
 			return
