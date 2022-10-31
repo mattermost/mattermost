@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Du hast deine E-Mail-Adresse geändert"
+    "translation": "Du hast deine E-Mail-Adresse erfolgreich geändert"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -9557,5 +9557,9 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Gastkonten sind deaktiviert"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ungültiger Zeitbereich."
   }
 ]

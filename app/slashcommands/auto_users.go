@@ -23,6 +23,7 @@ type AutoUserCreator struct {
 	NameLength   utils.Range
 	NameCharset  string
 	Fuzzy        bool
+	JoinTime     int64
 }
 
 func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *AutoUserCreator {
@@ -35,6 +36,7 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 		NameLength:   UserNameLen,
 		NameCharset:  utils.LOWERCASE,
 		Fuzzy:        false,
+		JoinTime:     0,
 	}
 }
 
@@ -92,14 +94,22 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	user := &model.User{
 		Email:    userEmail,
 		Nickname: userName,
-		Password: UserPassword}
+		Password: UserPassword,
+		CreateAt: cfg.JoinTime,
+	}
 
 	ruser, appErr := cfg.app.CreateUserWithInviteId(c, user, cfg.team.InviteId, "")
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	status := &model.Status{UserId: ruser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	status := &model.Status{
+		UserId:         ruser.Id,
+		Status:         model.StatusOnline,
+		Manual:         false,
+		LastActivityAt: ruser.CreateAt,
+		ActiveChannel:  "",
+	}
 	if err := cfg.app.Srv().Store().Status().SaveOrUpdate(status); err != nil {
 		return nil, err
 	}
@@ -108,6 +118,18 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 	_, err := cfg.app.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil, err
+	}
+
+	if cfg.JoinTime != 0 {
+		teamMember, appErr := cfg.app.GetTeamMember(cfg.team.Id, ruser.Id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		teamMember.CreateAt = cfg.JoinTime
+		_, err := cfg.app.Srv().Store().Team().UpdateMember(teamMember)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return ruser, nil

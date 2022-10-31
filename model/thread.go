@@ -30,6 +30,10 @@ type Thread struct {
 	// IsUrgent denotes if the root post of the thread is marked as urgent,
 	// and is used to highlight threads with the urgent mention count.
 	IsUrgent bool `json:"is_urgent"`
+
+	// TeamId is a denormalized copy of the Channel's teamId. In the database, it's
+	// named ThreadTeamId to avoid introducing a query conflict with older server versions.
+	TeamId string `json:"team_id"`
 }
 
 type ThreadResponse struct {
