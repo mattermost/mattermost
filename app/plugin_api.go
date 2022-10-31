@@ -743,15 +743,15 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiList(page, perPage, sortBy)
+	return api.app.GetEmojiList(api.ctx, page, perPage, sortBy)
 }
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiByName(name)
+	return api.app.GetEmojiByName(api.ctx, name)
 }
 
 func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmoji(emojiId)
+	return api.app.GetEmoji(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
@@ -796,7 +796,7 @@ func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	return api.app.GetEmojiImage(emojiId)
+	return api.app.GetEmojiImage(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
