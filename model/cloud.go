@@ -287,9 +287,9 @@ type CreateSubscriptionRequest struct {
 
 // email contained in token, so not in the request body.
 type SelfHostedPaymentForm struct {
-	FirstName           string   `json:"first_name"`
-	LastName            string   `json:"last_name"`
-	BillingAddress      *Address `json:"billing_address"`
-	Organization        string
-	SubscriptionRequest CreateSubscriptionRequest
+	FirstName           string                    `json:"first_name"`
+	LastName            string                    `json:"last_name"`
+	BillingAddress      *Address                  `json:"billing_address"`
+	Organization        string                    `json:"organization"`
+	SubscriptionRequest CreateSubscriptionRequest `json:"subscription_request"`
 }

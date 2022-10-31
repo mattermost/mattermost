@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -674,11 +675,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func ensureSelfHostedAdmin(c *Context, label string) {
+func ensureSelfHostedAdmin(c *Context, where string) {
 	license := c.App.Channels().License()
 
 	if license != nil && license.Features != nil && license.Features.Cloud != nil && *license.Features.Cloud {
-		c.Err = model.NewAppError(label, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusInternalServerError)
+		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusInternalServerError)
 		return
 	}
 
@@ -689,7 +690,8 @@ func ensureSelfHostedAdmin(c *Context, label string) {
 }
 
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
-	ensureSelfHostedAdmin(c, "Api4.selfHostedBootstrap")
+	where := "Api4.selfHostedBootstrap"
+	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
 	}
@@ -703,7 +705,6 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
 	if err != nil {
 		c.Err = model.NewAppError("blah", "placeholder", nil, "uh ohh", http.StatusInternalServerError)
-		// c.Err = model.NewAppError("blah", "placeholder", nil, "uh ohh"err.Error(), http.StatusInternalServerError)
 		return
 	}
 	ReturnStatusOK(w)
@@ -720,7 +721,8 @@ func selfHostedPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form *model.SelfHostedPaymentForm
-	if err = json.Unmarshal(bodyBytes, form); err != nil {
+	if err = json.Unmarshal(bodyBytes, &form); err != nil {
+		fmt.Printf("%s\n", bodyBytes)
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
