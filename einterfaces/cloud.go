@@ -33,4 +33,6 @@ type CloudInterface interface {
 	InvalidateCaches() error
 
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) error
+	PaySelfHostedSignup(req model.SelfHostedPaymentForm) (*model.SelfHostedSignupPaymentResponse, error)
+	ConfirmSelfHostedSignup(req model.ConfirmPaymentMethodRequest) (string, error)
 }

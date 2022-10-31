@@ -84,6 +84,19 @@ type ConfirmPaymentMethodRequest struct {
 	SubscriptionID      string `json:"subscription_id"`
 }
 
+// SelfHostedSignupPaymentResponse contains feels needed for self hosted signup to confirm payment and receive license.
+type SelfHostedSignupPaymentResponse struct {
+	SubscriptionId      string `json:"subscription_id"`
+	CustomerId          string `json:"customer_id"`
+	PaymentIntentId     string `json:"payment_intent_id"`
+	PaymentIntentSecret string `json:"payment_intent_secret"`
+}
+
+// SelfHostedSignupConfirmResponse contains data received on successful self hosted signup
+type SelfHostedSignupConfirmResponse struct {
+	License string
+}
+
 // Customer model represents a customer on the system.
 type CloudCustomer struct {
 	CloudCustomerInfo
@@ -260,4 +273,23 @@ type ProductLimits struct {
 
 type BootstrapSelfHostedSignupRequest struct {
 	Email string `json:"email"`
+}
+
+// CreateSubscriptionRequest is the parameters for the API request to create a subscription.
+type CreateSubscriptionRequest struct {
+	ProductID             string   `json:"product_id"`
+	AddOns                []string `json:"add_ons"`
+	Seats                 int      `json:"seats"`
+	Total                 float64  `json:"total"`
+	InternalPurchaseOrder string   `json:"internal_purchase_order"`
+	DiscountID            string   `json:"discount_id"`
+}
+
+// email contained in token, so not in the request body.
+type SelfHostedPaymentForm struct {
+	FirstName           string   `json:"first_name"`
+	LastName            string   `json:"last_name"`
+	BillingAddress      *Address `json:"billing_address"`
+	Organization        string
+	SubscriptionRequest CreateSubscriptionRequest
 }

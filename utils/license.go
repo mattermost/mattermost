@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -23,13 +24,13 @@ import (
 )
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
-tSyzyxrXkJjsFUf0Ke7bm/TLtIggRdqOcUF3XEWqQk5RGD5vuq7Rlg1zZqMEBk8N
-EZeRhkxyaZW8pLjxwuBUOnXfJew31+gsTNdKZzRjrvPumKr3EtkleuoxNdoatu4E
-HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
-1wCtptODixvEujgqVe+SrE3UlZjBmPjC/CL+3cYmufpSNgcEJm2mwsdaXp2OPpfn
-a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
-hwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtA8+Qhr50N4mOH9D8eg5
+CtiVBkmjCHiz0PjBubY/K1MJCZ7nFcJZp3Rlfw16svmn0X2dVt/0ZyP4lKWILKBm
+Obk1xNXXJEB57OjIi7x7r6XJDuEQW2NMj/NUjv5yW9LD47gCiWYnC2yrQWMUmIKg
+HN+ixA6FSU6dWQZ+RRPAxsECsfA1E68xyuriLZ5/if+sJsZCGh8teiyTZ4uUwNGD
+hiatIjIbw/rdM0MO8in+K8LZoR24YxbQZ5Tj79+Gg+yrqRVAsh+7PVCDEy8sXQQQ
+BpGPnPyQrY4YZMoWzfMbRUs9p5DN1Z9D+UQPtYiaTopvFCNtyUQL27aILeX31jdd
+mwIDAQAB
 -----END PUBLIC KEY-----`)
 
 var LicenseValidator LicenseValidatorIface
@@ -55,7 +56,10 @@ func (l *LicenseValidatorImpl) LicenseFromBytes(licenseBytes []byte) (*model.Lic
 	}
 
 	var license model.License
+	fmt.Println("licenseStr:")
+	fmt.Println(licenseStr)
 	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
+		fmt.Printf("json error: %s\n", jsonErr.Error())
 		return nil, model.NewAppError("LicenseFromBytes", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
@@ -67,6 +71,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (bool, string) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
+		mlog.Info(string(signed))
 		mlog.Error("Encountered error decoding license", mlog.Err(err))
 		return false, ""
 	}
