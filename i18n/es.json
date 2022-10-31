@@ -8973,7 +8973,7 @@
   },
   {
     "id": "app.upload.upload_data.gen_info.app_error",
-    "translation": " "
+    "translation": "No se pudo generar la información del archivo a partir de los datos cargados."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
@@ -8981,15 +8981,15 @@
   },
   {
     "id": "app.group.crud_permission",
-    "translation": " "
+    "translation": "No fue posible realizar la operación para ese tipo de fuente."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": " "
+    "translation": "El tamaño del lote de indexación masiva de Elasticsearch debe ser al menos de {{.BatchSize}}."
   },
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": " "
+    "translation": "Recibiste este correo electrónico único porque tu servidor Mattermost estuvo inactivo durante más de {{.Hours}} horas. Este correo electrónico fue generado automáticamente por tu servidor Mattermost."
   },
   {
     "id": "api.custom_groups.no_remote_id",
@@ -8997,11 +8997,11 @@
   },
   {
     "id": "api.cloud.subscription.update_error",
-    "translation": " "
+    "translation": "Error al actualizar la suscripción desde el webhook."
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
-    "translation": " "
+    "translation": "No se pudo obtener el estado de finalización de inducción."
   },
   {
     "id": "Boards",
@@ -9017,11 +9017,11 @@
   },
   {
     "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": " "
+    "translation": "No se pudo obtener los hilos principales para el usuario."
   },
   {
     "id": "app.post.cloud.get.app_error",
-    "translation": " "
+    "translation": "No se puede recuperar la publicación porque ha superado el límite del plan de la nube."
   },
   {
     "id": "app.last_accessible_post.app_error",
@@ -9029,7 +9029,7 @@
   },
   {
     "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": " "
+    "translation": "No fue posible obtener los hilos pricipales para el equipo."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9037,19 +9037,19 @@
   },
   {
     "id": "app.system.complete_onboarding_request.app_error",
-    "translation": " "
+    "translation": "No se pudo decodificar la solicitud de inducción completa."
   },
   {
     "id": "model.emoji.system_emoji_name.app_error",
-    "translation": " "
+    "translation": "El Nombre tiene conflicto con el nombre de emoji del sistema existente."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
-    "translation": " "
+    "translation": "Error al intentar recuperar la configuración completa del primer administrador de la tienda."
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
-    "translation": " "
+    "translation": "Error al intentar guardar la configuración completa del primer administrador en la tienda."
   },
   {
     "id": "api.custom_groups.count_err",
@@ -9069,7 +9069,7 @@
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
-    "translation": " "
+    "translation": "No se pudo obtener el uso de almacenamiento."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9081,7 +9081,7 @@
   },
   {
     "id": "api.templates.server_inactivity_info",
-    "translation": " "
+    "translation": "¡Ven y dale un vistazo!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9089,7 +9089,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subtitle",
-    "translation": " "
+    "translation": "Hey {{.Name}}, notamos que tu servidor Mattermost está acumulando algo de polvo. Da un vistazo a algunas características que pueden aligerar la carga de trabajo de tu equipo."
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9097,15 +9097,15 @@
   },
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
-    "translation": " "
+    "translation": "No se pudo obtener todos los jobs por tipo y estado."
   },
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
-    "translation": " "
+    "translation": "La versión del complemento preempaquetado no pudo ser analizado."
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
-    "translation": " "
+    "translation": "La longitud máxima de MattermostAppID es de 32 caracteres."
   },
   {
     "id": "app.channel.get_file_count.app_error",
@@ -9113,7 +9113,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
-    "translation": " "
+    "translation": "El tamaño del lote de indexación masiva de Bleve debe ser al menos de {{.BatchSize}}."
   },
   {
     "id": "app.member_count",
@@ -9121,7 +9121,7 @@
   },
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": " "
+    "translation": "Los ajustes de almacenamiento de archivos tienen valores sin asignar."
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -9129,7 +9129,7 @@
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
-    "translation": " "
+    "translation": "Los ajustes de Búsqueda Elástica tienen valores no establecidos."
   },
   {
     "id": "api.templates.server_inactivity_info_bullet1",
@@ -9137,11 +9137,11 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": " "
+    "translation": "¡Ven y abre Mattermost para aumentar la productividad de tu equipo!"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": " "
+    "translation": "Cuerpo de solicitud no válido."
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
@@ -9153,11 +9153,11 @@
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
-    "translation": " "
+    "translation": "Has alcanzado el límite máximo de {{.NumIntegrations}} integraciones activas. Para instalar integraciones ilimitadas, actualiza a uno de unos planes de pago."
   },
   {
     "id": "model.channel.is_valid.1_or_more.app_error",
-    "translation": " "
+    "translation": "El Nombre debe tener 1 o más caracteres alfanuméricos en minúsculas."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
@@ -9181,11 +9181,11 @@
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": " "
+    "translation": "Decodificador de concurrencia inválido {{.Value}}. Debe ser un número positivo o -1."
   },
   {
     "id": "app.insights.feature_disabled",
-    "translation": " "
+    "translation": "La característica Perspectivas está deshabilitada."
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
@@ -9193,7 +9193,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Las Perspectivas están detrás de una bandera de ajuste que no está habilitada."
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -9205,11 +9205,11 @@
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
-    "translation": " "
+    "translation": "La inducción sólo puede ser completada por un Administrador del Sistema."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": " "
+    "translation": "Error al analizar los datos del cuerpo."
   },
   {
     "id": "api.license_error",
@@ -9217,11 +9217,11 @@
   },
   {
     "id": "api.file.cloud_upload.app_error",
-    "translation": " "
+    "translation": "Cargar vía mmctl a una instancia en la Nube no está soportado. Por favor revisa la documentación aquí: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
-    "translation": " "
+    "translation": "Los ajustes de correo electrónico tienen valores sin asignar."
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
@@ -9237,7 +9237,7 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": " "
+    "translation": "¡Ahora estás actualizado!"
   },
   {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
@@ -9245,7 +9245,7 @@
   },
   {
     "id": "api.license.request_trial_license.embargoed",
-    "translation": " "
+    "translation": "No fuimos capaces de procesar la solicitud debido a limitaciones para países embargados. [Aprende más en nuestra documentación](https://mattermost.com/pl/limitations-for-embargoed-countries), o contacta a legal@mattermost.com para preguntas sobre limitaciones de exportación."
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
@@ -9457,7 +9457,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "El pago está vencido para tu {{.Plan}} Mattermost."
+    "translation": "El pago está atrasado para tu Mattermost {{.Plan}}."
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9505,7 +9505,7 @@
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
-    "translation": "SAML no pudo cargar satisfactoriamente el Identity Provider Public Certificate, por favor contacta a tu administrador del sistema."
+    "translation": "SAML no pudo cargar satisfactoriamente el Certificado Público del Proveedor de Identidad, por favor contacta a tu administrador del sistema."
   },
   {
     "id": "app.user.get_badge_count.app_error",
@@ -9521,7 +9521,7 @@
   },
   {
     "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "No es posible obtener los DMs top para el usuario."
+    "translation": "No es posible obtener los DMs principales para el usuario."
   },
   {
     "id": "app.plugin.product_mode.app_error",
@@ -9541,7 +9541,7 @@
   },
   {
     "id": "app.job.error",
-    "translation": "Error durante la ejecución de un job."
+    "translation": "Error durante la ejecución del job."
   },
   {
     "id": "app.file.cloud.get.app_error",
@@ -9558,5 +9558,9 @@
   {
     "id": "app.cloud.trial_plan_bot_message_single",
     "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado comenzar la prueba Enterprise para acceder a: "
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Intervalo de tiempo inválido."
   }
 ]
