@@ -70,8 +70,6 @@ type FeatureFlags struct {
 	// Enable Boards as a product (multi-product architecture)
 	BoardsProduct bool
 
-	PlanUpgradeButtonText string
-
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
@@ -103,7 +101,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "upgrade"
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.PeopleProduct = false

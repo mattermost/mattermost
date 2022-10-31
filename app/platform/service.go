@@ -390,6 +390,12 @@ func (ps *PlatformService) Shutdown() error {
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
 
+	// we need to wait the goroutines to finish before closing the store
+	// and this needs to be called after hub stop because hub generates goroutines
+	// when it is active. If we wait first we have no mechanism to prevent adding
+	// more go routines hence they still going to be invoked.
+	ps.waitForGoroutines()
+
 	if ps.Store != nil {
 		ps.Store.Close()
 	}
