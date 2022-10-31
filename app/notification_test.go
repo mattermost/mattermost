@@ -2840,14 +2840,6 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "true", member.NotifyProps[model.ChannelAutoFollowThreads])
 
-	// Enable CRT
-	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
-	})
-
 	rootPost := &model.Post{
 		ChannelId: c1.Id,
 		Message:   "root post by user3",
