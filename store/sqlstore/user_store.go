@@ -1591,7 +1591,6 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	}
 
 	users := []*model.User{}
-	mlog.Debug(queryString)
 	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Users with term=%s and searchType=%v", term, searchType)
 	}
