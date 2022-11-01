@@ -107,7 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.PeopleProduct = false
-	f.ReduceOnBoardingTaskList = true
+	f.ReduceOnBoardingTaskList = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
