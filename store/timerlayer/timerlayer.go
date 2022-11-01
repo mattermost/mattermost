@@ -5779,10 +5779,10 @@ func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *TimerLayerPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*model.Post, int, error) {
 	start := time.Now()
 
-	result, resultVar1, err := s.PostStore.SaveMultiple(posts)
+	result, resultVar1, err := s.PostStore.SaveMultiple(teamID, posts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5793,6 +5793,22 @@ func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultiple", success, elapsed)
 	}
 	return result, resultVar1, err
+}
+
+func (s *TimerLayerPostStore) SaveWithTeamID(teamID string, post *model.Post) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.SaveWithTeamID(teamID, post)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveWithTeamID", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerPostStore) Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error) {

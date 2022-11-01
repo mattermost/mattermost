@@ -133,7 +133,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	}
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
+func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
@@ -215,7 +215,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		return nil, -1, errors.Wrap(err, "failed to save Post")
 	}
 
-	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
+	if err = s.updateThreadsFromPosts(transaction, teamID, posts); err != nil {
 		return nil, -1, errors.Wrap(err, "update thread from posts failed")
 	}
 
@@ -271,7 +271,24 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 }
 
 func (s *SqlPostStore) Save(post *model.Post) (*model.Post, error) {
-	posts, _, err := s.SaveMultiple([]*model.Post{post})
+	// Resolve the teamID, if any, for later use in creating a thread. Note that DMs/GMs are
+	// not associated with a team.
+	var teamID string
+	err := s.GetReplicaX().Get(&teamID, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", post.ChannelId)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	posts, _, err := s.SaveMultiple(teamID, []*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+
+	return posts[0], nil
+}
+
+func (s *SqlPostStore) SaveWithTeamID(teamID string, post *model.Post) (*model.Post, error) {
+	posts, _, err := s.SaveMultiple(teamID, []*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -2917,7 +2934,7 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 	return nil
 }
 
-func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
+func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, teamID string, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {
@@ -2934,7 +2951,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
-			"Threads.ChannelId",
+			"COALESCE(Threads.ChannelId, '') AS ChannelId",
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
@@ -2957,8 +2974,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	for _, thread := range threadsByRoots {
 		threadByRoot[thread.PostId] = thread
 	}
-
-	teamIdByChannelId := map[string]string{}
 
 	for rootId, posts := range postsByRoot {
 		if thread, found := threadByRoot[rootId]; !found {
@@ -2984,35 +2999,24 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				return err
 			}
 			// calculate last reply at
+
 			var lastReplyAt int64
 			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootID=? and Posts.DeleteAt=0", rootId)
 			if err != nil {
 				return err
 			}
 
-			channelId := posts[0].ChannelId
-			teamId, ok := teamIdByChannelId[channelId]
-			if !ok {
-				// get teamId for channel
-				err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", channelId)
-				if err != nil {
-					return err
-				}
-
-				// store teamId for channel for efficiency
-				teamIdByChannelId[channelId] = teamId
-			}
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
 				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES
 				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
-				ChannelId:    channelId,
+				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
-				TeamId:       teamId,
+				TeamId:       teamID,
 			}); err != nil {
 				return err
 			}
