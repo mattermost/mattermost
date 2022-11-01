@@ -139,6 +139,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	maxDateNewPosts := make(map[string]int64)
 	maxDateNewRootPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
+
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
@@ -182,6 +183,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 					maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 				}
 			}
+
 			continue
 		}
 
@@ -217,6 +219,10 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
 		return nil, -1, errors.Wrap(err, "update thread from posts failed")
+	}
+
+	if err = s.savePostsPriority(transaction, posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save PostPriority")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -2917,6 +2923,24 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 	return nil
 }
 
+func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	for _, post := range posts {
+		if post.Metadata.Priority != nil {
+			postPriority := &model.PostPriority{
+				PostId:                  post.Id,
+				ChannelId:               post.ChannelId,
+				Priority:                post.Metadata.Priority.Priority,
+				RequestedAck:            post.Metadata.Priority.RequestedAck,
+				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
+			}
+			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
@@ -2989,15 +3013,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return err
 			}
-			var priority string
-			if s.DriverName() == model.DatabaseDriverMysql {
-				err = transaction.Get(&priority, "SELECT COALESCE(JSON_EXTRACT(Props, '$.priority'), '') FROM Posts WHERE Posts.Id=?", rootId)
-			} else if s.DriverName() == model.DatabaseDriverPostgres {
-				err = transaction.Get(&priority, "SELECT COALESCE(Props ->> 'priority', '') FROM Posts WHERE Posts.Id=?", rootId)
-			}
-			if err != nil && err != sql.ErrNoRows {
-				return err
-			}
 
 			channelId := posts[0].ChannelId
 			teamId, ok := teamIdByChannelId[channelId]
@@ -3013,15 +3028,14 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			}
 			// no metadata entry, create one
 			if _, err := transaction.NamedExec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId, IsUrgent)
+				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES
-				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId, :IsUrgent)`, &model.Thread{
+				(:PostId, :ChannelId, :ReplyCount, :LastReplyAt, :Participants, :TeamId)`, &model.Thread{
 				PostId:       rootId,
 				ChannelId:    channelId,
 				ReplyCount:   count,
 				LastReplyAt:  lastReplyAt,
 				Participants: participants,
-				IsUrgent:     priority == model.PostPropsPriorityUrgent,
 				TeamId:       teamId,
 			}); err != nil {
 				return err

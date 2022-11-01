@@ -123,6 +123,15 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 		post.Metadata.Files = fileInfos
 	}
 
+	if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+		// Post's Priority if any
+		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
+			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else {
+			post.Metadata.Priority = priority
+		}
+	}
+
 	return post
 }
 

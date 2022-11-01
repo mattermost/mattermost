@@ -22,6 +22,9 @@ type PostMetadata struct {
 
 	// Reactions holds reactions made to the post.
 	Reactions []*Reaction `json:"reactions,omitempty"`
+
+	// Reactions holds reactions made to the post.
+	Priority *PostPriority `json:"priority,omitempty"`
 }
 
 type PostImage struct {

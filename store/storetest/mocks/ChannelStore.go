@@ -165,7 +165,7 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 }
 
 // CountPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error) {
+func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 	ret := _m.Called(channelID, timestamp, userID)
 
 	var r0 int
@@ -182,21 +182,35 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 		r1 = ret.Get(1).(int)
 	}
 
-	var r2 int
-	if rf, ok := ret.Get(2).(func(string, int64, string) int); ok {
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, int64, string) error); ok {
 		r2 = rf(channelID, timestamp, userID)
 	} else {
-		r2 = ret.Get(2).(int)
+		r2 = ret.Error(2)
 	}
 
-	var r3 error
-	if rf, ok := ret.Get(3).(func(string, int64, string) error); ok {
-		r3 = rf(channelID, timestamp, userID)
+	return r0, r1, r2
+}
+
+// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, userID
+func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
+	ret := _m.Called(channelID, timestamp, userID)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
+		r0 = rf(channelID, timestamp, userID)
 	} else {
-		r3 = ret.Error(3)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0, r1, r2, r3
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64, string) error); ok {
+		r1 = rf(channelID, timestamp, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // CreateDirectChannel provides a mock function with given fields: userID, otherUserID, channelOptions

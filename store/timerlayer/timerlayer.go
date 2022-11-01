@@ -36,6 +36,7 @@ type TimerLayer struct {
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
+	PostPriorityStore         store.PostPriorityStore
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
@@ -128,6 +129,10 @@ func (s *TimerLayer) Plugin() store.PluginStore {
 
 func (s *TimerLayer) Post() store.PostStore {
 	return s.PostStore
+}
+
+func (s *TimerLayer) PostPriority() store.PostPriorityStore {
+	return s.PostPriorityStore
 }
 
 func (s *TimerLayer) Preference() store.PreferenceStore {
@@ -297,6 +302,11 @@ type TimerLayerPluginStore struct {
 
 type TimerLayerPostStore struct {
 	store.PostStore
+	Root *TimerLayer
+}
+
+type TimerLayerPostPriorityStore struct {
+	store.PostPriorityStore
 	Root *TimerLayer
 }
 
@@ -655,10 +665,10 @@ func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 	return err
 }
 
-func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error) {
+func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
 	start := time.Now()
 
-	result, resultVar1, resultVar2, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
+	result, resultVar1, err := s.ChannelStore.CountPostsAfter(channelID, timestamp, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -668,7 +678,23 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelID string, timestamp int
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountPostsAfter", success, elapsed)
 	}
-	return result, resultVar1, resultVar2, err
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CountUrgentPostsAfter(channelID, timestamp, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CountUrgentPostsAfter", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
@@ -5859,6 +5885,22 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	return result, err
 }
 
+func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.GetForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	start := time.Now()
 
@@ -8849,10 +8891,10 @@ func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs)
+	result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11254,6 +11296,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
+	newStore.PostPriorityStore = &TimerLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}

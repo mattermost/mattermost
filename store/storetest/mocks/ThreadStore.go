@@ -142,13 +142,13 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
-// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs
-func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
-	ret := _m.Called(userID, teamIDs)
+// GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs, includeUrgentMentionCount
+func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
+	ret := _m.Called(userID, teamIDs, includeUrgentMentionCount)
 
 	var r0 map[string]*model.TeamUnread
-	if rf, ok := ret.Get(0).(func(string, []string) map[string]*model.TeamUnread); ok {
-		r0 = rf(userID, teamIDs)
+	if rf, ok := ret.Get(0).(func(string, []string, bool) map[string]*model.TeamUnread); ok {
+		r0 = rf(userID, teamIDs, includeUrgentMentionCount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]*model.TeamUnread)
@@ -156,8 +156,8 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (m
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(userID, teamIDs)
+	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
+		r1 = rf(userID, teamIDs, includeUrgentMentionCount)
 	} else {
 		r1 = ret.Error(1)
 	}

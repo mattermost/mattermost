@@ -1734,9 +1734,17 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 
 	if channel.Type == model.ChannelTypeDirect {
 		// In a DM channel, every post made by the other user is a mention
-		count, countRoot, urgentCount, nErr := a.Srv().Store().Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		count, countRoot, nErr := a.Srv().Store().Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 		if nErr != nil {
 			return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+
+		var urgentCount int
+		if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+			if nErr != nil {
+				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
 		}
 
 		return count, countRoot, urgentCount, nil
@@ -1772,8 +1780,10 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if post.GetProp(model.PostPropsPriority) == model.PostPropsPriorityUrgent {
-				urgentCount += 1
+			if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+				if *post.Metadata.Priority.Priority == model.PostPropsPriorityUrgent {
+					urgentCount += 1
+				}
 			}
 		}
 	}
@@ -1797,8 +1807,14 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				if postList.Posts[postID].RootId == "" {
 					countRoot += 1
 
-					if postList.Posts[postID].GetProp(model.PostPropsPriority) == model.PostPropsPriorityUrgent {
-						urgentCount += 1
+					if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+						priority, err := a.GetPriorityForPost(postID)
+						if err != nil {
+							return 0, 0, 0, err
+						}
+						if *priority.Priority == model.PostPropsPriorityUrgent {
+							urgentCount += 1
+						}
 					}
 				}
 			}

@@ -62,7 +62,6 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.ReplyCount",
 			"Threads.LastReplyAt",
 			"Threads.Participants",
-			"Threads.IsUrgent",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
 			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
 		).
@@ -187,10 +186,11 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
 		LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		LeftJoin("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-			"Threads.IsUrgent":            true,
+			"PostsPriority.Priority":      model.PostPropsPriorityUrgent,
 		})
 
 	if teamId != "" {
@@ -240,6 +240,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Where(sq.Expr("Posts.RootId = ThreadMemberships.PostId")).
 		Where(sq.Expr("Posts.CreateAt > ThreadMemberships.LastViewed"))
 
+	urgencyCase := sq.
+		Case().
+		When(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}, "true").
+		Else("false")
+
 	if !opts.Deleted {
 		unreadRepliesQuery = unreadRepliesQuery.Where(sq.Eq{"Posts.DeleteAt": 0})
 	}
@@ -250,9 +255,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			"ThreadMemberships.LastViewed as LastViewedAt",
 			"ThreadMemberships.UnreadMentions as UnreadMentions",
 		).
+		Column(sq.Alias(urgencyCase, "IsUrgent")).
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		Join("Posts ON Posts.Id = Threads.PostId").
-		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId")
+		Join("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+		LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId")
 
 	query = query.
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
@@ -345,10 +352,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LastViewedAt:   thread.LastViewedAt,
 			UnreadReplies:  thread.UnreadReplies,
 			UnreadMentions: thread.UnreadMentions,
-			IsUrgent:       thread.IsUrgent,
 			Participants:   threadParticipants,
 			Post:           thread.Post.ToNilIfInvalid(),
 			DeleteAt:       thread.ThreadDeleteAt,
+			IsUrgent:       thread.IsUrgent,
 		})
 	}
 
@@ -357,7 +364,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 // GetTeamsUnreadForUser returns the total unread threads and unread mentions
 // for a user from all teams.
-func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
+func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
@@ -366,7 +373,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	}
 
 	var wg sync.WaitGroup
-	var err1, err2 error
+	var err1, err2, err3 error
 
 	unreadThreads := []struct {
 		Count  int64
@@ -417,23 +424,26 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 		}
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		urgentMentionsQuery := s.getQueryBuilder().
-			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
-			From("ThreadMemberships").
-			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-			Where(fetchConditions).
-			Where(sq.Eq{"Threads.IsUrgent": true}).
-			GroupBy("Channels.TeamId")
+	if includeUrgentMentionCount {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			urgentMentionsQuery := s.getQueryBuilder().
+				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+				From("ThreadMemberships").
+				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+				LeftJoin("PostsPriority ON Threads.PostId = PostsPriority.PostId").
+				Where(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}).
+				Where(fetchConditions).
+				GroupBy("Channels.TeamId")
 
-		err := s.GetReplicaX().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery)
-		if err != nil {
-			err2 = errors.Wrap(err, "failed to get total unread urgent mentions")
-		}
-	}()
+			err := s.GetReplicaX().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery)
+			if err != nil {
+				err3 = errors.Wrap(err, "failed to get total unread urgent mentions")
+			}
+		}()
+	}
 
 	// Wait for them to be over
 	wg.Wait()
@@ -443,6 +453,9 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	}
 	if err2 != nil {
 		return nil, err2
+	}
+	if err3 != nil {
+		return nil, err3
 	}
 
 	res := make(map[string]*model.TeamUnread)
@@ -515,8 +528,8 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt   int64
 		UnreadReplies  int64
 		UnreadMentions int64
-		IsUrgent       bool
 		Participants   model.StringArray
+		IsUrgent       bool
 		ThreadDeleteAt int64
 		TeamId         string
 		model.Post
@@ -542,10 +555,17 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		query = query.Column("Posts." + c)
 	}
 
+	urgencyCase := sq.
+		Case().
+		When(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}, "true").
+		Else("false")
+
 	var thread JoinedThread
 	query = query.
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
+		Column(sq.Alias(urgencyCase, "IsUrgent")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
+		LeftJoin("PostsPriority ON PostsPriority.PostId = Threads.PostId").
 		Where(fetchConditions)
 
 	err := s.GetReplicaX().GetBuilder(&thread, query)
@@ -593,7 +613,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
-		IsUrgent:       thread.IsUrgent,
 		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 		DeleteAt:       thread.ThreadDeleteAt,

@@ -72,8 +72,10 @@ const (
 
 	PostPropsPreviewedPost = "previewed_post"
 
-	PostPropsPriority       = "priority"
-	PostPropsPriorityUrgent = "urgent"
+	PostPropsPriority                = "priority"
+	PostPropsPriorityUrgent          = "urgent"
+	PostPropsRequestedAck            = "requested_ack"
+	PostPropsPersistentNotifications = "persistent_notifications"
 )
 
 const (
@@ -159,6 +161,15 @@ type PostReminder struct {
 	// These fields are only used internally for interacting with DB.
 	PostId string `json:",omitempty"`
 	UserId string `json:",omitempty"`
+}
+
+type PostPriority struct {
+	Priority                *string `json:"priority"`
+	RequestedAck            *bool   `json:"requested_ack"`
+	PersistentNotifications *bool   `json:"persistent_notifications"`
+	// These fields are only used internally for interacting with DB.
+	PostId    string `json:",omitempty"`
+	ChannelId string `json:",omitempty"`
 }
 
 type SearchParameter struct {
@@ -309,6 +320,7 @@ type GetPostsOptions struct {
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 	IncludeDeleted           bool
+	IncludePostPriority      bool
 }
 
 type PostCountOptions struct {

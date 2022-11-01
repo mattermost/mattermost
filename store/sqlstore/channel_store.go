@@ -2528,8 +2528,53 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
+func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, userId string) (int, error) {
+	joinLeavePostTypes := []string{
+		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
+		model.PostTypeJoinLeave,
+		model.PostTypeAddRemove,
+		model.PostTypeJoinChannel,
+		model.PostTypeLeaveChannel,
+		model.PostTypeJoinTeam,
+		model.PostTypeLeaveTeam,
+		model.PostTypeAddToChannel,
+		model.PostTypeRemoveFromChannel,
+		model.PostTypeAddToTeam,
+		model.PostTypeRemoveFromTeam,
+	}
+
+	query := s.getQueryBuilder().
+		Select("count(*)").
+		From("Posts").
+		Join("PostsPriority ON Posts.Id = PostsPriority.PostId").
+		Where(sq.And{
+			sq.Eq{"Posts.ChannelId": channelId},
+			sq.Gt{"Posts.CreateAt": timestamp},
+			sq.NotEq{"Posts.Type": joinLeavePostTypes},
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent},
+		})
+
+	if userId != "" {
+		query = query.Where(sq.Eq{"UserId": userId})
+	}
+
+	var urgent int64
+	sql, args, err := query.Where(sq.Eq{"RootId": ""}).Where(query).ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "CountUrgentPostsAfter_ToSql")
+	}
+
+	err = s.GetReplicaX().Get(&urgent, sql, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count urgent Posts")
+	}
+
+	return int(urgent), nil
+}
+
 // CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
-func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, int, error) {
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
 		model.PostTypeJoinLeave,
@@ -2558,43 +2603,26 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "CountPostsAfter_ToSql1")
+		return 0, 0, errors.Wrap(err, "CountPostsAfter_ToSql1")
 	}
 
 	var unread int64
 	err = s.GetReplicaX().Get(&unread, sql, args...)
 	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "failed to count Posts")
+		return 0, 0, errors.Wrap(err, "failed to count Posts")
 	}
 	sql2, args2, err := query.Where(sq.Eq{"RootId": ""}).ToSql()
 	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "CountPostsAfter_ToSql2")
+		return 0, 0, errors.Wrap(err, "CountPostsAfter_ToSql2")
 	}
 
 	var unreadRoot int64
 	err = s.GetReplicaX().Get(&unreadRoot, sql2, args2...)
 	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "failed to count root Posts")
+		return 0, 0, errors.Wrap(err, "failed to count root Posts")
 	}
 
-	var propsQuery string
-
-	if s.DriverName() == model.DatabaseDriverMysql {
-		propsQuery = `(JSON_EXTRACT(Props, '$.priority') = 'urgent')`
-	} else if s.DriverName() == model.DatabaseDriverPostgres {
-		propsQuery = `(Props ->> 'priority' = 'urgent')`
-	}
-	sql3, args3, err := query.Where(sq.Eq{"RootId": ""}).Where(propsQuery).ToSql()
-	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "CountPostsAfter_ToSql3")
-	}
-
-	var urgent int64
-	err = s.GetReplicaX().Get(&urgent, sql3, args3...)
-	if err != nil {
-		return 0, 0, 0, errors.Wrap(err, "failed to count root Posts")
-	}
-	return int(unread), int(unreadRoot), int(urgent), nil
+	return int(unread), int(unreadRoot), nil
 }
 
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
@@ -2603,7 +2631,7 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error) {
 	unreadDate := unreadPost.CreateAt - 1
 
-	unread, unreadRoot, _, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
+	unread, unreadRoot, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
 		return nil, err
 	}

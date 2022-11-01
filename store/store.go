@@ -84,6 +84,7 @@ type Store interface {
 	SetContext(context context.Context)
 	Context() context.Context
 	NotifyAdmin() NotifyAdminStore
+	PostPriority() PostPriorityStore
 }
 
 type RetentionPolicyStore interface {
@@ -241,7 +242,8 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelID string) error
 	UpdateLastViewedAt(channelIds []string, userID string) (map[string]int64, error)
 	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount, mentionCountRoot, urgentMentionCount int, setUnreadCountRoot bool) (*model.ChannelUnreadAt, error)
-	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, int, error)
+	CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error)
+	CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error)
 	IncrementMentionCount(channelID string, userIDs []string, isRoot, isUrgent bool) error
 	AnalyticsTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error)
@@ -325,7 +327,7 @@ type ThreadStore interface {
 	GetTotalUnreadUrgentMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
-	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
+	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error)
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
@@ -967,6 +969,10 @@ type SharedChannelStore interface {
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
 	GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error)
 	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
+}
+
+type PostPriorityStore interface {
+	GetForPost(postId string) (*model.PostPriority, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
