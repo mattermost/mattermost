@@ -1249,7 +1249,7 @@ func TestSearchUsers(t *testing.T) {
 	}
 
 	_, _, delErr := th.Client.DeleteGroupMembers(group.Id, members)
-	assert.Nil(t, delErr)
+	require.NoError(t, delErr)
 
 	t.Run("Returns user not in group after they were deleted from group", func(t *testing.T) {
 		users, _, err = th.Client.SearchUsers(search)
