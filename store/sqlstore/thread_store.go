@@ -33,7 +33,7 @@ type JoinedThread struct {
 	model.Post
 }
 
-func (thread *JoinedThread) ToThreadResponse(users map[string]*model.User) *model.ThreadResponse {
+func (thread *JoinedThread) toThreadResponse(users map[string]*model.User) *model.ThreadResponse {
 	threadParticipants := make([]*model.User, 0, len(thread.Participants))
 	for _, participantUserId := range thread.Participants {
 		if participant, ok := users[participantUserId]; ok {
@@ -314,7 +314,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := make([]*model.ThreadResponse, 0, len(threads))
 	for _, thread := range threads {
-		result = append(result, thread.ToThreadResponse(allParticipants))
+		result = append(result, thread.toThreadResponse(allParticipants))
 	}
 
 	return result, nil
@@ -496,7 +496,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		usersMap[user.Id] = user
 	}
 
-	return thread.ToThreadResponse(usersMap), nil
+	return thread.toThreadResponse(usersMap), nil
 }
 
 // MarkAllAsReadByChannels marks thread membership for the given users in the given channels
