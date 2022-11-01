@@ -626,7 +626,12 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel)
+			favoritedBy, err := a.buildFavoritedByList(channel.Id)
+			if err != nil {
+				return err
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel, favoritedBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -634,6 +639,25 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	}
 
 	return nil
+}
+
+func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
+	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
+	if err != nil {
+		return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userIDs := make([]string, len(prefs))
+	for i, pref := range prefs {
+		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
+		if err != nil {
+			return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		userIDs[i] = user.Username
+	}
+
+	return userIDs, nil
 }
 
 func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
