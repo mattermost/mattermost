@@ -261,9 +261,10 @@ func TestExportDMChannel(t *testing.T) {
 		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
 
 		// Ensure the favorited channel was retained
-		favs, nErr := th2.App.Srv().Store().Preference().Get(th2.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
+		fav, nErr := th2.App.Srv().Store().Preference().Get(th2.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
 		require.NoError(t, nErr)
-		require.NotNil(t, favs)
+		require.NotNil(t, fav)
+		require.Equal(t, "true", fav.Value)
 	})
 
 	t.Run("Invalid DM channel export", func(t *testing.T) {

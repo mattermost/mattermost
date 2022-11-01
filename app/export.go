@@ -647,14 +647,18 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 		return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	userIDs := make([]string, len(prefs))
-	for i, pref := range prefs {
+	userIDs := make([]string, 0, len(prefs))
+	for _, pref := range prefs {
+		if pref.Value != "true" {
+			continue
+		}
+
 		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
 		if err != nil {
 			return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		userIDs[i] = user.Username
+		userIDs = append(userIDs, user.Username)
 	}
 
 	return userIDs, nil
