@@ -502,6 +502,31 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
+// TODO: RunPluginHook, with observability?
+// RunPluginHook invokes hookRunnerFunc for the given plugin, if it implements the given hookId.
+func (env *Environment) RunPluginHook(pluginId string, hookRunnerFunc func(hooks Hooks) error, hookId int) error {
+	p, ok := env.registeredPlugins.Load(pluginId)
+	if !ok {
+		return errors.Errorf("cannot find registered plugin %s", pluginId)
+	}
+	rp := p.(registeredPlugin)
+
+	sup := rp.supervisor
+	if sup == nil {
+		return errors.Errorf("no supervisor for plugin %s", pluginId)
+	}
+
+	if !env.IsActive(rp.BundleInfo.Manifest.Id) {
+		return errors.Errorf("plugin %s i not active", pluginId)
+	}
+
+	if !rp.supervisor.Implements(hookId) {
+		return errors.Errorf("plugin %s does not implement hook %d", pluginId, hookId)
+	}
+
+	return hookRunnerFunc(rp.supervisor.Hooks())
+}
+
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
