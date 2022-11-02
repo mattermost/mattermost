@@ -27,6 +27,7 @@ func BuildInfo(manifest model.Manifest) (string, error) {
 		revision      string
 		revisionShort string
 		buildTime     time.Time
+		dirty         bool
 	)
 	for _, s := range info.Settings {
 		switch s.Key {
@@ -40,6 +41,10 @@ func BuildInfo(manifest model.Manifest) (string, error) {
 			if err != nil {
 				return "", err
 			}
+		case "vcs.modified":
+			if s.Value == "true" {
+				dirty = true
+			}
 		}
 	}
 
@@ -50,12 +55,18 @@ func BuildInfo(manifest model.Manifest) (string, error) {
 		path = strings.TrimSuffix(path, matches[len(matches)-1])
 	}
 
+	dirtyText := ""
+	if dirty {
+		dirtyText = " (dirty)"
+	}
+
 	commit := fmt.Sprintf("[%s](https://%s/commit/%s)", revisionShort, path, revision)
 
-	return fmt.Sprintf("%s version: %s, %s, built %s with %s\n",
+	return fmt.Sprintf("%s version: %s, %s%s, built %s with %s\n",
 			manifest.Name,
 			manifest.Version,
 			commit,
+			dirtyText,
 			buildTime.Format(time.RFC1123),
 			info.GoVersion),
 		nil
