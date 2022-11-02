@@ -214,9 +214,8 @@ type s3WithCancel struct {
 }
 
 func (sc *s3WithCancel) Close() error {
-	if sc.timer.Stop() {
-		sc.cancel()
-	}
+	sc.timer.Stop()
+	sc.cancel()
 	return sc.Object.Close()
 }
 
