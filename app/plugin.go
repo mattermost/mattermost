@@ -586,7 +586,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	// This is a short term fix. The long term solution is to have a separate set of
 	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		appErr := a.mergePrepackagedPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
@@ -813,7 +813,7 @@ func (ch *Channels) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.EnterprisePlugins = true
 	}
 
-	if license != nil && *license.Features.Cloud {
+	if license != nil && license.IsCloud() {
 		filter.Cloud = true
 	}
 
