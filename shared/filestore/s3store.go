@@ -209,25 +209,41 @@ func (b *S3FileBackend) MakeBucket() error {
 // when the object is closed.
 type s3WithCancel struct {
 	*s3.Object
+	timer  *time.Timer
 	cancel context.CancelFunc
 }
 
 func (sc *s3WithCancel) Close() error {
-	sc.cancel()
+	if sc.timer.Stop() {
+		sc.cancel()
+	}
 	return sc.Object.Close()
+}
+
+// CancelTimeout attempts to cancel the timeout for this reader. It allows calling
+// code to ignore the timeout in case of longer running operations. The methods returns
+// false if the timeout has already fired.
+func (sc *s3WithCancel) CancelTimeout() bool {
+	return sc.timer.Stop()
 }
 
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	ctx, cancel := context.WithCancel(context.Background())
 	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		cancel()
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
-	return &s3WithCancel{Object: minioObject, cancel: cancel}, nil
+	sc := &s3WithCancel{
+		Object: minioObject,
+		timer:  time.AfterFunc(b.timeout, cancel),
+		cancel: cancel,
+	}
+
+	return sc, nil
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
