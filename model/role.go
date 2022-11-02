@@ -726,24 +726,6 @@ func IsValidRoleName(roleName string) bool {
 	return true
 }
 
-func AreValidChannelRoleNames(roleNames []string) bool {
-	for _, roleName := range roleNames {
-		if stringNotInSlice(roleName, []string{ChannelGuestRoleId, ChannelUserRoleId, ChannelAdminRoleId}) {
-			return false
-		}
-	}
-	return true
-}
-
-func AreValidTeamRoleNames(roleNames []string) bool {
-	for _, roleName := range roleNames {
-		if stringNotInSlice(roleName, []string{TeamGuestRoleId, TeamUserRoleId, TeamAdminRoleId}) {
-			return false
-		}
-	}
-	return true
-}
-
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
