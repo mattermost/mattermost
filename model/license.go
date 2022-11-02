@@ -294,6 +294,10 @@ func (l *License) IsStarted() bool {
 	return l.StartsAt < GetMillis()
 }
 
+func (l *License) IsCloud() bool {
+	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
+}
+
 func (l *License) IsTrialLicense() bool {
 	return l.IsTrial || (l.ExpiresAt-l.StartsAt) == trialDuration.Milliseconds() || (l.ExpiresAt-l.StartsAt) == adminTrialDuration.Milliseconds()
 }
