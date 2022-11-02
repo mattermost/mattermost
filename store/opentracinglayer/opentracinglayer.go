@@ -37,6 +37,7 @@ type OpenTracingLayer struct {
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
+	PostAcknowledgementStore  store.PostAcknowledgementStore
 	PostPriorityStore         store.PostPriorityStore
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
@@ -130,6 +131,10 @@ func (s *OpenTracingLayer) Plugin() store.PluginStore {
 
 func (s *OpenTracingLayer) Post() store.PostStore {
 	return s.PostStore
+}
+
+func (s *OpenTracingLayer) PostAcknowledgement() store.PostAcknowledgementStore {
+	return s.PostAcknowledgementStore
 }
 
 func (s *OpenTracingLayer) PostPriority() store.PostPriorityStore {
@@ -303,6 +308,11 @@ type OpenTracingLayerPluginStore struct {
 
 type OpenTracingLayerPostStore struct {
 	store.PostStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerPostAcknowledgementStore struct {
+	store.PostAcknowledgementStore
 	Root *OpenTracingLayer
 }
 
@@ -6544,6 +6554,96 @@ func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.P
 	return result, err
 }
 
+func (s *OpenTracingLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Delete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.PostAcknowledgementStore.Delete(acknowledgement)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostAcknowledgementStore.Get(userID, postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.GetForPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostAcknowledgementStore.GetForPost(postID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.GetForPosts")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostAcknowledgementStore.GetForPosts(postIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPriorityStore.GetForPost")
@@ -12591,6 +12691,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.OAuthStore = &OpenTracingLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &OpenTracingLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &OpenTracingLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
+	newStore.PostAcknowledgementStore = &OpenTracingLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPriorityStore = &OpenTracingLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
 	newStore.PreferenceStore = &OpenTracingLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &OpenTracingLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
