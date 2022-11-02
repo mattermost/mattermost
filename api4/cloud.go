@@ -55,7 +55,7 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/self-hosted-bootstrap
 	api.BaseRoutes.Cloud.Handle("/self-hosted-bootstrap", api.APISessionRequired(selfHostedBootstrap)).Methods("POST")
-	api.BaseRoutes.Cloud.Handle("/self-hosted-payment", api.APISessionRequired(selfHostedPayment)).Methods("POST")
+	api.BaseRoutes.Cloud.Handle("/self-hosted-customer", api.APISessionRequired(selfHostedCustomer)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/self-hosted-confirm", api.APISessionRequired(selfHostedConfirm)).Methods("POST")
 }
 
@@ -710,7 +710,7 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func selfHostedPayment(c *Context, w http.ResponseWriter, r *http.Request) {
+func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedPayment"
 	ensureSelfHostedAdmin(c, where)
 
@@ -720,14 +720,14 @@ func selfHostedPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var form *model.SelfHostedPaymentForm
+	var form *model.SelfHostedCustomerForm
 	if err = json.Unmarshal(bodyBytes, &form); err != nil {
 		fmt.Printf("%s\n", bodyBytes)
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
-	confirmResponse, err := c.App.Cloud().PaySelfHostedSignup(*form)
+	confirmResponse, err := c.App.Cloud().CreateCustomerSelfHostedSignup(*form)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -752,7 +752,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var confirm model.ConfirmPaymentMethodRequest
+	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	err = json.Unmarshal(bodyBytes, &confirm)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)

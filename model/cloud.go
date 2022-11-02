@@ -84,12 +84,16 @@ type ConfirmPaymentMethodRequest struct {
 	SubscriptionID      string `json:"subscription_id"`
 }
 
+type SelfHostedConfirmPaymentMethodRequest struct {
+	StripeSetupIntentID string                    `json:"stripe_setup_intent_id"`
+	Subscription        CreateSubscriptionRequest `json:"subscription"`
+}
+
 // SelfHostedSignupPaymentResponse contains feels needed for self hosted signup to confirm payment and receive license.
-type SelfHostedSignupPaymentResponse struct {
-	SubscriptionId      string `json:"subscription_id"`
-	CustomerId          string `json:"customer_id"`
-	PaymentIntentId     string `json:"payment_intent_id"`
-	PaymentIntentSecret string `json:"payment_intent_secret"`
+type SelfHostedSignupCustomerResponse struct {
+	CustomerId        string `json:"customer_id"`
+	SetupIntentId     string `json:"setup_intent_id"`
+	SetupIntentSecret string `json:"setup_intent_secret"`
 }
 
 // SelfHostedSignupConfirmResponse contains data received on successful self hosted signup
@@ -286,10 +290,9 @@ type CreateSubscriptionRequest struct {
 }
 
 // email contained in token, so not in the request body.
-type SelfHostedPaymentForm struct {
-	FirstName           string                    `json:"first_name"`
-	LastName            string                    `json:"last_name"`
-	BillingAddress      *Address                  `json:"billing_address"`
-	Organization        string                    `json:"organization"`
-	SubscriptionRequest CreateSubscriptionRequest `json:"subscription_request"`
+type SelfHostedCustomerForm struct {
+	FirstName      string   `json:"first_name"`
+	LastName       string   `json:"last_name"`
+	BillingAddress *Address `json:"billing_address"`
+	Organization   string   `json:"organization"`
 }

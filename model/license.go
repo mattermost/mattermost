@@ -265,6 +265,10 @@ func (f *Features) SetDefaults() {
 	}
 }
 
+func (l *License) IsCloud() bool {
+	return l != nil && l.Features != nil && l.Features.Cloud != nil && *l.Features.Cloud
+}
+
 func (l *License) IsExpired() bool {
 	return l.ExpiresAt < GetMillis()
 }
