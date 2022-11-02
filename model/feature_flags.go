@@ -76,6 +76,9 @@ type FeatureFlags struct {
 	PostPriority bool
 
 	PeopleProduct bool
+
+	// A/B Test on reduced onboarding task list item
+	ReduceOnBoardingTaskList bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -104,6 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.PeopleProduct = false
+	f.ReduceOnBoardingTaskList = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

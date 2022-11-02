@@ -1116,10 +1116,6 @@ func (s SqlChannelStore) GetChannelsWithCursor(teamId string, userId string, opt
 		return nil, errors.Wrapf(err, "failed to get channels with TeamId=%s and UserId=%s", teamId, userId)
 	}
 
-	if len(channels) == 0 {
-		return nil, store.NewErrNotFound("Channel", "userId="+userId)
-	}
-
 	return channels, nil
 }
 

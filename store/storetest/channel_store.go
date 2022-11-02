@@ -3566,6 +3566,22 @@ func testChannelStoreGetChannelsWithCursor(t *testing.T, ss store.Store) {
 	require.Len(t, list, 1)
 	require.Equal(t, teamID, list[0].TeamId, "incorrect teamID")
 
+	// all channels should be returned
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 3)
+
+	// should return empty list
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, list[2].Id)
+	require.NoError(t, nErr)
+	require.Len(t, list, 0)
+
 	// Sleeping to guarantee that the
 	// UpdateAt is different.
 	// The proper way would be to set UpdateAt during channel creation itself,

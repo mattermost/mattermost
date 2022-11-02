@@ -2857,32 +2857,58 @@ func TestGetLastAccessiblePostTime(t *testing.T) {
 }
 
 func TestComputeLastAccessiblePostTime(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
 
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-	cloud := &eMocks.CloudInterface{}
-	th.App.Srv().Cloud = cloud
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
 
-	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-		Messages: &model.MessagesLimits{
-			History: model.NewInt(1),
-		},
-	}, nil)
+		// cloud-starter, limit is applicable
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Messages: &model.MessagesLimits{
+				History: model.NewInt(1),
+			},
+		}, nil)
 
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
-	mockSystemStore := storemocks.SystemStore{}
-	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetNthRecentPostTime", mock.Anything).Return(int64(1), nil)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
 
-	err := th.App.ComputeLastAccessiblePostTime()
-	assert.NoError(t, err)
+		err := th.App.ComputeLastAccessiblePostTime()
+		assert.NoError(t, err)
 
-	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("Do NOT update the time, if cloud limit is NOT applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
+
+		// enterprise, limit is NOT applicable
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockStore.On("System").Return(&mockSystemStore)
+
+		err := th.App.ComputeLastAccessiblePostTime()
+		assert.NoError(t, err)
+
+		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+	})
 }
 
 func TestGetTopThreadsForTeamSince(t *testing.T) {
