@@ -130,6 +130,13 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 		} else {
 			post.Metadata.Priority = priority
 		}
+
+		// Post's acknowledgements if any
+		if acknowledgements, err := a.GetAcknowledgementsForPost(post.Id); err != nil {
+			mlog.Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else {
+			post.Metadata.Acknowledgements = acknowledgements
+		}
 	}
 
 	return post

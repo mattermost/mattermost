@@ -23,8 +23,11 @@ type PostMetadata struct {
 	// Reactions holds reactions made to the post.
 	Reactions []*Reaction `json:"reactions,omitempty"`
 
-	// Reactions holds reactions made to the post.
+	// Priority holds info about priority settings for the post.
 	Priority *PostPriority `json:"priority,omitempty"`
+
+	// Acknowledgements holds acknowledgements made by users to the post
+	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
 }
 
 type PostImage struct {
@@ -57,11 +60,24 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	reactionsCopy := make([]*Reaction, len(p.Reactions))
 	copy(reactionsCopy, p.Reactions)
 
+	postPriorityCopy := &PostPriority{
+		Priority:                p.Priority.Priority,
+		RequestedAck:            p.Priority.RequestedAck,
+		PersistentNotifications: p.Priority.PersistentNotifications,
+		PostId:                  p.Priority.PostId,
+		ChannelId:               p.Priority.ChannelId,
+	}
+
+	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
+	copy(acknowledgementsCopy, p.Acknowledgements)
+
 	return &PostMetadata{
-		Embeds:    embedsCopy,
-		Emojis:    emojisCopy,
-		Files:     filesCopy,
-		Images:    imagesCopy,
-		Reactions: reactionsCopy,
+		Embeds:           embedsCopy,
+		Emojis:           emojisCopy,
+		Files:            filesCopy,
+		Images:           imagesCopy,
+		Reactions:        reactionsCopy,
+		Priority:         postPriorityCopy,
+		Acknowledgements: acknowledgementsCopy,
 	}
 }

@@ -85,6 +85,7 @@ type Store interface {
 	Context() context.Context
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
+	PostAcknowledgement() PostAcknowledgementStore
 }
 
 type RetentionPolicyStore interface {
@@ -973,6 +974,13 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postId string) (*model.PostPriority, error)
+}
+
+type PostAcknowledgementStore interface {
+	Get(userID, postID string) (*model.PostAcknowledgement, error)
+	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
+	Save(userID, postID string) (*model.PostAcknowledgement, error)
+	Delete(userID, postID string) (*model.PostAcknowledgement, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
