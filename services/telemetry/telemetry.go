@@ -353,7 +353,7 @@ func (ts *TelemetryService) trackActivity() {
 		"outgoing_webhooks":            outgoingWebhooksCount,
 	}
 
-	if license := ts.srv.License(); license != nil && license.Features.Cloud != nil && *license.Features.Cloud {
+	if license := ts.srv.License(); license.IsCloud() {
 		var tmpStorage int64
 		if usage, err := ts.dbStore.FileInfo().GetStorageUsage(true, false); err == nil {
 			tmpStorage = usage

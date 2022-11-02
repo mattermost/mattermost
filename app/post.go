@@ -1408,7 +1408,7 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		return 0, nil
 	}
 
@@ -1467,7 +1467,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		return 0, nil
 	}
 
