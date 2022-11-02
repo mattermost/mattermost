@@ -1348,7 +1348,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 // GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !license.IsCloud() {
+	if !license.IsCloud() {
 		return 0, nil
 	}
 
