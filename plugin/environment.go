@@ -500,7 +500,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 
 func patchReactDOM(b []byte) ([]byte, bool) {
 	s := string(b)
-	nameIndex := strings.Index(s, "react-dom")
+	nameIndex := strings.Index(s, "react-dom.production.min.js")
 
 	if nameIndex == -1 {
 		return b, false
