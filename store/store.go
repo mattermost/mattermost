@@ -323,7 +323,7 @@ type ThreadStore interface {
 	GetTotalThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalUnreadMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
-	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
+	GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
