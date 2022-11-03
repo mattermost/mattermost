@@ -1018,6 +1018,9 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	// Bots created by a plugin should use the plugin's ID for the creator field.
+	bot.OwnerId = api.id
+
 	return api.app.EnsureBot(api.ctx, api.id, bot)
 }
 
