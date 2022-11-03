@@ -31,4 +31,5 @@ type CloudInterface interface {
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
+	HandleLicenseChange() error
 }
