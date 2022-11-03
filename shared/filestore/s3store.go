@@ -208,7 +208,7 @@ func (b *S3FileBackend) MakeBucket() error {
 // s3WithCancel is a wrapper struct which cancels the context
 // when the object is closed.
 type s3WithCancel struct {
-	*s3.Object
+	io.ReadSeekCloser
 	timer  *time.Timer
 	cancel context.CancelFunc
 }
@@ -216,7 +216,7 @@ type s3WithCancel struct {
 func (sc *s3WithCancel) Close() error {
 	sc.timer.Stop()
 	sc.cancel()
-	return sc.Object.Close()
+	return sc.ReadSeekCloser.Close()
 }
 
 // CancelTimeout attempts to cancel the timeout for this reader. It allows calling
@@ -237,9 +237,9 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	}
 
 	sc := &s3WithCancel{
-		Object: minioObject,
-		timer:  time.AfterFunc(b.timeout, cancel),
-		cancel: cancel,
+		ReadSeekCloser: minioObject,
+		timer:          time.AfterFunc(b.timeout, cancel),
+		cancel:         cancel,
 	}
 
 	return sc, nil
