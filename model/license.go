@@ -77,13 +77,14 @@ type TrialLicenseRequest struct {
 }
 
 type Features struct {
-	Users          *int  `json:"users"`
-	LDAP           *bool `json:"ldap"`
-	LDAPGroups     *bool `json:"ldap_groups"`
-	MFA            *bool `json:"mfa"`
-	GoogleOAuth    *bool `json:"google_oauth"`
-	Office365OAuth *bool `json:"office365_oauth"`
-	// MM-47384: "OpenId" key is obsolete. This will soon be removed from license
+	Users      *int  `json:"users"`
+	LDAP       *bool `json:"ldap"`
+	LDAPGroups *bool `json:"ldap_groups"`
+	MFA        *bool `json:"mfa"`
+
+	// MM-47384: "OpenId", "GoogleOAuth", "Office365OAuth" keys are obsolete. These will soon be removed from license
+	GoogleOAuth               *bool `json:"google_oauth"`
+	Office365OAuth            *bool `json:"office365_oauth"`
 	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
@@ -165,11 +166,11 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.GoogleOAuth == nil {
-		f.GoogleOAuth = NewBool(*f.FutureFeatures)
+		f.GoogleOAuth = NewBool(true)
 	}
 
 	if f.Office365OAuth == nil {
-		f.Office365OAuth = NewBool(*f.FutureFeatures)
+		f.Office365OAuth = NewBool(true)
 	}
 
 	if f.OpenId == nil {
