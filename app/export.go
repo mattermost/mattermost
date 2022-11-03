@@ -644,7 +644,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
 	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
 	if err != nil {
-		return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	userIDs := make([]string, 0, len(prefs))
@@ -655,7 +655,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 
 		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
 		if err != nil {
-			return nil, model.NewAppError("buildFavoritedByList", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		userIDs = append(userIDs, user.Username)
