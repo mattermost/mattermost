@@ -1027,8 +1027,9 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+// This test can flake if two calls to model.NewId can return the same value.
+// Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
-	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -2717,13 +2718,26 @@ func TestGetUsersInGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	cid := model.NewId()
+	customGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + cid,
+		Name:        model.NewString("name" + cid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + cid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
 	t.Run("Requires ldap license", func(t *testing.T) {
 		_, response, err := th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2732,8 +2746,6 @@ func TestGetUsersInGroup(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
 
@@ -2748,6 +2760,26 @@ func TestGetUsersInGroup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, users)
 	})
+
+	_, err = th.App.UpsertGroupMember(customGroup.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in custom group when called by regular user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users in custom group when called by guest user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, len(users), 0)
+	})
+
 }
 
 func TestUpdateUserMfa(t *testing.T) {

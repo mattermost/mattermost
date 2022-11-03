@@ -4,6 +4,8 @@
 package jobs
 
 import (
+	"crypto/rand"
+	"math/big"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -30,7 +32,7 @@ func (scheduler *PeriodicScheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *PeriodicScheduler) NextScheduleTime(_ *model.Config, _ time.Time /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) *time.Time {
-	nextTime := time.Now().Add(scheduler.period)
+	nextTime := time.Now().Add(getRandomDelay(jitterRange)).Add(scheduler.period)
 	return &nextTime
 }
 
@@ -69,4 +71,14 @@ func (scheduler *DailyScheduler) NextScheduleTime(cfg *model.Config, now time.Ti
 
 func (scheduler *DailyScheduler) ScheduleJob(_ *model.Config /* pendingJobs */, _ bool /* lastSuccessfulJob */, _ *model.Job) (*model.Job, *model.AppError) {
 	return scheduler.jobs.CreateJob(scheduler.jobType, nil)
+}
+
+const jitterRange = 2000 // milliseconds
+
+func getRandomDelay(limit int64) time.Duration {
+	num, err := rand.Int(rand.Reader, big.NewInt(limit))
+	if err != nil {
+		return time.Millisecond
+	}
+	return time.Millisecond * time.Duration(num.Int64())
 }
