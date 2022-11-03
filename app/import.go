@@ -199,6 +199,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 		var line imports.LineImportData
 		if err := decoder.Decode(&line); err != nil {
+			// Do not continue parsing if the JSON is invalid even if dryrun=true
 			c.Logger().Warn("Invalid Json.", mlog.Err(err))
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest).Wrap(err), lineNumber
 
