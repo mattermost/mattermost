@@ -104,7 +104,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiPaths, err := a.exportCustomEmoji(ctx, writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
@@ -520,11 +520,11 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(c request.CTX, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err
