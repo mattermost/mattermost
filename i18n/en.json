@@ -484,10 +484,6 @@
     "translation": "Error processing request to CWS."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error updating subscription from webhook."
-  },
-  {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Unable to create team because teams limit has been reached"
   },
