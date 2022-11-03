@@ -55,7 +55,7 @@ var MediaContentTypes = [...]string{
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
-	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, model.ScopeFilesCreate)).Methods("POST")
+	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream)).Methods("POST")
 	api.BaseRoutes.Files.Handle("/search", api.APISessionRequired(searchFilesForUser, model.ScopeFilesSearch, model.ScopeUsersRead)).Methods("POST")
 	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile, model.ScopeFilesRead)).Methods("GET")
 	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail, model.ScopeFilesRead)).Methods("GET")

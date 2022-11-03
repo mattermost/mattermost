@@ -262,7 +262,7 @@ func rejectGuests(f handlerFunc) handlerFunc {
 func (api *API) addTestAPIScopeMapping(h *web.Handler) {
 	scopes := h.RequiredScopes
 	if h.RequiredScopes.IsInternal() {
-		scopes = model.APIScopes{"internal_api"}
+		scopes = model.APIScopes{"_internal_api"}
 	}
 
 	for _, s := range scopes {

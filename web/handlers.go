@@ -553,7 +553,7 @@ func (w *Web) APISessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 func (w *Web) addTestEndpointScopeMapping(h *Handler) {
 	scopes := h.RequiredScopes
 	if h.RequiredScopes.IsInternal() {
-		scopes = model.APIScopes{"internal_api"}
+		scopes = model.APIScopes{"_internal_api"}
 	}
 
 	for _, s := range scopes {

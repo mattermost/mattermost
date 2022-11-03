@@ -15,9 +15,9 @@ import (
 // Scope signifies a permission to perform a kind of an operation on a kind of a
 // resource. It is represented as a string in the format "res:op" where "res" is
 // a ScopeResource and "op" is a ScopeOperation (or a wildcard). Examples:
-//  - "posts:read" is the scope for a read-only access to Posts.
-//  - "users:*" is the scope for a all operations on Users.
-//  - "channels:join" is the scope for joining Channels.
+//   - "posts:read" is the scope for a read-only access to Posts.
+//   - "users:*" is the scope for a all operations on Users.
+//   - "channels:join" is the scope for joining Channels.
 //
 // When a scope is used to express a permission requested by the app, or a
 // granted by a user it can use a "*" for the op to request/grant access to all

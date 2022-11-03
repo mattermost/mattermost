@@ -21,7 +21,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(getPost, model.ScopePostsRead)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.APISessionRequired(deletePost, model.ScopePostsDelete)).Methods("DELETE")
 	api.BaseRoutes.Posts.Handle("/ids", api.APISessionRequired(getPostsByIds, model.ScopePostsRead)).Methods("POST")
-	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost, model.ScopePostsCreate)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/ephemeral", api.APISessionRequired(createEphemeralPost, model.ScopeUnrestrictedAPI...)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/thread", api.APISessionRequired(getPostThread, model.ScopePostsRead)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.APISessionRequired(getFileInfosForPost, model.ScopePostsRead, model.ScopeFilesRead)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.APISessionRequired(getPostsForChannel, model.ScopePostsRead, model.ScopeChannelsRead)).Methods("GET")

@@ -15,7 +15,7 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.Reactions.Handle("", api.APISessionRequired(saveReaction, model.ScopePostsUpdate)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/reactions", api.APISessionRequired(getReactions, model.ScopePostsRead)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction, model.ScopePostsUpdate)).Methods("DELETE")
-	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions, model.ScopePostsRead)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
