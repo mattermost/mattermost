@@ -194,7 +194,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionBoardsRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.BoardsRetentionDays), 10)
 		}
 
-		if *license.Features.Cloud {
+		if license.IsCloud() {
 			props["CWSURL"] = *c.CloudSettings.CWSURL
 		}
 

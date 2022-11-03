@@ -310,7 +310,7 @@ func TestGraphQLChannels(t *testing.T) {
 
 		resp, err = th.MakeGraphQLRequest(&input)
 		require.NoError(t, err)
-		require.Len(t, resp.Errors, 1) // no channels found
+		require.Len(t, resp.Errors, 0) // no errors for no channels found
 
 		th.BasicChannel.Purpose = "newpurpose"
 		_, _, err = th.Client.UpdateChannel(th.BasicChannel)
