@@ -72,6 +72,7 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
+	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
 }
 
@@ -120,10 +121,15 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		options = append(options, app.StoreOverride(dbStore))
 	}
 
+	buffer := &mlog.Buffer{}
+
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
+	}
+	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
+		panic("failed to add writer target to test logger: " + errW.Error())
 	}
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
@@ -141,6 +147,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		IncludeCacheLayer: includeCache,
 		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
+		LogBuffer:         buffer,
 	}
 	th.Context.SetLogger(testLogger)
 

@@ -479,7 +479,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		post = c.App.PreparePostForClient(post, false, false)
+		post = c.App.PreparePostForClient(c.AppContext, post, false, false)
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}

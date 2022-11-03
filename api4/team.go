@@ -95,7 +95,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// On a cloud license, we must check limits before allowing to create
-	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -285,7 +285,7 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// On a cloud license, we must check limits before allowing to restore
-	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
 		if err != nil {
 			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1259,7 +1259,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}

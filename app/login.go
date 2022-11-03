@@ -333,7 +333,7 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 	http.SetCookie(w, csrfCookie)
 
 	// For context see: https://mattermost.atlassian.net/browse/MM-39583
-	if a.Channels().License() != nil && *a.Channels().License().Features.Cloud {
+	if a.License().IsCloud() {
 		a.AttachCloudSessionCookie(c, w, r)
 	}
 }
@@ -346,5 +346,5 @@ func GetProtocol(r *http.Request) string {
 }
 
 func IsCWSLogin(a *App, token string) bool {
-	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
+	return a.License().IsCloud() && token != ""
 }

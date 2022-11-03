@@ -20,7 +20,9 @@ func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface)
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(_ *model.Job) error {
+	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		return app.ComputeLastAccessiblePostTime()
 	}
 	worker := jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)
