@@ -1500,9 +1500,9 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	if options.CollapsedThreads {
-		broadcastThreadReplyQueryString := "Posts.Props ->> 'broadcasted_thread_reply'"
+		broadcastThreadReplyQueryString := "p.Props ->> 'broadcasted_thread_reply'"
 		if s.DriverName() == model.DatabaseDriverMysql {
-			broadcastThreadReplyQueryString = "JSON_EXTRACT(Posts.Props, '$.broadcasted_thread_reply')"
+			broadcastThreadReplyQueryString = "JSON_EXTRACT(p.Props, '$.broadcasted_thread_reply')"
 		}
 
 		conditions = append(conditions, sq.Or{sq.Eq{"RootId": ""}, sq.Eq{broadcastThreadReplyQueryString: true}})
