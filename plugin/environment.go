@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"bytes"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -498,47 +499,49 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 	return manifest, nil
 }
 
-func patchReactDOM(b []byte) ([]byte, bool) {
-	s := string(b)
-	nameIndex := strings.Index(s, "react-dom.production.min.js")
-
-	if nameIndex == -1 {
-		return b, false
+func patchReactDOM(initialBytes []byte) ([]byte, bool) {
+	if !bytes.Contains(initialBytes, []byte("react-dom.production.min.js")) {
+		return initialBytes, false
 	}
 
-	beginning := strings.LastIndex(s[:nameIndex], "{")
+	initial := string(initialBytes)
+	nameIndex := strings.Index(initial, "react-dom.production.min.js")
+
+	beginning := strings.LastIndex(initial[:nameIndex], "{")
 	var end int
 
-	argDefBeginning := strings.LastIndex(s[:beginning], "function") + 9
-	argDefEnd := strings.LastIndex(s[:beginning], ")") - 1
-	argsNames := strings.Split(s[argDefBeginning:argDefEnd], ",")
+	argDefBeginning := strings.LastIndex(initial[:beginning], "function") + 9
+	argDefEnd := strings.LastIndex(initial[:beginning], ")") - 1
+	argsNames := strings.Split(initial[argDefBeginning:argDefEnd], ",")
 	if len(argsNames) != 3 {
-		return b, false
+		return initialBytes, false
 	}
 
 	exportsArgName := strings.TrimSpace(argsNames[1])
 
-	numOpen := 0
-	for i, c := range s[beginning:] {
+	numOpenBraces := 0
+	for i, c := range initial[beginning:] {
 		if end != 0 {
 			break
 		}
 		switch c {
 		case '}':
-			numOpen--
+			numOpenBraces--
 
-			if numOpen == 0 {
+			if numOpenBraces == 0 {
 				end = beginning + i
 			}
 		case '{':
-			numOpen++
+			numOpenBraces++
 		}
 	}
 
-	first := s[:end]
-	second := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
-	third := s[end:]
-	result := first + second + third
+	beforePatch := initial[:end]
+	afterPatch := initial[end:]
+
+	patch := fmt.Sprintf("; Object.assign(%s, window.ReactDOM)", exportsArgName)
+
+	result := fmt.Sprintf("%s%s%s", beforePatch, patch, afterPatch)
 	return []byte(result), true
 }
 
