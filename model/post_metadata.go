@@ -57,11 +57,20 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	reactionsCopy := make([]*Reaction, len(p.Reactions))
 	copy(reactionsCopy, p.Reactions)
 
+	postPriorityCopy := &PostPriority{
+		Priority:                p.Priority.Priority,
+		RequestedAck:            p.Priority.RequestedAck,
+		PersistentNotifications: p.Priority.PersistentNotifications,
+		PostId:                  p.Priority.PostId,
+		ChannelId:               p.Priority.ChannelId,
+	}
+
 	return &PostMetadata{
 		Embeds:    embedsCopy,
 		Emojis:    emojisCopy,
 		Files:     filesCopy,
 		Images:    imagesCopy,
 		Reactions: reactionsCopy,
+		Priority:  postPriorityCopy,
 	}
 }
