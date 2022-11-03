@@ -829,7 +829,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -842,7 +842,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage)
+		profiles, appErr = c.App.GetUsersNotInGroupPage(notInGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -876,7 +876,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
-	group, err := c.App.GetGroup(groupID, nil)
+	group, err := c.App.GetGroup(groupID, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -2696,6 +2696,13 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.disabled.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
+
+	if !guestEnabled {
+		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
 		return
 	}
 

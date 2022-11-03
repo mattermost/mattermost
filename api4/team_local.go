@@ -118,7 +118,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		auditRec.AddMeta("channels", memberInvite.ChannelIds)
 	}
 
-	team, err := c.App.Srv().Store.Team().Get(c.Params.TeamId)
+	team, err := c.App.Srv().Store().Team().Get(c.Params.TeamId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -134,7 +134,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	var channels []*model.Channel
 	if len(memberInvite.ChannelIds) > 0 {
-		channels, err = c.App.Srv().Store.Channel().GetChannelsByIds(memberInvite.ChannelIds, false)
+		channels, err = c.App.Srv().Store().Channel().GetChannelsByIds(memberInvite.ChannelIds, false)
 		if err != nil {
 			c.Err = model.NewAppError("prepareLocalInviteNewUsersToTeam", "app.channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -160,10 +160,10 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		if len(goodEmails) > 0 {
 			var invitesWithErrors2 []*model.EmailInviteWithError
 			if len(channels) > 0 {
-				invitesWithErrors2, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(team, channels, "Administrator", "mmctl "+model.NewId(), nil, goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, memberInvite.Message, true)
+				invitesWithErrors2, err = c.App.Srv().EmailService.SendInviteEmailsToTeamAndChannels(team, channels, "Administrator", "mmctl "+model.NewId(), nil, goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, memberInvite.Message, true, true, false)
 				invitesWithErrors = append(invitesWithErrors, invitesWithErrors2...)
 			} else {
-				err = c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, false)
+				err = c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
 			}
 
 			if err != nil {
@@ -200,7 +200,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
-		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false)
+		err := c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL, nil, false, true, false)
 		if err != nil {
 			switch {
 			case errors.Is(err, email.NoRateLimiterError):

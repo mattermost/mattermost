@@ -55,7 +55,7 @@ func (*MuteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 	}
 
 	if channelName != "" && message != "" {
-		channel, _ = a.Srv().Store.Channel().GetByName(channel.TeamId, channelName, true)
+		channel, _ = a.Srv().Store().Channel().GetByName(channel.TeamId, channelName, true)
 
 		if channel == nil {
 			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]any{"Channel": channelName}), ResponseType: model.CommandResponseTypeEphemeral}

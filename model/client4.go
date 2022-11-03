@@ -8005,8 +8005,8 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) RequestCloudTrial(email *StartCloudTrialRequest) (*Subscription, *Response, error) {
-	payload, err := json.Marshal(email)
+func (c *Client4) RequestCloudTrial(cloudTrialRequest *StartCloudTrialRequest) (*Subscription, *Response, error) {
+	payload, err := json.Marshal(cloudTrialRequest)
 	if err != nil {
 		return nil, nil, NewAppError("RequestCloudTrial", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

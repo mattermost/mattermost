@@ -7,12 +7,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
+
+func (ps *PlatformService) Log() mlog.LoggerIFace {
+	return ps.logger
+}
 
 func (ps *PlatformService) ReconfigureLogger() error {
 	return ps.initLogging()
@@ -82,11 +89,11 @@ func (ps *PlatformService) NotificationsLogger() *mlog.Logger {
 }
 
 func (ps *PlatformService) EnableLoggingMetrics() {
-	if ps.metrics == nil || ps.metrics.metricsImpl == nil {
+	if ps.metrics == nil || ps.metricsIFace == nil {
 		return
 	}
 
-	ps.logger.SetMetricsCollector(ps.metrics.metricsImpl.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
+	ps.logger.SetMetricsCollector(ps.metricsIFace.GetLoggerMetricsCollector(), mlog.DefaultMetricsUpdateFreqMillis)
 
 	// logging config needs to be reloaded when metrics collector is added or changed.
 	if err := ps.initLogging(); err != nil {
@@ -114,4 +121,76 @@ func (ps *PlatformService) RemoveUnlicensedLogTargets(license *model.License) {
 	ps.notificationsLogger.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
 		return ti.Type != "*targets.Writer" && ti.Type != "*targets.File"
 	})
+}
+
+func (ps *PlatformService) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+	var lines []string
+
+	if *ps.Config().LogSettings.EnableFile {
+		ps.Log().Flush()
+		logFile := config.GetLogFileLocation(*ps.Config().LogSettings.FileLocation)
+		file, err := os.Open(logFile)
+		if err != nil {
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		defer file.Close()
+
+		var newLine = []byte{'\n'}
+		var lineCount int
+		const searchPos = -1
+		b := make([]byte, 1)
+		var endOffset int64 = 0
+
+		// if the file exists and it's last byte is '\n' - skip it
+		var stat os.FileInfo
+		if stat, err = os.Stat(logFile); err == nil {
+			if _, err = file.ReadAt(b, stat.Size()-1); err == nil && b[0] == newLine[0] {
+				endOffset = -1
+			}
+		}
+		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
+		if err != nil {
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		for {
+			pos, err := file.Seek(searchPos, io.SeekCurrent)
+			if err != nil {
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			_, err = file.ReadAt(b, pos)
+			if err != nil {
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			if b[0] == newLine[0] || pos == 0 {
+				lineCount++
+				if lineCount > page*perPage {
+					line := make([]byte, lineEndPos-pos)
+					_, err := file.ReadAt(line, pos)
+					if err != nil {
+						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, "", http.StatusInternalServerError).Wrap(err)
+					}
+					lines = append(lines, string(line))
+				}
+				if pos == 0 {
+					break
+				}
+				lineEndPos = pos
+			}
+
+			if len(lines) == perPage {
+				break
+			}
+		}
+
+		for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
+			lines[i], lines[j] = lines[j], lines[i]
+		}
+	} else {
+		lines = append(lines, "")
+	}
+
+	return lines, nil
 }

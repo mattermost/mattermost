@@ -442,6 +442,15 @@ func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
 	return dbs
 }
 
+func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return ss.GetMasterX().DB.DB
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum].DB.DB
+}
+
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMasterX().Stats().OpenConnections
 }

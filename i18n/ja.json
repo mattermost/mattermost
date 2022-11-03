@@ -1429,11 +1429,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "アーカイブチャンネルのリアクションは削除できません。"
+    "translation": "アーカイブされたチャンネルのリアクションは削除できません。"
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルにはリアクションできません。"
+    "translation": "アーカイブされたチャンネルにはリアクションできません。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1773,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "あなたは電子メールアドレスを更新しました"
+    "translation": "電子メールアドレスが正常に更新されました"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4601,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルは変更できません。"
+    "translation": "アーカイブされたチャンネルは変更できません。"
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5578,14 +5578,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9534,5 +9526,33 @@
   {
     "id": "app.job.error",
     "translation": "ジョブ実行中にエラーが発生しました。"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "時間の範囲が無効です。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "グループ名は予約語として既に登録されています"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "プラグイン {{.Name}} はプロダクトモードでは有効化できません。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "最後にアクセスしたファイルの取得エラー"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "クラウドプランの制限を超えているため、ファイルを取得できません。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "現在のライセンス ではゲストアカウントはサポートされていません"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "ゲストアカウントは無効化されています"
   }
 ]

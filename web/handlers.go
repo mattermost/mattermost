@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -133,8 +134,13 @@ func generateDevCSP(c Context) string {
 
 	// Add flags for Webpack dev servers used by other products during development
 	if model.BuildNumber == "dev" {
-		// Focalboard runs on http://localhost:9006
-		devCSP = append(devCSP, "http://localhost:9006")
+		boardsURL := os.Getenv("MM_BOARDS_DEV_SERVER_URL")
+		if boardsURL == "" {
+			// Focalboard runs on http://localhost:9006 by default
+			boardsURL = "http://localhost:9006"
+		}
+
+		devCSP = append(devCSP, boardsURL)
 	}
 
 	if len(devCSP) == 0 {
@@ -202,7 +208,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.AppContext.SetContext(ctx)
 
 		tmpSrv := *c.App.Srv()
-		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
+		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
@@ -325,7 +331,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
-	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
 		c.SetServerBusyError()
 	}
 

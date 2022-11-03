@@ -74,6 +74,7 @@ type Store interface {
 	GetInternalMasterDB() *sql.DB
 	// GetInternalReplicaDBs allows access to the raw replica DB
 	// handles for the multi-product architecture.
+	GetInternalReplicaDB() *sql.DB
 	GetInternalReplicaDBs() []*sql.DB
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
@@ -481,6 +482,7 @@ type UserStore interface {
 	IsEmpty(excludeBots bool) (bool, error)
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
+	GetFirstSystemAdminID() (string, error)
 }
 
 type BotStore interface {
@@ -832,10 +834,11 @@ type GroupStore interface {
 	Delete(groupID string) (*model.Group, error)
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
-	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
+	GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error)
 	GetMemberCount(groupID string) (int64, error)
 
-	GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+	GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 
 	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error)
 	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error)
@@ -879,7 +882,7 @@ type GroupStore interface {
 	GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error)
 	CountGroupsByTeam(teamID string, opts model.GroupSearchOpts) (int64, error)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error)
+	GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error)
 
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error)
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error)
@@ -983,7 +986,6 @@ type DraftStore interface {
 // Paginate whether to paginate the results.
 // Page page requested, if results are paginated.
 // PerPage number of results per page, if paginated.
-//
 type ChannelSearchOpts struct {
 	Term                     string
 	NotAssociatedToGroup     string

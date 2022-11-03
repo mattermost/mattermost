@@ -30,6 +30,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		return true
 	}
 	execute := func(job *model.Job) error {
+		jobServer.HandleJobPanic(job)
+
 		var err error
 		var fromTS int64 = 0
 		var toTS int64 = model.GetMillis()

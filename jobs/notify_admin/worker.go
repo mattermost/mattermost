@@ -21,7 +21,9 @@ func MakeUpgradeNotifyWorker(jobServer *jobs.JobServer, license *model.License, 
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(_ *model.Job) error {
+	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		appErr := app.DoCheckForAdminNotifications(false)
 		if appErr != nil {
 			return appErr
@@ -37,7 +39,9 @@ func MakeTrialNotifyWorker(jobServer *jobs.JobServer, license *model.License, ap
 	isEnabled := func(_ *model.Config) bool {
 		return license != nil && license.Features != nil && *license.Features.Cloud
 	}
-	execute := func(_ *model.Job) error {
+	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		appErr := app.DoCheckForAdminNotifications(true)
 		if appErr != nil {
 			return appErr

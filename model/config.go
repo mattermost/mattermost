@@ -955,7 +955,6 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental_features,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental_features,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
 	EnableAppBar                    *bool   `access:"experimental_features"`
@@ -976,10 +975,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
-	}
-
-	if s.CloudBilling == nil {
-		s.CloudBilling = NewBool(false)
 	}
 
 	if s.UseNewSAMLLibrary == nil {
@@ -2752,6 +2747,20 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
+type ProductSettings struct {
+	EnablePublicSharedBoards *bool
+}
+
+func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
+	if s.EnablePublicSharedBoards == nil {
+		if p, ok := plugins[PluginIdFocalboard]; ok {
+			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
+		} else {
+			s.EnablePublicSharedBoards = NewBool(false)
+		}
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
@@ -3141,6 +3150,7 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
+	ProductSettings           ProductSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3240,6 +3250,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()

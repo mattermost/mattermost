@@ -109,6 +109,7 @@ func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
 func (s *Store) DropAllTables()                          { /* do nothing */ }
 func (s *Store) GetDbVersion(bool) (string, error)       { return "", nil }
 func (s *Store) GetInternalMasterDB() *sql.DB            { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB           { return nil }
 func (s *Store) GetInternalReplicaDBs() []*sql.DB        { return nil }
 func (s *Store) RecycleDBConnections(time.Duration)      {}
 func (s *Store) GetDBSchemaVersion() (int, error)        { return 1, nil }
