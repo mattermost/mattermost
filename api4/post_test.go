@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
@@ -326,18 +328,338 @@ func TestCreatePost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	// TODO: need some way of hosting and running a plugin in this context
-	// t.Run("create post against topic", func(t *testing.T) {
-	// 	topicType := "topic_type"
-	// 	topicId := model.NewId()
+	t.Run("no permissions on registered topic", func(t *testing.T) {
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+				package main
 
-	// 	_, resp, err := client.CreatePost(&model.Post{
-	// 		TopicType: topicType,
-	// 		TopicId:   topicId,
-	// 	})
-	// 	require.NoError(t, err)
-	// 	CheckCreatedStatus(t, resp)
-	// })
+				import (
+					"github.com/mattermost/mattermost-server/v6/plugin"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) OnActivate() error {
+					err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+					if err != nil {
+						p.API.LogError("error", "err", err)
+					}
+
+					return err
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("no metadata on registered topic", func(t *testing.T) {
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+				return err
+			}
+
+			func (p *MyPlugin) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+				if collectionType == "collection_type" {
+					return true, nil
+				}
+				return false, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("no threads everywhere feature flag", func(t *testing.T) {
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+				return err
+			}
+
+			func (p *MyPlugin) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+				if collectionType == "collection_type" {
+					return true, nil
+				}
+				return false, nil
+			}
+
+			func (p *MyPlugin) GetTopicMetadataByIds(c *plugin.Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+				metadata := &model.TopicMetadata{
+					Id:             topicIds[0],
+					TopicType:      topicType,
+					CollectionType: "collection_type",
+					TeamId:         "123",
+					CollectionId:   "456",
+				}
+				return map[string]*model.TopicMetadata{topicIds[0] : metadata}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("no playbooks user", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ThreadsEverywhere = true
+		})
+
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+				return err
+			}
+
+			func (p *MyPlugin) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+				if collectionType == "collection_type" {
+					return true, nil
+				}
+				return false, nil
+			}
+
+			func (p *MyPlugin) GetTopicMetadataByIds(c *plugin.Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+				metadata := &model.TopicMetadata{
+					Id:             topicIds[0],
+					TopicType:      topicType,
+					CollectionType: "collection_type",
+					TeamId:         "123",
+					CollectionId:   "456",
+				}
+				return map[string]*model.TopicMetadata{topicIds[0] : metadata}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("create post against topic", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		client := th.Client
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ThreadsEverywhere = true
+		})
+
+		createPlaybooksUser(t, client)
+
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v6/plugin"
+				"github.com/mattermost/mattermost-server/v6/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+				return err
+			}
+
+			func (p *MyPlugin) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+				if collectionType == "collection_type" {
+					return true, nil
+				}
+				return false, nil
+			}
+
+			func (p *MyPlugin) GetTopicMetadataByIds(c *plugin.Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error) {
+				metadata := &model.TopicMetadata{
+					Id:             topicIds[0],
+					TopicType:      topicType,
+					CollectionType: "collection_type",
+					TeamId:         "123",
+					CollectionId:   "456",
+				}
+				return map[string]*model.TopicMetadata{topicIds[0] : metadata}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "wrong_topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+}
+
+func createPlaybooksUser(t *testing.T, client *model.Client4) {
+	id := model.NewId()
+	playbookUser := &model.User{
+		Email:     "some@email.com",
+		Username:  "playbooks",
+		Nickname:  "nn_" + id,
+		FirstName: "f_" + id,
+		LastName:  "l_" + id,
+		Password:  "Pa$$word11",
+	}
+
+	ruser, _, err := client.CreateUser(playbookUser)
+	require.NoError(t, err)
+	// puser, err := th.App.GetUser(ruser.Id)
+
+	// _, err = th.App.Srv().Store().User().VerifyEmail(puser.Id, puser.Email)
+	// require.NoError(t, err)
+
+	// th.LinkUserToTeam(puser, th.BasicTeam)
+	mainHelper.GetSQLStore().User().InsertUsers([]*model.User{ruser})
+}
+
+func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, pluginIds []string, appInTest *app.App, apiFunc func(*model.Manifest) plugin.API) (func(), []error) {
+	pluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+
+	env, err := plugin.NewEnvironment(apiFunc, app.NewDriverImpl(appInTest.Srv()), pluginDir, webappPluginDir, appInTest.Log(), nil)
+	require.NoError(t, err)
+
+	appInTest.Channels().SetPluginsEnvironment(env)
+	activationErrors := []error{}
+	for i, code := range pluginCode {
+		pluginID := pluginIds[i]
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+		utils.CompileGo(t, code, backend)
+
+		os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+		_, _, activationErr := env.Activate(pluginID)
+		activationErrors = append(activationErrors, activationErr)
+
+		appInTest.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
+				Enable: true,
+			}
+		})
+	}
+
+	return func() {
+		os.RemoveAll(pluginDir)
+		os.RemoveAll(webappPluginDir)
+	}, activationErrors
 }
 
 func TestCreatePostWithOAuthClient(t *testing.T) {
