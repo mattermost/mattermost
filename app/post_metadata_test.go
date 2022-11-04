@@ -806,7 +806,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, false, false)
 		embed := clientPost.Metadata.Embeds[0]
 		parentPostEmbed := embed.Data.(*model.Post)
 		require.Equal(t, parentPost.Id, parentPostEmbed.Id)
