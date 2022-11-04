@@ -314,5 +314,14 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 		return errors.New("could not find plugins environment")
 	}
 
-	return s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
+}
+
+func (ch *Channels) RunHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+	if env := ch.pluginsEnvironment; env != nil {
+		env.RunMultiPluginHook(hookRunnerFunc, hookId)
+	}
+
+	// run hook for the products
+	ch.srv.hooksManager.RunHook(hookRunnerFunc, hookId)
 }
