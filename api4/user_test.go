@@ -2369,6 +2369,10 @@ func TestGetUsers(t *testing.T) {
 		// Check default params for page and per_page
 		_, err = client.DoAPIGet("/users", "")
 		require.NoError(t, err)
+
+		// Check role params validity
+		_, _, err = client.GetUsersWithChannelRoles(0, 5, "random_role_which_doesntexist", "random_channel_id", "")
+		require.Error(t, err)
 	})
 
 	th.Client.Logout()

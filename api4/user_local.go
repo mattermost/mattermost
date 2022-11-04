@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
 func (api *API) InitUserLocal() {
@@ -56,7 +58,64 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	inactive := r.URL.Query().Get("inactive")
 	role := r.URL.Query().Get("role")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 	sort := r.URL.Query().Get("sort")
+	roleNamesAll := []string{}
+	// MM-47378: validate 'role' related parameters
+	if role != "" || rolesString != "" || channelRolesString != "" || teamRolesString != "" {
+		// fetch all role names
+		rolesAll, err := c.App.GetAllRoles()
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
+			return
+		}
+		for _, role := range rolesAll {
+			roleNamesAll = append(roleNamesAll, role.Name)
+		}
+	}
+
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, roles)
+		if len(validRoleNames) != len(roles) {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && inChannelId != "" {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, channelRoles)
+		if len(validRoleNames) != len(channelRoles) {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && inTeamId != "" {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, teamRoles)
+		if len(validRoleNames) != len(teamRoles) {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
 
 	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidURLParam("team_id")

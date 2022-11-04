@@ -693,11 +693,30 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidURLParam("inactive")
 	}
 
+	roleNamesAll := []string{}
+	// MM-47378: validate 'role' related parameters
+	if role != "" || rolesString != "" || channelRolesString != "" || teamRolesString != "" {
+		// fetch all role names
+		rolesAll, err := c.App.GetAllRoles()
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
+			return
+		}
+		for _, role := range rolesAll {
+			roleNamesAll = append(roleNamesAll, role.Name)
+		}
+	}
+
 	roles := []string{}
 	var rolesValid bool
 	if rolesString != "" {
 		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
 		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, roles)
+		if len(validRoleNames) != len(roles) {
 			c.SetInvalidParam("roles")
 			return
 		}
@@ -709,11 +728,21 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetInvalidParam("channelRoles")
 			return
 		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, channelRoles)
+		if len(validRoleNames) != len(channelRoles) {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
 	}
 	teamRoles := []string{}
 	if teamRolesString != "" && inTeamId != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+		validRoleNames := utils.StringArrayIntersection(roleNamesAll, teamRoles)
+		if len(validRoleNames) != len(teamRoles) {
 			c.SetInvalidParam("teamRoles")
 			return
 		}
