@@ -2371,8 +2371,15 @@ func TestGetUsers(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check role params validity
-		_, _, err = client.GetUsersWithChannelRoles(0, 5, "random_role_which_doesntexist", "random_channel_id", "")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "in_channel=random_channel_id&channel_roles=random_role_doesnt_exist", "")
 		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing channelRoles in request body.")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "in_team=random_channel_id&team_roles=random_role_doesnt_exist", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing teamRoles in request body.")
+		_, _, err = client.GetUsersWithCustomQueryParameters(0, 5, "roles=random_role_doesnt_exist", "")
+		require.Error(t, err)
+		require.Equal(t, err.Error(), ": Invalid or missing roles in request body.")
 	})
 
 	th.Client.Logout()

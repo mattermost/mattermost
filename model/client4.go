@@ -1052,8 +1052,8 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 }
 
 // GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
-func (c *Client4) GetUsersWithChannelRoles(page int, perPage int, channelRoles, channelId, etag string) ([]*User, *Response, error) {
-	query := fmt.Sprintf("?page=%v&per_page=%v&channel_roles=%v&in_channel=%v", page, perPage, channelRoles, channelId)
+func (c *Client4) GetUsersWithCustomQueryParameters(page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)
 	r, err := c.DoAPIGet(c.usersRoute()+query, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err

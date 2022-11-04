@@ -76,7 +76,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	roles := []string{}
+	var roles []string
 	var rolesValid bool
 	if rolesString != "" {
 		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
@@ -90,7 +90,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	channelRoles := []string{}
+	var channelRoles []string
 	if channelRolesString != "" && inChannelId != "" {
 		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
 		if !rolesValid {
@@ -103,7 +103,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	teamRoles := []string{}
+	var teamRoles []string
 	if teamRolesString != "" && inTeamId != "" {
 		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
 		if !rolesValid {
