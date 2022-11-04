@@ -2051,7 +2051,7 @@ func (a *OpenTracingAppLayer) CreateDraft(c *request.Context, draft *model.Draft
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateEmoji")
 
@@ -2063,7 +2063,7 @@ func (a *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateEmoji(sessionUserId, emoji, multiPartImageData)
+	resultVar0, resultVar1 := a.app.CreateEmoji(c, sessionUserId, emoji, multiPartImageData)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -3036,7 +3036,7 @@ func (a *OpenTracingAppLayer) DeleteDraft(userID string, channelID string, rootI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteEmoji")
 
@@ -3048,7 +3048,7 @@ func (a *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteEmoji(emoji)
+	resultVar0 := a.app.DeleteEmoji(c, emoji)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -5892,7 +5892,7 @@ func (a *OpenTracingAppLayer) GetDraftsForUser(userID string, teamID string) ([]
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmoji")
 
@@ -5904,7 +5904,7 @@ func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.App
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmoji(emojiId)
+	resultVar0, resultVar1 := a.app.GetEmoji(c, emojiId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5914,7 +5914,7 @@ func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiByName")
 
@@ -5926,7 +5926,7 @@ func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiByName(emojiName)
+	resultVar0, resultVar1 := a.app.GetEmojiByName(c, emojiName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5936,7 +5936,7 @@ func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiImage")
 
@@ -5948,7 +5948,7 @@ func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetEmojiImage(emojiId)
+	resultVar0, resultVar1, resultVar2 := a.app.GetEmojiImage(c, emojiId)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -5958,7 +5958,7 @@ func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *mo
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiList(c request.CTX, page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiList")
 
@@ -5970,7 +5970,7 @@ func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) (
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiList(page, perPage, sort)
+	resultVar0, resultVar1 := a.app.GetEmojiList(c, page, perPage, sort)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5980,7 +5980,7 @@ func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiStaticURL(emojiName string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiStaticURL(c request.CTX, emojiName string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiStaticURL")
 
@@ -5992,7 +5992,7 @@ func (a *OpenTracingAppLayer) GetEmojiStaticURL(emojiName string) (string, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiStaticURL(emojiName)
+	resultVar0, resultVar1 := a.app.GetEmojiStaticURL(c, emojiName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7131,7 +7131,7 @@ func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, transl
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMultipleEmojiByName")
 
@@ -7143,7 +7143,7 @@ func (a *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.E
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMultipleEmojiByName(names)
+	resultVar0, resultVar1 := a.app.GetMultipleEmojiByName(c, names)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12593,7 +12593,7 @@ func (a *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
+func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OverrideIconURLIfEmoji")
 
@@ -12605,7 +12605,7 @@ func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
 	}()
 
 	defer span.Finish()
-	a.app.OverrideIconURLIfEmoji(post)
+	a.app.OverrideIconURLIfEmoji(c, post)
 }
 
 func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
@@ -13155,7 +13155,7 @@ func (a *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+func (a *OpenTracingAppLayer) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostForClient")
 
@@ -13167,7 +13167,7 @@ func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isN
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	resultVar0 := a.app.PreparePostForClient(c, originalPost, isNewPost, isEditPost)
 
 	return resultVar0
 }
@@ -14725,7 +14725,7 @@ func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(c request.CTX, teamID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchEmoji(c request.CTX, name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchEmoji")
 
@@ -14737,7 +14737,7 @@ func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit in
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchEmoji(name, prefixOnly, limit)
+	resultVar0, resultVar1 := a.app.SearchEmoji(c, name, prefixOnly, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17991,7 +17991,7 @@ func (a *OpenTracingAppLayer) UploadData(c *request.Context, us *model.UploadSes
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadEmojiImage")
 
@@ -18003,7 +18003,7 @@ func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.F
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UploadEmojiImage(id, imageData)
+	resultVar0 := a.app.UploadEmojiImage(c, id, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
