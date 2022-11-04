@@ -443,7 +443,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec := c.MakeAuditRecord("addUserToGroupSyncables", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &c.Params.UserId}
+	params := model.CreateDefaultMembershipParams{Since: 0, ReAddRemovedMembers: true, ScopedUserID: &user.Id}
 	err := c.App.CreateDefaultMemberships(c.AppContext, params)
 	if err != nil {
 		c.Err = model.NewAppError("addUserToGroupSyncables", "api.admin.syncables_error", nil, err.Error(), http.StatusBadRequest)
