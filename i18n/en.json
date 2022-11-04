@@ -148,6 +148,10 @@
     "translation": "Missing content type."
   },
   {
+    "id": "api.admin.syncables_error",
+    "translation": " "
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
