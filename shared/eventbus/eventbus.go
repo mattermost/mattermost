@@ -117,13 +117,10 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 	if stopping {
 		return errors.New("event bus was stopped")
 	}
-	// there's really no race condition here, but we need this lock to pass race condition tests.
-	b.eventMutex.Lock()
-	if _, ok := b.eventTypes[topic]; !ok {
-		b.eventMutex.Unlock()
+
+	if !b.validTopic(topic) {
 		return errors.New("topic does not exist")
 	}
-	b.eventMutex.Unlock()
 
 	ev := Event{
 		Topic:     topic,
@@ -146,13 +143,9 @@ func (b *BrokerService) Subscribe(topic string, handler Handler) (string, error)
 	b.subscriberMutex.Lock()
 	defer b.subscriberMutex.Unlock()
 
-	// there's really no race condition here, but we need this lock to pass race condition tests.
-	b.eventMutex.Lock()
-	if _, ok := b.eventTypes[topic]; !ok {
-		b.eventMutex.Unlock()
+	if !b.validTopic(topic) {
 		return "", errors.New("topic does not exist")
 	}
-	b.eventMutex.Unlock()
 
 	id := model.NewId()
 	b.subscribers[topic] = append(b.subscribers[topic], subscriber{
@@ -166,13 +159,9 @@ func (b *BrokerService) Unsubscribe(topic, id string) error {
 	b.subscriberMutex.Lock()
 	defer b.subscriberMutex.Unlock()
 
-	// there's really no race condition here, but we need this lock to pass race condition tests.
-	b.eventMutex.Lock()
-	if _, ok := b.eventTypes[topic]; !ok {
-		b.eventMutex.Unlock()
+	if !b.validTopic(topic) {
 		return errors.New("topic does not exist")
 	}
-	b.eventMutex.Unlock()
 
 	subscribers := b.subscribers[topic]
 	for i, subscriber := range subscribers {
@@ -253,4 +242,12 @@ func (b *BrokerService) Stop() error {
 	case <-time.After(b.onStopTimeout):
 		return errors.Errorf("not able to finish all handlers in %d seconds", b.onStopTimeout)
 	}
+}
+
+func (b *BrokerService) validTopic(topic string) bool {
+	// there's really no race condition here, but we need this lock to pass race condition tests.
+	b.eventMutex.Lock()
+	defer b.eventMutex.Unlock()
+	_, ok := b.eventTypes[topic]
+	return ok
 }
