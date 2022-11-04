@@ -4096,6 +4096,10 @@
     "translation": "Unable to get user by email."
   },
   {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error fetching roles during validation."
+  },
+  {
     "id": "api.user.invalidate_verify_email_tokens.error",
     "translation": "Unable to get tokens by type when invalidating email verification tokens"
   },

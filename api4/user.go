@@ -699,7 +699,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		// fetch all role names
 		rolesAll, err := c.App.GetAllRoles()
 		if err != nil {
-			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
+			c.Err = model.NewAppError("Api4.getUsers", "api.user.get_users.validation.app_error", nil, "Error fetching roles during validation.", http.StatusBadRequest)
 			return
 		}
 		for _, role := range rolesAll {
