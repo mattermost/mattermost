@@ -16,7 +16,7 @@ import (
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	draft, err := a.Srv().Store.Draft().Get(userID, channelID, rootID)
+	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -31,7 +31,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	dt, dErr := a.Srv().Store.Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
+	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
 	var notFoundErr *store.ErrNotFound
 	if dErr != nil && !errors.As(dErr, &notFoundErr) {
 		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, dErr.Error(), http.StatusInternalServerError)
@@ -70,7 +70,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 
 func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	// Check that channel exists and has not been deleted
-	channel, errCh := a.Srv().Store.Channel().Get(draft.ChannelId, true)
+	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
 		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
@@ -81,7 +81,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, err
 	}
 
-	_, nErr := a.Srv().Store.User().Get(context.Background(), draft.UserId)
+	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -92,7 +92,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 		}
 	}
 
-	dt, nErr := a.Srv().Store.Draft().Save(draft)
+	dt, nErr := a.Srv().Store().Draft().Save(draft)
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -119,7 +119,7 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 
 func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	// Check that channel exists and has not been deleted
-	channel, errCh := a.Srv().Store.Channel().Get(draft.ChannelId, true)
+	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
 		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
@@ -130,7 +130,7 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, err
 	}
 
-	_, nErr := a.Srv().Store.User().Get(context.Background(), draft.UserId)
+	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -141,7 +141,7 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 		}
 	}
 
-	dt, nErr := a.Srv().Store.Draft().Update(draft)
+	dt, nErr := a.Srv().Store().Draft().Update(draft)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -164,7 +164,7 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
-	drafts, err := a.Srv().Store.Draft().GetDraftsForUser(userID, teamID)
+	drafts, err := a.Srv().Store().Draft().GetDraftsForUser(userID, teamID)
 
 	if err != nil {
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.get_drafts.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -174,12 +174,12 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
-	draft, nErr := a.Srv().Store.Draft().Get(userID, channelID, rootID)
+	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store.Draft().Delete(userID, channelID, rootID); err != nil {
+	if err := a.Srv().Store().Draft().Delete(userID, channelID, rootID); err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):

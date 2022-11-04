@@ -2034,9 +2034,9 @@ func (a *OpenTracingAppLayer) CreateDraft(c *request.Context, draft *model.Draft
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDraft")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
@@ -3019,9 +3019,9 @@ func (a *OpenTracingAppLayer) DeleteDraft(userID string, channelID string, rootI
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteDraft")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
@@ -5853,9 +5853,9 @@ func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID s
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDraft")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
@@ -5875,9 +5875,9 @@ func (a *OpenTracingAppLayer) GetDraftsForUser(userID string, teamID string) ([]
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDraftsForUser")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
@@ -16951,9 +16951,9 @@ func (a *OpenTracingAppLayer) UpdateDraft(c *request.Context, draft *model.Draft
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDraft")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
@@ -18062,9 +18062,9 @@ func (a *OpenTracingAppLayer) UpsertDraft(c *request.Context, draft *model.Draft
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpsertDraft")
 
 	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
+	a.app.Srv().Store().SetContext(newCtx)
 	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
+		a.app.Srv().Store().SetContext(origCtx)
 		a.ctx = origCtx
 	}()
 
