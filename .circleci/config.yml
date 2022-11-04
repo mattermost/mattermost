@@ -203,6 +203,7 @@ jobs:
       - run:
           command: |
             cd mattermost-server
+            go vet ./...
             make golangci-lint
   # Dedicate job for mattermost-vet to make more clear when the job fails
   check-mattermost-vet:

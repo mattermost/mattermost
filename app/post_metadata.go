@@ -66,7 +66,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
-func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
+func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
@@ -83,20 +83,20 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
-	if emojiURL, err := a.GetEmojiStaticURL(emojiName); err == nil {
+	if emojiURL, err := a.GetEmojiStaticURL(c, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
 		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	a.OverrideIconURLIfEmoji(post)
+	a.OverrideIconURLIfEmoji(c, post)
 	if post.Metadata == nil {
 		post.Metadata = &model.PostMetadata{}
 	}
@@ -109,7 +109,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 	}
 
 	// Emojis and reaction counts
-	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
+	if emojis, reactions, err := a.getEmojisAndReactionsForPost(c, post); err != nil {
 		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
@@ -143,7 +143,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost, isEditPo
 }
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
-	post := a.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost)
 	post = a.getEmbedsAndImages(c, post, isNewPost)
 	return post
 }
@@ -228,7 +228,7 @@ func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*mode
 	return a.GetFileInfosForPost(post.Id, fromMaster, false)
 }
 
-func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
+func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
 	if post.HasReactions {
 		var err *model.AppError
@@ -238,7 +238,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 		}
 	}
 
-	emojis, err := a.getCustomEmojisForPost(post, reactions)
+	emojis, err := a.getCustomEmojisForPost(c, post, reactions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -411,7 +411,7 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 	return names
 }
 
-func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		// Only custom emoji are returned
 		return []*model.Emoji{}, nil
@@ -423,7 +423,7 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 		return []*model.Emoji{}, nil
 	}
 
-	return a.GetMultipleEmojiByName(names)
+	return a.GetMultipleEmojiByName(c, names)
 }
 
 func (a *App) isLinkAllowedForPreview(link string) bool {

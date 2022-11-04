@@ -338,7 +338,7 @@ func (ps *PlatformService) GenerateRenewalToken(expiration time.Duration) (strin
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
 	}
 
-	if *license.Features.Cloud {
+	if license.IsCloud() {
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.bad_license", nil, "", http.StatusBadRequest)
 	}
 
