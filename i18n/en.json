@@ -3936,6 +3936,10 @@
     "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": " "
+  },
+  {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
     "translation": "Bad response from token request."
   },
