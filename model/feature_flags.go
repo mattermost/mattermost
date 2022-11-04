@@ -73,6 +73,8 @@ type FeatureFlags struct {
 	// A/B Test on posting a welcome message
 	SendWelcomePost bool
 
+	WorkTemplate bool
+
 	PostPriority bool
 
 	PeopleProduct bool
@@ -111,6 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.SendWelcomePost = true
 	f.PostPriority = false
 	f.PeopleProduct = false
+	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
