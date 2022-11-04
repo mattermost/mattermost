@@ -429,6 +429,17 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	user, appErr := c.App.GetUser(c.Params.UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if user.AuthService != model.UserAuthServiceLdap {
+		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("addUserToGroupSyncables", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
