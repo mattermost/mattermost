@@ -260,7 +260,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		metadata := post.Metadata.Copy()
+		var metadata *model.PostMetadata
+		if post.Metadata != nil {
+			metadata = post.Metadata.Copy()
+		}
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
