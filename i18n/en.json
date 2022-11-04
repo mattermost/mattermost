@@ -149,7 +149,7 @@
   },
   {
     "id": "api.admin.syncables_error",
-    "translation": " "
+    "translation": "failed to add user to group-teams and group-channels"
   },
   {
     "id": "api.admin.test_email.body",
@@ -3937,7 +3937,7 @@
   },
   {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
-    "translation": " "
+    "translation": "not an ldap user"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
