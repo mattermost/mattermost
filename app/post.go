@@ -343,7 +343,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true, false)
+	rpost = a.PreparePostForClient(c, rpost, true, false)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -1431,7 +1431,7 @@ func (a *App) convertUserNameToUserIds(usernames []string) []string {
 // GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessiblePostTime() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		return 0, nil
 	}
 
@@ -1490,7 +1490,7 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 
 func (a *App) getCloudMessagesHistoryLimit() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		return 0, nil
 	}
 
