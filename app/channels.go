@@ -120,7 +120,7 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	for _, svcKey := range requiredServices {
 		svc, ok := services[svcKey]
 		if !ok {
-			return nil, fmt.Errorf("Service %s not passed", svcKey)
+			return nil, fmt.Errorf("service %s not passed", svcKey)
 		}
 		switch svcKey {
 		// Keep adding more services here

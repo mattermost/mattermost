@@ -25,6 +25,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
 	"github.com/pkg/errors"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -566,7 +568,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	provider := einterfaces.GetOAuthProvider(providerType)
 	if provider == nil {
 		return nil, model.NewAppError("getSSOProvider", "api.user.login_by_oauth.not_available.app_error",
-			map[string]any{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+			map[string]any{"Service": cases.Title(language.AmericanEnglish).String(service)}, "", http.StatusNotImplemented)
 	}
 	return provider, nil
 }
