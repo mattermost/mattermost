@@ -424,8 +424,7 @@ func removeLdapPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 // addUserToGroupSyncables creates memberships—for the given user—to all of their group syncables (i.e. channels or teams).
 // For each group the user is a member of, for each channel and/or team that group is associated with, the user will be added.
 func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
-	session := *c.AppContext.Session()
-	if !c.App.SessionHasPermissionTo(session, model.PermissionSysconsoleWriteUserManagementGroups) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
 		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementGroups)
 		return
 	}
