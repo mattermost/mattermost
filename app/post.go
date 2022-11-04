@@ -260,6 +260,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		metadata := post.Metadata.Copy()
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
@@ -273,8 +274,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 				return false
 			}
 			if replacementPost != nil {
-				// the original post's metadata (if there ever was any) is lost, and will be rebuilt.
 				post = replacementPost
+				// we nee the metadata to persist, we are saving metadata.priority in posts priority table
+				post.Metadata = metadata
 			}
 
 			return true
