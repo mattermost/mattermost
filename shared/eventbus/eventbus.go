@@ -47,12 +47,10 @@ type BrokerService struct {
 	channel               chan Event
 	eventTypes            map[string]EventType
 	eventMutex            *sync.Mutex
-	goroutineCount        int32
-	eventCount            int32
-	goroutineExitSignal   chan struct{}
 	goroutineLimitChannel chan struct{}
 	stopping              int32
 	stoppedChannel        chan struct{}
+	allWarkIsDone         *sync.WaitGroup
 }
 
 func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *BrokerService {
@@ -65,12 +63,10 @@ func NewBroker(queueLimit, goroutineLimit int, onStopTimeout time.Duration) *Bro
 		channel:               make(chan Event, queueLimit),
 		eventMutex:            &sync.Mutex{},
 		eventTypes:            map[string]EventType{},
-		goroutineCount:        0,
-		eventCount:            0,
-		goroutineExitSignal:   make(chan struct{}, 1),
 		goroutineLimitChannel: make(chan struct{}, goroutineLimit),
 		stopping:              0,
 		stoppedChannel:        make(chan struct{}, 1),
+		allWarkIsDone:         &sync.WaitGroup{},
 	}
 }
 
@@ -132,7 +128,7 @@ func (b *BrokerService) Publish(topic string, ctx request.CTX, data any) error {
 
 	select {
 	case b.channel <- ev:
-		atomic.AddInt32(&b.eventCount, 1)
+		b.allWarkIsDone.Add(1)
 	case <-ctx.Context().Done():
 		return nil
 	}
@@ -196,11 +192,7 @@ func (b *BrokerService) runHandlers() {
 		}
 		b.subscriberMutex.Unlock()
 
-		atomic.AddInt32(&b.eventCount, -1)
-		select {
-		case b.goroutineExitSignal <- struct{}{}:
-		default:
-		}
+		b.allWarkIsDone.Add(-1)
 	}
 }
 
@@ -208,17 +200,13 @@ func (b *BrokerService) runHandlers() {
 // the server is shutdown.
 func (b *BrokerService) runGoroutine(f func()) {
 	b.goroutineLimitChannel <- struct{}{}
-	atomic.AddInt32(&b.goroutineCount, 1)
+	b.allWarkIsDone.Add(1)
 
 	go func() {
 		f()
 		<-b.goroutineLimitChannel
 
-		atomic.AddInt32(&b.goroutineCount, -1)
-		select {
-		case b.goroutineExitSignal <- struct{}{}:
-		default:
-		}
+		b.allWarkIsDone.Add(-1)
 	}()
 }
 
@@ -229,9 +217,7 @@ func (b *BrokerService) Stop() error {
 	done := make(chan struct{}, 1)
 	go func() {
 		// We are waiting for all goroutines to be finished and all published events to be handled
-		for atomic.LoadInt32(&b.goroutineCount) != 0 || atomic.LoadInt32(&b.eventCount) != 0 {
-			<-b.goroutineExitSignal
-		}
+		b.allWarkIsDone.Wait()
 		done <- struct{}{}
 	}()
 
