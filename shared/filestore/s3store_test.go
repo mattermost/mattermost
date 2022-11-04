@@ -200,8 +200,11 @@ func newTLSProxyServer(backend *url.URL) *httptest.Server {
 }
 
 func TestS3WithCancel(t *testing.T) {
+	// Some of these tests use time.Sleep to wait for the timeout to expire.
+	// They are run in parallel to reduce wait times.
+
 	t.Run("zero timeout", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(0, nil)
 
 		time.Sleep(10 * time.Millisecond) // give the context time to cancel
@@ -211,7 +214,7 @@ func TestS3WithCancel(t *testing.T) {
 	})
 
 	t.Run("timeout", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
 
 		time.Sleep(100 * time.Millisecond) // give the context time to cancel
@@ -221,7 +224,7 @@ func TestS3WithCancel(t *testing.T) {
 	})
 
 	t.Run("timeout cancel", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
 
 		time.Sleep(10 * time.Millisecond) // give the context time to cancel
@@ -237,7 +240,7 @@ func TestS3WithCancel(t *testing.T) {
 	})
 
 	t.Run("timeout closed", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
 
 		time.Sleep(10 * time.Millisecond) // give the context time to cancel
@@ -254,7 +257,7 @@ func TestS3WithCancel(t *testing.T) {
 	})
 
 	t.Run("close cancel close", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(50*time.Millisecond, nil)
 
 		time.Sleep(10 * time.Millisecond) // give the context time to cancel
@@ -268,7 +271,7 @@ func TestS3WithCancel(t *testing.T) {
 	})
 
 	t.Run("close error", func(t *testing.T) {
-		t.Parallel() // some of these tests need to sleep, speed things up
+		t.Parallel()
 		r, ctx := newMockS3WithCancel(50*time.Millisecond, errors.New("test error"))
 
 		time.Sleep(10 * time.Millisecond) // give the context time to cancel
