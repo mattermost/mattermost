@@ -1214,6 +1214,47 @@ func TestSearchUsers(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, users[0].Id, th.BasicUser.Id)
 	})
+
+	id = model.NewId()
+	group, appErr = th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, NotInGroupId: group.Id}
+	t.Run("Returns users not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
+
+	_, appErr = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, appErr)
+
+	t.Run("Returns empty list for not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		assert.Len(t, users, 0)
+	})
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{th.BasicUser.Id},
+	}
+
+	_, _, delErr := th.Client.DeleteGroupMembers(group.Id, members)
+	require.NoError(t, delErr)
+
+	t.Run("Returns user not in group after they were deleted from group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
 }
 
 func findUserInList(id string, users []*model.User) bool { //nolint:unused
