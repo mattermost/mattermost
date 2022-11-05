@@ -6,6 +6,7 @@ package platform
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -59,7 +60,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		conn.Platform.HubRegister(conn)
 
 		conn.Platform.Go(func() {
-			conn.Suite.SetStatusOnline(session.UserId, false)
+			conn.Suite.SetStatusOnline(request.EmptyContext(conn.Platform.Logger()), session.UserId, false)
 			conn.Suite.UpdateLastActivityAtIfNeeded(*session)
 		})
 

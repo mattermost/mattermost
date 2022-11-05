@@ -335,7 +335,7 @@ func (api *PluginAPI) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *
 func (api *PluginAPI) UpdateUserStatus(userID, status string) (*model.Status, *model.AppError) {
 	switch status {
 	case model.StatusOnline:
-		api.app.SetStatusOnline(userID, true)
+		api.app.SetStatusOnline(api.ctx, userID, true)
 	case model.StatusOffline:
 		api.app.SetStatusOffline(userID, true)
 	case model.StatusAway:

@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vmihailenco/msgpack/v5"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
@@ -165,7 +166,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, envFn func() *plugin.Environment) *WebConn {
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
-			suite.SetStatusOnline(cfg.Session.UserId, false)
+			suite.SetStatusOnline(request.EmptyContext(ps.Logger()), cfg.Session.UserId, false)
 			suite.UpdateLastActivityAtIfNeeded(cfg.Session)
 		})
 	}

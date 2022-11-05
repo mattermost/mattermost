@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
@@ -24,7 +25,7 @@ type SuiteIFace interface {
 	SetStatusLastActivityAt(userID string, activityAt int64)
 	SetStatusOffline(userID string, manual bool)
 	IsUserAway(lastActivityAt int64) bool
-	SetStatusOnline(userID string, manual bool)
+	SetStatusOnline(c request.CTX, userID string, manual bool)
 	UpdateLastActivityAtIfNeeded(session model.Session)
 	SetStatusAwayIfNeeded(userID string, manual bool)
 	GetSession(token string) (*model.Session, *model.AppError)

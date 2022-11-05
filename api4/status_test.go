@@ -25,7 +25,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("online status", func(t *testing.T) {
-		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		th.App.SetStatusOnline(th.Context, th.BasicUser.Id, true)
 		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "online", userStatus.Status)
@@ -55,7 +55,7 @@ func TestGetUserStatus(t *testing.T) {
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
-		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		th.App.SetStatusOnline(th.Context, th.BasicUser.Id, true)
 		userStatus, _, err := client.GetUserStatus(th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "online", userStatus.Status)
@@ -132,8 +132,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	})
 
 	t.Run("online status", func(t *testing.T) {
-		th.App.SetStatusOnline(th.BasicUser.Id, true)
-		th.App.SetStatusOnline(th.BasicUser2.Id, true)
+		th.App.SetStatusOnline(th.Context, th.BasicUser.Id, true)
+		th.App.SetStatusOnline(th.Context, th.BasicUser2.Id, true)
 		usersStatuses, _, err := client.GetUsersStatusesByIds(usersIds)
 		require.NoError(t, err)
 		for _, userStatus := range usersStatuses {

@@ -15579,7 +15579,7 @@ func (a *OpenTracingAppLayer) SetActiveChannel(c request.CTX, userID string, cha
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+func (a *OpenTracingAppLayer) SetAutoResponderStatus(c request.CTX, user *model.User, oldNotifyProps model.StringMap) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetAutoResponderStatus")
 
@@ -15591,7 +15591,7 @@ func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotify
 	}()
 
 	defer span.Finish()
-	a.app.SetAutoResponderStatus(user, oldNotifyProps)
+	a.app.SetAutoResponderStatus(c, user, oldNotifyProps)
 }
 
 func (a *OpenTracingAppLayer) SetChannels(ch *app.Channels) {
@@ -15978,7 +15978,7 @@ func (a *OpenTracingAppLayer) SetStatusOffline(userID string, manual bool) {
 	a.app.SetStatusOffline(userID, manual)
 }
 
-func (a *OpenTracingAppLayer) SetStatusOnline(userID string, manual bool) {
+func (a *OpenTracingAppLayer) SetStatusOnline(c request.CTX, userID string, manual bool) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOnline")
 
@@ -15990,7 +15990,7 @@ func (a *OpenTracingAppLayer) SetStatusOnline(userID string, manual bool) {
 	}()
 
 	defer span.Finish()
-	a.app.SetStatusOnline(userID, manual)
+	a.app.SetStatusOnline(c, userID, manual)
 }
 
 func (a *OpenTracingAppLayer) SetStatusOutOfOffice(userID string) {

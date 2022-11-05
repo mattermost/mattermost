@@ -2413,7 +2413,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
 		user := th.CreateUser()
 
-		th.App.SetStatusOnline(user.Id, true)
+		th.App.SetStatusOnline(th.Context, user.Id, true)
 
 		channelMemberNotificationProps := model.StringMap{
 			model.EmailNotifyProp:      model.ChannelNotifyDefault,

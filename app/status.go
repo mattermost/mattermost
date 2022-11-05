@@ -33,7 +33,7 @@ func (a *App) SetStatusLastActivityAt(userID string, activityAt int64) {
 	a.SetStatusAwayIfNeeded(userID, false)
 }
 
-func (a *App) SetStatusOnline(userID string, manual bool) {
+func (a *App) SetStatusOnline(c request.CTX, userID string, manual bool) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -74,11 +74,11 @@ func (a *App) SetStatusOnline(userID string, manual bool) {
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.StatusMinUpdateTime {
 		if broadcast {
 			if err := a.Srv().Store().Status().SaveOrUpdate(status); err != nil {
-				mlog.Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
+				c.Logger().Warn("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		} else {
 			if err := a.Srv().Store().Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
-				mlog.Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
+				c.Logger().Error("Failed to save status", mlog.String("user_id", userID), mlog.Err(err), mlog.String("user_id", userID))
 			}
 		}
 	}
