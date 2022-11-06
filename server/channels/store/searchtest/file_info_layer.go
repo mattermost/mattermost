@@ -1199,7 +1199,11 @@ func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
 	require.NoError(t, err)
 	p2, err := th.createFileInfo(th.User.Id, post.Id, "searching", "searching", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
+	p3, err := th.createFileInfo(th.User.Id, post.Id, "long post", "first text and second text and last text", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
 	_, err = th.createFileInfo(th.User.Id, post.Id, "another post", "another post", "jpg", "image/jpeg", 0, 0)
+	require.NoError(t, err)
+	_, err = th.createFileInfo(th.User.Id, post.Id, "another long post", "another text and second text and last text", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 	defer th.deleteUserFileInfos(th.User.Id)
 
@@ -1224,6 +1228,17 @@ func testFileInfoAlwaysSupportWildcards(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
+	})
+
+	t.Run("support wildcard search when quoted text is used together.", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "\"first text\" secon \"last text\"",
+		}
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.FileInfos, 1)
+		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
 	})
 }
 
