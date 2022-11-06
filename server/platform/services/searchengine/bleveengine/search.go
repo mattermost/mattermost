@@ -707,23 +707,21 @@ func (b *BleveEngine) SearchFiles(channels model.ChannelList, searchParams []*mo
 			}
 		}
 
+		wildcardRegExp := regexp.MustCompile(`\*?$`)
+		exactPhraseRegExp := regexp.MustCompile(`"[^"]+"`)
+
 		if params.Terms != "" {
 			terms := []string{}
 			exactPhraseTerms := []string{}
 
-			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
-				exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(params.Terms, -1)...)
-				params.Terms = exactPhraseRegExp.ReplaceAllLiteralString(params.Terms, "")
-			}
+			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(params.Terms, -1)...)
+			params.Terms = exactPhraseRegExp.ReplaceAllLiteralString(params.Terms, "")
 
 			wildcardAddedTerms := strings.Fields(params.Terms)
-			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
 
-			if regExpErr == nil {
-				for index, term := range wildcardAddedTerms {
-					if !strings.HasPrefix(term, "*") {
-						wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
-					}
+			for index, term := range wildcardAddedTerms {
+				if !strings.HasPrefix(term, "*") {
+					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
 				}
 			}
 

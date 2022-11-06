@@ -607,6 +607,10 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
+		wildcardRegExp := regexp.MustCompile(`\*?$`)
+		exactPhraseRegExp := regexp.MustCompile(`"[^"]+"`)
+
+		// these chars have special meaning and can be treated as spaces
 		for _, c := range fs.specialSearchChars() {
 			terms = strings.Replace(terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
@@ -615,10 +619,9 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 		} else if fs.DriverName() == model.DatabaseDriverPostgres {
-			// Parse text for wildcards
-			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-				excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
-			}
+			// In excludedTerms case, we don't put a wildcard after the term.
+			wildcardRegExpForExcludedTerms := regexp.MustCompile(`\*($| )`)
+			excludedTerms = wildcardRegExpForExcludedTerms.ReplaceAllLiteralString(excludedTerms, ":* ")
 
 			excludeClause := ""
 			if excludedTerms != "" {
@@ -627,23 +630,18 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			exactPhraseTerms := []string{}
 
-			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
-				for _, term := range exactPhraseRegExp.FindAllString(terms, -1) {
-					quoteRemovedTerm := strings.Trim(term, "\"")
+			for _, term := range exactPhraseRegExp.FindAllString(terms, -1) {
+				quoteRemovedTerm := strings.Trim(term, "\"")
 
-					exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
-				}
-
-				terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
+				exactPhraseTerms = append(exactPhraseTerms, strings.Fields(quoteRemovedTerm)...)
 			}
 
-			wildcardAddedTerms := strings.Fields(terms)
-			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
+			terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
 
-			if regExpErr == nil {
-				for index, term := range wildcardAddedTerms {
-					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, ":*")
-				}
+			wildcardAddedTerms := strings.Fields(terms)
+
+			for index, term := range wildcardAddedTerms {
+				wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, ":*")
 			}
 
 			queryTerms := ""
@@ -671,18 +669,13 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 			exactPhraseTerms := []string{}
 
-			if exactPhraseRegExp, exactPhraseRegExpErr := regexp.Compile(`".+"\s*`); exactPhraseRegExpErr == nil {
-				exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(terms, -1)...)
-				terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
-			}
+			exactPhraseTerms = append(exactPhraseTerms, exactPhraseRegExp.FindAllString(terms, -1)...)
+			terms = exactPhraseRegExp.ReplaceAllLiteralString(terms, "")
 
 			wildcardAddedTerms := strings.Fields(terms)
-			wildcardRegExp, regExpErr := regexp.Compile(`\*?$`)
 
-			if regExpErr == nil {
-				for index, term := range wildcardAddedTerms {
-					wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
-				}
+			for index, term := range wildcardAddedTerms {
+				wildcardAddedTerms[index] = wildcardRegExp.ReplaceAllLiteralString(term, "*")
 			}
 
 			parsedTerms := append(wildcardAddedTerms, exactPhraseTerms...)
