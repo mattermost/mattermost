@@ -681,8 +681,8 @@ func ParseHashtags(text string) (string, string) {
 }
 
 func ClearMentionTags(post string) string {
-	post = strings.Replace(post, "<mention>", "", -1)
-	post = strings.Replace(post, "</mention>", "", -1)
+	post = strings.ReplaceAll(post, "<mention>", "")
+	post = strings.ReplaceAll(post, "</mention>", "")
 	return post
 }
 

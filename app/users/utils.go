@@ -20,7 +20,7 @@ func CheckEmailDomain(email string, domains string) bool {
 		return true
 	}
 
-	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(domains, "@", " "), ",", " "))))
 
 	for _, d := range domainArray {
 		if strings.HasSuffix(strings.ToLower(email), "@"+d) {

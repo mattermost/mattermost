@@ -345,7 +345,7 @@ func TestServePluginRequest(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
+	r := httptest.NewRequest(http.MethodGet, "/plugins/foo/bar", http.NoBody)
 	th.App.ch.ServePluginRequest(w, r)
 	assert.Equal(t, http.StatusNotImplemented, w.Result().StatusCode)
 }
@@ -418,7 +418,7 @@ func TestHandlePluginRequest(t *testing.T) {
 		})
 	})
 
-	r := httptest.NewRequest("GET", "/plugins/foo/bar", nil)
+	r := httptest.NewRequest(http.MethodGet, "/plugins/foo/bar", http.NoBody)
 	r.Header.Add("Authorization", "Bearer "+token.Token)
 	assertions = func(r *http.Request) {
 		assert.Equal(t, "/bar", r.URL.Path)
@@ -426,7 +426,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	}
 	router.ServeHTTP(nil, r)
 
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token="+token.Token+"&c=d", nil)
+	r = httptest.NewRequest(http.MethodGet, "/plugins/foo/bar?a=b&access_token="+token.Token+"&c=d", http.NoBody)
 	assertions = func(r *http.Request) {
 		assert.Equal(t, "/bar", r.URL.Path)
 		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)
@@ -434,7 +434,7 @@ func TestHandlePluginRequest(t *testing.T) {
 	}
 	router.ServeHTTP(nil, r)
 
-	r = httptest.NewRequest("GET", "/plugins/foo/bar?a=b&access_token=asdf&c=d", nil)
+	r = httptest.NewRequest(http.MethodGet, "/plugins/foo/bar?a=b&access_token=asdf&c=d", http.NoBody)
 	assertions = func(r *http.Request) {
 		assert.Equal(t, "/bar", r.URL.Path)
 		assert.Equal(t, "a=b&c=d", r.URL.RawQuery)

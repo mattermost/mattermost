@@ -802,7 +802,7 @@ func TestPushNotificationAck(t *testing.T) {
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
 		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req := httptest.NewRequest(http.MethodPost, "/api/v4/notifications/ack", http.NoBody)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 		handler.ServeHTTP(resp, req)
@@ -816,7 +816,7 @@ func TestPushNotificationAck(t *testing.T) {
 
 		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
-		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req := httptest.NewRequest(http.MethodPost, "/api/v4/notifications/ack", http.NoBody)
 		req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 		req.Body = io.NopCloser(bytes.NewBufferString(fmt.Sprintf(`{"id":"123", "is_id_loaded":true, "post_id":"%s", "type": "%s"}`, privatePost.Id, model.PushTypeMessage)))
 

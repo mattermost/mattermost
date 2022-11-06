@@ -38,7 +38,7 @@ func (backend *AtmosCamoBackend) GetImage(w http.ResponseWriter, r *http.Request
 }
 
 func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
-	req, err := http.NewRequest("GET", backend.getAtmosCamoImageURL(imageURL), nil)
+	req, err := http.NewRequest(http.MethodGet, backend.getAtmosCamoImageURL(imageURL), http.NoBody)
 	if err != nil {
 		return nil, "", Error{err}
 	}

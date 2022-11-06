@@ -61,8 +61,8 @@ type Channel struct {
 	LastRootPostAt    int64          `json:"last_root_post_at"`
 }
 
-func (o *Channel) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Channel) Auditable() map[string]any {
+	return map[string]any{
 		"create_at":            o.CreateAt,
 		"creator_id":           o.CreatorId,
 		"delete_at":            o.DeleteAt,
@@ -102,8 +102,8 @@ type ChannelPatch struct {
 	GroupConstrained *bool   `json:"group_constrained"`
 }
 
-func (c *ChannelPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ChannelPatch) Auditable() map[string]any {
+	return map[string]any{
 		"header":            c.Header,
 		"group_constrained": c.GroupConstrained,
 		"purpose":           c.Purpose,

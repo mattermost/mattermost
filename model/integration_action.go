@@ -12,7 +12,7 @@ import (
 	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"math/big"
 	"net/http"
@@ -465,7 +465,7 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 
 	nonceSize := aesgcm.NonceSize()
 	if len(decoded) < nonceSize {
-		return "", fmt.Errorf("cookie too short")
+		return "", errors.New("cookie too short")
 	}
 
 	nonce, decoded := decoded[:nonceSize], decoded[nonceSize:]

@@ -107,7 +107,7 @@ func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model.ComplianceExportCursor, limit int) ([]*model.CompliancePost, model.ComplianceExportCursor, error) {
 	keywordQuery := ""
 	var argsKeywords []any
-	keywords := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Keywords, ",", " ", -1))))
+	keywords := strings.Fields(strings.TrimSpace(strings.ToLower(strings.ReplaceAll(job.Keywords, ",", " "))))
 	if len(keywords) > 0 {
 		clauses := make([]string, len(keywords))
 
@@ -122,7 +122,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance, cursor model
 
 	emailQuery := ""
 	var argsEmails []any
-	emails := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(job.Emails, ",", " ", -1))))
+	emails := strings.Fields(strings.TrimSpace(strings.ToLower(strings.ReplaceAll(job.Emails, ",", " "))))
 	if len(emails) > 0 {
 		clauses := make([]string, len(emails))
 

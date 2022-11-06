@@ -86,7 +86,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHTML, -1); len(results) == 0 {
-		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
+		return errors.New("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHTML = reCSP.ReplaceAllLiteralString(newRootHTML, fmt.Sprintf(
@@ -97,7 +97,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	// Rewrite the root.html references to `/static/*` to include the given subpath.
 	// This potentially includes a previously injected inline script that needs to
 	// be updated (and isn't covered by the cases above).
-	newRootHTML = strings.Replace(newRootHTML, pathToReplace, newPath, -1)
+	newRootHTML = strings.ReplaceAll(newRootHTML, pathToReplace, newPath)
 
 	if alreadyRewritten && subpath == "/" {
 		// Remove the injected script since no longer required. Note that the rewrite above
@@ -123,7 +123,7 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
 			}
-			new := strings.Replace(string(old), pathToReplace, newPath, -1)
+			new := strings.ReplaceAll(string(old), pathToReplace, newPath)
 			if err = os.WriteFile(walkPath, []byte(new), 0); err != nil {
 				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 			}

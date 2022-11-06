@@ -6,6 +6,7 @@ package mail
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,9 +15,7 @@ import (
 	"time"
 )
 
-const (
-	InbucketAPI = "/api/v1/mailbox/"
-)
+const InbucketAPI = "/api/v1/mailbox/"
 
 // OutputJSONHeader holds the received Header to test sending emails (inbucket)
 type JSONMessageHeaderInbucket []struct {
@@ -69,16 +68,15 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	}()
 
 	if resp.Body == nil {
-		return nil, fmt.Errorf("no mailbox")
+		return nil, errors.New("no mailbox")
 	}
 
 	var record JSONMessageHeaderInbucket
-	err = json.NewDecoder(resp.Body).Decode(&record)
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&record); err != nil {
 		return nil, fmt.Errorf("error: %w", err)
 	}
 	if len(record) == 0 {
-		return nil, fmt.Errorf("no mailbox")
+		return nil, errors.New("no mailbox")
 	}
 
 	return record, nil
@@ -136,7 +134,7 @@ func DeleteMailBox(email string) (err error) {
 	parsedEmail := ParseEmail(email)
 
 	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest(http.MethodDelete, url, http.NoBody)
 	if err != nil {
 		return err
 	}
@@ -171,7 +169,6 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 }
 
 func getInbucketHost() (host string) {
-
 	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
 		inbucket_host = "localhost"

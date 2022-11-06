@@ -43,7 +43,7 @@ func TestHandlerServeHTTPErrors(t *testing.T) {
 
 	for _, tt := range flagtests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest("GET", tt.url, nil)
+			request := httptest.NewRequest(http.MethodGet, tt.url, http.NoBody)
 			if tt.mobile {
 				request.Header.Add("X-Mobile-App", "mattermost")
 			}
@@ -89,7 +89,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	web := New(th.Server)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
-	request := httptest.NewRequest("GET", "/api/v4/test", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
@@ -107,7 +107,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		*config.ServiceSettings.TLSStrictTransport = false
 	})
 
-	request = httptest.NewRequest("GET", "/api/v4/test", nil)
+	request = httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 
 	response = httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
@@ -164,7 +164,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// CSRF Token Used - Success Expected
 
-	request := httptest.NewRequest("POST", "/api/v4/test", nil)
+	request := httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
@@ -178,7 +178,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// No CSRF Token Used - Failure Expected
 
-	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request = httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
@@ -194,7 +194,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
 	})
-	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request = httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
@@ -231,7 +231,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// CSRF Token Used - Success Expected
 
-	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request = httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
@@ -245,7 +245,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// No CSRF Token Used - Failure Expected
 
-	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request = httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 	request.AddCookie(cookie)
 	request.AddCookie(cookie2)
 	request.AddCookie(cookie3)
@@ -276,7 +276,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			IsStatic:       false,
 		}
 
-		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		request := httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
@@ -298,7 +298,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			IsStatic:       true,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
+		request := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
@@ -339,7 +339,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			IsStatic:       true,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
+		request := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
@@ -354,7 +354,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath2"
 		})
 
-		request = httptest.NewRequest("POST", "/", nil)
+		request = httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
@@ -384,7 +384,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 			IsStatic:       true,
 		}
 
-		request := httptest.NewRequest("POST", "/", nil)
+		request := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
@@ -550,7 +550,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 				Value: "invalid",
 			}
 
-			request := httptest.NewRequest("POST", "/api/v4/test", nil)
+			request := httptest.NewRequest(http.MethodPost, "/api/v4/test", http.NoBody)
 			request.AddCookie(cookie)
 			response := httptest.NewRecorder()
 			handler.ServeHTTP(response, request)
@@ -579,7 +579,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{
@@ -611,7 +611,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			Logger:     th.App.Log(),
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
@@ -662,7 +662,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			Logger:     th.App.Log(),
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		r.Header.Set(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 		session := &model.Session{
 			Props: map[string]string{
@@ -693,7 +693,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -723,7 +723,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodGet, "", nil)
+		r, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -753,7 +753,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		session := &model.Session{
 			Props: map[string]string{
 				"csrf": token,
@@ -783,7 +783,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		r.Header.Set(model.HeaderCsrfToken, token)
 
 		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, nil)
@@ -809,7 +809,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			App:        th.App,
 			AppContext: th.Context,
 		}
-		r, _ := http.NewRequest(http.MethodPost, "", nil)
+		r, _ := http.NewRequest(http.MethodPost, "", http.NoBody)
 		r.Header.Set(model.HeaderCsrfToken, token)
 		session := &model.Session{
 			Props: map[string]string{

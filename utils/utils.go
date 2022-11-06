@@ -138,7 +138,7 @@ type RequestCache struct {
 // if skip is passed, does a fetch without touching the cache
 func GetURLWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
 	// Build a GET Request, including optional If-None-Match header.
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		cache.Data = nil
 		return nil, err

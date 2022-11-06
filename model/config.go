@@ -3161,10 +3161,8 @@ type Config struct {
 	ExportSettings            ExportSettings
 }
 
-func (o *Config) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		// TODO
-	}
+func (o *Config) Auditable() map[string]any {
+	return map[string]any{}
 }
 
 func (o *Config) Clone() *Config {

@@ -233,7 +233,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	require.True(t, activated)
 
 	// Verify access to the bundle with requisite headers
-	req, _ := http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", http.NoBody)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusOK, res.Code)
@@ -242,7 +242,7 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Verify cached access to the bundle with an If-Modified-Since timestamp in the future
 	future := time.Now().Add(24 * time.Hour)
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, _ = http.NewRequest(http.MethodGet, "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", http.NoBody)
 	req.Header.Add("If-Modified-Since", future.Format(time.RFC850))
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
@@ -252,7 +252,7 @@ func TestStaticFilesRequest(t *testing.T) {
 
 	// Verify access to the bundle with an If-Modified-Since timestamp in the past
 	past := time.Now().Add(-24 * time.Hour)
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req, _ = http.NewRequest(http.MethodGet, "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", http.NoBody)
 	req.Header.Add("If-Modified-Since", past.Format(time.RFC850))
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
@@ -261,7 +261,7 @@ func TestStaticFilesRequest(t *testing.T) {
 	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 
 	// Verify handling of 404.
-	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/404.js", nil)
+	req, _ = http.NewRequest(http.MethodGet, "/static/plugins/com.mattermost.sample/404.js", http.NoBody)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, http.StatusNotFound, res.Code)
@@ -329,17 +329,17 @@ func TestPublicFilesRequest(t *testing.T) {
 
 	th.App.Channels().SetPluginsEnvironment(env)
 
-	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/plugins/com.mattermost.sample/public/hello.html", http.NoBody)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, helloHTML, res.Body.String())
 
-	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	req, _ = http.NewRequest(http.MethodGet, "/plugins/com.mattermost.sample/nefarious-file-access.html", http.NoBody)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, 404, res.Code)
 
-	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	req, _ = http.NewRequest(http.MethodGet, "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", http.NoBody)
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, 301, res.Code)

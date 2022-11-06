@@ -6,6 +6,7 @@ package remotecluster
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -62,7 +63,7 @@ func TestBroadcastMsg(t *testing.T) {
 				return
 			}
 			if len(frame.Msg.Payload) == 0 {
-				merr.Append(fmt.Errorf("webrequest missing Msg.Payload"))
+				merr.Append(errors.New("webrequest missing Msg.Payload"))
 			}
 			if msgId != frame.Msg.Id {
 				merr.Append(fmt.Errorf("webrequest msgId expected %s, got %s", msgId, frame.Msg.Id))

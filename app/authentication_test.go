@@ -36,7 +36,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		if tc.query != "" {
 			pathname += "?access_token=" + tc.query
 		}
-		req := httptest.NewRequest("GET", pathname, nil)
+		req := httptest.NewRequest(http.MethodGet, pathname, http.NoBody)
 		switch tc.expectedLocation {
 		case TokenLocationHeader:
 			req.Header.Add(model.HeaderAuth, tc.header)

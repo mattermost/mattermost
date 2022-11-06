@@ -33,8 +33,8 @@ type Compliance struct {
 	Emails   string `json:"emails"`
 }
 
-func (c *Compliance) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *Compliance) Auditable() map[string]any {
+	return map[string]any{
 		"id":        c.Id,
 		"create_at": c.CreateAt,
 		"user_id":   c.UserId,

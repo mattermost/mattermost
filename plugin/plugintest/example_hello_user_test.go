@@ -49,7 +49,7 @@ func Example() {
 	p.SetAPI(api)
 
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/", nil)
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	r.Header.Add("Mattermost-User-Id", user.Id)
 	p.ServeHTTP(&plugin.Context{}, w, r)
 	body, err := io.ReadAll(w.Result().Body)

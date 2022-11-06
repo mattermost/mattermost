@@ -99,11 +99,11 @@ func (ps *PlatformService) ReloadConfig() error {
 	return nil
 }
 
-func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverridesWithFilter(filter func(reflect.StructField) bool) map[string]any {
 	return ps.configStore.GetEnvironmentOverridesWithFilter(filter)
 }
 
-func (ps *PlatformService) GetEnvironmentOverrides() map[string]interface{} {
+func (ps *PlatformService) GetEnvironmentOverrides() map[string]any {
 	return ps.configStore.GetEnvironmentOverrides()
 }
 
@@ -268,7 +268,7 @@ func (ps *PlatformService) EnsureAsymmetricSigningKey() error {
 	case "P-256":
 		curve = elliptic.P256()
 	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+		return errors.New("unknown curve: " + key.ECDSAKey.Curve)
 	}
 	ps.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{

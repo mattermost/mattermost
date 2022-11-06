@@ -135,7 +135,7 @@ func TestCORSRequestHandling(t *testing.T) {
 			host := fmt.Sprintf("http://localhost:%v", port)
 			url := fmt.Sprintf("%v/api/v4/system/ping", host)
 
-			req, err := http.NewRequest("GET", url, nil)
+			req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 			require.NoError(t, err)
 			testcase.ModifyRequest(req)
 

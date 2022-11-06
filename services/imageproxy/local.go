@@ -91,7 +91,7 @@ func (rec *contentTypeRecorder) WriteHeader(code int) {
 
 func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
 	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
-	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
+	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, http.NoBody)
 	if err != nil {
 		// http.NewRequest should only return an error on an invalid URL
 		mlog.Debug("Failed to create request for proxied image", mlog.String("url", imageURL), mlog.Err(err))
@@ -120,7 +120,7 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 
 func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
 	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
-	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
+	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, http.NoBody)
 	if err != nil {
 		return nil, "", Error{err}
 	}
@@ -143,7 +143,7 @@ func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	actualReq, err := http.NewRequest("GET", proxyReq.String(), nil)
+	actualReq, err := http.NewRequest(http.MethodGet, proxyReq.String(), http.NoBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

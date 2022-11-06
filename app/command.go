@@ -485,7 +485,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	var req *http.Request
 	var err error
 	if cmd.Method == model.CommandMethodGet {
-		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+		req, err = http.NewRequest(http.MethodGet, cmd.URL, http.NoBody)
 	} else {
 		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 	}

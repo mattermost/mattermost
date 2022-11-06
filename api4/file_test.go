@@ -61,7 +61,7 @@ func fileBytes(t *testing.T, path string) []byte {
 
 func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []byte, contentType string,
 	contentLength int64) (*model.FileUploadResponse, *model.Response, error) {
-	req, err := http.NewRequest("POST", c.APIURL+"/files"+url, bytes.NewReader(blob))
+	req, err := http.NewRequest(http.MethodPost, c.APIURL+"/files"+url, bytes.NewReader(blob))
 	require.NoError(t, err)
 
 	if contentLength != 0 {

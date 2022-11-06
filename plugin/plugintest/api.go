@@ -1524,15 +1524,15 @@ func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 }
 
 // GetPluginConfig provides a mock function with given fields:
-func (_m *API) GetPluginConfig() map[string]interface{} {
+func (_m *API) GetPluginConfig() map[string]any {
 	ret := _m.Called()
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func() map[string]interface{}); ok {
+	var r0 map[string]any
+	if rf, ok := ret.Get(0).(func() map[string]any); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(map[string]any)
 		}
 	}
 
@@ -2763,11 +2763,11 @@ func (_m *API) ListPluginCommands(teamID string) ([]*model.Command, error) {
 }
 
 // LoadPluginConfiguration provides a mock function with given fields: dest
-func (_m *API) LoadPluginConfiguration(dest interface{}) error {
+func (_m *API) LoadPluginConfiguration(dest any) error {
 	ret := _m.Called(dest)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(any) error); ok {
 		r0 = rf(dest)
 	} else {
 		r0 = ret.Error(0)
@@ -2777,32 +2777,32 @@ func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 }
 
 // LogDebug provides a mock function with given fields: msg, keyValuePairs
-func (_m *API) LogDebug(msg string, keyValuePairs ...interface{}) {
-	var _ca []interface{}
+func (_m *API) LogDebug(msg string, keyValuePairs ...any) {
+	var _ca []any
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
 }
 
 // LogError provides a mock function with given fields: msg, keyValuePairs
-func (_m *API) LogError(msg string, keyValuePairs ...interface{}) {
-	var _ca []interface{}
+func (_m *API) LogError(msg string, keyValuePairs ...any) {
+	var _ca []any
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
 }
 
 // LogInfo provides a mock function with given fields: msg, keyValuePairs
-func (_m *API) LogInfo(msg string, keyValuePairs ...interface{}) {
-	var _ca []interface{}
+func (_m *API) LogInfo(msg string, keyValuePairs ...any) {
+	var _ca []any
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
 }
 
 // LogWarn provides a mock function with given fields: msg, keyValuePairs
-func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
-	var _ca []interface{}
+func (_m *API) LogWarn(msg string, keyValuePairs ...any) {
+	var _ca []any
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
@@ -2912,7 +2912,7 @@ func (_m *API) PublishUserTyping(userID string, channelId string, parentId strin
 }
 
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
-func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
+func (_m *API) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)
 }
 
@@ -3112,11 +3112,11 @@ func (_m *API) SaveConfig(config *model.Config) *model.AppError {
 }
 
 // SavePluginConfig provides a mock function with given fields: config
-func (_m *API) SavePluginConfig(config map[string]interface{}) *model.AppError {
+func (_m *API) SavePluginConfig(config map[string]any) *model.AppError {
 	ret := _m.Called(config)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(map[string]interface{}) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(map[string]any) *model.AppError); ok {
 		r0 = rf(config)
 	} else {
 		if ret.Get(0) != nil {

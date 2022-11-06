@@ -4,7 +4,7 @@
 package cache
 
 import (
-	"fmt"
+	"errors"
 	"math"
 	"time"
 
@@ -29,9 +29,9 @@ import (
 // cache where a simple LRU wouldn't have. Example:
 //
 // Two buckets B1 and B2, of max size 2 each, meaning, theoretically, a max size of 4:
-//  * Say you have a set of 3 keys, they could fill an entire LRU cache.
-//  * But if all those keys are assigned to a single bucket B1, the first key will be evicted from B1
-//  * B2 will remain empty, even though there was enough memory allocated
+//   - Say you have a set of 3 keys, they could fill an entire LRU cache.
+//   - But if all those keys are assigned to a single bucket B1, the first key will be evicted from B1
+//   - B2 will remain empty, even though there was enough memory allocated
 //
 // With 4 buckets and random UUIDs as keys, the amount of false evictions is around 5%.
 //
@@ -126,11 +126,11 @@ func (L LRUStriped) Name() string {
 // requested size to the total cache size.
 func NewLRUStriped(opts LRUOptions) (Cache, error) {
 	if opts.StripedBuckets == 0 {
-		return nil, fmt.Errorf("number of buckets is mandatory")
+		return nil, errors.New("number of buckets is mandatory")
 	}
 
 	if opts.Size < opts.StripedBuckets {
-		return nil, fmt.Errorf("cache size must at least be equal to the number of buckets")
+		return nil, errors.New("cache size must at least be equal to the number of buckets")
 	}
 
 	// add 10% to the total size, before splitting

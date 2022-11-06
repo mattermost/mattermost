@@ -543,7 +543,7 @@ func TestHandleJobPanic(t *testing.T) {
 
 		f := func() {
 			defer jobServer.HandleJobPanic(job)
-			panic(fmt.Errorf("not OK"))
+			panic(errors.New("not OK"))
 		}
 
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)

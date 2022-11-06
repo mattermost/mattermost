@@ -569,7 +569,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 
 		var request *http.Request
 		// Make request for a web page or an image
-		request, err = http.NewRequest("GET", requestURL, nil)
+		request, err = http.NewRequest(http.MethodGet, requestURL, http.NoBody)
 		if err != nil {
 			return nil, nil, nil, err
 		}

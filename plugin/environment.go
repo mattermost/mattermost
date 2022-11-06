@@ -320,7 +320,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if !componentActivated {
-		return nil, false, fmt.Errorf("unable to start plugin: must at least have a web app or server component")
+		return nil, false, errors.New("unable to start plugin: must at least have a web app or server component")
 	}
 
 	return pluginInfo.Manifest, true, nil
@@ -452,7 +452,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 
 	bundlePath := filepath.Clean(manifest.Webapp.BundlePath)
 	if bundlePath == "" || bundlePath[0] == '.' {
-		return nil, fmt.Errorf("invalid webapp bundle path")
+		return nil, errors.New("invalid webapp bundle path")
 	}
 	bundlePath = filepath.Join(env.pluginDir, id, bundlePath)
 	destinationPath := filepath.Join(env.webappPluginDir, id)

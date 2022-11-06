@@ -5,7 +5,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -68,7 +67,7 @@ func CopyDir(src string, dst string) (err error) {
 		return
 	}
 	if !stat.IsDir() {
-		return fmt.Errorf("source must be a directory")
+		return errors.New("source must be a directory")
 	}
 
 	_, err = os.Stat(dst)
@@ -76,7 +75,7 @@ func CopyDir(src string, dst string) (err error) {
 		return
 	}
 	if err == nil {
-		return fmt.Errorf("destination already exists")
+		return errors.New("destination already exists")
 	}
 
 	err = os.MkdirAll(dst, stat.Mode())

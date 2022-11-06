@@ -120,14 +120,14 @@ func (a *App) SendNotifyAdminPosts(c *request.Context, workspaceName string, cur
 
 	for _, admin := range sysadmins {
 		T := i18n.GetUserTranslations(admin.Locale)
-		message := T("app.cloud.upgrade_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+		message := T("app.cloud.upgrade_plan_bot_message", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 		if len(userBasedData) == 1 {
-			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
+			message = T("app.cloud.upgrade_plan_bot_message_single", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName}) // todo (allan): investigate if translations library can do this
 		}
 		if trial {
-			message = T("app.cloud.trial_plan_bot_message", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+			message = T("app.cloud.trial_plan_bot_message", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 			if len(userBasedData) == 1 {
-				message = T("app.cloud.trial_plan_bot_message_single", map[string]interface{}{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
+				message = T("app.cloud.trial_plan_bot_message_single", map[string]any{"UsersNum": len(userBasedData), "WorkspaceName": workspaceName})
 			}
 		}
 

@@ -1763,7 +1763,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 	require.NotEmpty(t, pluginID)
 
 	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
-	req, err := http.NewRequest("GET", reqURL, nil)
+	req, err := http.NewRequest(http.MethodGet, reqURL, http.NoBody)
 	require.NoError(t, err)
 
 	client := &http.Client{}

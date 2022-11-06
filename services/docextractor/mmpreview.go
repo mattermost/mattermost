@@ -46,7 +46,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker) (str
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
 	}
-	req, err := http.NewRequest("POST", mpe.url+"/toPDF", &b)
+	req, err := http.NewRequest(http.MethodPost, mpe.url+"/toPDF", &b)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
 	}

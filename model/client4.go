@@ -639,7 +639,7 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 }
 
 func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, body)
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+url, body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -670,7 +670,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -698,7 +698,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response, error) {
-	rq, err := http.NewRequest("POST", c.APIURL+url, bytes.NewReader(data))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+url, bytes.NewReader(data))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1722,7 +1722,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (*Response, error)
 		return nil, NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+c.userRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -2743,7 +2743,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (*Response, error) {
 		return nil, NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+c.teamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -4728,7 +4728,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (*Response, error) {
 		return nil, NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+c.licenseRoute(), bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -5300,7 +5300,7 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response, 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response, error) {
-	rq, err := http.NewRequest("GET", c.APIURL+c.complianceReportDownloadRoute(reportId), nil)
+	rq, err := http.NewRequest(http.MethodGet, c.APIURL+c.complianceReportDownloadRoute(reportId), http.NoBody)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -5700,7 +5700,7 @@ func (c *Client4) UploadBrandImage(data []byte) (*Response, error) {
 		return nil, NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+c.brandRoute()+"/image", bytes.NewReader(body.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -7092,7 +7092,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		return nil, nil, err
 	}
 
-	rq, err := http.NewRequest("POST", c.APIURL+c.pluginsRoute(), body)
+	rq, err := http.NewRequest(http.MethodPost, c.APIURL+c.pluginsRoute(), body)
 	if err != nil {
 		return nil, nil, err
 	}

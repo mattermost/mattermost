@@ -105,8 +105,8 @@ type User struct {
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
 }
 
-func (u *User) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *User) Auditable() map[string]any {
+	return map[string]any{
 		"id":                         u.Id,
 		"create_at":                  u.CreateAt,
 		"update_at":                  u.UpdateAt,
@@ -165,8 +165,8 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
-func (u *UserPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserPatch) Auditable() map[string]any {
+	return map[string]any{
 		"username":     u.Username,
 		"nickname":     u.Nickname,
 		"first_name":   u.FirstName,
@@ -188,8 +188,8 @@ type UserAuth struct {
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
-func (u *UserAuth) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (u *UserAuth) Auditable() map[string]any {
+	return map[string]any{
 		"auth_service": u.AuthService,
 	}
 }
@@ -974,11 +974,11 @@ func IsValidUsernameAllowRemote(s string) bool {
 }
 
 func CleanUsername(username string) string {
-	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
+	s := NormalizeUsername(strings.ReplaceAll(username, " ", "-"))
 
 	for _, value := range reservedName {
 		if s == value {
-			s = strings.Replace(s, value, "", -1)
+			s = strings.ReplaceAll(s, value, "")
 		}
 	}
 
@@ -987,7 +987,7 @@ func CleanUsername(username string) string {
 	for _, c := range s {
 		char := fmt.Sprintf("%c", c)
 		if !validUsernameChars.MatchString(char) {
-			s = strings.Replace(s, char, "-", -1)
+			s = strings.ReplaceAll(s, char, "-")
 		}
 	}
 

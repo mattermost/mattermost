@@ -202,11 +202,11 @@ func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *mod
 
 // GetOrCreateDirectChannel provides a mock function with given fields: c, userId, otherUserId, channelOptions
 func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	_va := make([]interface{}, len(channelOptions))
+	_va := make([]any, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
-	var _ca []interface{}
+	var _ca []any
 	_ca = append(_ca, c, userId, otherUserId)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)

@@ -89,7 +89,7 @@ func expandAnnouncement(text string) string {
 	a2 := [3]string{"@channel", "@here", "@all"}
 
 	for i, a := range a1 {
-		text = strings.Replace(text, a, a2[i], -1)
+		text = strings.ReplaceAll(text, a, a2[i])
 	}
 	return text
 }
@@ -108,7 +108,7 @@ func replaceUserIds(userStore store.UserStore, text string) string {
 
 		if users, err := userStore.GetProfileByIds(context.Background(), userIDs, nil, true); err == nil {
 			for _, user := range users {
-				text = strings.Replace(text, "<@"+user.Id+">", "@"+user.Username, -1)
+				text = strings.ReplaceAll(text, "<@"+user.Id+">", "@"+user.Username)
 			}
 		}
 	}

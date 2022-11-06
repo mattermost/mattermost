@@ -98,17 +98,17 @@ func TestAppErrorRender(t *testing.T) {
 	})
 
 	t.Run("Wrapped", func(t *testing.T) {
-		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error"))
+		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(errors.New("my error"))
 		assert.EqualError(t, aerr, "here: message, my error")
 	})
 
 	t.Run("WrappedMultiple", func(t *testing.T) {
-		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
+		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", errors.New("inner error")))
 		assert.EqualError(t, aerr, "here: message, my error (inner error)")
 	})
 
 	t.Run("DetailedWrappedMultiple", func(t *testing.T) {
-		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", fmt.Errorf("inner error")))
+		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot).Wrap(fmt.Errorf("my error (%w)", errors.New("inner error")))
 		assert.EqualError(t, aerr, "here: message, details, my error (inner error)")
 	})
 }

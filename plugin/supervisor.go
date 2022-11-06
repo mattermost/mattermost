@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"fmt"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -56,7 +56,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH),
 	))
 	if strings.HasPrefix(executable, "..") {
-		return nil, fmt.Errorf("invalid backend executable")
+		return nil, errors.New("invalid backend executable")
 	}
 	executable = filepath.Join(pluginInfo.Path, executable)
 
@@ -134,7 +134,7 @@ func (sup *supervisor) PerformHealthCheck() error {
 			}
 		}
 		if pingErr != nil {
-			return fmt.Errorf("plugin RPC connection is not responding")
+			return errors.New("plugin RPC connection is not responding")
 		}
 	}
 

@@ -4,7 +4,7 @@
 package utils_test
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -109,7 +109,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				baseCSS,
 				baseManifestJSON,
 				"/subpath",
-				fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite"),
+				errors.New("failed to find 'Content-Security-Policy' meta tag to rewrite"),
 				contentSecurityPolicyNotFoundHTML,
 				baseCSS,
 				baseManifestJSON,
@@ -120,7 +120,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				baseCSS,
 				baseManifestJSON,
 				"/subpath",
-				fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite"),
+				errors.New("failed to find 'Content-Security-Policy' meta tag to rewrite"),
 				contentSecurityPolicyNotFound2HTML,
 				baseCSS,
 				baseManifestJSON,
@@ -176,8 +176,8 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				require.NoError(t, err)
 
 				// Rewrite the expected and contents for simpler diffs when failed.
-				expectedRootHTML := strings.Replace(testCase.ExpectedRootHTML, ">", ">\n", -1)
-				contentsStr := strings.Replace(string(contents), ">", ">\n", -1)
+				expectedRootHTML := strings.ReplaceAll(testCase.ExpectedRootHTML, ">", ">\n")
+				contentsStr := strings.ReplaceAll(string(contents), ">", ">\n")
 				require.Equal(t, expectedRootHTML, contentsStr)
 
 				contents, err = os.ReadFile(filepath.Join(tempDir, model.ClientDir, "main.css"))

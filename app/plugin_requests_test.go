@@ -20,7 +20,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		defer th.TearDown()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-		req, err := http.NewRequest("GET", "/plugins", nil)
+		req, err := http.NewRequest(http.MethodGet, "/plugins", http.NoBody)
 		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()

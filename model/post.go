@@ -114,8 +114,8 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
-func (o *Post) Auditable() map[string]interface{} {
-	return map[string]interface{}{ // TODO check this
+func (o *Post) Auditable() map[string]any {
+	return map[string]any{
 		"id":              o.Id,
 		"create_at":       o.CreateAt,
 		"update_at":       o.UpdateAt,

@@ -458,7 +458,7 @@ func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName,
 		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
 			channelURL := teamURL + "/channels/" + ch.Name
 			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
-			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			postMessage = strings.ReplaceAll(postMessage, "~"+ch.Name, channelHyperLink)
 			visited[ch.Id] = true
 		}
 	}

@@ -116,7 +116,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 		return err
 	}
 
-	req, err := http.NewRequest("POST", u.String(), body)
+	req, err := http.NewRequest(http.MethodPost, u.String(), body)
 	if err != nil {
 		return err
 	}

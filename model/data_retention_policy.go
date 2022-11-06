@@ -24,8 +24,8 @@ type RetentionPolicyWithTeamAndChannelIDs struct {
 	ChannelIDs []string `json:"channel_ids"`
 }
 
-func (o *RetentionPolicyWithTeamAndChannelIDs) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *RetentionPolicyWithTeamAndChannelIDs) Auditable() map[string]any {
+	return map[string]any{
 		"retention_policy": o.RetentionPolicy,
 		"team_ids":         o.TeamIDs,
 		"channel_ids":      o.ChannelIDs,
@@ -38,8 +38,8 @@ type RetentionPolicyWithTeamAndChannelCounts struct {
 	TeamCount    int64 `json:"team_count"`
 }
 
-func (o *RetentionPolicyWithTeamAndChannelCounts) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *RetentionPolicyWithTeamAndChannelCounts) Auditable() map[string]any {
+	return map[string]any{
 		"retention_policy": o.RetentionPolicy,
 		"channel_count":    o.ChannelCount,
 		"team_count":       o.TeamCount,

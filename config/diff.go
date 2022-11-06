@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 )
 
 type ConfigDiffs []ConfigDiff
@@ -18,20 +19,20 @@ type ConfigDiff struct {
 	ActualVal any    `json:"actual_val"`
 }
 
-func (c *ConfigDiff) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (c *ConfigDiff) Auditable() map[string]any {
+	return map[string]any{
 		"path":       c.Path,
 		"base_val":   c.BaseVal,
 		"actual_val": c.ActualVal,
 	}
 }
 
-func (cd *ConfigDiffs) Auditable() map[string]interface{} {
-	var s []interface{}
+func (cd *ConfigDiffs) Auditable() map[string]any {
+	var s []any
 	for _, d := range cd.Sanitize() {
 		s = append(s, d.Auditable())
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"config_diffs": s,
 	}
 }
@@ -121,7 +122,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 	switch baseType.Kind() {
 	case reflect.Struct:
 		if base.NumField() != actual.NumField() {
-			return nil, fmt.Errorf("not same number of fields in struct")
+			return nil, errors.New("not same number of fields in struct")
 		}
 		for i := 0; i < base.NumField(); i++ {
 			fieldLabel := baseType.Field(i).Name
@@ -149,7 +150,7 @@ func diff(base, actual reflect.Value, label string) ([]ConfigDiff, error) {
 
 func Diff(base, actual *model.Config) (ConfigDiffs, error) {
 	if base == nil || actual == nil {
-		return nil, fmt.Errorf("input configs should not be nil")
+		return nil, errors.New("input configs should not be nil")
 	}
 	baseVal := reflect.Indirect(reflect.ValueOf(base))
 	actualVal := reflect.Indirect(reflect.ValueOf(actual))

@@ -6,6 +6,7 @@ package app
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -86,7 +87,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		// Mock the channel store so getting the channel returns with an error, as per the bug report.
 		mockStore := mocks.Store{}
 		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
+		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, errors.New("arbitrary error"))
 		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
 		mockChannelStore.On("ClearCaches").Return()
 		mockStore.On("Channel").Return(&mockChannelStore)

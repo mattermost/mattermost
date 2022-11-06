@@ -35,7 +35,7 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 		},
 	}
 	responseWriter := httptest.NewRecorder()
-	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", http.NoBody)
 
 	completeOAuth(c, responseWriter, request)
 
@@ -383,7 +383,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should include redirect URL in the output when valid URL Scheme is passed", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), nil)
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("randomScheme://"), http.NoBody)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		assert.Contains(t, responseWriter.Body.String(), "randomScheme://")
 		assert.NotContains(t, responseWriter.Body.String(), siteURL)
@@ -391,7 +391,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), nil)
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("javascript:alert('hello')"), http.NoBody)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		assert.NotContains(t, responseWriter.Body.String(), "javascript:alert('hello')")
 		assert.Contains(t, responseWriter.Body.String(), siteURL)
@@ -399,7 +399,7 @@ func TestMobileLoginWithOAuth(t *testing.T) {
 
 	t.Run("Should not include the redirect URL consisting of javascript protocol in mixed case", func(t *testing.T) {
 		responseWriter := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), nil)
+		request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/oauth/gitlab/mobile_login?redirect_to="+url.QueryEscape("JaVasCript:alert('hello')"), http.NoBody)
 		mobileLoginWithOAuth(c, responseWriter, request)
 		assert.NotContains(t, responseWriter.Body.String(), "JaVasCript:alert('hello')")
 		assert.Contains(t, responseWriter.Body.String(), siteURL)
@@ -589,7 +589,7 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	responseWriter := httptest.NewRecorder()
 
 	// Renders for web & mobile app with webview
-	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", nil)
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234", http.NoBody)
 
 	completeOAuth(c, responseWriter, request)
 	assert.Contains(t, responseWriter.Body.String(), "<!-- web error message -->")
@@ -599,14 +599,14 @@ func TestOAuthComplete_ErrorMessages(t *testing.T) {
 	stateProps["action"] = model.OAuthActionMobile
 	stateProps["redirect_to"] = th.App.Config().NativeAppSettings.AppCustomURLSchemes[0]
 	state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
-	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), nil)
+	request2, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/gitlab/complete?code=1234&state="+url.QueryEscape(state), http.NoBody)
 
 	completeOAuth(c, responseWriter, request2)
 	assert.Contains(t, responseWriter.Body.String(), "<!-- mobile app message -->")
 }
 
 func HTTPGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, error) {
-	rq, _ := http.NewRequest("GET", url, nil)
+	rq, _ := http.NewRequest(http.MethodGet, url, http.NoBody)
 	rq.Close = true
 
 	if authToken != "" {

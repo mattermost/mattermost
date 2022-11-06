@@ -398,7 +398,7 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	}
 
 	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.APIURLSuffixV1 + "/send_push"
-	request, err := http.NewRequest("POST", url, bytes.NewReader(msgJSON))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(msgJSON))
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +463,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	}
 
 	request, err := http.NewRequest(
-		"POST",
+		http.MethodPost,
 		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.APIURLSuffixV1+"/ack",
 		bytes.NewReader(ackJSON),
 	)

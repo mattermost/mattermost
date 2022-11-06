@@ -608,8 +608,8 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 
 		// these chars have special meaning and can be treated as spaces
 		for _, c := range specialSearchChar {
-			terms = strings.Replace(terms, c, " ", -1)
-			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
+			terms = strings.ReplaceAll(terms, c, " ")
+			excludedTerms = strings.ReplaceAll(excludedTerms, c, " ")
 		}
 
 		if terms == "" && excludedTerms == "" {

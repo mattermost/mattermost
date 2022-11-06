@@ -134,7 +134,7 @@ func TestIncomingWebhookRequestFromJSON(t *testing.T) {
 		iwr, _ := IncomingWebhookRequestFromJSON(data)
 
 		// After it has been decoded, the JSON string won't contain the escape char anymore
-		expected := strings.Replace(text, `\"`, `"`, -1)
+		expected := strings.ReplaceAll(text, `\"`, `"`)
 		require.NotNil(t, iwr)
 		require.Equal(t, expected, iwr.Text)
 

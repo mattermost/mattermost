@@ -833,7 +833,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	p.Set("grant_type", model.AccessTokenGrantType)
 	p.Set("redirect_uri", redirectURI)
 
-	req, requestErr := http.NewRequest("POST", *sso.TokenEndpoint, strings.NewReader(p.Encode()))
+	req, requestErr := http.NewRequest(http.MethodPost, *sso.TokenEndpoint, strings.NewReader(p.Encode()))
 	if requestErr != nil {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(requestErr)
 	}
@@ -874,7 +874,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		}
 	}
 
-	req, requestErr = http.NewRequest("GET", *sso.UserAPIEndpoint, strings.NewReader(""))
+	req, requestErr = http.NewRequest(http.MethodGet, *sso.UserAPIEndpoint, strings.NewReader(""))
 	if requestErr != nil {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]any{"Service": service}, "", http.StatusInternalServerError).Wrap(requestErr)
 	}

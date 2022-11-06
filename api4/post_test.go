@@ -694,7 +694,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	postJSON, jsonErr := json.Marshal(post)
 	require.NoError(t, jsonErr)
-	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", bytes.NewReader(postJSON))
+	req := httptest.NewRequest(http.MethodPost, "/api/v4/posts?set_online=false", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
@@ -707,7 +707,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	postJSON, jsonErr = json.Marshal(post)
 	require.NoError(t, jsonErr)
-	req = httptest.NewRequest("POST", "/api/v4/posts", bytes.NewReader(postJSON))
+	req = httptest.NewRequest(http.MethodPost, "/api/v4/posts", bytes.NewReader(postJSON))
 	req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)

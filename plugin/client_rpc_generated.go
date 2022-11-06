@@ -7,11 +7,11 @@
 package plugin
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -43,7 +43,7 @@ func (s *hooksRPCServer) OnDeactivate(args *Z_OnDeactivateArgs, returns *Z_OnDea
 		returns.A = hook.OnDeactivate()
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnDeactivate called but not implemented."))
+		return encodableError(errors.New("Hook OnDeactivate called but not implemented."))
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func (s *hooksRPCServer) OnConfigurationChange(args *Z_OnConfigurationChangeArgs
 		returns.A = hook.OnConfigurationChange()
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnConfigurationChange called but not implemented."))
+		return encodableError(errors.New("Hook OnConfigurationChange called but not implemented."))
 	}
 	return nil
 }
@@ -113,7 +113,7 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 	}); ok {
 		returns.A, returns.B = hook.ExecuteCommand(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook ExecuteCommand called but not implemented."))
+		return encodableError(errors.New("Hook ExecuteCommand called but not implemented."))
 	}
 	return nil
 }
@@ -147,7 +147,7 @@ func (s *hooksRPCServer) UserHasBeenCreated(args *Z_UserHasBeenCreatedArgs, retu
 	}); ok {
 		hook.UserHasBeenCreated(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasBeenCreated called but not implemented."))
+		return encodableError(errors.New("Hook UserHasBeenCreated called but not implemented."))
 	}
 	return nil
 }
@@ -182,7 +182,7 @@ func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_Use
 	}); ok {
 		returns.A = hook.UserWillLogIn(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserWillLogIn called but not implemented."))
+		return encodableError(errors.New("Hook UserWillLogIn called but not implemented."))
 	}
 	return nil
 }
@@ -216,7 +216,7 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z
 	}); ok {
 		hook.UserHasLoggedIn(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasLoggedIn called but not implemented."))
+		return encodableError(errors.New("Hook UserHasLoggedIn called but not implemented."))
 	}
 	return nil
 }
@@ -250,7 +250,7 @@ func (s *hooksRPCServer) MessageHasBeenPosted(args *Z_MessageHasBeenPostedArgs, 
 	}); ok {
 		hook.MessageHasBeenPosted(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook MessageHasBeenPosted called but not implemented."))
+		return encodableError(errors.New("Hook MessageHasBeenPosted called but not implemented."))
 	}
 	return nil
 }
@@ -285,7 +285,7 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 	}); ok {
 		hook.MessageHasBeenUpdated(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook MessageHasBeenUpdated called but not implemented."))
+		return encodableError(errors.New("Hook MessageHasBeenUpdated called but not implemented."))
 	}
 	return nil
 }
@@ -319,7 +319,7 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 	}); ok {
 		hook.ChannelHasBeenCreated(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook ChannelHasBeenCreated called but not implemented."))
+		return encodableError(errors.New("Hook ChannelHasBeenCreated called but not implemented."))
 	}
 	return nil
 }
@@ -354,7 +354,7 @@ func (s *hooksRPCServer) UserHasJoinedChannel(args *Z_UserHasJoinedChannelArgs, 
 	}); ok {
 		hook.UserHasJoinedChannel(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasJoinedChannel called but not implemented."))
+		return encodableError(errors.New("Hook UserHasJoinedChannel called but not implemented."))
 	}
 	return nil
 }
@@ -389,7 +389,7 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, retu
 	}); ok {
 		hook.UserHasLeftChannel(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasLeftChannel called but not implemented."))
+		return encodableError(errors.New("Hook UserHasLeftChannel called but not implemented."))
 	}
 	return nil
 }
@@ -424,7 +424,7 @@ func (s *hooksRPCServer) UserHasJoinedTeam(args *Z_UserHasJoinedTeamArgs, return
 	}); ok {
 		hook.UserHasJoinedTeam(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasJoinedTeam called but not implemented."))
+		return encodableError(errors.New("Hook UserHasJoinedTeam called but not implemented."))
 	}
 	return nil
 }
@@ -459,7 +459,7 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	}); ok {
 		hook.UserHasLeftTeam(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasLeftTeam called but not implemented."))
+		return encodableError(errors.New("Hook UserHasLeftTeam called but not implemented."))
 	}
 	return nil
 }
@@ -493,7 +493,7 @@ func (s *hooksRPCServer) ReactionHasBeenAdded(args *Z_ReactionHasBeenAddedArgs, 
 	}); ok {
 		hook.ReactionHasBeenAdded(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook ReactionHasBeenAdded called but not implemented."))
+		return encodableError(errors.New("Hook ReactionHasBeenAdded called but not implemented."))
 	}
 	return nil
 }
@@ -527,7 +527,7 @@ func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedAr
 	}); ok {
 		hook.ReactionHasBeenRemoved(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook ReactionHasBeenRemoved called but not implemented."))
+		return encodableError(errors.New("Hook ReactionHasBeenRemoved called but not implemented."))
 	}
 	return nil
 }
@@ -561,7 +561,7 @@ func (s *hooksRPCServer) OnPluginClusterEvent(args *Z_OnPluginClusterEventArgs, 
 	}); ok {
 		hook.OnPluginClusterEvent(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnPluginClusterEvent called but not implemented."))
+		return encodableError(errors.New("Hook OnPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }
@@ -595,7 +595,7 @@ func (s *hooksRPCServer) OnWebSocketConnect(args *Z_OnWebSocketConnectArgs, retu
 	}); ok {
 		hook.OnWebSocketConnect(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnWebSocketConnect called but not implemented."))
+		return encodableError(errors.New("Hook OnWebSocketConnect called but not implemented."))
 	}
 	return nil
 }
@@ -629,7 +629,7 @@ func (s *hooksRPCServer) OnWebSocketDisconnect(args *Z_OnWebSocketDisconnectArgs
 	}); ok {
 		hook.OnWebSocketDisconnect(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnWebSocketDisconnect called but not implemented."))
+		return encodableError(errors.New("Hook OnWebSocketDisconnect called but not implemented."))
 	}
 	return nil
 }
@@ -664,7 +664,7 @@ func (s *hooksRPCServer) WebSocketMessageHasBeenPosted(args *Z_WebSocketMessageH
 	}); ok {
 		hook.WebSocketMessageHasBeenPosted(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("Hook WebSocketMessageHasBeenPosted called but not implemented."))
+		return encodableError(errors.New("Hook WebSocketMessageHasBeenPosted called but not implemented."))
 	}
 	return nil
 }
@@ -701,7 +701,7 @@ func (s *hooksRPCServer) RunDataRetention(args *Z_RunDataRetentionArgs, returns 
 		returns.A, returns.B = hook.RunDataRetention(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook RunDataRetention called but not implemented."))
+		return encodableError(errors.New("Hook RunDataRetention called but not implemented."))
 	}
 	return nil
 }
@@ -737,7 +737,7 @@ func (s *hooksRPCServer) OnInstall(args *Z_OnInstallArgs, returns *Z_OnInstallRe
 		returns.A = hook.OnInstall(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnInstall called but not implemented."))
+		return encodableError(errors.New("Hook OnInstall called but not implemented."))
 	}
 	return nil
 }
@@ -769,7 +769,7 @@ func (s *hooksRPCServer) OnSendDailyTelemetry(args *Z_OnSendDailyTelemetryArgs, 
 	}); ok {
 		hook.OnSendDailyTelemetry()
 	} else {
-		return encodableError(fmt.Errorf("Hook OnSendDailyTelemetry called but not implemented."))
+		return encodableError(errors.New("Hook OnSendDailyTelemetry called but not implemented."))
 	}
 	return nil
 }
@@ -802,7 +802,7 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 	}); ok {
 		hook.OnCloudLimitsUpdated(args.A)
 	} else {
-		return encodableError(fmt.Errorf("Hook OnCloudLimitsUpdated called but not implemented."))
+		return encodableError(errors.New("Hook OnCloudLimitsUpdated called but not implemented."))
 	}
 	return nil
 }
@@ -842,7 +842,7 @@ func (s *hooksRPCServer) UserHasPermissionToCollection(args *Z_UserHasPermission
 		returns.A, returns.B = hook.UserHasPermissionToCollection(args.A, args.B, args.C, args.D, args.E)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook UserHasPermissionToCollection called but not implemented."))
+		return encodableError(errors.New("Hook UserHasPermissionToCollection called but not implemented."))
 	}
 	return nil
 }
@@ -880,7 +880,7 @@ func (s *hooksRPCServer) GetAllCollectionIDsForUser(args *Z_GetAllCollectionIDsF
 		returns.A, returns.B = hook.GetAllCollectionIDsForUser(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook GetAllCollectionIDsForUser called but not implemented."))
+		return encodableError(errors.New("Hook GetAllCollectionIDsForUser called but not implemented."))
 	}
 	return nil
 }
@@ -918,7 +918,7 @@ func (s *hooksRPCServer) GetAllUserIdsForCollection(args *Z_GetAllUserIdsForColl
 		returns.A, returns.B = hook.GetAllUserIdsForCollection(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook GetAllUserIdsForCollection called but not implemented."))
+		return encodableError(errors.New("Hook GetAllUserIdsForCollection called but not implemented."))
 	}
 	return nil
 }
@@ -956,7 +956,7 @@ func (s *hooksRPCServer) GetTopicRedirect(args *Z_GetTopicRedirectArgs, returns 
 		returns.A, returns.B = hook.GetTopicRedirect(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook GetTopicRedirect called but not implemented."))
+		return encodableError(errors.New("Hook GetTopicRedirect called but not implemented."))
 	}
 	return nil
 }
@@ -994,7 +994,7 @@ func (s *hooksRPCServer) GetCollectionMetadataByIds(args *Z_GetCollectionMetadat
 		returns.A, returns.B = hook.GetCollectionMetadataByIds(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook GetCollectionMetadataByIds called but not implemented."))
+		return encodableError(errors.New("Hook GetCollectionMetadataByIds called but not implemented."))
 	}
 	return nil
 }
@@ -1032,7 +1032,7 @@ func (s *hooksRPCServer) GetTopicMetadataByIds(args *Z_GetTopicMetadataByIdsArgs
 		returns.A, returns.B = hook.GetTopicMetadataByIds(args.A, args.B, args.C)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("Hook GetTopicMetadataByIds called but not implemented."))
+		return encodableError(errors.New("Hook GetTopicMetadataByIds called but not implemented."))
 	}
 	return nil
 }
@@ -1061,7 +1061,7 @@ func (s *apiRPCServer) RegisterCommand(args *Z_RegisterCommandArgs, returns *Z_R
 		returns.A = hook.RegisterCommand(args.A)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API RegisterCommand called but not implemented."))
+		return encodableError(errors.New("API RegisterCommand called but not implemented."))
 	}
 	return nil
 }
@@ -1091,7 +1091,7 @@ func (s *apiRPCServer) UnregisterCommand(args *Z_UnregisterCommandArgs, returns 
 		returns.A = hook.UnregisterCommand(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API UnregisterCommand called but not implemented."))
+		return encodableError(errors.New("API UnregisterCommand called but not implemented."))
 	}
 	return nil
 }
@@ -1121,7 +1121,7 @@ func (s *apiRPCServer) ExecuteSlashCommand(args *Z_ExecuteSlashCommandArgs, retu
 		returns.A, returns.B = hook.ExecuteSlashCommand(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ExecuteSlashCommand called but not implemented."))
+		return encodableError(errors.New("API ExecuteSlashCommand called but not implemented."))
 	}
 	return nil
 }
@@ -1148,7 +1148,7 @@ func (s *apiRPCServer) GetConfig(args *Z_GetConfigArgs, returns *Z_GetConfigRetu
 	}); ok {
 		returns.A = hook.GetConfig()
 	} else {
-		return encodableError(fmt.Errorf("API GetConfig called but not implemented."))
+		return encodableError(errors.New("API GetConfig called but not implemented."))
 	}
 	return nil
 }
@@ -1175,7 +1175,7 @@ func (s *apiRPCServer) GetUnsanitizedConfig(args *Z_GetUnsanitizedConfigArgs, re
 	}); ok {
 		returns.A = hook.GetUnsanitizedConfig()
 	} else {
-		return encodableError(fmt.Errorf("API GetUnsanitizedConfig called but not implemented."))
+		return encodableError(errors.New("API GetUnsanitizedConfig called but not implemented."))
 	}
 	return nil
 }
@@ -1203,7 +1203,7 @@ func (s *apiRPCServer) SaveConfig(args *Z_SaveConfigArgs, returns *Z_SaveConfigR
 	}); ok {
 		returns.A = hook.SaveConfig(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API SaveConfig called but not implemented."))
+		return encodableError(errors.New("API SaveConfig called but not implemented."))
 	}
 	return nil
 }
@@ -1230,7 +1230,7 @@ func (s *apiRPCServer) GetPluginConfig(args *Z_GetPluginConfigArgs, returns *Z_G
 	}); ok {
 		returns.A = hook.GetPluginConfig()
 	} else {
-		return encodableError(fmt.Errorf("API GetPluginConfig called but not implemented."))
+		return encodableError(errors.New("API GetPluginConfig called but not implemented."))
 	}
 	return nil
 }
@@ -1258,7 +1258,7 @@ func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z
 	}); ok {
 		returns.A = hook.SavePluginConfig(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API SavePluginConfig called but not implemented."))
+		return encodableError(errors.New("API SavePluginConfig called but not implemented."))
 	}
 	return nil
 }
@@ -1287,7 +1287,7 @@ func (s *apiRPCServer) GetBundlePath(args *Z_GetBundlePathArgs, returns *Z_GetBu
 		returns.A, returns.B = hook.GetBundlePath()
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetBundlePath called but not implemented."))
+		return encodableError(errors.New("API GetBundlePath called but not implemented."))
 	}
 	return nil
 }
@@ -1314,7 +1314,7 @@ func (s *apiRPCServer) GetLicense(args *Z_GetLicenseArgs, returns *Z_GetLicenseR
 	}); ok {
 		returns.A = hook.GetLicense()
 	} else {
-		return encodableError(fmt.Errorf("API GetLicense called but not implemented."))
+		return encodableError(errors.New("API GetLicense called but not implemented."))
 	}
 	return nil
 }
@@ -1341,7 +1341,7 @@ func (s *apiRPCServer) IsEnterpriseReady(args *Z_IsEnterpriseReadyArgs, returns 
 	}); ok {
 		returns.A = hook.IsEnterpriseReady()
 	} else {
-		return encodableError(fmt.Errorf("API IsEnterpriseReady called but not implemented."))
+		return encodableError(errors.New("API IsEnterpriseReady called but not implemented."))
 	}
 	return nil
 }
@@ -1368,7 +1368,7 @@ func (s *apiRPCServer) GetServerVersion(args *Z_GetServerVersionArgs, returns *Z
 	}); ok {
 		returns.A = hook.GetServerVersion()
 	} else {
-		return encodableError(fmt.Errorf("API GetServerVersion called but not implemented."))
+		return encodableError(errors.New("API GetServerVersion called but not implemented."))
 	}
 	return nil
 }
@@ -1396,7 +1396,7 @@ func (s *apiRPCServer) GetSystemInstallDate(args *Z_GetSystemInstallDateArgs, re
 	}); ok {
 		returns.A, returns.B = hook.GetSystemInstallDate()
 	} else {
-		return encodableError(fmt.Errorf("API GetSystemInstallDate called but not implemented."))
+		return encodableError(errors.New("API GetSystemInstallDate called but not implemented."))
 	}
 	return nil
 }
@@ -1423,7 +1423,7 @@ func (s *apiRPCServer) GetDiagnosticId(args *Z_GetDiagnosticIdArgs, returns *Z_G
 	}); ok {
 		returns.A = hook.GetDiagnosticId()
 	} else {
-		return encodableError(fmt.Errorf("API GetDiagnosticId called but not implemented."))
+		return encodableError(errors.New("API GetDiagnosticId called but not implemented."))
 	}
 	return nil
 }
@@ -1450,7 +1450,7 @@ func (s *apiRPCServer) GetTelemetryId(args *Z_GetTelemetryIdArgs, returns *Z_Get
 	}); ok {
 		returns.A = hook.GetTelemetryId()
 	} else {
-		return encodableError(fmt.Errorf("API GetTelemetryId called but not implemented."))
+		return encodableError(errors.New("API GetTelemetryId called but not implemented."))
 	}
 	return nil
 }
@@ -1479,7 +1479,7 @@ func (s *apiRPCServer) CreateUser(args *Z_CreateUserArgs, returns *Z_CreateUserR
 	}); ok {
 		returns.A, returns.B = hook.CreateUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateUser called but not implemented."))
+		return encodableError(errors.New("API CreateUser called but not implemented."))
 	}
 	return nil
 }
@@ -1507,7 +1507,7 @@ func (s *apiRPCServer) DeleteUser(args *Z_DeleteUserArgs, returns *Z_DeleteUserR
 	}); ok {
 		returns.A = hook.DeleteUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteUser called but not implemented."))
+		return encodableError(errors.New("API DeleteUser called but not implemented."))
 	}
 	return nil
 }
@@ -1536,7 +1536,7 @@ func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns
 	}); ok {
 		returns.A, returns.B = hook.GetUsers(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUsers called but not implemented."))
+		return encodableError(errors.New("API GetUsers called but not implemented."))
 	}
 	return nil
 }
@@ -1565,7 +1565,7 @@ func (s *apiRPCServer) GetUser(args *Z_GetUserArgs, returns *Z_GetUserReturns) e
 	}); ok {
 		returns.A, returns.B = hook.GetUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUser called but not implemented."))
+		return encodableError(errors.New("API GetUser called but not implemented."))
 	}
 	return nil
 }
@@ -1594,7 +1594,7 @@ func (s *apiRPCServer) GetUserByEmail(args *Z_GetUserByEmailArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetUserByEmail(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUserByEmail called but not implemented."))
+		return encodableError(errors.New("API GetUserByEmail called but not implemented."))
 	}
 	return nil
 }
@@ -1623,7 +1623,7 @@ func (s *apiRPCServer) GetUserByUsername(args *Z_GetUserByUsernameArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.GetUserByUsername(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUserByUsername called but not implemented."))
+		return encodableError(errors.New("API GetUserByUsername called but not implemented."))
 	}
 	return nil
 }
@@ -1652,7 +1652,7 @@ func (s *apiRPCServer) GetUsersByUsernames(args *Z_GetUsersByUsernamesArgs, retu
 	}); ok {
 		returns.A, returns.B = hook.GetUsersByUsernames(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUsersByUsernames called but not implemented."))
+		return encodableError(errors.New("API GetUsersByUsernames called but not implemented."))
 	}
 	return nil
 }
@@ -1683,7 +1683,7 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetUsersInTeam(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetUsersInTeam called but not implemented."))
+		return encodableError(errors.New("API GetUsersInTeam called but not implemented."))
 	}
 	return nil
 }
@@ -1712,7 +1712,7 @@ func (s *apiRPCServer) GetPreferencesForUser(args *Z_GetPreferencesForUserArgs, 
 	}); ok {
 		returns.A, returns.B = hook.GetPreferencesForUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetPreferencesForUser called but not implemented."))
+		return encodableError(errors.New("API GetPreferencesForUser called but not implemented."))
 	}
 	return nil
 }
@@ -1741,7 +1741,7 @@ func (s *apiRPCServer) UpdatePreferencesForUser(args *Z_UpdatePreferencesForUser
 	}); ok {
 		returns.A = hook.UpdatePreferencesForUser(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdatePreferencesForUser called but not implemented."))
+		return encodableError(errors.New("API UpdatePreferencesForUser called but not implemented."))
 	}
 	return nil
 }
@@ -1770,7 +1770,7 @@ func (s *apiRPCServer) DeletePreferencesForUser(args *Z_DeletePreferencesForUser
 	}); ok {
 		returns.A = hook.DeletePreferencesForUser(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API DeletePreferencesForUser called but not implemented."))
+		return encodableError(errors.New("API DeletePreferencesForUser called but not implemented."))
 	}
 	return nil
 }
@@ -1799,7 +1799,7 @@ func (s *apiRPCServer) GetSession(args *Z_GetSessionArgs, returns *Z_GetSessionR
 	}); ok {
 		returns.A, returns.B = hook.GetSession(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetSession called but not implemented."))
+		return encodableError(errors.New("API GetSession called but not implemented."))
 	}
 	return nil
 }
@@ -1828,7 +1828,7 @@ func (s *apiRPCServer) CreateSession(args *Z_CreateSessionArgs, returns *Z_Creat
 	}); ok {
 		returns.A, returns.B = hook.CreateSession(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateSession called but not implemented."))
+		return encodableError(errors.New("API CreateSession called but not implemented."))
 	}
 	return nil
 }
@@ -1857,7 +1857,7 @@ func (s *apiRPCServer) ExtendSessionExpiry(args *Z_ExtendSessionExpiryArgs, retu
 	}); ok {
 		returns.A = hook.ExtendSessionExpiry(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API ExtendSessionExpiry called but not implemented."))
+		return encodableError(errors.New("API ExtendSessionExpiry called but not implemented."))
 	}
 	return nil
 }
@@ -1885,7 +1885,7 @@ func (s *apiRPCServer) RevokeSession(args *Z_RevokeSessionArgs, returns *Z_Revok
 	}); ok {
 		returns.A = hook.RevokeSession(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RevokeSession called but not implemented."))
+		return encodableError(errors.New("API RevokeSession called but not implemented."))
 	}
 	return nil
 }
@@ -1914,7 +1914,7 @@ func (s *apiRPCServer) CreateUserAccessToken(args *Z_CreateUserAccessTokenArgs, 
 	}); ok {
 		returns.A, returns.B = hook.CreateUserAccessToken(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateUserAccessToken called but not implemented."))
+		return encodableError(errors.New("API CreateUserAccessToken called but not implemented."))
 	}
 	return nil
 }
@@ -1942,7 +1942,7 @@ func (s *apiRPCServer) RevokeUserAccessToken(args *Z_RevokeUserAccessTokenArgs, 
 	}); ok {
 		returns.A = hook.RevokeUserAccessToken(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RevokeUserAccessToken called but not implemented."))
+		return encodableError(errors.New("API RevokeUserAccessToken called but not implemented."))
 	}
 	return nil
 }
@@ -1971,7 +1971,7 @@ func (s *apiRPCServer) GetTeamIcon(args *Z_GetTeamIconArgs, returns *Z_GetTeamIc
 	}); ok {
 		returns.A, returns.B = hook.GetTeamIcon(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamIcon called but not implemented."))
+		return encodableError(errors.New("API GetTeamIcon called but not implemented."))
 	}
 	return nil
 }
@@ -2000,7 +2000,7 @@ func (s *apiRPCServer) SetTeamIcon(args *Z_SetTeamIconArgs, returns *Z_SetTeamIc
 	}); ok {
 		returns.A = hook.SetTeamIcon(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SetTeamIcon called but not implemented."))
+		return encodableError(errors.New("API SetTeamIcon called but not implemented."))
 	}
 	return nil
 }
@@ -2028,7 +2028,7 @@ func (s *apiRPCServer) RemoveTeamIcon(args *Z_RemoveTeamIconArgs, returns *Z_Rem
 	}); ok {
 		returns.A = hook.RemoveTeamIcon(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RemoveTeamIcon called but not implemented."))
+		return encodableError(errors.New("API RemoveTeamIcon called but not implemented."))
 	}
 	return nil
 }
@@ -2057,7 +2057,7 @@ func (s *apiRPCServer) UpdateUser(args *Z_UpdateUserArgs, returns *Z_UpdateUserR
 	}); ok {
 		returns.A, returns.B = hook.UpdateUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateUser called but not implemented."))
+		return encodableError(errors.New("API UpdateUser called but not implemented."))
 	}
 	return nil
 }
@@ -2086,7 +2086,7 @@ func (s *apiRPCServer) GetUserStatus(args *Z_GetUserStatusArgs, returns *Z_GetUs
 	}); ok {
 		returns.A, returns.B = hook.GetUserStatus(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUserStatus called but not implemented."))
+		return encodableError(errors.New("API GetUserStatus called but not implemented."))
 	}
 	return nil
 }
@@ -2115,7 +2115,7 @@ func (s *apiRPCServer) GetUserStatusesByIds(args *Z_GetUserStatusesByIdsArgs, re
 	}); ok {
 		returns.A, returns.B = hook.GetUserStatusesByIds(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetUserStatusesByIds called but not implemented."))
+		return encodableError(errors.New("API GetUserStatusesByIds called but not implemented."))
 	}
 	return nil
 }
@@ -2145,7 +2145,7 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.UpdateUserStatus(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateUserStatus called but not implemented."))
+		return encodableError(errors.New("API UpdateUserStatus called but not implemented."))
 	}
 	return nil
 }
@@ -2175,7 +2175,7 @@ func (s *apiRPCServer) SetUserStatusTimedDND(args *Z_SetUserStatusTimedDNDArgs, 
 	}); ok {
 		returns.A, returns.B = hook.SetUserStatusTimedDND(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SetUserStatusTimedDND called but not implemented."))
+		return encodableError(errors.New("API SetUserStatusTimedDND called but not implemented."))
 	}
 	return nil
 }
@@ -2204,7 +2204,7 @@ func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z
 	}); ok {
 		returns.A = hook.UpdateUserActive(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateUserActive called but not implemented."))
+		return encodableError(errors.New("API UpdateUserActive called but not implemented."))
 	}
 	return nil
 }
@@ -2233,7 +2233,7 @@ func (s *apiRPCServer) UpdateUserCustomStatus(args *Z_UpdateUserCustomStatusArgs
 	}); ok {
 		returns.A = hook.UpdateUserCustomStatus(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateUserCustomStatus called but not implemented."))
+		return encodableError(errors.New("API UpdateUserCustomStatus called but not implemented."))
 	}
 	return nil
 }
@@ -2261,7 +2261,7 @@ func (s *apiRPCServer) RemoveUserCustomStatus(args *Z_RemoveUserCustomStatusArgs
 	}); ok {
 		returns.A = hook.RemoveUserCustomStatus(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RemoveUserCustomStatus called but not implemented."))
+		return encodableError(errors.New("API RemoveUserCustomStatus called but not implemented."))
 	}
 	return nil
 }
@@ -2293,7 +2293,7 @@ func (s *apiRPCServer) GetUsersInChannel(args *Z_GetUsersInChannelArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.GetUsersInChannel(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API GetUsersInChannel called but not implemented."))
+		return encodableError(errors.New("API GetUsersInChannel called but not implemented."))
 	}
 	return nil
 }
@@ -2323,7 +2323,7 @@ func (s *apiRPCServer) GetLDAPUserAttributes(args *Z_GetLDAPUserAttributesArgs, 
 	}); ok {
 		returns.A, returns.B = hook.GetLDAPUserAttributes(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetLDAPUserAttributes called but not implemented."))
+		return encodableError(errors.New("API GetLDAPUserAttributes called but not implemented."))
 	}
 	return nil
 }
@@ -2352,7 +2352,7 @@ func (s *apiRPCServer) CreateTeam(args *Z_CreateTeamArgs, returns *Z_CreateTeamR
 	}); ok {
 		returns.A, returns.B = hook.CreateTeam(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateTeam called but not implemented."))
+		return encodableError(errors.New("API CreateTeam called but not implemented."))
 	}
 	return nil
 }
@@ -2380,7 +2380,7 @@ func (s *apiRPCServer) DeleteTeam(args *Z_DeleteTeamArgs, returns *Z_DeleteTeamR
 	}); ok {
 		returns.A = hook.DeleteTeam(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteTeam called but not implemented."))
+		return encodableError(errors.New("API DeleteTeam called but not implemented."))
 	}
 	return nil
 }
@@ -2408,7 +2408,7 @@ func (s *apiRPCServer) GetTeams(args *Z_GetTeamsArgs, returns *Z_GetTeamsReturns
 	}); ok {
 		returns.A, returns.B = hook.GetTeams()
 	} else {
-		return encodableError(fmt.Errorf("API GetTeams called but not implemented."))
+		return encodableError(errors.New("API GetTeams called but not implemented."))
 	}
 	return nil
 }
@@ -2437,7 +2437,7 @@ func (s *apiRPCServer) GetTeam(args *Z_GetTeamArgs, returns *Z_GetTeamReturns) e
 	}); ok {
 		returns.A, returns.B = hook.GetTeam(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeam called but not implemented."))
+		return encodableError(errors.New("API GetTeam called but not implemented."))
 	}
 	return nil
 }
@@ -2466,7 +2466,7 @@ func (s *apiRPCServer) GetTeamByName(args *Z_GetTeamByNameArgs, returns *Z_GetTe
 	}); ok {
 		returns.A, returns.B = hook.GetTeamByName(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamByName called but not implemented."))
+		return encodableError(errors.New("API GetTeamByName called but not implemented."))
 	}
 	return nil
 }
@@ -2495,7 +2495,7 @@ func (s *apiRPCServer) GetTeamsUnreadForUser(args *Z_GetTeamsUnreadForUserArgs, 
 	}); ok {
 		returns.A, returns.B = hook.GetTeamsUnreadForUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamsUnreadForUser called but not implemented."))
+		return encodableError(errors.New("API GetTeamsUnreadForUser called but not implemented."))
 	}
 	return nil
 }
@@ -2524,7 +2524,7 @@ func (s *apiRPCServer) UpdateTeam(args *Z_UpdateTeamArgs, returns *Z_UpdateTeamR
 	}); ok {
 		returns.A, returns.B = hook.UpdateTeam(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateTeam called but not implemented."))
+		return encodableError(errors.New("API UpdateTeam called but not implemented."))
 	}
 	return nil
 }
@@ -2553,7 +2553,7 @@ func (s *apiRPCServer) SearchTeams(args *Z_SearchTeamsArgs, returns *Z_SearchTea
 	}); ok {
 		returns.A, returns.B = hook.SearchTeams(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API SearchTeams called but not implemented."))
+		return encodableError(errors.New("API SearchTeams called but not implemented."))
 	}
 	return nil
 }
@@ -2582,7 +2582,7 @@ func (s *apiRPCServer) GetTeamsForUser(args *Z_GetTeamsForUserArgs, returns *Z_G
 	}); ok {
 		returns.A, returns.B = hook.GetTeamsForUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamsForUser called but not implemented."))
+		return encodableError(errors.New("API GetTeamsForUser called but not implemented."))
 	}
 	return nil
 }
@@ -2612,7 +2612,7 @@ func (s *apiRPCServer) CreateTeamMember(args *Z_CreateTeamMemberArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMember(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API CreateTeamMember called but not implemented."))
+		return encodableError(errors.New("API CreateTeamMember called but not implemented."))
 	}
 	return nil
 }
@@ -2643,7 +2643,7 @@ func (s *apiRPCServer) CreateTeamMembers(args *Z_CreateTeamMembersArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMembers(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API CreateTeamMembers called but not implemented."))
+		return encodableError(errors.New("API CreateTeamMembers called but not implemented."))
 	}
 	return nil
 }
@@ -2674,7 +2674,7 @@ func (s *apiRPCServer) CreateTeamMembersGracefully(args *Z_CreateTeamMembersGrac
 	}); ok {
 		returns.A, returns.B = hook.CreateTeamMembersGracefully(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API CreateTeamMembersGracefully called but not implemented."))
+		return encodableError(errors.New("API CreateTeamMembersGracefully called but not implemented."))
 	}
 	return nil
 }
@@ -2704,7 +2704,7 @@ func (s *apiRPCServer) DeleteTeamMember(args *Z_DeleteTeamMemberArgs, returns *Z
 	}); ok {
 		returns.A = hook.DeleteTeamMember(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteTeamMember called but not implemented."))
+		return encodableError(errors.New("API DeleteTeamMember called but not implemented."))
 	}
 	return nil
 }
@@ -2735,7 +2735,7 @@ func (s *apiRPCServer) GetTeamMembers(args *Z_GetTeamMembersArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMembers(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamMembers called but not implemented."))
+		return encodableError(errors.New("API GetTeamMembers called but not implemented."))
 	}
 	return nil
 }
@@ -2765,7 +2765,7 @@ func (s *apiRPCServer) GetTeamMember(args *Z_GetTeamMemberArgs, returns *Z_GetTe
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMember(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamMember called but not implemented."))
+		return encodableError(errors.New("API GetTeamMember called but not implemented."))
 	}
 	return nil
 }
@@ -2796,7 +2796,7 @@ func (s *apiRPCServer) GetTeamMembersForUser(args *Z_GetTeamMembersForUserArgs, 
 	}); ok {
 		returns.A, returns.B = hook.GetTeamMembersForUser(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamMembersForUser called but not implemented."))
+		return encodableError(errors.New("API GetTeamMembersForUser called but not implemented."))
 	}
 	return nil
 }
@@ -2827,7 +2827,7 @@ func (s *apiRPCServer) UpdateTeamMemberRoles(args *Z_UpdateTeamMemberRolesArgs, 
 	}); ok {
 		returns.A, returns.B = hook.UpdateTeamMemberRoles(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateTeamMemberRoles called but not implemented."))
+		return encodableError(errors.New("API UpdateTeamMemberRoles called but not implemented."))
 	}
 	return nil
 }
@@ -2856,7 +2856,7 @@ func (s *apiRPCServer) CreateChannel(args *Z_CreateChannelArgs, returns *Z_Creat
 	}); ok {
 		returns.A, returns.B = hook.CreateChannel(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateChannel called but not implemented."))
+		return encodableError(errors.New("API CreateChannel called but not implemented."))
 	}
 	return nil
 }
@@ -2884,7 +2884,7 @@ func (s *apiRPCServer) DeleteChannel(args *Z_DeleteChannelArgs, returns *Z_Delet
 	}); ok {
 		returns.A = hook.DeleteChannel(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteChannel called but not implemented."))
+		return encodableError(errors.New("API DeleteChannel called but not implemented."))
 	}
 	return nil
 }
@@ -2915,7 +2915,7 @@ func (s *apiRPCServer) GetPublicChannelsForTeam(args *Z_GetPublicChannelsForTeam
 	}); ok {
 		returns.A, returns.B = hook.GetPublicChannelsForTeam(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetPublicChannelsForTeam called but not implemented."))
+		return encodableError(errors.New("API GetPublicChannelsForTeam called but not implemented."))
 	}
 	return nil
 }
@@ -2944,7 +2944,7 @@ func (s *apiRPCServer) GetChannel(args *Z_GetChannelArgs, returns *Z_GetChannelR
 	}); ok {
 		returns.A, returns.B = hook.GetChannel(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannel called but not implemented."))
+		return encodableError(errors.New("API GetChannel called but not implemented."))
 	}
 	return nil
 }
@@ -2975,7 +2975,7 @@ func (s *apiRPCServer) GetChannelByName(args *Z_GetChannelByNameArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.GetChannelByName(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelByName called but not implemented."))
+		return encodableError(errors.New("API GetChannelByName called but not implemented."))
 	}
 	return nil
 }
@@ -3006,7 +3006,7 @@ func (s *apiRPCServer) GetChannelByNameForTeamName(args *Z_GetChannelByNameForTe
 	}); ok {
 		returns.A, returns.B = hook.GetChannelByNameForTeamName(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelByNameForTeamName called but not implemented."))
+		return encodableError(errors.New("API GetChannelByNameForTeamName called but not implemented."))
 	}
 	return nil
 }
@@ -3037,7 +3037,7 @@ func (s *apiRPCServer) GetChannelsForTeamForUser(args *Z_GetChannelsForTeamForUs
 	}); ok {
 		returns.A, returns.B = hook.GetChannelsForTeamForUser(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelsForTeamForUser called but not implemented."))
+		return encodableError(errors.New("API GetChannelsForTeamForUser called but not implemented."))
 	}
 	return nil
 }
@@ -3066,7 +3066,7 @@ func (s *apiRPCServer) GetChannelStats(args *Z_GetChannelStatsArgs, returns *Z_G
 	}); ok {
 		returns.A, returns.B = hook.GetChannelStats(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelStats called but not implemented."))
+		return encodableError(errors.New("API GetChannelStats called but not implemented."))
 	}
 	return nil
 }
@@ -3096,7 +3096,7 @@ func (s *apiRPCServer) GetDirectChannel(args *Z_GetDirectChannelArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.GetDirectChannel(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetDirectChannel called but not implemented."))
+		return encodableError(errors.New("API GetDirectChannel called but not implemented."))
 	}
 	return nil
 }
@@ -3125,7 +3125,7 @@ func (s *apiRPCServer) GetGroupChannel(args *Z_GetGroupChannelArgs, returns *Z_G
 	}); ok {
 		returns.A, returns.B = hook.GetGroupChannel(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroupChannel called but not implemented."))
+		return encodableError(errors.New("API GetGroupChannel called but not implemented."))
 	}
 	return nil
 }
@@ -3154,7 +3154,7 @@ func (s *apiRPCServer) UpdateChannel(args *Z_UpdateChannelArgs, returns *Z_Updat
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannel(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateChannel called but not implemented."))
+		return encodableError(errors.New("API UpdateChannel called but not implemented."))
 	}
 	return nil
 }
@@ -3184,7 +3184,7 @@ func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_Sea
 	}); ok {
 		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SearchChannels called but not implemented."))
+		return encodableError(errors.New("API SearchChannels called but not implemented."))
 	}
 	return nil
 }
@@ -3215,7 +3215,7 @@ func (s *apiRPCServer) CreateChannelSidebarCategory(args *Z_CreateChannelSidebar
 	}); ok {
 		returns.A, returns.B = hook.CreateChannelSidebarCategory(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API CreateChannelSidebarCategory called but not implemented."))
+		return encodableError(errors.New("API CreateChannelSidebarCategory called but not implemented."))
 	}
 	return nil
 }
@@ -3245,7 +3245,7 @@ func (s *apiRPCServer) GetChannelSidebarCategories(args *Z_GetChannelSidebarCate
 	}); ok {
 		returns.A, returns.B = hook.GetChannelSidebarCategories(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelSidebarCategories called but not implemented."))
+		return encodableError(errors.New("API GetChannelSidebarCategories called but not implemented."))
 	}
 	return nil
 }
@@ -3276,7 +3276,7 @@ func (s *apiRPCServer) UpdateChannelSidebarCategories(args *Z_UpdateChannelSideb
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelSidebarCategories(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateChannelSidebarCategories called but not implemented."))
+		return encodableError(errors.New("API UpdateChannelSidebarCategories called but not implemented."))
 	}
 	return nil
 }
@@ -3305,7 +3305,7 @@ func (s *apiRPCServer) SearchUsers(args *Z_SearchUsersArgs, returns *Z_SearchUse
 	}); ok {
 		returns.A, returns.B = hook.SearchUsers(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API SearchUsers called but not implemented."))
+		return encodableError(errors.New("API SearchUsers called but not implemented."))
 	}
 	return nil
 }
@@ -3335,7 +3335,7 @@ func (s *apiRPCServer) SearchPostsInTeam(args *Z_SearchPostsInTeamArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.SearchPostsInTeam(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SearchPostsInTeam called but not implemented."))
+		return encodableError(errors.New("API SearchPostsInTeam called but not implemented."))
 	}
 	return nil
 }
@@ -3366,7 +3366,7 @@ func (s *apiRPCServer) SearchPostsInTeamForUser(args *Z_SearchPostsInTeamForUser
 	}); ok {
 		returns.A, returns.B = hook.SearchPostsInTeamForUser(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API SearchPostsInTeamForUser called but not implemented."))
+		return encodableError(errors.New("API SearchPostsInTeamForUser called but not implemented."))
 	}
 	return nil
 }
@@ -3396,7 +3396,7 @@ func (s *apiRPCServer) AddChannelMember(args *Z_AddChannelMemberArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.AddChannelMember(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API AddChannelMember called but not implemented."))
+		return encodableError(errors.New("API AddChannelMember called but not implemented."))
 	}
 	return nil
 }
@@ -3427,7 +3427,7 @@ func (s *apiRPCServer) AddUserToChannel(args *Z_AddUserToChannelArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.AddUserToChannel(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API AddUserToChannel called but not implemented."))
+		return encodableError(errors.New("API AddUserToChannel called but not implemented."))
 	}
 	return nil
 }
@@ -3457,7 +3457,7 @@ func (s *apiRPCServer) GetChannelMember(args *Z_GetChannelMemberArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMember(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelMember called but not implemented."))
+		return encodableError(errors.New("API GetChannelMember called but not implemented."))
 	}
 	return nil
 }
@@ -3488,7 +3488,7 @@ func (s *apiRPCServer) GetChannelMembers(args *Z_GetChannelMembersArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembers(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelMembers called but not implemented."))
+		return encodableError(errors.New("API GetChannelMembers called but not implemented."))
 	}
 	return nil
 }
@@ -3518,7 +3518,7 @@ func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelMembersByIds called but not implemented."))
+		return encodableError(errors.New("API GetChannelMembersByIds called but not implemented."))
 	}
 	return nil
 }
@@ -3550,7 +3550,7 @@ func (s *apiRPCServer) GetChannelMembersForUser(args *Z_GetChannelMembersForUser
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersForUser(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API GetChannelMembersForUser called but not implemented."))
+		return encodableError(errors.New("API GetChannelMembersForUser called but not implemented."))
 	}
 	return nil
 }
@@ -3581,7 +3581,7 @@ func (s *apiRPCServer) UpdateChannelMemberRoles(args *Z_UpdateChannelMemberRoles
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberRoles(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateChannelMemberRoles called but not implemented."))
+		return encodableError(errors.New("API UpdateChannelMemberRoles called but not implemented."))
 	}
 	return nil
 }
@@ -3612,7 +3612,7 @@ func (s *apiRPCServer) UpdateChannelMemberNotifications(args *Z_UpdateChannelMem
 	}); ok {
 		returns.A, returns.B = hook.UpdateChannelMemberNotifications(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateChannelMemberNotifications called but not implemented."))
+		return encodableError(errors.New("API UpdateChannelMemberNotifications called but not implemented."))
 	}
 	return nil
 }
@@ -3641,7 +3641,7 @@ func (s *apiRPCServer) GetGroup(args *Z_GetGroupArgs, returns *Z_GetGroupReturns
 	}); ok {
 		returns.A, returns.B = hook.GetGroup(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroup called but not implemented."))
+		return encodableError(errors.New("API GetGroup called but not implemented."))
 	}
 	return nil
 }
@@ -3670,7 +3670,7 @@ func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetGroupByName(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroupByName called but not implemented."))
+		return encodableError(errors.New("API GetGroupByName called but not implemented."))
 	}
 	return nil
 }
@@ -3701,7 +3701,7 @@ func (s *apiRPCServer) GetGroupMemberUsers(args *Z_GetGroupMemberUsersArgs, retu
 	}); ok {
 		returns.A, returns.B = hook.GetGroupMemberUsers(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroupMemberUsers called but not implemented."))
+		return encodableError(errors.New("API GetGroupMemberUsers called but not implemented."))
 	}
 	return nil
 }
@@ -3730,7 +3730,7 @@ func (s *apiRPCServer) GetGroupsBySource(args *Z_GetGroupsBySourceArgs, returns 
 	}); ok {
 		returns.A, returns.B = hook.GetGroupsBySource(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroupsBySource called but not implemented."))
+		return encodableError(errors.New("API GetGroupsBySource called but not implemented."))
 	}
 	return nil
 }
@@ -3759,7 +3759,7 @@ func (s *apiRPCServer) GetGroupsForUser(args *Z_GetGroupsForUserArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.GetGroupsForUser(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetGroupsForUser called but not implemented."))
+		return encodableError(errors.New("API GetGroupsForUser called but not implemented."))
 	}
 	return nil
 }
@@ -3788,7 +3788,7 @@ func (s *apiRPCServer) DeleteChannelMember(args *Z_DeleteChannelMemberArgs, retu
 	}); ok {
 		returns.A = hook.DeleteChannelMember(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteChannelMember called but not implemented."))
+		return encodableError(errors.New("API DeleteChannelMember called but not implemented."))
 	}
 	return nil
 }
@@ -3817,7 +3817,7 @@ func (s *apiRPCServer) CreatePost(args *Z_CreatePostArgs, returns *Z_CreatePostR
 	}); ok {
 		returns.A, returns.B = hook.CreatePost(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreatePost called but not implemented."))
+		return encodableError(errors.New("API CreatePost called but not implemented."))
 	}
 	return nil
 }
@@ -3846,7 +3846,7 @@ func (s *apiRPCServer) AddReaction(args *Z_AddReactionArgs, returns *Z_AddReacti
 	}); ok {
 		returns.A, returns.B = hook.AddReaction(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API AddReaction called but not implemented."))
+		return encodableError(errors.New("API AddReaction called but not implemented."))
 	}
 	return nil
 }
@@ -3874,7 +3874,7 @@ func (s *apiRPCServer) RemoveReaction(args *Z_RemoveReactionArgs, returns *Z_Rem
 	}); ok {
 		returns.A = hook.RemoveReaction(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RemoveReaction called but not implemented."))
+		return encodableError(errors.New("API RemoveReaction called but not implemented."))
 	}
 	return nil
 }
@@ -3903,7 +3903,7 @@ func (s *apiRPCServer) GetReactions(args *Z_GetReactionsArgs, returns *Z_GetReac
 	}); ok {
 		returns.A, returns.B = hook.GetReactions(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetReactions called but not implemented."))
+		return encodableError(errors.New("API GetReactions called but not implemented."))
 	}
 	return nil
 }
@@ -3932,7 +3932,7 @@ func (s *apiRPCServer) SendEphemeralPost(args *Z_SendEphemeralPostArgs, returns 
 	}); ok {
 		returns.A = hook.SendEphemeralPost(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SendEphemeralPost called but not implemented."))
+		return encodableError(errors.New("API SendEphemeralPost called but not implemented."))
 	}
 	return nil
 }
@@ -3961,7 +3961,7 @@ func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, retu
 	}); ok {
 		returns.A = hook.UpdateEphemeralPost(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateEphemeralPost called but not implemented."))
+		return encodableError(errors.New("API UpdateEphemeralPost called but not implemented."))
 	}
 	return nil
 }
@@ -3989,7 +3989,7 @@ func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, retu
 	}); ok {
 		hook.DeleteEphemeralPost(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteEphemeralPost called but not implemented."))
+		return encodableError(errors.New("API DeleteEphemeralPost called but not implemented."))
 	}
 	return nil
 }
@@ -4017,7 +4017,7 @@ func (s *apiRPCServer) DeletePost(args *Z_DeletePostArgs, returns *Z_DeletePostR
 	}); ok {
 		returns.A = hook.DeletePost(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeletePost called but not implemented."))
+		return encodableError(errors.New("API DeletePost called but not implemented."))
 	}
 	return nil
 }
@@ -4046,7 +4046,7 @@ func (s *apiRPCServer) GetPostThread(args *Z_GetPostThreadArgs, returns *Z_GetPo
 	}); ok {
 		returns.A, returns.B = hook.GetPostThread(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetPostThread called but not implemented."))
+		return encodableError(errors.New("API GetPostThread called but not implemented."))
 	}
 	return nil
 }
@@ -4075,7 +4075,7 @@ func (s *apiRPCServer) GetPost(args *Z_GetPostArgs, returns *Z_GetPostReturns) e
 	}); ok {
 		returns.A, returns.B = hook.GetPost(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetPost called but not implemented."))
+		return encodableError(errors.New("API GetPost called but not implemented."))
 	}
 	return nil
 }
@@ -4105,7 +4105,7 @@ func (s *apiRPCServer) GetPostsSince(args *Z_GetPostsSinceArgs, returns *Z_GetPo
 	}); ok {
 		returns.A, returns.B = hook.GetPostsSince(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetPostsSince called but not implemented."))
+		return encodableError(errors.New("API GetPostsSince called but not implemented."))
 	}
 	return nil
 }
@@ -4137,7 +4137,7 @@ func (s *apiRPCServer) GetPostsAfter(args *Z_GetPostsAfterArgs, returns *Z_GetPo
 	}); ok {
 		returns.A, returns.B = hook.GetPostsAfter(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API GetPostsAfter called but not implemented."))
+		return encodableError(errors.New("API GetPostsAfter called but not implemented."))
 	}
 	return nil
 }
@@ -4169,7 +4169,7 @@ func (s *apiRPCServer) GetPostsBefore(args *Z_GetPostsBeforeArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetPostsBefore(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API GetPostsBefore called but not implemented."))
+		return encodableError(errors.New("API GetPostsBefore called but not implemented."))
 	}
 	return nil
 }
@@ -4200,7 +4200,7 @@ func (s *apiRPCServer) GetPostsForChannel(args *Z_GetPostsForChannelArgs, return
 	}); ok {
 		returns.A, returns.B = hook.GetPostsForChannel(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetPostsForChannel called but not implemented."))
+		return encodableError(errors.New("API GetPostsForChannel called but not implemented."))
 	}
 	return nil
 }
@@ -4229,7 +4229,7 @@ func (s *apiRPCServer) GetTeamStats(args *Z_GetTeamStatsArgs, returns *Z_GetTeam
 	}); ok {
 		returns.A, returns.B = hook.GetTeamStats(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetTeamStats called but not implemented."))
+		return encodableError(errors.New("API GetTeamStats called but not implemented."))
 	}
 	return nil
 }
@@ -4258,7 +4258,7 @@ func (s *apiRPCServer) UpdatePost(args *Z_UpdatePostArgs, returns *Z_UpdatePostR
 	}); ok {
 		returns.A, returns.B = hook.UpdatePost(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API UpdatePost called but not implemented."))
+		return encodableError(errors.New("API UpdatePost called but not implemented."))
 	}
 	return nil
 }
@@ -4287,7 +4287,7 @@ func (s *apiRPCServer) GetProfileImage(args *Z_GetProfileImageArgs, returns *Z_G
 	}); ok {
 		returns.A, returns.B = hook.GetProfileImage(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetProfileImage called but not implemented."))
+		return encodableError(errors.New("API GetProfileImage called but not implemented."))
 	}
 	return nil
 }
@@ -4316,7 +4316,7 @@ func (s *apiRPCServer) SetProfileImage(args *Z_SetProfileImageArgs, returns *Z_S
 	}); ok {
 		returns.A = hook.SetProfileImage(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API SetProfileImage called but not implemented."))
+		return encodableError(errors.New("API SetProfileImage called but not implemented."))
 	}
 	return nil
 }
@@ -4347,7 +4347,7 @@ func (s *apiRPCServer) GetEmojiList(args *Z_GetEmojiListArgs, returns *Z_GetEmoj
 	}); ok {
 		returns.A, returns.B = hook.GetEmojiList(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetEmojiList called but not implemented."))
+		return encodableError(errors.New("API GetEmojiList called but not implemented."))
 	}
 	return nil
 }
@@ -4376,7 +4376,7 @@ func (s *apiRPCServer) GetEmojiByName(args *Z_GetEmojiByNameArgs, returns *Z_Get
 	}); ok {
 		returns.A, returns.B = hook.GetEmojiByName(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetEmojiByName called but not implemented."))
+		return encodableError(errors.New("API GetEmojiByName called but not implemented."))
 	}
 	return nil
 }
@@ -4405,7 +4405,7 @@ func (s *apiRPCServer) GetEmoji(args *Z_GetEmojiArgs, returns *Z_GetEmojiReturns
 	}); ok {
 		returns.A, returns.B = hook.GetEmoji(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetEmoji called but not implemented."))
+		return encodableError(errors.New("API GetEmoji called but not implemented."))
 	}
 	return nil
 }
@@ -4435,7 +4435,7 @@ func (s *apiRPCServer) CopyFileInfos(args *Z_CopyFileInfosArgs, returns *Z_CopyF
 	}); ok {
 		returns.A, returns.B = hook.CopyFileInfos(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API CopyFileInfos called but not implemented."))
+		return encodableError(errors.New("API CopyFileInfos called but not implemented."))
 	}
 	return nil
 }
@@ -4464,7 +4464,7 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	}); ok {
 		returns.A, returns.B = hook.GetFileInfo(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetFileInfo called but not implemented."))
+		return encodableError(errors.New("API GetFileInfo called but not implemented."))
 	}
 	return nil
 }
@@ -4495,7 +4495,7 @@ func (s *apiRPCServer) GetFileInfos(args *Z_GetFileInfosArgs, returns *Z_GetFile
 	}); ok {
 		returns.A, returns.B = hook.GetFileInfos(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API GetFileInfos called but not implemented."))
+		return encodableError(errors.New("API GetFileInfos called but not implemented."))
 	}
 	return nil
 }
@@ -4524,7 +4524,7 @@ func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) e
 	}); ok {
 		returns.A, returns.B = hook.GetFile(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetFile called but not implemented."))
+		return encodableError(errors.New("API GetFile called but not implemented."))
 	}
 	return nil
 }
@@ -4553,7 +4553,7 @@ func (s *apiRPCServer) GetFileLink(args *Z_GetFileLinkArgs, returns *Z_GetFileLi
 	}); ok {
 		returns.A, returns.B = hook.GetFileLink(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetFileLink called but not implemented."))
+		return encodableError(errors.New("API GetFileLink called but not implemented."))
 	}
 	return nil
 }
@@ -4582,7 +4582,7 @@ func (s *apiRPCServer) ReadFile(args *Z_ReadFileArgs, returns *Z_ReadFileReturns
 	}); ok {
 		returns.A, returns.B = hook.ReadFile(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API ReadFile called but not implemented."))
+		return encodableError(errors.New("API ReadFile called but not implemented."))
 	}
 	return nil
 }
@@ -4612,7 +4612,7 @@ func (s *apiRPCServer) GetEmojiImage(args *Z_GetEmojiImageArgs, returns *Z_GetEm
 	}); ok {
 		returns.A, returns.B, returns.C = hook.GetEmojiImage(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetEmojiImage called but not implemented."))
+		return encodableError(errors.New("API GetEmojiImage called but not implemented."))
 	}
 	return nil
 }
@@ -4643,7 +4643,7 @@ func (s *apiRPCServer) UploadFile(args *Z_UploadFileArgs, returns *Z_UploadFileR
 	}); ok {
 		returns.A, returns.B = hook.UploadFile(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API UploadFile called but not implemented."))
+		return encodableError(errors.New("API UploadFile called but not implemented."))
 	}
 	return nil
 }
@@ -4671,7 +4671,7 @@ func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, 
 	}); ok {
 		returns.A = hook.OpenInteractiveDialog(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API OpenInteractiveDialog called but not implemented."))
+		return encodableError(errors.New("API OpenInteractiveDialog called but not implemented."))
 	}
 	return nil
 }
@@ -4699,7 +4699,7 @@ func (s *apiRPCServer) GetPlugins(args *Z_GetPluginsArgs, returns *Z_GetPluginsR
 	}); ok {
 		returns.A, returns.B = hook.GetPlugins()
 	} else {
-		return encodableError(fmt.Errorf("API GetPlugins called but not implemented."))
+		return encodableError(errors.New("API GetPlugins called but not implemented."))
 	}
 	return nil
 }
@@ -4727,7 +4727,7 @@ func (s *apiRPCServer) EnablePlugin(args *Z_EnablePluginArgs, returns *Z_EnableP
 	}); ok {
 		returns.A = hook.EnablePlugin(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API EnablePlugin called but not implemented."))
+		return encodableError(errors.New("API EnablePlugin called but not implemented."))
 	}
 	return nil
 }
@@ -4755,7 +4755,7 @@ func (s *apiRPCServer) DisablePlugin(args *Z_DisablePluginArgs, returns *Z_Disab
 	}); ok {
 		returns.A = hook.DisablePlugin(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DisablePlugin called but not implemented."))
+		return encodableError(errors.New("API DisablePlugin called but not implemented."))
 	}
 	return nil
 }
@@ -4783,7 +4783,7 @@ func (s *apiRPCServer) RemovePlugin(args *Z_RemovePluginArgs, returns *Z_RemoveP
 	}); ok {
 		returns.A = hook.RemovePlugin(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API RemovePlugin called but not implemented."))
+		return encodableError(errors.New("API RemovePlugin called but not implemented."))
 	}
 	return nil
 }
@@ -4812,7 +4812,7 @@ func (s *apiRPCServer) GetPluginStatus(args *Z_GetPluginStatusArgs, returns *Z_G
 	}); ok {
 		returns.A, returns.B = hook.GetPluginStatus(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetPluginStatus called but not implemented."))
+		return encodableError(errors.New("API GetPluginStatus called but not implemented."))
 	}
 	return nil
 }
@@ -4841,7 +4841,7 @@ func (s *apiRPCServer) KVSet(args *Z_KVSetArgs, returns *Z_KVSetReturns) error {
 	}); ok {
 		returns.A = hook.KVSet(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API KVSet called but not implemented."))
+		return encodableError(errors.New("API KVSet called but not implemented."))
 	}
 	return nil
 }
@@ -4872,7 +4872,7 @@ func (s *apiRPCServer) KVCompareAndSet(args *Z_KVCompareAndSetArgs, returns *Z_K
 	}); ok {
 		returns.A, returns.B = hook.KVCompareAndSet(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API KVCompareAndSet called but not implemented."))
+		return encodableError(errors.New("API KVCompareAndSet called but not implemented."))
 	}
 	return nil
 }
@@ -4902,7 +4902,7 @@ func (s *apiRPCServer) KVCompareAndDelete(args *Z_KVCompareAndDeleteArgs, return
 	}); ok {
 		returns.A, returns.B = hook.KVCompareAndDelete(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API KVCompareAndDelete called but not implemented."))
+		return encodableError(errors.New("API KVCompareAndDelete called but not implemented."))
 	}
 	return nil
 }
@@ -4933,7 +4933,7 @@ func (s *apiRPCServer) KVSetWithOptions(args *Z_KVSetWithOptionsArgs, returns *Z
 	}); ok {
 		returns.A, returns.B = hook.KVSetWithOptions(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API KVSetWithOptions called but not implemented."))
+		return encodableError(errors.New("API KVSetWithOptions called but not implemented."))
 	}
 	return nil
 }
@@ -4963,7 +4963,7 @@ func (s *apiRPCServer) KVSetWithExpiry(args *Z_KVSetWithExpiryArgs, returns *Z_K
 	}); ok {
 		returns.A = hook.KVSetWithExpiry(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API KVSetWithExpiry called but not implemented."))
+		return encodableError(errors.New("API KVSetWithExpiry called but not implemented."))
 	}
 	return nil
 }
@@ -4992,7 +4992,7 @@ func (s *apiRPCServer) KVGet(args *Z_KVGetArgs, returns *Z_KVGetReturns) error {
 	}); ok {
 		returns.A, returns.B = hook.KVGet(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API KVGet called but not implemented."))
+		return encodableError(errors.New("API KVGet called but not implemented."))
 	}
 	return nil
 }
@@ -5020,7 +5020,7 @@ func (s *apiRPCServer) KVDelete(args *Z_KVDeleteArgs, returns *Z_KVDeleteReturns
 	}); ok {
 		returns.A = hook.KVDelete(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API KVDelete called but not implemented."))
+		return encodableError(errors.New("API KVDelete called but not implemented."))
 	}
 	return nil
 }
@@ -5047,7 +5047,7 @@ func (s *apiRPCServer) KVDeleteAll(args *Z_KVDeleteAllArgs, returns *Z_KVDeleteA
 	}); ok {
 		returns.A = hook.KVDeleteAll()
 	} else {
-		return encodableError(fmt.Errorf("API KVDeleteAll called but not implemented."))
+		return encodableError(errors.New("API KVDeleteAll called but not implemented."))
 	}
 	return nil
 }
@@ -5077,7 +5077,7 @@ func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) erro
 	}); ok {
 		returns.A, returns.B = hook.KVList(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API KVList called but not implemented."))
+		return encodableError(errors.New("API KVList called but not implemented."))
 	}
 	return nil
 }
@@ -5106,7 +5106,7 @@ func (s *apiRPCServer) PublishWebSocketEvent(args *Z_PublishWebSocketEventArgs, 
 	}); ok {
 		hook.PublishWebSocketEvent(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API PublishWebSocketEvent called but not implemented."))
+		return encodableError(errors.New("API PublishWebSocketEvent called but not implemented."))
 	}
 	return nil
 }
@@ -5135,7 +5135,7 @@ func (s *apiRPCServer) HasPermissionTo(args *Z_HasPermissionToArgs, returns *Z_H
 	}); ok {
 		returns.A = hook.HasPermissionTo(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API HasPermissionTo called but not implemented."))
+		return encodableError(errors.New("API HasPermissionTo called but not implemented."))
 	}
 	return nil
 }
@@ -5165,7 +5165,7 @@ func (s *apiRPCServer) HasPermissionToTeam(args *Z_HasPermissionToTeamArgs, retu
 	}); ok {
 		returns.A = hook.HasPermissionToTeam(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API HasPermissionToTeam called but not implemented."))
+		return encodableError(errors.New("API HasPermissionToTeam called but not implemented."))
 	}
 	return nil
 }
@@ -5195,7 +5195,7 @@ func (s *apiRPCServer) HasPermissionToChannel(args *Z_HasPermissionToChannelArgs
 	}); ok {
 		returns.A = hook.HasPermissionToChannel(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API HasPermissionToChannel called but not implemented."))
+		return encodableError(errors.New("API HasPermissionToChannel called but not implemented."))
 	}
 	return nil
 }
@@ -5224,7 +5224,7 @@ func (s *apiRPCServer) RolesGrantPermission(args *Z_RolesGrantPermissionArgs, re
 	}); ok {
 		returns.A = hook.RolesGrantPermission(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API RolesGrantPermission called but not implemented."))
+		return encodableError(errors.New("API RolesGrantPermission called but not implemented."))
 	}
 	return nil
 }
@@ -5254,7 +5254,7 @@ func (s *apiRPCServer) SendMail(args *Z_SendMailArgs, returns *Z_SendMailReturns
 	}); ok {
 		returns.A = hook.SendMail(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API SendMail called but not implemented."))
+		return encodableError(errors.New("API SendMail called but not implemented."))
 	}
 	return nil
 }
@@ -5283,7 +5283,7 @@ func (s *apiRPCServer) CreateBot(args *Z_CreateBotArgs, returns *Z_CreateBotRetu
 	}); ok {
 		returns.A, returns.B = hook.CreateBot(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateBot called but not implemented."))
+		return encodableError(errors.New("API CreateBot called but not implemented."))
 	}
 	return nil
 }
@@ -5313,7 +5313,7 @@ func (s *apiRPCServer) PatchBot(args *Z_PatchBotArgs, returns *Z_PatchBotReturns
 	}); ok {
 		returns.A, returns.B = hook.PatchBot(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API PatchBot called but not implemented."))
+		return encodableError(errors.New("API PatchBot called but not implemented."))
 	}
 	return nil
 }
@@ -5343,7 +5343,7 @@ func (s *apiRPCServer) GetBot(args *Z_GetBotArgs, returns *Z_GetBotReturns) erro
 	}); ok {
 		returns.A, returns.B = hook.GetBot(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetBot called but not implemented."))
+		return encodableError(errors.New("API GetBot called but not implemented."))
 	}
 	return nil
 }
@@ -5372,7 +5372,7 @@ func (s *apiRPCServer) GetBots(args *Z_GetBotsArgs, returns *Z_GetBotsReturns) e
 	}); ok {
 		returns.A, returns.B = hook.GetBots(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetBots called but not implemented."))
+		return encodableError(errors.New("API GetBots called but not implemented."))
 	}
 	return nil
 }
@@ -5402,7 +5402,7 @@ func (s *apiRPCServer) UpdateBotActive(args *Z_UpdateBotActiveArgs, returns *Z_U
 	}); ok {
 		returns.A, returns.B = hook.UpdateBotActive(args.A, args.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateBotActive called but not implemented."))
+		return encodableError(errors.New("API UpdateBotActive called but not implemented."))
 	}
 	return nil
 }
@@ -5430,7 +5430,7 @@ func (s *apiRPCServer) PermanentDeleteBot(args *Z_PermanentDeleteBotArgs, return
 	}); ok {
 		returns.A = hook.PermanentDeleteBot(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API PermanentDeleteBot called but not implemented."))
+		return encodableError(errors.New("API PermanentDeleteBot called but not implemented."))
 	}
 	return nil
 }
@@ -5460,7 +5460,7 @@ func (s *apiRPCServer) PublishUserTyping(args *Z_PublishUserTypingArgs, returns 
 	}); ok {
 		returns.A = hook.PublishUserTyping(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API PublishUserTyping called but not implemented."))
+		return encodableError(errors.New("API PublishUserTyping called but not implemented."))
 	}
 	return nil
 }
@@ -5490,7 +5490,7 @@ func (s *apiRPCServer) CreateCommand(args *Z_CreateCommandArgs, returns *Z_Creat
 		returns.A, returns.B = hook.CreateCommand(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API CreateCommand called but not implemented."))
+		return encodableError(errors.New("API CreateCommand called but not implemented."))
 	}
 	return nil
 }
@@ -5520,7 +5520,7 @@ func (s *apiRPCServer) ListCommands(args *Z_ListCommandsArgs, returns *Z_ListCom
 		returns.A, returns.B = hook.ListCommands(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListCommands called but not implemented."))
+		return encodableError(errors.New("API ListCommands called but not implemented."))
 	}
 	return nil
 }
@@ -5550,7 +5550,7 @@ func (s *apiRPCServer) ListCustomCommands(args *Z_ListCustomCommandsArgs, return
 		returns.A, returns.B = hook.ListCustomCommands(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListCustomCommands called but not implemented."))
+		return encodableError(errors.New("API ListCustomCommands called but not implemented."))
 	}
 	return nil
 }
@@ -5580,7 +5580,7 @@ func (s *apiRPCServer) ListPluginCommands(args *Z_ListPluginCommandsArgs, return
 		returns.A, returns.B = hook.ListPluginCommands(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListPluginCommands called but not implemented."))
+		return encodableError(errors.New("API ListPluginCommands called but not implemented."))
 	}
 	return nil
 }
@@ -5609,7 +5609,7 @@ func (s *apiRPCServer) ListBuiltInCommands(args *Z_ListBuiltInCommandsArgs, retu
 		returns.A, returns.B = hook.ListBuiltInCommands()
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListBuiltInCommands called but not implemented."))
+		return encodableError(errors.New("API ListBuiltInCommands called but not implemented."))
 	}
 	return nil
 }
@@ -5639,7 +5639,7 @@ func (s *apiRPCServer) GetCommand(args *Z_GetCommandArgs, returns *Z_GetCommandR
 		returns.A, returns.B = hook.GetCommand(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetCommand called but not implemented."))
+		return encodableError(errors.New("API GetCommand called but not implemented."))
 	}
 	return nil
 }
@@ -5670,7 +5670,7 @@ func (s *apiRPCServer) UpdateCommand(args *Z_UpdateCommandArgs, returns *Z_Updat
 		returns.A, returns.B = hook.UpdateCommand(args.A, args.B)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateCommand called but not implemented."))
+		return encodableError(errors.New("API UpdateCommand called but not implemented."))
 	}
 	return nil
 }
@@ -5699,7 +5699,7 @@ func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_Delet
 		returns.A = hook.DeleteCommand(args.A)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
+		return encodableError(errors.New("API DeleteCommand called but not implemented."))
 	}
 	return nil
 }
@@ -5728,7 +5728,7 @@ func (s *apiRPCServer) CreateOAuthApp(args *Z_CreateOAuthAppArgs, returns *Z_Cre
 	}); ok {
 		returns.A, returns.B = hook.CreateOAuthApp(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API CreateOAuthApp called but not implemented."))
+		return encodableError(errors.New("API CreateOAuthApp called but not implemented."))
 	}
 	return nil
 }
@@ -5757,7 +5757,7 @@ func (s *apiRPCServer) GetOAuthApp(args *Z_GetOAuthAppArgs, returns *Z_GetOAuthA
 	}); ok {
 		returns.A, returns.B = hook.GetOAuthApp(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API GetOAuthApp called but not implemented."))
+		return encodableError(errors.New("API GetOAuthApp called but not implemented."))
 	}
 	return nil
 }
@@ -5786,7 +5786,7 @@ func (s *apiRPCServer) UpdateOAuthApp(args *Z_UpdateOAuthAppArgs, returns *Z_Upd
 	}); ok {
 		returns.A, returns.B = hook.UpdateOAuthApp(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API UpdateOAuthApp called but not implemented."))
+		return encodableError(errors.New("API UpdateOAuthApp called but not implemented."))
 	}
 	return nil
 }
@@ -5814,7 +5814,7 @@ func (s *apiRPCServer) DeleteOAuthApp(args *Z_DeleteOAuthAppArgs, returns *Z_Del
 	}); ok {
 		returns.A = hook.DeleteOAuthApp(args.A)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteOAuthApp called but not implemented."))
+		return encodableError(errors.New("API DeleteOAuthApp called but not implemented."))
 	}
 	return nil
 }
@@ -5844,7 +5844,7 @@ func (s *apiRPCServer) PublishPluginClusterEvent(args *Z_PublishPluginClusterEve
 		returns.A = hook.PublishPluginClusterEvent(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API PublishPluginClusterEvent called but not implemented."))
+		return encodableError(errors.New("API PublishPluginClusterEvent called but not implemented."))
 	}
 	return nil
 }
@@ -5875,7 +5875,7 @@ func (s *apiRPCServer) RequestTrialLicense(args *Z_RequestTrialLicenseArgs, retu
 	}); ok {
 		returns.A = hook.RequestTrialLicense(args.A, args.B, args.C, args.D)
 	} else {
-		return encodableError(fmt.Errorf("API RequestTrialLicense called but not implemented."))
+		return encodableError(errors.New("API RequestTrialLicense called but not implemented."))
 	}
 	return nil
 }
@@ -5904,7 +5904,7 @@ func (s *apiRPCServer) GetCloudLimits(args *Z_GetCloudLimitsArgs, returns *Z_Get
 		returns.A, returns.B = hook.GetCloudLimits()
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API GetCloudLimits called but not implemented."))
+		return encodableError(errors.New("API GetCloudLimits called but not implemented."))
 	}
 	return nil
 }
@@ -5934,7 +5934,7 @@ func (s *apiRPCServer) EnsureBotUser(args *Z_EnsureBotUserArgs, returns *Z_Ensur
 		returns.A, returns.B = hook.EnsureBotUser(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API EnsureBotUser called but not implemented."))
+		return encodableError(errors.New("API EnsureBotUser called but not implemented."))
 	}
 	return nil
 }
@@ -5964,7 +5964,7 @@ func (s *apiRPCServer) RegisterCollectionAndTopic(args *Z_RegisterCollectionAndT
 		returns.A = hook.RegisterCollectionAndTopic(args.A, args.B)
 		returns.A = encodableError(returns.A)
 	} else {
-		return encodableError(fmt.Errorf("API RegisterCollectionAndTopic called but not implemented."))
+		return encodableError(errors.New("API RegisterCollectionAndTopic called but not implemented."))
 	}
 	return nil
 }

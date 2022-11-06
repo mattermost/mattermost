@@ -148,7 +148,7 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 		dir := filepath.Dir(coverprofile)
 		base := filepath.Base(coverprofile)
 		baseParts := strings.SplitN(base, ".", 2)
-		name := strings.Replace(t.Name(), "/", "_", -1)
+		name := strings.ReplaceAll(t.Name(), "/", "_")
 		coverprofileCounters[name] = coverprofileCounters[name] + 1
 		baseParts[0] = fmt.Sprintf("%v-%v-%v", baseParts[0], name, coverprofileCounters[name])
 		ret = append(ret, "-test.coverprofile", filepath.Join(dir, strings.Join(baseParts, ".")))

@@ -170,7 +170,7 @@ func TestUserAgentIsSet(t *testing.T) {
 	}))
 	defer ts.Close()
 	client := NewHTTPClient(NewTransport(true, nil, nil))
-	req, err := http.NewRequest("GET", ts.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, ts.URL, http.NoBody)
 
 	require.NoError(t, err, "NewRequest failed", err)
 

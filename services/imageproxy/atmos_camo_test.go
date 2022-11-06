@@ -44,7 +44,7 @@ func TestAtmosCamoBackend_GetImage(t *testing.T) {
 	proxy := makeTestAtmosCamoProxy()
 
 	recorder := httptest.NewRecorder()
-	request, _ := http.NewRequest(http.MethodGet, "", nil)
+	request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 	proxy.GetImage(recorder, request, imageURL)
 	resp := recorder.Result()
 

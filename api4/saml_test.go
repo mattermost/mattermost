@@ -30,7 +30,7 @@ func TestSamlCompleteCSRFPass(t *testing.T) {
 	defer th.TearDown()
 
 	url := th.Client.URL + "/login/sso/saml"
-	req, err := http.NewRequest("POST", url, nil)
+	req, err := http.NewRequest(http.MethodPost, url, http.NoBody)
 	if err != nil {
 		return
 	}

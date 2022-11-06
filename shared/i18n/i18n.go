@@ -4,6 +4,7 @@
 package i18n
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -87,7 +88,7 @@ func getTranslationsBySystemLocale() (TranslateFunc, error) {
 
 	translations := tfuncWithFallback(locale)
 	if translations == nil {
-		return nil, fmt.Errorf("failed to load system translations")
+		return nil, errors.New("failed to load system translations")
 	}
 
 	mlog.Info("Loaded system translations", mlog.String("for locale", locale), mlog.String("from locale", locales[locale]))
@@ -149,8 +150,8 @@ func tfuncWithFallback(pref string) TranslateFunc {
 // template.HTML object
 func TranslateAsHTML(t TranslateFunc, translationID string, args map[string]any) template.HTML {
 	message := t(translationID, escapeForHTML(args))
-	message = strings.Replace(message, "[[", "<strong>", -1)
-	message = strings.Replace(message, "]]", "</strong>", -1)
+	message = strings.ReplaceAll(message, "[[", "<strong>")
+	message = strings.ReplaceAll(message, "]]", "</strong>")
 	return template.HTML(message)
 }
 

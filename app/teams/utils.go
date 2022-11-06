@@ -10,11 +10,13 @@ import (
 )
 
 // By default the list will be (not necessarily in this order):
+//
 //	['town-square', 'off-topic']
+//
 // However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-//	['town-square', 'game-of-thrones', 'wow']
 //
+//	['town-square', 'game-of-thrones', 'wow']
 func (ts *TeamService) DefaultChannelNames() []string {
 	names := []string{"town-square"}
 
@@ -94,7 +96,7 @@ func (ts *TeamService) checkValidDomains(team *model.Team) error {
 func normalizeDomains(domains string) []string {
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(domains, "@", " "), ",", " "))))
 }
 
 // UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as

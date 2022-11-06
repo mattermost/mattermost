@@ -70,7 +70,7 @@ func TestGenerateKey(t *testing.T) {
 	}
 
 	for testnum, tc := range cases {
-		req := httptest.NewRequest("GET", "/", nil)
+		req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		if tc.authTokenResult != "" {
 			req.AddCookie(&http.Cookie{
 				Name:  model.SessionCookieToken,
@@ -91,7 +91,7 @@ func TestGenerateKey(t *testing.T) {
 }
 
 func TestGenerateKey_TrustedHeader(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	req.RemoteAddr = "10.10.10.5:80"
 	req.Header.Set("X-Forwarded-For", "10.6.3.1, 10.5.1.2")
 

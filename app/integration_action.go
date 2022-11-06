@@ -321,7 +321,7 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, rawURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

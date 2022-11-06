@@ -1366,7 +1366,7 @@ func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 
 	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
 	if err != nil {
-		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]any{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
 	}
 
 	return lastAccessibleFileTime, nil

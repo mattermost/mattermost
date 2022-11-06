@@ -36,7 +36,7 @@ func newResponseWithHijack(original *httptest.ResponseRecorder) *responseRecorde
 
 func TestStatusCodeIsAccessible(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
-	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}}
@@ -46,7 +46,7 @@ func TestStatusCodeIsAccessible(t *testing.T) {
 
 func TestStatusCodeShouldBe200IfNotHeaderWritten(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
-	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte{})
 	}}
@@ -56,7 +56,7 @@ func TestStatusCodeShouldBe200IfNotHeaderWritten(t *testing.T) {
 
 func TestForUnsupportedHijack(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
-	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		_, _, err := w.(*responseWriterWrapper).Hijack()
 		assert.Error(t, err)
@@ -67,7 +67,7 @@ func TestForUnsupportedHijack(t *testing.T) {
 
 func TestForSupportedHijack(t *testing.T) {
 	resp := newWrappedWriter(newResponseWithHijack(httptest.NewRecorder()))
-	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		_, _, err := w.(*responseWriterWrapper).Hijack()
 		assert.NoError(t, err)
@@ -77,7 +77,7 @@ func TestForSupportedHijack(t *testing.T) {
 
 func TestForSupportedFlush(t *testing.T) {
 	resp := newWrappedWriter(httptest.NewRecorder())
-	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v4/test", http.NoBody)
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte{})
 		w.(*responseWriterWrapper).Flush()

@@ -249,7 +249,7 @@ func (d *decoder) decode(r io.Reader, configOnly bool) error {
 
 		case sTrailer:
 			if d.imageCount == 0 {
-				return fmt.Errorf("gif: missing image data")
+				return errors.New("gif: missing image data")
 			}
 			return nil
 

@@ -44,8 +44,8 @@ type Team struct {
 	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
 }
 
-func (o *Team) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (o *Team) Auditable() map[string]any {
+	return map[string]any{
 		"id":                    o.Id,
 		"create_at":             o.CreateAt,
 		"update_at":             o.UpdateAt,
@@ -209,11 +209,11 @@ func IsValidTeamName(s string) bool {
 var validTeamNameCharacter = regexp.MustCompile(`^[a-z0-9-]$`)
 
 func CleanTeamName(s string) string {
-	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+	s = strings.ToLower(strings.ReplaceAll(s, " ", "-"))
 
 	for _, value := range reservedName {
 		if strings.Index(s, value) == 0 {
-			s = strings.Replace(s, value, "", -1)
+			s = strings.ReplaceAll(s, value, "")
 		}
 	}
 
@@ -222,7 +222,7 @@ func CleanTeamName(s string) string {
 	for _, c := range s {
 		char := fmt.Sprintf("%c", c)
 		if !validTeamNameCharacter.MatchString(char) {
-			s = strings.Replace(s, char, "", -1)
+			s = strings.ReplaceAll(s, char, "")
 		}
 	}
 

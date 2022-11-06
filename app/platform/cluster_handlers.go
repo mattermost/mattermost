@@ -6,7 +6,7 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"runtime/debug"
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -38,11 +38,11 @@ func (ps *PlatformService) RegisterClusterMessageHandler(ev model.ClusterEvent, 
 // ClusterHandlersPreCheck checks whether the platform service is ready to handle cluster messages.
 func (ps *PlatformService) ClusterHandlersPreCheck() error {
 	if ps.Store == nil {
-		return fmt.Errorf("could not find store")
+		return errors.New("could not find store")
 	}
 
 	if ps.statusCache == nil {
-		return fmt.Errorf("could not find status cache")
+		return errors.New("could not find status cache")
 	}
 
 	return nil

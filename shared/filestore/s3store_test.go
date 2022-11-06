@@ -65,8 +65,8 @@ func TestMakeBucket(t *testing.T) {
 	rand.Read(b)
 	bucketName := base64.StdEncoding.EncodeToString(b)
 	bucketName = strings.ToLower(bucketName)
-	bucketName = strings.Replace(bucketName, "+", "", -1)
-	bucketName = strings.Replace(bucketName, "/", "", -1)
+	bucketName = strings.ReplaceAll(bucketName, "+", "")
+	bucketName = strings.ReplaceAll(bucketName, "/", "")
 
 	cfg := FileBackendSettings{
 		DriverName:                         ImageDriverS3,
@@ -106,8 +106,8 @@ func TestTimeout(t *testing.T) {
 	rand.Read(b)
 	bucketName := base64.StdEncoding.EncodeToString(b)
 	bucketName = strings.ToLower(bucketName)
-	bucketName = strings.Replace(bucketName, "+", "", -1)
-	bucketName = strings.Replace(bucketName, "/", "", -1)
+	bucketName = strings.ReplaceAll(bucketName, "+", "")
+	bucketName = strings.ReplaceAll(bucketName, "/", "")
 
 	cfg := FileBackendSettings{
 		DriverName:                         ImageDriverS3,
@@ -167,8 +167,8 @@ func TestInsecureMakeBucket(t *testing.T) {
 			rand.Read(b)
 			bucketName := base64.StdEncoding.EncodeToString(b)
 			bucketName = strings.ToLower(bucketName)
-			bucketName = strings.Replace(bucketName, "+", "", -1)
-			bucketName = strings.Replace(bucketName, "/", "", -1)
+			bucketName = strings.ReplaceAll(bucketName, "+", "")
+			bucketName = strings.ReplaceAll(bucketName, "/", "")
 
 			cfg := FileBackendSettings{
 				DriverName:                         ImageDriverS3,

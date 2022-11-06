@@ -52,7 +52,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/image.png")
 		resp := recorder.Result()
 
@@ -75,7 +75,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/file.pdf")
 		resp := recorder.Result()
 
@@ -98,7 +98,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/file.pdf")
 		resp := recorder.Result()
 
@@ -116,7 +116,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/image.png")
 		resp := recorder.Result()
 
@@ -134,7 +134,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/image.png")
 		resp := recorder.Result()
 
@@ -157,7 +157,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy.backend.(*LocalBackend).client.Timeout = time.Millisecond
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/image.png")
 		resp := recorder.Result()
 
@@ -182,7 +182,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, err := http.NewRequest(http.MethodGet, "", nil)
+		request, err := http.NewRequest(http.MethodGet, "", http.NoBody)
 		require.NoError(t, err)
 		proxy.GetImage(recorder, request, mock.URL+"/test.svg")
 		resp := recorder.Result()
@@ -217,7 +217,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, _ := http.NewRequest(http.MethodGet, "", http.NoBody)
 		proxy.GetImage(recorder, request, mock.URL+"/image.png")
 		resp := recorder.Result()
 

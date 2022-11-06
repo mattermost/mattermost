@@ -45,8 +45,8 @@ type Group struct {
 	AllowReference bool        `json:"allow_reference"`
 }
 
-func (group *Group) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (group *Group) Auditable() map[string]any {
+	return map[string]any{
 		"id":              group.Id,
 		"source":          group.Source,
 		"remote_id":       group.RemoteId,

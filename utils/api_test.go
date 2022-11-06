@@ -23,7 +23,7 @@ import (
 )
 
 func TestRenderWebError(t *testing.T) {
-	r := httptest.NewRequest("GET", "http://foo", nil)
+	r := httptest.NewRequest(http.MethodGet, "http://foo", http.NoBody)
 	w := httptest.NewRecorder()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)

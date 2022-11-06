@@ -100,7 +100,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	}
 	u.Path = path.Join(u.Path, model.APIURLSuffix, "remotecluster", "upload", task.us.Id)
 
-	req, err := http.NewRequest("POST", u.String(), r)
+	req, err := http.NewRequest(http.MethodPost, u.String(), r)
 	if err != nil {
 		return nil, err
 	}
