@@ -45,9 +45,6 @@ type FeatureFlags struct {
 	// Enable Create First Channel
 	GuidedChannelCreation bool
 
-	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
-	InviteToTeam string
-
 	CustomGroups bool
 
 	// Enable DataRetention for Boards
@@ -99,7 +96,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.GuidedChannelCreation = false
-	f.InviteToTeam = "none"
 	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
