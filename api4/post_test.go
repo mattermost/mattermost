@@ -328,7 +328,7 @@ func TestCreatePost(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("no permissions on registered topic", func(t *testing.T) {
+	t.Run("UserHasPermissionToCollection hook not implemented", func(t *testing.T) {
 		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
 				package main
 
@@ -347,6 +347,48 @@ func TestCreatePost(t *testing.T) {
 					}
 
 					return err
+				}
+
+				func main() {
+					plugin.ClientMain(&MyPlugin{})
+				}
+			`}, []string{"playbooks"}, th.App, func(manifest *model.Manifest) plugin.API {
+			return th.App.NewPluginAPI(th.Context, manifest)
+		})
+		defer tearDown()
+
+		_, resp, err := client.CreatePost(&model.Post{
+			TopicType: "topic_type",
+			TopicId:   model.NewId(),
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("no permissions on registered topic", func(t *testing.T) {
+		tearDown, _ := SetAppEnvironmentWithPlugins(t, []string{`
+				package main
+
+				import (
+					"github.com/mattermost/mattermost-server/v6/plugin"
+					"github.com/mattermost/mattermost-server/v6/model"
+				)
+
+				type MyPlugin struct {
+					plugin.MattermostPlugin
+				}
+
+				func (p *MyPlugin) OnActivate() error {
+					err := p.API.RegisterCollectionAndTopic("collection_type", "topic_type")
+					if err != nil {
+						p.API.LogError("error", "err", err)
+					}
+
+					return err
+				}
+
+				func (p *MyPlugin) UserHasPermissionToCollection(c *plugin.Context, userId string, collectionType, collectionId string, permission *model.Permission) (bool, error) {
+					return false, nil
 				}
 
 				func main() {
@@ -620,12 +662,7 @@ func createPlaybooksUser(t *testing.T, client *model.Client4) {
 
 	ruser, _, err := client.CreateUser(playbookUser)
 	require.NoError(t, err)
-	// puser, err := th.App.GetUser(ruser.Id)
 
-	// _, err = th.App.Srv().Store().User().VerifyEmail(puser.Id, puser.Email)
-	// require.NoError(t, err)
-
-	// th.LinkUserToTeam(puser, th.BasicTeam)
 	mainHelper.GetSQLStore().User().InsertUsers([]*model.User{ruser})
 }
 
