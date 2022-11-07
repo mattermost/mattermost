@@ -241,7 +241,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's användningsvillkor har uppdaterats. Logga in på gitlab.com för att acceptera dem och logga sedan in i Mattermost igen."
+    "translation": "GitLab's användningsvillkor har uppdaterats. Gå till {{.URL}} för att acceptera dem och logga sedan in i Mattermost igen."
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
@@ -4925,15 +4925,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Misslyckad betalning"
+    "translation": "Betalningen gick inte bra"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Åtgärd krävs: Betalning för Mattermost Cloud misslyckades"
+    "translation": "Åtgärd krävs: Betalning för Mattermost {{.Plan}} misslyckades"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "För att säkerställa en fortsatt prenumeration på Mattermost Cloud bör du kontakta din kortutgivare för att åtgärda problemet, alternativt uppdatera dina betaluppgifter. När betalinformationen är uppdaterad kommer Mattermost försöka reglera eventuellt utestående saldo."
+    "translation": "För att säkerställa en fortsatt tillgång på Mattermost {{.Plan}} bör du kontakta din kortutgivare för att åtgärda problemet, alternativt uppdatera dina betaluppgifter. När betalinformationen är uppdaterad kommer Mattermost försöka reglera eventuellt utestående saldo."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -4954,10 +4954,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Ditt lösenord har uppdaterats av {{.Method}} för {{.TeamDisplayName}} på {{ .TeamURL }}."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fixa nu"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5278,14 +5274,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gäståtkomst har inaktiverats"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9381,5 +9369,189 @@
   {
     "id": "api.templates.delinquency_14.subject",
     "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML kunde inte ladda din Identity Providers Publika Certificat. Kontakta din systemadministratör."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Vi kunde inte få fram användarens antal märken."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Det går inte att skicka notifieringsmeddelande."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Det går inte att spara uppgifter om notifiering."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat en uppgradering för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat en uppgradering för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat starta Enterprise trial för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat starta Enterprise trial för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Abonnemanget är inte försenat"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Kunde inte hämta molnprenumeration"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Det går inte att hämta fram namnet på den aktuella planen"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Kunde inte hämta molnprodukter"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Din Mattermost-arbetsyta har nedgraderats"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Uppdatera betalningsinformationen om du vill ta tillbaka ditt data från arkivet och behålla betal-funktioner."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Om du använder Cloud Professional- eller Enterprise-funktioner för viktiga affärsaktiviteter kommer dessa inte längre att vara tillgängliga och du kommer att uppleva försämrad prestanda."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Din Mattermost Cloud-arbetsyta har nedgraderats"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Visa abonnemang och priser"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Din arbetsyta kommer att nedgraderas om 15 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Starter. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Nedgradera till Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Din betalning slutfördes inte"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "För att hålla din {{.Plan}}-plan aktiv, kontakta din bank eller kortutgivare så snart som möjligt. Uppdatera din betalningsinformation vid behov."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Vi kunde inte behandla din senaste betalning"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Din Mattermost-arbetsyta kommer att nedgraderas om 30 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Starter nedan."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Vi nedgraderar din arbetsyta automatiskt om 30 dagar om vi inte kan behandla din betalning."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Uppdatera din betalningsinformation snarast så att utestående fakturor kan hanteras."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Nedgradera till Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Din arbetsyta kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Uppdatera din kreditkortsinformation nu."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Information i obligatoriska fält saknas för att kunna skicka e-postmeddelanden om utebliven betalning."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fel under utförandet av jobbet."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "gruppnamnet finns redan som ett reserverat namn"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fel vid hämtning av den senast tillgängliga filen"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Din licens tillåter inte gäståtkomst"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gäståtkomst har inaktiverats"
   }
 ]

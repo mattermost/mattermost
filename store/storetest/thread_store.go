@@ -106,8 +106,17 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Equal(t, int64(2), thread.ReplyCount)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName1",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		o5 := model.Post{}
-		o5.ChannelId = model.NewId()
+		o5.ChannelId = channel.Id
 		o5.UserId = model.NewId()
 		o5.RootId = newPosts[0].Id
 		o5.Message = NewTestId()
@@ -141,9 +150,18 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		rootPost := model.Post{}
 		rootPost.RootId = model.NewId()
-		rootPost.ChannelId = model.NewId()
+		rootPost.ChannelId = channel.Id
 		rootPost.UserId = model.NewId()
 		rootPost.Message = NewTestId()
 
@@ -188,8 +206,17 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Deleting reply should update the thread", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		o1 := model.Post{}
-		o1.ChannelId = model.NewId()
+		o1.ChannelId = channel.Id
 		o1.UserId = model.NewId()
 		o1.Message = NewTestId()
 		rootPost, err := ss.Post().Save(&o1)
@@ -240,8 +267,17 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		rootPost := model.Post{}
-		rootPost.ChannelId = model.NewId()
+		rootPost.ChannelId = channel.Id
 		rootPost.UserId = model.NewId()
 		rootPost.Message = NewTestId()
 

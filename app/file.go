@@ -12,12 +12,14 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -264,8 +266,8 @@ func (a *App) getInfoForFilename(post *model.Post, teamID, channelID, userID, ol
 
 	if info.IsImage() && !info.IsSvg() {
 		nameWithoutExtension := name[:strings.LastIndex(name, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
 	return info
@@ -275,7 +277,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId)
+	teams, err := a.Srv().Store().Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
 		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
@@ -327,7 +329,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
+	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
@@ -380,7 +382,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+	result, nErr := a.Srv().Store().Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -389,7 +391,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, nErr = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
+		fileInfos, nErr = a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, false)
 		if nErr != nil {
 			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(nErr), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
@@ -404,7 +406,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIDs := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, nErr = a.Srv().Store.FileInfo().Save(info); nErr != nil {
+		if _, nErr = a.Srv().Store().FileInfo().Save(info); nErr != nil {
 			mlog.Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
@@ -426,7 +428,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIDs
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, nErr = a.Srv().Store.Post().Update(newPost, post); nErr != nil {
+	if _, nErr = a.Srv().Store().Post().Update(newPost, post); nErr != nil {
 		mlog.Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
@@ -595,7 +597,7 @@ func (t *UploadFileTask) init(a *App) {
 
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
-	t.saveToDatabase = a.Srv().Store.FileInfo().Save
+	t.saveToDatabase = a.Srv().Store().FileInfo().Save
 }
 
 // UploadFileX uploads a single file as specified in t. It applies the upload
@@ -682,7 +684,7 @@ func (a *App) UploadFileX(c *request.Context, channelID, name string, input io.R
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
-		a.Srv().Go(func() {
+		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
@@ -722,8 +724,8 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 
 	t.fileinfo.HasPreviewImage = true
 	nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
-	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.jpg"
-	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb.jpg"
+	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview." + getFileExtFromMimeType(t.fileinfo.MimeType)
+	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(t.fileinfo.MimeType)
 
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
@@ -768,20 +770,22 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		defer release()
 	}
 
-	// Fill in the background of a potentially-transparent png file as white
-	if imgType == "png" {
-		imaging.FillImageTransparency(decoded, image.White)
-	}
-
 	decoded = imaging.MakeImageUpright(decoded, t.imageOrientation)
 	if decoded == nil {
 		return
 	}
 
-	writeJPEG := func(img image.Image, path string) {
+	writeImage := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			err := t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
+			var err error
+			// It's okay to access imgType in a separate goroutine,
+			// because imgType is only written once and never written again.
+			if imgType == "png" {
+				err = t.imgEncoder.EncodePNG(w, img)
+			} else {
+				err = t.imgEncoder.EncodeJPEG(w, img, jpegEncQuality)
+			}
 			if err != nil {
 				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 				w.CloseWithError(err)
@@ -802,12 +806,12 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// This is needed on mobile in case of animated GIFs.
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
+		writeImage(imaging.GenerateThumbnail(decoded, imageThumbnailWidth, imageThumbnailHeight), t.fileinfo.ThumbnailPath)
 	}()
 
 	go func() {
 		defer wg.Done()
-		writeJPEG(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
+		writeImage(imaging.GeneratePreview(decoded, imagePreviewWidth), t.fileinfo.PreviewPath)
 	}()
 
 	go func() {
@@ -887,8 +891,8 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		}
 
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
-		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -920,7 +924,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 		return nil, data, err
 	}
 
-	if _, err := a.Srv().Store.FileInfo().Save(info); err != nil {
+	if _, err := a.Srv().Store().FileInfo().Save(info); err != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
@@ -932,7 +936,7 @@ func (a *App) DoUploadFileExpectModification(c request.CTX, now time.Time, rawTe
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		a.Srv().Go(func() {
+		a.Srv().GoBuffered(func() {
 			err := a.ExtractContentFromFileInfo(&infoCopy)
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
@@ -947,40 +951,33 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData[i]))
+		img, imgType, release, err := prepareImage(a.ch.imgDecoder, bytes.NewReader(fileData[i]))
 		if err != nil {
 			mlog.Debug("Failed to prepare image", mlog.Err(err))
 			continue
 		}
 		wg.Add(2)
-		go func(img image.Image, path string) {
+		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generateThumbnailImage(img, path)
-		}(img, thumbnailPathList[i])
+			a.generateThumbnailImage(img, imgType, path)
+		}(img, imgType, thumbnailPathList[i])
 
-		go func(img image.Image, path string) {
+		go func(img image.Image, imgType, path string) {
 			defer wg.Done()
-			a.generatePreviewImage(img, path)
-		}(img, previewPathList[i])
+			a.generatePreviewImage(img, imgType, path)
+		}(img, imgType, previewPathList[i])
 
 		wg.Wait()
 		release()
 	}
 }
 
-func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, release func(), err error) {
+func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image.Image, imgType string, release func(), err error) {
 	// Decode image bytes into Image object
-	var imgType string
 	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
+		return nil, "", nil, fmt.Errorf("prepareImage: failed to decode image: %w", err)
 	}
-
-	// Fill in the background of a potentially-transparent png file as white
-	if imgType == "png" {
-		imaging.FillImageTransparency(img, image.White)
-	}
-
 	imgData.Seek(0, io.SeekStart)
 
 	// Flip the image to be upright
@@ -990,14 +987,23 @@ func prepareImage(imgDecoder *imaging.Decoder, imgData io.ReadSeeker) (img image
 	}
 	img = imaging.MakeImageUpright(img, orientation)
 
-	return img, release, nil
+	return img, imgType, release, nil
 }
 
-func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
+func (a *App) generateThumbnailImage(img image.Image, imgType, thumbnailPath string) {
 	var buf bytes.Buffer
-	if err := a.ch.imgEncoder.EncodeJPEG(&buf, imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight), jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
-		return
+
+	thumb := imaging.GenerateThumbnail(img, imageThumbnailWidth, imageThumbnailHeight)
+	if imgType == "png" {
+		if err := a.ch.imgEncoder.EncodePNG(&buf, thumb); err != nil {
+			mlog.Error("Unable to encode image as png", mlog.String("path", thumbnailPath), mlog.Err(err))
+			return
+		}
+	} else {
+		if err := a.ch.imgEncoder.EncodeJPEG(&buf, thumb, jpegEncQuality); err != nil {
+			mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
+			return
+		}
 	}
 
 	if _, err := a.WriteFile(&buf, thumbnailPath); err != nil {
@@ -1006,13 +1012,20 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	}
 }
 
-func (a *App) generatePreviewImage(img image.Image, previewPath string) {
+func (a *App) generatePreviewImage(img image.Image, imgType, previewPath string) {
 	var buf bytes.Buffer
-	preview := imaging.GeneratePreview(img, imagePreviewWidth)
 
-	if err := a.ch.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
-		mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
-		return
+	preview := imaging.GeneratePreview(img, imagePreviewWidth)
+	if imgType == "png" {
+		if err := a.ch.imgEncoder.EncodePNG(&buf, preview); err != nil {
+			mlog.Error("Unable to encode image as preview png", mlog.Err(err), mlog.String("path", previewPath))
+			return
+		}
+	} else {
+		if err := a.ch.imgEncoder.EncodeJPEG(&buf, preview, jpegEncQuality); err != nil {
+			mlog.Error("Unable to encode image as preview jpg", mlog.Err(err), mlog.String("path", previewPath))
+			return
+		}
 	}
 
 	if _, err := a.WriteFile(&buf, previewPath); err != nil {
@@ -1031,7 +1044,7 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			return
 		}
 		defer file.Close()
-		img, release, err := prepareImage(a.ch.imgDecoder, file)
+		img, _, release, err := prepareImage(a.ch.imgDecoder, file)
 		if err != nil {
 			mlog.Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
@@ -1046,10 +1059,10 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		} else {
 			fi.MiniPreview = &miniPreview
 		}
-		if _, err = a.Srv().Store.FileInfo().Upsert(fi); err != nil {
+		if _, err = a.Srv().Store().FileInfo().Upsert(fi); err != nil {
 			mlog.Debug("creating mini preview failed", mlog.Err(err))
 		} else {
-			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
+			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 		}
 	}
 }
@@ -1068,7 +1081,7 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 }
 
 func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := s.Store.FileInfo().Get(fileID)
+	fileInfo, err := s.Store().FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1082,15 +1095,34 @@ func (s *Server) getFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 }
 
 func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().getFileInfo(fileID)
-	if err == nil {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	firstInaccessibleFileTime, appErr := a.isInaccessibleFile(fileInfo)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if firstInaccessibleFileTime > 0 {
+		return nil, model.NewAppError("GetFileInfo", "app.file.cloud.get.app_error", nil, "", http.StatusForbidden)
+	}
+
+	a.generateMiniPreview(fileInfo)
+	return fileInfo, appErr
+}
+
+func (a *App) getFileInfoIgnoreCloudLimit(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, appErr := a.Srv().getFileInfo(fileID)
+	if appErr == nil {
 		a.generateMiniPreview(fileInfo)
 	}
-	return fileInfo, err
+
+	return fileInfo, appErr
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
+	fileInfos, err := a.Srv().Store().FileInfo().GetWithOptions(page, perPage, opt)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var ltErr *store.ErrLimitExceeded
@@ -1102,6 +1134,16 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 		default:
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	filterOptions := filterFileOptions{}
+	if opt != nil && (opt.SortBy == "" || opt.SortBy == model.FileinfoSortByCreated) {
+		filterOptions.assumeSortedCreatedAt = true
+	}
+
+	fileInfos, _, appErr := a.getFilteredAccessibleFiles(fileInfos, filterOptions)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	a.generateMiniPreviewForInfos(fileInfos)
@@ -1123,13 +1165,27 @@ func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
+func (a *App) getFileIgnoreCloudLimit(fileID string) ([]byte, *model.AppError) {
+	info, err := a.getFileInfoIgnoreCloudLimit(fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.ReadFile(info.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()
 
 	for _, fileID := range fileIDs {
-		fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
+		fileInfo, err := a.Srv().Store().FileInfo().Get(fileID)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1146,7 +1202,7 @@ func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.A
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if _, err := a.Srv().Store.FileInfo().Save(fileInfo); err != nil {
+		if _, err := a.Srv().Store().FileInfo().Save(fileInfo); err != nil {
 			var appErr *model.AppError
 			switch {
 			case errors.As(err, &appErr):
@@ -1241,7 +1297,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		return model.NewFileInfoList(), nil
 	}
 
-	fileInfoSearchResults, nErr := a.Srv().Store.FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
+	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -1252,7 +1308,7 @@ func (a *App) SearchFilesInTeamForUser(c *request.Context, terms string, userId 
 		}
 	}
 
-	return fileInfoSearchResults, nil
+	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
 }
 
 func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
@@ -1276,15 +1332,98 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 		if len(text) > maxContentExtractionSize {
 			text = text[0:maxContentExtractionSize]
 		}
-		if storeErr := a.Srv().Store.FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
+		if storeErr := a.Srv().Store().FileInfo().SetContent(fileInfo.Id, text); storeErr != nil {
 			return errors.Wrap(storeErr, "failed to save the extracted file content")
 		}
-		reloadFileInfo, storeErr := a.Srv().Store.FileInfo().Get(fileInfo.Id)
+		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
 			mlog.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
 		} else {
-			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
+			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
 	}
 	return nil
+}
+
+// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
+func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
+	license := a.Srv().License()
+	if !license.IsCloud() {
+		return 0, nil
+	}
+
+	system, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			// All files are accessible
+			return 0, nil
+		default:
+			return 0, model.NewAppError("GetLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	lastAccessibleFileTime, err := strconv.ParseInt(system.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("GetLastAccessibleFileTime", "common.parse_error_int64", map[string]interface{}{"Value": system.Value}, err.Error(), http.StatusInternalServerError)
+	}
+
+	return lastAccessibleFileTime, nil
+}
+
+// ComputeLastAccessibleFileTime updates cache with CreateAt time of the last accessible file as per the cloud plan's limit.
+// Use GetLastAccessibleFileTime() to access the result.
+func (a *App) ComputeLastAccessibleFileTime() error {
+	limit, appErr := a.getCloudFilesSizeLimit()
+	if appErr != nil {
+		return appErr
+	}
+
+	createdAt, err := a.Srv().GetStore().FileInfo().GetUptoNSizeFileTime(limit)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("ComputeLastAccessibleFileTime", "app.last_accessible_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	// Update Cache
+	err = a.Srv().Store().System().SaveOrUpdate(&model.System{
+		Name:  model.SystemLastAccessibleFileTime,
+		Value: strconv.FormatInt(createdAt, 10),
+	})
+	if err != nil {
+		return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// getCloudFilesSizeLimit returns size in bytes
+func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
+	license := a.Srv().License()
+	if license == nil || !license.IsCloud() {
+		return 0, nil
+	}
+
+	// limits is in bits
+	limits, err := a.Cloud().GetCloudLimits("")
+	if err != nil {
+		return 0, model.NewAppError("getCloudFilesSizeLimit", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if limits == nil || limits.Files == nil || limits.Files.TotalStorage == nil {
+		// Cloud limit is not applicable
+		return 0, nil
+	}
+
+	return int64(math.Ceil(float64(*limits.Files.TotalStorage) / 8)), nil
+}
+
+func getFileExtFromMimeType(mimeType string) string {
+	if mimeType == "image/png" {
+		return "png"
+	}
+	return "jpg"
 }

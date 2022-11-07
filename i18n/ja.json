@@ -1429,11 +1429,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "アーカイブチャンネルのリアクションは削除できません。"
+    "translation": "アーカイブされたチャンネルのリアクションは削除できません。"
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルにはリアクションできません。"
+    "translation": "アーカイブされたチャンネルにはリアクションできません。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1773,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "あなたは電子メールアドレスを更新しました"
+    "translation": "電子メールアドレスが正常に更新されました"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4565,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabの利用規約が更新されました。gitlab.comで新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
+    "translation": "GitLabの利用規約が更新されました。{{.URL}}で新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4601,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルは変更できません。"
+    "translation": "アーカイブされたチャンネルは変更できません。"
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4753,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5578,14 +5578,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -7705,15 +7697,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "支払いができませんでした"
+    "translation": "支払いが正常に処理されませんでした"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "注意: Mattermost Cloudへの支払いができませんでした"
+    "translation": "注意: Mattermost {{.Plan}}の支払いができませんでした"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost Cloudへの支払いを続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
+    "translation": "Mattermost {{.Plan}}へアクセスし続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7722,10 +7714,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "今すぐ対応する"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -9498,5 +9486,73 @@
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
     "translation": "滞納メールを送信するための必須項目が不足しています。"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAMLがIDプロバイダ公開証明書を正常に読み込めなかったため、システム管理者に連絡してください。"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "ユーザーのバッジ数を取得できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "通知ポストを送信できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "通知データを保存できませんでした。"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "現在のプラン名を取得できませんでした"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "ジョブ実行中にエラーが発生しました。"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "時間の範囲が無効です。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "グループ名は予約語として既に登録されています"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "プラグイン {{.Name}} はプロダクトモードでは有効化できません。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "最後にアクセスしたファイルの取得エラー"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "クラウドプランの制限を超えているため、ファイルを取得できません。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "現在のライセンス ではゲストアカウントはサポートされていません"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "ゲストアカウントは無効化されています"
   }
 ]

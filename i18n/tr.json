@@ -2725,7 +2725,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
-    "translation": "Takım adında ayrılmış bir sözcük var."
+    "translation": "Takım adında sistem kullanımına ayrılmış bir sözcük var."
   },
   {
     "id": "app.import.validate_team_import_data.scheme_invalid.error",
@@ -4569,7 +4569,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab hizmet koşulları güncellendi. Lütfen gitlab.com adresine giderek yeni hizmet koşullarını onayladıktan sonra yeniden Mattermost oturumu açmayı deneyin."
+    "translation": "GitLab hizmet koşulları güncellendi. Lütfen {{.URL}} adresine giderek yeni hizmet koşullarını onayladıktan sonra Mattermost oturumunu yeniden açmayı deneyin."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5577,7 +5577,7 @@
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "aynı adlı bir grup zaten ayrılmış bir ad olarak var"
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
@@ -5654,14 +5654,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
@@ -5849,11 +5841,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 100+"
+    "translation": "Sürüm 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 44+"
+    "translation": "Sürüm 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -7636,10 +7628,6 @@
     "translation": "Kullanıcı konuları alınamadı"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Şimdi düzelt"
-  },
-  {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },
@@ -7701,11 +7689,11 @@
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "İşlem gerekli: Mattermost Cloud ödemesi alınamadı"
+    "translation": "İşlem gerekli: Mattermost {{.Plan}} ödemesi alınamadı"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost Cloud aboneliğinizin kesintiye uğramaması için sorunu çözmesi için bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
+    "translation": "Mattermost {{.Plan}} erişiminizin kesintiye uğramaması için sorunu çözmek amacıyla bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -9529,5 +9517,45 @@
   {
     "id": "app.cloud.trial_plan_bot_message",
     "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şuraya erişmek için Enterprise sürümü deneme süresinin başlatılmasını istedi: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Geçerli tarifenin adı alınamadı"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML, herkese açık kimlik hizmeti sağlayıcı sertifikasını yükleyemedi. Lütfen sistem yöneticinizle görüşün."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Kullanıcının nişan sayısını alamadık."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Görev yürütülürken sorun çıktı."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Erişilebilen son dosya alınırken sorun çıktı"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Cloud tarifesinin sınırlarını aştığından dosya alınamadı."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "aynı adlı bir grup zaten sistem kullanımına ayrılmış bir ad olarak var"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "{{.Name}} uygulama eki ürün kipinde etkinleştirilemez."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konuk hesapları devre dışı bırakılmış"
   }
 ]

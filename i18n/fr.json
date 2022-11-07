@@ -5584,14 +5584,6 @@
     "translation": "Les canaux présents dans l'invitation doivent faire partie de la même équipe pour laquelle vous êtes invité."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Votre licence ne prend pas en charge les comptes invités."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Les comptes invités sont désactivés"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Une erreur s'est produite lors de l'invalidation des e-mails d'invitation."
   },
@@ -7926,10 +7918,6 @@
   {
     "id": "api.templates.payment_failed.info2",
     "translation": "La raison suivante a été fournie :"
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Résoudre maintenant"
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
