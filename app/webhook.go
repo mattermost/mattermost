@@ -682,7 +682,6 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	webhookType := req.Type
 
 	var hook *model.IncomingWebhook
-	
 	result := <-hchan
 	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
