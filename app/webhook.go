@@ -681,11 +681,13 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 	channelName := req.ChannelName
 	webhookType := req.Type
 
+	var hook *model.IncomingWebhook
+	
 	result := <-hchan
 	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 	}
-	var hook = result.Data.(*model.IncomingWebhook)
+	hook = result.Data.(*model.IncomingWebhook)
 	
 	if !hook.Enabled {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
