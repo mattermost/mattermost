@@ -335,6 +335,28 @@ func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
 }
 
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
+}
+
 // computeBinaryParam returns whether the data source uses binary_parameters
 // when using Postgres
 func (ss *SqlStore) computeBinaryParam() (bool, error) {

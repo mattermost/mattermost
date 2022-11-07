@@ -1771,18 +1771,6 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
 	return posts, nil
 }
 
-var specialSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	"@",
-	":",
-}
-
 // GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	if n <= 0 {
@@ -1972,8 +1960,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range s.specialSearchChars() {
 		terms = strings.Replace(terms, c, " ", -1)
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
@@ -2002,12 +1989,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termsClause = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 		}
 
-		// Similar to the "terms", replace special chars with space in the source string
-		specialChars := strings.Join(specialSearchChar, "")
-		replaceWith := strings.Repeat(" ", len(specialSearchChar))
-		translatedSrc := fmt.Sprintf("translate(%s, '%s', '%s')", searchType, specialChars, replaceWith)
-
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, translatedSrc)
+		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", s.pgDefaultTextSearchConfig, searchType)
 		baseQuery = baseQuery.Where(searchClause, termsClause)
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		if searchType == "Message" {
