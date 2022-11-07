@@ -613,6 +613,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		LastViewedAt:   thread.LastViewedAt,
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
+		IsUrgent:       thread.IsUrgent,
 		Participants:   participants,
 		Post:           thread.Post.ToNilIfInvalid(),
 		DeleteAt:       thread.ThreadDeleteAt,

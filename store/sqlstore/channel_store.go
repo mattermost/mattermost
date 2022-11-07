@@ -2556,7 +2556,7 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 	}
 
 	var urgent int64
-	sql, args, err := query.Where(sq.Eq{"RootId": ""}).Where(query).ToSql()
+	sql, args, err := query.Where(sq.Eq{"RootId": ""}).ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "CountUrgentPostsAfter_ToSql")
 	}
