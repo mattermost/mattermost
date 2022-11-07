@@ -140,6 +140,23 @@ func (s SqlPreferenceStore) Get(userId string, category string, name string) (*m
 	return &preference, nil
 }
 
+func (s SqlPreferenceStore) GetCategoryAndName(category string, name string) (model.Preferences, error) {
+	var preferences model.Preferences
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Preferences").
+		Where(sq.Eq{"Category": category}).
+		Where(sq.Eq{"Name": name}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get preference")
+	}
+	if err = s.GetReplicaX().Select(&preferences, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Preference with category=%s, name=%s", category, name)
+	}
+	return preferences, nil
+}
+
 func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	var preferences model.Preferences
 	query, args, err := s.getQueryBuilder().

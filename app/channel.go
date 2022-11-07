@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
@@ -130,6 +131,35 @@ func (a *App) JoinDefaultChannels(c request.CTX, teamID string, user *model.User
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
+
+		// A/B Test on the welcome post
+		if a.Config().FeatureFlags.SendWelcomePost && channelName == model.DefaultChannelName {
+			nbTeams, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{
+				IncludeDeleted: model.NewBool(true),
+			})
+			if err != nil {
+				c.Logger().Warn("unable to get number of teams", logr.Err(err))
+				return nil
+			}
+
+			if nbTeams == 1 && a.IsFirstAdmin(user) {
+				// Post the welcome message
+				if _, err := a.CreatePost(c, &model.Post{
+					ChannelId: channel.Id,
+					Type:      model.PostTypeWelcomePost,
+					UserId:    user.Id,
+				}, channel, false, false); err != nil {
+					c.Logger().Warn("unable to post welcome message", logr.Err(err))
+					return nil
+				}
+				ts := a.Srv().GetTelemetryService()
+				if ts != nil {
+					ts.SendTelemetry("welcome-message-sent", map[string]any{
+						"category": "growth",
+					})
+				}
+			}
+		}
 	}
 
 	if nErr != nil {
@@ -1846,15 +1876,8 @@ func (a *App) GetChannelsForTeamForUser(c request.CTX, teamID string, userID str
 func (a *App) GetChannelsForTeamForUserWithCursor(c request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store().Channel().GetChannelsWithCursor(teamID, userID, opts, afterChannelID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
 	return list, nil
 }
 

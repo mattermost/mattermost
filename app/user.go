@@ -209,6 +209,19 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
+func (a *App) IsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -2657,4 +2670,26 @@ func getProfileImagePath(userID string) string {
 
 func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
+}
+
+func (a *App) UserIsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	systemAdminUsers, errServer := a.Srv().Store().User().GetSystemAdminProfiles()
+	if errServer != nil {
+		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		return false
+	}
+
+	for _, systemAdminUser := range systemAdminUsers {
+		systemAdminUser := systemAdminUser
+
+		if systemAdminUser.CreateAt < user.CreateAt {
+			return false
+		}
+	}
+
+	return true
 }

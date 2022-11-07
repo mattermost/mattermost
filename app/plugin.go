@@ -130,6 +130,23 @@ func (ch *Channels) syncPluginsActiveState() {
 			}
 
 			if pluginEnabled {
+				// Disable focalboard in product mode.
+				if pluginID == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+					msg := "Plugin cannot run in product mode. Disabling."
+					mlog.Warn(msg, mlog.String("plugin_id", model.PluginIdFocalboard))
+
+					// This is a mini-version of ch.disablePlugin.
+					// We don't call that directly, because that will recursively call
+					// this method.
+					ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
+						cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{Enable: false}
+					})
+					pluginsEnvironment.SetPluginError(pluginID, msg)
+					ch.unregisterPluginCommands(pluginID)
+					disabledPlugins = append(disabledPlugins, plugin)
+					continue
+				}
+
 				enabledPlugins = append(enabledPlugins, plugin)
 			} else {
 				disabledPlugins = append(disabledPlugins, plugin)
@@ -438,6 +455,10 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
+	if id == model.PluginIdFocalboard && ch.cfgSvc.Config().FeatureFlags.BoardsProduct {
+		return model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusBadRequest)
+	}
+
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
@@ -465,6 +486,11 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
+	for _, collectionType := range ch.collectionTypes[id] {
+		delete(ch.topicTypes, collectionType)
+	}
+	delete(ch.collectionTypes, id)
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -565,7 +591,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	// This is a short term fix. The long term solution is to have a separate set of
 	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		appErr := a.mergePrepackagedPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
@@ -792,7 +818,7 @@ func (ch *Channels) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.EnterprisePlugins = true
 	}
 
-	if license != nil && *license.Features.Cloud {
+	if license != nil && license.IsCloud() {
 		filter.Cloud = true
 	}
 

@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"reflect"
 	"strconv"
@@ -73,6 +74,11 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		}
 	case reflect.SliceOf(reflect.TypeOf("")).Kind():
 		rFieldValue.Set(reflect.ValueOf(strings.Split(value, " ")))
+	case reflect.Map:
+		target := reflect.New(rFieldValue.Type()).Interface()
+		if err := json.Unmarshal([]byte(value), target); err == nil {
+			rFieldValue.Set(reflect.ValueOf(target).Elem())
+		}
 	}
 }
 
