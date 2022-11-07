@@ -1925,7 +1925,7 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 }
 
 func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
-	posts, err := a.Srv().Store.Post().GetEditHistoryForPost(postID)
+	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
 
 	if err != nil {
 		var nfErr *store.ErrNotFound
