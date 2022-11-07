@@ -35,11 +35,13 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
+		// Postgres supports search with and without quotes
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
+		// MySql supports search with quotes only
 		Name: "Should be able to search for email addresses with quotes",
 		Fn:   testSearchEmailAddressesWithQuotes,
 		Tags: []string{EngineMySql},
@@ -391,7 +393,6 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 	})
 }
 
-// MySql supports search with quotes only
 func testSearchEmailAddressesWithQuotes(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "email test@test.com", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
