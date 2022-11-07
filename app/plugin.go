@@ -486,6 +486,11 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
+	for _, collectionType := range ch.collectionTypes[id] {
+		delete(ch.topicTypes, collectionType)
+	}
+	delete(ch.collectionTypes, id)
+
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -586,7 +591,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	// This is a short term fix. The long term solution is to have a separate set of
 	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		appErr := a.mergePrepackagedPlugins(plugins)
 		if appErr != nil {
 			return nil, appErr
@@ -813,7 +818,7 @@ func (ch *Channels) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.EnterprisePlugins = true
 	}
 
-	if license != nil && *license.Features.Cloud {
+	if license != nil && license.IsCloud() {
 		filter.Cloud = true
 	}
 

@@ -1348,7 +1348,7 @@ func (a *App) ExtractContentFromFileInfo(fileInfo *model.FileInfo) error {
 // GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 func (a *App) GetLastAccessibleFileTime() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if !license.IsCloud() {
 		return 0, nil
 	}
 
@@ -1403,7 +1403,7 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 // getCloudFilesSizeLimit returns size in bytes
 func (a *App) getCloudFilesSizeLimit() (int64, *model.AppError) {
 	license := a.Srv().License()
-	if license == nil || !*license.Features.Cloud {
+	if license == nil || !license.IsCloud() {
 		return 0, nil
 	}
 
