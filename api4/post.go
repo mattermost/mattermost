@@ -653,7 +653,12 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		return
 	}
 
-	if params.Terms == nil || *params.Terms == "" {
+	hasUserMention := false
+	if params.HasUserMention != nil {
+		hasUserMention = *params.HasUserMention
+	}
+
+	if !hasUserMention && (params.Terms == nil || *params.Terms == "") {
 		c.SetInvalidParam("terms")
 		return
 	}
@@ -667,6 +672,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	isOrSearch := false
 	if params.IsOrSearch != nil {
 		isOrSearch = *params.IsOrSearch
+		if !isOrSearch && hasUserMention {
+			c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.exclusive_parameters", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	page := 0
@@ -695,7 +704,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier)
+	results, err := c.App.SearchPostsForUser(c.AppContext, terms, c.AppContext.Session().UserId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, modifier, hasUserMention)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics()

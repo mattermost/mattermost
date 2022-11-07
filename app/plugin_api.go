@@ -546,7 +546,12 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages)
+	hasUserMention := false
+	if searchParams.HasUserMention != nil {
+		hasUserMention = *searchParams.HasUserMention
+	}
+
+	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages, hasUserMention)
 	if results != nil {
 		results = results.ForPlugin()
 	}

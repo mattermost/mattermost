@@ -1494,14 +1494,63 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string) (*model.PostSearchResults, *model.AppError) {
-	var postSearchResults *model.PostSearchResults
-	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+func (a *App) getMentionKeysForUserSearch(c *request.Context) ([]string, *model.AppError) {
+	user, err := a.GetUser(c.Session().UserId)
+	if err != nil {
+		return nil, err
+	}
+	userMention := strings.ToLower(user.Username)
 
+	keywords := []string{userMention}
+
+	// Add all the user's mention keys
+	for _, k := range user.GetMentionKeys() {
+		// note that these are made lower case so that we can do a case insensitive check for them
+		key := strings.ToLower(k)
+
+		if key != "" {
+			keywords = append(keywords, key)
+		}
+	}
+
+	// If turned on, add the user's case sensitive first name
+	if user.NotifyProps[model.FirstNameNotifyProp] == "true" && user.FirstName != "" {
+		keywords = append(keywords, user.FirstName)
+	}
+
+	license := a.Srv().License()
+	if license != nil {
+		groups, err := a.GetGroupsByUserId(c.Session().UserId)
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups {
+			if group.AllowReference {
+				keywords = append(keywords, *group.Name)
+			}
+		}
+	}
+
+	return keywords, nil
+}
+
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string, hasUserMention bool) (*model.PostSearchResults, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
 	}
+
+	var postSearchResults *model.PostSearchResults
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
+
+	if hasUserMention {
+		keywords, err := a.getMentionKeysForUserSearch(c)
+		if err != nil {
+			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		paramsList = append(paramsList, model.ParseSearchParams(strings.Join(keywords, " "), timeZoneOffset)[0])
+	}
+
+	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	finalParamsList := []*model.SearchParams{}
 

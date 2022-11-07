@@ -2524,6 +2524,79 @@ func TestSearchHashtagPosts(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestSearchMentionPosts(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var err error
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	id := model.NewId()
+	group, _, err := th.SystemAdminClient.CreateGroup(&model.Group{
+		DisplayName:    "dn_" + id,
+		Name:           model.NewString("name" + id),
+		Source:         model.GroupSourceCustom,
+		AllowReference: true,
+		Description:    "description_" + id,
+	})
+	require.NoError(t, err)
+
+	patch := &model.UserPatch{}
+	patch.NotifyProps = model.CopyStringMap(th.BasicUser.NotifyProps)
+	patch.NotifyProps[model.MentionKeysNotifyProp] = "apple"
+	patch.NotifyProps[model.FirstNameNotifyProp] = "true"
+
+	_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
+	require.NoError(t, err)
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{th.BasicUser.Id},
+	}
+
+	_, _, err = th.SystemAdminClient.UpsertGroupMembers(group.Id, members)
+	require.NoError(t, err)
+
+	th.LoginBasic()
+
+	message := th.BasicUser.Username
+	_ = th.CreateMessagePost(message)
+	message = th.BasicUser.FirstName
+	_ = th.CreateMessagePost(message)
+	message = *group.Name
+	_ = th.CreateMessagePost(message)
+	message = "apple"
+	_ = th.CreateMessagePost(message)
+
+	terms := ""
+	isOrSearch := true
+	hasUserMention := true
+	params := model.SearchParameter{
+		Terms:          &terms,
+		IsOrSearch:     &isOrSearch,
+		HasUserMention: &hasUserMention,
+	}
+
+	posts, _, err := th.Client.SearchPostsWithParams("", &params)
+	require.NoError(t, err)
+	require.Len(t, posts.Order, 4, "wrong search results")
+
+	th.App.Srv().SetLicense(nil)
+
+	posts, _, _ = th.Client.SearchPostsWithParams("", &params)
+	require.NoError(t, err)
+	require.Lenf(t, posts.Order, 3, "wrong search results")
+
+	patch.NotifyProps[model.FirstNameNotifyProp] = "false"
+	_, _, err = th.Client.PatchUser(th.BasicUser.Id, patch)
+	require.NoError(t, err)
+
+	posts, _, _ = th.Client.SearchPostsWithParams("", &params)
+	require.NoError(t, err)
+	require.Lenf(t, posts.Order, 2, "wrong search results")
+
+}
+
 func TestSearchPostsInChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
