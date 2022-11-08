@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost-server/v6/app/platform"
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -281,9 +282,9 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	if elapsed < threshold {
 		return false
 	}
-
-	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
-	defer a.LogAuditRec(auditRec, nil)
+	ctx := request.EmptyContext(a.Log())
+	auditRec := a.MakeAuditRecord(ctx, "extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(ctx, auditRec, nil)
 	auditRec.AddMeta("session", session)
 
 	newExpiry := now + sessionLength

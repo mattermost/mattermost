@@ -246,11 +246,11 @@ type AppIface interface {
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
 	// LogAuditRec logs an audit record using default LvlAuditCLI.
-	LogAuditRec(rec *audit.Record, err error)
+	LogAuditRec(c request.CTX, rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error)
+	LogAuditRecWithLevel(c request.CTX, rec *audit.Record, level mlog.Level, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
-	MakeAuditRecord(event string, initialStatus string) *audit.Record
+	MakeAuditRecord(c request.CTX, event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(c request.CTX, postID string, userID string, collapsedThreadsSupported bool) (*model.ChannelUnreadAt, *model.AppError)
 	// MentionsToPublicChannels returns all the mentions to public channels,
@@ -583,8 +583,8 @@ type AppIface interface {
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)
 	GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError)
 	GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError)
-	GetAudits(userID string, limit int) (model.Audits, *model.AppError)
-	GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError)
+	GetAudits(c request.CTX, userID string, limit int) (model.Audits, *model.AppError)
+	GetAuditsPage(c request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError)
 	GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError)
 	GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetBrandImage() ([]byte, *model.AppError)

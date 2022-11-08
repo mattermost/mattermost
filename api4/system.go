@@ -264,7 +264,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, appErr := c.App.GetAuditsPage(c.AppContext, "", c.Params.Page, c.Params.PerPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

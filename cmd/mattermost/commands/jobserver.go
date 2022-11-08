@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -56,8 +57,9 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !noJobs || !noSchedule {
-		auditRec := a.MakeAuditRecord("jobServer", audit.Success)
-		a.LogAuditRec(auditRec, nil)
+		ctx := request.EmptyContext(a.Log())
+		auditRec := a.MakeAuditRecord(ctx, "jobServer", audit.Success)
+		a.LogAuditRec(ctx, auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)
