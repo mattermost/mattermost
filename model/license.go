@@ -82,9 +82,13 @@ type Features struct {
 	LDAPGroups *bool `json:"ldap_groups"`
 	MFA        *bool `json:"mfa"`
 
-	// MM-47384: "OpenId", "GoogleOAuth", "Office365OAuth" keys are obsolete. These will soon be removed from license
+	// Deprecated: This feature will be removed from the license because it's available without a license.
 	GoogleOAuth               *bool `json:"google_oauth"`
+	
+	// Deprecated: This feature will be removed from the license because it's available without a license.
 	Office365OAuth            *bool `json:"office365_oauth"`
+
+	// Deprecated: This feature will be removed from the license because it's available without a license.
 	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
