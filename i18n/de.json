@@ -9319,7 +9319,7 @@
     "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Herunterstufen zu Cloud Starter"
   },
   {
@@ -9363,7 +9363,7 @@
     "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Herabstufen zu Cloud Starter"
   },
   {
