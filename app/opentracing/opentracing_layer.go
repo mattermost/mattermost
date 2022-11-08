@@ -4719,7 +4719,7 @@ func (a *OpenTracingAppLayer) GetAppliedSchemaMigrations() ([]model.AppliedMigra
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAudits(c request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAudits")
 
@@ -4731,7 +4731,7 @@ func (a *OpenTracingAppLayer) GetAudits(userID string, limit int) (model.Audits,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAudits(userID, limit)
+	resultVar0, resultVar1 := a.app.GetAudits(c, userID, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4741,7 +4741,7 @@ func (a *OpenTracingAppLayer) GetAudits(userID string, limit int) (model.Audits,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAuditsPage(c request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAuditsPage")
 
@@ -4753,7 +4753,7 @@ func (a *OpenTracingAppLayer) GetAuditsPage(userID string, page int, perPage int
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAuditsPage(userID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetAuditsPage(c, userID, page, perPage)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12082,7 +12082,7 @@ func (a *OpenTracingAppLayer) ListTeamCommands(teamID string) ([]*model.Command,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) LogAuditRec(rec *audit.Record, err error) {
+func (a *OpenTracingAppLayer) LogAuditRec(c request.CTX, rec *audit.Record, err error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LogAuditRec")
 
@@ -12094,10 +12094,10 @@ func (a *OpenTracingAppLayer) LogAuditRec(rec *audit.Record, err error) {
 	}()
 
 	defer span.Finish()
-	a.app.LogAuditRec(rec, err)
+	a.app.LogAuditRec(c,rec, err)
 }
 
-func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
+func (a *OpenTracingAppLayer) LogAuditRecWithLevel(c request.CTX, rec *audit.Record, level mlog.Level, err error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LogAuditRecWithLevel")
 
@@ -12109,7 +12109,7 @@ func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog
 	}()
 
 	defer span.Finish()
-	a.app.LogAuditRecWithLevel(rec, level, err)
+	a.app.LogAuditRecWithLevel(c, rec, level, err)
 }
 
 func (a *OpenTracingAppLayer) LoginByOAuth(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
@@ -12134,7 +12134,7 @@ func (a *OpenTracingAppLayer) LoginByOAuth(c *request.Context, service string, u
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+func (a *OpenTracingAppLayer) MakeAuditRecord(c request.CTX,event string, initialStatus string) *audit.Record {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakeAuditRecord")
 
@@ -12146,7 +12146,7 @@ func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MakeAuditRecord(event, initialStatus)
+	resultVar0 := a.app.MakeAuditRecord(c,event, initialStatus)
 
 	return resultVar0
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/user"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -23,7 +24,7 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+func (a *App) GetAudits(c request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
@@ -37,7 +38,7 @@ func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError
 	return audits, nil
 }
 
-func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+func (a *App) GetAuditsPage(c request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
@@ -52,12 +53,12 @@ func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits,
 }
 
 // LogAuditRec logs an audit record using default LvlAuditCLI.
-func (a *App) LogAuditRec(rec *audit.Record, err error) {
-	a.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
+func (a *App) LogAuditRec(c request.CTX, rec *audit.Record, err error) {
+	a.LogAuditRecWithLevel(c, rec, mlog.LvlAuditCLI, err)
 }
 
 // LogAuditRecWithLevel logs an audit record using specified Level.
-func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err error) {
+func (a *App) LogAuditRecWithLevel(c request.CTX, rec *audit.Record, level mlog.Level, err error) {
 	if rec == nil {
 		return
 	}
@@ -69,11 +70,12 @@ func (a *App) LogAuditRecWithLevel(rec *audit.Record, level mlog.Level, err erro
 		rec.AddErrorDesc(appErr.Error())
 		rec.Fail()
 	}
+
 	a.Srv().Audit.LogRecord(level, *rec)
 }
 
 // MakeAuditRecord creates a audit record pre-populated with defaults.
-func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+func (a *App) MakeAuditRecord(c request.CTX, event string, initialStatus string) *audit.Record {
 	var userID string
 	user, err := user.Current()
 	if err == nil {
