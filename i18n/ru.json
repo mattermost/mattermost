@@ -621,7 +621,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Открыть страницу помощи Mattermost"
+    "translation": "Показать справку Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -1781,7 +1781,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Вы обновили свой email"
+    "translation": "Вы успешно обновили свой email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Посмотреть сообщение"
+    "translation": "Ответить в Mattermost"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -4573,7 +4573,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "Условия предоставления услуг GitLab обновлены. Пожалуйста, зайдите на gitlab.com, чтобы принять их, а затем попробуйте снова войти в Mattermost."
+    "translation": "Условия предоставления услуг GitLab обновлены. Пожалуйста, зайдите на {{.URL}}, чтобы принять их, а затем попробуйте снова войти в Mattermost."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5221,7 +5221,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Время сеанса истекло: войдите в систему, чтобы продолжить получать уведомления. Сеансы для {{.siteName}} настроены вашим системным администратором так, что срок их действия истекает каждые {{.daysCount}} дней."
+    "translation": "Время сеанса истекло: войдите в систему, чтобы продолжить получать уведомления. Сеансы для {{.siteName}} настроены вашим системным администратором так, что срок их действия истекает каждые {{.hoursCount}} час(ов)."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -5233,10 +5233,6 @@
   },
   {
     "id": "api.team.demote_user_to_guest.license.error",
-    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
     "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
   },
   {
@@ -5676,10 +5672,6 @@
     "translation": "Ошибка аннулирования e-mail приглашений."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Гостевые учётные записи отключены"
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Каналы в приглашении должны быть частью команды в приглашении."
   },
@@ -5849,11 +5841,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 89+"
+    "translation": "Версия 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 44+"
+    "translation": "Версия 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -7905,7 +7897,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Напишите нам в любое время на email "
+    "translation": "Нужна помощь или есть вопросы? Пишите нам на e-mail адрес "
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -7929,15 +7921,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Неудачный платёж"
+    "translation": "Платёж не прошёл"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Требуется действие: Оплата за Mattermost Cloud не произведена"
+    "translation": "Требуется действие: Оплата за Mattermost {{.Plan}} не произведена"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Чтобы обеспечить бесперебойную подписку на Mattermost Cloud, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
+    "translation": "Чтобы обеспечить бесперебойный доступ к Mattermost {{.Plan}}, свяжитесь с вашим финансовым учреждением для устранения основной проблемы или обновите платёжную информацию. После обновления платёжных данных Mattermost предпримет попытку погасить остаток задолженности."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7981,7 +7973,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Ваша 14-дневная пробная версия {{.WorkSpace}} готова к работе!"
+    "translation": "Ваше рабочее пространство готово к работе!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -9065,7 +9057,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "ПРИВЕТ! Откройте Mattermost, чтобы повысить продуктивность вашей команды!"
+    "translation": "Откройте все возможности Mattermost, чтобы повысить производительность вашей команды!"
   },
   {
     "id": "api.templates.server_inactivity_info_bullet2",
@@ -9133,11 +9125,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас присоединиться к каналу {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} пригласил вас присоединиться к {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
+    "translation": "{{ .SenderName }} пригласил вас присоединиться к каналу {{ .ChannelName }} в команде {{ .TeamDisplayName }}"
   },
   {
     "id": "model.member.is_valid.emails.app_error",
@@ -9165,7 +9157,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights находится за флагом функции, который не включен."
   },
   {
     "id": "api.getThreadsForUser.bad_only_params",
@@ -9181,14 +9173,394 @@
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
-    "translation": "Теперь Ваш сервер обновлен!"
+    "translation": "Обновление прошло успешно!"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет начиная с {{.TrialEnd}}"
+    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Подтверждение обновления Mattermost"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Платеж не получен"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Пожалуйста, свяжитесь с вашим финансовым учреждением для решения возникших вопросов. Затем обновите свои платёжные реквизиты при необходимости."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Просрочена оплата вашего Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Гостевые учётные записи отключены"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Загрузка через mmctl в экземпляр Cloud не поддерживается. Пожалуйста, ознакомьтесь с документацией здесь: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "В настройках Elasticsearch есть неустановленные значения."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Команда marketplace не поддерживается на вашем устройстве."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "магазин плагинов"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Открыть Магазин плагинов"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost - это платформа с открытым исходным кодом для безопасного общения, сотрудничества и организации работы между командами с использованием различных инструментов.\nMattermost состоит из трех ключевых инструментов:\n\n**Channels** - Каналы - оставайтесь всегда на связи со своей командой посредством 1:1 и групповых чатов.\n**[Playbooks](/playbooks)** - Сценарии - создавайте и настраивайте повторяющиеся процессы для достижения конкретных и предсказуемых результатов.\n**[Boards](/boards)** - Доски - управляйте проектами и задачами с использованием досок Kanban, чтобы помочь вашей команде достичь ключевых вех.\n\n[Посмотреть документацию и руководства]({{.HelpLink}})"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Невозможно восстановить команду, потому что достигнут лимит команд"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Невозможно создать команду, потому что достигнут лимит команд"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Ошибка обновления подписки из webhook."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Администратор уже уведомлен"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Отсутствуют обязательные поля для отправки электронного письма о просрочке."
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Неверный диапазон времени."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "имя группы уже существует как зарезервированное имя"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Неверный параллелизм декодера {{.Value}}. Должно быть положительное число или -1."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Неверное значение тайм-аута {{.Value}}. Должно быть положительное число."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML не смог успешно загрузить публичный сертификат (Identity Provider Public Certificate), обратитесь к своему системному администратору."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Не удалось разобрать значение:{{.Value}} в int64"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Мы не смогли получить количество бейджей для пользователя."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Не удалось получить данные об использовании хранилища."
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Не удалось сгенерировать информацию о файле из загруженных данных."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Невозможно получить количество команд"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Ошибка при очистке кэша участников команды"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Ошибка при получении результатов недавнего поиска"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Здравствуйте, вот ваше напоминание об этом сообщении от @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Не удалось получить главные темы для пользователя."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Не удалось получить главные темы для команды."
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Невозможно получить топ личных сообщений для пользователя."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Не удается получить сообщение, так как оно превышает лимит облачного плана."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Не удалось получить сведения об использовании команд"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Плагин {{.Name}} не может быть включен в продуктовом режиме."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Невозможно отправить сообщение с уведомлением."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Невозможно сохранить данные уведомления."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Ошибка при получении последнего доступного сообщения"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Ошибка при получении последнего доступного файла"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Ошибка во время выполнения задания."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Вы достигли лимита включенных интеграций - {{.NumIntegrations}} . Чтобы установить неограниченное количество интеграций, перейдите на один из наших платных тарифных планов."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Функция Insights отключена."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Невозможно получить файл, так как он превысил лимит облачного тарифного плана."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили обновление рабочего пространства для: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили обновление рабочего пространства для: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} пользователя(ей) рабочего пространства {{.WorkspaceName}} запросили включение пробной версии Enterprise для доступа к: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Подписка не просрочена"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Не удалось получить подписку на облако"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Невозможно получить имя текущего тарифного плана"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Не удалось получить облачные продукты"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Вы получили это одноразовое письмо, потому что ваш сервер Mattermost был неактивен более {{.Hours}} часов. Это письмо было автоматически сгенерировано вашим сервером Mattermost."
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Ваше рабочее пространство Mattermost было понижено в статусе"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Чтобы снять архивацию данных и сохранить оплаченные функции, обновите информацию об оплате."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Если вы используете функции Cloud Professional или Enterprise для важных бизнес-операций, они больше не будут доступны, и вы столкнетесь с ухудшением производительности."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Ваше рабочее пространство Mattermost Cloud было понижено"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Посмотреть тарифные планы и цены"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Ваше рабочее пространство будет понижено через 15 дней"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Starter. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Это последнее напоминание о том, что мы не получили оплату за ваше рабочее пространство Mattermost Cloud с {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "translation": "Понижение статуса до Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Ваш платёж не был завершен"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "Чтобы ваш план {{.Plan}} оставался активным, как можно скорее свяжитесь с вашим финансовым учреждением. Затем, при необходимости, обновите свои платежные реквизиты."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Мы не смогли обработать ваш последний платёж"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Ваше рабочее пространство Mattermost будет понижено в течение 30 дней"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter ниже."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Мы автоматически понизим уровень вашего рабочего пространства через 30 дней, если не сможем обработать ваш платёж."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Пожалуйста, обновите свою платёжную информацию в ближайшее время, чтобы обработать неоплаченные счета."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "translation": "Понижение статуса до Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Обновите информацию о своей кредитной карте прямо сейчас."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "Пониженное рабочее пространство может негативно повлиять на критически важные рабочие процессы, интеграции и другие важные для бизнеса действия, выполняемые в вашем рабочем пространстве."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Мы не смогли получить оплату по неоплаченным счетам от {{.DelinquencyDate}}. Ваше рабочее пространство находится под угрозой понижения."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Уведомление: В ближайшее время ваш Mattermost {{.Plan}} будет понижен"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Ваше рабочее пространство будет понижено по тарифной сетке в ближайшее время"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "если не предпринять никаких действий, ваше рабочее пространство будет понижено по тарифной сетке, а следующие данные могут быть заархивированы:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "У вас есть время, чтобы сохранить ваш Mattermost {{.Plan}} активным, но вам нужно решить проблемы с методом оплаты."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Действуйте, чтобы сохранить функционал Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Посмотреть всю документацию по ограничениям."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Обновить платёж"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Активные плагины и интеграции"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "История сообщений"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Файлы"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Карточки с Ваших Boards"
   }
 ]

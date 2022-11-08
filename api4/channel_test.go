@@ -1779,6 +1779,7 @@ func TestSearchGroupChannels(t *testing.T) {
 }
 
 func TestDeleteChannel(t *testing.T) {
+	t.Skip("MM-47465")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	c := th.Client

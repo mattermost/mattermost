@@ -1781,7 +1781,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Zaktualizowałeś swój e-mail"
+    "translation": "Pomyślnie zaktualizowałeś swój e-mail"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4761,11 +4761,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 44+"
+    "translation": "Wersja 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 100+"
+    "translation": "Wersja 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5582,14 +5582,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Kanały do których chcesz zaprosić, muszą być częścią zespołu do którego chcesz zaprosić."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Twoja licencja nie obsługuje kont gości"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Konta gości są wyłączone"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9356,7 +9348,7 @@
     "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9400,7 +9392,7 @@
     "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9542,5 +9534,33 @@
   {
     "id": "app.job.error",
     "translation": "Błąd podczas wykonywania zadania."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Błąd pobierania ostatniego dostępnego pliku"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nie można pobrać pliku, ponieważ przekroczony został limit planu chmury."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "nazwa grupy już istnieje jako nazwa zastrzeżona"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Wtyczka {{.Name}} nie może być włączona w trybie produktu."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Twoja licencja nie wspiera kont gości"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Konta gości są wyłączone"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Nieprawidłowy zakres czasu."
   }
 ]

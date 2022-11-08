@@ -5276,14 +5276,6 @@
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gäståtkomst har inaktiverats"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Fel vid ogiltiggörande av e-postinbjudan."
   },
@@ -9475,7 +9467,7 @@
     "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9519,7 +9511,7 @@
     "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9541,5 +9533,25 @@
   {
     "id": "app.job.error",
     "translation": "Fel under utförandet av jobbet."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "gruppnamnet finns redan som ett reserverat namn"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fel vid hämtning av den senast tillgängliga filen"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Din licens tillåter inte gäståtkomst"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gäståtkomst har inaktiverats"
   }
 ]

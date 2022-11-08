@@ -18,6 +18,42 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
+// JoinedThread allows querying the Threads + Posts table in a single query, before looking up
+// users and unpacking into a model.ThreadResponse.
+type JoinedThread struct {
+	PostId         string
+	ReplyCount     int64
+	LastReplyAt    int64
+	LastViewedAt   int64
+	UnreadReplies  int64
+	UnreadMentions int64
+	Participants   model.StringArray
+	ThreadDeleteAt int64
+	TeamId         string
+	model.Post
+}
+
+func (thread *JoinedThread) toThreadResponse(users map[string]*model.User) *model.ThreadResponse {
+	threadParticipants := make([]*model.User, 0, len(thread.Participants))
+	for _, participantUserId := range thread.Participants {
+		if participant, ok := users[participantUserId]; ok {
+			threadParticipants = append(threadParticipants, participant)
+		}
+	}
+
+	return &model.ThreadResponse{
+		PostId:         thread.PostId,
+		ReplyCount:     thread.ReplyCount,
+		LastReplyAt:    thread.LastReplyAt,
+		LastViewedAt:   thread.LastViewedAt,
+		UnreadReplies:  thread.UnreadReplies,
+		UnreadMentions: thread.UnreadMentions,
+		Participants:   threadParticipants,
+		Post:           thread.Post.ToNilIfInvalid(),
+		DeleteAt:       thread.ThreadDeleteAt,
+	}
+}
+
 type SqlThreadStore struct {
 	*SqlStore
 
@@ -51,6 +87,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
+			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
 		).
 		From("Threads")
 
@@ -62,6 +99,7 @@ func (s *SqlThreadStore) initializeQueries() {
 			"Threads.LastReplyAt",
 			"Threads.Participants",
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS ThreadDeleteAt",
+			"COALESCE(Threads.ThreadTeamId, '') AS TeamId",
 		).
 		From("Threads")
 }
@@ -95,10 +133,9 @@ func (s *SqlThreadStore) getTotalThreadsQuery(userId, teamId string, opts model.
 
 	if teamId != "" {
 		query = query.
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(sq.Or{
-				sq.Eq{"Channels.TeamId": teamId},
-				sq.Eq{"Channels.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -158,10 +195,9 @@ func (s *SqlThreadStore) GetTotalUnreadMentions(userId, teamId string, opts mode
 
 	if teamId != "" {
 		query = query.
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(sq.Or{
-				sq.Eq{"Channels.TeamId": teamId},
-				sq.Eq{"Channels.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -181,18 +217,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	pageSize := uint64(30)
 	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
-	}
-
-	var threads []*struct {
-		PostId         string
-		ReplyCount     int64
-		LastReplyAt    int64
-		LastViewedAt   int64
-		UnreadReplies  int64
-		UnreadMentions int64
-		Participants   model.StringArray
-		ThreadDeleteAt int64
-		model.Post
 	}
 
 	unreadRepliesQuery := sq.
@@ -223,10 +247,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	// a team at all.
 	if teamId != "" {
 		query = query.
-			Join("Channels ON Threads.ChannelId = Channels.Id").
 			Where(sq.Or{
-				sq.Eq{"Channels.TeamId": teamId},
-				sq.Eq{"Channels.TeamId": ""},
+				sq.Eq{"Threads.ThreadTeamId": teamId},
+				sq.Eq{"Threads.ThreadTeamId": ""},
 			})
 	}
 
@@ -258,6 +281,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		OrderBy("Threads.LastReplyAt " + order).
 		Limit(pageSize)
 
+	var threads []*JoinedThread
 	err := s.GetReplicaX().SelectBuilder(&threads, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to fetch threads for user id=%s", userId)
@@ -290,27 +314,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := make([]*model.ThreadResponse, 0, len(threads))
 	for _, thread := range threads {
-		// Find only this thread's participants
-		threadParticipants := make([]*model.User, 0, len(thread.Participants))
-		for _, participantUserId := range thread.Participants {
-			participant, ok := allParticipants[participantUserId]
-			if !ok {
-				return nil, errors.Errorf("cannot find participant with user id=%s for thread id=%s", participantUserId, thread.PostId)
-			}
-			threadParticipants = append(threadParticipants, participant)
-		}
-
-		result = append(result, &model.ThreadResponse{
-			PostId:         thread.PostId,
-			ReplyCount:     thread.ReplyCount,
-			LastReplyAt:    thread.LastReplyAt,
-			LastViewedAt:   thread.LastViewedAt,
-			UnreadReplies:  thread.UnreadReplies,
-			UnreadMentions: thread.UnreadMentions,
-			Participants:   threadParticipants,
-			Post:           thread.Post.ToNilIfInvalid(),
-			DeleteAt:       thread.ThreadDeleteAt,
-		})
+		result = append(result, thread.toThreadResponse(allParticipants))
 	}
 
 	return result, nil
@@ -322,7 +326,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	fetchConditions := sq.And{
 		sq.Eq{"ThreadMemberships.UserId": userID},
 		sq.Eq{"ThreadMemberships.Following": true},
-		sq.Eq{"Channels.TeamId": teamIDs},
+		sq.Eq{"Threads.ThreadTeamId": teamIDs},
 		sq.Eq{"COALESCE(Threads.ThreadDeleteAt, 0)": 0},
 	}
 
@@ -345,13 +349,12 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		repliesQuery := s.getQueryBuilder().
-			Select("COUNT(Threads.PostId) AS Count, TeamId").
+			Select("COUNT(Threads.PostId) AS Count, ThreadTeamId AS TeamId").
 			From("Threads").
 			LeftJoin("ThreadMemberships ON Threads.PostId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(fetchConditions).
 			Where("Threads.LastReplyAt > ThreadMemberships.LastViewed").
-			GroupBy("Channels.TeamId")
+			GroupBy("Threads.ThreadTeamId")
 
 		err := s.GetReplicaX().SelectBuilder(&unreadThreads, repliesQuery)
 		if err != nil {
@@ -363,12 +366,11 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) 
 	go func() {
 		defer wg.Done()
 		mentionsQuery := s.getQueryBuilder().
-			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 			From("ThreadMemberships").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(fetchConditions).
-			GroupBy("Channels.TeamId")
+			GroupBy("Threads.ThreadTeamId")
 
 		err := s.GetReplicaX().SelectBuilder(&unreadMentions, mentionsQuery)
 		if err != nil {
@@ -439,19 +441,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
 	}
 
-	type JoinedThread struct {
-		PostId         string
-		Following      bool
-		ReplyCount     int64
-		LastReplyAt    int64
-		LastViewedAt   int64
-		UnreadReplies  int64
-		UnreadMentions int64
-		Participants   model.StringArray
-		ThreadDeleteAt int64
-		model.Post
-	}
-
 	unreadRepliesQuery := sq.
 		Select("COUNT(Posts.Id)").
 		From("Posts").
@@ -462,7 +451,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		})
 
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+		sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}},
 		sq.Eq{"Threads.PostId": threadMembership.PostId},
 	}
 
@@ -476,7 +465,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	query = query.
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 		Where(fetchConditions)
 
 	err := s.GetReplicaX().GetBuilder(&thread, query)
@@ -503,33 +491,12 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 		}
 	}
 
-	participants := []*model.User{}
-	for _, participantId := range thread.Participants {
-		var participant *model.User
-		for _, u := range users {
-			if u.Id == participantId {
-				participant = u
-				break
-			}
-		}
-		if participant != nil {
-			participants = append(participants, participant)
-		}
+	usersMap := make(map[string]*model.User)
+	for _, user := range users {
+		usersMap[user.Id] = user
 	}
 
-	result := &model.ThreadResponse{
-		PostId:         thread.PostId,
-		ReplyCount:     thread.ReplyCount,
-		LastReplyAt:    thread.LastReplyAt,
-		LastViewedAt:   thread.LastViewedAt,
-		UnreadReplies:  thread.UnreadReplies,
-		UnreadMentions: thread.UnreadMentions,
-		Participants:   participants,
-		Post:           thread.Post.ToNilIfInvalid(),
-		DeleteAt:       thread.ThreadDeleteAt,
-	}
-
-	return result, nil
+	return thread.toThreadResponse(usersMap), nil
 }
 
 // MarkAllAsReadByChannels marks thread membership for the given users in the given channels
@@ -671,9 +638,8 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 	query := s.getQueryBuilder().
 		Select("ThreadMemberships.*").
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
-		Join("Channels ON Threads.ChannelId = Channels.Id").
 		From("ThreadMemberships").
-		Where(sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}}).
+		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Where(sq.Eq{"ThreadMemberships.UserId": userId})
 
 	err := s.GetReplicaX().SelectBuilder(&memberships, query)
@@ -1015,7 +981,7 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	var args []any
 
 	// gets all threads within the team which user follows.
-	query := `select 
+	query := `select
 		threads_list.PostId,
 		threads_list.ReplyCount,
 		threads_list.ChannelId,

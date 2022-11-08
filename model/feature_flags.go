@@ -70,9 +70,21 @@ type FeatureFlags struct {
 	// Enable Boards as a product (multi-product architecture)
 	BoardsProduct bool
 
-	PlanUpgradeButtonText string
+	// A/B Test on posting a welcome message
+	SendWelcomePost bool
+
+	WorkTemplate bool
 
 	PostPriority bool
+
+	PeopleProduct bool
+
+	AnnualSubscription bool
+
+	// A/B Test on reduced onboarding task list item
+	ReduceOnBoardingTaskList bool
+
+	ThreadsEverywhere bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -98,8 +110,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "upgrade"
+	f.SendWelcomePost = true
 	f.PostPriority = false
+	f.PeopleProduct = false
+	f.WorkTemplate = false
+	f.AnnualSubscription = false
+	f.ReduceOnBoardingTaskList = false
+	f.ThreadsEverywhere = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

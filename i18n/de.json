@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Du hast deine E-Mail-Adresse geändert"
+    "translation": "Du hast deine E-Mail-Adresse erfolgreich geändert"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4801,11 +4801,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5622,14 +5622,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Die Kanäle der Einladung müssen Teil des Teams der Einladung sein."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Deine Lizenz unterstützt Gastkonten nicht"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gastkonten sind deaktiviert"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -8380,7 +8372,7 @@
   },
   {
     "id": "app.notification.body.dm.subTitle",
-    "translation": "Währen du weg warst, hat dir {{.SenderName}} eine neue Direktnachricht gesendet."
+    "translation": "Während du weg warst, hat dir {{.SenderName}} eine neue Direktnachricht gesendet."
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
@@ -9327,7 +9319,7 @@
     "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Herunterstufen zu Cloud Starter"
   },
   {
@@ -9371,7 +9363,7 @@
     "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Herabstufen zu Cloud Starter"
   },
   {
@@ -9537,5 +9529,37 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "Wir konnten den Nachrichtenzähler für den Benutzer nicht abfragen."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fehler bei der Auftragsausführung."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fehler beim Abrufen der letzten zugänglichen Datei"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Die Datei kann nicht abgerufen werden, da sie das Limit des Cloud-Plans überschritten hat."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "Gruppenname existiert bereits als reservierter Name"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kann im Produktmodus nicht aktiviert werden."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Deine Lizenz unterstützt Gastkonten nicht"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gastkonten sind deaktiviert"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ungültiger Zeitbereich."
   }
 ]

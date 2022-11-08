@@ -143,6 +143,23 @@ func TestLicenseIsStarted(t *testing.T) {
 	assert.False(t, l1.IsStarted())
 }
 
+func TestIsCloud(t *testing.T) {
+	l1 := License{}
+	l1.Features = &Features{}
+	l1.Features.SetDefaults()
+	assert.False(t, l1.IsCloud())
+
+	boolTrue := true
+	l1.Features.Cloud = &boolTrue
+	assert.True(t, l1.IsCloud())
+
+	var license *License
+	assert.False(t, license.IsCloud())
+
+	l1.Features = nil
+	assert.False(t, l1.IsCloud())
+}
+
 func TestLicenseRecordIsValid(t *testing.T) {
 	lr := LicenseRecord{
 		CreateAt: GetMillis(),
