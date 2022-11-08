@@ -119,7 +119,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
-	f.GlobalDrafts = false
+	f.GlobalDrafts = true
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
