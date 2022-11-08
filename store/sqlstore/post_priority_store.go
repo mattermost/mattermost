@@ -4,9 +4,12 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
+	"github.com/pkg/errors"
 )
 
 type SqlPostPriorityStore struct {
@@ -39,4 +42,30 @@ func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, e
 	}
 
 	return &postPriority, nil
+}
+
+func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("pnotify").
+		Where(sq.And{
+			sq.GtOrEq{"CreateAt": minCreateAt},
+			sq.Eq{"DeleteAt": 0},
+		}).
+		ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []*model.PostPersistentNotifications
+	err = s.GetReplicaX().Select(&posts, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return make([]*model.PostPersistentNotifications, 0), nil
+		}
+		return nil, errors.Wrap(err, "failed to get posts for persistent notifications")
+	}
+
+	return posts, nil
 }
