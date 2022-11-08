@@ -7493,6 +7493,27 @@ func (s *RetryLayerPostPriorityStore) GetForPost(postId string) (*model.PostPrio
 
 }
 
+func (s *RetryLayerPostPriorityStore) GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(minCreateAt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 	tries := 0

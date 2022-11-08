@@ -974,6 +974,7 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postId string) (*model.PostPriority, error)
+	GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error)
 }
 
 type PostAcknowledgementStore interface {

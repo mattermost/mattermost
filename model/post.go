@@ -172,6 +172,12 @@ type PostPriority struct {
 	ChannelId string `json:",omitempty"`
 }
 
+type PostPersistentNotifications struct {
+	PostId   string
+	CreateAt int64
+	DeleteAt int64
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`

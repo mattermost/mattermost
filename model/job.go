@@ -31,6 +31,7 @@ const (
 	JobTypeLastAccessibleFile           = "last_accessible_file"
 	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
 	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
+	JobTypePostPersistentNotifications  = "post_persistent_notifications"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
