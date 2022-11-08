@@ -83,10 +83,10 @@ type Features struct {
 	MFA        *bool `json:"mfa"`
 
 	// Deprecated: This feature will be removed from the license because it's available without a license.
-	GoogleOAuth               *bool `json:"google_oauth"`
-	
+	GoogleOAuth *bool `json:"google_oauth"`
+
 	// Deprecated: This feature will be removed from the license because it's available without a license.
-	Office365OAuth            *bool `json:"office365_oauth"`
+	Office365OAuth *bool `json:"office365_oauth"`
 
 	// Deprecated: This feature will be removed from the license because it's available without a license.
 	OpenId                    *bool `json:"openid"`
