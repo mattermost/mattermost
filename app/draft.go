@@ -16,6 +16,10 @@ import (
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -31,6 +35,10 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
 	var notFoundErr *store.ErrNotFound
 	if dErr != nil && !errors.As(dErr, &notFoundErr) {
@@ -69,6 +77,10 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
@@ -118,6 +130,10 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
@@ -164,6 +180,10 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	drafts, err := a.Srv().Store().Draft().GetDraftsForUser(userID, teamID)
 
 	if err != nil {
@@ -174,6 +194,10 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
+	if !a.Config().FeatureFlags.GlobalDrafts {
+		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	}
+
 	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)

@@ -4924,6 +4924,10 @@
     "translation": "Unable to delete the Draft."
   },
   {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
     "id": "app.draft.get.app_error",
     "translation": "Unable to get the Draft."
   },
