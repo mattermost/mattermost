@@ -104,7 +104,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiPaths, err := a.exportCustomEmoji(ctx, writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
@@ -520,11 +520,11 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(c request.CTX, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err
@@ -626,7 +626,12 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel)
+			favoritedBy, err := a.buildFavoritedByList(channel.Id)
+			if err != nil {
+				return err
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel, favoritedBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -634,6 +639,29 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	}
 
 	return nil
+}
+
+func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
+	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
+	if err != nil {
+		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userIDs := make([]string, 0, len(prefs))
+	for _, pref := range prefs {
+		if pref.Value != "true" {
+			continue
+		}
+
+		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
+		if err != nil {
+			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		userIDs = append(userIDs, user.Username)
+	}
+
+	return userIDs, nil
 }
 
 func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
