@@ -78,6 +78,20 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var roles []string
 	var rolesValid bool
+
+	if role != "" {
+		_, rolesValid = model.CleanRoleNames([]string{role})
+		if !rolesValid {
+			c.SetInvalidParam("role")
+			return
+		}
+		roleValid := utils.StringInSlice(role, roleNamesAll)
+		if !roleValid {
+			c.SetInvalidParam("role")
+			return
+		}
+	}
+
 	if rolesString != "" {
 		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
 		if !rolesValid {
