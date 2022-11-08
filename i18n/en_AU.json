@@ -9347,7 +9347,7 @@
     "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Downgrade to Cloud Starter"
   },
   {
@@ -9387,7 +9387,7 @@
     "translation": "Action Required: Workspace will be downgraded in 30 days"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Downgrade to Cloud Starter"
   },
   {

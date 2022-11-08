@@ -9328,7 +9328,7 @@
     "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9372,7 +9372,7 @@
     "translation": "Acción requerida: El workspace será degradado en 30 días"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {

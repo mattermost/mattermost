@@ -614,7 +614,7 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 	for _, user := range users {
 		cm := &model.ChannelMember{
 			UserId:      user.Id,
-			ChannelId:   group.Id,
+			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),

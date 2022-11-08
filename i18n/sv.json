@@ -9467,7 +9467,7 @@
     "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
@@ -9511,7 +9511,7 @@
     "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Nedgradera till Cloud Starter"
   },
   {
