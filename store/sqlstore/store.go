@@ -96,6 +96,7 @@ type SqlStoreStores struct {
 	fileInfo             store.FileInfoStore
 	uploadSession        store.UploadSessionStore
 	reaction             store.ReactionStore
+	hashtag              store.HashtagStore
 	job                  store.JobStore
 	userAccessToken      store.UserAccessTokenStore
 	plugin               store.PluginStore
@@ -209,6 +210,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
 	store.stores.sharedchannel = newSqlSharedChannelStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
+	store.stores.hashtag = newSqlHashtagStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
@@ -875,6 +877,10 @@ func (ss *SqlStore) UploadSession() store.UploadSessionStore {
 
 func (ss *SqlStore) Reaction() store.ReactionStore {
 	return ss.stores.reaction
+}
+
+func (ss *SqlStore) Hashtag() store.HashtagStore {
+	return ss.stores.hashtag
 }
 
 func (ss *SqlStore) Job() store.JobStore {
