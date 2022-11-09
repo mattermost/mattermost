@@ -9348,7 +9348,7 @@
     "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9392,7 +9392,7 @@
     "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
