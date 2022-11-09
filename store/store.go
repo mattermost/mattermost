@@ -8,6 +8,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"github.com/mattermost/mattermost-server/v6/model/sort"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -25,6 +26,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	Hashtag() HashtagStore
 	RetentionPolicy() RetentionPolicyStore
 	Thread() ThreadStore
 	User() UserStore
@@ -402,6 +404,16 @@ type PostStore interface {
 
 	// Insights - top DMs
 	GetTopDMsForUserSince(userID string, since int64, offset int, limit int) (*model.TopDMList, error)
+}
+
+type HashtagStore interface {
+	Save(hashtag *model.Hashtag) (*model.Hashtag, error)
+	SaveMultipleForPosts(posts []*model.Post) ([]*model.Hashtag, error)
+	GetAll() ([]*model.Hashtag, error)
+	GetMostCommon(s sort.Sort) ([]*model.HashtagWithMessageCount, error)
+	SearchForUser(phrase string, userId string) ([]*model.HashtagWithMessageCountSearch, error)
+	UpdateOnPostEdit(oldPost *model.Post, newPost *model.Post) error
+	UpdateOnPostOverwrite(posts []*model.Post) error
 }
 
 type UserStore interface {
