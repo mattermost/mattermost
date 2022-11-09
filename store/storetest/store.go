@@ -56,6 +56,7 @@ type Store struct {
 	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 	NotifyAdminStore          mocks.NotifyAdminStore
+	HashtagStore              mocks.HashtagStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -86,6 +87,7 @@ func (s *Store) Status() store.StatusStore                         { return &s.S
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }
 func (s *Store) UploadSession() store.UploadSessionStore           { return &s.UploadSessionStore }
 func (s *Store) Reaction() store.ReactionStore                     { return &s.ReactionStore }
+func (s *Store) Hashtag() store.HashtagStore                       { return &s.HashtagStore }
 func (s *Store) Job() store.JobStore                               { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore       { return &s.UserAccessTokenStore }
 func (s *Store) Plugin() store.PluginStore                         { return &s.PluginStore }
