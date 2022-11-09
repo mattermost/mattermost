@@ -67,6 +67,7 @@ func (s *SqlHashtagStore) UpdateOnPostEdit(oldPost *model.Post, newPost *model.P
 }
 
 func (s *SqlHashtagStore) SearchForUser(phrase string, userId string) ([]*model.HashtagWithMessageCountSearch, error) {
+	//TODO: refactor
 	columns := "MAX(p.UpdateAt) as UpdateAt, 30 as priority, MAX(h.Id) AS Id, MAX(h.PostId) AS PostId, h.Value as Value, COUNT(Value) as Messages"
 	query := fmt.Sprintf(`
 			SELECT DISTINCT Id, PostId, Value, Messages FROM (
