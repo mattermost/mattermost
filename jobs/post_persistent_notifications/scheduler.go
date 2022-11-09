@@ -17,7 +17,7 @@ func MakeScheduler(jobServer *jobs.JobServer, config *model.Config) model.Schedu
 		// return enabled
 		return false
 	}
-	// schedFreq := config.ServiceSettings.PostPersistentNotifications / 2
+	// schedFreq := config.ServiceSettings.PersistenceNotificationInterval / 2
 	schedFreq := 1 * time.Minute
 	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeLastAccessiblePost, schedFreq, isEnabled)
 }

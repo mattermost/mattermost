@@ -124,7 +124,7 @@ func (a *App) getMentionsForPersistentNotifications(posts []*model.Post) (map[st
 		}
 	}
 
-	var postsMentions map[string]*ExplicitMentions
+	postsMentions := make(map[string]*ExplicitMentions, len(posts))
 	for _, p := range posts {
 		postsMentions[p.Id] = getExplicitMentions(p, make(map[string][]string, 0), channelsGroupsMap[p.ChannelId])
 	}
