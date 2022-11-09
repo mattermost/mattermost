@@ -375,14 +375,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		}
 		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
-		th, err := ss.Thread().GetThreadForUser("", m, false)
+		th, err := ss.Thread().GetThreadForUser(m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), th.UnreadReplies)
 
 		m.LastViewed = newPosts[2].UpdateAt + 1
 		_, err = ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
-		th, err = ss.Thread().GetThreadForUser("", m, false)
+		th, err = ss.Thread().GetThreadForUser(m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 
@@ -391,7 +391,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Update(editedPost, newPosts[2])
 		require.NoError(t, err)
 
-		th, err = ss.Thread().GetThreadForUser("", m, false)
+		th, err = ss.Thread().GetThreadForUser(m, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
@@ -408,7 +408,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
 		require.NoError(t, err)
 		m.UserId = newPosts[0].UserId
-		th, err := ss.Thread().GetThreadForUser("", m, true)
+		th, err := ss.Thread().GetThreadForUser(m, true)
 		require.NoError(t, err)
 		for _, user := range th.Participants {
 			require.NotNil(t, user)
@@ -465,7 +465,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
 			require.NoError(t, e)
 
-			th, e := ss.Thread().GetThreadForUser("", m, false)
+			th, e := ss.Thread().GetThreadForUser(m, false)
 			require.NoError(t, e)
 			require.Equal(t, isUrgent, th.IsUrgent)
 
@@ -474,32 +474,6 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			require.Equal(t, isUrgent, threads[0].IsUrgent)
 		})
 	}
-
-	t.Run("Return not is urgent for thread/s", func(t *testing.T) {
-		newPosts := makeSomePosts(false)
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: true,
-			UpdateParticipants:    false,
-		}
-
-		userID := newPosts[0].UserId
-		_, e := ss.Thread().MaintainMembership(userID, newPosts[0].Id, opts)
-		require.NoError(t, e)
-
-		m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
-		require.NoError(t, e)
-
-		th, e := ss.Thread().GetThreadForUser("", m, false)
-		require.NoError(t, e)
-		require.Equal(t, false, th.IsUrgent)
-
-		threads, e := ss.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{})
-		require.NoError(t, e)
-		require.Equal(t, false, threads[0].IsUrgent)
-	})
 }
 
 func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, userID string, createAt int64) *model.Post {

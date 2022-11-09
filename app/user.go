@@ -2480,8 +2480,8 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
-func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, threadMembership, extended)
+func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2563,7 +2563,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, tm, true)
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true)
 
 	if err != nil {
 		var errNotFound *store.ErrNotFound
@@ -2645,7 +2645,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	thread, err := a.GetThreadForUser(teamID, membership, false)
+	thread, err := a.GetThreadForUser(membership, false)
 	if err != nil {
 		return nil, err
 	}
