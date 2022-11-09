@@ -51,6 +51,9 @@ type Routes struct {
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
 
+	HashTag  *mux.Router // 'api/v4/hashtag'
+	HashTags *mux.Router // 'api/v4/hashtags'
+
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
 	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
@@ -188,6 +191,9 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelModerations = api.BaseRoutes.Channel.PathPrefix("/moderations").Subrouter()
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()
 
+	api.BaseRoutes.HashTag = api.BaseRoutes.APIRoot.PathPrefix("/hashtags/{hash_tag_query:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.HashTags = api.BaseRoutes.APIRoot.PathPrefix("/hashtags").Subrouter()
+
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
@@ -268,6 +274,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
+	api.InitHashtag()
 	api.InitChannel()
 	api.InitPost()
 	api.InitFile()
