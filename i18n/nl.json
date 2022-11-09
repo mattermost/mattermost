@@ -9561,5 +9561,13 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Ongeldig tijdsbereik."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topictype bestaat al."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collectietype bestaat al."
   }
 ]

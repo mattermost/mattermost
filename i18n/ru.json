@@ -9448,10 +9448,6 @@
     "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
-  },
-  {
     "id": "api.templates.delinquency_75.button",
     "translation": "Обновить платёж"
   },
@@ -9490,10 +9486,6 @@
   {
     "id": "api.templates.delinquency_60.subject",
     "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
   },
   {
     "id": "api.templates.delinquency_60.button",
