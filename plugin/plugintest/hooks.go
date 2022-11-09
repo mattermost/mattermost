@@ -284,6 +284,20 @@ func (_m *Hooks) OnCloudLimitsUpdated(limits *model.ProductLimits) {
 	_m.Called(limits)
 }
 
+// OnClusterLeaderChanged provides a mock function with given fields: isLeader
+func (_m *Hooks) OnClusterLeaderChanged(isLeader bool) error {
+	ret := _m.Called(isLeader)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(bool) error); ok {
+		r0 = rf(isLeader)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnConfigurationChange provides a mock function with given fields:
 func (_m *Hooks) OnConfigurationChange() error {
 	ret := _m.Called()

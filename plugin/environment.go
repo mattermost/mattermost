@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
@@ -49,32 +50,62 @@ type PrepackagedPlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins      sync.Map
-	registeredProducts     sync.Map
-	pluginHealthCheckJob   *PluginHealthCheckJob
-	logger                 *mlog.Logger
-	metrics                einterfaces.MetricsInterface
-	newAPIImpl             apiImplCreatorFunc
-	dbDriver               Driver
-	pluginDir              string
-	webappPluginDir        string
-	prepackagedPlugins     []*PrepackagedPlugin
-	prepackagedPluginsLock sync.RWMutex
+	registeredPlugins              sync.Map
+	registeredProducts             sync.Map
+	pluginHealthCheckJob           *PluginHealthCheckJob
+	logger                         *mlog.Logger
+	metrics                        einterfaces.MetricsInterface
+	newAPIImpl                     apiImplCreatorFunc
+	dbDriver                       Driver
+	clusterLeaderManager           remotecluster.ServerIface
+	clusterLeaderChangedListenerID string
+	pluginDir                      string
+	webappPluginDir                string
+	prepackagedPlugins             []*PrepackagedPlugin
+	prepackagedPluginsLock         sync.RWMutex
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 	dbDriver Driver,
 	pluginDir string, webappPluginDir string,
 	logger *mlog.Logger,
-	metrics einterfaces.MetricsInterface) (*Environment, error) {
-	return &Environment{
-		logger:          logger,
-		metrics:         metrics,
-		newAPIImpl:      newAPIImpl,
-		dbDriver:        dbDriver,
-		pluginDir:       pluginDir,
-		webappPluginDir: webappPluginDir,
-	}, nil
+	metrics einterfaces.MetricsInterface,
+	cluster remotecluster.ServerIface) (*Environment, error) {
+	env := &Environment{
+		logger:               logger,
+		metrics:              metrics,
+		newAPIImpl:           newAPIImpl,
+		dbDriver:             dbDriver,
+		pluginDir:            pluginDir,
+		webappPluginDir:      webappPluginDir,
+		clusterLeaderManager: cluster,
+	}
+
+	// cluster may be nil in some tests.
+	if cluster != nil {
+		env.clusterLeaderChangedListenerID = cluster.AddClusterLeaderChangedListener(func() {
+			env.RunMultiPluginHook(
+				func(hooks Hooks) bool {
+					if err := hooks.OnClusterLeaderChanged(cluster.IsLeader()); err != nil {
+						env.logger.Error("Plugin OnClusterLeaderChanged hook failed", mlog.Err(err))
+					}
+					return true
+				},
+				OnClusterLeaderChangedID)
+		})
+	}
+
+	return env, nil
+}
+
+// RemoveClusterleaderChangedListener is used exclusively in tests that create a
+// separate Environment in addition to the one created by the server on startup.
+// The original Listener needs is removed for cleaner tests.
+func (env *Environment) RemoveClusterleaderChangedListener() {
+	if env != nil && env.clusterLeaderManager != nil && env.clusterLeaderChangedListenerID != "" {
+		env.clusterLeaderManager.RemoveClusterLeaderChangedListener(env.clusterLeaderChangedListenerID)
+		env.clusterLeaderChangedListenerID = ""
+	}
 }
 
 // Performs a full scan of the given path.
@@ -316,6 +347,11 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		rp.supervisor = sup
 		env.registeredPlugins.Store(id, rp)
 
+		if sup.Implements(OnClusterLeaderChangedID) {
+			isLeader := env.clusterLeaderManager == nil || env.clusterLeaderManager.IsLeader()
+			sup.Hooks().OnClusterLeaderChanged(isLeader)
+		}
+
 		componentActivated = true
 	}
 
@@ -508,7 +544,6 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	startTime := time.Now()
-
 	env.registeredPlugins.Range(func(key, value any) bool {
 		rp := value.(registeredPlugin)
 

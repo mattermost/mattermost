@@ -1037,6 +1037,41 @@ func (s *hooksRPCServer) GetTopicMetadataByIds(args *Z_GetTopicMetadataByIdsArgs
 	return nil
 }
 
+func init() {
+	hookNameToId["OnClusterLeaderChanged"] = OnClusterLeaderChangedID
+}
+
+type Z_OnClusterLeaderChangedArgs struct {
+	A bool
+}
+
+type Z_OnClusterLeaderChangedReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnClusterLeaderChanged(isLeader bool) error {
+	_args := &Z_OnClusterLeaderChangedArgs{isLeader}
+	_returns := &Z_OnClusterLeaderChangedReturns{}
+	if g.implemented[OnClusterLeaderChangedID] {
+		if err := g.client.Call("Plugin.OnClusterLeaderChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnClusterLeaderChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnClusterLeaderChanged(args *Z_OnClusterLeaderChangedArgs, returns *Z_OnClusterLeaderChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnClusterLeaderChanged(isLeader bool) error
+	}); ok {
+		returns.A = hook.OnClusterLeaderChanged(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnClusterLeaderChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

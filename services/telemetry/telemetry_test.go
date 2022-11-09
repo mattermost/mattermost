@@ -166,6 +166,7 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 		nil,
 		pluginDir, webappPluginDir,
 		logger,
+		nil,
 		nil)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
 

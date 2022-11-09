@@ -254,3 +254,10 @@ func (hooks *hooksTimerLayer) GetTopicMetadataByIds(c *Context, topicType string
 	hooks.recordTime(startTime, "GetTopicMetadataByIds", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnClusterLeaderChanged(isLeader bool) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnClusterLeaderChanged(isLeader)
+	hooks.recordTime(startTime, "OnClusterLeaderChanged", _returnsA == nil)
+	return _returnsA
+}

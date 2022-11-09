@@ -49,6 +49,7 @@ const (
 	GetTopicRedirectID              = 31
 	GetCollectionMetadataByIdsID    = 32
 	GetTopicMetadataByIdsID         = 33
+	OnClusterLeaderChangedID        = 34
 	TotalHooksID                    = iota
 )
 
@@ -336,4 +337,12 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.6
 	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
+
+	// OnClusterLeaderChanged notifies the plugin that its server "Cluster
+	// Leader" state has changed.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	OnClusterLeaderChanged(isLeader bool) error
 }

@@ -138,6 +138,10 @@ type GetTopicMetadataByIdsIFace interface {
 	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
 }
 
+type OnClusterLeaderChangedIFace interface {
+	OnClusterLeaderChanged(isLeader bool) error
+}
+
 type hooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -430,6 +434,15 @@ func newAdapter(productHooks any) (*hooksAdapter, error) {
 		return nil, errors.New("hook has GetTopicMetadataByIds method but does not implement plugin.GetTopicMetadataByIds interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements OnClusterLeaderChanged interface.
+	tt = reflect.TypeOf((*OnClusterLeaderChangedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnClusterLeaderChangedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnClusterLeaderChanged"); ok {
+		return nil, errors.New("hook has OnClusterLeaderChanged method but does not implement plugin.OnClusterLeaderChanged interface")
+	}
+
 	return a, nil
 }
 
@@ -709,5 +722,14 @@ func (a *hooksAdapter) GetTopicMetadataByIds(c *Context, topicType string, topic
 	}
 
 	return a.productHooks.(GetTopicMetadataByIdsIFace).GetTopicMetadataByIds(c, topicType, topicIds)
+
+}
+
+func (a *hooksAdapter) OnClusterLeaderChanged(isLeader bool) error {
+	if _, ok := a.implemented[OnClusterLeaderChangedID]; !ok {
+		panic("product hooks must implement OnClusterLeaderChanged")
+	}
+
+	return a.productHooks.(OnClusterLeaderChangedIFace).OnClusterLeaderChanged(isLeader)
 
 }

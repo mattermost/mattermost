@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,7 +34,8 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil)
+	app.ch.GetPluginsEnvironment().RemoveClusterleaderChangedListener()
+	env, err := plugin.NewEnvironment(apiFunc, NewDriverImpl(app.Srv()), pluginDir, webappPluginDir, app.Log(), nil, app.Srv())
 	require.NoError(t, err)
 
 	app.ch.SetPluginsEnvironment(env)
@@ -1030,7 +1032,7 @@ func TestHookMetrics(t *testing.T) {
 		defer os.RemoveAll(pluginDir)
 		defer os.RemoveAll(webappPluginDir)
 
-		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock)
+		env, err := plugin.NewEnvironment(th.NewPluginAPI, NewDriverImpl(th.Server), pluginDir, webappPluginDir, th.App.Log(), metricsMock, th.Server)
 		require.NoError(t, err)
 
 		th.App.ch.SetPluginsEnvironment(env)
@@ -1330,4 +1332,46 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	}, plugin.OnCloudLimitsUpdatedID)
 
 	require.True(t, hookCalled)
+}
+
+func TestHookOnClusterLeaderChanged(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+		import (
+			"fmt"
+			"github.com/mattermost/mattermost-server/v6/plugin"
+		)
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+		var c = 0
+		func (p *MyPlugin) OnClusterLeaderChanged(isLeader bool) error {
+			c++
+			p.API.LogError(fmt.Sprintf("OnClusterLeaderChanged test %v %v", isLeader, c))
+			return nil
+		}
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	pluginID := pluginIDs[0]
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+	require.Contains(t, th.LogBuffer.String(), "OnClusterLeaderChanged test true 1", "first call on plugin activation")
+
+	th.Server.platform.InvokeClusterLeaderChangedListeners()
+	require.Eventually(t,
+		func() bool {
+			return strings.Contains(th.LogBuffer.String(), "OnClusterLeaderChanged test true 2")
+		},
+		100*time.Millisecond,
+		5*time.Millisecond,
+		"second call on explicit leader change")
 }
