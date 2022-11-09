@@ -45,7 +45,7 @@ func (api *API) getHashTags(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func (api *API) suggestHashTag(c *Context, w http.ResponseWriter, r *http.Request) {
-	hashtags, _ := c.App.Srv().GetStore().Hashtag().SearchForUser(c.Params.HashTagQuery, c.AppContext.Session().UserId)
+	hashtags, _ := c.App.Srv().GetStore().Hashtag().SearchForUser(c.Params.HashtagQuery, c.AppContext.Session().UserId)
 
 	response, _ := json.Marshal(hashtags)
 	w.Write(response)

@@ -90,6 +90,7 @@ type Params struct {
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
 	FilterHasMember           string
+	HashtagQuery              string
 
 	// Cloud
 	InvoiceId string
