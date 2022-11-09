@@ -15,8 +15,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type CacheData struct {
@@ -54,8 +52,6 @@ func init() {
 }
 
 func (o *OpenIdProvider) userFromOpenIdUser(u *OpenIdUser) *model.User {
-	res2B, _ := json.Marshal(u)
-	mlog.Info(string(res2B))
 	user := &model.User{}
 
 	user.Email = u.Email
