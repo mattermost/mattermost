@@ -267,6 +267,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 	}
 
+	if _, err := s.Hashtag().SaveMultipleForPosts(posts); err != nil {
+		mlog.Error("Failed to save post hashtags.", mlog.Err(err))
+		return nil, -1, err
+	}
+
 	return posts, -1, nil
 }
 
@@ -384,6 +389,10 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 		return nil, errors.Wrap(err, "failed to insert the old post")
 	}
 
+	if err := s.Hashtag().UpdateOnPostEdit(oldPost, newPost); err != nil {
+		return nil, errors.Wrap(err, "failed to update hashtags")
+	}
+
 	return newPost, nil
 }
 
@@ -436,6 +445,10 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 	err = tx.Commit()
 	if err != nil {
 		return nil, -1, errors.Wrap(err, "commit_transaction")
+	}
+
+	if err := s.Hashtag().UpdateOnPostOverwrite(posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to update hashtags")
 	}
 
 	return posts, -1, nil
@@ -1670,7 +1683,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			FROM
 				Posts
 			WHERE
-				ChannelId = ? ` + deleteAtCondition + ` 
+				ChannelId = ? ` + deleteAtCondition + `
 			ORDER BY CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
@@ -1757,13 +1770,13 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+` 
+                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+`
                 ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            q2.ChannelId = ? `+deleteAtQueryCondition+` 
+            q2.ChannelId = ? `+deleteAtQueryCondition+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -1945,7 +1958,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	baseQuery := s.getQueryBuilder().Select(
-		"*",
+		"q2.*",
 		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
@@ -1966,7 +1979,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	searchType := "Message"
 	if params.IsHashtag {
-		searchType = "Hashtags"
+		baseQuery = baseQuery.LeftJoin("Hashtags h ON h.PostId = q2.Id")
+		searchType = "h.Value"
 		for _, term := range strings.Split(terms, " ") {
 			termMap[strings.ToUpper(term)] = true
 		}
