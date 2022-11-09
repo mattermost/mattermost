@@ -43,6 +43,7 @@ func init() {
 		ChannelGuestRoleId,
 		ChannelUserRoleId,
 		ChannelAdminRoleId,
+		ChannelPreviewerRoleId,
 
 		CustomGroupUserRoleId,
 
@@ -382,6 +383,7 @@ const (
 	ChannelGuestRoleId = "channel_guest"
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
+	ChannelPreviewerRoleId = "channel_previewer"
 
 	CustomGroupUserRoleId = "custom_group_user"
 
@@ -791,6 +793,17 @@ func MakeDefaultRoles() map[string]*Role {
 		SchemeManaged: true,
 		BuiltIn:       true,
 	}
+
+	roles[ChannelPreviewerRoleId] = &Role{
+        Name:        "channel_previewer",
+        DisplayName: "authentication.roles.channel_previewer.name",
+        Description: "authentication.roles.channel_previewer.description",
+        Permissions: []string{
+            PermissionReadChannel.Id,
+        },
+        SchemeManaged: false,
+        BuiltIn:       true,
+    }
 
 	roles[TeamGuestRoleId] = &Role{
 		Name:        "team_guest",
