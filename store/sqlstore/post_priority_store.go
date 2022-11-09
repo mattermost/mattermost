@@ -47,7 +47,7 @@ func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, e
 func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
-		From("pnotify").
+		From("PersistenceNotifications").
 		Where(sq.And{
 			sq.GtOrEq{"CreateAt": minCreateAt},
 			sq.Eq{"DeleteAt": 0},
@@ -68,4 +68,27 @@ func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(minCreateAt int64
 	}
 
 	return posts, nil
+}
+
+func (s *SqlPostPriorityStore) DeletePersistentNotificationsPosts(postIds []string) error {
+	if len(postIds) == 0 {
+		return nil
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Update("PersistenceNotifications").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{"PostId": postIds}).
+		ToSql()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = s.GetMasterX().Exec(query, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to mark posts %s as deleted", postIds)
+	}
+
+	return nil
 }

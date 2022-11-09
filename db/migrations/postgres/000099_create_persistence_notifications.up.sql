@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS persistencenotifications (
     deleteat bigint
 );
 
-CREATE INDEX IF NOT EXISTS idx_persistencenotifications_createat_deleteat ON posts(createat, deleteat);
+CREATE INDEX IF NOT EXISTS idx_persistencenotifications_createat_deleteat ON persistencenotifications(createat, deleteat);

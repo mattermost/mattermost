@@ -66,8 +66,12 @@ func (a *App) SendPersistentNotifications() error {
 		}
 	}
 
+	expiredPostsIds := make([]string, len(expiredPosts))
+	for _, p := range expiredPosts {
+		expiredPostsIds = append(expiredPostsIds, p.Id)
+	}
 	// Delete expired notifications posts
-	// store.DeleteNotificationPostsByIDs(expiredPostsIDs)
+	a.Srv().Store().PostPriority().DeletePersistentNotificationsPosts(expiredPostsIds)
 
 	// Send notifications to validPosts
 	return a.sendPersistentNotifications(validPosts)
