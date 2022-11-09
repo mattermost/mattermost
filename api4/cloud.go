@@ -702,12 +702,18 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
+	signupProgress, err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
 	if err != nil {
-		c.Err = model.NewAppError("blah", "placeholder", nil, "uh ohh", http.StatusInternalServerError)
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}
-	ReturnStatusOK(w)
+	json, err := json.Marshal(signupProgress)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }
 
 func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {

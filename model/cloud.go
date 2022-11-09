@@ -94,6 +94,7 @@ type SelfHostedSignupCustomerResponse struct {
 	CustomerId        string `json:"customer_id"`
 	SetupIntentId     string `json:"setup_intent_id"`
 	SetupIntentSecret string `json:"setup_intent_secret"`
+	Progress          string `json:"progress"`
 }
 
 // SelfHostedSignupConfirmResponse contains data received on successful self hosted signup
@@ -277,6 +278,15 @@ type ProductLimits struct {
 
 type BootstrapSelfHostedSignupRequest struct {
 	Email string `json:"email"`
+}
+
+type BootstrapSelfHostedSignupResponse struct {
+	Progress string `json:"progress"`
+}
+
+type BootstrapSelfHostedSignupResponseInternal struct {
+	Progress string `json:"progress"`
+	License  string `json:"license"`
 }
 
 // CreateSubscriptionRequest is the parameters for the API request to create a subscription.

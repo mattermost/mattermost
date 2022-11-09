@@ -32,7 +32,7 @@ type CloudInterface interface {
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
 
-	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) error
+	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (string, error)
 }
