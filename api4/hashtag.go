@@ -10,14 +10,6 @@ import (
 	"regexp"
 )
 
-// const (
-// 	MaxAddMembersBatch    = 256
-// 	MaximumBulkImportSize = 10 * 1024 * 1024
-// 	groupIDsParamPattern  = "[^a-zA-Z0-9,]*"
-// )
-
-// var groupIDsQueryParamRegex *regexp.Regexp
-
 func init() {
 	groupIDsQueryParamRegex = regexp.MustCompile(groupIDsParamPattern)
 }
