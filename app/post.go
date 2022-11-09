@@ -240,8 +240,6 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
-	post.Hashtags, _ = model.ParseHashtags(post.Message)
-
 	if err = a.FillInPostProps(c, post, channel); err != nil {
 		return nil, err
 	}
@@ -621,7 +619,6 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 	if newPost.Message != post.Message {
 		newPost.Message = post.Message
 		newPost.EditAt = model.GetMillis()
-		newPost.Hashtags, _ = model.ParseHashtags(post.Message)
 	}
 
 	if !safeUpdate {
