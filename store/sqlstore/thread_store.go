@@ -436,7 +436,7 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	return users, nil
 }
 
-func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 	if !threadMembership.Following {
 		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
 	}
@@ -450,11 +450,6 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 			sq.Eq{"Posts.DeleteAt": 0},
 		})
 
-	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}},
-		sq.Eq{"Threads.PostId": threadMembership.PostId},
-	}
-
 	query := s.threadsAndPostsSelectQuery
 
 	for _, c := range postSliceColumns() {
@@ -465,7 +460,7 @@ func (s *SqlThreadStore) GetThreadForUser(teamId string, threadMembership *model
 	query = query.
 		Column(sq.Alias(unreadRepliesQuery, "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		Where(fetchConditions)
+		Where(sq.Eq{"Threads.PostId": threadMembership.PostId})
 
 	err := s.GetReplicaX().GetBuilder(&thread, query)
 	if err != nil {

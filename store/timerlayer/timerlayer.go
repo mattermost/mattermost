@@ -8897,10 +8897,10 @@ func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
