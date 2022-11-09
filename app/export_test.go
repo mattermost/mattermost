@@ -164,7 +164,7 @@ func TestExportCustomEmoji(t *testing.T) {
 	outPath, err := filepath.Abs(filePath)
 	require.NoError(t, err)
 
-	_, appErr := th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji, false)
+	_, appErr := th.App.exportCustomEmoji(th.Context, fileWriter, outPath, dirNameToExportEmoji, false)
 	require.Nil(t, appErr, "should not have failed")
 }
 
@@ -223,7 +223,16 @@ func TestExportDMChannel(t *testing.T) {
 		defer th1.TearDown()
 
 		// DM Channel
-		th1.CreateDmChannel(th1.BasicUser2)
+		ch := th1.CreateDmChannel(th1.BasicUser2)
+
+		th1.App.Srv().Store().Preference().Save(model.Preferences{
+			{
+				UserId:   th1.BasicUser2.Id,
+				Category: model.PreferenceCategoryFavoriteChannel,
+				Name:     ch.Id,
+				Value:    "true",
+			},
+		})
 
 		var b bytes.Buffer
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", model.BulkExportOpts{})
@@ -250,6 +259,12 @@ func TestExportDMChannel(t *testing.T) {
 		require.NoError(t, nErr)
 		require.Equal(t, 1, len(channels))
 		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
+
+		// Ensure the favorited channel was retained
+		fav, nErr := th2.App.Srv().Store().Preference().Get(th2.BasicUser2.Id, model.PreferenceCategoryFavoriteChannel, channels[0].Id)
+		require.NoError(t, nErr)
+		require.NotNil(t, fav)
+		require.Equal(t, "true", fav.Value)
 	})
 
 	t.Run("Invalid DM channel export", func(t *testing.T) {

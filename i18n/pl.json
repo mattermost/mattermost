@@ -1781,7 +1781,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Zaktualizowałeś swój e-mail"
+    "translation": "Pomyślnie zaktualizowałeś swój e-mail"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -9348,7 +9348,7 @@
     "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9392,7 +9392,7 @@
     "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9558,5 +9558,9 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Konta gości są wyłączone"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Nieprawidłowy zakres czasu."
   }
 ]
