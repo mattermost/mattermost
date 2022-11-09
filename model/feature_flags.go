@@ -42,9 +42,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	// Enable Create First Channel
-	GuidedChannelCreation bool
-
 	CustomGroups bool
 
 	// Enable DataRetention for Boards
@@ -95,7 +92,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.GuidedChannelCreation = false
 	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false

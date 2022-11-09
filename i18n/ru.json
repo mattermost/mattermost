@@ -9193,7 +9193,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Starter."
+    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9409,7 +9409,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Starter."
+    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9433,11 +9433,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter."
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Starter. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
+    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Free. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9446,10 +9446,6 @@
   {
     "id": "api.templates.delinquency_75.subject",
     "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9477,7 +9473,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter ниже."
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free ниже."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9490,10 +9486,6 @@
   {
     "id": "api.templates.delinquency_60.subject",
     "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9562,5 +9554,21 @@
   {
     "id": "api.templates.delinquency_30.bullet.cards",
     "translation": "Карточки с Ваших Boards"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Тип темы уже существует."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Тип коллекции уже существует."
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
   }
 ]
