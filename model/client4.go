@@ -3701,6 +3701,21 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response, error) {
 	return &p, BuildResponse(r), nil
 }
 
+func (c *Client4) GetSuggestedHashtags(searchPhrase string) ([]HashtagWithMessageCountSearch, error) {
+	resp, err := c.DoAPIGet("/hashtags/"+searchPhrase, "")
+	if err != nil {
+		return nil, err
+	}
+
+	var results []HashtagWithMessageCountSearch
+
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // CreatePostEphemeral creates a ephemeral post based on the provided post struct which is send to the given user id.
 func (c *Client4) CreatePostEphemeral(post *PostEphemeral) (*Post, *Response, error) {
 	postJSON, err := json.Marshal(post)
