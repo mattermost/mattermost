@@ -171,7 +171,7 @@ func TestGetSSOSettings(t *testing.T) {
 		errCfg := validConfig
 		errCfg.OpenIdSettings.DiscoveryEndpoint = model.NewString(errorServer.URL)
 		_, err := provider.GetSSOSettings(&errCfg, model.ServiceOpenid)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Equal(t, 1, errorFunctionCalled)
 	})
 

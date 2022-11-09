@@ -34,13 +34,13 @@ func userFromOffice365User(of *Office365User) *model.User {
 	user.FirstName = of.FirstName
 	user.LastName = of.LastName
 
-	if len(of.Mail) > 0 {
+	if of.Mail != "" {
 		user.Email = of.Mail
 	} else if strings.Contains(of.UserPrincipalName, "@") {
 		user.Email = of.UserPrincipalName
 	}
 
-	if len(user.Email) > 0 {
+	if user.Email != "" {
 		user.Username = model.CleanUsername(strings.Split(user.Email, "@")[0])
 	}
 

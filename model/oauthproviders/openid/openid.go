@@ -94,11 +94,11 @@ func openIDUserFromJSON(data io.Reader) (*OpenIdUser, error) {
 }
 
 func (u *OpenIdUser) IsValid() error {
-	if len(u.Id) == 0 {
+	if u.Id == "" {
 		return errors.New("invalid id")
 	}
 
-	if len(u.Email) == 0 {
+	if u.Email == "" {
 		return errors.New("invalid emails")
 	}
 	return nil
