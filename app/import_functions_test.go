@@ -2207,7 +2207,10 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	postBool = post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 	require.False(t, postBool, "Post properties not as expected")
 
-	require.Equal(t, "#hashtagmashupcity", post.Hashtags, "Hashtags not as expected: %s", post.Hashtags)
+	hashtags, nErr := th.App.Srv().Store().Hashtag().GetAll()
+	assert.Len(t, hashtags, 1)
+	assert.Equal(t, "#hashtagmashupcity", hashtags[0].Value)
+	assert.Equal(t, post.Id, hashtags[0].PostId)
 
 	// Post with flags.
 	username2 := model.NewId()
@@ -2829,7 +2832,11 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 		require.False(t, postBool, "Post properties not as expected")
 
-		require.Equal(t, "#hashtagmashupcity", post.Hashtags, "Hashtags not as expected: %s", post.Hashtags)
+		hashtags, nErr := th.App.Srv().Store().Hashtag().GetAll()
+		require.NoError(t, nErr)
+		assert.Len(t, hashtags, 1)
+		assert.Equal(t, "#hashtagmashupcity", hashtags[0].Value)
+		assert.Equal(t, post.Id, hashtags[0].PostId)
 	})
 
 	t.Run("Post with flags", func(t *testing.T) {
