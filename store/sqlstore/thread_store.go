@@ -779,23 +779,6 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	return membership, err
 }
 
-func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Posts").
-		Where(sq.Eq{"RootId": threadId}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.GtOrEq{"CreateAt": since})
-
-	result := []*model.Post{}
-	err := s.GetReplicaX().SelectBuilder(&result, query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to fetch thread posts")
-	}
-
-	return result, nil
-}
-
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
 // the global or a granular retention policy.
 // See `genericPermanentDeleteBatchForRetentionPolicies` for details.
