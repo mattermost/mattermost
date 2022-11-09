@@ -647,6 +647,12 @@ var (
 	puncEnd      = regexp.MustCompile(`[^\pL\d\s]+$`)
 )
 
+func ExtractHashtags(text string) []string {
+	hashtagString, _ := ParseHashtags(text)
+
+	return strings.Split(hashtagString, " ")
+}
+
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
