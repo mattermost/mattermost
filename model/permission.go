@@ -48,6 +48,7 @@ var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
 var PermissionEditOtherUsers *Permission
 var PermissionReadChannel *Permission
+var PermissionReadTopic *Permission
 var PermissionReadPublicChannelGroups *Permission
 var PermissionReadPrivateChannelGroups *Permission
 var PermissionReadPublicChannel *Permission
@@ -555,6 +556,12 @@ func initializePermissions() {
 		"read_channel",
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadTopic = &Permission{
+		"read_topic",
+		"",
+		"",
 		PermissionScopeChannel,
 	}
 	PermissionReadPublicChannelGroups = &Permission{
@@ -2318,6 +2325,7 @@ func initializePermissions() {
 		PermissionDeletePublicChannel,
 		PermissionDeletePrivateChannel,
 		PermissionReadChannel,
+		PermissionReadTopic,
 		PermissionReadPublicChannelGroups,
 		PermissionReadPrivateChannelGroups,
 		PermissionAddReaction,

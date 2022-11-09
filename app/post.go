@@ -1997,8 +1997,8 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 		}
 	} else if post.GetTopicType() != "" && post.GetTopicId() != "" {
 		// TODO: Use an appropriate permission.
-		if !a.SessionHasPermissionToTopic(c, *session, post.GetTopicType(), post.GetTopicId(), model.PermissionReadChannel) {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannel})
+		if !a.SessionHasPermissionToTopic(c, *session, post.GetTopicType(), post.GetTopicId(), model.PermissionReadTopic) {
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadTopic})
 		}
 	}
 
