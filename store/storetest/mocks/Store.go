@@ -22,6 +22,11 @@ type Store struct {
 	mock.Mock
 }
 
+func (_m *Store) Hashtag() store.HashtagStore {
+	//TODO implement me
+	panic("implement me")
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()
@@ -517,6 +522,21 @@ func (_m *Store) Reaction() store.ReactionStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.ReactionStore)
+		}
+	}
+
+	return r0
+}
+
+func Hashtag(_m *Store) store.HashtagStore {
+	ret := _m.Called()
+
+	var r0 store.HashtagStore
+	if rf, ok := ret.Get(0).(func() store.HashtagStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.HashtagStore)
 		}
 	}
 
