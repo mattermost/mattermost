@@ -1032,20 +1032,20 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			buf, err := assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
-			if err != nil {
-				return nil, err
+			buf, err2 := assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
+			if err2 != nil {
+				return nil, err2
 			}
 
-			t, err := template.New("template").Parse(string(buf))
-			if err != nil {
-				return nil, err
+			t, err2 := template.New("template").Parse(string(buf))
+			if err2 != nil {
+				return nil, err2
 			}
 
 			var out bytes.Buffer
-			err = t.Execute(&out, map[string]any{"SchemaName": ss.pgSchemaName})
-			if err != nil {
-				return nil, err
+			err2 = t.Execute(&out, map[string]any{"SchemaName": ss.pgSchemaName})
+			if err2 != nil {
+				return nil, err2
 			}
 
 			return out.Bytes(), nil
