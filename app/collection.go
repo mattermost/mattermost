@@ -17,13 +17,13 @@ func (a *App) registerCollectionAndTopic(pluginID, collectionType, topicType str
 
 	// check if collectionType was already registered by other plugin
 	existingPluginID, ok := a.ch.collectionTypes[collectionType]
-	if existingPluginID != pluginID && ok {
+	if ok && existingPluginID != pluginID {
 		return model.NewAppError("registerCollectionAndTopic", "app.collection.add_collection.exists.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// check if topicType was already registered to other collection
 	existingCollectionType, ok := a.ch.topicTypes[topicType]
-	if existingCollectionType != collectionType && ok {
+	if ok && existingCollectionType != collectionType {
 		return model.NewAppError("registerCollectionAndTopic", "app.collection.add_topic.exists.app_error", nil, "", http.StatusBadRequest)
 	}
 
