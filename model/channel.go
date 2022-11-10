@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -281,9 +282,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	userIds := strings.Split(o.Name, "__")
-	if o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
+		userIds := strings.Split(o.Name, "__")
+		if ok, _ := regexp.MatchString("^[a-fA-F0-9]{40}$", o.Name); ok || o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return nil
