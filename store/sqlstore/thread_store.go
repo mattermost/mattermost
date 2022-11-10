@@ -561,7 +561,7 @@ func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 	query = query.
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Or{sq.Eq{"Threads.TeamId": teamId}, sq.Eq{"Threads.TeamId": ""}}).
+		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", timestamp)
