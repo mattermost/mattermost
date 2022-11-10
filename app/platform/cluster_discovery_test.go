@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package platform
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestClusterDiscoveryService(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	ds := th.App.NewClusterDiscoveryService()
+	ds := th.Service.NewClusterDiscoveryService()
 	ds.Type = model.CDSTypeApp
 	ds.ClusterName = "ClusterA"
 	ds.AutoFillHostname()
