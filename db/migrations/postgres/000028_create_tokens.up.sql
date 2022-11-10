@@ -16,11 +16,13 @@ BEGIN
     SELECT count(*) != 0 INTO col_exists
     FROM information_schema.columns
     WHERE table_name = 'tokens'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'extra';
 
     SELECT count(*) != 0 INTO type_exists
     FROM information_schema.columns
     WHERE table_name = 'tokens'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'extra'
     AND data_type = 'character varying'
     AND character_maximum_length = 2048;

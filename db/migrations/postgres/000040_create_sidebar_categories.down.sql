@@ -9,6 +9,7 @@ BEGIN
     SELECT count(*) != 0 INTO col_exist_and_type_different
     FROM information_schema.columns
     WHERE table_name = 'sidebarcategories'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'id'
     AND data_type = 'character varying'
     AND NOT character_maximum_length = 26;

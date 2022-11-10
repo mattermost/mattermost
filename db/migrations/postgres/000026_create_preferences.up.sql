@@ -18,11 +18,13 @@ BEGIN
     SELECT count(*) != 0 INTO col_exists
     FROM information_schema.columns
     WHERE table_name = 'preferences'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'value';
 
     SELECT count(*) != 0 INTO type_exists
     FROM information_schema.columns
     WHERE table_name = 'preferences'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'value'
     AND data_type = 'character varying'
     AND character_maximum_length = 2000;

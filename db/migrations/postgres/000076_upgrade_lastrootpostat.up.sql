@@ -3,7 +3,7 @@ BEGIN
 	IF (
 		SELECT count(*)
 		FROM information_schema.columns
-		WHERE table_schema='public'
+		WHERE table_schema='{{.SchemaName}}'
 		AND table_name='channels'
 		AND column_name='lastrootpostat'
 		AND (column_default IS NULL OR column_default != '''0''::bigint')

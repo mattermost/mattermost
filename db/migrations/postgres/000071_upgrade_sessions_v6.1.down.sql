@@ -5,6 +5,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'sessions'
+    AND table_schema = '{{.SchemaName}}'
     AND column_name = 'roles'
     AND NOT data_type = 'varchar(64)';
 IF column_exist THEN
