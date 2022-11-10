@@ -2997,8 +2997,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, teamID
 			if err != nil {
 				return err
 			}
-			// calculate last reply at
 
+			// calculate last reply at
 			var lastReplyAt int64
 			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootID=? and Posts.DeleteAt=0", rootId)
 			if err != nil {
