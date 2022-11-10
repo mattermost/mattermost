@@ -241,6 +241,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
+	mainTeamId := model.NewId()
+
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -262,7 +264,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	p4.Message = NewTestId()
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(mainTeamId, []*model.Post{&p1, &p2, &p3})
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
@@ -330,7 +332,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = NewTestId()
 
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(teamId, []*model.Post{&o1, &o2, &o3, &o4})
 		require.NoError(t, err, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
@@ -341,7 +343,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple(mainTeamId, []*model.Post{&p4, &p3})
 		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
@@ -377,7 +379,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost.Message = NewTestId()
 		replyPost.RootId = rootPost.Id
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err = ss.Post().SaveMultiple(teamId, []*model.Post{&rootPost, &replyPost})
 		require.NoError(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rootPost.Id, false)
@@ -399,7 +401,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		// Ensure update does not occur in the same timestamp as creation
 		time.Sleep(time.Millisecond)
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple(teamId, []*model.Post{&replyPost2, &replyPost3})
 		require.NoError(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rootPost.Id, false)
@@ -408,10 +410,13 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Create a post should update the channel LastPostAt and the total messages count by one", func(t *testing.T) {
+		teamID := NewTestId()
+
 		channel := model.Channel{}
 		channel.Name = NewTestId()
 		channel.DisplayName = NewTestId()
 		channel.Type = model.ChannelTypeOpen
+		channel.TeamId = teamID
 
 		_, err := ss.Channel().Save(&channel, 100)
 		require.NoError(t, err)
@@ -432,7 +437,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = NewTestId()
 
-		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple(teamID, []*model.Post{&post1, &post2, &post3})
 		require.NoError(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
