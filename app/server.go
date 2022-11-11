@@ -706,8 +706,6 @@ func (s *Server) Shutdown() {
 	s.StopPushNotificationsHubWorkers()
 	s.htmlTemplateWatcher.Close()
 
-	s.WaitForGoroutines()
-
 	s.platform.StopSearchEngine()
 
 	s.Audit.Shutdown()
@@ -812,11 +810,6 @@ func (s *Server) Go(f func()) {
 // to ensure that execution completes before the server is shutdown.
 func (s *Server) GoBuffered(f func()) {
 	s.platform.GoBuffered(f)
-}
-
-// WaitForGoroutines blocks until all goroutines created by App.Go exit.
-func (s *Server) WaitForGoroutines() {
-	s.platform.WaitForGoroutines()
 }
 
 var corsAllowedMethods = []string{
@@ -1354,7 +1347,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if *license.Features.Cloud {
+	if license.IsCloud() {
 		mlog.Debug("Skipping license expiration check for Cloud")
 		return
 	}
