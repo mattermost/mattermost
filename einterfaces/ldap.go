@@ -9,7 +9,7 @@ import (
 )
 
 type LdapInterface interface {
-	DoLogin(c *request.Context, id string, password string) (*model.User, *model.AppError)
+	DoLogin(c request.CTX, id string, password string) (*model.User, *model.AppError)
 	GetUser(id string) (*model.User, *model.AppError)
 	GetUserAttributes(id string, attributes []string) (map[string]string, *model.AppError)
 	CheckPassword(id string, password string) *model.AppError

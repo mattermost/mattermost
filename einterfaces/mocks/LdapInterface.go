@@ -62,11 +62,11 @@ func (_m *LdapInterface) CheckProviderAttributes(LS *model.LdapSettings, ouser *
 }
 
 // DoLogin provides a mock function with given fields: c, id, password
-func (_m *LdapInterface) DoLogin(c *request.Context, id string, password string) (*model.User, *model.AppError) {
+func (_m *LdapInterface) DoLogin(c request.CTX, id string, password string) (*model.User, *model.AppError) {
 	ret := _m.Called(c, id, password)
 
 	var r0 *model.User
-	if rf, ok := ret.Get(0).(func(*request.Context, string, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.User); ok {
 		r0 = rf(c, id, password)
 	} else {
 		if ret.Get(0) != nil {
@@ -75,7 +75,7 @@ func (_m *LdapInterface) DoLogin(c *request.Context, id string, password string)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*request.Context, string, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
 		r1 = rf(c, id, password)
 	} else {
 		if ret.Get(1) != nil {

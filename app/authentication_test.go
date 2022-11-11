@@ -31,6 +31,9 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 		{"mytoken", "", "", "mytoken", TokenLocationCloudHeader},
 	}
 
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for testnum, tc := range cases {
 		pathname := "/test/here"
 		if tc.query != "" {
@@ -49,7 +52,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 			})
 		}
 
-		token, location := ParseAuthTokenFromRequest(req)
+		token, location := ParseAuthTokenFromRequest(th.Context, req)
 
 		require.Equal(t, tc.expectedToken, token, "Wrong token on test "+strconv.Itoa(testnum))
 		require.Equal(t, tc.expectedLocation, location, "Wrong location on test "+strconv.Itoa(testnum))

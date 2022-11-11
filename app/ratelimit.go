@@ -13,6 +13,7 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -52,11 +53,11 @@ func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []st
 	}, nil
 }
 
-func (rl *RateLimiter) GenerateKey(r *http.Request) string {
+func (rl *RateLimiter) GenerateKey(c request.CTX, r *http.Request) string {
 	key := ""
 
 	if rl.useAuth {
-		token, tokenLocation := ParseAuthTokenFromRequest(r)
+		token, tokenLocation := ParseAuthTokenFromRequest(c, r)
 		if tokenLocation != TokenLocationNotFound {
 			key += token
 		} else if rl.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
@@ -99,9 +100,9 @@ func (rl *RateLimiter) UserIdRateLimit(userID string, w http.ResponseWriter) boo
 	return false
 }
 
-func (rl *RateLimiter) RateLimitHandler(wrappedHandler http.Handler) http.Handler {
+func (rl *RateLimiter) RateLimitHandler(c request.CTX, wrappedHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		key := rl.GenerateKey(r)
+		key := rl.GenerateKey(c, r)
 
 		if !rl.RateLimitWriter(key, w) {
 			wrappedHandler.ServeHTTP(w, r)

@@ -936,7 +936,7 @@ func (s *Server) Start() error {
 		}
 
 		s.RateLimiter = rateLimiter
-		handler = rateLimiter.RateLimitHandler(handler)
+		handler = rateLimiter.RateLimitHandler(request.EmptyContext(s.Log()), handler)
 	}
 
 	// Creating a logger for logging errors from http.Server at error level

@@ -69,6 +69,9 @@ func TestGenerateKey(t *testing.T) {
 		{true, true, "myheader", "", "ipaddr", "hadd", "ipaddrhadd"},
 	}
 
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for testnum, tc := range cases {
 		req := httptest.NewRequest("GET", "/", nil)
 		if tc.authTokenResult != "" {
@@ -84,22 +87,25 @@ func TestGenerateKey(t *testing.T) {
 
 		rateLimiter, _ := NewRateLimiter(genRateLimitSettings(tc.useAuth, tc.useIP, tc.header), nil)
 
-		key := rateLimiter.GenerateKey(req)
+		key := rateLimiter.GenerateKey(th.Context, req)
 
 		require.Equal(t, tc.expectedKey, key, "Wrong key on test "+strconv.Itoa(testnum))
 	}
 }
 
 func TestGenerateKey_TrustedHeader(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	req := httptest.NewRequest("GET", "/", nil)
 	req.RemoteAddr = "10.10.10.5:80"
 	req.Header.Set("X-Forwarded-For", "10.6.3.1, 10.5.1.2")
 
 	rateLimiter, _ := NewRateLimiter(genRateLimitSettings(true, true, ""), []string{"X-Forwarded-For"})
-	key := rateLimiter.GenerateKey(req)
+	key := rateLimiter.GenerateKey(th.Context, req)
 	require.Equal(t, "10.6.3.1", key, "Wrong key on test with allowed trusted proxy header")
 
 	rateLimiter, _ = NewRateLimiter(genRateLimitSettings(true, true, ""), nil)
-	key = rateLimiter.GenerateKey(req)
+	key = rateLimiter.GenerateKey(th.Context, req)
 	require.Equal(t, "10.10.10.5", key, "Wrong key on test without allowed trusted proxy header")
 }

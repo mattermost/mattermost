@@ -262,7 +262,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+	token, tokenLocation := app.ParseAuthTokenFromRequest(c.AppContext, r)
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader && tokenLocation != app.TokenLocationRemoteClusterHeader {
 		session, err := c.App.GetSession(token)
