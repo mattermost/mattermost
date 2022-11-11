@@ -10,13 +10,13 @@ BEGIN
 SELECT count(*) != 0 INTO msg_count_root_exist
     FROM information_schema.columns
     WHERE table_name = 'channels'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'totalmsgcountroot';
 
  SELECT count(*) != 0 INTO mention_count_root_exist
     FROM information_schema.columns
     WHERE table_name = 'channelmembers'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'mentioncountroot';
 
 IF mention_count_root_exist THEN

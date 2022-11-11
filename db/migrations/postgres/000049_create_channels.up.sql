@@ -35,7 +35,7 @@ BEGIN
     SELECT count(*) != 0 INTO col_exist_and_type_different
     FROM information_schema.columns
     WHERE table_name = 'channels'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'purpose'
     AND data_type = 'character varying'
     AND NOT character_maximum_length = 250;
@@ -61,7 +61,7 @@ BEGIN
     SELECT count(*) != 0 INTO col_exist_and_type_different
     FROM information_schema.columns
     WHERE table_name = 'channels'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'groupconstrained'
     AND NOT data_type = 'boolean';
 

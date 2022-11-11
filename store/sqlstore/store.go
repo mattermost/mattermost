@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	dbsql "database/sql"
@@ -15,7 +14,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"text/template"
 	"time"
 
 	"github.com/mattermost/morph"
@@ -136,7 +134,6 @@ type SqlStore struct {
 
 	isBinaryParam             bool
 	pgDefaultTextSearchConfig string
-	pgSchemaName              string
 }
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
@@ -162,11 +159,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	err = store.ensureDatabaseCollation()
 	if err != nil {
 		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
-	}
-
-	store.pgSchemaName, err = store.getCurrentSchema()
-	if err != nil {
-		mlog.Fatal("Failed to compute schema name", mlog.Err(err))
 	}
 
 	err = store.migrate(migrationsDirectionUp)
@@ -361,16 +353,6 @@ func (ss *SqlStore) computeDefaultTextSearchConfig() (string, error) {
 	var defaultTextSearchConfig string
 	err := ss.GetMasterX().Get(&defaultTextSearchConfig, `SHOW default_text_search_config`)
 	return defaultTextSearchConfig, err
-}
-
-func (ss *SqlStore) getCurrentSchema() (string, error) {
-	if ss.DriverName() != model.DatabaseDriverPostgres {
-		return "", nil
-	}
-
-	var name string
-	err := ss.GetMasterX().Get(&name, `SELECT current_schema()`)
-	return name, err
 }
 
 func (ss *SqlStore) IsBinaryParamEnabled() bool {
@@ -1032,23 +1014,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	src, err := mbindata.WithInstance(&mbindata.AssetSource{
 		Names: assetNamesForDriver,
 		AssetFunc: func(name string) ([]byte, error) {
-			buf, err2 := assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
-			if err2 != nil {
-				return nil, err2
-			}
-
-			t, err2 := template.New("template").Parse(string(buf))
-			if err2 != nil {
-				return nil, err2
-			}
-
-			var out bytes.Buffer
-			err2 = t.Execute(&out, map[string]any{"SchemaName": ss.pgSchemaName})
-			if err2 != nil {
-				return nil, err2
-			}
-
-			return out.Bytes(), nil
+			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
 		},
 	})
 	if err != nil {

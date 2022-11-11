@@ -11,7 +11,7 @@ DO $$BEGIN
     IF (
         SELECT column_default::bigint
         FROM information_schema.columns
-        WHERE table_schema='{{.SchemaName}}'
+        WHERE table_schema=current_schema()
         AND table_name='pluginkeyvaluestore'
         AND column_name='expireat'
     ) = 0 THEN

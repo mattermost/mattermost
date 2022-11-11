@@ -5,7 +5,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'pluginkeyvaluestore'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'pkey'
     AND NOT data_type = 'varchar(50)';
 IF column_exist THEN

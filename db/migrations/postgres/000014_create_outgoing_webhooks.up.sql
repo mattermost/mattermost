@@ -30,7 +30,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'outgoingwebhooks'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'description'
     AND NOT data_type = 'VARCHAR(500)';
 IF column_exist THEN
@@ -45,7 +45,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'outgoingwebhooks'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'iconurl'
     AND NOT data_type = 'VARCHAR(1024)';
 IF column_exist THEN
@@ -58,7 +58,7 @@ BEGIN
     IF (
         SELECT column_default::bigint
         FROM information_schema.columns
-        WHERE table_schema='{{.SchemaName}}'
+        WHERE table_schema=current_schema()
         AND table_name='outgoingwebhooks'
         AND column_name='username'
     ) = 0 THEN
@@ -71,7 +71,7 @@ BEGIN
     IF (
         SELECT column_default::bigint
         FROM information_schema.columns
-        WHERE table_schema='{{.SchemaName}}'
+        WHERE table_schema=current_schema()
         AND table_name='outgoingwebhooks'
         AND column_name='iconurl'
     ) = 0 THEN

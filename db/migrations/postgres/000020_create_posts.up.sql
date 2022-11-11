@@ -42,7 +42,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'posts'
-    AND table_schema = '{{.SchemaName}}'
+    AND table_schema = current_schema()
     AND column_name = 'fileids'
     AND NOT data_type = 'varchar(300)';
 IF column_exist THEN
