@@ -560,9 +560,9 @@ func initializePermissions() {
 	}
 	PermissionReadTopic = &Permission{
 		"read_topic",
-		"",
-		"",
-		PermissionScopeChannel,
+		"authentication.permissions.read_topic.name",
+		"authentication.permissions.read_topic.description",
+		PermissionScopeChannel, //TODO Let's introduce PermissionScopeCollection
 	}
 	PermissionReadPublicChannelGroups = &Permission{
 		"read_public_channel_groups",
