@@ -1397,7 +1397,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "vous a envoyé un message."
+    "translation": "vous avez envoyé un message."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
