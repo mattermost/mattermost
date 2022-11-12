@@ -1291,6 +1291,14 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
 	}
 
+	if val, exists := data[model.DesktopSoundNotifyProp]; exists {
+		filteredProps[model.DesktopSoundNotifyProp] = val
+	}
+
+	if val, exists := data[model.DesktopNotificationSoundNotifyProp]; exists {
+		filteredProps[model.DesktopNotificationSoundNotifyProp] = val
+	}
+
 	member, err := a.Srv().Store().Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
 		var appErr *model.AppError
