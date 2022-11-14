@@ -110,6 +110,7 @@ jobs:
             cd mattermost-server
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
   check-generate-worktemplates:
     docker:
       - image: cimg/go:1.18
@@ -514,6 +515,9 @@ workflows:
       - check-app-layers:
           requires:
             - setup-multi-product-repositories
+      - check-generate-worktemplates:
+          requires:
+            - setup-multi-product-repositories
       - check-store-layers:
           requires:
             - setup-multi-product-repositories
@@ -540,6 +544,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -554,6 +559,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -571,6 +577,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -589,6 +596,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -607,6 +615,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -621,6 +630,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -673,6 +683,9 @@ workflows:
       - check-app-layers:
           requires:
             - setup-multi-product-repositories
+      - check-generate-worktemplates:
+          requires:
+            - setup-multi-product-repositories
       - check-store-layers:
           requires:
             - setup-multi-product-repositories
@@ -703,6 +716,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -717,6 +731,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -734,6 +749,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -750,6 +766,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates
@@ -766,6 +783,7 @@ workflows:
             - check-go-mod-tidy
             - check-golangci-lint
             - check-app-layers
+            - check-generate-worktemplates
             - check-store-layers
             - check-mocks
             - check-email-templates

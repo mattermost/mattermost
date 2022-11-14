@@ -93,7 +93,7 @@ func main() {
 		}
 
 		h.Write([]byte(t.ID))
-		err := t.Validate(categoryIds)
+		err = t.Validate(categoryIds)
 		if err != nil {
 			log.Fatal(errors.Wrap(err, "failed to validate template"))
 		}
