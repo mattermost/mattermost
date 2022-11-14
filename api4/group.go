@@ -86,7 +86,7 @@ func (api *API) InitGroup() {
 
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
-		api.APISessionRequired(requireLicense(restoreGroup))).Methods("POST")
+		api.APISessionRequired(restoreGroup)).Methods("POST")
 
 	// POST /api/v4/groups/:group_id/members
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
@@ -1130,12 +1130,18 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	permissionErr := requireLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
+
 	c.RequireGroupId()
 	if c.Err != nil {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
