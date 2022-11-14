@@ -1625,6 +1625,72 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 	return cm, nil
 }
 
+func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+
+	var user *model.User
+	var err *model.AppError
+
+	if user, err = a.GetUser(userID); err != nil {
+		return nil, err
+	}
+
+	teamMember, nErr := a.Srv().Store().Team().GetMember(context.Background(), channel.TeamId, user.Id)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("AddPreviewerToChannel", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("AddPreviewerToChannel", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
+
+	if teamMember.DeleteAt > 0 {
+		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if channel.Type != model.ChannelTypeOpen {
+		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	channelMember, nErr := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return nil, model.NewAppError("AddPreviewerToChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	} else {
+		return channelMember, nil
+	}
+
+	newMember := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user.Id,
+		Roles:       "channel_previewer",
+		NotifyProps: model.GetIgnoreChannelNotifyProps(),
+		SchemeGuest: false,
+		SchemeUser:  false,
+	}
+
+	newMember, nErr = a.Srv().Store().Channel().SaveMember(newMember)
+	if nErr != nil {
+		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
+			fmt.Sprintf("failed to add member: %v, user_id: %s, channel_id: %s", nErr, user.Id, channel.Id), http.StatusInternalServerError)
+	}
+
+	if nErr := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
+		return nil, model.NewAppError("AddPreviewerToChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForChannelMembers(channel.Id)
+	return newMember, nil
+}
+
+func (a *App) RemovePreviewerFromChannel(c request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+	return nil
+}
+
 func (a *App) AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError {
 	var profiles []*model.User
 	options := &model.UserGetOptions{InTeamId: teamID, Page: 0, PerPage: 100}
