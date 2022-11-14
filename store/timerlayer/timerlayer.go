@@ -5959,6 +5959,22 @@ func (s *TimerLayerPostAcknowledgementStore) Save(userID string, postID string) 
 	return result, err
 }
 
+func (s *TimerLayerPostPriorityStore) DeletePersistentNotificationsPosts(postIds []string) error {
+	start := time.Now()
+
+	err := s.PostPriorityStore.DeletePersistentNotificationsPosts(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.DeletePersistentNotificationsPosts", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	start := time.Now()
 
