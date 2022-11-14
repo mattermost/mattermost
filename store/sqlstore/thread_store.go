@@ -436,7 +436,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 				From("ThreadMemberships").
 				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-				LeftJoin("PostsPriority ON PostsPriority.PostId = ThreadsMemberships.PostId").
+				LeftJoin("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
 				Where(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}).
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
