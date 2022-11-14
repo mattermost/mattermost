@@ -39,18 +39,25 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportD
 	}
 }
 
-func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *imports.LineImportData {
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport, favoritedBy []string) *imports.LineImportData {
 	channelMembers := *channel.Members
 	if len(channelMembers) == 1 {
 		channelMembers = []string{channelMembers[0], channelMembers[0]}
 	}
-	return &imports.LineImportData{
+
+	line := &imports.LineImportData{
 		Type: "direct_channel",
 		DirectChannel: &imports.DirectChannelImportData{
 			Header:  &channel.Header,
 			Members: &channelMembers,
 		},
 	}
+
+	if len(favoritedBy) != 0 {
+		line.DirectChannel.FavoritedBy = &favoritedBy
+	}
+
+	return line
 }
 
 func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *imports.LineImportData {

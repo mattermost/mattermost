@@ -104,7 +104,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 	}
 
 	ctx.Logger().Info("Bulk export: exporting emoji")
-	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	emojiPaths, err := a.exportCustomEmoji(ctx, writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError
 	afterId := strings.Repeat("0", 26)
 	teamNames := make(map[string]bool)
 	for {
-		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
+		teams, err := a.Srv().Store().Team().GetAllForExportAfter(1000, afterId)
 		if err != nil {
 			return nil, model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -200,7 +200,7 @@ func (a *App) exportAllTeams(writer io.Writer) (map[string]bool, *model.AppError
 func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv().Store().Channel().GetAllChannelsForExportAfter(1000, afterId)
 
 		if err != nil {
 			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -235,7 +235,7 @@ func (a *App) exportAllChannels(writer io.Writer, teamNames map[string]bool) *mo
 func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		users, err := a.Srv().Store.User().GetAllAfter(1000, afterId)
+		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 
 		if err != nil {
 			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -310,7 +310,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
-	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userID)
+	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
 
 	if err != nil {
 		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -331,7 +331,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 		}
 
 		// Get the user theme
-		themePreference, nErr := a.Srv().Store.Preference().Get(member.UserId, model.PreferenceCategoryTheme, member.TeamId)
+		themePreference, nErr := a.Srv().Store().Preference().Get(member.UserId, model.PreferenceCategoryTheme, member.TeamId)
 		if nErr == nil {
 			memberData.Theme = &themePreference.Value
 		}
@@ -347,7 +347,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
 	var memberships []imports.UserChannelImportData
 
-	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userID, teamID)
+	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -390,7 +390,7 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 	afterId := strings.Repeat("0", 26)
 
 	for {
-		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -450,7 +450,7 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 	var replies []imports.ReplyImportData
 	var attachments []imports.AttachmentImportData
 
-	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postID)
+	replyPosts, nErr := a.Srv().Store().Post().GetRepliesForExport(postID)
 	if nErr != nil {
 		return nil, nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -484,13 +484,13 @@ func (a *App) buildPostReplies(ctx request.CTX, postID string, withAttachments b
 func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []imports.ReactionImportData
 
-	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postID, true)
+	reactions, nErr := a.Srv().Store().Reaction().GetForPost(postID, true)
 	if nErr != nil {
 		return nil, model.NewAppError("BuildPostReactions", "app.reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store.User().Get(context.Background(), reaction.UserId)
+		user, err := a.Srv().Store().User().Get(context.Background(), reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
@@ -507,7 +507,7 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 }
 
 func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {
-	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postID, false, false, false)
+	infos, nErr := a.Srv().Store().FileInfo().GetForPost(postID, false, false, false)
 	if nErr != nil {
 		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -520,11 +520,11 @@ func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportDat
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+func (a *App) exportCustomEmoji(c request.CTX, writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
 	var emojiPaths []string
 	pageNumber := 0
 	for {
-		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EmojiSortByName)
+		customEmojiList, err := a.GetEmojiList(c, pageNumber, 100, model.EmojiSortByName)
 
 		if err != nil {
 			return nil, err
@@ -604,7 +604,7 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
 		if err != nil {
 			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -626,7 +626,12 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			channelLine := ImportLineFromDirectChannel(channel)
+			favoritedBy, err := a.buildFavoritedByList(channel.Id)
+			if err != nil {
+				return err
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel, favoritedBy)
 			if err := a.exportWriteLine(writer, channelLine); err != nil {
 				return err
 			}
@@ -636,11 +641,34 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
+func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError) {
+	prefs, err := a.Srv().Store().Preference().GetCategoryAndName(model.PreferenceCategoryFavoriteChannel, channelID)
+	if err != nil {
+		return nil, model.NewAppError("buildFavoritedByList", "app.preference.get_category.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	userIDs := make([]string, 0, len(prefs))
+	for _, pref := range prefs {
+		if pref.Value != "true" {
+			continue
+		}
+
+		user, err := a.Srv().Store().User().Get(context.Background(), pref.UserId)
+		if err != nil {
+			return nil, model.NewAppError("buildFavoritedByList", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		userIDs = append(userIDs, user.Username)
+	}
+
+	return userIDs, nil
+}
+
 func (a *App) exportAllDirectPosts(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	for {
-		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		posts, err := a.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, afterId)
 		if err != nil {
 			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

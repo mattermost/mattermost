@@ -1545,7 +1545,7 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	assert.Len(t, groupMembers, 2)
 
-	count, countErr := th.App.GetGroupMemberCount(group.Id)
+	count, countErr := th.App.GetGroupMemberCount(group.Id, nil)
 	assert.Nil(t, countErr)
 
 	assert.Equal(t, count, int64(2))

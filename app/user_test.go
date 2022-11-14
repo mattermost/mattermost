@@ -65,14 +65,14 @@ func TestCreateOAuthUser(t *testing.T) {
 		einterfaces.RegisterOAuthProvider(model.ServiceOffice365, providerMock)
 
 		// Update user to be OAuth, formatting to match Office365 OAuth data
-		s, er2 := th.App.Srv().Store.User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.ServiceOffice365, model.NewString("e711000764be43d898404a7e9c26b710"), "", false)
 		assert.NoError(t, er2)
 		assert.Equal(t, dbUser.Id, s)
 
 		// data passed doesn't matter as return is mocked
 		_, err := th.App.CreateOAuthUser(th.Context, model.ServiceOffice365, strings.NewReader("{}"), th.BasicTeam.Id, nil)
 		assert.Nil(t, err)
-		u, er := th.App.Srv().Store.User().GetByEmail(dbUser.Email)
+		u, er := th.App.Srv().Store().User().GetByEmail(dbUser.Email)
 		assert.NoError(t, er)
 		// make sure authdata is updated
 		assert.Equal(t, "e7110007-64be-43d8-9840-4a7e9c26b710", *u.AuthData)
@@ -469,13 +469,13 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	user, err := th.App.Srv().Store.User().Save(user)
+	user, err := th.App.Srv().Store().User().Save(user)
 	require.NoError(t, err)
 	username := user.Username
 
 	var invErr *store.ErrInvalidInput
 	// Same id
-	_, err = th.App.Srv().Store.User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "id", invErr.Field)
@@ -485,7 +485,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test@localhost",
 		Username: model.NewId(),
 	}
-	_, err = th.App.Srv().Store.User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "email", invErr.Field)
@@ -495,7 +495,7 @@ func TestCreateUserConflict(t *testing.T) {
 		Email:    "test2@localhost",
 		Username: username,
 	}
-	_, err = th.App.Srv().Store.User().Save(user)
+	_, err = th.App.Srv().Store().User().Save(user)
 	require.Error(t, err)
 	require.True(t, errors.As(err, &invErr))
 	assert.Equal(t, "username", invErr.Field)
@@ -538,7 +538,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(&botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
@@ -582,7 +582,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		_, nErr := th.App.Srv().Store().User().Save(&botuser)
 		assert.NoError(t, nErr)
 
 		newBotEmail := th.MakeEmail()
@@ -621,7 +621,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		tokens := []*model.Token{}
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
 			return err == nil && len(tokens) == 1
 		}, 100*time.Millisecond, 10*time.Millisecond)
 
@@ -636,7 +636,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store.Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
 			// We verify the same conditions as the earlier function,
 			// but we also need to ensure that this is not the same token
 			// as before, which is possible if the token update goroutine
@@ -645,7 +645,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		}, 100*time.Millisecond, 10*time.Millisecond)
 		secondToken := tokens[0]
 
-		_, err := th.App.Srv().Store.Token().GetByToken(firstToken.Token)
+		_, err := th.App.Srv().Store().Token().GetByToken(firstToken.Token)
 		require.Error(t, err)
 
 		require.NotNil(t, th.App.VerifyEmailFromToken(th.Context, firstToken.Token))
@@ -710,7 +710,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.SaveAndBroadcastStatus(&model.Status{
+		th.App.Srv().Platform().SaveAndBroadcastStatus(&model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,
@@ -832,7 +832,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 	t.Run("invalid domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
-		_, nErr := th.App.Srv().Store.Team().Update(th.BasicTeam)
+		_, nErr := th.App.Srv().Store().Team().Update(th.BasicTeam)
 		require.NoError(t, nErr)
 		_, err := th.App.CreateUserWithInviteId(th.Context, &user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
@@ -856,7 +856,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeVerifyEmail,
 			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on bad token type")
@@ -869,7 +869,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err)
 	})
@@ -880,7 +880,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on expired token")
@@ -891,7 +891,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(th.Context, &user, token)
 		require.NotNil(t, err, "Should fail on bad team id")
@@ -904,13 +904,13 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
 		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
 
-		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newUser.Id)
@@ -925,14 +925,14 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		guest := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
-		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
@@ -959,8 +959,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
-		require.NoError(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
+		require.NoError(t, th.App.Srv().Store().Token().Save(forbiddenDomainToken))
+		require.NoError(t, th.App.Srv().Store().Token().Save(grantedDomainToken))
 		guest := model.User{
 			Email:       forbiddenInvitationEmail,
 			Nickname:    "Darth Vader",
@@ -978,7 +978,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, grantedInvitationEmail, newGuest.Email)
-		_, nErr := th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(grantedDomainToken.Token)
 		require.Error(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
@@ -1003,7 +1003,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		guest := model.User{
 			Email:       invitationEmail,
 			Nickname:    "Darth Vader",
@@ -1015,7 +1015,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
 		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
-		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
@@ -1709,7 +1709,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockStore := th.App.Srv().Store.(*storemocks.Store)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockUserStore.On("Get", mock.Anything, "user1").Return(&model.User{Id: "user1"}, nil)
@@ -1799,5 +1799,56 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+	})
+}
+
+func TestIsFirstAdmin(t *testing.T) {
+	t.Run("should return false if user is not sysadmin", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemUserRoleId,
+		})
+		require.False(t, isFirstAdmin)
+	})
+
+	t.Run("should return false if user is sysadmin but not the first one", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetFirstSystemAdminID").Return(model.NewId(), nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("User").Return(&mockUserStore)
+
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemAdminRoleId,
+		})
+		require.False(t, isFirstAdmin)
+	})
+
+	t.Run("should return true if user is sysadmin and the first one", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetFirstSystemAdminID").Return(Id, nil)
+		mockStore.On("User").Return(&mockUserStore)
+
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemAdminRoleId,
+		})
+		require.True(t, isFirstAdmin)
 	})
 }
