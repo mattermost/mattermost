@@ -1,0 +1,102 @@
+id: "product_teams/feature_release:v1"
+category: product_teams
+useCase: Feature Release
+illustration: /images/illustrations/feature-release.png
+visibility: public
+featureFlag: # optional. only shows this template when the feature flag having is name have this value.
+  name: feature_release_work_template
+  value: on
+description:
+    channel:
+        id: "worktemplate.product_teams.description.channel"
+        defaultMessage: "This is the channels section description"
+    board:
+        id: ""
+        defaultMessage: "This is the boards section description"
+    playbook:
+        id: ""
+        defaultMessage: "This is the playbooks section description"
+    integration:
+        id: ""
+        defaultMessage: "This is the integrations section description"
+        illustration: "/images/worktemplates/integrations/jira-github.png"
+content:
+  - channel:
+      id: feature-release # optional. for internal use - in this case linking boards to this channel.
+      name: feature release channel
+      purpose: this channel is for the feature release team.
+      playbook: product-release-playbook # playbook id. if set the channel will be created by the playbook run.
+      illustration: "/images/worktemplates/channels/feature-release.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
+      name: meeting agenda board
+      channel: feature-release # <-- optional. we use the channel "id" from above
+      illustration: "/images/worktemplates/boards/meeting-agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "project task|bmttiziw35irgtmztewd9upyqdy"
+      name: project task board
+      channel: feature-release
+      illustration: "/images/worktemplates/boards/project-task.png"
+  - playbook:
+      template: "product release" # <-- playbooks templates don't have ids, have to rely on name
+      name: "feature release playbook"
+      id: product-release-playbook
+      illustration: "/images/worktemplates/boards/project-task.png"
+  - integration:
+      id: marketplace-plugin-jira
+      name: Jira
+      category: Productivity
+      illustration: /path/to.png
+  - integration:
+      id: marketplace-plugin-github
+---
+id: "product_teams/some_other_usecase:v1"
+category: product_teams
+useCase: Other use case
+illustration: /images/illustrations/feature-release.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.other_usecase.description.channel"
+        defaultMessage: "This is the channels section description"
+    board:
+        id: ""
+        defaultMessage: "This is the boards section description"
+    playbook:
+        id: "worktemplate.other_usecase.description.playbook"
+        defaultMessage: "This is the playbooks section description"
+    integration:
+        id: ""
+        defaultMessage: "This is the integrations section description"
+        illustration: "/images/worktemplates/integrations/jira-github.png"
+content:
+  - channel:
+      id: feature-release # optional. for internal use - in this case linking boards to this channel.
+      name: feature release channel
+      purpose: this channel is for the feature release team.
+      playbook: product-release-playbook # playbook id. if set the channel will be created by the playbook run.
+      illustration: "/images/worktemplates/channels/feature-release.png"
+  - board:
+      id: "board-meeting-agenda"
+      template: "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
+      name: meeting agenda board
+      channel: feature-release # <-- optional. we use the channel "id" from above
+      illustration: "/images/worktemplates/boards/meeting-agenda.png"
+  - board:
+      id: "board-project-task"
+      template: "project task|bmttiziw35irgtmztewd9upyqdy"
+      name: project task board
+      channel: feature-release
+      illustration: "/images/worktemplates/boards/project-task.png"
+  - playbook:
+      template: "product release" # <-- playbooks templates don't have ids, have to rely on name
+      name: "feature release playbook"
+      id: product-release-playbook
+      illustration: "/images/worktemplates/boards/project-task.png"
+  - integration:
+      id: marketplace-plugin-jira
+  - integration:
+      id: marketplace-plugin-github
+---

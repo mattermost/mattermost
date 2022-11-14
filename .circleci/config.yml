@@ -110,6 +110,19 @@ jobs:
             cd mattermost-server
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+  check-generate-worktemplates:
+    docker:
+      - image: cimg/go:1.18
+    resource_class: medium
+    working_directory: /mnt/ramdisk
+    steps:
+      - attach_workspace:
+          at: /mnt/ramdisk
+      - run:
+          command: |
+            cd mattermost-server
+            make generate-worktemplates
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the worktemplates using make generate-worktemplates"; exit 1; fi
   check-go-mod-tidy:
     docker:
       - image: cimg/go:1.18

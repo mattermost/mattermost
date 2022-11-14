@@ -9566,5 +9566,21 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "worktemplate.other_usecase.description.channel",
+    "translation": ""
+  },
+  {
+    "id": "worktemplate.other_usecase.description.playbook",
+    "translation": ""
+  },
+  {
+    "id": "worktemplate.product_teams.description.channel",
+    "translation": ""
   }
 ]
