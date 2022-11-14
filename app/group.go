@@ -218,7 +218,7 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 }
 
 func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
-	restoredGroup, err := a.Srv().Store.Group().Restore(groupID)
+	restoredGroup, err := a.Srv().Store().Group().Restore(groupID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
