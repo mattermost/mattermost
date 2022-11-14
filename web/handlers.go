@@ -235,6 +235,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
+	// Hardcoded sensible default values for these security headers. Feel free to override in proxy or ingress
+	w.Header().Set("Permissions-Policy", "")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+
 	cloudCSP := ""
 	if c.App.Channels().License().IsCloud() {
 		cloudCSP = " js.stripe.com/v3"
