@@ -54,6 +54,7 @@ BEGIN
 SELECT count(*) != 0 INTO column_exist
     FROM information_schema.columns
     WHERE table_name = 'users'
+    AND table_schema = current_schema()
     AND column_name = 'roles'
     AND NOT data_type = 'varchar(256)';
 IF column_exist THEN
