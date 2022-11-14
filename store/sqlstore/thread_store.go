@@ -433,14 +433,13 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 		go func() {
 			defer wg.Done()
 			urgentMentionsQuery := s.getQueryBuilder().
-				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, TeamId").
+				Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0) AS Count, ThreadTeamId AS TeamId").
 				From("ThreadMemberships").
 				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
-				LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
-				LeftJoin("PostsPriority ON Threads.PostId = PostsPriority.PostId").
+				LeftJoin("PostsPriority ON PostsPriority.PostId = ThreadsMemberships.PostId").
 				Where(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}).
 				Where(fetchConditions).
-				GroupBy("Channels.TeamId")
+				GroupBy("Threads.ThreadTeamId")
 
 			err := s.GetReplicaX().SelectBuilder(&unreadUrgentMentions, urgentMentionsQuery)
 			if err != nil {
