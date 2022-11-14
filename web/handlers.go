@@ -235,10 +235,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
-	cloudCSP := ""
-	if c.App.Channels().License().IsCloud() {
-		cloudCSP = " js.stripe.com/v3"
-	}
+	cloudCSP := " js.stripe.com/v3 js.stripe.com/v3/*"
 
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking

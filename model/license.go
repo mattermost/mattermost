@@ -56,6 +56,7 @@ type License struct {
 	SkuShortName string    `json:"sku_short_name"`
 	IsTrial      bool      `json:"is_trial"`
 	IsGovSku     bool      `json:"is_gov_sku"`
+	SignupJWT    *string   `json:"signup_jwt"`
 }
 
 type Customer struct {
