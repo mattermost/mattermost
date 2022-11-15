@@ -139,7 +139,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	maxDateNewPosts := make(map[string]int64)
 	maxDateNewRootPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
-
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
@@ -183,7 +182,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 					maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 				}
 			}
-
 			continue
 		}
 

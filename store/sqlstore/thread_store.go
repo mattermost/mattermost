@@ -408,7 +408,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 
 		err := s.GetReplicaX().SelectBuilder(&unreadThreads, repliesQuery)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to get total unread threads")
 		}
 
 		return nil
