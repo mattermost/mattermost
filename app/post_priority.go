@@ -32,8 +32,8 @@ func (a *App) SendPersistentNotifications() error {
 	}
 
 	// fetch posts for which first notificationInterval duration has passed
-	minCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
-	notificationPosts, err := a.Srv().Store().PostPriority().GetPersistentNotificationsPosts(minCreateAt)
+	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
+	notificationPosts, err := a.Srv().Store().PostPriority().GetPersistentNotificationsPosts(maxCreateAt)
 	if err != nil {
 		return errors.Wrap(err, "failed to get posts for persistent notifications")
 	}
@@ -147,11 +147,16 @@ func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 
 	teamIds := make(model.StringSet)
 	for _, c := range channels {
-		teamIds.Add(c.TeamId)
+		if c.TeamId != "" {
+			teamIds.Add(c.TeamId)
+		}
 	}
-	teams, err := a.Srv().Store().Team().GetMany(teamIds.Val())
-	if err != nil {
-		return errors.Wrap(err, "failed to get teams by IDs")
+	teams := make([]*model.Team, len(teamIds))
+	if len(teamIds) > 0 {
+		teams, err = a.Srv().Store().Team().GetMany(teamIds.Val())
+		if err != nil {
+			return errors.Wrap(err, "failed to get teams by IDs")
+		}
 	}
 	teamsMap := make(map[string]*model.Team, len(teams))
 	for _, t := range teams {
@@ -160,14 +165,17 @@ func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 
 	channelGroupMap := make(map[string]map[string]*model.Group, len(channelsMap))
 	channelProfileMap := make(map[string]model.UserMap, len(channelsMap))
+	channelKeywords := make(map[string]map[string][]string, len(channelsMap))
 	for _, c := range channelsMap {
-		groups, appErr := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
-		if appErr != nil {
-			return errors.Wrap(err, "failed to get groups for channels")
-		}
-		channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
-		for k, v := range groups {
-			channelGroupMap[c.Id][k] = v
+		if c.Type != model.ChannelTypeDirect {
+			groups, appErr := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
+			if appErr != nil {
+				return errors.Wrap(err, "failed to get groups for channels")
+			}
+			channelGroupMap[c.Id] = make(map[string]*model.Group, len(groups))
+			for k, v := range groups {
+				channelGroupMap[c.Id][k] = v
+			}
 		}
 
 		profileMap, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), c.Id, true)
@@ -175,32 +183,42 @@ func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 			return errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 		}
 		channelProfileMap[c.Id] = profileMap
+
+		channelKeywords[c.Id] = make(map[string][]string, len(profileMap))
+		for k, v := range profileMap {
+			channelKeywords[c.Id]["@"+v.Username] = []string{k}
+		}
 	}
 
 	for _, post := range posts {
 		channel := channelsMap[post.ChannelId]
 		team := teamsMap[channel.Id]
+		if channel.Type == model.ChannelTypeDirect {
+			team = &model.Team{}
+		}
 		profileMap := channelProfileMap[channel.Id]
 		sender := profileMap[post.UserId]
 
 		mentions := &ExplicitMentions{}
-		mentionedUsersList := make(model.StringArray, 0)
 		if channel.Type == model.ChannelTypeDirect {
 			otherUserId := channel.GetOtherUserIdForDM(post.UserId)
 			if _, ok := profileMap[otherUserId]; ok {
 				mentions.addMention(otherUserId, DMMention)
 			}
 		} else {
-			mentions = getExplicitMentions(post, make(map[string][]string, 0), channelGroupMap[channel.Id])
-			for id := range mentions.Mentions {
-				mentionedUsersList = append(mentionedUsersList, id)
-			}
+			keywords := channelKeywords[channel.Id]
+			mentions = getExplicitMentions(post, keywords, channelGroupMap[channel.Id])
 			for _, group := range mentions.GroupMentions {
 				_, err := a.insertGroupMentions(group, channel, profileMap, mentions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to include mentions from group - %s for channel - %s", group.Id, channel.Id)
 				}
 			}
+		}
+
+		mentionedUsersList := make(model.StringArray, 0)
+		for id := range mentions.Mentions {
+			mentionedUsersList = append(mentionedUsersList, id)
 		}
 
 		notification := &PostNotification{
@@ -210,7 +228,8 @@ func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 			Sender:     sender,
 		}
 
-		if *a.Config().EmailSettings.SendEmailNotifications {
+		// TODO: remove false
+		if false && *a.Config().EmailSettings.SendEmailNotifications {
 			mentionedUsersList = model.RemoveDuplicateStrings(mentionedUsersList)
 
 			for _, id := range mentionedUsersList {

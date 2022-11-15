@@ -44,12 +44,12 @@ func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, e
 	return &postPriority, nil
 }
 
-func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("PersistenceNotifications").
 		Where(sq.And{
-			sq.GtOrEq{"CreateAt": minCreateAt},
+			sq.LtOrEq{"CreateAt": maxCreateAt},
 			sq.Eq{"DeleteAt": 0},
 		}).
 		ToSql()

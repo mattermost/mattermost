@@ -15,9 +15,9 @@ func MakeScheduler(jobServer *jobs.JobServer, config *model.Config) model.Schedu
 		// enabled := cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority
 		// mlog.Debug("Scheduler: isEnabled: "+strconv.FormatBool(enabled), mlog.String("scheduler", model.JobTypePostPersistentNotifications))
 		// return enabled
-		return false
+		return true
 	}
 	// schedFreq := config.ServiceSettings.PersistenceNotificationInterval / 2
-	schedFreq := 1 * time.Minute
-	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeLastAccessiblePost, schedFreq, isEnabled)
+	schedFreq := 30 * time.Second
+	return jobs.NewPeriodicScheduler(jobServer, model.JobTypePostPersistentNotifications, schedFreq, isEnabled)
 }

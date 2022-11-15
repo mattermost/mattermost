@@ -975,7 +975,7 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postId string) (*model.PostPriority, error)
-	GetPersistentNotificationsPosts(minCreateAt int64) ([]*model.PostPersistentNotifications, error)
+	GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error)
 	DeletePersistentNotificationsPosts(postIds []string) error
 }
 
