@@ -3566,6 +3566,22 @@ func testChannelStoreGetChannelsWithCursor(t *testing.T, ss store.Store) {
 	require.Len(t, list, 1)
 	require.Equal(t, teamID, list[0].TeamId, "incorrect teamID")
 
+	// all channels should be returned
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, "")
+	require.NoError(t, nErr)
+	require.Len(t, list, 3)
+
+	// should return empty list
+	list, nErr = ss.Channel().GetChannelsWithCursor(o1.TeamId, m1.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: false,
+		LastDeleteAt:   0,
+	}, list[2].Id)
+	require.NoError(t, nErr)
+	require.Len(t, list, 0)
+
 	// Sleeping to guarantee that the
 	// UpdateAt is different.
 	// The proper way would be to set UpdateAt during channel creation itself,
@@ -6894,11 +6910,19 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
 	t.Run("with correct ReplyCount", func(t *testing.T) {
-		channelId := model.NewId()
+		teamId := model.NewId()
+		channel, err := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
 		userId := model.NewId()
 
 		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6907,7 +6931,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
 			IsPinned:  true,
@@ -6916,7 +6940,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		post3, err := ss.Post().Save(&model.Post{
-			ChannelId: channelId,
+			ChannelId: channel.Id,
 			UserId:    userId,
 			RootId:    post1.Id,
 			Message:   "message",
@@ -6925,7 +6949,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		posts, err := ss.Channel().GetPinnedPosts(channelId)
+		posts, err := ss.Channel().GetPinnedPosts(channel.Id)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 3)
 		require.Equal(t, posts.Posts[post1.Id].ReplyCount, int64(1))

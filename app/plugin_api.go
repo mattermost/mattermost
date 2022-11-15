@@ -608,7 +608,7 @@ func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppEr
 }
 
 func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
-	return api.app.GetGroup(groupId, nil)
+	return api.app.GetGroup(groupId, nil, nil)
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
@@ -616,7 +616,7 @@ func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError
 }
 
 func (api *PluginAPI) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	users, _, err := api.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
 
 	return users, err
 }
@@ -743,15 +743,15 @@ func (api *PluginAPI) SetProfileImage(userID string, data []byte) *model.AppErro
 }
 
 func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiList(page, perPage, sortBy)
+	return api.app.GetEmojiList(api.ctx, page, perPage, sortBy)
 }
 
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmojiByName(name)
+	return api.app.GetEmojiByName(api.ctx, name)
 }
 
 func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
-	return api.app.GetEmoji(emojiId)
+	return api.app.GetEmoji(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
@@ -796,7 +796,7 @@ func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string)
 }
 
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	return api.app.GetEmojiImage(emojiId)
+	return api.app.GetEmojiImage(api.ctx, emojiId)
 }
 
 func (api *PluginAPI) GetTeamIcon(teamID string) ([]byte, *model.AppError) {
@@ -1018,6 +1018,9 @@ func (api *PluginAPI) PermanentDeleteBot(userID string) *model.AppError {
 }
 
 func (api *PluginAPI) EnsureBotUser(bot *model.Bot) (string, error) {
+	// Bots created by a plugin should use the plugin's ID for the creator field.
+	bot.OwnerId = api.id
+
 	return api.app.EnsureBot(api.ctx, api.id, bot)
 }
 
@@ -1227,4 +1230,10 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	}
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
+}
+
+// RegisterCollectionAndTopic informs the server that this plugin handles
+// the given collection and topic types.
+func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
+	return api.app.registerCollectionAndTopic(api.id, collectionType, topicType)
 }
