@@ -3348,10 +3348,12 @@ func TestPostGetInfo(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 	sysadminClient := th.SystemAdminClient
+	sysadminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 
-	openChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
+	openChannel, _, err := client.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
 	require.NoError(t, err)
-	openPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: openChannel.Id})
+	sysadminClient.AddChannelMember(openChannel.Id, th.SystemAdminUser.Id)
+	openPost, _, err := client.CreatePost(&model.Post{ChannelId: openChannel.Id})
 	require.NoError(t, err)
 
 	privateChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, Name: "private-channel", DisplayName: "Private Channel"})
@@ -3382,6 +3384,14 @@ func TestPostGetInfo(t *testing.T) {
 	openTeamOpenPost, _, err := sysadminClient.CreatePost(&model.Post{ChannelId: openTeamOpenChannel.Id})
 	require.NoError(t, err)
 
+	// Alt team is a team without the sysadmin in it.
+	altOpenTeam, _, err := client.CreateTeam(&model.Team{Type: model.TeamOpen, Name: "alt-open-team", DisplayName: "Alt Open Team"})
+	require.NoError(t, err)
+	altOpenTeamOpenChannel, _, err := client.CreateChannel(&model.Channel{TeamId: altOpenTeam.Id, Type: model.ChannelTypeOpen, Name: "alt-open-team-open-channel", DisplayName: "Open Team - Open Channel"})
+	require.NoError(t, err)
+	altOpenTeamOpenPost, _, err := client.CreatePost(&model.Post{ChannelId: altOpenTeamOpenChannel.Id})
+	require.NoError(t, err)
+
 	inviteTeam, _, err := sysadminClient.CreateTeam(&model.Team{Type: model.TeamInvite, Name: "invite-team", DisplayName: "Invite Team"})
 	require.NoError(t, err)
 	inviteTeamOpenChannel, _, err := sysadminClient.CreateChannel(&model.Channel{TeamId: inviteTeam.Id, Type: model.ChannelTypeOpen, Name: "invite-team-open-channel", DisplayName: "Invite Team - Open Channel"})
@@ -3390,29 +3400,35 @@ func TestPostGetInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	testCases := []struct {
-		name      string
-		team      *model.Team
-		channel   *model.Channel
-		post      *model.Post
-		client    *model.Client4
-		hasAccess bool
+		name             string
+		team             *model.Team
+		hasJoinedTeam    bool
+		channel          *model.Channel
+		hasJoinedChannel bool
+		post             *model.Post
+		client           *model.Client4
+		hasAccess        bool
 	}{
 		// Open channel - Current Team
 		{
-			name:      "Open post - Current team - Basic user",
-			team:      th.BasicTeam,
-			channel:   openChannel,
-			post:      openPost,
-			client:    client,
-			hasAccess: true,
+			name:             "Open post - Current team - Basic user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: true,
+			post:             openPost,
+			client:           client,
+			hasAccess:        true,
 		},
 		{
-			name:      "Open post - Current team - Sysadmin user",
-			team:      th.BasicTeam,
-			channel:   openChannel,
-			post:      openPost,
-			client:    sysadminClient,
-			hasAccess: true,
+			name:             "Open post - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: true,
+			post:             openPost,
+			client:           sysadminClient,
+			hasAccess:        true,
 		},
 
 		// Private channel - Current Team
@@ -3425,38 +3441,45 @@ func TestPostGetInfo(t *testing.T) {
 			hasAccess: false,
 		},
 		{
-			name:      "Private post by sysadmin - Current team - Sysadmin user",
-			team:      th.BasicTeam,
-			channel:   privateChannel,
-			post:      privatePost,
-			client:    sysadminClient,
-			hasAccess: true,
+			name:             "Private post by sysadmin - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannel,
+			hasJoinedChannel: true,
+			post:             privatePost,
+			client:           sysadminClient,
+			hasAccess:        true,
 		},
 		{
-			name:      "Private post by basic user - Current team - Basic user",
-			team:      th.BasicTeam,
-			channel:   privateChannelBasicUser,
-			post:      privatePostBasicUser,
-			client:    client,
-			hasAccess: true,
+			name:             "Private post by basic user - Current team - Basic user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannelBasicUser,
+			hasJoinedChannel: true,
+			post:             privatePostBasicUser,
+			client:           client,
+			hasAccess:        true,
 		},
 		{
-			name:      "Private post by basic user - Current team - Sysadmin user",
-			team:      th.BasicTeam,
-			channel:   privateChannelBasicUser,
-			post:      privatePostBasicUser,
-			client:    sysadminClient,
-			hasAccess: true,
+			name:             "Private post by basic user - Current team - Sysadmin user",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          privateChannelBasicUser,
+			hasJoinedChannel: false,
+			post:             privatePostBasicUser,
+			client:           sysadminClient,
+			hasAccess:        true,
 		},
 
 		// GM channel
 		{
-			name:      "GM post - Current team - Basic user",
-			team:      nil,
-			channel:   gmChannel,
-			post:      gmPost,
-			client:    client,
-			hasAccess: true,
+			name:             "GM post - Current team - Basic user",
+			team:             nil,
+			channel:          gmChannel,
+			hasJoinedChannel: true,
+			post:             gmPost,
+			client:           client,
+			hasAccess:        true,
 		},
 		{
 			name:      "GM post - Current team - Sysadmin user",
@@ -3469,12 +3492,13 @@ func TestPostGetInfo(t *testing.T) {
 
 		// DM channel
 		{
-			name:      "DM post - Current team - Basic user",
-			team:      nil,
-			channel:   dmChannel,
-			post:      dmPost,
-			client:    client,
-			hasAccess: true,
+			name:             "DM post - Current team - Basic user",
+			team:             nil,
+			channel:          dmChannel,
+			hasJoinedChannel: true,
+			post:             dmPost,
+			client:           client,
+			hasAccess:        true,
 		},
 		{
 			name:      "DM post - Current team - Sysadmin user",
@@ -3487,25 +3511,51 @@ func TestPostGetInfo(t *testing.T) {
 
 		// Open channel - Open Team
 		{
-			name:      "Open post - Open team - Basic user",
-			team:      openTeam,
-			channel:   openTeamOpenChannel,
-			post:      openTeamOpenPost,
-			client:    client,
-			hasAccess: true,
+			name:             "Open post - Open team - Basic user",
+			team:             openTeam,
+			hasJoinedTeam:    false,
+			channel:          openTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             openTeamOpenPost,
+			client:           client,
+			hasAccess:        true,
 		},
 		{
-			name:      "Open post - Open team - Sysadmin user",
-			team:      openTeam,
-			channel:   openTeamOpenChannel,
-			post:      openTeamOpenPost,
-			client:    sysadminClient,
-			hasAccess: true,
+			name:             "Open post - Open team - Sysadmin user",
+			team:             openTeam,
+			hasJoinedTeam:    true,
+			channel:          openTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             openTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
+		},
+
+		// Open channel - Alt Open Team
+		{
+			name:             "Open post - Alt open team - Basic user",
+			team:             altOpenTeam,
+			hasJoinedTeam:    true,
+			channel:          altOpenTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             altOpenTeamOpenPost,
+			client:           client,
+			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Alt open team - Sysadmin user",
+			team:             altOpenTeam,
+			hasJoinedTeam:    false,
+			channel:          altOpenTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             altOpenTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
 		},
 
 		// Open channel - Invite Team
 		{
-			name:      "Open post - Open team - Basic user",
+			name:      "Open post - Invite team - Basic user",
 			team:      inviteTeam,
 			channel:   inviteTeamOpenChannel,
 			post:      inviteTeamOpenPost,
@@ -3513,12 +3563,14 @@ func TestPostGetInfo(t *testing.T) {
 			hasAccess: false,
 		},
 		{
-			name:      "Open post - Open team - Sysadmin user",
-			team:      inviteTeam,
-			channel:   inviteTeamOpenChannel,
-			post:      inviteTeamOpenPost,
-			client:    sysadminClient,
-			hasAccess: true,
+			name:             "Open post - Invite team - Sysadmin user",
+			team:             inviteTeam,
+			hasJoinedTeam:    true,
+			channel:          inviteTeamOpenChannel,
+			hasJoinedChannel: true,
+			post:             inviteTeamOpenPost,
+			client:           sysadminClient,
+			hasAccess:        true,
 		},
 	}
 
@@ -3536,10 +3588,12 @@ func TestPostGetInfo(t *testing.T) {
 			require.Equal(t, tc.channel.Id, info.ChannelId)
 			require.Equal(t, tc.channel.Type, info.ChannelType)
 			require.Equal(t, tc.channel.DisplayName, info.ChannelDisplayName)
+			require.Equal(t, tc.hasJoinedChannel, info.HasJoinedChannel)
 			if tc.team != nil {
 				require.Equal(t, tc.team.Id, info.TeamId)
 				require.Equal(t, tc.team.Type, info.TeamType)
 				require.Equal(t, tc.team.DisplayName, info.TeamDisplayName)
+				require.Equal(t, tc.hasJoinedTeam, info.HasJoinedTeam)
 			}
 		})
 	}

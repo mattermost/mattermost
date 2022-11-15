@@ -2131,15 +2131,21 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 		return nil, notFoundError
 	}
 
+	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
+
 	info := model.PostInfo{
 		ChannelId:          channel.Id,
 		ChannelType:        channel.Type,
 		ChannelDisplayName: channel.DisplayName,
+		HasJoinedChannel:   channelMemberErr == nil,
 	}
 	if team != nil {
+		_, teamMemberErr := a.GetTeamMember(team.Id, userID)
+
 		info.TeamId = team.Id
 		info.TeamType = team.Type
 		info.TeamDisplayName = team.DisplayName
+		info.HasJoinedTeam = teamMemberErr == nil
 	}
 	return &info, nil
 }
