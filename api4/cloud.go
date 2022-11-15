@@ -674,8 +674,8 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 func ensureSelfHostedAdmin(c *Context, where string) {
 	license := c.App.Channels().License()
 
-	if license != nil && license.Features != nil && license.Features.Cloud != nil && *license.Features.Cloud {
-		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusInternalServerError)
+	if license.IsCloud() {
+		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusBadRequest)
 		return
 	}
 
@@ -685,8 +685,24 @@ func ensureSelfHostedAdmin(c *Context, where string) {
 	}
 }
 
+func checkSelfHostedFirstTimePurchaseEnabled(c *Context) bool {
+	config := c.App.Config()
+	if config == nil {
+		return false
+	}
+	featureFlags := config.FeatureFlags
+	if featureFlags == nil {
+		return false
+	}
+	return featureFlags.SelfHostedFirstTimePurchase
+}
+
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedBootstrap"
+	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
