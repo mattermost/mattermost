@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
@@ -20,23 +23,32 @@ func newSqlPostPriorityStore(sqlStore *SqlStore) store.PostPriorityStore {
 }
 
 func (s *SqlPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
-	query, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select("Priority", "RequestedAck", "PersistentNotifications").
 		From("PostsPriority").
-		Where(sq.Eq{"PostId": postId}).
-		ToSql()
-
-	if err != nil {
-		return nil, err
-	}
+		Where(sq.Eq{"PostId": postId})
 
 	var postPriority model.PostPriority
-
-	err = s.GetReplicaX().Get(&postPriority, query, args...)
-
+	err := s.GetReplicaX().GetBuilder(&postPriority, query)
 	if err != nil {
 		return nil, err
 	}
 
 	return &postPriority, nil
+}
+
+func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPriority, error) {
+	query := s.getQueryBuilder().
+		Select("PostId", "Priority", "RequestedAck", "PersistentNotifications").
+		From("PostsPriority").
+		Where(fmt.Sprintf("PostId IN ('%s')", strings.Join(postIds, "', '")))
+
+	var priority []*model.PostPriority
+	err := s.GetReplicaX().SelectBuilder(&priority, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return priority, nil
 }

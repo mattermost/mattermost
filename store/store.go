@@ -974,6 +974,7 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postId string) (*model.PostPriority, error)
+	GetForPosts(ids []string) ([]*model.PostPriority, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

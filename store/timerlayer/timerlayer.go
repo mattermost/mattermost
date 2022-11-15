@@ -5901,6 +5901,22 @@ func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPrio
 	return result, err
 }
 
+func (s *TimerLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.GetForPosts(ids)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPosts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	start := time.Now()
 

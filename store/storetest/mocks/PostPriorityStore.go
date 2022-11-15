@@ -36,3 +36,26 @@ func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, err
 
 	return r0, r1
 }
+
+// GetForPosts provides a mock function with given fields: ids
+func (_m *PostPriorityStore) GetForPosts(ids []string) ([]*model.PostPriority, error) {
+	ret := _m.Called(ids)
+
+	var r0 []*model.PostPriority
+	if rf, ok := ret.Get(0).(func([]string) []*model.PostPriority); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostPriority)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
