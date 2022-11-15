@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/model"
 	fmocks "github.com/mattermost/mattermost-server/v6/shared/filestore/mocks"
@@ -554,7 +555,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -941,11 +942,11 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	receiver := th.CreateUser()
 	th.LinkUserToTeam(sender, team)
 	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(team)
+	channel1 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel1)
 	th.AddUserToChannel(receiver, channel1)
 
-	channel2 := th.CreateChannel(team)
+	channel2 := th.CreateChannel(th.Context, team)
 	th.AddUserToChannel(sender, channel2)
 	th.AddUserToChannel(receiver, channel2)
 
@@ -981,7 +982,7 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			receiver.NotifyProps["push"] = tc.pushNotifyProps
-			msg, err := th.App.BuildPushNotificationMessage(model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
+			msg, err := th.App.BuildPushNotificationMessage(th.Context, model.FullNotification, post, receiver, channel1, channel1.Name, sender.Username, tc.explicitMention, tc.channelWideMention, tc.replyToThreadType)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
@@ -1132,10 +1133,10 @@ func TestClearPushNotificationSync(t *testing.T) {
 		ExpiresAt: model.GetMillis() + 100000,
 	}
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -1152,11 +1153,13 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockStore.On("Session").Return(&mockSessionStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
+	// When CRT is disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDisabled
 	})
 
-	err := th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
+	err := th.App.clearPushNotificationSync(th.Context, sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
@@ -1178,7 +1181,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockThreadStore.On("GetTotalUnreadMentions", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(int64(3), nil)
 	mockStore.On("Thread").Return(&mockThreadStore)
 
-	err = th.App.clearPushNotificationSync(sess1.Id, "user1", "channel1", "")
+	err = th.App.clearPushNotificationSync(th.Context, sess1.Id, "user1", "channel1", "")
 	require.Nil(t, err)
 	assert.Equal(t, handler.notifications()[1].Badge, 4)
 }
@@ -1206,10 +1209,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 		ExpiresAt: model.GetMillis() + 100000,
 	}
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
@@ -1228,9 +1231,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDisabled
 	})
 
-	err := th.App.updateMobileAppBadgeSync("user1")
+	err := th.App.updateMobileAppBadgeSync(th.Context, "user1")
 	require.Nil(t, err)
 	// Server side verification.
 	// We verify that 2 requests have been sent, and also check the message contents.
@@ -1278,7 +1282,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	)
 	defer pushServer.Close()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -1423,6 +1427,9 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	mockPreferenceStore := mocks.PreferenceStore{}
@@ -1433,16 +1440,19 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		Store:     mockStore,
-		products:  make(map[string]Product),
-		Router:    mux.NewRouter(),
-		filestore: &fmocks.FileBackend{},
+		products: make(map[string]Product),
+		Router:   mux.NewRouter(),
 	}
-	s.configStore = &configWrapper{srv: s, Store: memoryStore}
-	serviceMap := map[ServiceKey]interface{}{
-		ConfigKey:    s.configStore,
+	var err error
+	s.platform, err = platform.New(platform.ServiceConfig{
+		ConfigStore: memoryStore,
+	}, platform.SetFileStore(&fmocks.FileBackend{}))
+	s.SetStore(mockStore)
+	require.NoError(t, err)
+	serviceMap := map[ServiceKey]any{
+		ConfigKey:    s.platform,
 		LicenseKey:   &licenseWrapper{s},
-		FilestoreKey: s.filestore,
+		FilestoreKey: s.FileBackend(),
 	}
 	ch, err := NewChannels(s, serviceMap)
 	require.NoError(t, err)
@@ -1450,7 +1460,7 @@ func TestPushNotificationRace(t *testing.T) {
 
 	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
-		s.createPushNotificationsHub()
+		s.createPushNotificationsHub(th.Context)
 
 		s.StopPushNotificationsHubWorkers()
 
@@ -1479,7 +1489,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	originalMessage := "hello world"
 	post := &model.Post{
 		Message: originalMessage,
-		Props: map[string]interface{}{
+		Props: map[string]any{
 			"attachments": []*model.SlackAttachment{
 				{
 					AuthorName: "testuser",
@@ -1493,7 +1503,7 @@ func TestPushNotificationAttachment(t *testing.T) {
 	ch := &model.Channel{}
 
 	t.Run("The notification should contain the fallback message from the attachment", func(t *testing.T) {
-		pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+		pn := th.App.buildFullPushNotificationMessage(th.Context, "full", post, user, ch, ch.Name, "test", false, false, "")
 		assert.Equal(t, "test: hello world\nfallback text", pn.Message)
 	})
 
@@ -1516,10 +1526,10 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	)
 	defer pushServer.Close()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}

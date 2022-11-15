@@ -6,7 +6,10 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"runtime/pprof"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -36,7 +39,7 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 	}
 
 	if _, err := srv.Store.Job().Save(&job); err != nil {
-		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CreateJob", "app.job.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return &job, nil
@@ -48,9 +51,9 @@ func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -60,7 +63,7 @@ func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
 func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
 	updated, err := srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JobStatusPending, model.JobStatusInProgress)
 	if err != nil {
-		return false, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if updated && srv.metrics != nil {
@@ -75,21 +78,21 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	job.Progress = progress
 
 	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
-		return model.NewAppError("SetJobProgress", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobProgress", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
 
 func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusWarning); err != nil {
-		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobWarning", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
 
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusSuccess); err != nil {
-		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if srv.metrics != nil {
@@ -103,7 +106,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if jobError == nil {
 		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusError)
 		if err != nil {
-			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if srv.metrics != nil {
@@ -122,9 +125,12 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if jobError.DetailedError != "" {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
+	if wrapped := jobError.Unwrap(); wrapped != nil {
+		job.Data["error"] += " — " + wrapped.Error()
+	}
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress)
 	if err != nil {
-		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if updated && srv.metrics != nil {
 		srv.metrics.DecrementJobActive(job.Type)
@@ -133,7 +139,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if !updated {
 		updated, err = srv.Store.Job().UpdateOptimistically(job, model.JobStatusCancelRequested)
 		if err != nil {
-			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		if !updated {
 			return model.NewAppError("SetJobError", "jobs.set_job_error.update.error", nil, "id="+job.Id, http.StatusInternalServerError)
@@ -145,7 +151,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 
 func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusCanceled); err != nil {
-		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if srv.metrics != nil {
@@ -157,7 +163,7 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 
 func (srv *JobServer) SetJobPending(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JobStatusPending); err != nil {
-		return model.NewAppError("SetJobPending", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetJobPending", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if srv.metrics != nil {
@@ -171,21 +177,46 @@ func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 	job.Status = model.JobStatusInProgress
 	job.LastActivityAt = model.GetMillis()
 	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); err != nil {
-		return model.NewAppError("UpdateInProgressJobData", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("UpdateInProgressJobData", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
+}
+
+// HandleJobPanic is used to handle panics during the execution of a job. It logs the panic and sets the status for the job.
+// After handling, the method repanics! This method is supposed to be `defer`'d at the start of the job.
+func (srv *JobServer) HandleJobPanic(job *model.Job) {
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	sb := &strings.Builder{}
+	pprof.Lookup("goroutine").WriteTo(sb, 2)
+	mlog.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
+
+	rerr, ok := r.(error)
+	if !ok {
+		rerr = fmt.Errorf("job panic: %v", r)
+	}
+
+	appErr := srv.SetJobError(job, model.NewAppError("HandleJobPanic", "app.job.update.app_error", nil, "", http.StatusInternalServerError)).Wrap(rerr)
+	if appErr != nil {
+		mlog.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
+	}
+
+	panic(r)
 }
 
 func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusPending, model.JobStatusCanceled)
 	if err != nil {
-		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if updated {
 		if srv.metrics != nil {
 			job, err := srv.GetJob(jobId)
 			if err != nil {
-				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 
 			srv.metrics.DecrementJobActive(job.Type)
@@ -196,7 +227,7 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 
 	updated, err = srv.Store.Job().UpdateStatusOptimistically(jobId, model.JobStatusInProgress, model.JobStatusCancelRequested)
 	if err != nil {
-		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if updated {
@@ -240,7 +271,7 @@ func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Tim
 func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.AppError) {
 	count, err := srv.Store.Job().GetCountByStatusAndType(model.JobStatusPending, jobType)
 	if err != nil {
-		return false, model.NewAppError("CheckForPendingJobsByType", "app.job.get_count_by_status_and_type.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("CheckForPendingJobsByType", "app.job.get_count_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return count > 0, nil
 }
@@ -248,7 +279,7 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 func (srv *JobServer) GetJobsByTypeAndStatus(jobType string, status string) ([]*model.Job, *model.AppError) {
 	jobs, err := srv.Store.Job().GetAllByTypeAndStatus(jobType, status)
 	if err != nil {
-		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetJobsByTypeAndStatus", "app.job.get_all_jobs_by_type_and_status.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return jobs, nil
@@ -262,7 +293,7 @@ func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *m
 	job, err := srv.Store.Job().GetNewestJobByStatusesAndType(statuses, jobType)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
-		return nil, model.NewAppError("GetLastSuccessfulJobByType", "app.job.get_newest_job_by_status_and_type.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetLastSuccessfulJobByType", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return job, nil
 }

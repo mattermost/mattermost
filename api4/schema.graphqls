@@ -7,7 +7,8 @@ type Query {
 	config(): StringMap!
 	license(): StringMap!
 	teamMembers(userId: String!,
-		teamId: String = ""): [TeamMember]!
+		teamId: String = "",
+		excludeTeam: Boolean = false): [TeamMember]!
 	channels(userId: String!,
 		teamId: String = "",
 		includeDeleted: Boolean = false,
@@ -19,9 +20,14 @@ type Query {
 		since: Float!): [String!]!
 	channelMembers(userId: String!,
 		channelId: String = "",
+		teamId: String = "",
+		excludeTeam: Boolean = false,
 		first: Int = 60,
 		after: String = "",
 		lastUpdateAt: Float = 0): [ChannelMember]!
+	sidebarCategories(userId: String!,
+		teamId: String!,
+		excludeTeam: Boolean = false): [SidebarCategory]!
 }
 
 scalar ChannelType
@@ -31,6 +37,8 @@ scalar SidebarCategoryType
 scalar SidebarCategorySorting
 
 scalar StringMap
+
+scalar StringInterface
 
 scalar Time
 
@@ -52,7 +60,11 @@ type Channel {
 	shared: Boolean
 	lastPostAt: Float!
 	totalMsgCount: Float!
-	stats: ChannelStats
+	totalMsgCountRoot: Float!
+	lastRootPostAt: Float!
+	extraUpdateAt: Float!
+	props: StringInterface!
+	policyId: String
 	cursor: String
 }
 
@@ -64,6 +76,7 @@ type ChannelMember {
 	msgCount         : Float!
 	mentionCount     : Float!
 	mentionCountRoot : Float!
+	msgCountRoot     : Float!
 	notifyProps      : StringMap!
 	lastUpdateAt     : Float!
 	schemeGuest      : Boolean!
@@ -73,6 +86,7 @@ type ChannelMember {
 	cursor: String
 }
 
+# Deliberately omitting password, authData, mfaSecret.
 type User {
 	id: String!
 	username: String!
@@ -80,20 +94,33 @@ type User {
 	firstName: String!
 	lastName: String!
 	nickname: String!
+	emailVerified: Boolean!
 	isBot: Boolean!
 	isGuest: Boolean!
 	isSystemAdmin: Boolean!
 	createAt: Float!
+	updateAt: Float!
 	deleteAt: Float!
 	authService: String!
 	customStatus: CustomStatus
 	status: Status
 	props: StringMap!
 	notifyProps: StringMap!
-	lastPictureUpdateAt: Float!
+	lastPictureUpdate: Float!
+	lastPasswordUpdate: Float!
+	failedAttempts: Float!
 	locale: String!
 	timezone: StringMap!
 	position: String!
+	mfaActive: Boolean!
+	allowMarketing: Boolean!
+	remoteId: String
+	lastActivityAt: Float!
+	botDescription: String!
+	botLastIconUpdate: Float!
+	termsOfServiceId: String!
+	termsOfServiceCreateAt: Float!
+	disableWelcomeEmail: Boolean!
 	roles: [Role]!
 	preferences: [Preference!]!
 	sessions: [Session]!
@@ -117,6 +144,11 @@ type Status {
 type Role {
 	id: String!
 	name: String!
+	displayName: String!
+	description: String!
+	createAt: Float!
+	updateAt: Float!
+	deleteAt: Float!
 	permissions: [String!]!
 	schemeManaged: Boolean!
 	builtIn: Boolean!
@@ -133,7 +165,9 @@ type Team {
 	id: String!
 	displayName    :    String!
 	name           :    String!
+	createAt       :    Float!
 	updateAt       :    Float!
+	deleteAt       :    Float!
 	description    :    String!
 	email          :    String!
 	type           :    String!
@@ -143,6 +177,9 @@ type Team {
 	lastTeamIconUpdate: Float!
 	groupConstrained:   Boolean
 	allowOpenInvite:    Boolean!
+	schemeId       :    String
+	policyId       :    String
+	cloudLimitsArchived: Boolean!
 }
 
 type TeamMember {
@@ -153,7 +190,7 @@ type TeamMember {
 	schemeGuest: Boolean!
 	schemeUser: Boolean!
 	schemeAdmin: Boolean!
-	sidebarCategories: [SidebarCategory]!
+	explicitRoles: String!
 }
 
 type SidebarCategory {
@@ -163,19 +200,22 @@ type SidebarCategory {
 	displayName: String!
 	muted: Boolean!
 	collapsed: Boolean!
+	teamId: String!
 	channelIds: [String!]!
+	sortOrder: Float!
 }
 
+# Deliberately leaving out teamMembers.
 type Session {
 	id: String!
 	token: String!
 	createAt: Float!
 	expiresAt: Float!
-}
-
-type ChannelStats {
-	channelId: String!
-	memberCount: Float!
-	guestCount: Float!
-	pinnedPostCount: Float!
+	lastActivityAt: Float!
+	deviceId: String!
+	roles: String!
+	isOAuth: Boolean!
+	expiredNotify: Boolean!
+	props: StringMap!
+	local: Boolean!
 }

@@ -70,11 +70,11 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
-		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
+		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
 			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
-				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		// If token is stored in the database that means it was used
 		if token != nil {
@@ -88,7 +88,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 				CreateAt: model.GetMillis(),
 				Type:     TokenTypeCWSAccess,
 			}
-			err := a.Srv().Store.Token().Save(token)
+			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
 				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
@@ -139,7 +139,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if user, err := a.Srv().Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+	if user, err := a.Srv().Store().User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
 		return user, nil
 	}
 
@@ -178,7 +178,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	session.GenerateCSRF()
 
 	if deviceID != "" {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
@@ -186,11 +186,11 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 			return err
 		}
 	} else if isMobile {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 	} else if isOAuthUser || isSaml {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthSSOInHours)
 	} else {
-		a.ch.srv.userService.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
+		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthWebInHours)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -222,7 +222,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		userVal := *user
 		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
+			a.Ldap().UpdateProfilePictureIfNecessary(c, userVal, sessionVal)
 		})
 	}
 
@@ -331,6 +331,11 @@ func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
+
+	// For context see: https://mattermost.atlassian.net/browse/MM-39583
+	if a.License().IsCloud() {
+		a.AttachCloudSessionCookie(c, w, r)
+	}
 }
 
 func GetProtocol(r *http.Request) string {
@@ -341,5 +346,5 @@ func GetProtocol(r *http.Request) string {
 }
 
 func IsCWSLogin(a *App, token string) bool {
-	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
+	return a.License().IsCloud() && token != ""
 }

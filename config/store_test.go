@@ -4,7 +4,6 @@
 package config
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,7 +17,7 @@ func TestNewStoreFromDSN(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, err := ioutil.TempDir("", "TestNewStore")
+	tempDir, err := os.MkdirTemp("", "TestNewStore")
 	require.NoError(t, err)
 
 	err = os.Chdir(tempDir)
@@ -46,7 +45,7 @@ func TestNewStoreReadOnly(t *testing.T) {
 	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
-	tempDir, tErr := ioutil.TempDir("", "TestNewStore")
+	tempDir, tErr := os.MkdirTemp("", "TestNewStore")
 	require.NoError(t, tErr)
 
 	tErr = os.Chdir(tempDir)

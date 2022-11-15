@@ -619,7 +619,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermostヘルプページを開く"
+    "translation": "Mattermostヘルプメッセージを表示"
   },
   {
     "id": "api.command_help.name",
@@ -1080,10 +1080,6 @@
     "translation": "ファイルをアップロードできませんでした。{{.NumFiles}}ファイルに対して {{.NumClientIds}} 個の client_ids が必要です。"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "ファイルをアップロードできませんでした。指定されたファイル数が正しくありません。"
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },
@@ -1433,11 +1429,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "アーカイブチャンネルのリアクションは削除できません。"
+    "translation": "アーカイブされたチャンネルのリアクションは削除できません。"
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルにはリアクションできません。"
+    "translation": "アーカイブされたチャンネルにはリアクションできません。"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1777,7 +1773,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "あなたは電子メールアドレスを更新しました"
+    "translation": "電子メールアドレスが正常に更新されました"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1853,7 +1849,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "投稿を確認する"
+    "translation": "Mattermostで返信する"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2640,10 +2636,6 @@
     "translation": "必須のリアクション設定値 User が存在しません。"
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "返信作成日時の設定値は親に当たる投稿の作成日時よりも大きくなくてはなりません。"
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "必須の返信設定値 create_at が存在しません。"
   },
@@ -3154,10 +3146,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています。"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Elasticsearchサーバーへ接続できませんでした。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -4577,7 +4565,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLabの利用規約が更新されました。gitlab.comで新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
+    "translation": "GitLabの利用規約が更新されました。{{.URL}}で新しい利用規約に同意してから、もう一度Mattermostへログインしてみてください。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -4613,7 +4601,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "アーカイブチャンネルは変更できません。"
+    "translation": "アーカイブされたチャンネルは変更できません。"
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -4765,11 +4753,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5592,14 +5580,6 @@
     "translation": "招待チャンネルは招待チーム内のチャンネルでなくてはなりません。"
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "ゲストアカウントは無効化されています"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "電子メール招待の無効化でエラーが発生しました。"
   },
@@ -5941,15 +5921,11 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "セッション期限切れ: 通知を受け取るにはログインしてください。{{.siteName}}のセッションはシステム管理者によって {{.daysCount}} 日ごとに期限切れになるよう設定されています。"
+    "translation": "セッション期限切れ: 通知を受け取るにはログインしてください。{{.siteName}}のセッションはシステム管理者によって {{.hoursCount}} 時間ごとに期限切れになるよう設定されています。"
   },
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "保留中の投稿を取得できませんでした。"
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "トライアルライセンスをリクエストできませんでした。システムコンソールのWebサーバーセクションにある サイトURL を設定してください。"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -7169,7 +7145,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -7189,7 +7165,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -7209,7 +7185,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
@@ -7229,7 +7205,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
@@ -7245,7 +7221,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
@@ -7261,7 +7237,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
@@ -7273,7 +7249,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7293,7 +7269,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをより安全にすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -7313,7 +7289,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意したことになり、製品に関する電子メールを受信するようになります。"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7521,7 +7497,7 @@
   },
   {
     "id": "app.user.get_by_username.app_error",
-    "translation": "このチームにあなたのユーザー名と一致する既存のアカウントが見つかりません。このチームに参加するにはチームの所有者から招待を受ける必要があるかもしれません。"
+    "translation": "このチームにあなたのユーザー名と一致する既存のアカウントが見つかりません。このチームに参加するにはチームのオーナーから招待を受ける必要があるかもしれません。"
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
@@ -7529,7 +7505,7 @@
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",
-    "translation": "このチームにあなたの認証形式に一致する既存のアカウントが見つかりません。このチームに参加するには、チームの所有者から招待を受ける必要があるかもしれません。"
+    "translation": "このチームにあなたの認証形式に一致する既存のアカウントが見つかりません。このチームに参加するには、チームのオーナーから招待を受ける必要があるかもしれません。"
   },
   {
     "id": "app.user.get.app_error",
@@ -7672,10 +7648,6 @@
     "translation": "挿入エラー"
   },
   {
-    "id": "app.import.marshal.app_error",
-    "translation": "レスポンスを変換できませんでした。"
-  },
-  {
     "id": "app.group.uniqueness_error",
     "translation": "グループメンバーが既に存在します"
   },
@@ -7725,15 +7697,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "支払いができませんでした"
+    "translation": "支払いが正常に処理されませんでした"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "注意: Mattermost Cloudへの支払いができませんでした"
+    "translation": "注意: Mattermost {{.Plan}}の支払いができませんでした"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "Mattermost Cloudへの支払いを続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
+    "translation": "Mattermost {{.Plan}}へアクセスし続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -7742,10 +7714,6 @@
   {
     "id": "api.templates.payment_failed.info1",
     "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "今すぐ対応する"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
@@ -8137,7 +8105,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "いつでもご連絡ください "
+    "translation": "ヘルプが必要な場合、または質問がある場合は電子メールでお問い合わせください: "
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8217,7 +8185,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "ワークスペース{{.WorkSpace}} の14日間のトライアルの準備が整いました!"
+    "translation": "ワークスペースの準備が整いました!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8672,38 +8640,6 @@
     "translation": "ユーザーからの自動返信を送信できませんでした。"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Mattermostの14日間のトライアルは、まもなく終了します"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}} さん、あなたのMattermostの14日間のトライアルは3日後の{{.TrialEnd}}に終了します。お客様のチームが引き続きMattermost Cloudのメリットを享受できるよう、お支払い情報を追加してください。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}、Mattermost Cloud Enterpriseの14日間の無料トライアルが本日 {{.TodayDate}} 終了しました。引き続きCloud Enterpriseを利用するには、支払い情報を追加してください。30日以内に支払い情報が追加されない場合、あなたのクラウドワークスペースは削除され、関連するデータもすべて失われます。"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost Cloudトライアルが終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "支払い方法を追加する"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Mattermostの14日間のトライアルは本日で終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost Cloudのトライアルは終了しました"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "サブスクリプションを開始する"
-  },
-  {
     "id": "api.command_remote.displayname.hint",
     "translation": "安全な接続のための表示名"
   },
@@ -8952,10 +8888,6 @@
     "translation": " がスレッドへ返信しました。"
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "添付ファイルの一括インポート中にエラーが発生しました。"
-  },
-  {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "{{.Limit}}文字以上の不正なユーザーの役割です。"
   },
@@ -9040,14 +8972,6 @@
     "translation": "オンボーディングの完了リクエストをデコードできませんでした。"
   },
   {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "api.user.authorize_oauth_user.saml_response_too_long.app_error",
     "translation": "SAMLの応答が長すぎます"
   },
@@ -9084,10 +9008,6 @@
     "translation": "ボード"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "既存のシステム絵文字名と名前が競合しています。"
   },
@@ -9110,18 +9030,6 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "グループ名が重複しています"
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9180,22 +9088,6 @@
     "translation": "メール送信時にエラーが発生しました"
   },
   {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
-  },
-  {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
     "translation": "MattermostAppIDの最大文字数は32文字です。"
   },
@@ -9210,5 +9102,457 @@
   {
     "id": "app.channel.get_file_count.app_error",
     "translation": "チャンネルのファイル数を取得できませんでした"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "電子メールリストが空です"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "チャンネル名が有効ではありません"
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "名前は1文字以上の小文字の英数字にしてください。"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "不正な post_id"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelsLen }} チャンネルに招待しました"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelsLen }} チャンネルに招待しました"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Bodyデータを解析中にエラーが発生しました。"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "リクエストボディが不正です。"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "禁輸国に対する制限のため、リクエストを処理することができませんでした。輸出制限に関するご質問は、[説明文書を参照するか](https://mattermost.com/pl/limitations-for-embargoed-countries)、legal@mattermost.com までお問い合わせください。"
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "インサイトは有効化されていない機能フラグに含まれる機能です。"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "getThreadsForUserに対するOnlyThreadsとOnlyTotalsのパラメータが矛盾しています"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "ファイルストレージの設定に未設定の値があります。"
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "電子メールの設定に未設定の値があります。"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "アップグレードが完了しました!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "あなたの {{.WorkspaceName}} ワークスペースがアップグレードされました。{{.Date}}から課金されます"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermostアップグレードの確認"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearchの設定に未設定の値があります。"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "あなたの Mattermost サーバが {{.Hours}} 時間以上アクティブでなかったため、このワンタイム電子メールが送信されました。この電子メールは、Mattermost サーバによって自動的に生成されたものです。"
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "最近の検索履歴を取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "デコーダーの並列数 {{.Value}} は不正です。正の数または-1であるべきです。"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "ストレージ使用量の取得に失敗しました。"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "チーム数を取得できませんでした"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "チームの利用状況を取得できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "チーム数の制限に達したため、チームを復元できませんでした"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "チーム数の制限に達したため、チームを作成できませんでした"
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "ユーザーのトップスレッドを取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "チームのトップスレッドを取得できませんでした。"
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "インサイト機能は無効化されています。"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "管理者に通知済み"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": " "
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": " "
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "アップロードされたデータからファイル情報を生成できませんでした。"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "クラウドプランの制限を超えているため投稿を取得できません。"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "不正なタイムアウト値 {{.Value}} 。正の数にする必要があります。"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "チームメンバーのキャッシュをクリアする際にエラーが発生しました"
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "@{{.Username}}からのこのメッセージについてのリマインダーです: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "ユーザーのトップDMを取得できませんでした。"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "サブスクリプションは滞納されていません"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "クラウドサブスクリプションを取得できませんでした"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "クラウド製品を取得できませんでした"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "データのアーカイブを解除し、有料機能を利用し続けるには、支払い情報を更新してください。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "重要な業務でCloud ProfessionalやEnterpriseの機能を利用している場合、それらが利用できなくなり、パフォーマンスの低下を体感することになるでしょう。"
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "あなたのMattermost Cloudワークスペースがダウングレードされました"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "プランと価格を見る"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "あなたのワークスペースは15日後にダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "これは、{{.DelinquencyDate}}以降、Mattermost Cloudワークスペースの支払いを受け取っていないことを知らせる最後のリマンダーです"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Cloud Starterへダウングレード"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "支払いが完了していません"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "{{.Plan}}プランを利用し続けるには、できるだけ早く金融機関にご連絡ください。その後、必要に応じて支払い情報を更新してください。"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "直近のお支払いを処理できませんでした"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "あなたのMattermostワークスペースは30日後にダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "お支払いの処理ができない場合、30日後に自動的にワークスペースをダウングレードします。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "未払いの請求書を処理するため、すぐに支払い情報を更新してください。"
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Cloud Starterへのダウングレード"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "あなたのワークスペースはまもなくダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "今すぐクレジットカード情報を更新してください。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "ワークスペースがダウングレードされると、ワークスペースで実行されている重要なワークフロー、統合機能、その他のビジネス上の重要な活動に悪影響を与える可能性があります。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "{{.DelinquencyDate}} 付の未払い請求書への支払いを行うことができませんでした。お客様のワークスペースはダウングレードされる可能性があります。"
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "お知らせ: あなたのMattermost {{.Plan}} はまもなくダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "あなたのワークスペースはまもなくダウングレードされます"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "何も行動がとられない場合、あなたのワークスペースがダウングレードされ、以下のデータがアーカイブされる可能性があります:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "まだMattermost {{.Plan}} はアクティブになっていますが、支払い方法に関する問題を解決する必要があります。"
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Mattermost {{.Plan}} の機能を利用し続けるには"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "すべての制限事項に関する説明文書を確認する。"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "有効なプラグインと統合機能"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "メッセージ履歴"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "ファイル"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "支払いが確認できていません"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "金融機関に連絡し、問題を解決してください。その後、必要に応じて支払い情報を更新してください。"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Mattermost {{.Plan}} の支払いが遅れています。"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "このデバイスではmarketplaceコマンドはサポートされていません。"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "マーケットプレイス"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "マーケットプレイスを開く"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost は、ツールやチームをまたがるセキュアなコミュニケーション、コラボレーション、オーケストレーションのためのオープンソースプラットフォームです。\nMattermostには、3つの主要なツールが含まれています:\n\n**Channels** - 1対1もしくはグループとのメッセージングによりチームを常に繋がった状態にします\n**[Playbooks](/playbooks)** - 繰り返し行われる作業をプロセス化し、予測可能な結果を残せるようにします\n**[Boards](/boards)** - Kanban形式のボードでプロジェクトとタスクを管理し、チームが重要なマイルストーンを達成できるよう支援します\n\n[ドキュメントとガイドを見る]({{.HelpLink}})"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Boardsのカード数"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "支払い情報を更新する"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "滞納メールを送信するための必須項目が不足しています。"
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAMLがIDプロバイダ公開証明書を正常に読み込めなかったため、システム管理者に連絡してください。"
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "ユーザーのバッジ数を取得できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "通知ポストを送信できませんでした。"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "通知データを保存できませんでした。"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、ワークスペースをアップグレードするようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.WorkspaceName}}ワークスペースの{{.UsersNum}}メンバーから、以下にアクセスするためにEnterpriseトライアルを開始するようリクエストがありました: "
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "現在のプラン名を取得できませんでした"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "ジョブ実行中にエラーが発生しました。"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "時間の範囲が無効です。"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "グループ名は予約語として既に登録されています"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "プラグイン {{.Name}} はプロダクトモードでは有効化できません。"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "最後にアクセスしたファイルの取得エラー"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "クラウドプランの制限を超えているため、ファイルを取得できません。"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "現在のライセンス ではゲストアカウントはサポートされていません"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "ゲストアカウントは無効化されています"
   }
 ]

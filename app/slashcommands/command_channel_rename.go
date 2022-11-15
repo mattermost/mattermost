@@ -38,8 +38,8 @@ func (*RenameProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(args.ChannelId)
+func (*RenameProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(c, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.channel.app_error"),
@@ -49,14 +49,14 @@ func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
+		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -73,14 +73,14 @@ func (*RenameProvider) DoCommand(a *app.App, c *request.Context, args *model.Com
 		}
 	} else if len(message) > model.ChannelNameMaxLength {
 		return &model.CommandResponse{
-			Text: args.T("api.command_channel_rename.too_long.app_error", map[string]interface{}{
+			Text: args.T("api.command_channel_rename.too_long.app_error", map[string]any{
 				"Length": model.ChannelNameMaxLength,
 			}),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	} else if len(message) < model.ChannelNameMinLength {
 		return &model.CommandResponse{
-			Text: args.T("api.command_channel_rename.too_short.app_error", map[string]interface{}{
+			Text: args.T("api.command_channel_rename.too_short.app_error", map[string]any{
 				"Length": model.ChannelNameMinLength,
 			}),
 			ResponseType: model.CommandResponseTypeEphemeral,

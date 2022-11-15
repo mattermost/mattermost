@@ -4,9 +4,11 @@
 package filestore
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
 	"io"
-	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +36,8 @@ type S3FileBackend struct {
 	encrypt    bool
 	trace      bool
 	client     *s3.Client
+	skipVerify bool
+	timeout    time.Duration
 }
 
 type S3FileBackendAuthError struct {
@@ -76,6 +80,7 @@ func (s *S3FileBackendNoBucketError) Error() string {
 
 // NewS3FileBackend returns an instance of an S3FileBackend.
 func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
+	timeout := time.Duration(settings.AmazonS3RequestTimeoutMilliseconds) * time.Millisecond
 	backend := &S3FileBackend{
 		endpoint:   settings.AmazonS3Endpoint,
 		accessKey:  settings.AmazonS3AccessKeyId,
@@ -87,6 +92,8 @@ func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 		pathPrefix: settings.AmazonS3PathPrefix,
 		encrypt:    settings.AmazonS3SSE,
 		trace:      settings.AmazonS3Trace,
+		skipVerify: settings.SkipVerify,
+		timeout:    timeout,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -121,20 +128,27 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Region: b.region,
 	}
 
+	tr, err := s3.DefaultTransport(b.secure)
+	if err != nil {
+		return nil, err
+	}
+	if b.skipVerify {
+		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+	opts.Transport = tr
+
 	// If this is a cloud installation, we override the default transport.
 	if isCloud {
-		tr, err := s3.DefaultTransport(b.secure)
-		if err != nil {
-			return nil, err
-		}
 		scheme := "http"
 		if b.secure {
 			scheme = "https"
 		}
+		newTransport := http.DefaultTransport.(*http.Transport).Clone()
+		newTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: b.skipVerify}
 		opts.Transport = &customTransport{
-			base:   tr,
 			host:   b.endpoint,
 			scheme: scheme,
+			client: http.Client{Transport: newTransport},
 		}
 	}
 
@@ -156,8 +170,10 @@ func (b *S3FileBackend) TestConnection() error {
 	// If a path prefix is present, we attempt to test the bucket by listing objects under the path
 	// and just checking the first response. This is because the BucketExists call is only at a bucket level
 	// and sometimes the user might only be allowed access to the specified path prefix.
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
 	if b.pathPrefix != "" {
-		obj := <-b.client.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
+		obj := <-b.client.ListObjects(ctx, b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound {
@@ -166,7 +182,7 @@ func (b *S3FileBackend) TestConnection() error {
 			exists = false
 		}
 	} else {
-		exists, err = b.client.BucketExists(context.Background(), b.bucket)
+		exists, err = b.client.BucketExists(ctx, b.bucket)
 		if err != nil {
 			return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
 		}
@@ -180,33 +196,66 @@ func (b *S3FileBackend) TestConnection() error {
 }
 
 func (b *S3FileBackend) MakeBucket() error {
-	err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	err := b.client.MakeBucket(ctx, b.bucket, s3.MakeBucketOptions{Region: b.region})
 	if err != nil {
 		return errors.Wrap(err, "unable to create the s3 bucket")
 	}
 	return nil
 }
 
+// s3WithCancel is a wrapper struct which cancels the context
+// when the object is closed.
+type s3WithCancel struct {
+	io.ReadSeekCloser
+	timer  *time.Timer
+	cancel context.CancelFunc
+}
+
+func (sc *s3WithCancel) Close() error {
+	sc.timer.Stop()
+	sc.cancel()
+	return sc.ReadSeekCloser.Close()
+}
+
+// CancelTimeout attempts to cancel the timeout for this reader. It allows calling
+// code to ignore the timeout in case of longer running operations. The methods returns
+// false if the timeout has already fired.
+func (sc *s3WithCancel) CancelTimeout() bool {
+	return sc.timer.Stop()
+}
+
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
+	ctx, cancel := context.WithCancel(context.Background())
+	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
+		cancel()
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
-	return minioObject, nil
+	sc := &s3WithCancel{
+		ReadSeekCloser: minioObject,
+		timer:          time.AfterFunc(b.timeout, cancel),
+		cancel:         cancel,
+	}
+
+	return sc, nil
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	minioObject, err := b.client.GetObject(ctx, b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
 	defer minioObject.Close()
-	f, err := ioutil.ReadAll(minioObject)
+	f, err := io.ReadAll(minioObject)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
@@ -216,7 +265,9 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
 	path = filepath.Join(b.pathPrefix, path)
 
-	_, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	_, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -232,7 +283,9 @@ func (b *S3FileBackend) FileExists(path string) (bool, error) {
 func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	path = filepath.Join(b.pathPrefix, path)
 
-	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	info, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
 	if err != nil {
 		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
 	}
@@ -243,7 +296,9 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
 	path = filepath.Join(b.pathPrefix, path)
 
-	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	info, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
 	if err != nil {
 		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
 	}
@@ -270,7 +325,9 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
-	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 
@@ -296,11 +353,15 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 		dstOpts.Encryption = encrypt.NewSSE()
 	}
 
-	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.CopyObject(ctx, dstOpts, srcOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy the file to %s to the new destination", newPath)
 	}
 
-	if err := b.client.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	if err := b.client.RemoveObject(ctx2, b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
 		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
 	}
 
@@ -316,8 +377,22 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 		contentType = "binary/octet-stream"
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
 	options := s3PutOptions(b.encrypt, contentType)
-	info, err := b.client.PutObject(context.Background(), b.bucket, path, fr, -1, options)
+
+	objSize := -1
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	if isCloud {
+		options.DisableContentSha256 = true
+	}
+	// We pass an object size only in situations where bifrost is not
+	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
+	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+		objSize = buf.Len()
+	}
+
+	info, err := b.client.PutObject(ctx, b.bucket, path, fr, int64(objSize), options)
 	if err != nil {
 		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
@@ -327,7 +402,9 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 
 func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	fp := filepath.Join(b.pathPrefix, path)
-	if _, err := b.client.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if _, err := b.client.StatObject(ctx, b.bucket, fp, s3.StatObjectOptions{}); err != nil {
 		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
 	}
 
@@ -341,35 +418,56 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	options := s3PutOptions(b.encrypt, contentType)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
-	info, err := b.client.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
-	defer b.client.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
-	if info.Size > 0 {
-		src1Opts := s3.CopySrcOptions{
-			Bucket: b.bucket,
-			Object: fp,
-		}
-		src2Opts := s3.CopySrcOptions{
-			Bucket: b.bucket,
-			Object: partName,
-		}
-		dstOpts := s3.CopyDestOptions{
-			Bucket:     b.bucket,
-			Object:     fp,
-			Encryption: sse,
-		}
-		_, err = b.client.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
-		if err != nil {
-			return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
-		}
-		return info.Size, nil
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	objSize := -1
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	if isCloud {
+		options.DisableContentSha256 = true
 	}
+	// We pass an object size only in situations where bifrost is not
+	// used. Bifrost needs to run in HTTPS, which is not yet deployed.
+	if buf, ok := fr.(*bytes.Buffer); ok && !isCloud {
+		objSize = buf.Len()
+	}
+	info, err := b.client.PutObject(ctx2, b.bucket, partName, fr, int64(objSize), options)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
+	}
+	defer func() {
+		ctx4, cancel4 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel4()
+		b.client.RemoveObject(ctx4, b.bucket, partName, s3.RemoveObjectOptions{})
+	}()
 
-	return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
+	src1Opts := s3.CopySrcOptions{
+		Bucket: b.bucket,
+		Object: fp,
+	}
+	src2Opts := s3.CopySrcOptions{
+		Bucket: b.bucket,
+		Object: partName,
+	}
+	dstOpts := s3.CopyDestOptions{
+		Bucket:     b.bucket,
+		Object:     fp,
+		Encryption: sse,
+	}
+	ctx3, cancel3 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel3()
+	_, err = b.client.ComposeObject(ctx3, dstOpts, src1Opts, src2Opts)
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
+	}
+	return info.Size, nil
+
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
 	path = filepath.Join(b.pathPrefix, path)
-	if err := b.client.RemoveObject(context.Background(), b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	if err := b.client.RemoveObject(ctx, b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
 		return errors.Wrapf(err, "unable to remove the file %s", path)
 	}
 
@@ -409,7 +507,9 @@ func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, er
 		Recursive: recursion,
 	}
 	var paths []string
-	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
 		if object.Err != nil {
 			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
 		}
@@ -438,8 +538,13 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 		Prefix:    filepath.Join(b.pathPrefix, path),
 		Recursive: true,
 	}
-	list := b.client.ListObjects(context.Background(), b.bucket, opts)
-	objectsCh := b.client.RemoveObjects(context.Background(), b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+	list := b.client.ListObjects(ctx, b.bucket, opts)
+
+	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel2()
+	objectsCh := b.client.RemoveObjects(ctx2, b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
 	for err := range objectsCh {
 		if err.Err != nil {
 			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)

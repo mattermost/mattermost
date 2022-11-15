@@ -201,11 +201,11 @@ func stripPassword(dsn, schema string) string {
 }
 
 func isJSONMap(data string) bool {
-	var m map[string]interface{}
+	var m map[string]any
 	return json.Unmarshal([]byte(data), &m) == nil
 }
 
-func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+func GetValueByPath(path []string, obj any) (any, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {

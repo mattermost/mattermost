@@ -6,7 +6,7 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -59,7 +59,7 @@ func (rt *PluginResponseWriter) GenerateResponse() *http.Response {
 	res.Status = fmt.Sprintf("%03d %s", res.StatusCode, http.StatusText(res.StatusCode))
 
 	if rt.Len() > 0 {
-		res.Body = ioutil.NopCloser(rt)
+		res.Body = io.NopCloser(rt)
 	} else {
 		res.Body = http.NoBody
 	}

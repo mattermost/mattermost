@@ -620,6 +620,27 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	return r0
 }
 
+// EnsureBotUser provides a mock function with given fields: bot
+func (_m *API) EnsureBotUser(bot *model.Bot) (string, error) {
+	ret := _m.Called(bot)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.Bot) string); ok {
+		r0 = rf(bot)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
+		r1 = rf(bot)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExecuteSlashCommand provides a mock function with given fields: commandArgs
 func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
 	ret := _m.Called(commandArgs)
@@ -975,6 +996,29 @@ func (_m *API) GetChannelsForTeamForUser(teamID string, userID string, includeDe
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// GetCloudLimits provides a mock function with given fields:
+func (_m *API) GetCloudLimits() (*model.ProductLimits, error) {
+	ret := _m.Called()
+
+	var r0 *model.ProductLimits
+	if rf, ok := ret.Get(0).(func() *model.ProductLimits); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ProductLimits)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2895,6 +2939,20 @@ func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 
 	return r0, r1
+}
+
+// RegisterCollectionAndTopic provides a mock function with given fields: collectionType, topicType
+func (_m *API) RegisterCollectionAndTopic(collectionType string, topicType string) error {
+	ret := _m.Called(collectionType, topicType)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(collectionType, topicType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // RegisterCommand provides a mock function with given fields: command

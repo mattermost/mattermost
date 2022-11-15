@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -158,8 +159,8 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"
 
-	err := c1.SamlSettings.isValid()
-	require.Nil(t, err)
+	appErr := c1.SamlSettings.isValid()
+	require.Nil(t, appErr)
 }
 
 func TestConfigServiceProviderDefault(t *testing.T) {
@@ -179,8 +180,8 @@ func TestConfigServiceProviderDefault(t *testing.T) {
 	c1.SetDefaults()
 	assert.Equal(t, *c1.SamlSettings.ServiceProviderIdentifier, *c1.SamlSettings.IdpDescriptorURL)
 
-	err := c1.SamlSettings.isValid()
-	require.Nil(t, err)
+	appErr := c1.SamlSettings.isValid()
+	require.Nil(t, appErr)
 }
 
 func TestConfigIsValidFakeAlgorithm(t *testing.T) {
@@ -201,17 +202,17 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 
 	temp := *c1.SamlSettings.CanonicalAlgorithm
 	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
-	err := c1.SamlSettings.isValid()
-	require.NotNil(t, err)
+	appErr := c1.SamlSettings.isValid()
+	require.NotNil(t, appErr)
 
-	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
+	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", appErr.Message)
 	*c1.SamlSettings.CanonicalAlgorithm = temp
 
 	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
-	err = c1.SamlSettings.isValid()
-	require.NotNil(t, err)
+	appErr = c1.SamlSettings.isValid()
+	require.NotNil(t, appErr)
 
-	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
+	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", appErr.Message)
 }
 
 func TestConfigOverwriteGuestSettings(t *testing.T) {
@@ -793,9 +794,9 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 
 			ds.CustomURLSchemes = test.value
 
-			if err := ds.isValid(); err != nil && test.valid {
-				t.Error("Expected CustomURLSchemes to be valid but got error:", err)
-			} else if err == nil && !test.valid {
+			if appErr := ds.isValid(); appErr != nil && test.valid {
+				t.Error("Expected CustomURLSchemes to be valid but got error:", appErr)
+			} else if appErr == nil && !test.valid {
 				t.Error("Expected CustomURLSchemes to be invalid but got no error")
 			}
 		})
@@ -836,9 +837,9 @@ func TestListenAddressIsValidated(t *testing.T) {
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {
-			err := ss.isValid()
-			require.NotNil(t, err, fmt.Sprintf("Expected '%v' to throw an error.", key))
-			require.Equal(t, "model.config.is_valid.listen_address.app_error", err.Message)
+			appErr := ss.isValid()
+			require.NotNil(t, appErr, fmt.Sprintf("Expected '%v' to throw an error.", key))
+			require.Equal(t, "model.config.is_valid.listen_address.app_error", appErr.Message)
 		}
 	}
 
@@ -925,11 +926,11 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
 			}
 
-			err := ips.isValid()
+			appErr := ips.isValid()
 			if test.ExpectError {
-				assert.NotNil(t, err)
+				assert.NotNil(t, appErr)
 			} else {
-				assert.Nil(t, err)
+				assert.Nil(t, appErr)
 			}
 		})
 	}
@@ -1276,11 +1277,11 @@ func TestLdapSettingsIsValid(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			test.LdapSettings.SetDefaults()
 
-			err := test.LdapSettings.isValid()
+			appErr := test.LdapSettings.isValid()
 			if test.ExpectError {
-				assert.NotNil(t, err)
+				assert.NotNil(t, appErr)
 			} else {
-				assert.Nil(t, err)
+				assert.Nil(t, appErr)
 			}
 		})
 	}
@@ -1320,12 +1321,12 @@ func TestConfigFilteredByTag(t *testing.T) {
 	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
 
 	// Remove entire sections but the map is still there
-	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]interface{})
+	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]any)
 	require.True(t, ok)
-	require.Equal(t, 0, len(clusterSettings))
+	require.Empty(t, clusterSettings)
 
 	// Some fields are removed if they have the filtering tag
-	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]interface{})
+	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]any)
 	require.True(t, ok)
 	_, ok = serviceSettings["ListenAddress"]
 	require.False(t, ok)
@@ -1422,20 +1423,20 @@ func TestConfigImportSettingsIsValid(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
-	err := cfg.ImportSettings.isValid()
-	require.Nil(t, err)
+	appErr := cfg.ImportSettings.isValid()
+	require.Nil(t, appErr)
 
 	*cfg.ImportSettings.Directory = ""
-	err = cfg.ImportSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.import.directory.app_error", err.Id)
+	appErr = cfg.ImportSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.directory.app_error", appErr.Id)
 
 	cfg.SetDefaults()
 
 	*cfg.ImportSettings.RetentionDays = 0
-	err = cfg.ImportSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
+	appErr = cfg.ImportSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", appErr.Id)
 }
 
 func TestConfigExportSettingsDefaults(t *testing.T) {
@@ -1450,44 +1451,88 @@ func TestConfigExportSettingsIsValid(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
-	err := cfg.ExportSettings.isValid()
-	require.Nil(t, err)
+	appErr := cfg.ExportSettings.isValid()
+	require.Nil(t, appErr)
 
 	*cfg.ExportSettings.Directory = ""
-	err = cfg.ExportSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.export.directory.app_error", err.Id)
+	appErr = cfg.ExportSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.export.directory.app_error", appErr.Id)
 
 	cfg.SetDefaults()
 
 	*cfg.ExportSettings.RetentionDays = 0
-	err = cfg.ExportSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
+	appErr = cfg.ExportSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", appErr.Id)
 }
 
 func TestConfigServiceSettingsIsValid(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
-	err := cfg.ServiceSettings.isValid()
-	require.Nil(t, err)
+	appErr := cfg.ServiceSettings.isValid()
+	require.Nil(t, appErr)
 
 	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDisabled
-	err = cfg.ServiceSettings.isValid()
-	require.Nil(t, err)
+	appErr = cfg.ServiceSettings.isValid()
+	require.Nil(t, appErr)
 
 	*cfg.ServiceSettings.ThreadAutoFollow = false
-	err = cfg.ServiceSettings.isValid()
-	require.Nil(t, err)
+	appErr = cfg.ServiceSettings.isValid()
+	require.Nil(t, appErr)
 
 	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOff
-	err = cfg.ServiceSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+	appErr = cfg.ServiceSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
 
 	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsDefaultOn
-	err = cfg.ServiceSettings.isValid()
-	require.NotNil(t, err)
-	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", err.Id)
+	appErr = cfg.ServiceSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+
+	*cfg.ServiceSettings.CollapsedThreads = CollapsedThreadsAlwaysOn
+	appErr = cfg.ServiceSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.autofollow.app_error", appErr.Id)
+
+	*cfg.ServiceSettings.ThreadAutoFollow = true
+	*cfg.ServiceSettings.CollapsedThreads = "test_status"
+	appErr = cfg.ServiceSettings.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
+}
+
+func TestConfigDefaultCallsPluginState(t *testing.T) {
+	t.Run("should enable Calls plugin by default on self-hosted", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+
+	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
+		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
+
+	t.Run("should not re-enable Calls plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.calls": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
+	})
 }

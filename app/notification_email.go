@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -19,12 +20,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
+func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotification, user *model.User, team *model.Team, senderProfileImage []byte) error {
 	channel := notification.Channel
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
-		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
+		teams, err := a.Srv().Store().Team().GetTeamsByUserId(user.Id)
 		if err != nil {
 			return errors.Wrap(err, "unable to get user teams")
 		}
@@ -49,7 +50,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
+		if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
@@ -69,7 +70,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	translateFunc := i18n.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
+	if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = data.Value == "true"
@@ -107,13 +108,28 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 
-	var bodyText, err = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
+	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
 	if err != nil {
 		return errors.Wrap(err, "unable to render the email notification template")
 	}
 
+	templateString := "<%s@" + utils.GetHostnameFromSiteURL(a.GetSiteURL()) + ">"
+	messageID := ""
+	inReplyTo := ""
+	references := ""
+
+	if post.Id != "" {
+		messageID = fmt.Sprintf(templateString, post.Id)
+	}
+
+	if post.RootId != "" {
+		referencesVal := fmt.Sprintf(templateString, post.RootId)
+		inReplyTo = referencesVal
+		references = referencesVal
+	}
+
 	a.Srv().Go(func() {
-		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles); nErr != nil {
+		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(subjectText), bodyText, embeddedFiles, messageID, inReplyTo, references); nErr != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
@@ -130,7 +146,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
  */
 func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName":          siteName,
 		"SenderDisplayName": senderName,
 		"Month":             t.Month,
@@ -145,7 +161,7 @@ func getDirectMessageNotificationEmailSubject(user *model.User, post *model.Post
  */
 func getNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"TeamName": teamName,
 		"Month":    t.Month,
@@ -160,7 +176,7 @@ func getNotificationEmailSubject(user *model.User, post *model.Post, translateFu
  */
 func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post, translateFunc i18n.TranslateFunc, siteName string, channelName string, emailNotificationContentsType string, useMilitaryTime bool) string {
 	t := getFormattedPostTime(user, post, useMilitaryTime, translateFunc)
-	var subjectParameters = map[string]interface{}{
+	var subjectParameters = map[string]any{
 		"SiteName": siteName,
 		"Month":    t.Month,
 		"Day":      t.Day,
@@ -185,6 +201,18 @@ func truncateUserNames(name string, i int) string {
 	return name
 }
 
+type FieldRow struct {
+	Cells []*model.SlackAttachmentField
+}
+
+type EmailMessageAttachment struct {
+	model.SlackAttachment
+
+	Pretext   template.HTML
+	Text      template.HTML
+	FieldRows []FieldRow
+}
+
 type postData struct {
 	SenderName               string
 	ChannelName              string
@@ -195,19 +223,20 @@ type postData struct {
 	Time                     string
 	ShowChannelIcon          bool
 	OtherChannelMembersCount int
+	MessageAttachments       []*EmailMessageAttachment
 }
 
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
+func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
 		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
-	messageTime := map[string]interface{}{
+	messageTime := map[string]any{
 		"Hour":     t.Hour,
 		"Minute":   t.Minute,
 		"TimeZone": t.TimeZone,
@@ -222,13 +251,14 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 			mdPostMessage = postMessage
 		}
 
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
 		if err != nil {
 			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
 			normalizedPostMessage = mdPostMessage
 		}
 		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
+		pData.MessageAttachments = a.processMessageAttachments(post)
 	}
 
 	data := a.Srv().EmailService.NewEmailTemplateData(recipient.Locale)
@@ -247,36 +277,36 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	if channel.Type == model.ChannelTypeDirect {
 		// Direct Messages
-		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.dm.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.dm.subTitle", map[string]any{"SenderName": senderName})
 	} else if channel.Type == model.ChannelTypeGroup {
 		// Group Messages
-		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.group.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.group.subTitle", map[string]any{"SenderName": senderName})
 	} else {
 		// mentions
-		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
-		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]any{"SenderName": senderName})
+		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
 		pData.ChannelName = channelName
 	}
 
 	// Override title and subtile for replies with CRT enabled
-	if a.IsCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+	if a.IsCRTEnabledForUser(c, recipient.Id) && post.RootId != "" {
 		// Title is the same in all cases
-		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
+		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]any{"SenderName": senderName})
 
 		if channel.Type == model.ChannelTypeDirect {
 			// Direct Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]any{"SenderName": senderName})
 		} else if channel.Type == model.ChannelTypeGroup {
 			// Group Reply
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]any{"SenderName": senderName})
 		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
 			// Channel Reply with full content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]any{"SenderName": senderName, "ChannelName": channelName})
 		} else {
 			// Channel Reply with generic content
-			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]interface{}{"SenderName": senderName})
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]any{"SenderName": senderName})
 		}
 	}
 
@@ -288,6 +318,81 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 
 	return a.Srv().TemplatesContainer().RenderToString("messages_notification", data)
+}
+
+func (a *App) processMessageAttachments(post *model.Post) []*EmailMessageAttachment {
+	emailMessageAttachments := []*EmailMessageAttachment{}
+
+	for _, messageAttachment := range post.Attachments() {
+		emailMessageAttachment := &EmailMessageAttachment{
+			SlackAttachment: *messageAttachment,
+			Pretext:         a.prepareTextForEmail(messageAttachment.Pretext),
+			Text:            a.prepareTextForEmail(messageAttachment.Text),
+		}
+
+		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)
+		if err != nil {
+			mlog.Warn("Failed parse to markdown from messageatatchment title", mlog.String("post_id", post.Id), mlog.Err(err))
+			stripedTitle = ""
+		}
+
+		emailMessageAttachment.Title = stripedTitle
+
+		shortFieldRow := FieldRow{}
+
+		for i := range messageAttachment.Fields {
+			// Create a new instance to avoid altering the original pointer reference
+			// We update field value to parse markdown.
+			// If we do that on the original pointer, the rendered text in mattermost
+			// becomes invalid as its no longer a markdown string, but rather an HTML string.
+			field := &model.SlackAttachmentField{
+				Title: messageAttachment.Fields[i].Title,
+				Value: messageAttachment.Fields[i].Value,
+				Short: messageAttachment.Fields[i].Short,
+			}
+
+			if stringValue, ok := field.Value.(string); ok {
+				field.Value = a.prepareTextForEmail(stringValue)
+			}
+
+			if !field.Short {
+				if len(shortFieldRow.Cells) > 0 {
+					emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, shortFieldRow)
+					shortFieldRow = FieldRow{}
+				}
+
+				emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, FieldRow{[]*model.SlackAttachmentField{field}})
+			} else {
+				shortFieldRow.Cells = append(shortFieldRow.Cells, field)
+
+				if len(shortFieldRow.Cells) == 2 {
+					emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, shortFieldRow)
+					shortFieldRow = FieldRow{}
+				}
+			}
+		}
+
+		// collect any leftover short fields
+		if len(shortFieldRow.Cells) > 0 {
+			emailMessageAttachment.FieldRows = append(emailMessageAttachment.FieldRows, shortFieldRow)
+			shortFieldRow = FieldRow{}
+		}
+
+		emailMessageAttachments = append(emailMessageAttachments, emailMessageAttachment)
+	}
+
+	return emailMessageAttachments
+}
+
+func (a *App) prepareTextForEmail(text string) template.HTML {
+	escapedText := html.EscapeString(text)
+	markdownText, err := utils.MarkdownToHTML(escapedText)
+	if err != nil {
+		mlog.Warn("Encountered error while converting markdown to HTML", mlog.Err(err))
+		return template.HTML(text)
+	}
+
+	return template.HTML(markdownText)
 }
 
 type formattedPostTime struct {
@@ -332,7 +437,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
-func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
+func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName, teamURL string) (string, *model.AppError) {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
 		return "", err
@@ -343,7 +448,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 		return postMessage, nil
 	}
 
-	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	channels, err := a.GetChannelsByNames(c, channelNames, team.Id)
 	if err != nil {
 		return "", err
 	}

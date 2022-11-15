@@ -25,6 +25,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore := mocks.Store{}
 	systemStore := mocks.SystemStore{}
 	systemStore.On("GetByName", "FirstAdminSetupComplete").Return(&model.System{Name: "FirstAdminSetupComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "RemainingSchemaMigrations").Return(&model.System{Name: "RemainingSchemaMigrations", Value: "true"}, nil)
 	systemStore.On("GetByName", "ContentExtractionConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "ContentExtractionConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "UpgradedFromTE").Return(nil, model.NewAppError("FakeError", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
 	systemStore.On("GetByName", "ContentExtractionConfigMigrationComplete").Return(&model.System{Name: "ContentExtractionConfigMigrationComplete", Value: "true"}, nil)
@@ -67,6 +68,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddPlaybooksPermissions).Return(&model.System{Name: model.MigrationKeyAddPlaybooksPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddCustomUserGroupsPermissions).Return(&model.System{Name: model.MigrationKeyAddCustomUserGroupsPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddPlayboosksManageRolesPermissions).Return(&model.System{Name: model.MigrationKeyAddPlayboosksManageRolesPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", "CustomGroupAdminRoleCreationMigrationComplete").Return(&model.System{Name: model.MigrationKeyAddPlayboosksManageRolesPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", "products_boards").Return(&model.System{Name: "products_boards", Value: "true"}, nil)
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 

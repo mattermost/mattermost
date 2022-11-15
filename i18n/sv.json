@@ -69,7 +69,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Version 14.1+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 89+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -241,7 +241,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's användningsvillkor har uppdaterats. Logga in på gitlab.com för att acceptera dem och logga sedan in i Mattermost igen."
+    "translation": "GitLab's användningsvillkor har uppdaterats. Gå till {{.URL}} för att acceptera dem och logga sedan in i Mattermost igen."
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
@@ -3072,10 +3072,6 @@
     "translation": "Elasticsearch är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Uppkoppling mot Elasticsearch-servern misslyckades."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch är redan stoppad."
   },
@@ -3552,10 +3548,6 @@
     "translation": "Det saknas en obligatorisk egenskap för svaret: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Svarets CreateAt-värde måste vara större än postens (förälderns) CreateAt-värde."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Saknar en obligatorisk egenskap för reaktionen: User."
   },
@@ -3722,10 +3714,6 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Kunde inte läsa dataimportfilens version."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Kunde inte rangera svaret."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -4913,7 +4901,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Visa meddelande"
+    "translation": "Svara i Mattermost"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -4937,15 +4925,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Misslyckad betalning"
+    "translation": "Betalningen gick inte bra"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Åtgärd krävs: Betalning för Mattermost Cloud misslyckades"
+    "translation": "Åtgärd krävs: Betalning för Mattermost {{.Plan}} misslyckades"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "För att säkerställa en fortsatt prenumeration på Mattermost Cloud bör du kontakta din kortutgivare för att åtgärda problemet, alternativt uppdatera dina betaluppgifter. När betalinformationen är uppdaterad kommer Mattermost försöka reglera eventuellt utestående saldo."
+    "translation": "För att säkerställa en fortsatt tillgång på Mattermost {{.Plan}} bör du kontakta din kortutgivare för att åtgärda problemet, alternativt uppdatera dina betaluppgifter. När betalinformationen är uppdaterad kommer Mattermost försöka reglera eventuellt utestående saldo."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -4966,10 +4954,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Ditt lösenord har uppdaterats av {{.Method}} för {{.TeamDisplayName}} på {{ .TeamURL }}."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fixa nu"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5290,14 +5274,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "De kanaler som ingår i inbjudan måste tillhöra de team som inbjudan gäller för."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Din licens tillåter inte gäståtkomst"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gäståtkomst har inaktiverats"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -5856,10 +5832,6 @@
     "translation": "Misslyckades att arrangera."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Kunde inte efterfråga en prova-på-licens. Konfigurera en sajt-URL under web-server-delen Mattermost System Console."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Kunde inte få en prova-på-licens, försök igen eller kontakta support@mattermost.com. Kunde inte ta fram antalet registrerade användare."
   },
@@ -6244,10 +6216,6 @@
     "translation": "Filen är över maximala dimensioner och kunde inte laddas upp: {{.Filename}}"
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Kunde inte ladda upp filer. Felaktigt antal filer angivna."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Kunde inte ladda upp fil(er). Har {{.NumClientIds}} client_ids för {{.NumFiles}} filer."
   },
@@ -6464,7 +6432,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Ogiltig eller saknad {{.Name}} i request body."
+    "translation": "Ogiltig eller saknad {{.Name}} i förfrågan."
   },
   {
     "id": "api.context.get_user.app_error",
@@ -6812,7 +6780,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Öppna Mattermost hjälp sida"
+    "translation": "Visa Mattermost hjälpmeddelande"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -7203,7 +7171,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.daysCount}} dagar."
+    "translation": "Sessionen har utgått: Logga in för att fortsätta ta emot notifieringar. Systemadministratören har konfigurerat {{.siteName}} sessioner att gälla i {{.hoursCount}} timmar."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -8089,7 +8057,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8141,7 +8109,7 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Mejla oss närsomhelst på "
+    "translation": "Behöver du hjälp eller har frågor? Mejla oss på "
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -8193,7 +8161,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Din testperiod på 14 dagar av {{.WorkSpace}} workspace är redo att starta!"
+    "translation": "Din arbetsyta är redo!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -8253,7 +8221,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.add_apps_sub_info",
-    "translation": "Effektivisera ditt arbete med verktyg som Github, Jira och Zoom. Utforska alla integrationer vi har på vår"
+    "translation": "Effektivisera ditt arbete med verktyg som GitHub, Jira och Zoom. Utforska alla integrationer vi har på vår"
   },
   {
     "id": "model.user.is_valid.marshal.app_error",
@@ -8664,22 +8632,6 @@
     "translation": "Det gick inte att hämta statusen för det första administratörsbesöket på marknadsplatsen från butiken."
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Din kostnadsfria testperiod på 14 dagar slutar snart"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, din 14 dagars testperiod av Mattermost avslutas om tre dagar, den {{.TrialEnd}}. Lägg till din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud testperiod avslutas"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Lägg till betalmetod"
-  },
-  {
     "id": "api.command_remote.displayname.help",
     "translation": "Visningsnamn för säker anslutning"
   },
@@ -8702,22 +8654,6 @@
   {
     "id": "app.user.send_auto_response.app_error",
     "translation": "Kunde inte skicka automatisk svar från användaren."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Din kostnadsfria testperiod av Mattermost avslutas idag"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, din 14-dagars kostnadsfria testperiod av Mattermost Cloud Enterprise avslutas idag, {{.TodayDate}}. Uppdatera din betalinformation för att säkerställa att ditt team kan fortsätta nyttja funktionerna i Cloud Enterprise."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Din testperiod av Mattermost Cloud är slut"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Börja din prenumeration"
   },
   {
     "id": "api.command_channel_purpose.update_channel.max_length",
@@ -8959,10 +8895,6 @@
     "translation": " svarade i en tråd."
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Fel vid bulkimport av bifogade filer."
-  },
-  {
     "id": "model.session.is_valid.user_id.app_error",
     "translation": "Ogiltigt UserId-fält för sessionen."
   },
@@ -9061,5 +8993,581 @@
   {
     "id": "Boards",
     "translation": "Boards"
+  },
+  {
+    "id": "api.custom_groups.no_remote_id",
+    "translation": "remote_id måste vara tomt för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.must_be_referenceable",
+    "translation": "allow_reference måste vara 'true' för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.license_error",
+    "translation": "inte licensierad för anpassade grupper"
+  },
+  {
+    "id": "api.custom_groups.feature_disabled",
+    "translation": "funktionen för anpassade grupper är inaktiverad"
+  },
+  {
+    "id": "api.custom_groups.count_err",
+    "translation": "fel när antal grupper beräknades"
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
+    "translation": "Fel vid tolkning av förfrågan."
+  },
+  {
+    "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
+    "translation": "Ogiltig förfrågan."
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "MattermostAppID får ha högst 32 tecken."
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-postlistan är tom"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Kanalnamnet är inte giltigt"
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Namnet krockar med ett befintligt system-emoji-namn."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "Bleve Bulk Indexing Batch Size måste vara minst {{.BatchSize}}."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "Namnet måste bestå av 1 eller flera gemena alfanumeriska tecken."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Ogiltig post_id"
+  },
+  {
+    "id": "app.system.get_onboarding_request.app_error",
+    "translation": "Misslyckades att få status för slutförandet av onboarding."
+  },
+  {
+    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "translation": "Den förpaketerade plugin-versionen kunde inte tolkas."
+  },
+  {
+    "id": "app.member_count",
+    "translation": "fel då antalet medlemmar skulle hämtas"
+  },
+  {
+    "id": "app.job.get_all_jobs_by_type_and_status.app_error",
+    "translation": "Det går inte att få fram alla jobb efter typ och status."
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Det går inte att utföra åtgärden för den källtypen."
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "gruppnamnet är inte unikt"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "Det går inte att få fram antalet filer i kanalen"
+  },
+  {
+    "id": "api.templates.server_inactivity_title",
+    "translation": "Öka produktiviteten med dessa fantastiska funktioner"
+  },
+  {
+    "id": "api.templates.server_inactivity_subtitle",
+    "translation": "Hej {{.Name}}, vi ser att din Mattermost-server samlat lite damm. Ta en titt på några funktioner som kan hjälpa till att lätta på arbetsbördan för ditt team."
+  },
+  {
+    "id": "api.templates.server_inactivity_subject",
+    "translation": "Öppna Mattermost för att öka teamets produktivitet!"
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet2",
+    "translation": "Hantera uppgifter med hjälp av "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet1",
+    "translation": "Hantera arbetsflöden med "
+  },
+  {
+    "id": "api.templates.server_inactivity_info_bullet",
+    "translation": "Gäståtkomst till specificerade "
+  },
+  {
+    "id": "api.templates.server_inactivity_info",
+    "translation": "Kom och kolla in det!"
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Du fick det här engångsmejlet eftersom din Mattermost-server har varit inaktiv i mer än {{.Hours}} timmar. Det här e-postmeddelandet genererades automatiskt av din Mattermost-server."
+  },
+  {
+    "id": "api.templates.server_inactivity_button",
+    "translation": "Öppna Mattermost"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelsLen }} kanaler i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} bjöd in dig att ansluta till {{ .ChannelsLen }} kanaler i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} bjöd in dig att ansluta till kanalen {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.invite_team_and_channel_body.title",
+    "translation": "{{ .SenderName }} bjöd in dig att ansluta till kanalen {{ .ChannelName }} i teamet {{ .TeamDisplayName }}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Du är nu uppgraderad!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Din {{.WorkspaceName}}-arbetsyta har nu uppgraderats. Du kommer att faktureras från och med {{.Date}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Bekräftelse av uppgradering av Mattermost"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP är inte konfigurerat i systemkonsolen"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email.app_error",
+    "translation": "Fel när e-postmeddelandet skickas"
+  },
+  {
+    "id": "api.license_error",
+    "translation": "api-anslutningspunkten kräver en licens"
+  },
+  {
+    "id": "api.license.request_trial_license.embargoed",
+    "translation": "Vi kunde inte behandla begäran på grund av begränsningar för länder med embargo. [Läs mer i vår dokumentation] (https://mattermost.com/pl/limitations-for-embargoed-countries), eller kontakta legal@mattermost.com för frågor om exportbegränsningar."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Insights ligger bakom en funktionsflagga som inte är aktiverad."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_only_params",
+    "translation": "Parametrarna OnlyThreads och OnlyTotals för getThreadsForUser utesluter varandra"
+  },
+  {
+    "id": "api.file.test_connection_s3_settings_nil.app_error",
+    "translation": "Inställningarna för lagring av filer har odefinierade värden."
+  },
+  {
+    "id": "api.file.test_connection_email_settings_nil.app_error",
+    "translation": "Inställningarna för e-post har odefinierade värden."
+  },
+  {
+    "id": "api.error_set_first_admin_complete_setup",
+    "translation": "Fel vid försök att spara den första admin-installationen i butiken."
+  },
+  {
+    "id": "api.error_get_first_admin_complete_setup",
+    "translation": "Fel vid försöket att hämta den första administratörens kompletta installation från butiken."
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Elasticsearch-inställningarna har odefinierade värden."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Fel vid uppdatering av prenumeration från webhook."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Fel när senaste sökningar skulle hämtas"
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uppladdning via mmctl till en molninstans stöds inte. Se dokumentationen här: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Du har nått maxgränsen {{.NumIntegrations}} aktiva integrationer. Om du vill installera obegränsat antal integrationer kan du uppgradera till en av våra betal-abonnemang."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Det gick inte att få fram lagringsvolym."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Det går inte att få fram antalet team"
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Kunde inte ta fram team-användning"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Kunde inte återställa team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Kunde inte skapa nytt team eftersom gränsen för antal team har uppnåtts"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Det går inte att få fram användarens topp-trådar."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Det går inte att få fram teamets topp-trådar."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Funktionen Insights är inaktiverad."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Har redan notifierat systemadministratören"
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Felaktigt timeoutvärde {{.Value}}. Måste vara ett positivt tal."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Kunde inte tolka värdet:{{.Value}} till int64"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Kunde inte generera filinformation från det uppladdade datat."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Här är en påminnelse om meddelandet från @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta inlägget."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Fel vid hämtning av det senaste tillgängliga inlägget"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Fel vid rensning av cache av teammedlemmar"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Det går inte att få fram användarens topp-direktmeddelanden."
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Kommandot Marketplace stöds inte på din enhet."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marknadsplats"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Besök Marketplace"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanban-struktur för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Filer"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Betalning ej mottagen"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Kontakta din bank eller kortutgivare för att lösa eventuella problem. Uppdatera sedan dina betalningsuppgifter vid behov."
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "En nedgraderad arbetsyta kan få negativ påverkan på dina kritiska arbetsflöden, integrationer och andra affärskritiska aktiviteter som utförs på arbetsytan."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "Vi har inte kunnat få betalt för utestående fakturor med datum {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "OBS: Din Mattermost {{.Plan}} kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Din arbetsyta kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "Du har fortfarande möjlighet att hålla din Mattermost {{.Plan}} aktiv, men du måste lösa problemen med betalning."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Agera för att behålla funktionerna i Mattermost {{.Plan}}"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "Visa all dokumentation om gränsvärden."
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktiva plugins och integrationer"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Meddelandehistorik"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Kort från dina Boards"
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML kunde inte ladda din Identity Providers Publika Certificat. Kontakta din systemadministratör."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Vi kunde inte få fram användarens antal märken."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Det går inte att skicka notifieringsmeddelande."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Det går inte att spara uppgifter om notifiering."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat en uppgradering för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat en uppgradering för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat starta Enterprise trial för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} medlemmar i arbetsytan {{.WorkspaceName}} har önskat starta Enterprise trial för att få tillgång till: "
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Abonnemanget är inte försenat"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Kunde inte hämta molnprenumeration"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Det går inte att hämta fram namnet på den aktuella planen"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Kunde inte hämta molnprodukter"
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Din Mattermost-arbetsyta har nedgraderats"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "Uppdatera betalningsinformationen om du vill ta tillbaka ditt data från arkivet och behålla betal-funktioner."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "Om du använder Cloud Professional- eller Enterprise-funktioner för viktiga affärsaktiviteter kommer dessa inte längre att vara tillgängliga och du kommer att uppleva försämrad prestanda."
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Din Mattermost Cloud-arbetsyta har nedgraderats"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Visa abonnemang och priser"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Din arbetsyta kommer att nedgraderas om 15 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Starter."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Starter. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Din Mattermost {{.Plan}} kommer att nedgraderas om 15 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Nedgradera till Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Din betalning slutfördes inte"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "För att hålla din {{.Plan}}-plan aktiv, kontakta din bank eller kortutgivare så snart som möjligt. Uppdatera din betalningsinformation vid behov."
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Vi kunde inte behandla din senaste betalning"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Din Mattermost-arbetsyta kommer att nedgraderas om 30 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Starter nedan."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "Vi nedgraderar din arbetsyta automatiskt om 30 dagar om vi inte kan behandla din betalning."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Uppdatera din betalningsinformation snarast så att utestående fakturor kan hanteras."
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Åtgärder krävs: Arbetsytan kommer att nedgraderas inom 30 dagar"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Nedgradera till Cloud Starter"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Uppdatera betalningsinformation"
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Din arbetsyta kommer snart att nedgraderas"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Uppdatera din kreditkortsinformation nu."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Information i obligatoriska fält saknas för att kunna skicka e-postmeddelanden om utebliven betalning."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fel under utförandet av jobbet."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "gruppnamnet finns redan som ett reserverat namn"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fel vid hämtning av den senast tillgängliga filen"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Ditt abonnemang begränsar möjligheten att hämta filen."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Din licens tillåter inte gäståtkomst"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gäståtkomst har inaktiverats"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ogiltigt tidsintervall."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kan inte aktiveras i produktionsläge."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Samlingstypen finns redan."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Ämnestypen finns redan."
   }
 ]

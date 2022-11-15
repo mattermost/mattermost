@@ -278,7 +278,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 			return errors.Wrap(err, "failed to query active configuration")
 		}
 		if oldId != "" {
-			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]interface{}{"id": oldId}); err != nil {
+			if _, err := tx.NamedExec("UPDATE Configurations SET Active = NULL WHERE Id = :id", map[string]any{"id": oldId}); err != nil {
 				return errors.Wrap(err, "failed to deactivate current configuration")
 			}
 		}
@@ -288,7 +288,7 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		}
 	}
 
-	params := map[string]interface{}{
+	params := map[string]any{
 		"id":        model.NewId(),
 		"value":     value,
 		"create_at": model.GetMillis(),
@@ -329,7 +329,7 @@ func (ds *DatabaseStore) Load() ([]byte, error) {
 
 // GetFile fetches the contents of a previously persisted configuration file.
 func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
-	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT Data FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -351,7 +351,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "file data failed length check")
 	}
-	params := map[string]interface{}{
+	params := map[string]any{
 		"name":      name,
 		"data":      data,
 		"create_at": model.GetMillis(),
@@ -380,7 +380,7 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (ds *DatabaseStore) HasFile(name string) (bool, error) {
-	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	query, args, err := sqlx.Named("SELECT COUNT(*) FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -398,7 +398,7 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 
 // RemoveFile remoevs a previously persisted configuration file.
 func (ds *DatabaseStore) RemoveFile(name string) error {
-	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]interface{}{
+	_, err := ds.db.NamedExec("DELETE FROM ConfigurationFiles WHERE Name = :name", map[string]any{
 		"name": name,
 	})
 	if err != nil {
@@ -420,7 +420,7 @@ func (ds *DatabaseStore) Close() error {
 
 // removes configurations from database if they are older than threshold.
 func (ds *DatabaseStore) cleanUp(thresholdCreatAt int) error {
-	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]interface{}{"timestamp": thresholdCreatAt}); err != nil {
+	if _, err := ds.db.NamedExec("DELETE FROM Configurations Where CreateAt < :timestamp", map[string]any{"timestamp": thresholdCreatAt}); err != nil {
 		return errors.Wrap(err, "unable to clean Configurations table")
 	}
 

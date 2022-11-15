@@ -141,6 +141,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 		UserId:      user.Id,
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
+		CreateAt:    model.GetMillis(),
 	}
 
 	if !user.IsGuest() {
@@ -191,7 +192,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
 func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
-	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil)
+	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil, "")
 	message.Add("user_id", teamMember.UserId)
 	message.Add("team_id", teamMember.TeamId)
 	ts.wh.Publish(message)

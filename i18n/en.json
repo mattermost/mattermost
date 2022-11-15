@@ -468,12 +468,32 @@
     "translation": "Webhook event was not handled. Either it is missing or it is not valid."
   },
   {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Missing required fields to send delinquency email."
+  },
+  {
     "id": "api.cloud.license_error",
     "translation": "Your license does not support cloud requests."
   },
   {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Already notified admin"
+  },
+  {
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "Error updating subscription from webhook."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Unable to create team because teams limit has been reached"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Unable to restore team because teams limit has been reached"
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -832,11 +852,15 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Show Mattermost help message"
   },
   {
     "id": "api.command_help.name",
     "translation": "help"
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains three key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -949,6 +973,18 @@
   {
     "id": "api.command_logout.name",
     "translation": "logout"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Open the Marketplace"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "The marketplace command is not supported on your device."
   },
   {
     "id": "api.command_me.desc",
@@ -1738,6 +1774,10 @@
     "translation": "File attachments have been disabled on this server."
   },
   {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Uploading via mmctl to a Cloud instance is not supported. Please check the documentation here: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
     "id": "api.file.file_exists.app_error",
     "translation": "Unable to check if the file exists."
   },
@@ -1830,10 +1870,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Unable to upload files. Incorrect number of files specified."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
@@ -1887,7 +1923,7 @@
   },
   {
     "id": "api.insights.feature_disabled",
-    "translation": " "
+    "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
     "id": "api.invalid_channel",
@@ -2020,10 +2056,6 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
-  },
-  {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
     "id": "api.license.upgrade_needed.app_error",
@@ -2944,20 +2976,20 @@
     "translation": "Error invalidating email invites."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your license does not support guest accounts"
-  },
-  {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Invalid or missing request body."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3108,44 +3140,12 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Start Subscription"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud trial has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, your 14-day free trial of Mattermost Cloud Enterprise ended on {{.TodayDate}}. We hope you’ve enjoyed our flexible and secure collaboration platform. Please add your payment information to ensure your team can continue collaborating with Mattermost."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Your free 14-day trial of Mattermost has ended"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Add Payment method"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud trial ending"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, your 14-day trial of Mattermost is ending in 3 days, on {{.TrialEnd}}. Please add your payment information to ensure your team can continue enjoying the benefits of Mattermost Cloud."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Your free 14-day trial of Mattermost is ending soon"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Confirmation"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You will be billed starting {{.TrialEnd}}"
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
@@ -3217,7 +3217,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "Your 14 day trial of the {{.WorkSpace}} workspace is ready to go!"
+    "translation": "Your workspace is ready to go!"
   },
   {
     "id": "api.templates.copyright",
@@ -3238,6 +3238,190 @@
   {
     "id": "api.templates.deactivate_subject",
     "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_14.subject",
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle1",
+    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_14.subtitle2",
+    "translation": "Please contact your financial institution to resolve any issues. Then, update your payment details as needed."
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Payment not received"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.cards",
+    "translation": "Cards from your Boards"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Files"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Message history"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Active plugins and integrations"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_30.limits_documentation",
+    "translation": "View all limits documentation."
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Act to keep your Mattermost {{.Plan}} Features"
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle1",
+    "translation": "You have time to keep your Mattermost {{.Plan}} active but you'll need to resolve issues with your payment method."
+  },
+  {
+    "id": "api.templates.delinquency_30.subtitle2",
+    "translation": "if no action is taken, your workspace will be downgraded and the following data may be archived:"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_45.subject",
+    "translation": "Notice: Your Mattermost {{.Plan}} will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle1",
+    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle2",
+    "translation": "A downgraded workspace might negatively affect critical workflows, integrations and other business critical activities carried at your workspace."
+  },
+  {
+    "id": "api.templates.delinquency_45.subtitle3",
+    "translation": "Update your credit card information now."
+  },
+  {
+    "id": "api.templates.delinquency_45.title",
+    "translation": "Your workspace will be downgraded soon"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_60.subject",
+    "translation": "Action Required: Workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle1",
+    "translation": "Please update your payment information soon to process your outstanding invoices."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle2",
+    "translation": "We will downgrade your workspace automatically in 30 days if we are unable to process your payment."
+  },
+  {
+    "id": "api.templates.delinquency_60.subtitle3",
+    "translation": "Update your payment information now or downgrade to Cloud Free below."
+  },
+  {
+    "id": "api.templates.delinquency_60.title",
+    "translation": "Your Mattermost workspace will be downgraded in 30 days"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "We couldn't process your most recent payment"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle2",
+    "translation": "To keep your {{.Plan}} plan active, please contact your financial institution as soon as possible. Then, update your payment details as needed."
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "Your payment wasn't completed"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_75.subject",
+    "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle1",
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle2",
+    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+  },
+  {
+    "id": "api.templates.delinquency_75.subtitle3",
+    "translation": "Update your payment information now, or downgrade to Cloud Free."
+  },
+  {
+    "id": "api.templates.delinquency_75.title",
+    "translation": "Your workspace will be downgraded in 15 days"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Update payment"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "View Plans & Pricing"
+  },
+  {
+    "id": "api.templates.delinquency_90.subject",
+    "translation": "Your Mattermost Cloud workspace has been downgraded"
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle1",
+    "translation": "If you use Cloud Professional or Enterprise features for important business operations, these will no longer be available and you'll experience degraded performance."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle2",
+    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
+  },
+  {
+    "id": "api.templates.delinquency_90.subtitle3",
+    "translation": "To unarchive your data and keep paid features, update your payment information."
+  },
+  {
+    "id": "api.templates.delinquency_90.title",
+    "translation": "Your Mattermost workspace has been downgraded"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -3261,7 +3445,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -3341,11 +3525,11 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelName }} on the {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
@@ -3396,10 +3580,6 @@
     "translation": "Multi-factor authentication was removed"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
     "id": "api.templates.password_change_body.info",
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
@@ -3421,15 +3601,15 @@
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+    "translation": "To ensure uninterrupted access to Mattermost {{.Plan}}, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
+    "translation": "Action required: Payment failed for Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
+    "translation": "The payment wasn't successful"
   },
   {
     "id": "api.templates.payment_failed_no_card.button",
@@ -3453,7 +3633,7 @@
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "View Message"
+    "translation": "Reply in Mattermost"
   },
   {
     "id": "api.templates.questions_footer.info",
@@ -3500,6 +3680,10 @@
     "translation": "Open Mattermost"
   },
   {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "You received this one-time email because your Mattermost server was inactive for more than {{.Hours}} hours. This email was automatically generated by your Mattermost server."
+  },
+  {
     "id": "api.templates.server_inactivity_info",
     "translation": "Come and check it out!"
   },
@@ -3517,7 +3701,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "HEY! Open Mattermost to increase your team’s productivity!"
+    "translation": "Come open Mattermost to increase your team’s productivity!"
   },
   {
     "id": "api.templates.server_inactivity_subtitle",
@@ -4212,10 +4396,6 @@
     "translation": "Cannot retrieve users for an archived channel"
   },
   {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -4270,22 +4450,6 @@
   {
     "id": "api.websocket_handler.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -4516,14 +4680,6 @@
     "translation": "Unable to get public channels."
   },
   {
-    "id": "app.channel.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.channel.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
   },
@@ -4626,6 +4782,46 @@
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "app.cloud.get_cloud_products.app_error",
+    "translation": "Couldn't retrieve cloud products"
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Unable to get current plan name"
+  },
+  {
+    "id": "app.cloud.get_subscription.app_error",
+    "translation": "Couldn't retrieve cloud subscription"
+  },
+  {
+    "id": "app.cloud.get_subscription_delinquency_date.app_error",
+    "translation": "Subscription is not delinquent"
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested starting the Enterprise trial for access to: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} members of the {{.WorkspaceName}} workspace have requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "{{.UsersNum}} member of the {{.WorkspaceName}} workspace has requested a workspace upgrade for: "
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection type already exists."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
   },
   {
     "id": "app.command.createcommand.internal_error",
@@ -4800,6 +4996,10 @@
     "translation": "Failed to add file to zip archive during export."
   },
   {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Can not fetch the file as it is past the cloud plan's limit."
+  },
+  {
     "id": "app.file_info.get.app_error",
     "translation": "Unable to get the file info."
   },
@@ -4824,10 +5024,6 @@
     "translation": "Unable to perform operation for that source type."
   },
   {
-    "id": "app.group.get_by_username_failure",
-    "translation": " "
-  },
-  {
     "id": "app.group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -4848,10 +5044,6 @@
     "translation": "group member already exists"
   },
   {
-    "id": "app.group.username_conflict",
-    "translation": " "
-  },
-  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -4870,10 +5062,6 @@
   {
     "id": "app.import.bulk_import.json_decode.error",
     "translation": "JSON decode of line failed."
-  },
-  {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Error while processing bulk import attachments."
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -5014,10 +5202,6 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Unable to marshal response."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -5186,10 +5370,6 @@
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Missing required Reaction property: User."
-  },
-  {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -5428,8 +5608,20 @@
     "translation": "insert error"
   },
   {
+    "id": "app.insights.feature_disabled",
+    "translation": "Insights feature is disabled."
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
+  },
+  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
   },
   {
     "id": "app.job.get.app_error",
@@ -5458,6 +5650,14 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Error fetching last accessible post"
   },
   {
     "id": "app.license.generate_renewal_token.app_error",
@@ -5550,6 +5750,14 @@
   {
     "id": "app.notification.subject.notification.full",
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Unable to save notify data."
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Unable to send notification post."
   },
   {
     "id": "app.oauth.delete_app.app_error",
@@ -5716,6 +5924,10 @@
     "translation": "Plugin is not installed."
   },
   {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} cannot be enabled in product mode."
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Unable to delete plugin."
   },
@@ -5788,8 +6000,16 @@
     "translation": "Unable to get post counts by day."
   },
   {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Unable to get teams usage"
+  },
+  {
     "id": "app.post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Can not fetch the post as it is past the cloud's plan limit."
   },
   {
     "id": "app.post.delete.app_error",
@@ -5844,6 +6064,18 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Unable to get top DMs for user."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "Unable to get top threads for team."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "Unable to get top threads for user."
+  },
+  {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
   },
@@ -5874,6 +6106,10 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.preference.delete.app_error",
@@ -5916,16 +6152,12 @@
     "translation": "Unable to get reactions for post."
   },
   {
-    "id": "app.reaction.get_top_for_team_since.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.reaction.get_top_for_user_since.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Error fetching recent searches"
   },
   {
     "id": "app.recover.delete.app_error",
@@ -6108,6 +6340,10 @@
     "translation": "Failed to retrieve the team members."
   },
   {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Error clearing team member cache"
+  },
+  {
     "id": "app.team.get.find.app_error",
     "translation": "Unable to find the existing team."
   },
@@ -6264,6 +6500,10 @@
     "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Unable to get team count"
+  },
+  {
     "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service."
   },
@@ -6324,6 +6564,10 @@
     "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
   },
   {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Failed to generate file info from uploaded data."
+  },
+  {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
@@ -6342,6 +6586,10 @@
   {
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Failed to get storage usage."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -6368,16 +6616,16 @@
     "translation": "We encountered an error finding the account."
   },
   {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "We could not get the badge count for the user."
+  },
+  {
     "id": "app.user.get_by_auth.missing_account.app_error",
     "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
   {
     "id": "app.user.get_by_auth.other.app_error",
     "translation": "We encountered an error trying to find the account by authentication type."
-  },
-  {
-    "id": "app.user.get_by_name_failure",
-    "translation": " "
   },
   {
     "id": "app.user.get_by_username.app_error",
@@ -6434,10 +6682,6 @@
   {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing."
-  },
-  {
-    "id": "app.user.group_name_conflict",
-    "translation": " "
   },
   {
     "id": "app.user.missing_account.const",
@@ -6856,6 +7100,10 @@
     "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
   },
   {
+    "id": "common.parse_error_int64",
+    "translation": "Failed to parse the value:{{.Value}} to int64"
+  },
+  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7204,10 +7452,6 @@
     "translation": "Elasticsearch is already stopped."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch is disabled."
   },
@@ -7470,6 +7714,10 @@
   {
     "id": "ent.saml.build_request.encoding.app_error",
     "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.configure.certificate_parse_error.app_error",
+    "translation": "SAML could not load Identity Provider Public Certificate successfully, please contact your system administrator."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -7932,6 +8180,10 @@
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
   },
   {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },
@@ -8058,6 +8310,10 @@
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Invalid decoder concurrency {{.Value}}. Should be a positive number or -1."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -8376,10 +8632,6 @@
     "translation": "Invalid value for user_id."
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.group.create_at.app_error",
     "translation": "invalid create at property for group."
   },
@@ -8402,6 +8654,10 @@
   {
     "id": "model.group.name.invalid_length.app_error",
     "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -8492,8 +8748,8 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.insights.time_range.app_error",
-    "translation": " "
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Invalid time range."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -9057,7 +9313,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
   },
   {
     "id": "plugin.api.get_users_in_channel",
@@ -9229,11 +9485,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

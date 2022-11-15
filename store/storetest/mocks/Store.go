@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost-server/v6/model"
 	mock "github.com/stretchr/testify/mock"
 
+	sql "database/sql"
+
 	store "github.com/mattermost/mattermost-server/v6/store"
 
 	time "time"
@@ -287,6 +289,54 @@ func (_m *Store) GetDbVersion(numerical bool) (string, error) {
 	return r0, r1
 }
 
+// GetInternalMasterDB provides a mock function with given fields:
+func (_m *Store) GetInternalMasterDB() *sql.DB {
+	ret := _m.Called()
+
+	var r0 *sql.DB
+	if rf, ok := ret.Get(0).(func() *sql.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.DB)
+		}
+	}
+
+	return r0
+}
+
+// GetInternalReplicaDB provides a mock function with given fields:
+func (_m *Store) GetInternalReplicaDB() *sql.DB {
+	ret := _m.Called()
+
+	var r0 *sql.DB
+	if rf, ok := ret.Get(0).(func() *sql.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.DB)
+		}
+	}
+
+	return r0
+}
+
+// GetInternalReplicaDBs provides a mock function with given fields:
+func (_m *Store) GetInternalReplicaDBs() []*sql.DB {
+	ret := _m.Called()
+
+	var r0 []*sql.DB
+	if rf, ok := ret.Get(0).(func() []*sql.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*sql.DB)
+		}
+	}
+
+	return r0
+}
+
 // Group provides a mock function with given fields:
 func (_m *Store) Group() store.GroupStore {
 	ret := _m.Called()
@@ -359,6 +409,22 @@ func (_m *Store) LockToMaster() {
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()
+}
+
+// NotifyAdmin provides a mock function with given fields:
+func (_m *Store) NotifyAdmin() store.NotifyAdminStore {
+	ret := _m.Called()
+
+	var r0 store.NotifyAdminStore
+	if rf, ok := ret.Get(0).(func() store.NotifyAdminStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.NotifyAdminStore)
+		}
+	}
+
+	return r0
 }
 
 // OAuth provides a mock function with given fields:

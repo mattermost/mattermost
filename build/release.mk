@@ -82,9 +82,9 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
 endif
 
-build: build-linux build-windows build-osx
+build: setup-go-work build-linux build-windows build-osx
 
-build-cmd: build-cmd-linux build-cmd-windows build-cmd-osx
+build-cmd: setup-go-work build-cmd-linux build-cmd-windows build-cmd-osx
 
 build-client:
 	@echo Building mattermost web app
@@ -170,6 +170,11 @@ else
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH=$(PLUGIN_ARCH); \
+		if [ "$$ARCH" != "linux-amd64" ]; then \
+			case $$plugin_package in \
+				"mattermost-plugin-calls"*) continue ;; \
+			esac; \
+		fi; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_GENERIC)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_GENERIC)/prepackaged_plugins; \
 		HAS_ARCH=`tar -tf $(DIST_PATH_GENERIC)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
@@ -184,6 +189,17 @@ else
 		fi; \
 	done
 endif
+
+	@# Products
+
+	@if [ -d $(BUILD_BOARDS_DIR) ] ; then \
+		echo "Copying web app files for Boards product"; \
+		mkdir -p $(DIST_PATH_GENERIC)/client/products/boards; \
+		cp -R $(BUILD_BOARDS_DIR)/mattermost-plugin/webapp/dist/* $(DIST_PATH_GENERIC)/client/products/boards/; \
+	else \
+		echo "Unable to find files for Boards product. Please ensure that the Focalboard repository is checked out alongside the server and run 'make build-product' in it."; \
+		exit 1; \
+	fi
 
 package-osx-amd64: package-prep
 	DIST_PATH_GENERIC=$(DIST_PATH_OSX_AMD64) CURRENT_PACKAGE_ARCH=darwin_amd64 PLUGIN_ARCH=osx-amd64 MMCTL_PLATFORM="Darwin-x86_64" MM_BIN_NAME=mattermost $(MAKE) package-general
@@ -234,6 +250,9 @@ endif
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
+		case $$plugin_package in \
+			"mattermost-plugin-calls"*) continue ;; \
+		esac; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH_WIN)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH_WIN)/prepackaged_plugins; \
 		HAS_ARCH=`tar -tf $(DIST_PATH_WIN)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \

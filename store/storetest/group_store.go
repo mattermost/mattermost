@@ -90,6 +90,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMember", func(t *testing.T) { groupTestGetMember(t, ss) })
 	t.Run("GetNonMemberUsersPage", func(t *testing.T) { groupTestGetNonMemberUsersPage(t, ss) })
+
+	t.Run("DistinctGroupMemberCountForSource", func(t *testing.T) { groupTestDistinctGroupMemberCountForSource(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -514,7 +516,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 	// Returns all the groups
 	d1, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroups })
+	require.Condition(t, func() bool { return len(d1) >= numGroups }, len(d1), ">=", numGroups)
 	for _, expectedGroup := range groups {
 		present := false
 		for _, dbGroup := range d1 {
@@ -726,7 +728,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	d5, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
 	require.NoError(t, err)
 	afterCount := len(d5)
-	require.Condition(t, func() bool { return beforeCount == afterCount+1 })
+	require.Condition(t, func() bool { return beforeCount == afterCount+1 }, beforeCount, "==", afterCount+1)
 
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
@@ -834,25 +836,24 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Check returns members
-	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	groupMembers, err := ss.Group().GetMemberUsersPage(group.Id, 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(groupMembers))
 
 	// Check page 1
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
-	require.Equal(t, user3.Id, groupMembers[0].Id)
-	require.Equal(t, user2.Id, groupMembers[1].Id)
+	require.ElementsMatch(t, []*model.User{user2, user3}, groupMembers)
 
 	// Check page 2
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user1.Id, groupMembers[0].Id)
+	require.ElementsMatch(t, []*model.User{user1}, groupMembers)
 
 	// Check madeup id
-	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100)
+	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(groupMembers))
 
@@ -861,7 +862,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	// Should not return deleted members
-	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
+	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
 }
@@ -1120,7 +1121,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
@@ -1131,7 +1132,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.NoError(t, err)
 
@@ -1186,7 +1187,7 @@ func testUpsertMembers(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	// time.Sleep(1 * time.Millisecond)
+	// time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id})
 	require.NoError(t, err)
 
@@ -1197,7 +1198,7 @@ func testUpsertMembers(t *testing.T, ss store.Store) {
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(2 * time.Millisecond)
 	_, err = ss.Group().UpsertMembers(group.Id, []string{user.Id, user2.Id})
 	require.NoError(t, err)
 
@@ -1471,7 +1472,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 	// Returns all the group teams
 	d1, err := ss.Group().GetAllGroupSyncablesByGroupId(group.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
-	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables })
+	require.Condition(t, func() bool { return len(d1) >= numGroupSyncables }, len(d1), ">=", numGroupSyncables)
 	for _, expectedGroupTeam := range groupTeams {
 		present := false
 		for _, dbGroupTeam := range d1 {
@@ -1600,7 +1601,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.SyncableId, groupTeam.SyncableId)
 	require.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	require.Equal(t, d1.CreateAt, groupTeam.CreateAt)
-	require.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })
+	require.Condition(t, func() bool { return d1.UpdateAt >= groupTeam.UpdateAt }, d1.UpdateAt, ">=", groupTeam.UpdateAt)
 
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
@@ -3474,6 +3475,13 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Save(u2)
 	require.NoError(t, err)
 
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.NoError(t, err)
+
 	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
 	require.NoError(t, err)
 
@@ -3483,7 +3491,18 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group2.Id, user2.Id)
 	require.NoError(t, err)
 
+	_, err = ss.Group().UpsertMember(group2.Id, user3.Id)
+	require.NoError(t, err)
+
 	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      user1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
@@ -3517,39 +3536,44 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	testCases := []struct {
-		Name    string
-		Page    int
-		PerPage int
-		Opts    model.GroupSearchOpts
-		Resultf func([]*model.Group) bool
+		Name         string
+		Page         int
+		PerPage      int
+		Opts         model.GroupSearchOpts
+		Resultf      func([]*model.Group) bool
+		Restrictions *model.ViewUsersRestrictions
 	}{
 		{
-			Name:    "Get all the Groups",
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 3,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 3 },
+			Name:         "Get all the Groups",
+			Opts:         model.GroupSearchOpts{},
+			Page:         0,
+			PerPage:      3,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 3 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get first Group with page 0 with 1 element",
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 1,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
+			Name:         "Get first Group with page 0 with 1 element",
+			Opts:         model.GroupSearchOpts{},
+			Page:         0,
+			PerPage:      1,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 1 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get single result from page 1",
-			Opts:    model.GroupSearchOpts{},
-			Page:    1,
-			PerPage: 1,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
+			Name:         "Get single result from page 1",
+			Opts:         model.GroupSearchOpts{},
+			Page:         1,
+			PerPage:      1,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 1 },
+			Restrictions: nil,
 		},
 		{
-			Name:    "Get multiple results from page 1",
-			Opts:    model.GroupSearchOpts{},
-			Page:    1,
-			PerPage: 2,
-			Resultf: func(groups []*model.Group) bool { return len(groups) == 2 },
+			Name:         "Get multiple results from page 1",
+			Opts:         model.GroupSearchOpts{},
+			Page:         1,
+			PerPage:      2,
+			Resultf:      func(groups []*model.Group) bool { return len(groups) == 2 },
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching name",
@@ -3564,6 +3588,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching display name",
@@ -3578,6 +3603,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Get group matching multiple display names",
@@ -3592,6 +3618,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Include member counts",
@@ -3603,7 +3630,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					if g.MemberCount == nil {
 						return false
 					}
-					if g.Id == group1.Id && *g.MemberCount != 1 {
+					if (g.Id == group1.Id || g.Id == group2.Id) && *g.MemberCount != 1 {
 						return false
 					}
 					if g.DeleteAt != 0 {
@@ -3612,6 +3639,31 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Include member counts with restrictions",
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.MemberCount == nil {
+						return false
+					}
+					if g.Id == group1.Id && *g.MemberCount != 1 {
+						return false
+					}
+					if g.Id == group2.Id && *g.MemberCount != 0 {
+						return false
+					}
+					if g.DeleteAt != 0 {
+						return false
+					}
+				}
+				return true
+			},
+			Restrictions: &model.ViewUsersRestrictions{Channels: []string{channel1.Id}},
 		},
 		{
 			Name:    "Not associated to team",
@@ -3632,6 +3684,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Not associated to other team",
@@ -3652,6 +3705,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Include allow reference",
@@ -3672,6 +3726,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Use Since return all",
@@ -3689,6 +3744,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				return true
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Use Since return none",
@@ -3698,6 +3754,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained teams",
@@ -3707,6 +3764,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 2 && groups[0].Id == group1.Id && groups[1].Id == group2.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained page 0",
@@ -3716,6 +3774,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group1.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter groups from group-constrained page 1",
@@ -3725,6 +3784,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group2.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Non-group constrained team with no associated groups still returns groups for the child channel",
@@ -3734,6 +3794,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) > 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by group member",
@@ -3743,6 +3804,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 1 && groups[0].Id == group1.Id
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by non-existent group member",
@@ -3752,6 +3814,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
 			},
+			Restrictions: nil,
 		},
 		{
 			Name:    "Filter by non-member member",
@@ -3761,12 +3824,13 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 2
 			},
+			Restrictions: nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
+			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts, tc.Restrictions)
 			require.NoError(t, err)
 			require.True(t, tc.Resultf(groups))
 		})
@@ -5046,7 +5110,7 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	_, nErr = ss.User().Save(u2)
 	require.NoError(t, nErr)
 
-	users, err := ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
+	users, err := ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000, nil)
 	require.NoError(t, err)
 
 	originalLen := len(users)
@@ -5054,11 +5118,90 @@ func groupTestGetNonMemberUsersPage(t *testing.T, ss store.Store) {
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.NoError(t, err)
 
-	users, err = ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000)
+	users, err = ss.Group().GetNonMemberUsersPage(group.Id, 0, 1000, nil)
 	require.NoError(t, err)
 	require.Len(t, users, originalLen-1)
 
-	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000)
+	users, err = ss.Group().GetNonMemberUsersPage(model.NewId(), 0, 1000, nil)
 	require.Error(t, err)
 	require.Nil(t, users)
+}
+
+func groupTestDistinctGroupMemberCountForSource(t *testing.T, ss store.Store) {
+	// get the before counts
+	customGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	ldapGroupCountBefore, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+
+	// create 2 groups, 1 custom and 1 ldap
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceCustom,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	customGroup, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	ldapGroup, err := ss.Group().Create(g2)
+	require.NoError(t, err)
+
+	// create a couple of users
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	// add both new users to both new groups
+	_, err = ss.Group().UpsertMember(customGroup.Id, user1.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	_, err = ss.Group().UpsertMember(customGroup.Id, user2.Id)
+	require.NoError(t, err)
+	_, err = ss.Group().UpsertMember(ldapGroup.Id, user2.Id)
+	require.NoError(t, err)
+
+	// remove one user from a group to ensure the 'where deleteat = 0' clause is working
+	_, err = ss.Group().DeleteMember(ldapGroup.Id, user1.Id)
+	require.NoError(t, err)
+
+	defer func() {
+		ss.Group().DeleteMember(ldapGroup.Id, user2.Id)
+		ss.Group().DeleteMember(customGroup.Id, user1.Id)
+		ss.Group().DeleteMember(customGroup.Id, user2.Id)
+
+		ss.Group().Delete(customGroup.Id)
+		ss.Group().Delete(ldapGroup.Id)
+
+		ss.User().PermanentDelete(user1.Id)
+		ss.User().PermanentDelete(user2.Id)
+	}()
+
+	customGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceCustom)
+	require.NoError(t, err)
+	require.Equal(t, customGroupCountBefore+2, customGroupCount)
+
+	ldapGroupCount, err := ss.Group().DistinctGroupMemberCountForSource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	require.Equal(t, ldapGroupCountBefore+1, ldapGroupCount)
 }

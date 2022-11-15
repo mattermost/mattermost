@@ -4,7 +4,6 @@
 package model
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,7 +13,7 @@ import (
 )
 
 func TestBundleInfoForPath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "mm-plugin-test")
+	dir, err := os.MkdirTemp("", "mm-plugin-test")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 

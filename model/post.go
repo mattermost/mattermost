@@ -44,10 +44,12 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeWelcomePost            = "system_welcome_post"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
+	PostTypeReminder               = "reminder"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -69,6 +71,11 @@ const (
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 
 	PostPropsPreviewedPost = "previewed_post"
+)
+
+const (
+	ModifierMessages string = "messages"
+	ModifierFiles    string = "files"
 )
 
 type Post struct {
@@ -107,6 +114,30 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
 }
 
+func (o *Post) Auditable() map[string]interface{} {
+	return map[string]interface{}{ // TODO check this
+		"id":              o.Id,
+		"create_at":       o.CreateAt,
+		"update_at":       o.UpdateAt,
+		"edit_at":         o.EditAt,
+		"delete_at":       o.DeleteAt,
+		"is_pinned":       o.IsPinned,
+		"user_id":         o.UserId,
+		"channel_id":      o.ChannelId,
+		"root_id":         o.RootId,
+		"original_id":     o.OriginalId,
+		"type":            o.Type,
+		"props":           o.GetProps(),
+		"file_ids":        o.FileIds,
+		"pending_post_id": o.PendingPostId,
+		"remote_id":       o.RemoteId,
+		"reply_count":     o.ReplyCount,
+		"last_reply_at":   o.LastReplyAt,
+		"is_following":    o.IsFollowing,
+		"metadata":        o.Metadata,
+	}
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -120,6 +151,13 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type PostReminder struct {
+	TargetTime int64 `json:"target_time"`
+	// These fields are only used internally for interacting with DB.
+	PostId string `json:",omitempty"`
+	UserId string `json:",omitempty"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -127,6 +165,7 @@ type SearchParameter struct {
 	Page                   *int    `json:"page"`
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
+	Modifier               *string `json:"modifier"` // whether it's messages or file
 }
 
 type AnalyticsPostCountsOptions struct {
@@ -266,6 +305,18 @@ type GetPostsOptions struct {
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	IncludeDeleted           bool
+}
+
+type PostCountOptions struct {
+	// Only include posts on a specific team. "" for any team.
+	TeamId          string
+	MustHaveFile    bool
+	MustHaveHashtag bool
+	ExcludeDeleted  bool
+	UsersPostsOnly  bool
+	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
+	AllowFromCache bool
 }
 
 func (o *Post) Etag() string {
@@ -337,6 +388,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
+		PostTypeWelcomePost,
 		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
@@ -394,7 +446,7 @@ func (o *Post) PreSave() {
 
 func (o *Post) PreCommit() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 
 	if o.Filenames == nil {
@@ -413,14 +465,14 @@ func (o *Post) PreCommit() {
 
 func (o *Post) MakeNonNil() {
 	if o.GetProps() == nil {
-		o.SetProps(make(map[string]interface{}))
+		o.SetProps(make(map[string]any))
 	}
 }
 
 func (o *Post) DelProp(key string) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	propsCopy := make(map[string]any, len(o.Props)-1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -428,10 +480,10 @@ func (o *Post) DelProp(key string) {
 	o.Props = propsCopy
 }
 
-func (o *Post) AddProp(key string, value interface{}) {
+func (o *Post) AddProp(key string, value any) {
 	o.propsMu.Lock()
 	defer o.propsMu.Unlock()
-	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	propsCopy := make(map[string]any, len(o.Props)+1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
 	}
@@ -451,7 +503,7 @@ func (o *Post) SetProps(props StringInterface) {
 	o.Props = props
 }
 
-func (o *Post) GetProp(key string) interface{} {
+func (o *Post) GetProp(key string) any {
 	o.propsMu.RLock()
 	defer o.propsMu.RUnlock()
 	return o.Props[key]
@@ -550,7 +602,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]any); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
@@ -631,7 +683,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 	var ranges []markdown.Range
 
-	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+	markdown.Inspect(message, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.ReferenceImage:
 			ranges = append(ranges, v.ReferenceDefinition.RawDestination)
@@ -695,18 +747,10 @@ func (o *Post) ToNilIfInvalid() *Post {
 	return o
 }
 
-func (o *Post) RemovePreviewPost() {
-	if o.Metadata == nil || o.Metadata.Embeds == nil {
-		return
-	}
-	n := 0
-	for _, embed := range o.Metadata.Embeds {
-		if embed.Type != PostEmbedPermalink {
-			o.Metadata.Embeds[n] = embed
-			n++
-		}
-	}
-	o.Metadata.Embeds = o.Metadata.Embeds[:n]
+func (o *Post) ForPlugin() *Post {
+	p := o.Clone()
+	p.Metadata = nil
+	return p
 }
 
 func (o *Post) GetPreviewPost() *PreviewPost {

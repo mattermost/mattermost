@@ -16,6 +16,7 @@ import (
 
 func TestCreateJob(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -34,7 +35,7 @@ func TestCreateJob(t *testing.T) {
 	t.Run("valid job as user with permissions", func(t *testing.T) {
 		received, _, err := th.SystemAdminClient.CreateJob(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(received.Id)
+		defer th.App.Srv().Store().Job().Delete(received.Id)
 	})
 
 	t.Run("invalid job type as user without permissions", func(t *testing.T) {
@@ -53,10 +54,10 @@ func TestGetJob(t *testing.T) {
 		Status: model.JobStatusPending,
 		Type:   model.JobTypeMessageExport,
 	}
-	_, err := th.App.Srv().Store.Job().Save(job)
+	_, err := th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
 
-	defer th.App.Srv().Store.Job().Delete(job.Id)
+	defer th.App.Srv().Store().Job().Delete(job.Id)
 
 	received, _, err := th.SystemAdminClient.GetJob(job.Id)
 	require.NoError(t, err)
@@ -103,9 +104,9 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv().Store.Job().Save(job)
+		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store().Job().Delete(job.Id)
 	}
 
 	received, _, err := th.SystemAdminClient.GetJobs(0, 2)
@@ -127,6 +128,7 @@ func TestGetJobs(t *testing.T) {
 
 func TestGetJobsByType(t *testing.T) {
 	th := Setup(t)
+	th.LoginSystemManager()
 	defer th.TearDown()
 
 	jobType := model.JobTypeDataRetention
@@ -155,9 +157,9 @@ func TestGetJobsByType(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv().Store.Job().Save(job)
+		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store().Job().Delete(job.Id)
 	}
 
 	received, _, err := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
@@ -191,6 +193,7 @@ func TestGetJobsByType(t *testing.T) {
 
 func TestDownloadJob(t *testing.T) {
 	th := Setup(t).InitBasic()
+	th.LoginSystemManager()
 	defer th.TearDown()
 	jobName := model.NewId()
 	job := &model.Job{
@@ -223,9 +226,9 @@ func TestDownloadJob(t *testing.T) {
 
 	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
 	// as a system admin, we should get a not found status.
-	_, err = th.App.Srv().Store.Job().Save(job)
+	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(job.Id)
+	defer th.App.Srv().Store().Job().Delete(job.Id)
 
 	filePath := "./data/export/" + job.Id + "/testdat.txt"
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
@@ -247,7 +250,7 @@ func TestDownloadJob(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	job.Data["is_downloadable"] = "true"
-	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	updateStatus, err := th.App.Srv().Store().Job().UpdateOptimistically(job, model.JobStatusSuccess)
 	require.True(t, updateStatus)
 	require.NoError(t, err)
 
@@ -275,9 +278,9 @@ func TestDownloadJob(t *testing.T) {
 		},
 		Status: model.JobStatusSuccess,
 	}
-	_, err = th.App.Srv().Store.Job().Save(job)
+	_, err = th.App.Srv().Store().Job().Save(job)
 	require.NoError(t, err)
-	defer th.App.Srv().Store.Job().Delete(job.Id)
+	defer th.App.Srv().Store().Job().Delete(job.Id)
 
 	// System admin shouldn't be able to download since the job type is not message export
 	_, resp, err = th.SystemAdminClient.DownloadJob(job.Id)
@@ -309,9 +312,9 @@ func TestCancelJob(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv().Store.Job().Save(job)
+		_, err := th.App.Srv().Store().Job().Save(job)
 		require.NoError(t, err)
-		defer th.App.Srv().Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store().Job().Delete(job.Id)
 	}
 
 	resp, err := th.Client.CancelJob(jobs[0].Id)

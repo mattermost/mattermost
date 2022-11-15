@@ -3,15 +3,17 @@
 
 package model
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	EventTypeFailedPayment                = "failed-payment"
 	EventTypeFailedPaymentNoCard          = "failed-payment-no-card"
 	EventTypeSendAdminWelcomeEmail        = "send-admin-welcome-email"
 	EventTypeSendUpgradeConfirmationEmail = "send-upgrade-confirmation-email"
-	EventTypeTrialWillEnd                 = "trial-will-end"
-	EventTypeTrialEnded                   = "trial-ended"
+	EventTypeSubscriptionChanged          = "subscription-changed"
+	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
 var MockCWS string
@@ -50,6 +52,16 @@ type Product struct {
 	Family            SubscriptionFamily `json:"product_family"`
 	RecurringInterval RecurringInterval  `json:"recurring_interval"`
 	BillingScheme     BillingScheme      `json:"billing_scheme"`
+	CrossSellsTo      string             `json:"cross_sells_to"`
+}
+
+type UserFacingProduct struct {
+	ID                string            `json:"id"`
+	Name              string            `json:"name"`
+	SKU               string            `json:"sku"`
+	PricePerSeat      float64           `json:"price_per_seat"`
+	RecurringInterval RecurringInterval `json:"recurring_interval"`
+	CrossSellsTo      string            `json:"cross_sells_to"`
 }
 
 // AddOn represents an addon to a product.
@@ -83,13 +95,27 @@ type CloudCustomer struct {
 	PaymentMethod  *PaymentMethod `json:"payment_method"`
 }
 
+type StartCloudTrialRequest struct {
+	Email          string `json:"email"`
+	SubscriptionID string `json:"subscription_id"`
+}
+
+type ValidateBusinessEmailRequest struct {
+	Email string `json:"email"`
+}
+
+type ValidateBusinessEmailResponse struct {
+	IsValid bool `json:"is_valid"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
-	Name             string `json:"name"`
-	Email            string `json:"email,omitempty"`
-	ContactFirstName string `json:"contact_first_name,omitempty"`
-	ContactLastName  string `json:"contact_last_name,omitempty"`
-	NumEmployees     int    `json:"num_employees"`
+	Name                  string `json:"name"`
+	Email                 string `json:"email,omitempty"`
+	ContactFirstName      string `json:"contact_first_name,omitempty"`
+	ContactLastName       string `json:"contact_last_name,omitempty"`
+	NumEmployees          int    `json:"num_employees"`
+	CloudAltPaymentMethod string `json:"monthly_subscription_alt_payment_method"`
 }
 
 // Address model represents a customer's address.
@@ -114,20 +140,21 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID          string   `json:"id"`
-	CustomerID  string   `json:"customer_id"`
-	ProductID   string   `json:"product_id"`
-	AddOns      []string `json:"add_ons"`
-	StartAt     int64    `json:"start_at"`
-	EndAt       int64    `json:"end_at"`
-	CreateAt    int64    `json:"create_at"`
-	Seats       int      `json:"seats"`
-	Status      string   `json:"status"`
-	DNS         string   `json:"dns"`
-	IsPaidTier  string   `json:"is_paid_tier"`
-	LastInvoice *Invoice `json:"last_invoice"`
-	IsFreeTrial string   `json:"is_free_trial"`
-	TrialEndAt  int64    `json:"trial_end_at"`
+	ID              string   `json:"id"`
+	CustomerID      string   `json:"customer_id"`
+	ProductID       string   `json:"product_id"`
+	AddOns          []string `json:"add_ons"`
+	StartAt         int64    `json:"start_at"`
+	EndAt           int64    `json:"end_at"`
+	CreateAt        int64    `json:"create_at"`
+	Seats           int      `json:"seats"`
+	Status          string   `json:"status"`
+	DNS             string   `json:"dns"`
+	IsPaidTier      string   `json:"is_paid_tier"`
+	LastInvoice     *Invoice `json:"last_invoice"`
+	IsFreeTrial     string   `json:"is_free_trial"`
+	TrialEndAt      int64    `json:"trial_end_at"`
+	DelinquentSince *int64   `json:"delinquent_since"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
@@ -153,20 +180,39 @@ type Invoice struct {
 
 // InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
 type InvoiceLineItem struct {
-	PriceID      string                 `json:"price_id"`
-	Total        int64                  `json:"total"`
-	Quantity     float64                `json:"quantity"`
-	PricePerUnit int64                  `json:"price_per_unit"`
-	Description  string                 `json:"description"`
-	Type         string                 `json:"type"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	PriceID      string         `json:"price_id"`
+	Total        int64          `json:"total"`
+	Quantity     float64        `json:"quantity"`
+	PricePerUnit int64          `json:"price_per_unit"`
+	Description  string         `json:"description"`
+	Type         string         `json:"type"`
+	Metadata     map[string]any `json:"metadata"`
 }
 
+type DelinquencyEmailTrigger struct {
+	EmailToTrigger string `json:"email_to_send"`
+}
+
+type DelinquencyEmail string
+
+const (
+	DelinquencyEmail7  DelinquencyEmail = "7"
+	DelinquencyEmail14 DelinquencyEmail = "14"
+	DelinquencyEmail30 DelinquencyEmail = "30"
+	DelinquencyEmail45 DelinquencyEmail = "45"
+	DelinquencyEmail60 DelinquencyEmail = "60"
+	DelinquencyEmail75 DelinquencyEmail = "75"
+	DelinquencyEmail90 DelinquencyEmail = "90"
+)
+
 type CWSWebhookPayload struct {
-	Event                             string               `json:"event"`
-	FailedPayment                     *FailedPayment       `json:"failed_payment"`
-	CloudWorkspaceOwner               *CloudWorkspaceOwner `json:"cloud_workspace_owner"`
-	SubscriptionTrialEndUnixTimeStamp int64                `json:"trial_end_time_stamp"`
+	Event                             string                   `json:"event"`
+	FailedPayment                     *FailedPayment           `json:"failed_payment"`
+	CloudWorkspaceOwner               *CloudWorkspaceOwner     `json:"cloud_workspace_owner"`
+	ProductLimits                     *ProductLimits           `json:"product_limits"`
+	Subscription                      *Subscription            `json:"subscription"`
+	SubscriptionTrialEndUnixTimeStamp int64                    `json:"trial_end_time_stamp"`
+	DelinquencyEmail                  *DelinquencyEmailTrigger `json:"delinquency_email"`
 }
 
 type FailedPayment struct {

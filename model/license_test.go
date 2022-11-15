@@ -143,32 +143,49 @@ func TestLicenseIsStarted(t *testing.T) {
 	assert.False(t, l1.IsStarted())
 }
 
+func TestIsCloud(t *testing.T) {
+	l1 := License{}
+	l1.Features = &Features{}
+	l1.Features.SetDefaults()
+	assert.False(t, l1.IsCloud())
+
+	boolTrue := true
+	l1.Features.Cloud = &boolTrue
+	assert.True(t, l1.IsCloud())
+
+	var license *License
+	assert.False(t, license.IsCloud())
+
+	l1.Features = nil
+	assert.False(t, l1.IsCloud())
+}
+
 func TestLicenseRecordIsValid(t *testing.T) {
 	lr := LicenseRecord{
 		CreateAt: GetMillis(),
 		Bytes:    "asdfghjkl;",
 	}
 
-	err := lr.IsValid()
-	assert.NotNil(t, err)
+	appErr := lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Id = NewId()
 	lr.CreateAt = 0
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.CreateAt = GetMillis()
 	lr.Bytes = ""
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = strings.Repeat("0123456789", 1001)
-	err = lr.IsValid()
-	assert.NotNil(t, err)
+	appErr = lr.IsValid()
+	assert.NotNil(t, appErr)
 
 	lr.Bytes = "ASDFGHJKL;"
-	err = lr.IsValid()
-	assert.Nil(t, err)
+	appErr = lr.IsValid()
+	assert.Nil(t, appErr)
 }
 
 func TestLicenseRecordPreSave(t *testing.T) {

@@ -44,7 +44,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 			CreatorId: th.BasicChannel.CreatorId,
 			RemoteId:  model.NewId(),
 		}
-		_, err := th.App.SaveSharedChannel(sc)
+		_, err := th.App.SaveSharedChannel(th.Context, sc)
 		require.NoError(t, err)
 		savedIds = append(savedIds, channel.Id)
 	}
@@ -124,7 +124,7 @@ func TestGetRemoteClusterById(t *testing.T) {
 		CreatorId: th.BasicChannel.CreatorId,
 		RemoteId:  rc.RemoteId,
 	}
-	sc, err := th.App.SaveSharedChannel(sc)
+	sc, err := th.App.SaveSharedChannel(th.Context, sc)
 	require.NoError(t, err)
 
 	// create a shared channel remote to connect them
@@ -163,7 +163,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		localUser := th.BasicUser
 		remoteUser := th.CreateUser()
 		remoteUser.RemoteId = model.NewString(model.NewId())
-		remoteUser, appErr := th.App.UpdateUser(remoteUser, false)
+		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
 		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
@@ -194,7 +194,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		require.Nil(t, appErr)
 
 		remoteUser.RemoteId = model.NewString(rc.RemoteId)
-		remoteUser, appErr = th.App.UpdateUser(remoteUser, false)
+		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
 		dm, _, err := client.CreateDirectChannel(localUser.Id, remoteUser.Id)
@@ -227,7 +227,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		require.Nil(t, appErr)
 
 		remoteUser.RemoteId = model.NewString(rc.RemoteId)
-		remoteUser, appErr = th.App.UpdateUser(remoteUser, false)
+		remoteUser, appErr = th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
 
 		dm, _, err := client.CreateDirectChannel(remoteUser.Id, localUser.Id)

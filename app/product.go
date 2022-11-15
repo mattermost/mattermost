@@ -14,7 +14,7 @@ type Product interface {
 }
 
 type ProductManifest struct {
-	Initializer  func(*Server, map[ServiceKey]interface{}) (Product, error)
+	Initializer  func(*Server, map[ServiceKey]any) (Product, error)
 	Dependencies map[ServiceKey]struct{}
 }
 
@@ -26,7 +26,7 @@ func RegisterProduct(name string, m ProductManifest) {
 
 func (s *Server) initializeProducts(
 	productMap map[string]ProductManifest,
-	serviceMap map[ServiceKey]interface{},
+	serviceMap map[ServiceKey]any,
 ) error {
 	// create a product map to consume
 	pmap := make(map[string]struct{})

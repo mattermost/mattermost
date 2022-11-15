@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -185,6 +184,13 @@ func TestSettingIsValid(t *testing.T) {
 			},
 			false,
 		},
+		"Placeholder is allowed for custom settings": {
+			PluginSetting{
+				Type:        "custom",
+				Placeholder: "some Text",
+			},
+			false,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			err := test.Setting.isValid()
@@ -244,7 +250,7 @@ func TestFindManifest(t *testing.T) {
 		{"plugin.yml", `id: FOO`, false, false},
 		{"plugin.yml", "bar", true, false},
 	} {
-		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		dir, err := os.MkdirTemp("", "mm-plugin-test")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -396,7 +402,7 @@ settings_schema:
 
 func TestFindManifest_FileErrors(t *testing.T) {
 	for _, tc := range []string{"plugin.yaml", "plugin.json"} {
-		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		dir, err := os.MkdirTemp("", "mm-plugin-test")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -417,7 +423,7 @@ func TestFindManifest_FolderPermission(t *testing.T) {
 	}
 
 	for _, tc := range []string{"plugin.yaml", "plugin.json"} {
-		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		dir, err := os.MkdirTemp("", "mm-plugin-test")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 

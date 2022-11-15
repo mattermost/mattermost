@@ -175,6 +175,11 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
+	// Test limit
+	cposts, _, nErr = ss.Compliance().ComplianceExport(cr1, model.ComplianceExportCursor{}, 2)
+	require.NoError(t, nErr)
+	assert.Len(t, cposts, 2)
+
 	cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email}
 	cposts, _, nErr = ss.Compliance().ComplianceExport(cr2, model.ComplianceExportCursor{}, limit)
 	require.NoError(t, nErr)
@@ -1050,7 +1055,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
 	assert.NotNil(t, v.PostProps)
 
-	props := map[string]interface{}{}
+	props := map[string]any{}
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 
@@ -1153,7 +1158,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	assert.Equal(t, postDeleteTime, *v.PostUpdateAt)
 	assert.NotNil(t, v.PostProps)
 
-	props := map[string]interface{}{}
+	props := map[string]any{}
 	e := json.Unmarshal([]byte(*v.PostProps), &props)
 	require.NoError(t, e)
 

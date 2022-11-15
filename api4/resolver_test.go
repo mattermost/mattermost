@@ -131,7 +131,7 @@ func TestGraphQLChannelsLeft(t *testing.T) {
 		  channelsLeft(userId: $userId, since: $since)
 		}
 		`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"since": model.GetMillis(),
 			},
 		}

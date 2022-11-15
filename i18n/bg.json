@@ -1916,10 +1916,6 @@
     "translation": "Elasticsearch е забранен."
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Неуспешно свързване с Elasticsearch сървъра."
-  },
-  {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch вече е спрян."
   },
@@ -4028,10 +4024,6 @@
     "translation": "Вашата парола е актуализирана за {{.TeamDisplayName}} на {{.TeamURL}} от {{.Method}}."
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Оправи сега"
-  },
-  {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "Многофакторното удостоверяване бе премахнато"
   },
@@ -4274,14 +4266,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "Каналите в поканата трябва да са част от канещият екип."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Вашият лиценз не поддържа профили за гости"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Профилите за гости са забранени"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -5358,10 +5342,6 @@
     "translation": "marshal грешка"
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Не може да се поиска пробен лиценз. Моля, конфигурирайте URL адрес на сайта в секцията за уеб сървъра на Mattermost Системна конзола."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Не можете да получите пробен лиценз, моля, опитайте отново или се свържете със support@mattermost.com. Не може да се получи броят на регистрираните потребители."
   },
@@ -5500,10 +5480,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Файл над максималните размери не може да бъде качен: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Невъзможно качването на файл. Зададен е неправилен брой файлове."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -6136,10 +6112,6 @@
     "translation": "Липсва задължително свойство за отговор: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Свойството CreateAt на отговора трябва да е по-голямо от CreateAt на родителската публикация."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Липсва задължително свойство за реакция: Потребител."
   },
@@ -6306,10 +6278,6 @@
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Не може да се прочете версията на файла за импортиране на данни."
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Неуспешно построяване на заявката."
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -8546,38 +8514,6 @@
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
     "translation": "Полето '{{.Field}}' трябва да бъде зададено чрез доставчика за удостоверяване на потребители."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "Безплатната Ви 14-дневна пробна версия на Mattermost приключва скоро"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи след 3 дни, на {{.TrialEnd}}. Моля, добавете информация за плащане за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Приключва пробната версия на Mattermost cloud"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Добавяне на метод за плащане"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "Безплатната ви 14-дневна пробна версия на Mattermost приключи днес"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, 14-дневният Ви безплатен пробен период на Mattermost Cloud Professional приключи днес, {{.TodayDate}}. Моля, добавете информация за плащане, за да гарантирате, че екипът Ви може да продължи да се възползва от предимствата на Cloud Professional."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Пробната версия на Mattermost cloud приключи"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Започни абонамент"
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",

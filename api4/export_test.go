@@ -6,7 +6,6 @@ package api4
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -151,7 +150,7 @@ func TestDownloadExport(t *testing.T) {
 		data := randomBytes(t, 1024*1024)
 		var buf bytes.Buffer
 		exportName := "export.zip"
-		err = ioutil.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
+		err = os.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
 		require.NoError(t, err)
 
 		n, _, err := c.DownloadExport(exportName, &buf, 0)
@@ -168,7 +167,7 @@ func TestDownloadExport(t *testing.T) {
 		data := randomBytes(t, 1024*1024)
 		var buf bytes.Buffer
 		exportName := "export.zip"
-		err = ioutil.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
+		err = os.WriteFile(filepath.Join(exportDir, exportName), data, 0600)
 		require.NoError(t, err)
 
 		offset := 1024 * 512

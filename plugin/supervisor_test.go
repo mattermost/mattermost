@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,11 +27,11 @@ func TestSupervisor(t *testing.T) {
 }
 
 func testSupervisorInvalidExecutablePath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "/foo/../../backend.exe"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "/foo/../../backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
@@ -43,11 +42,11 @@ func testSupervisorInvalidExecutablePath(t *testing.T) {
 }
 
 func testSupervisorNonExistentExecutablePath(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "thisfileshouldnotexist"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "thisfileshouldnotexist"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)
@@ -59,7 +58,7 @@ func testSupervisorNonExistentExecutablePath(t *testing.T) {
 
 // If plugin development goes really wrong, let's make sure plugin activation won't block forever.
 func testSupervisorStartTimeout(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
@@ -73,7 +72,7 @@ func testSupervisorStartTimeout(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "server": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.CreateConsoleTestLogger(true, mlog.LvlError)

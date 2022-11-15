@@ -15,33 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 )
 
-func TestSaveStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	user := th.BasicUser
-
-	for _, statusString := range []string{
-		model.StatusOnline,
-		model.StatusAway,
-		model.StatusDnd,
-		model.StatusOffline,
-	} {
-		t.Run(statusString, func(t *testing.T) {
-			status := &model.Status{
-				UserId: user.Id,
-				Status: statusString,
-			}
-
-			th.App.SaveAndBroadcastStatus(status)
-
-			after, err := th.App.GetStatus(user.Id)
-			require.Nil(t, err, "failed to get status after save: %v", err)
-			require.Equal(t, statusString, after.Status, "failed to save status, got %v, expected %v", after.Status, statusString)
-		})
-	}
-}
-
 func TestCustomStatus(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -53,14 +26,14 @@ func TestCustomStatus(t *testing.T) {
 		Text:  "honk!",
 	}
 
-	err := th.App.SetCustomStatus(user.Id, cs)
+	err := th.App.SetCustomStatus(th.Context, user.Id, cs)
 	require.Nil(t, err, "failed to set custom status %v", err)
 
 	csSaved, err := th.App.GetCustomStatus(user.Id)
 	require.Nil(t, err, "failed to get custom status after save %v", err)
 	require.Equal(t, cs, csSaved)
 
-	err = th.App.RemoveCustomStatus(user.Id)
+	err = th.App.RemoveCustomStatus(th.Context, user.Id)
 	require.Nil(t, err, "failed to to clear custom status %v", err)
 
 	var csClear *model.CustomStatus
@@ -104,7 +77,7 @@ func TestCustomStatusErrors(t *testing.T) {
 				UserStore:    &mockUserStore,
 				SessionStore: &mockSessionStore,
 				OAuthStore:   &mockOAuthStore,
-				ConfigFn:     th.App.ch.srv.Config,
+				ConfigFn:     th.App.ch.srv.platform.Config,
 				LicenseFn:    th.App.ch.srv.License,
 			})
 			require.NoError(t, err)
@@ -117,9 +90,9 @@ func TestCustomStatusErrors(t *testing.T) {
 			var appErr *model.AppError
 			switch tc.customStatus {
 			case "set":
-				appErr = th.App.SetCustomStatus(fakeUserID, cs)
+				appErr = th.App.SetCustomStatus(th.Context, fakeUserID, cs)
 			case "remove":
-				appErr = th.App.RemoveCustomStatus(fakeUserID)
+				appErr = th.App.RemoveCustomStatus(th.Context, fakeUserID)
 			}
 
 			require.NotNil(t, appErr)

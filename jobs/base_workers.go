@@ -80,8 +80,8 @@ func (worker *SimpleWorker) DoJob(job *model.Job) {
 
 	err := worker.execute(job)
 	if err != nil {
-		mlog.Error("SimpleWorker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
-		worker.setJobError(job, model.NewAppError("DoJob", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError))
+		mlog.Error("SimpleWorker: job execution error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		worker.setJobError(job, model.NewAppError("DoJob", "app.job.error", nil, "", http.StatusInternalServerError).Wrap(err))
 		return
 	}
 

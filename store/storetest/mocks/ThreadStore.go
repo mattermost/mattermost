@@ -188,13 +188,13 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool)
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: teamID, threadMembership, extended
-func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(teamID, threadMembership, extended)
+// GetThreadForUser provides a mock function with given fields: threadMembership, extended
+func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(threadMembership, extended)
 
 	var r0 *model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(string, *model.ThreadMembership, bool) *model.ThreadResponse); ok {
-		r0 = rf(teamID, threadMembership, extended)
+	if rf, ok := ret.Get(0).(func(*model.ThreadMembership, bool) *model.ThreadResponse); ok {
+		r0 = rf(threadMembership, extended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -202,8 +202,8 @@ func (_m *ThreadStore) GetThreadForUser(teamID string, threadMembership *model.T
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, *model.ThreadMembership, bool) error); ok {
-		r1 = rf(teamID, threadMembership, extended)
+	if rf, ok := ret.Get(1).(func(*model.ThreadMembership, bool) error); ok {
+		r1 = rf(threadMembership, extended)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -248,6 +248,52 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamID string, opts mode
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
 		r1 = rf(userId, teamID, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopThreadsForTeamSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ThreadStore) GetTopThreadsForTeamSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopThreadList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopThreadList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTopThreadsForUserSince provides a mock function with given fields: teamID, userID, since, offset, limit
+func (_m *ThreadStore) GetTopThreadsForUserSince(teamID string, userID string, since int64, offset int, limit int) (*model.TopThreadList, error) {
+	ret := _m.Called(teamID, userID, since, offset, limit)
+
+	var r0 *model.TopThreadList
+	if rf, ok := ret.Get(0).(func(string, string, int64, int, int) *model.TopThreadList); ok {
+		r0 = rf(teamID, userID, since, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TopThreadList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int64, int, int) error); ok {
+		r1 = rf(teamID, userID, since, offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

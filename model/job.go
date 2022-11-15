@@ -27,6 +27,10 @@ const (
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
+	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeLastAccessibleFile           = "last_accessible_file"
+	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
+	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -55,6 +59,8 @@ var AllJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
+	JobTypeLastAccessiblePost,
+	JobTypeLastAccessibleFile,
 }
 
 type Job struct {
@@ -69,6 +75,20 @@ type Job struct {
 	Data           StringMap `json:"data"`
 }
 
+func (j *Job) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               j.Id,
+		"type":             j.Type,
+		"priority":         j.Priority,
+		"create_at":        j.CreateAt,
+		"start_at":         j.StartAt,
+		"last_activity_at": j.LastActivityAt,
+		"status":           j.Status,
+		"progress":         j.Progress,
+		"data":             j.Data, // TODO do we want this here
+	}
+}
+
 func (j *Job) IsValid() *AppError {
 	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
@@ -79,12 +99,13 @@ func (j *Job) IsValid() *AppError {
 	}
 
 	switch j.Status {
-	case JobStatusPending:
-	case JobStatusInProgress:
-	case JobStatusSuccess:
-	case JobStatusError:
-	case JobStatusCancelRequested:
-	case JobStatusCanceled:
+	case JobStatusPending,
+		JobStatusInProgress,
+		JobStatusSuccess,
+		JobStatusError,
+		JobStatusWarning,
+		JobStatusCancelRequested,
+		JobStatusCanceled:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

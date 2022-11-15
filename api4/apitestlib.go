@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -35,7 +34,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/searchengine"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/testlib"
 	"github.com/mattermost/mattermost-server/v6/web"
@@ -73,6 +71,7 @@ type TestHelper struct {
 
 	IncludeCacheLayer bool
 
+	LogBuffer  *mlog.Buffer
 	TestLogger *mlog.Logger
 }
 
@@ -84,7 +83,7 @@ func SetMainHelper(mh *testlib.MainHelper) {
 
 func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
 	updateConfig func(*model.Config), options []app.Option) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
 	}
@@ -116,21 +115,20 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
 		// Adds the cache layer to the test store
-		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
-		}))
+		options = append(options, app.StoreOverrideWithCache(dbStore))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))
 	}
+
+	buffer := &mlog.Buffer{}
 
 	testLogger, _ := mlog.NewLogger()
 	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
 	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
 		panic("failed to configure test logger: " + errCfg.Error())
+	}
+	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
+		panic("failed to add writer target to test logger: " + errW.Error())
 	}
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
@@ -146,12 +144,14 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		Server:            s,
 		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(testLogger),
 		TestLogger:        testLogger,
+		LogBuffer:         buffer,
 	}
+	th.Context.SetLogger(testLogger)
 
-	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.SearchEngine.BleveEngine
+	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
+		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
@@ -217,7 +217,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	return th
 }
 
-func SetupEnterprise(tb testing.TB) *TestHelper {
+func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
@@ -231,7 +231,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
 	th.InitLogin()
 	return th
 }
@@ -303,7 +303,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -317,12 +317,12 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
-func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, nil)
+func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -331,7 +331,7 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	emptyMockStore.On("Status").Return(&statusMock)
-	th.App.Srv().Store = &emptyMockStore
+	th.App.Srv().SetStore(&emptyMockStore)
 	return th
 }
 
@@ -380,7 +380,7 @@ func (th *TestHelper) TearDown() {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
@@ -400,17 +400,17 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
 		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
-		th.App.UpdateUserRoles(th.TeamAdminUser.Id, model.SystemUserRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
 		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
@@ -440,13 +440,9 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.SystemManagerUser.Password = "Pa$$word11"
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(2)
 	go func() {
 		th.LoginSystemAdmin()
-		wg.Done()
-	}()
-	go func() {
-		th.LoginSystemManager()
 		wg.Done()
 	}()
 	go func() {
@@ -467,15 +463,15 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicPost = th.CreatePost()
 	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
 	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel2, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicPrivateChannel, false)
-	th.App.AddUserToChannel(th.BasicUser, th.BasicDeletedChannel, false)
-	th.App.AddUserToChannel(th.BasicUser2, th.BasicDeletedChannel, false)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SystemUserRoleId, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel2, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicPrivateChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicPrivateChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, th.BasicDeletedChannel, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicDeletedChannel, false)
+	th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
 	th.Client.DeleteChannel(th.BasicDeletedChannel.Id)
 	th.LoginBasic()
 	th.Group = th.CreateGroup()
@@ -525,10 +521,6 @@ func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
-}
-
-func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemManagerClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
@@ -595,7 +587,7 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Pa$$word11"
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
@@ -781,7 +773,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := th.App.Srv().Store.Post().Save(&model.Post{
+	post, err := th.App.Srv().Store().Post().Save(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
@@ -894,7 +886,7 @@ func (th *TestHelper) UnlinkUserFromTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
 	}
@@ -999,7 +991,7 @@ func CheckUserSanitization(tb testing.TB, user *model.User) {
 	require.Equal(tb, "", user.MfaSecret, "mfa secret wasn't blank")
 }
 
-func CheckEtag(tb testing.TB, data interface{}, resp *model.Response) {
+func CheckEtag(tb testing.TB, data any, resp *model.Response) {
 	tb.Helper()
 
 	require.Empty(tb, data)
@@ -1165,9 +1157,9 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store.Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store.Channel().UpdateMember(cm); err != nil {
+		if _, err = th.App.Srv().Store().Channel().UpdateMember(cm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1176,9 +1168,9 @@ func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 }
 
 func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
 		}
 	} else {
@@ -1187,9 +1179,9 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 }
 
 func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
-	if tm, err := th.App.Srv().Store.Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
+	if tm, err := th.App.Srv().Store().Team().GetMember(context.Background(), team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err = th.App.Srv().Store.Team().UpdateMember(tm); err != nil {
+		if _, err = th.App.Srv().Store().Team().UpdateMember(tm); err != nil {
 			panic(err)
 		}
 	} else {

@@ -21,7 +21,7 @@ func (api *API) InitReaction() {
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var reaction model.Reaction
 	if jsonErr := json.NewDecoder(r.Body).Decode(&reaction); jsonErr != nil {
-		c.SetInvalidParam("reaction")
+		c.SetInvalidParamWithErr("reaction", jsonErr)
 		return
 	}
 
@@ -47,7 +47,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(re); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -62,17 +62,18 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reactions, err := c.App.GetReactionsForPost(c.Params.PostId)
-	if err != nil {
-		c.Err = err
+	reactions, appErr := c.App.GetReactionsForPost(c.Params.PostId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(reactions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getReactions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(reactions)
+	if err != nil {
+		c.Err = model.NewAppError("getReactions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
 	w.Write(js)
 }
 
@@ -125,15 +126,15 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	reactions, err := c.App.GetBulkReactionsForPosts(postIds)
-	if err != nil {
-		c.Err = err
+	reactions, appErr := c.App.GetBulkReactionsForPosts(postIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	js, jsonErr := json.Marshal(reactions)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	js, err := json.Marshal(reactions)
+	if err != nil {
+		c.Err = model.NewAppError("getBulkReactions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	w.Write(js)

@@ -7,24 +7,25 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) APIWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]any, *model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	handlerFunc func(*model.WebSocketRequest) (map[string]any, *model.AppError)
 }
 
-func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
+func (wh webSocketHandler) ServeWebSocket(conn *platform.WebConn, r *model.WebSocketRequest) {
 	mlog.Debug("Websocket request", mlog.String("action", r.Action))
 
-	hub := wh.app.GetHubForUserId(conn.UserId)
+	hub := wh.app.Srv().Platform().GetHubForUserId(conn.UserId)
 	if hub == nil {
 		return
 	}
@@ -50,7 +51,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.T = conn.T
 	r.Locale = conn.Locale
 
-	var data map[string]interface{}
+	var data map[string]any
 	var err *model.AppError
 
 	if data, err = wh.handlerFunc(r); err != nil {
@@ -73,7 +74,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 }
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
-	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
+	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]any{"Name": name}, "", http.StatusBadRequest)
 }
 
 func NewServerBusyWebSocketError(action string) *model.AppError {

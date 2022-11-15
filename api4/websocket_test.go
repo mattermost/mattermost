@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/testlib"
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -41,7 +43,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	omitUser := make(map[string]bool, 1)
 	omitUser["somerandomid"] = true
-	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser)
+	evt1 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", th.BasicChannel.Id, "", omitUser, "")
 	evt1.Add("user_id", "somerandomid")
 	th.App.Publish(evt1)
 
@@ -69,7 +71,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 	require.True(t, eventHit, "did not receive typing event")
 
-	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil)
+	evt2 := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "somerandomid", "", nil, "")
 	th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
@@ -267,7 +269,7 @@ func TestWebSocketSendBinary(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, model.StatusOnline, status)
 
-	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]interface{}{
+	WebSocketClient.SendBinaryMessage("get_statuses_by_ids", map[string]any{
 		"user_ids": []string{th.BasicUser2.Id},
 	})
 	status, ok = resp.Data[th.BasicUser2.Id]
@@ -295,14 +297,14 @@ func TestWebSocketStatuses(t *testing.T) {
 	ruser, _, err := client.CreateUser(&user)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _, err := client.CreateUser(&user2)
 	require.NoError(t, err)
 	th.LinkUserToTeam(ruser2, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
 	client.Login(user.Email, user.Password)
@@ -416,4 +418,16 @@ func TestWebSocketStatuses(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	WebSocketClient.Close()
+}
+
+func TestWebSocketUpgrade(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	url := fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
+	resp, err := http.Get(url)
+	require.NoError(t, err)
+	require.Equal(t, resp.StatusCode, http.StatusBadRequest)
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Failed to upgrade websocket connection.")
 }

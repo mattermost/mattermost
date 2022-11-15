@@ -117,7 +117,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Az Elasticsearch Live Indexing Batch Size beállítának legalább 1-nek kell lennie."
+    "translation": "Az Elasticsearch Live Indexing Batch Size beállításnak legalább 1-nek kell lennie."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -2396,10 +2396,6 @@
     "translation": "Hiányzó kötelező válasz tulajdonság: create_at."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Válasz CreateAt tulajdonságának nagyobbnak kell lennie, mint a szülő bejegyzés CreateAt értéke."
-  },
-  {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
     "translation": "Hiányzó kötelező reakció tulajdonság: User."
   },
@@ -2961,7 +2957,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Verzió 89+"
+    "translation": "Verzió 100+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -3129,7 +3125,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a gitlab.com webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
+    "translation": "A GitLab Általános Szerződési Feltételei frissültek. Kérjük, látogassa meg a {{.URL}} webhelyet, hogy elfogadja őket, majd próbáljon meg újra bejelentkezni a Mattermost-ba."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -3322,10 +3318,6 @@
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Az Elasticsearch le van tiltva."
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Az Elasticsearch szerverhez való csatlakozás nem sikerült."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
@@ -5449,11 +5441,11 @@
   },
   {
     "id": "api.templates.questions_footer.info",
-    "translation": "Írjon nekünk bármikor a következő címen: "
+    "translation": "Segítségre van szüksége vagy kérdése van? Írjon nekünk e-mailt erre a címre: "
   },
   {
     "id": "api.templates.post_body.button",
-    "translation": "Üzenet megtekintése"
+    "translation": "Válasz a Mattermostban"
   },
   {
     "id": "api.templates.payment_failed_no_card.title",
@@ -5477,15 +5469,15 @@
   },
   {
     "id": "api.templates.payment_failed.title",
-    "translation": "Sikertelen fizetés"
+    "translation": "A fizetési művelet nem sikerült"
   },
   {
     "id": "api.templates.payment_failed.subject",
-    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost Cloudra"
+    "translation": "Művelet szükséges: Sikertelen fizetés a Mattermost {{.Plan}} csomagra"
   },
   {
     "id": "api.templates.payment_failed.info3",
-    "translation": "A Mattermost Cloud zavartalan előfizetésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
+    "translation": "A Mattermost {{.Plan}} zavartalan elérésének biztosítása érdekében kérjük, vegye fel a kapcsolatot a pénzintézetével a probléma megoldása érdekében, vagy frissítse fizetési adatait. A fizetési adatok frissítése után a Mattermost megpróbálja rendezni a fennmaradó egyenleget."
   },
   {
     "id": "api.templates.payment_failed.info2",
@@ -5506,10 +5498,6 @@
   {
     "id": "api.templates.password_change_body.info",
     "translation": "Jelszava frissítésre került a {{.TeamDisplayName}} ({{ .TeamURL }}) csapatban {{.Method}} által."
-  },
-  {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Javítás most"
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -5672,22 +5660,6 @@
     "translation": "Adjon hozzá alkalmazásokat a munkaterületéhez"
   },
   {
-    "id": "api.templates.cloud_trial_ending_email.title",
-    "translation": "A Mattermost 14 napos ingyenes próbaverziója hamarosan véget ér"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost 14 napos próbaverziója 3 nap múlva ér véget, {{.TrialEnd}} napon. Kérjük, adja hozzá a fizetési adatait, hogy csapata továbbra is élvezhesse a Mattermost Cloud előnyeit."
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.subject",
-    "translation": "Mattermost cloud próbaidő vége"
-  },
-  {
-    "id": "api.templates.cloud_trial_ending_email.add_payment_method",
-    "translation": "Fizetési mód hozzáadása"
-  },
-  {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Nem lehet beállítani a sémát a csapathoz, mert a megadott séma nem csapat séma."
   },
@@ -5822,14 +5794,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "A meghívás csatornáinak a meghívó csapat részének kell lenniük."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Az Ön licence nem támogatja a vendég fiókokat"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "A vendég fiókok le vannak tiltva"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -6373,7 +6337,7 @@
   },
   {
     "id": "api.push_notifications.session.expired",
-    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által hogy minden {{.daysCount}} nap lejárjanak."
+    "translation": "Munkamenet lejárt: Kérjük jelentkezzen be az értesítések fogadásához. A {{.siteName}} munkamenetei úgy vannak beállítva a rendszergazda által, hogy minden {{.hoursCount}} óránként lejárjanak."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
@@ -6454,10 +6418,6 @@
   {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "A maximális méretek feletti fájlokat nem lehet feltölteni: {{.Filename}}"
-  },
-  {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Nem lehetett a fájlokat feltölteni. Helytelen számú fájl lett megadva."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -6916,7 +6876,7 @@
   },
   {
     "id": "api.templates.cloud_welcome_email.title",
-    "translation": "A {{.WorkSpace}} munkaterület 14 napos próbaverziója készen áll a használatra!"
+    "translation": "A munkaterülete készen áll a használatra!"
   },
   {
     "id": "api.templates.cloud_welcome_email.subtitle_info",
@@ -7985,10 +7945,6 @@
     "translation": "Adatkonverzió nem sikerült."
   },
   {
-    "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Nem kérhető próba licenc. Kérjük, konfigurálja a Rendszer URL-jét a Mattermost Rendszerkonzol webkiszolgáló részében."
-  },
-  {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Nem sikerült megszerezni a próba licencet, kérjük próbálkozzon újra, vagy írjon a support@mattermost.com címre. Nem lehet lekérni a regisztrált felhasználók számát."
   },
@@ -8390,7 +8346,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost súgó oldal megnyitása"
+    "translation": "Mattermost súgó üzenet megjelenítése"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
@@ -8696,22 +8652,6 @@
     "translation": "Amíg távol volt, {{.SenderName}} új közvetlen üzenetet küldött Önnek."
   },
   {
-    "id": "api.templates.cloud_trial_ended_email.title",
-    "translation": "A Mattermost 14 napos ingyenes próbaverziója ma lejárt"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subtitle",
-    "translation": "{{.Name}}, a Mattermost Cloud Enterprise 14 napos ingyenes próbaverziója ma lejárt, {{.TodayDate}}. Kérjük adja hozzá fizetési adatait, hogy csapata továbbra is élvezhesse a Cloud Enterprise előnyeit. Ha 30 napon belül nem adja meg a fizetési adatait, a Cloud munkaterületét véglegesen töröljük, és a kapcsolódó adatokat elveszíti."
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.subject",
-    "translation": "Mattermost cloud próbaidőszak véget ért"
-  },
-  {
-    "id": "api.templates.cloud_trial_ended_email.start_subscription",
-    "translation": "Előfizetés indítása"
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
     "translation": "Az új üzenetek összefoglalását lásd alább."
   },
@@ -8778,10 +8718,6 @@
   {
     "id": "app.notification.body.dm.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
-  },
-  {
-    "id": "app.import.marshal.app_error",
-    "translation": "Nem sikerült becsomagolni a választ."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -8952,10 +8888,6 @@
     "translation": "Válasz a közvetlen üzenetben"
   },
   {
-    "id": "app.import.bulk_import.process_attachments.error",
-    "translation": "Hiba a mellékletek tömeges importálása közben."
-  },
-  {
     "id": "model.channel_member.is_valid.roles_limit.app_error",
     "translation": "Érvénytelen beszélgetés tagság jogosultság hosszabb mint {{.Limit}} karakter."
   },
@@ -9040,26 +8972,6 @@
     "translation": "SAML válasz túl hosszú"
   },
   {
-    "id": "model.github_release_info.is_valid.id.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_unmarshal.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_set_cache.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_read_all.failure",
-    "translation": " "
-  },
-  {
-    "id": "app.admin.latest_version_external_error.failure",
-    "translation": " "
-  },
-  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Nem sikerült dekódolni a teljes rendszerbeszállási kérelmet."
   },
@@ -9070,10 +8982,6 @@
   {
     "id": "model.emoji.system_emoji_name.app_error",
     "translation": "A név ütközik egy meglévő rendszer emoji nevével."
-  },
-  {
-    "id": "api.users.invalid_emails.enable_open_server.app_error",
-    "translation": " "
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -9145,7 +9053,7 @@
   },
   {
     "id": "api.templates.server_inactivity_subject",
-    "translation": "ÜDV! Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
+    "translation": "Nyissa meg a Mattermostot, hogy növelje csapata termelékenységét!"
   },
   {
     "id": "api.templates.server_inactivity_title",
@@ -9218,5 +9126,265 @@
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
     "translation": "Az e-mail beállításokban nem meghatározott értékek vannak."
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_body.title",
+    "translation": "{{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "api.templates.invite_team_and_channels_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} meghívta Önt hogy csatlakozzon {{ .ChannelsLen }} csatornához a {{ .TeamDisplayName }} csapatban"
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Csatorna neve érvénytelen"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "E-mail lista üres"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_batch_size.app_error",
+    "translation": "A Bleve Bulk Indexing Batch Size beállításnak {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Az Elasticsearch Bulk Indexing Batch Size beállításnak legalább {{.BatchSize}} hosszúnak kell lennie."
+  },
+  {
+    "id": "model.channel.is_valid.1_or_more.app_error",
+    "translation": "A névnek 1 vagy több kisbetűs alfanumerikus karakterből kell állnia."
+  },
+  {
+    "id": "app.user.update_thread_read_for_user_by_post.app_error",
+    "translation": "Érvénytelen post_id"
+  },
+  {
+    "id": "app.channel.get_file_count.app_error",
+    "translation": "A csatorna fájljainak számát nem lehet lekérdezni"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "translation": "Az Ön {{.WorkspaceName}} munkaterülete mostantól a megemelt verziót használja. A számlázás {{.Date}} napon kezdődik"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.title",
+    "translation": "Ön mostantól a megemelt verziót használja!"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation.subject",
+    "translation": "Mattermost frissítés megerősítés"
+  },
+  {
+    "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
+    "translation": "Az Elasticsearch beállításában nem mentett értékek vannak."
+  },
+  {
+    "id": "api.templates.server_inactivity_footer_disclaimer",
+    "translation": "Ezt az egyszeri e-mailt azért kapta, mert a Mattermost szervere több mint {{.Hours}} órán keresztül inaktív volt. Ezt az e-mailt a Mattermost szervere automatikusan generálta."
+  },
+  {
+    "id": "api.cloud.subscription.update_error",
+    "translation": "HIba történt a webhorogról az előfizetés frissítése közben."
+  },
+  {
+    "id": "api.file.cloud_upload.app_error",
+    "translation": "Az mmctl segítségével történő feltöltés egy felhő alapú példányra nem támogatott. Kérjük, tekintse meg a dokumentációt itt: https://docs.mattermost.com/manage/cloud-data-export.html."
+  },
+  {
+    "id": "app.recent_searches.app_error",
+    "translation": "Hiba a legutóbbi keresések letöltése közben"
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Hiba a tároló használtságának lekérdezése közben."
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Nem kérdezhető le a csapatok száma"
+  },
+  {
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "Elérte az engedélyezett integrációk maximális számát {{.NumIntegrations}}. Korlátlan számú integráció telepítéséhez frissítsen valamelyik fizetős csomagunkra."
+  },
+  {
+    "id": "app.post.analytics_teams_count.app_error",
+    "translation": "Nem kérdezhető le a csapat használtság"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Nem lehet visszaállítani a csapatot, mert a csapatok száma elérte a korlátot"
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Nem lehet csapatot létrehozni, mert a csapatok száma elérte a korlátot"
+  },
+  {
+    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
+    "translation": "Érvénytelen dekódoló párhuzamosság {{.Value}}. Pozitív számnak vagy -1-nek kell lennie."
+  },
+  {
+    "id": "app.post.get_top_threads_for_team_since.app_error",
+    "translation": "A csapat legnépszerűbb szálai nem érhetők el."
+  },
+  {
+    "id": "app.post.get_top_threads_for_user_since.app_error",
+    "translation": "A felhasználó legnépszerűbb szálai nem érhetők el."
+  },
+  {
+    "id": "app.insights.feature_disabled",
+    "translation": "Áttekintések szolgáltatás le van tiltva."
+  },
+  {
+    "id": "app.post.cloud.get.app_error",
+    "translation": "Nem lehetséges a bejegyzés lekérése, mivel a felhő csomagjának korlátján túl van."
+  },
+  {
+    "id": "api.insights.feature_disabled",
+    "translation": "Áttekintések egy olyan funkció jelölő mögött van, ami nincs engedélyezve."
+  },
+  {
+    "id": "app.last_accessible_post.app_error",
+    "translation": "Hiba történt a legutóbbi elérhető bejegyzés lekérése közben"
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Nem sikerült értelmezni az értéket:{{.Value}} mint int64"
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Már korábban értesítettük a rendszergazdát"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Nem sikerült legenerálni a fájl információt a feltöltött adatból."
+  },
+  {
+    "id": "model.config.is_valid.amazons3_timeout.app_error",
+    "translation": "Érvénytelen az időtúllépés értéke {{.Value}}. Pozitív számnak kell lennie."
+  },
+  {
+    "id": "app.post_reminder_dm",
+    "translation": "Üdv, ez egy emlékeztető a @{{.Username}} által írt {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}} bejegyzésre"
+  },
+  {
+    "id": "app.team.clear_cache.app_error",
+    "translation": "Hiba a csapattagok gyorsítótárának törlésében"
+  },
+  {
+    "id": "app.post.get_top_dms_for_user_since.app_error",
+    "translation": "Nem lehet lekérni a felhasználó legtöbb közvetlen üzeneteit."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "A Mattermost egy nyílt forráskódú platform a biztonságos kommunikációhoz, együttműködéshez és az eszközök és csapatok közötti munka összehangolásához.\nA Mattermost három kulcsfontosságú eszközt tartalmaz:\n\n**Csatornák** - Maradjon kapcsolatban csapatával 1:1 és csoportos üzenetküldéssel.\n**[Forgatókönyvek](/playbooks)** - Építsen és konfiguráljon megismételhető folyamatokat meghatározott és kiszámítható eredmények elérése érdekében.\n**[Táblák](/boards)** - Kezelje a projekteket és feladatokat Kanban tábla struktúrában, hogy segítse csapatát a kulcsfontosságú mérföldkövek elérésében.\n\n[Dokumentáció és útmutatók megtekintése]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Piactér megnyitása"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "A marketplace parancs nem támogatott az Ön eszközén."
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "marketplace"
+  },
+  {
+    "id": "api.templates.delinquency_90.secondary_action_button",
+    "translation": "Csomagok és árak megtekintése"
+  },
+  {
+    "id": "api.templates.delinquency_90.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_75.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_7.title",
+    "translation": "A fizetési művelete nincs befejezve"
+  },
+  {
+    "id": "api.templates.delinquency_7.subtitle1",
+    "translation": "Nem tudtuk feldolgozni a legutóbbi fizetési műveletét"
+  },
+  {
+    "id": "api.templates.delinquency_7.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_60.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_45.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.title",
+    "translation": "A munkaterülete hamarosan le lesz minősítve"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.message_history",
+    "translation": "Üzenet előzmény"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Fájl"
+  },
+  {
+    "id": "api.templates.delinquency_14.title",
+    "translation": "Fizetés nem érkezett meg"
+  },
+  {
+    "id": "api.templates.delinquency_14.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.subject",
+    "translation": "Lépjen most, hogy megtarthassa a Mattermost {{.Plan}} funkcióit"
+  },
+  {
+    "id": "app.notify_admin.send_notification_post.app_error",
+    "translation": "Nem sikerült elküldeni az értesítési bejegyzést."
+  },
+  {
+    "id": "app.notify_admin.save.app_error",
+    "translation": "Nem sikerült elmenteni az értesítési beállításokat."
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Hiba a művelet végrehajtása közben."
+  },
+  {
+    "id": "app.cloud.get_current_plan_name.app_error",
+    "translation": "Nem sikerült lekérni a jelenlegi előfizetési csomag nevét"
+  },
+  {
+    "id": "api.templates.delinquency_30.button",
+    "translation": "Fizetés frissítése"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.plugins",
+    "translation": "Aktív bővítmények és integrációk"
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Hiányzó kötelező mezők a késedelmes e-mail küldéséhez."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Nem sikerült lekérni a fájlt, mivel az meghaladta a felhőcsomag határértékét."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Nem sikerült lekérni a felhasználó jelvény számlálóját."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "csoport név létezik mint lefoglalt név"
   }
 ]

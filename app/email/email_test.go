@@ -76,7 +76,7 @@ func TestSendInviteEmails(t *testing.T) {
 	t.Run("SendInviteEmails", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -93,10 +93,10 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPPort = originalPort
 		})
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true)
+		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false)
+		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 	})
 
@@ -112,6 +112,8 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
+			false,
 			false,
 		)
 		require.NoError(t, err)
@@ -140,6 +142,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			false,
+			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -153,6 +157,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			true,
+			false,
+			false,
 		)
 		require.Error(t, err)
 
@@ -172,6 +178,8 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			message,
 			false,
+			false,
+			false,
 		)
 		require.NoError(t, err)
 
@@ -180,86 +188,65 @@ func TestSendInviteEmails(t *testing.T) {
 		require.Contains(t, email.Body.HTML, "sanitized message")
 		require.Contains(t, email.Body.Text, "sanitized message")
 	})
-}
 
-func TestSendCloudTrialEndWarningEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
-
-	emailTo := "testclouduser@example.com"
-	emailToUsername := strings.Split(emailTo, "@")[0]
-	th.UpdateConfig(func(cfg *model.Config) {
-		*cfg.SupportSettings.SupportEmail = "support@mattermost.com"
-	})
-
-	t.Run("SendCloudTrialEndWarningEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.HTML, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.HTML, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "http://testserver", "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, emailToUsername, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, "support@mattermost.com")
-		}
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system user", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudTrialEndWarningEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "http://testserver")
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			false,
+			false,
+		)
 		require.NoError(t, err)
 
-		verifyMailbox(t)
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=su")
 	})
-}
 
-func TestSendCloudTrialEndedEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.ConfigureInbucketMail()
-
-	emailTo := "testclouduser@example.com"
-	emailToUsername := strings.Split(emailTo, "@")[0]
-
-	t.Run("SendCloudTrialEndedEmail", func(t *testing.T) {
-		verifyMailbox := func(t *testing.T) {
-			t.Helper()
-
-			var resultsMailbox mail.JSONMessageHeaderInbucket
-			err2 := mail.RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = mail.GetMailBox(emailTo)
-				return err
-			})
-			if err2 != nil {
-				t.Skipf("No email was received, maybe due load on the server: %v", err2)
-			}
-
-			require.Len(t, resultsMailbox, 1)
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, resultsEmail.Body.Text, "Your free 14-day trial of Mattermost has ended", "Wrong received message %s", resultsEmail.Body.Text)
-		}
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for system admin", func(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudTrialEndedEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale)
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			true,
+			false,
+		)
 		require.NoError(t, err)
 
-		verifyMailbox(t)
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=sa")
+	})
+
+	t.Run("SendInviteEmails should contain button URL with 'started by role' param for first system admin", func(t *testing.T) {
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendInviteEmails(
+			th.BasicTeam,
+			"test-user",
+			th.BasicUser.Id,
+			[]string{emailTo},
+			"http://testserver",
+			nil,
+			false,
+			true,
+			true,
+		)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		require.Contains(t, email.Body.HTML, "&amp;sbr=fa")
 	})
 }
 
@@ -295,6 +282,44 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 		mail.DeleteMailBox(emailTo)
 
 		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName")
+		require.NoError(t, err)
+
+		verifyMailbox(t)
+	})
+}
+
+func TestSendCloudWelcomeEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.ConfigureInbucketMail()
+
+	emailTo := "testclouduser@example.com"
+
+	t.Run("TestSendCloudWelcomeEmail", func(t *testing.T) {
+		verifyMailbox := func(t *testing.T) {
+			t.Helper()
+
+			var resultsMailbox mail.JSONMessageHeaderInbucket
+			err2 := mail.RetryInbucket(5, func() error {
+				var err error
+				resultsMailbox, err = mail.GetMailBox(emailTo)
+				return err
+			})
+			if err2 != nil {
+				t.Skipf("No email was received, maybe due load on the server: %v", err2)
+			}
+
+			require.Len(t, resultsMailbox, 1)
+			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+			resultsEmail, err := mail.GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+			require.NoError(t, err, "Could not get message from mailbox")
+			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
+			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
+
+		}
+		mail.DeleteMailBox(emailTo)
+
+		err := th.service.SendCloudWelcomeEmail(emailTo, th.BasicUser.Locale, "inviteID", "SomeName", "example.com", "https://example.com")
 		require.NoError(t, err)
 
 		verifyMailbox(t)

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"io/ioutil"
 	"net"
 	"os"
 	"syscall"
@@ -77,7 +76,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	defer th.TearDownServerTest()
 
 	// Get a random temporary filename for using as a mock systemd socket
-	socketFile, err := ioutil.TempFile("", "mattermost-systemd-mock-socket-")
+	socketFile, err := os.CreateTemp("", "mattermost-systemd-mock-socket-")
 	if err != nil {
 		panic(err)
 	}

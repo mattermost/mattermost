@@ -7,6 +7,7 @@ import (
 	"io"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/jobs"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/services/configservice"
@@ -18,12 +19,15 @@ const jobName = "ExportProcess"
 type AppIface interface {
 	configservice.ConfigService
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	BulkExport(writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts model.BulkExportOpts) *model.AppError
+	Log() *mlog.Logger
 }
 
 func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool { return true }
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		opts := model.BulkExportOpts{
 			CreateArchive: true,
 		}
@@ -34,7 +38,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		}
 
 		outPath := *app.Config().ExportSettings.Directory
-		exportFilename := model.NewId() + "_export.zip"
+		exportFilename := job.Id + "_export.zip"
 
 		rd, wr := io.Pipe()
 
@@ -45,7 +49,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 			errCh <- appErr
 		}()
 
-		appErr := app.BulkExport(wr, outPath, opts)
+		appErr := app.BulkExport(request.EmptyContext(app.Log()), wr, outPath, opts)
 		if err := wr.Close(); err != nil {
 			mlog.Warn("Worker: error closing writer")
 		}

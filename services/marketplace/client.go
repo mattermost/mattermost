@@ -6,7 +6,6 @@ package marketplace
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -114,12 +113,12 @@ func (c *Client) GetLatestPlugin(filter *model.MarketplacePluginFilter) (*model.
 // closeBody ensures the Body of an http.Response is properly closed.
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, r.Body)
+		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
 
-func (c *Client) buildURL(urlPath string, args ...interface{}) string {
+func (c *Client) buildURL(urlPath string, args ...any) string {
 	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
 }
 

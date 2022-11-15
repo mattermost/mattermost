@@ -1084,10 +1084,6 @@
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
-    "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-    "translation": "Не вдається завантажити файли. Неправильне число вказаних файлів."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Не вдалося завантажити файл над максимальними розмірами: {{.Filename}}"
   },
@@ -2648,10 +2644,6 @@
     "translation": "Відсутня необхідна властивість Реакція: користувач."
   },
   {
-    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Відповідь властивості CreateAt має бути більшим, ніж батьківський запис CreateAt."
-  },
-  {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
     "translation": "Відсутня необхідна відповідь властивість: created_at."
   },
@@ -3162,10 +3154,6 @@
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Еластичний пошук не запускається"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Не вдалося підключитися до сервера Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -5596,14 +5584,6 @@
     "translation": "The channels of the invite must be part of the team of the invite."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Редакція не підтримує Elasticsearch. "
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -6870,5 +6850,17 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Помилка синтаксісу багато-форматного запиту"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Помилка валідації кешу"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Повернутися до {{.SiteName}}"
+  },
+  {
+    "id": "Channels",
+    "translation": "Канали"
   }
 ]

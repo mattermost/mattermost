@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/mail"
 	"net/smtp"
@@ -125,7 +124,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, emailCC)
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, "", "", "", emailCC)
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -163,7 +162,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		"test1.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 		"test2.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 	}
-	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, emailCC)
+	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, "", "", "", emailCC)
 	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -195,12 +194,12 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	DeleteMailBox("test2@example.com")
 
 	// create two files with the same name that will both be attached to the email
-	file1, err := ioutil.TempFile("", "*")
+	file1, err := os.CreateTemp("", "*")
 	require.NoError(t, err)
 	defer os.Remove(file1.Name())
 	file1.Write([]byte("hello world"))
 	file1.Close()
-	file2, err := ioutil.TempFile("", "*")
+	file2, err := os.CreateTemp("", "*")
 
 	require.NoError(t, err)
 	defer os.Remove(file2.Name())
@@ -326,32 +325,91 @@ func (m *mockMailer) Write(p []byte) (int, error) {
 func (m *mockMailer) Close() error { return nil }
 
 func TestSendMail(t *testing.T) {
-	dir, err := ioutil.TempDir(".", "mail-test-")
+	dir, err := os.MkdirTemp(".", "mail-test-")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	mocm := &mockMailer{}
 
 	testCases := map[string]struct {
 		replyTo     mail.Address
+		messageID   string
+		inReplyTo   string
+		references  string
 		contains    string
 		notContains string
 	}{
 		"adds reply-to header": {
 			mail.Address{Address: "foo@test.com"},
+			"",
+			"",
+			"",
 			"\r\nReply-To: <foo@test.com>\r\n",
 			"",
 		},
 		"doesn't add reply-to header": {
 			mail.Address{},
 			"",
+			"",
+			"",
+			"",
 			"\r\nReply-To:",
+		},
+
+		"adds message-id header": {
+			mail.Address{},
+			"<abc123@mattermost.com>",
+			"",
+			"",
+			"\r\nMessage-ID: <abc123@mattermost.com>\r\n",
+			"",
+		},
+		"always adds message-id header": {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"\r\nMessage-ID: <",
+			"",
+		},
+		"adds in-reply-to header": {
+			mail.Address{},
+			"",
+			"<defg456@mattermost.com>",
+			"",
+			"\r\nIn-Reply-To: <defg456@mattermost.com>\r\n",
+			"",
+		},
+		"doesn't add in-reply-to header": {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"",
+			"\r\nIn-Reply-To:",
+		},
+		"adds references header": {
+			mail.Address{},
+			"",
+			"",
+			"<ghi789@mattermost.com>",
+			"\r\nReferences: <ghi789@mattermost.com>\r\n",
+			"",
+		},
+		"doesn't add references header": {
+			mail.Address{},
+			"",
+			"",
+			"",
+			"",
+			"\r\nReferences:",
 		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil}
-			err = SendMail(mocm, mail, time.Now())
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, tc.messageID, tc.inReplyTo, tc.references}
+			cfg := getConfig()
+			err = sendMail(mocm, mail, time.Now(), cfg)
 			require.NoError(t, err)
 			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)

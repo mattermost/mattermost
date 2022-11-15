@@ -6,7 +6,6 @@ package slashcommands
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
-	"github.com/mattermost/mattermost-server/v6/store/localcachelayer"
 )
 
 type TestHelper struct {
@@ -42,7 +40,7 @@ type TestHelper struct {
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
 	}
@@ -64,13 +62,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
-		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
-		}))
+		options = append(options, app.StoreOverrideWithCache(dbStore))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))
 	}
@@ -91,7 +83,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
-		Context:           &request.Context{},
+		Context:           request.EmptyContext(testLogger),
 		Server:            s,
 		LogBuffer:         buffer,
 		TestLogger:        testLogger,
@@ -109,9 +101,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	th.App.Srv().SearchEngine = mainHelper.SearchEngine
+	th.App.Srv().Platform().SearchEngine = mainHelper.SearchEngine
 
-	th.App.Srv().Store.MarkSystemRanUnitTests()
+	th.App.Srv().Store().MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -165,7 +157,7 @@ func (th *TestHelper) initBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
 		th.SystemAdminUser = th.createUser()
-		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
@@ -280,7 +272,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+		_, err := th.App.SaveSharedChannel(th.Context, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -327,7 +319,7 @@ func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
 func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
+	if channel, err = th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
 		panic(err)
 	}
 	return channel
@@ -358,7 +350,7 @@ func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
-	member, err := th.App.AddUserToChannel(user, channel, false)
+	member, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 	if err != nil {
 		panic(err)
 	}

@@ -4,7 +4,6 @@
 package app
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +20,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
@@ -38,7 +37,7 @@ func TestPluginPublicKeys(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 	publicKeyFilename := "test-public-key.plugin.gpg"
-	publicKey, err := ioutil.ReadFile(filepath.Join(path, publicKeyFilename))
+	publicKey, err := os.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)

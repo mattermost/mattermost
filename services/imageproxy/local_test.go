@@ -4,7 +4,7 @@
 package imageproxy
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,7 +60,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		assert.Equal(t, "max-age=2592000, private", resp.Header.Get("Cache-Control"))
 		assert.Equal(t, "10", resp.Header.Get("Content-Length"))
 
-		respBody, _ := ioutil.ReadAll(resp.Body)
+		respBody, _ := io.ReadAll(resp.Body)
 		assert.Equal(t, []byte("1111111111"), respBody)
 	})
 
@@ -190,8 +190,39 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
 
-		_, err = ioutil.ReadAll(resp.Body)
+		_, err = io.ReadAll(resp.Body)
 		require.NoError(t, err)
+	})
+
+	t.Run("Redirect", func(t *testing.T) {
+		var mock *httptest.Server
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/image.png":
+				w.Header().Set("Location", mock.URL+"/image2.png")
+				w.WriteHeader(http.StatusMovedPermanently)
+			case "/image2.png":
+				w.Header().Set("Cache-Control", "max-age=2592000, private")
+				w.Header().Set("Content-Type", "image/png")
+				w.Header().Set("Content-Length", "10")
+
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("1111111111"))
+			}
+		})
+
+		mock = httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		proxy.GetImage(recorder, request, mock.URL+"/image.png")
+		resp := recorder.Result()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "10", resp.Header.Get("Content-Length"))
 	})
 }
 
@@ -216,7 +247,7 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "image/png", contentType)
 
-		respBody, _ := ioutil.ReadAll(body)
+		respBody, _ := io.ReadAll(body)
 		assert.Equal(t, []byte("1111111111"), respBody)
 	})
 

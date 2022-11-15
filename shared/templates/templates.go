@@ -27,7 +27,7 @@ type Container struct {
 // Data contains the data used to populate the template variables, it has Props
 // that can be of any type and HTML that only can be `template.HTML` types.
 type Data struct {
-	Props map[string]interface{}
+	Props map[string]any
 	HTML  map[string]template.HTML
 }
 

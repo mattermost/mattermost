@@ -26,8 +26,9 @@ func appendAncillaryPermissions(c *Context, w http.ResponseWriter, r *http.Reque
 	permissions := strings.Split(keys[0], ",")
 	b, err := json.Marshal(model.AddAncillaryPermissions(permissions))
 	if err != nil {
-		c.SetJSONEncodingError()
+		c.SetJSONEncodingError(err)
 		return
 	}
+
 	w.Write(b)
 }

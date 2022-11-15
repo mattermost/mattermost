@@ -33,6 +33,10 @@ func TestGraphQLUser(t *testing.T) {
 			IsBot         bool    `json:"isBot"`
 			IsSystemAdmin bool    `json:"isSystemAdmin"`
 			CreateAt      float64 `json:"createAt"`
+			DeleteAt      float64 `json:"deleteAt"`
+			UpdateAt      float64 `json:"updateAt"`
+			AuthData      *string `json:"authData"`
+			EmailVerified bool    `json:"emailVerified"`
 			CustomStatus  struct {
 				Emoji     string    `json:"emoji"`
 				Text      string    `json:"text"`
@@ -49,6 +53,9 @@ func TestGraphQLUser(t *testing.T) {
 				Permissions   []string `json:"permissions"`
 				SchemeManaged bool     `json:"schemeManaged"`
 				BuiltIn       bool     `json:"builtIn"`
+				CreateAt      float64  `json:"createAt"`
+				DeleteAt      float64  `json:"deleteAt"`
+				UpdateAt      float64  `json:"updateAt"`
 			} `json:"roles"`
 			Preferences []struct {
 				UserID   string `json:"userId"`
@@ -57,8 +64,11 @@ func TestGraphQLUser(t *testing.T) {
 				Value    string `json:"value"`
 			} `json:"preferences"`
 			Sessions []struct {
-				ID       string  `json:"id"`
-				CreateAt float64 `json:"createAt"`
+				ID             string  `json:"id"`
+				CreateAt       float64 `json:"createAt"`
+				LastActivityAt float64 `json:"lastActivityAt"`
+				DeviceId       string  `json:"deviceId"`
+				Roles          string  `json:"roles"`
 			} `json:"sessions"`
 		} `json:"user"`
 	}
@@ -72,8 +82,12 @@ func TestGraphQLUser(t *testing.T) {
 			id
 			username
 			email
+			createAt
+			updateAt
+			deleteAt
 			firstName
 			lastName
+			emailVerified
 			isBot
 			isGuest
 			isSystemAdmin
@@ -83,6 +97,9 @@ func TestGraphQLUser(t *testing.T) {
 			roles {
 				id
 				name
+				createAt
+				updateAt
+				deleteAt
 			}
 			preferences {
 				name
@@ -91,6 +108,8 @@ func TestGraphQLUser(t *testing.T) {
 			sessions {
 				id
 				createAt
+				lastActivityAt
+				roles
 			}
 		}
 	}
@@ -106,6 +125,9 @@ func TestGraphQLUser(t *testing.T) {
 		assert.Equal(t, th.BasicUser.Email, q.User.Email)
 		assert.Equal(t, th.BasicUser.FirstName, q.User.FirstName)
 		assert.Equal(t, th.BasicUser.IsBot, q.User.IsBot)
+		assert.Equal(t, float64(th.BasicUser.CreateAt), q.User.CreateAt)
+		assert.Equal(t, float64(th.BasicUser.DeleteAt), q.User.DeleteAt)
+		assert.NotZero(t, q.User.UpdateAt)
 		assert.Equal(t, th.BasicUser.IsSystemAdmin(), q.User.IsSystemAdmin)
 		assert.Equal(t, th.BasicUser.Timezone, q.User.Timezone)
 		assert.Equal(t, th.BasicUser.Props, q.User.Props)
@@ -118,6 +140,9 @@ func TestGraphQLUser(t *testing.T) {
 		assert.Len(t, roles, 1)
 		assert.Equal(t, roles[0].Id, q.User.Roles[0].ID)
 		assert.Equal(t, roles[0].Name, q.User.Roles[0].Name)
+		assert.Equal(t, float64(roles[0].CreateAt), q.User.Roles[0].CreateAt)
+		assert.Equal(t, float64(roles[0].UpdateAt), q.User.Roles[0].UpdateAt)
+		assert.Equal(t, float64(roles[0].DeleteAt), q.User.Roles[0].DeleteAt)
 
 		prefs, _, err := th.Client.GetPreferences(th.BasicUser.Id)
 		require.NoError(t, err)
@@ -140,12 +165,14 @@ func TestGraphQLUser(t *testing.T) {
 		for _, session := range q.User.Sessions {
 			assert.NotEmpty(t, session.ID)
 			assert.Less(t, session.CreateAt, now)
+			assert.Less(t, session.LastActivityAt, now)
+			assert.Equal(t, model.SystemUserRoleId, session.Roles)
 		}
 	})
 
 	t.Run("Update", func(t *testing.T) {
 		th.BasicUser.Props = map[string]string{"testpropkey": "testpropvalue"}
-		th.App.UpdateUser(th.BasicUser, false)
+		th.App.UpdateUser(th.Context, th.BasicUser, false)
 
 		input := graphQLInput{
 			OperationName: "user",
@@ -178,7 +205,7 @@ func TestGraphQLUser(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"id": th.BasicUser2.Id,
 			},
 		}
@@ -203,7 +230,7 @@ func TestGraphQLUser(t *testing.T) {
 	  }
 	}
 	`,
-			Variables: map[string]interface{}{
+			Variables: map[string]any{
 				"id": id,
 			},
 		}
