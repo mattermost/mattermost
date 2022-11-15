@@ -223,6 +223,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 	query := s.getQueryBuilder().
 		Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 		From("ThreadMemberships").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
@@ -232,7 +233,6 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 
 	if teamId != "" {
 		query = query.
-			Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			Where(sq.Or{
 				sq.Eq{"Threads.ThreadTeamId": teamId},
 				sq.Eq{"Threads.ThreadTeamId": ""},

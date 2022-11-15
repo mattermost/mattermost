@@ -466,11 +466,11 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
 			require.NoError(t, e)
 
-			th, e := ss.Thread().GetThreadForUser(m, false, false)
+			th, e := ss.Thread().GetThreadForUser(m, false, true)
 			require.NoError(t, e)
 			require.Equal(t, isUrgent, th.IsUrgent)
 
-			threads, e := ss.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{})
+			threads, e := ss.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{IncludeIsUrgent: true})
 			require.NoError(t, e)
 			require.Equal(t, isUrgent, threads[0].IsUrgent)
 		})
