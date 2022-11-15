@@ -168,6 +168,8 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 		}
 	}
 
+	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
+
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
@@ -190,7 +192,36 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.get_drafts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	for _, draft := range drafts {
+		a.prepareDraftWithFileInfos(userID, draft)
+	}
 	return drafts, nil
+}
+
+func (a *App) prepareDraftWithFileInfos(userID string, draft *model.Draft) *model.Draft {
+	if fileInfos, err := a.getFileInfosForDraft(draft); err != nil {
+		mlog.Warn("Failed to get files for a user's drafts", mlog.String("user_id", userID), mlog.Err(err))
+	} else {
+		draft.Metadata = &model.PostMetadata{}
+		draft.Metadata.Files = fileInfos
+	}
+
+	return draft
+}
+
+func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *model.AppError) {
+	if len(draft.FileIds) == 0 {
+		return nil, nil
+	}
+
+	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds)
+	if err != nil {
+		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.generateMiniPreviewForInfos(fileInfos)
+
+	return fileInfos, nil
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
