@@ -3465,6 +3465,24 @@ func (s *OpenTracingLayerFileInfoStore) CountAll() (int64, error) {
 	return result, err
 }
 
+func (s *OpenTracingLayerFileInfoStore) DeleteForDraft(fileIds []string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.DeleteForDraft")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.FileInfoStore.DeleteForDraft(fileIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.DeleteForPost")

@@ -3883,6 +3883,27 @@ func (s *RetryLayerFileInfoStore) CountAll() (int64, error) {
 
 }
 
+func (s *RetryLayerFileInfoStore) DeleteForDraft(fileIds []string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.DeleteForDraft(fileIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 
 	tries := 0

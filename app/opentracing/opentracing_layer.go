@@ -3095,6 +3095,28 @@ func (a *OpenTracingAppLayer) DeleteExport(name string) *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) DeleteFileInfos(fileIds model.StringArray) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteFileInfos")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DeleteFileInfos(fileIds)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroup")
@@ -6076,6 +6098,28 @@ func (a *OpenTracingAppLayer) GetFileInfos(page int, perPage int, opt *model.Get
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetFileInfos(page, perPage, opt)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForDraft")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetFileInfosForDraft(draft)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13153,6 +13197,28 @@ func (a *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post
 	resultVar0 := a.app.PostWithProxyRemovedFromImageURLs(post)
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) PrepareDraftWithFileInfos(draft *model.Draft) (*model.Draft, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PrepareDraftWithFileInfos")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PrepareDraftWithFileInfos(draft)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {

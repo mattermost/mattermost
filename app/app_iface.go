@@ -523,6 +523,7 @@ type AppIface interface {
 	DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
+	DeleteFileInfos(fileIds model.StringArray) *model.AppError
 	DeleteGroup(groupID string) (*model.Group, *model.AppError)
 	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
@@ -638,6 +639,7 @@ type AppIface interface {
 	GetFile(fileID string) ([]byte, *model.AppError)
 	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
 	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	GetFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError)
@@ -935,6 +937,7 @@ type AppIface interface {
 	PostUpdateChannelPurposeMessage(c request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError
 	PostWithProxyAddedToImageURLs(post *model.Post) *model.Post
 	PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post
+	PrepareDraftWithFileInfos(draft *model.Draft) (*model.Draft, *model.AppError)
 	PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
 	PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post
 	PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList

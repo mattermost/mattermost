@@ -19,10 +19,11 @@ type Draft struct {
 
 	Message string `json:"message"`
 
-	propsMu  sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
-	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
-	FileIds  StringArray     `json:"file_ids,omitempty"`
-	Metadata *PostMetadata   `json:"metadata,omitempty"`
+	propsMu        sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
+	Props          StringInterface `json:"props"` // Deprecated: use GetProps()
+	FileIds        StringArray     `json:"file_ids,omitempty"`
+	Metadata       *PostMetadata   `json:"metadata,omitempty"`
+	DeletedFileIds StringArray     `json:"deleted_file_ids,omitempty"`
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
