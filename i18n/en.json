@@ -4924,10 +4924,6 @@
     "translation": "Unable to delete the Draft."
   },
   {
-    "id": "app.draft.delete_for_draft.app_error",
-    "translation": "Unable to delete files for the Draft."
-  },
-  {
     "id": "app.draft.feature_disabled",
     "translation": "Drafts feature is disabled."
   },
@@ -4940,12 +4936,8 @@
     "translation": "Unable to get user's Drafts."
   },
   {
-    "id": "app.draft.get_files_for_draft.app_error",
+    "id": "app.draft.get_for_draft.app_error",
     "translation": "Unable to get files for Draft."
-  },
-  {
-    "id": "app.draft.prepare_draft_with_file_infos.app_error",
-    "translation": "Unable to update files for Draft."
   },
   {
     "id": "app.draft.save.app_error",

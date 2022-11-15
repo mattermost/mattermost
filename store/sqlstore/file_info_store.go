@@ -440,25 +440,6 @@ func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
 	return nil
 }
 
-func (fs SqlFileInfoStore) DeleteForDraft(fileIds []string) error {
-	query := fs.getQueryBuilder().
-		Update("FileInfo").
-		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"Id": fileIds})
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "file_info_tosql")
-	}
-
-	_, err = fs.GetMasterX().Exec(queryString, args...)
-	if err != nil {
-		return errors.Wrapf(err, "failed to update FileInfos")
-	}
-
-	return nil
-}
-
 func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, error) {
 	if _, err := fs.GetMasterX().Exec(
 		`UPDATE

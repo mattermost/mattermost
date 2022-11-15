@@ -54,20 +54,6 @@ func (_m *FileInfoStore) CountAll() (int64, error) {
 	return r0, r1
 }
 
-// DeleteForDraft provides a mock function with given fields: fileIds
-func (_m *FileInfoStore) DeleteForDraft(fileIds []string) error {
-	ret := _m.Called(fileIds)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]string) error); ok {
-		r0 = rf(fileIds)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // DeleteForPost provides a mock function with given fields: postID
 func (_m *FileInfoStore) DeleteForPost(postID string) (string, error) {
 	ret := _m.Called(postID)

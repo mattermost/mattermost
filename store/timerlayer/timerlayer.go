@@ -3168,22 +3168,6 @@ func (s *TimerLayerFileInfoStore) CountAll() (int64, error) {
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) DeleteForDraft(fileIds []string) error {
-	start := time.Now()
-
-	err := s.FileInfoStore.DeleteForDraft(fileIds)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.DeleteForDraft", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerFileInfoStore) DeleteForPost(postID string) (string, error) {
 	start := time.Now()
 
