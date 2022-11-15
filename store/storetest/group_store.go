@@ -844,14 +844,13 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
-	require.Equal(t, user3.Id, groupMembers[0].Id)
-	require.Equal(t, user2.Id, groupMembers[1].Id)
+	require.ElementsMatch(t, []*model.User{user2, user3}, groupMembers)
 
 	// Check page 2
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user1.Id, groupMembers[0].Id)
+	require.ElementsMatch(t, []*model.User{user1}, groupMembers)
 
 	// Check madeup id
 	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100, nil)
