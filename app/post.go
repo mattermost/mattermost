@@ -278,8 +278,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 			}
 			if replacementPost != nil {
 				post = replacementPost
-				// we nee the metadata to persist, we are saving metadata.priority in posts priority table
-				post.Metadata = metadata
+				if post.Metadata != nil && metadata != nil {
+					post.Metadata.Priority = metadata.Priority
+				} else {
+					post.Metadata = metadata
+				}
 			}
 
 			return true

@@ -2393,6 +2393,10 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 
+	if postPriorityIsEnabled {
+		options.IncludeIsUrgent = true
+	}
+
 	if !options.ThreadsOnly {
 		eg.Go(func() error {
 			totalUnreadThreads, err := a.Srv().Store().Thread().GetTotalUnreadThreads(userID, teamID, options)
@@ -2430,8 +2434,6 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 		})
 
 		if postPriorityIsEnabled {
-			options.IncludeIsUrgent = true
-
 			eg.Go(func() error {
 				totalUnreadUrgentMentions, err := a.Srv().Store().Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
 				if err != nil {
