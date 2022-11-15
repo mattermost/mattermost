@@ -47,6 +47,8 @@ type Routes struct {
 	ChannelsForTeam          *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/channels'
 	ChannelMembers           *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members'
 	ChannelMember            *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
+	ChannelPreviewers		 *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/previewers'
+	ChannelPreviewer 		 *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/previewer/{user_id:[A-Za-z0-9]+}'
 	ChannelMembersForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/members'
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
@@ -184,6 +186,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelsForTeam = api.BaseRoutes.Team.PathPrefix("/channels").Subrouter()
 	api.BaseRoutes.ChannelMembers = api.BaseRoutes.Channel.PathPrefix("/members").Subrouter()
 	api.BaseRoutes.ChannelMember = api.BaseRoutes.ChannelMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelPreviewers = api.BaseRoutes.Channel.PathPrefix("/previewers").Subrouter()
+	api.BaseRoutes.ChannelPreviewer = api.BaseRoutes.ChannelPreviewers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.ChannelMembersForUser = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
 	api.BaseRoutes.ChannelModerations = api.BaseRoutes.Channel.PathPrefix("/moderations").Subrouter()
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()

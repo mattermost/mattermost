@@ -1664,12 +1664,12 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 	}
 
 	newMember := &model.ChannelMember{
-		ChannelId:   channel.Id,
-		UserId:      user.Id,
-		Roles:       "channel_previewer",
-		NotifyProps: model.GetIgnoreChannelNotifyProps(),
-		SchemeGuest: false,
-		SchemeUser:  false,
+		ChannelId:     channel.Id,
+		UserId:        user.Id,
+		ExplicitRoles: "channel_previewer",
+		NotifyProps:   model.GetIgnoreChannelNotifyProps(),
+		SchemeGuest:   false,
+		SchemeUser:    false,
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(newMember)

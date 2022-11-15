@@ -1554,6 +1554,30 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestAddChannelPreviewer(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(th.Context, &user)
+	defer th.App.PermanentDeleteUser(th.Context, &user)
+
+	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
+
+	cm, err := th.App.AddPreviewerToChannel(th.Context, ruser.Id, th.BasicChannel)
+	require.Nil(t, err)
+
+	// Should have joined channel as previewer with no scheme roles
+	cm, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, ruser.Id)
+	require.Nil(t, err)
+	require.False(t, cm.SchemeAdmin)
+	require.False(t, cm.SchemeUser)
+	require.False(t, cm.SchemeGuest)
+
+	// Should have channel_previewer as only role
+	require.Equal(t, cm.Roles, "channel_previewer")
+}
+
 func TestRemoveUserFromChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

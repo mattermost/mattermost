@@ -15,6 +15,7 @@ const (
 	ChannelNotifyNone               = "none"
 	ChannelMarkUnreadAll            = "all"
 	ChannelMarkUnreadMention        = "mention"
+	EmailNotfifyFalse               = "false"
 	IgnoreChannelMentionsDefault    = "default"
 	IgnoreChannelMentionsOff        = "off"
 	IgnoreChannelMentionsOn         = "on"
@@ -222,5 +223,15 @@ func GetDefaultChannelNotifyProps() StringMap {
 		PushNotifyProp:                  ChannelNotifyDefault,
 		EmailNotifyProp:                 ChannelNotifyDefault,
 		IgnoreChannelMentionsNotifyProp: IgnoreChannelMentionsDefault,
+	}
+}
+
+func GetIgnoreChannelNotifyProps() StringMap {
+	return StringMap{
+		DesktopNotifyProp:               ChannelNotifyNone,
+		MarkUnreadNotifyProp:            ChannelMarkUnreadAll,
+		PushNotifyProp:                  ChannelNotifyNone,
+		EmailNotifyProp:                 EmailNotfifyFalse,
+		IgnoreChannelMentionsNotifyProp: IgnoreChannelMentionsOn,
 	}
 }

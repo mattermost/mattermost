@@ -74,6 +74,9 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.APISessionRequired(updateChannelMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.APISessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
 
+	api.BaseRoutes.ChannelPreviewers.Handle("", api.APISessionRequired(addChannelPreviewer)).Methods("POST")
+	// api.BaseRoutes.ChannelPreviewer.Handle("", api.APISessionRequired(removeChannelPreviewer)).Methods("DELETE")
+
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods("GET")
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods("PUT")
 }
@@ -1801,6 +1804,86 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ReturnStatusOK(w)
 }
+
+func addChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.StringInterfaceFromJSON(r.Body)
+	userId, ok := props["user_id"].(string)
+	if !ok || !model.IsValidId(userId) {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("addChannelPreviewer", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventParameter("props", props)
+
+	member := &model.ChannelMember{
+		ChannelId: c.Params.ChannelId,
+		UserId:    userId,
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, member.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddEventParameter("channel_id", member.ChannelId)
+
+	if channel.Type != model.ChannelTypeOpen {
+		c.Err = model.NewAppError("addChannelPreviewer", "api.channel.add_channel_previewer.channel_type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	isNewMembership := false
+	if _, err := c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
+		if err.Id == app.MissingChannelMemberError {
+			isNewMembership = true
+		} else {
+			c.Err = model.NewAppError("addChannelPreviewer", "api.channel.get_channel_member.error", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+	if !isNewMembership {
+		c.Err = model.NewAppError("addChannelPreviewer", "api.channel.previewing_joined_channel.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	isSelfAdd := member.UserId == c.AppContext.Session().UserId
+	if !isSelfAdd {
+		c.Err = model.NewAppError("addChannelPreviewer", "api.channel.not_self_preview.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels) {
+		c.SetPermissionError(model.PermissionJoinPublicChannels)
+		return
+	}
+
+	channelPreviewer, err := c.App.AddPreviewerToChannel(c.AppContext, member.UserId, channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(channelPreviewer)
+	auditRec.AddEventObjectType("channel_previewer")
+	c.LogAudit("name=" + channel.Name + " user_id=" + channelPreviewer.UserId)
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(channelPreviewer); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// func removeChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
+// }
 
 func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()

@@ -265,6 +265,14 @@ func (c *Client4) channelByNameForTeamNameRoute(channelName, teamName string) st
 	return fmt.Sprintf(c.teamByNameRoute(teamName)+"/channels/name/%v", channelName)
 }
 
+func (c *Client4) channelPreviewersRoute(channelID string) string {
+	return fmt.Sprintf(c.channelRoute(channelID) + "/previewers")
+}
+
+func (c *Client4) channelPreviewerRoute(channelID string, userId string) string {
+	return fmt.Sprintf(c.channelPreviewersRoute(channelID)+"/%v", userId)
+}
+
 func (c *Client4) channelMembersRoute(channelId string) string {
 	return fmt.Sprintf(c.channelRoute(channelId) + "/members")
 }
@@ -3562,6 +3570,22 @@ func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId strin
 		return nil, BuildResponse(r), NewAppError("AddChannelMemberWithRootId", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
+}
+
+// AddChannelPreviewer adds a user to channel as a previewer and returns a channel member.
+func (c *Client4) AddChannelPreviewer(channelId, userId string) (*ChannelMember, *Response, error) {
+	requestBody := map[string]string{"user_id": userId, "channel_id": channelId}
+	r, err := c.DoAPIPost(c.channelPreviewersRoute(channelId)+"", MapToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var cm *ChannelMember
+	err = json.NewDecoder(r.Body).Decode(&cm)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("AddChannelPreviewer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return cm, BuildResponse(r), nil
 }
 
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.

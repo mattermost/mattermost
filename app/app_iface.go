@@ -54,6 +54,8 @@ type AppIface interface {
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	// AddUserToChannel adds a user to a given channel.
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
+	// AddPreviewerToChannel adds a user to a given channel with the previewer role.
+	AddPreviewerToChannel(c request.CTX, userID string, channel *model.Channel) (*model.ChannelMember, *model.AppError)
 	// Caller must close the first return value
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -961,6 +963,8 @@ type AppIface interface {
 	RemoveTeamIcon(teamID string) *model.AppError
 	RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *model.AppError
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
+	// RemovePreviewerFromChannel removes a user from previewing a channel.
+	// RemovePreviewerFromChannel(c request.CTX, user *model.User, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestLicenseAndAckWarnMetric(c *request.Context, warnMetricId string, isBot bool) *model.AppError

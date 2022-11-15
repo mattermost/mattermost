@@ -3232,6 +3232,41 @@ func TestAddChannelMemberAddMyself(t *testing.T) {
 	}
 }
 
+func TestAddChannelPreviewer(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+	newPublicChannel := th.CreatePublicChannel()
+	newPrivateChannel := th.CreatePrivateChannel()
+
+	// Should receive an error when user is already in channel
+	_, resp, err := client.AddChannelPreviewer(newPublicChannel.Id, user1.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Should receive an error when non-client user is added as previewer
+	_, resp, err = client.AddChannelPreviewer(newPublicChannel.Id, user2.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Should receive an error when user is added to a non-public channel
+	_, resp, err = client.AddChannelPreviewer(newPrivateChannel.Id, user1.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Success
+	th.LoginBasic2()
+	expectedRoles := "channel_previewer"
+	cm, resp, err := client.AddChannelPreviewer(newPublicChannel.Id, user2.Id)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.Equal(t, newPublicChannel.Id, cm.ChannelId)
+	require.Equal(t, user2.Id, cm.UserId)
+	require.Equal(t, cm.Roles, expectedRoles)
+}
+
 func TestRemoveChannelMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	user1 := th.BasicUser
