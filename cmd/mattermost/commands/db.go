@@ -61,6 +61,7 @@ var DBVersionCmd = &cobra.Command{
 func init() {
 	ResetCmd.Flags().Bool("confirm", false, "Confirm you really want to delete everything and a DB backup has been performed.")
 	DBVersionCmd.Flags().Bool("all", false, "Returns all applied migrations")
+	MigrateCmd.Flags().Bool("auto-recover", false, "Recover the database to it's existing state after a failed migration.")
 
 	DbCmd.AddCommand(
 		InitDbCmd,
@@ -133,14 +134,22 @@ func resetCmdF(command *cobra.Command, args []string) error {
 
 func migrateCmdF(command *cobra.Command, args []string) error {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
+	recoverFlag, _ := command.Flags().GetBool("auto-recover")
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 	config := cfgStore.Get()
 
-	store := sqlstore.New(config.SqlSettings, nil)
-	defer store.Close()
+	if recoverFlag {
+		err = sqlstore.MigrateWithPlan(config.SqlSettings)
+		if err != nil {
+			return errors.Wrap(err, "failed to load configuration")
+		}
+	} else {
+		store := sqlstore.New(config.SqlSettings, nil)
+		defer store.Close()
+	}
 
 	CommandPrettyPrintln("Database successfully migrated")
 

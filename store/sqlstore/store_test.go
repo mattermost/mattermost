@@ -536,24 +536,6 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 
 }
 
-func TestUpAndDownMigrations(t *testing.T) {
-	testDrivers := []string{
-		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run("Should be reversible for "+driver, func(t *testing.T) {
-			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
-			defer store.Close()
-
-			err := store.migrate(migrationsDirectionDown)
-			assert.NoError(t, err, "downing migrations should not error")
-		})
-	}
-}
-
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {

@@ -8,29 +8,20 @@ import (
 	"database/sql"
 	dbsql "database/sql"
 	"fmt"
-	"log"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/morph"
 	sq "github.com/mattermost/squirrel"
-
-	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
-	ps "github.com/mattermost/morph/drivers/postgres"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	mbindata "github.com/mattermost/morph/sources/embedded"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
@@ -996,73 +987,6 @@ func (ss *SqlStore) hasLicense() bool {
 	ss.licenseMutex.Unlock()
 
 	return hasLicense
-}
-
-func (ss *SqlStore) migrate(direction migrationDirection) error {
-	assets := db.Assets()
-
-	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
-	if err != nil {
-		return err
-	}
-
-	assetNamesForDriver := make([]string, len(assetsList))
-	for i, entry := range assetsList {
-		assetNamesForDriver[i] = entry.Name()
-	}
-
-	src, err := mbindata.WithInstance(&mbindata.AssetSource{
-		Names: assetNamesForDriver,
-		AssetFunc: func(name string) ([]byte, error) {
-			return assets.ReadFile(filepath.Join("migrations", ss.DriverName(), name))
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	var driver drivers.Driver
-	switch ss.DriverName() {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := ResetReadTimeout(*ss.settings.DataSource)
-		if rErr != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return rErr
-		}
-		dataSource, err = AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return err
-		}
-		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db)
-		defer db.Close()
-	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
-	default:
-		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
-	}
-	if err != nil {
-		return err
-	}
-
-	opts := []morph.EngineOption{
-		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
-		morph.WithLock("mm-lock-key"),
-		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
-	}
-	engine, err := morph.New(context.Background(), driver, src, opts...)
-	if err != nil {
-		return err
-	}
-	defer engine.Close()
-
-	switch direction {
-	case migrationsDirectionDown:
-		_, err = engine.ApplyDown(-1)
-		return err
-	default:
-		return engine.ApplyAll()
-	}
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
