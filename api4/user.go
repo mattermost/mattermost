@@ -3030,7 +3030,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(c.Params.TeamId, threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return

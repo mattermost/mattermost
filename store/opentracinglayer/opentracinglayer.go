@@ -9944,7 +9944,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string, fetchO
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *OpenTracingLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -9953,7 +9953,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadForUser(teamID string, threadMemb
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

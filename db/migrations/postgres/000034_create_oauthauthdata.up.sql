@@ -19,11 +19,13 @@ BEGIN
     SELECT count(*) != 0 INTO col_exists
     FROM information_schema.columns
     WHERE table_name = 'oauthauthdata'
+    AND table_schema = current_schema()
     AND column_name = 'state';
 
     SELECT count(*) != 0 INTO type_exists
     FROM information_schema.columns
     WHERE table_name = 'oauthauthdata'
+    AND table_schema = current_schema()
     AND column_name = 'state'
     AND data_type = 'character varying'
     AND character_maximum_length = 1024;
