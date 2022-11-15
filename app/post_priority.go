@@ -73,7 +73,9 @@ func (a *App) SendPersistentNotifications() error {
 		expiredPostsIds = append(expiredPostsIds, p.Id)
 	}
 	// Delete expired notifications posts
-	a.Srv().Store().PostPriority().DeletePersistentNotificationsPosts(expiredPostsIds)
+	if err := a.Srv().Store().PostPriority().DeletePersistentNotificationsPosts(expiredPostsIds); err != nil {
+		return errors.Wrapf(err, "failed to delete expired notifications: %v", expiredPostsIds)
+	}
 
 	// Send notifications to validPosts
 	return a.sendPersistentNotifications(validPosts)
@@ -146,7 +148,7 @@ func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 	for _, post := range posts {
 		channel := channelsMap[post.ChannelId]
 		team := teamsMap[channel.Id]
-		if channel.Type == model.ChannelTypeDirect {
+		if channel.IsGroupOrDirect() {
 			team = &model.Team{}
 		}
 		profileMap := channelProfileMap[channel.Id]
