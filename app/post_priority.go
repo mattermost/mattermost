@@ -79,53 +79,6 @@ func (a *App) SendPersistentNotifications() error {
 	return a.sendPersistentNotifications(validPosts)
 }
 
-func (a *App) getMentionsForPersistentNotifications(posts []*model.Post) (map[string]*ExplicitMentions, error) {
-	channelIds := make(model.StringSet)
-	for _, p := range posts {
-		channelIds.Add(p.ChannelId)
-	}
-	channels, err := a.Srv().Store().Channel().GetChannelsByIds(channelIds.Val(), false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get channels by IDs")
-	}
-	channelsMap := make(map[string]*model.Channel, len(channels))
-	for _, c := range channels {
-		channelsMap[c.Id] = c
-	}
-
-	teamIds := make(model.StringSet)
-	for _, c := range channels {
-		teamIds.Add(c.TeamId)
-	}
-	teams, err := a.Srv().Store().Team().GetMany(teamIds.Val())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get teams by IDs")
-	}
-	teamsMap := make(map[string]*model.Team, len(teams))
-	for _, t := range teams {
-		teamsMap[t.Id] = t
-	}
-
-	channelsGroupsMap := make(map[string]map[string]*model.Group, len(channelsMap))
-	for _, c := range channelsMap {
-		groups, appErr := a.getGroupsAllowedForReferenceInChannel(c, teamsMap[c.TeamId])
-		if appErr != nil {
-			return nil, errors.Wrap(err, "failed to get groups for channels")
-		}
-		channelsGroupsMap[c.Id] = make(map[string]*model.Group, len(groups))
-		for k, v := range groups {
-			channelsGroupsMap[c.Id][k] = v
-		}
-	}
-
-	postsMentions := make(map[string]*ExplicitMentions, len(posts))
-	for _, p := range posts {
-		postsMentions[p.Id] = getExplicitMentions(p, make(map[string][]string, 0), channelsGroupsMap[p.ChannelId])
-	}
-
-	return postsMentions, nil
-}
-
 func (a *App) sendPersistentNotifications(posts []*model.Post) error {
 	// postsMentions, err := a.getMentionsForPersistentNotifications(posts)
 	// if err != nil {
