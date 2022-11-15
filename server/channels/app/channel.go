@@ -1334,6 +1334,14 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 		filteredProps[model.DesktopNotifyProp] = desktop
 	}
 
+	if desktop_sound, exists := data[model.DesktopSoundNotifyProp]; exists {
+		filteredProps[model.DesktopSoundNotifyProp] = desktop_sound
+	}
+
+	if desktop_notification_sound, exists := data["desktop_notification_sound"]; exists {
+		filteredProps["desktop_notification_sound"] = desktop_notification_sound
+	}
+
 	if desktop_threads, exists := data[model.DesktopThreadsNotifyProp]; exists {
 		filteredProps[model.DesktopThreadsNotifyProp] = desktop_threads
 	}
