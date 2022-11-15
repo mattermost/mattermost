@@ -580,6 +580,14 @@
     "translation": "Unable to update commands across teams."
   },
   {
+    "id": "api.command_voice.desc",
+    "translation": "Start recording a voice message"
+  },
+  {
+    "id": "api.command_voice.name",
+    "translation": "Voice"
+  },
+  {
     "id": "api.command_away.desc",
     "translation": "Set your status away"
   },
