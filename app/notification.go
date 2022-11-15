@@ -598,7 +598,8 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					}
 					threadMembership = tm
 				}
-				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true)
+				postPriorityIsEnabled := a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, postPriorityIsEnabled)
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}

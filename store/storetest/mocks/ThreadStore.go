@@ -188,13 +188,13 @@ func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool)
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: threadMembership, extended
-func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(threadMembership, extended)
+// GetThreadForUser provides a mock function with given fields: threadMembership, extended, postPriorityIsEnabled
+func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(threadMembership, extended, postPriorityIsEnabled)
 
 	var r0 *model.ThreadResponse
-	if rf, ok := ret.Get(0).(func(*model.ThreadMembership, bool) *model.ThreadResponse); ok {
-		r0 = rf(threadMembership, extended)
+	if rf, ok := ret.Get(0).(func(*model.ThreadMembership, bool, bool) *model.ThreadResponse); ok {
+		r0 = rf(threadMembership, extended, postPriorityIsEnabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -202,8 +202,8 @@ func (_m *ThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.ThreadMembership, bool) error); ok {
-		r1 = rf(threadMembership, extended)
+	if rf, ok := ret.Get(1).(func(*model.ThreadMembership, bool, bool) error); ok {
+		r1 = rf(threadMembership, extended, postPriorityIsEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}

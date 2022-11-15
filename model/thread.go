@@ -83,6 +83,9 @@ type GetUserThreadsOpts struct {
 
 	// TeamOnly will only fetch threads and unreads for the specified team and excludes DMs/GMs
 	TeamOnly bool
+
+	// IncludeIsUrgent will return IsUrgent field as well to assert is the thread is urgent or not
+	IncludeIsUrgent bool
 }
 
 func (o *Thread) Etag() string {
