@@ -140,21 +140,35 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID              string   `json:"id"`
-	CustomerID      string   `json:"customer_id"`
-	ProductID       string   `json:"product_id"`
-	AddOns          []string `json:"add_ons"`
-	StartAt         int64    `json:"start_at"`
-	EndAt           int64    `json:"end_at"`
-	CreateAt        int64    `json:"create_at"`
-	Seats           int      `json:"seats"`
-	Status          string   `json:"status"`
-	DNS             string   `json:"dns"`
-	IsPaidTier      string   `json:"is_paid_tier"`
-	LastInvoice     *Invoice `json:"last_invoice"`
-	IsFreeTrial     string   `json:"is_free_trial"`
-	TrialEndAt      int64    `json:"trial_end_at"`
-	DelinquentSince *int64   `json:"delinquent_since"`
+	ID                      string   `json:"id"`
+	CustomerID              string   `json:"customer_id"`
+	ProductID               string   `json:"product_id"`
+	AddOns                  []string `json:"add_ons"`
+	StartAt                 int64    `json:"start_at"`
+	EndAt                   int64    `json:"end_at"`
+	CreateAt                int64    `json:"create_at"`
+	Seats                   int      `json:"seats"`
+	Status                  string   `json:"status"`
+	DNS                     string   `json:"dns"`
+	IsPaidTier              string   `json:"is_paid_tier"`
+	LastInvoice             *Invoice `json:"last_invoice"`
+	IsFreeTrial             string   `json:"is_free_trial"`
+	TrialEndAt              int64    `json:"trial_end_at"`
+	DelinquentSince         *int64   `json:"delinquent_since"`
+	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
+}
+
+// Subscription History model represents true up event in a yearly subscription
+type SubscriptionHistory struct {
+	ID             string `json:"id"`
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
+}
+
+type SubscriptionHistoryChange struct {
+	Seats    int   `json:"seats"`
+	CreateAt int64 `json:"create_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test

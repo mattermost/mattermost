@@ -15,6 +15,29 @@ type CloudInterface struct {
 }
 
 // ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
+func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, subscriptionID string, subscriptionHistoryChange *model.SubscriptionHistoryChange) (*model.SubscriptionHistory, error) {
+	ret := _m.Called(userID, subscriptionID, subscriptionHistoryChange)
+
+	var r0 *model.SubscriptionHistory
+	if rf, ok := ret.Get(0).(func(string, string, *model.SubscriptionHistoryChange) *model.SubscriptionHistory); ok {
+		r0 = rf(userID, subscriptionID, subscriptionHistoryChange)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionHistory)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, *model.SubscriptionHistoryChange) error); ok {
+		r1 = rf(userID, subscriptionID, subscriptionHistoryChange)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
 func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
 	ret := _m.Called(userID, subscriptionID, subscriptionChange)
 
