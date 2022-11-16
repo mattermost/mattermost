@@ -2392,6 +2392,9 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.isPostPriorityEnabled()
+	if postPriorityIsEnabled {
+		options.IncludeIsUrgent = true
+	}
 
 	if !options.ThreadsOnly {
 		eg.Go(func() error {
@@ -2482,8 +2485,7 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 }
 
 func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	postPriorityIsEnabled := a.isPostPriorityEnabled()
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, postPriorityIsEnabled)
+	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
