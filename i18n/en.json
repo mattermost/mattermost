@@ -4676,6 +4676,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
+  },
+  {
     "id": "app.channel.get_private_channels.get.app_error",
     "translation": "Unable to get private channels."
   },
