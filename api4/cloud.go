@@ -280,7 +280,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func getSelfHostedProducts(c *Context, w http.ResponseWriter, r *http.Request) {
-	products, err := c.App.Cloud().GetSelfHostedProducts()
+	products, err := c.App.Cloud().GetSelfHostedProducts(c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
