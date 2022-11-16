@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS PersistenceNotifications (
+CREATE TABLE IF NOT EXISTS PersistentNotifications (
     PostId varchar(26) NOT NULL,
     CreateAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS PersistenceNotifications (
 SET @preparedStatement = (SELECT IF(
     (
         SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE table_name = 'PersistenceNotifications'
+        WHERE table_name = 'PersistentNotifications'
         AND table_schema = DATABASE()
-        AND index_name = 'idx_persistencenotifications_createat_deleteat'
+        AND index_name = 'idx_persistentnotifications_createat_deleteat'
     ) > 0,
     'SELECT 1',
-    'CREATE INDEX idx_persistencenotifications_createat_deleteat ON PersistenceNotifications(CreateAt, DeleteAt);'
+    'CREATE INDEX idx_persistentnotifications_createat_deleteat ON PersistentNotifications(CreateAt, DeleteAt);'
 ));
 
 PREPARE createIndexIfNotExists FROM @preparedStatement;

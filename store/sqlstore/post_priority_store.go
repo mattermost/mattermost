@@ -58,7 +58,7 @@ func (s *SqlPostPriorityStore) GetPersistentNotificationsPosts(params model.GetP
 
 	query, args, err := s.getQueryBuilder().
 		Select("*").
-		From("PersistenceNotifications").
+		From("PersistentNotifications").
 		Where(andCond).
 		Limit(1000).
 		ToSql()
@@ -85,7 +85,7 @@ func (s *SqlPostPriorityStore) DeletePersistentNotificationsPosts(postIds []stri
 	}
 
 	query, args, err := s.getQueryBuilder().
-		Update("PersistenceNotifications").
+		Update("PersistentNotifications").
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"PostId": postIds}).
 		ToSql()
