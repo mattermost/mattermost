@@ -11,8 +11,19 @@ import (
 )
 
 func (api *API) InitWorkTemplate() {
-	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(getWorkTemplateCategories)).Methods("GET")
-	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(getWorkTemplates)).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/categories", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplateCategories))).Methods("GET")
+	api.BaseRoutes.WorkTemplates.Handle("/categories/{category}/templates", api.APISessionRequired(needsWorkTemplateFeatureFlag(getWorkTemplates))).Methods("GET")
+}
+
+func needsWorkTemplateFeatureFlag(h handlerFunc) handlerFunc {
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		if !c.App.Config().FeatureFlags.WorkTemplate {
+			http.NotFound(w, r)
+			return
+		}
+
+		h(c, w, r)
+	}
 }
 
 func getWorkTemplateCategories(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,7 +49,6 @@ func getWorkTemplates(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	t := c.AppContext.GetT()
 
 	workTemplates, appErr := c.App.GetWorkTemplates(c.Params.Category, c.App.Config().FeatureFlags.ToMap(), t)
