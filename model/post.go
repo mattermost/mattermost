@@ -785,3 +785,20 @@ func (o *Post) GetPreviewedPostProp() string {
 	}
 	return ""
 }
+
+func (o *Post) GetPriority() *PostPriority {
+	if o.Metadata != nil && o.Metadata.Priority != nil {
+		return o.Metadata.Priority
+	}
+
+	return nil
+}
+
+func (o *Post) IsUrgent() bool {
+	postPriority := o.GetPriority()
+	if postPriority == nil {
+		return false
+	}
+
+	return *postPriority.Priority == PostPropsPriorityUrgent
+}

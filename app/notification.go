@@ -305,8 +305,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
 
-	isUrgent := post.Metadata.Priority != nil && *post.Metadata.Priority.Priority == model.PostPropsPriorityUrgent
-	nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", isUrgent)
+	nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", post.IsUrgent())
 
 	if nErr != nil {
 		mlog.Warn(
@@ -598,8 +597,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 					}
 					threadMembership = tm
 				}
-				postPriorityIsEnabled := a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
-				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, postPriorityIsEnabled)
+				userThread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}

@@ -4,9 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
 	sq "github.com/mattermost/squirrel"
@@ -41,7 +38,7 @@ func (s *SqlPostPriorityStore) GetForPosts(postIds []string) ([]*model.PostPrior
 	query := s.getQueryBuilder().
 		Select("PostId", "Priority", "RequestedAck", "PersistentNotifications").
 		From("PostsPriority").
-		Where(fmt.Sprintf("PostId IN ('%s')", strings.Join(postIds, "', '")))
+		Where(sq.Eq{"PostId": postIds})
 
 	var priority []*model.PostPriority
 	err := s.GetReplicaX().SelectBuilder(&priority, query)

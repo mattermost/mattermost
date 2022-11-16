@@ -2939,7 +2939,7 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 
 func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
-		if post.Metadata != nil && post.Metadata.Priority != nil {
+		if post.GetPriority() != nil {
 			postPriority := &model.PostPriority{
 				PostId:                  post.Id,
 				ChannelId:               post.ChannelId,

@@ -1753,7 +1753,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+		if a.isPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1793,8 +1793,8 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
-				if *post.Metadata.Priority.Priority == model.PostPropsPriorityUrgent {
+			if a.isPostPriorityEnabled() {
+				if post.IsUrgent() {
 					urgentCount += 1
 				}
 			}
@@ -1819,16 +1819,18 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				count += 1
 				if postList.Posts[postID].RootId == "" {
 					countRoot += 1
+				}
+			}
+		}
 
-					if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
-						priority, err := a.GetPriorityForPost(postID)
-						if err != nil {
-							return 0, 0, 0, err
-						}
-						if *priority.Priority == model.PostPropsPriorityUrgent {
-							urgentCount += 1
-						}
-					}
+		if a.isPostPriorityEnabled() {
+			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(postList.Order)
+			if err != nil {
+				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			for _, priority := range priorityList {
+				if *priority.Priority == model.PostPropsPriorityUrgent {
+					urgentCount += 1
 				}
 			}
 		}
@@ -2129,4 +2131,8 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 		topThread.Post = sanitizedPost
 	}
 	return topThreadList, nil
+}
+
+func (a *App) isPostPriorityEnabled() bool {
+	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }

@@ -2709,8 +2709,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		postPriorityIsEnabled := a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, postPriorityIsEnabled)
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.isPostPriorityEnabled())
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
