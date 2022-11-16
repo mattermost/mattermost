@@ -8445,3 +8445,34 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	}
 	return newTeamMembersList, BuildResponse(r), nil
 }
+
+// Worktemplates sections
+
+func (c *Client4) worktemplatesRoute() string {
+	return "/worktemplates"
+}
+
+// GetWorktemplateCategories returns categories of worktemplates
+func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var categories []*WorkTemplateCategory
+	err = json.NewDecoder(r.Body).Decode(&categories)
+	return categories, BuildResponse(r), err
+}
+
+func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var templates []*WorkTemplate
+	err = json.NewDecoder(r.Body).Decode(&templates)
+	return templates, BuildResponse(r), err
+}

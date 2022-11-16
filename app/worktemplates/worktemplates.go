@@ -6,9 +6,7 @@
 package worktemplates
 
 var OrderedWorkTemplates = []*WorkTemplate{}
-var WorkTemplatesByID = map[string]*WorkTemplate{}
 var OrderedWorkTemplateCategories = []*WorkTemplateCategory{}
-var WorkTemplateCategoriesByID = map[string]*WorkTemplateCategory{}
 
 // T is a placeholder to allow the translation tool to register the strings
 func T(id string) string {
@@ -16,12 +14,10 @@ func T(id string) string {
 }
 
 func registerWorkTemplate(id string, wt *WorkTemplate) {
-	WorkTemplatesByID[id] = wt
 	OrderedWorkTemplates = append(OrderedWorkTemplates, wt)
 }
 
 func registerWorkTemplateCategory(id string, wtc *WorkTemplateCategory) {
-	WorkTemplateCategoriesByID[id] = wtc
 	OrderedWorkTemplateCategories = append(OrderedWorkTemplateCategories, wtc)
 }
 

@@ -241,7 +241,7 @@ type TranslatableString struct {
 func (ts TranslatableString) Translate(t i18n.TranslateFunc) string {
 	if ts.ID != "" {
 		msg := t(ts.ID)
-		if msg != ts.ID {
+		if msg != ts.ID && msg != "" {
 			return msg
 		}
 	}
@@ -340,8 +340,3 @@ type Content struct {
 func wrapContentError(err error, index int) error {
 	return errors.Wrapf(err, "content #%d validation failed", index)
 }
-
-// from MM
-
-// TranslateFunc is the type of the translate functions
-type TranslateFunc func(translationID string, args ...any) string
