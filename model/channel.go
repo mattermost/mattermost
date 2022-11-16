@@ -286,7 +286,7 @@ func (o *Channel) IsValid() *AppError {
 
 	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
 		userIds := strings.Split(o.Name, "__")
-		if ok := gmNameRegex.MatchString(o.Name); ok || o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+		if ok := gmNameRegex.MatchString(o.Name); ok || (o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1])) {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
