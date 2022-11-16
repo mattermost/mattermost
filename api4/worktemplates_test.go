@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/app/worktemplates"
@@ -12,6 +13,9 @@ import (
 
 func TestWorkTemplateCategories(t *testing.T) {
 	// Setup
+	cleanup := setupWorktemplateFeatureFlag(t)
+	defer cleanup()
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	assert := require.New(t)
@@ -39,6 +43,9 @@ func TestWorkTemplateCategories(t *testing.T) {
 
 func TestGetWorkTemplatesByCategory(t *testing.T) {
 	// Setup
+	cleanup := setupWorktemplateFeatureFlag(t)
+	defer cleanup()
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	assert := require.New(t)
@@ -89,4 +96,15 @@ func TestGetWorkTemplatesByCategory(t *testing.T) {
 	assert.Len(workTemplates, 2)
 	assert.Equal("test-template", workTemplates[0].ID)
 	assert.Equal("test-template-2", workTemplates[1].ID)
+}
+
+func setupWorktemplateFeatureFlag(t *testing.T) func() {
+	t.Helper()
+
+	oldFFValue := os.Getenv("MM_FEATUREFLAGS_WORKTEMPLATE")
+	os.Setenv("MM_FEATUREFLAGS_WORKTEMPLATE", "true")
+
+	return func() {
+		os.Setenv("MM_FEATUREFLAGS_WORKTEMPLATE", oldFFValue)
+	}
 }
