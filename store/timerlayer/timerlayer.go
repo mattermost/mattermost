@@ -5534,6 +5534,22 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsByThread(threadID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByThread", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 	start := time.Now()
 
@@ -8903,22 +8919,6 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipsForUser", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	start := time.Now()
-
-	result, err := s.ThreadStore.GetPosts(threadID, since)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetPosts", success, elapsed)
 	}
 	return result, err
 }
