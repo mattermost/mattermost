@@ -9,7 +9,7 @@ import (
 
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
-	GetSelfHostedProducts(userID string) ([]*model.Product, error)
+	GetSelfHostedProducts() ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
 	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
 
