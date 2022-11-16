@@ -5991,10 +5991,10 @@ func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPrio
 	return result, err
 }
 
-func (s *TimerLayerPostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+func (s *TimerLayerPostPriorityStore) GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 	start := time.Now()
 
-	result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(maxCreateAt)
+	result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(params)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

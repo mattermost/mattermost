@@ -6626,7 +6626,7 @@ func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.Po
 	return result, err
 }
 
-func (s *OpenTracingLayerPostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+func (s *OpenTracingLayerPostPriorityStore) GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPriorityStore.GetPersistentNotificationsPosts")
 	s.Root.Store.SetContext(newCtx)
@@ -6635,7 +6635,7 @@ func (s *OpenTracingLayerPostPriorityStore) GetPersistentNotificationsPosts(maxC
 	}()
 
 	defer span.Finish()
-	result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(maxCreateAt)
+	result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(params)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

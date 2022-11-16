@@ -7514,11 +7514,11 @@ func (s *RetryLayerPostPriorityStore) GetForPost(postId string) (*model.PostPrio
 
 }
 
-func (s *RetryLayerPostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error) {
+func (s *RetryLayerPostPriorityStore) GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(maxCreateAt)
+		result, err := s.PostPriorityStore.GetPersistentNotificationsPosts(params)
 		if err == nil {
 			return result, nil
 		}

@@ -41,6 +41,8 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, userID, postID stri
 		}
 	}
 
+	a.DeletePersistentNotificationsPost(post, acknowledgement.UserId, true)
+
 	a.Srv().Go(func() {
 		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)
 	})

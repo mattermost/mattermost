@@ -178,6 +178,11 @@ type PostPersistentNotifications struct {
 	DeleteAt int64
 }
 
+type GetPersistentNotificationsPostsParams struct {
+	PostID      string
+	MaxCreateAt int64
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`

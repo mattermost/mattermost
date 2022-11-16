@@ -345,6 +345,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(c, rpost, true, false)
 
+	if rpost.RootId != "" {
+		a.DeletePersistentNotificationsPost(rpost, rpost.UserId, true)
+	}
+
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
 		_, err := a.Srv().Store().Thread().MaintainMembership(user.Id, rpost.RootId, store.ThreadMembershipOpts{
@@ -1258,6 +1262,8 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.DeletePersistentNotificationsPost(post, "", false)
 
 	postJSON, err := json.Marshal(post)
 	if err != nil {

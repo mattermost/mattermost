@@ -51,13 +51,13 @@ func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, err
 	return r0, r1
 }
 
-// GetPersistentNotificationsPosts provides a mock function with given fields: maxCreateAt
-func (_m *PostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) ([]*model.PostPersistentNotifications, error) {
-	ret := _m.Called(maxCreateAt)
+// GetPersistentNotificationsPosts provides a mock function with given fields: params
+func (_m *PostPriorityStore) GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+	ret := _m.Called(params)
 
 	var r0 []*model.PostPersistentNotifications
-	if rf, ok := ret.Get(0).(func(int64) []*model.PostPersistentNotifications); ok {
-		r0 = rf(maxCreateAt)
+	if rf, ok := ret.Get(0).(func(model.GetPersistentNotificationsPostsParams) []*model.PostPersistentNotifications); ok {
+		r0 = rf(params)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PostPersistentNotifications)
@@ -65,8 +65,8 @@ func (_m *PostPriorityStore) GetPersistentNotificationsPosts(maxCreateAt int64) 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(maxCreateAt)
+	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) error); ok {
+		r1 = rf(params)
 	} else {
 		r1 = ret.Error(1)
 	}

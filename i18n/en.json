@@ -60,6 +60,18 @@
     "translation": "September"
   },
   {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -4452,6 +4464,22 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "app.acknowledgement.delete_all_with_emoji_name.get_acknowledgement.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
     "translation": "Could not decode the XML metadata information received from the Identity Provider."
   },
@@ -6112,7 +6140,11 @@
     "translation": "Unable to update the Post."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Failed to delete persistent notification post"
+  },
+  {
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Unable to get postpriority for post"
   },
   {
@@ -7922,6 +7954,18 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.create_at.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": ""
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
