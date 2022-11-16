@@ -8001,7 +8001,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User and Channel ids are not permitted in channel name for non-direct message channels."
+    "translation": "Invalid channel name."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

@@ -186,6 +186,8 @@ type ChannelMemberCountByGroup struct {
 
 type ChannelOption func(channel *Channel)
 
+var gmNameRegex = regexp.MustCompile("^[a-f0-9]{40}$")
+
 func WithID(ID string) ChannelOption {
 	return func(channel *Channel) {
 		channel.Id = ID
@@ -284,7 +286,7 @@ func (o *Channel) IsValid() *AppError {
 
 	if o.Type != ChannelTypeDirect && o.Type != ChannelTypeGroup {
 		userIds := strings.Split(o.Name, "__")
-		if ok, _ := regexp.MatchString("^[a-fA-F0-9]{40}$", o.Name); ok || o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+		if ok := gmNameRegex.MatchString(o.Name); ok || o.Type != ChannelTypeDirect && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
 			return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
