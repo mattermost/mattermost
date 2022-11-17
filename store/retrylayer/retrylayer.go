@@ -5097,6 +5097,27 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 
 }
 
+func (s *RetryLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.Restore(groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 
 	tries := 0
