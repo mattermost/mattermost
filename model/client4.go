@@ -434,6 +434,10 @@ func (c *Client4) commandMoveRoute(commandId string) string {
 	return fmt.Sprintf(c.commandsRoute()+"/%v/move", commandId)
 }
 
+func (c *Client4) draftsRoute() string {
+	return "/drafts"
+}
+
 func (c *Client4) emojisRoute() string {
 	return "/emoji"
 }
@@ -6226,6 +6230,57 @@ func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*
 		return nil, BuildResponse(r), NewAppError("Client4.GetChannelPoliciesForUser", "model.utils.decode_json.app_error", nil, "", r.StatusCode).Wrap(err)
 	}
 	return &channels, BuildResponse(r), nil
+}
+
+// Drafts Sections
+
+// UpsertDraft will create a new draft or update a draft if it already exists
+func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
+	buf, err := json.Marshal(draft)
+	if err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(c.draftsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df Draft
+	if err := json.NewDecoder(r.Body).Decode(&df); err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &df, BuildResponse(r), err
+}
+
+// GetDrafts will get all drafts for a user
+func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) {
+	r, err := c.DoAPIGet(c.userRoute(userId)+c.teamRoute(teamId)+"/drafts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var drafts []*Draft
+	if err := json.NewDecoder(r.Body).Decode(&drafts); err != nil {
+		return nil, nil, NewAppError("GetDrafts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return drafts, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteDraft(userId, channelId, rootId string) (*Draft, *Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.channelRoute(channelId) + "/drafts")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df *Draft
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DeleteDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return df, BuildResponse(r), nil
 }
 
 // Commands Section

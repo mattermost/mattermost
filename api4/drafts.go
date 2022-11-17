@@ -21,6 +21,12 @@ func (api *API) InitDrafts() {
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
+		c.Err = model.NewAppError("upsertDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	var draft model.Draft
 	if jsonErr := json.NewDecoder(r.Body).Decode(&draft); jsonErr != nil {
 		c.SetInvalidParam("draft")
@@ -65,6 +71,11 @@ func getDrafts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
+		c.Err = model.NewAppError("getDrafts", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	hasPermission := false
 
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
@@ -91,6 +102,12 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	if !*c.App.Config().ServiceSettings.AllowSyncedDrafts {
+		c.Err = model.NewAppError("deleteDraft", "api.drafts.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	rootID := ""
 
 	connectionID := r.Header.Get(model.ConnectionId)

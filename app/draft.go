@@ -16,7 +16,7 @@ import (
 )
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
+	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -35,7 +35,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 }
 
 func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
+	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -77,7 +77,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
+	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -252,12 +252,6 @@ func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*mode
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
-
-	// if len(draft.FileIds) > 0 {
-	// 	a.Srv().Go(func() {
-	// 		a.deletePostFiles(post.Id)
-	// 	})
-	// }
 
 	return draft, nil
 }
