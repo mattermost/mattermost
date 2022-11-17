@@ -50,9 +50,6 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	// POST /api/v4/cloud/self-hosted-bootstrap
-	api.BaseRoutes.Cloud.Handle("/self-hosted-bootstrap", api.APISessionRequired(selfHostedBootstrap)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -669,61 +666,4 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-}
-
-func ensureSelfHostedAdmin(c *Context, where string) {
-	license := c.App.Channels().License()
-
-	if license.IsCloud() {
-		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusBadRequest)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteBilling) {
-		c.SetPermissionError(model.PermissionSysconsoleWriteBilling)
-		return
-	}
-}
-
-func checkSelfHostedFirstTimePurchaseEnabled(c *Context) bool {
-	config := c.App.Config()
-	if config == nil {
-		return false
-	}
-	featureFlags := config.FeatureFlags
-	if featureFlags == nil {
-		return false
-	}
-	return featureFlags.SelfHostedFirstTimePurchase
-}
-
-func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
-	where := "Api4.selfHostedBootstrap"
-	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
-		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-	ensureSelfHostedAdmin(c, where)
-	if c.Err != nil {
-		return
-	}
-
-	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
-	if userErr != nil {
-		c.Err = userErr
-		return
-	}
-
-	signupProgress, err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
-	if err != nil {
-		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-	json, err := json.Marshal(signupProgress)
-	if err != nil {
-		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
-	w.Write(json)
 }
