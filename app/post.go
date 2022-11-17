@@ -1794,7 +1794,11 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		if post.RootId == "" {
 			countRoot += 1
 			if a.isPostPriorityEnabled() {
-				if post.IsUrgent() {
+				priority, err := a.GetPriorityForPost(post.Id)
+				if err != nil {
+					return 0, 0, 0, err
+				}
+				if *priority.Priority == model.PostPriorityUrgent {
 					urgentCount += 1
 				}
 			}
@@ -1814,17 +1818,19 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			return 0, 0, 0, err
 		}
 
+		mentionPostIds := make([]string, 0)
 		for _, postID := range postList.Order {
 			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
 				count += 1
 				if postList.Posts[postID].RootId == "" {
+					mentionPostIds = append(mentionPostIds, postID)
 					countRoot += 1
 				}
 			}
 		}
 
 		if a.isPostPriorityEnabled() {
-			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(postList.Order)
+			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
 			if err != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
