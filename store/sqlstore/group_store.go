@@ -360,6 +360,25 @@ func (s *SqlGroupStore) Delete(groupID string) (*model.Group, error) {
 	return &group, nil
 }
 
+func (s *SqlGroupStore) Restore(groupID string) (*model.Group, error) {
+	var group model.Group
+	if err := s.GetReplicaX().Get(&group, "SELECT * from UserGroups WHERE Id = ? AND DeleteAt != 0", groupID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Group", groupID)
+		}
+		return nil, errors.Wrapf(err, "failed to get Group with id=%s", groupID)
+	}
+
+	time := model.GetMillis()
+	if _, err := s.GetMasterX().Exec(`UPDATE UserGroups
+		SET DeleteAt=0, UpdateAt=?
+		WHERE Id=? AND DeleteAt!=0`, time, groupID); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Group with id=%s", groupID)
+	}
+
+	return &group, nil
+}
+
 func (s *SqlGroupStore) GetMember(groupID, userID string) (*model.GroupMember, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("*").
