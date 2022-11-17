@@ -87,16 +87,17 @@ func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool 
 // or channel scheme role matches the "common name".
 //
 // Common names that will match associated team and/or channel scheme roles are:
-// TeamAdminRoleId,
-// TeamUserRoleId,
-// ChannelAdminRoleId,
-// ChannelUserRoleId,
-// TeamGuestRoleId,
-// ChannelGuestRoleId,
-// PlaybookAdminRoleId,
-// PlaybookMemberRoleId,
-// RunAdminRoleId,
-// RunMemberRoleId
+//
+// TeamAdmin,
+// TeamUser,
+// TeamGuest,
+// ChannelAdmin,
+// ChannelUser,
+// ChannelGuest,
+// PlaybookAdmin,
+// PlaybookMember,
+// RunAdmin,
+// RunMember
 func isRoleIncludingSchemes(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		if role.Name == roleName {
@@ -114,16 +115,19 @@ func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bo
 
 func isSchemeRoleAssociatedToCommonName(roleName string, role *model.Role) bool {
 	roleIDToSchemeRoleDisplayName := map[string]string{
-		model.TeamAdminRoleId:      sqlstore.SchemeRoleDisplayNameTeamAdmin,
-		model.TeamUserRoleId:       sqlstore.SchemeRoleDisplayNameTeamUser,
-		model.ChannelAdminRoleId:   sqlstore.SchemeRoleDisplayNameChannelAdmin,
-		model.ChannelUserRoleId:    sqlstore.SchemeRoleDisplayNameChannelUser,
-		model.TeamGuestRoleId:      sqlstore.SchemeRoleDisplayNameTeamGuest,
-		model.ChannelGuestRoleId:   sqlstore.SchemeRoleDisplayNameChannelGuest,
+		model.TeamAdminRoleId: sqlstore.SchemeRoleDisplayNameTeamAdmin,
+		model.TeamUserRoleId:  sqlstore.SchemeRoleDisplayNameTeamUser,
+		model.TeamGuestRoleId: sqlstore.SchemeRoleDisplayNameTeamGuest,
+
+		model.ChannelAdminRoleId: sqlstore.SchemeRoleDisplayNameChannelAdmin,
+		model.ChannelUserRoleId:  sqlstore.SchemeRoleDisplayNameChannelUser,
+		model.ChannelGuestRoleId: sqlstore.SchemeRoleDisplayNameChannelGuest,
+
 		model.PlaybookAdminRoleId:  sqlstore.SchemeRoleDisplayNamePlaybookAdmin,
 		model.PlaybookMemberRoleId: sqlstore.SchemeRoleDisplayNamePlaybookMember,
-		model.RunAdminRoleId:       sqlstore.SchemeRoleDisplayNameRunAdmin,
-		model.RunMemberRoleId:      sqlstore.SchemeRoleDisplayNameRunMember,
+
+		model.RunAdminRoleId:  sqlstore.SchemeRoleDisplayNameRunAdmin,
+		model.RunMemberRoleId: sqlstore.SchemeRoleDisplayNameRunMember,
 	}
 	displayName, ok := roleIDToSchemeRoleDisplayName[roleName]
 	if !ok {
