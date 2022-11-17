@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 type permissionTransformation struct {
@@ -113,16 +114,16 @@ func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bo
 
 func isSchemeRoleAssociatedToCommonName(roleName string, role *model.Role) bool {
 	roleIDToSchemeRoleDisplayName := map[string]string{
-		model.TeamAdminRoleId:      "Team Admin Role for Scheme",
-		model.TeamUserRoleId:       "Team User Role for Scheme",
-		model.ChannelAdminRoleId:   "Channel Admin Role for Scheme",
-		model.ChannelUserRoleId:    "Channel User Role for Scheme",
-		model.TeamGuestRoleId:      "Team Guest Role for Scheme",
-		model.ChannelGuestRoleId:   "Channel Guest Role for Scheme",
-		model.PlaybookAdminRoleId:  "Playbook Admin Role for Scheme",
-		model.PlaybookMemberRoleId: "Playbook Member Role for Scheme",
-		model.RunAdminRoleId:       "Run Admin Role for Scheme",
-		model.RunMemberRoleId:      "Run Member Role for Scheme",
+		model.TeamAdminRoleId:      sqlstore.SchemeRoleDisplayNameTeamAdmin,
+		model.TeamUserRoleId:       sqlstore.SchemeRoleDisplayNameTeamUser,
+		model.ChannelAdminRoleId:   sqlstore.SchemeRoleDisplayNameChannelAdmin,
+		model.ChannelUserRoleId:    sqlstore.SchemeRoleDisplayNameChannelUser,
+		model.TeamGuestRoleId:      sqlstore.SchemeRoleDisplayNameTeamGuest,
+		model.ChannelGuestRoleId:   sqlstore.SchemeRoleDisplayNameChannelGuest,
+		model.PlaybookAdminRoleId:  sqlstore.SchemeRoleDisplayNamePlaybookAdmin,
+		model.PlaybookMemberRoleId: sqlstore.SchemeRoleDisplayNamePlaybookMember,
+		model.RunAdminRoleId:       sqlstore.SchemeRoleDisplayNameRunAdmin,
+		model.RunMemberRoleId:      sqlstore.SchemeRoleDisplayNameRunMember,
 	}
 	displayName, ok := roleIDToSchemeRoleDisplayName[roleName]
 	if !ok {
@@ -479,7 +480,7 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 		permissionTransformation{
 			On: permissionAnd(
 				isNotRole(model.ChannelGuestRoleId),
-				isNotSchemeRole("Channel Guest Role for Scheme"),
+				isNotSchemeRole(sqlstore.SchemeRoleDisplayNameChannelGuest),
 				permissionOr(permissionExists(PermissionCreatePost), permissionExists(PermissionCreatePost_PUBLIC)),
 			),
 			Add: []string{PermissionUseGroupMentions},

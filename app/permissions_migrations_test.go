@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
 )
 
 func TestApplyPermissionsMap(t *testing.T) {
@@ -242,7 +243,7 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			result := applyPermissionsMap(&model.Role{Name: schemeRoleName, DisplayName: "Team Admin Role for Scheme"}, tc.RoleMap, tc.TranslationMap)
+			result := applyPermissionsMap(&model.Role{Name: schemeRoleName, DisplayName: sqlstore.SchemeRoleDisplayNameTeamAdmin}, tc.RoleMap, tc.TranslationMap)
 			sort.Strings(result)
 			assert.Equal(t, tc.ExpectedResult, result)
 		})
