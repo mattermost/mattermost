@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -100,9 +101,11 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedConfirm"
+	fmt.Println(where + " A")
 	ensureSelfHostedAdmin(c, where)
 
 	bodyBytes, err := io.ReadAll(r.Body)
+	fmt.Println(where + " B")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -110,22 +113,30 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var confirm model.SelfHostedConfirmPaymentMethodRequest
 	err = json.Unmarshal(bodyBytes, &confirm)
+	fmt.Println(where + " C")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
 	licensePayload, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm)
+	fmt.Println(where + " D")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	license, err := c.App.Srv().Platform().SaveLicense([]byte(licensePayload))
+	fmt.Println(where + " E")
 	if err != nil {
-		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
+		valErr := reflect.ValueOf(err)
+		if !valErr.IsNil() {
+			fmt.Println(where + " E1")
+			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
 	}
 	clientLicense, err := json.Marshal(utils.GetClientLicense(license))
+	fmt.Println(where + " F")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
