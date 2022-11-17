@@ -82,6 +82,20 @@ func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool 
 	}
 }
 
+// isRoleIncludingSchemes returns true if roleName matches a role's name field or if the a team
+// or channel scheme role matches the "common name".
+//
+// Common names that will match associated team and/or channel scheme roles are:
+// TeamAdminRoleId,
+// TeamUserRoleId,
+// ChannelAdminRoleId,
+// ChannelUserRoleId,
+// TeamGuestRoleId,
+// ChannelGuestRoleId,
+// PlaybookAdminRoleId,
+// PlaybookMemberRoleId,
+// RunAdminRoleId,
+// RunMemberRoleId
 func isRoleIncludingSchemes(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		if role.Name == roleName {
