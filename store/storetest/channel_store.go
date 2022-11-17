@@ -4847,7 +4847,7 @@ func testCountUrgentPostsAfter(t *testing.T, ss store.Store) {
 			CreateAt:  1000,
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewString("urgent"),
+					Priority:                model.NewString(model.PostPropsPriorityUrgent),
 					RequestedAck:            model.NewBool(false),
 					PersistentNotifications: model.NewBool(false),
 				},

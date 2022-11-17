@@ -2170,7 +2170,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   fmt.Sprintf("@%s", user2.Username),
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString("urgent"),
+					Priority: model.NewString(model.PostPropsPriorityUrgent),
 				},
 			},
 		}, channel, false, true)
@@ -2189,7 +2189,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 			Message:   "apple",
 			Metadata: &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority: model.NewString("urgent"),
+					Priority: model.NewString(model.PostPropsPriorityUrgent),
 				},
 			},
 		}, channel, false, true)

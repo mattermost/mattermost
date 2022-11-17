@@ -2543,12 +2543,7 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 	}
 
 	var urgent int64
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "CountUrgentPostsAfter_ToSql")
-	}
-
-	err = s.GetReplicaX().Get(&urgent, sql, args...)
+	err := s.GetReplicaX().GetBuilder(&urgent, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count urgent Posts")
 	}
