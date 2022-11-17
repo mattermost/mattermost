@@ -74,7 +74,7 @@ const (
 	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
-// Warning: This function should only be used in cases where team and channel scheme roles are definitely not needed to be migrated.
+// Warning: This function should only be used in cases where team and channel scheme roles definitely do not need to be migrated.
 // Otherwise, use isRoleIncludingSchemes.
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
