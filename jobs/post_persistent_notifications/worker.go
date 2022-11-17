@@ -18,7 +18,7 @@ type AppIface interface {
 
 func MakeWorker(jobServer *jobs.JobServer, license *model.License, app AppIface) model.Worker {
 	isEnabled := func(cfg *model.Config) bool {
-		// return cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority
+		// return license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority
 		return true
 	}
 	execute := func(job *model.Job) error {

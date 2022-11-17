@@ -1552,7 +1552,7 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypePostPersistentNotifications,
 		post_persistent_notifications.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		post_persistent_notifications.MakeScheduler(s.Jobs, s.Config()),
+		post_persistent_notifications.MakeScheduler(s.Jobs, s.License(), s.Config()),
 	)
 
 	s.platform.Jobs = s.Jobs
