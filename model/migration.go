@@ -38,4 +38,5 @@ const (
 	MigrationKeyAddPlaybooksPermissions                = "playbooks_permissions"
 	MigrationKeyAddCustomUserGroupsPermissions         = "custom_groups_permissions"
 	MigrationKeyAddPlayboosksManageRolesPermissions    = "playbooks_manage_roles"
+	MigrationKeyAddProductsBoardsPermissions           = "products_boards"
 )

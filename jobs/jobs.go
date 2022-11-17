@@ -6,7 +6,10 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"runtime/pprof"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -177,6 +180,31 @@ func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 		return model.NewAppError("UpdateInProgressJobData", "app.job.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
+}
+
+// HandleJobPanic is used to handle panics during the execution of a job. It logs the panic and sets the status for the job.
+// After handling, the method repanics! This method is supposed to be `defer`'d at the start of the job.
+func (srv *JobServer) HandleJobPanic(job *model.Job) {
+	r := recover()
+	if r == nil {
+		return
+	}
+
+	sb := &strings.Builder{}
+	pprof.Lookup("goroutine").WriteTo(sb, 2)
+	mlog.Error("Unhandled panic in job", mlog.Any("panic", r), mlog.Any("job", job), mlog.String("stack", sb.String()))
+
+	rerr, ok := r.(error)
+	if !ok {
+		rerr = fmt.Errorf("job panic: %v", r)
+	}
+
+	appErr := srv.SetJobError(job, model.NewAppError("HandleJobPanic", "app.job.update.app_error", nil, "", http.StatusInternalServerError)).Wrap(rerr)
+	if appErr != nil {
+		mlog.Error("Failed to set the job status to 'failed'", mlog.Err(appErr), mlog.Any("job", job))
+	}
+
+	panic(r)
 }
 
 func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {

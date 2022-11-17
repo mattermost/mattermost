@@ -2029,7 +2029,7 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(c *request.Context, since
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateEmoji")
 
@@ -2041,7 +2041,7 @@ func (a *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateEmoji(sessionUserId, emoji, multiPartImageData)
+	resultVar0, resultVar1 := a.app.CreateEmoji(c, sessionUserId, emoji, multiPartImageData)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2992,7 +2992,7 @@ func (a *OpenTracingAppLayer) DeleteCommand(commandID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteEmoji")
 
@@ -3004,7 +3004,7 @@ func (a *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteEmoji(emoji)
+	resultVar0 := a.app.DeleteEmoji(c, emoji)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -5804,7 +5804,7 @@ func (a *OpenTracingAppLayer) GetDeletedChannels(c request.CTX, teamID string, o
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmoji")
 
@@ -5816,7 +5816,7 @@ func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.App
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmoji(emojiId)
+	resultVar0, resultVar1 := a.app.GetEmoji(c, emojiId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5826,7 +5826,7 @@ func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiByName")
 
@@ -5838,7 +5838,7 @@ func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiByName(emojiName)
+	resultVar0, resultVar1 := a.app.GetEmojiByName(c, emojiName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5848,7 +5848,7 @@ func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiImage")
 
@@ -5860,7 +5860,7 @@ func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetEmojiImage(emojiId)
+	resultVar0, resultVar1, resultVar2 := a.app.GetEmojiImage(c, emojiId)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -5870,7 +5870,7 @@ func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *mo
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiList(c request.CTX, page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiList")
 
@@ -5882,7 +5882,7 @@ func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) (
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiList(page, perPage, sort)
+	resultVar0, resultVar1 := a.app.GetEmojiList(c, page, perPage, sort)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5892,7 +5892,7 @@ func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetEmojiStaticURL(emojiName string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetEmojiStaticURL(c request.CTX, emojiName string) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiStaticURL")
 
@@ -5904,7 +5904,7 @@ func (a *OpenTracingAppLayer) GetEmojiStaticURL(emojiName string) (string, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetEmojiStaticURL(emojiName)
+	resultVar0, resultVar1 := a.app.GetEmojiStaticURL(c, emojiName)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6151,7 +6151,7 @@ func (a *OpenTracingAppLayer) GetGlobalRetentionPolicy() (*model.GlobalRetention
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroup")
 
@@ -6163,7 +6163,7 @@ func (a *OpenTracingAppLayer) GetGroup(id string, opts *model.GetGroupOpts) (*mo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroup(id, opts)
+	resultVar0, resultVar1 := a.app.GetGroup(id, opts, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6239,7 +6239,7 @@ func (a *OpenTracingAppLayer) GetGroupChannel(c request.CTX, userIDs []string) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberCount")
 
@@ -6251,7 +6251,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberCount(groupID string) (int64, *model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID)
+	resultVar0, resultVar1 := a.app.GetGroupMemberCount(groupID, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -6283,7 +6283,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsers(groupID string) ([]*model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberUsersPage")
 
@@ -6295,7 +6295,7 @@ func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	resultVar0, resultVar1, resultVar2 := a.app.GetGroupMemberUsersPage(groupID, page, perPage, viewRestrictions)
 
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
@@ -6349,7 +6349,7 @@ func (a *OpenTracingAppLayer) GetGroupSyncables(groupID string, syncableType mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroups")
 
@@ -6361,7 +6361,7 @@ func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupS
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroups(page, perPage, opts)
+	resultVar0, resultVar1 := a.app.GetGroups(page, perPage, opts, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7043,7 +7043,7 @@ func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, transl
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) GetMultipleEmojiByName(c request.CTX, names []string) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMultipleEmojiByName")
 
@@ -7055,7 +7055,7 @@ func (a *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.E
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetMultipleEmojiByName(names)
+	resultVar0, resultVar1 := a.app.GetMultipleEmojiByName(c, names)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9799,7 +9799,7 @@ func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfServic
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadForUser")
 
@@ -9811,7 +9811,7 @@ func (a *OpenTracingAppLayer) GetThreadForUser(teamID string, threadMembership *
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadForUser(teamID, threadMembership, extended)
+	resultVar0, resultVar1 := a.app.GetThreadForUser(threadMembership, extended)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10801,7 +10801,7 @@ func (a *OpenTracingAppLayer) GetUsersNotInChannelPage(teamID string, channelID 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInGroupPage")
 
@@ -10813,7 +10813,7 @@ func (a *OpenTracingAppLayer) GetUsersNotInGroupPage(groupID string, page int, p
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersNotInGroupPage(groupID, page, perPage)
+	resultVar0, resultVar1 := a.app.GetUsersNotInGroupPage(groupID, page, perPage, viewRestrictions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11622,6 +11622,23 @@ func (a *OpenTracingAppLayer) IsCRTEnabledForUser(c request.CTX, userID string) 
 
 	defer span.Finish()
 	resultVar0 := a.app.IsCRTEnabledForUser(c, userID)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) IsFirstAdmin(user *model.User) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstAdmin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.IsFirstAdmin(user)
 
 	return resultVar0
 }
@@ -12488,7 +12505,7 @@ func (a *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
+func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OverrideIconURLIfEmoji")
 
@@ -12500,7 +12517,7 @@ func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
 	}()
 
 	defer span.Finish()
-	a.app.OverrideIconURLIfEmoji(post)
+	a.app.OverrideIconURLIfEmoji(c, post)
 }
 
 func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
@@ -13050,7 +13067,7 @@ func (a *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+func (a *OpenTracingAppLayer) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostForClient")
 
@@ -13062,7 +13079,7 @@ func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isN
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	resultVar0 := a.app.PreparePostForClient(c, originalPost, isNewPost, isEditPost)
 
 	return resultVar0
 }
@@ -14620,7 +14637,7 @@ func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(c request.CTX, teamID stri
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (a *OpenTracingAppLayer) SearchEmoji(c request.CTX, name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchEmoji")
 
@@ -14632,7 +14649,7 @@ func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit in
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SearchEmoji(name, prefixOnly, limit)
+	resultVar0, resultVar1 := a.app.SearchEmoji(c, name, prefixOnly, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -17864,7 +17881,7 @@ func (a *OpenTracingAppLayer) UploadData(c *request.Context, us *model.UploadSes
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+func (a *OpenTracingAppLayer) UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadEmojiImage")
 
@@ -17876,7 +17893,7 @@ func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.F
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UploadEmojiImage(id, imageData)
+	resultVar0 := a.app.UploadEmojiImage(c, id, imageData)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -18033,6 +18050,23 @@ func (a *OpenTracingAppLayer) UserCanSeeOtherUser(userID string, otherUserId str
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UserIsFirstAdmin(user *model.User) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserIsFirstAdmin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UserIsFirstAdmin(user)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
