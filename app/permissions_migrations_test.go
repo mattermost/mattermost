@@ -203,3 +203,48 @@ func TestApplyPermissionsMap(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
+	schemeRoleName := model.NewId()
+	tt := []struct {
+		Name           string
+		RoleMap        map[string]map[string]bool
+		TranslationMap permissionsMap
+		ExpectedResult []string
+	}{
+		{
+			"Adds a permission to a scheme role with a matching common name",
+			map[string]map[string]bool{
+				schemeRoleName: {
+					"test1": true,
+				},
+			},
+			permissionsMap{permissionTransformation{
+				On:  isRoleIncludingSchemes(model.TeamAdminRoleId),
+				Add: []string{"test2"},
+			}},
+			[]string{"test1", "test2"},
+		},
+		{
+			"Doesn't add a permission to a scheme role with a different common name",
+			map[string]map[string]bool{
+				schemeRoleName: {
+					"test1": true,
+				},
+			},
+			permissionsMap{permissionTransformation{
+				On:  isRoleIncludingSchemes(model.ChannelAdminRoleId),
+				Add: []string{"test2"},
+			}},
+			[]string{"test1"},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.Name, func(t *testing.T) {
+			result := applyPermissionsMap(&model.Role{Name: schemeRoleName, DisplayName: "Team Admin Role for Scheme"}, tc.RoleMap, tc.TranslationMap)
+			sort.Strings(result)
+			assert.Equal(t, tc.ExpectedResult, result)
+		})
+	}
+}

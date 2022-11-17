@@ -85,7 +85,7 @@ func isRoleIncludingSchemes(roleName string) func(*model.Role, map[string]map[st
 		if role.Name == roleName {
 			return true
 		}
-		return isSchemeRoleAssociatedToCommonName(roleName)
+		return isSchemeRoleAssociatedToCommonName(roleName, role)
 	}
 }
 
@@ -95,7 +95,7 @@ func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bo
 	}
 }
 
-func isSchemeRoleAssociatedToCommonName(roleName string) bool {
+func isSchemeRoleAssociatedToCommonName(roleName string, role *model.Role) bool {
 	roleIDToSchemeRoleDisplayName := map[string]string{
 		model.TeamAdminRoleId:      "Team Admin Role for Scheme",
 		model.TeamUserRoleId:       "Team User Role for Scheme",
@@ -108,7 +108,11 @@ func isSchemeRoleAssociatedToCommonName(roleName string) bool {
 		model.RunAdminRoleId:       "Run Admin Role for Scheme",
 		model.RunMemberRoleId:      "Run Member Role for Scheme",
 	}
-	return strings.Contains(roleIDToSchemeRoleDisplayName[roleName], roleName)
+	displayName, ok := roleIDToSchemeRoleDisplayName[roleName]
+	if !ok {
+		return false
+	}
+	return strings.Contains(role.DisplayName, displayName)
 }
 
 func isNotSchemeRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
