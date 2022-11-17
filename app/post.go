@@ -1829,7 +1829,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 			for _, priority := range priorityList {
-				if *priority.Priority == model.PostPropsPriorityUrgent {
+				if *priority.Priority == model.PostPriorityUrgent {
 					urgentCount += 1
 				}
 			}

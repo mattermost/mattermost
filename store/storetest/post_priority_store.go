@@ -39,7 +39,7 @@ func testPostPriorityStoreGetForPost(t *testing.T, ss store.Store) {
 		p2.Message = NewTestId()
 		p2.Metadata = &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPropsPriorityUrgent),
+				Priority:                model.NewString(model.PostPriorityUrgent),
 				RequestedAck:            model.NewBool(false),
 				PersistentNotifications: model.NewBool(true),
 			},
@@ -62,7 +62,7 @@ func testPostPriorityStoreGetForPost(t *testing.T, ss store.Store) {
 
 		pp2, err := ss.PostPriority().GetForPost(p2.Id)
 		require.NoError(t, err)
-		assert.Equal(t, model.PostPropsPriorityUrgent, *pp2.Priority)
+		assert.Equal(t, model.PostPriorityUrgent, *pp2.Priority)
 		assert.Equal(t, false, *pp2.RequestedAck)
 		assert.Equal(t, true, *pp2.PersistentNotifications)
 

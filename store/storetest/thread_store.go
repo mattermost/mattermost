@@ -64,7 +64,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		if urgent {
 			o.Metadata = &model.PostMetadata{
 				Priority: &model.PostPriority{
-					Priority:                model.NewString(model.PostPropsPriorityUrgent),
+					Priority:                model.NewString(model.PostPriorityUrgent),
 					RequestedAck:            model.NewBool(false),
 					PersistentNotifications: model.NewBool(false),
 				},
@@ -740,7 +740,7 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPropsPriorityUrgent),
+				Priority:                model.NewString(model.PostPriorityUrgent),
 				RequestedAck:            model.NewBool(false),
 				PersistentNotifications: model.NewBool(false),
 			},
@@ -882,7 +882,7 @@ func testVarious(t *testing.T, ss store.Store) {
 		Message:   model.NewRandomString(10),
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority:                model.NewString(model.PostPropsPriorityUrgent),
+				Priority:                model.NewString(model.PostPriorityUrgent),
 				RequestedAck:            model.NewBool(false),
 				PersistentNotifications: model.NewBool(false),
 			},

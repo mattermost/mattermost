@@ -2532,7 +2532,7 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 		From("PostsPriority").
 		Join("Posts ON Posts.Id = PostsPriority.PostId").
 		Where(sq.And{
-			sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent},
+			sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent},
 			sq.Eq{"Posts.ChannelId": channelId},
 			sq.Gt{"Posts.CreateAt": timestamp},
 			sq.Eq{"Posts.DeleteAt": 0},

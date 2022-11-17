@@ -72,8 +72,7 @@ const (
 
 	PostPropsPreviewedPost = "previewed_post"
 
-	PostPropsPriority                = "priority"
-	PostPropsPriorityUrgent          = "urgent"
+	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
 	PostPropsPersistentNotifications = "persistent_notifications"
 )
@@ -800,5 +799,5 @@ func (o *Post) IsUrgent() bool {
 		return false
 	}
 
-	return *postPriority.Priority == PostPropsPriorityUrgent
+	return *postPriority.Priority == PostPriorityUrgent
 }

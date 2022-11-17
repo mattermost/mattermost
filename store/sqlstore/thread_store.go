@@ -227,7 +227,7 @@ func (s *SqlThreadStore) GetTotalUnreadUrgentMentions(userId, teamId string, opt
 		Where(sq.Eq{
 			"ThreadMemberships.UserId":    userId,
 			"ThreadMemberships.Following": true,
-			"PostsPriority.Priority":      model.PostPropsPriorityUrgent,
+			"PostsPriority.Priority":      model.PostPriorityUrgent,
 		})
 
 	if teamId != "" || !opts.Deleted {
@@ -288,7 +288,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	if opts.IncludeIsUrgent {
 		urgencyCase := sq.
 			Case().
-			When(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}, "true").
+			When(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}, "true").
 			Else("false")
 
 		query = query.
@@ -431,7 +431,7 @@ func (s *SqlThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, 
 				From("ThreadMemberships").
 				LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 				Join("PostsPriority ON PostsPriority.PostId = ThreadMemberships.PostId").
-				Where(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}).
+				Where(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}).
 				Where(fetchConditions).
 				GroupBy("Threads.ThreadTeamId")
 
@@ -530,7 +530,7 @@ func (s *SqlThreadStore) GetThreadForUser(threadMembership *model.ThreadMembersh
 	if postPriorityEnabled {
 		urgencyCase := sq.
 			Case().
-			When(sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent}, "true").
+			When(sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent}, "true").
 			Else("false")
 
 		query = query.

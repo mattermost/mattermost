@@ -5847,7 +5847,7 @@ func TestGetThreadsForUser(t *testing.T) {
 					Message:   "testMsg",
 					Metadata: &model.PostMetadata{
 						Priority: &model.PostPriority{
-							Priority: model.NewString(model.PostPropsPriorityUrgent),
+							Priority: model.NewString(model.PostPriorityUrgent),
 						},
 					},
 				})
@@ -6587,7 +6587,7 @@ func TestSingleThreadGet(t *testing.T) {
 		Message:   "testMsg2",
 		Metadata: &model.PostMetadata{
 			Priority: &model.PostPriority{
-				Priority: model.NewString(model.PostPropsPriorityUrgent),
+				Priority: model.NewString(model.PostPriorityUrgent),
 			},
 		},
 	})
