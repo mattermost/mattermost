@@ -561,7 +561,7 @@ func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 	query = query.
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
-		Where(sq.Or{sq.Eq{"Threads.TeamId": teamId}, sq.Eq{"Threads.TeamId": ""}}).
+		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", timestamp)
@@ -777,23 +777,6 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 
 	return membership, err
-}
-
-func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Posts").
-		Where(sq.Eq{"RootId": threadId}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.GtOrEq{"CreateAt": since})
-
-	result := []*model.Post{}
-	err := s.GetReplicaX().SelectBuilder(&result, query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to fetch thread posts")
-	}
-
-	return result, nil
 }
 
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
