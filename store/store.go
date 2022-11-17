@@ -86,6 +86,7 @@ type Store interface {
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
 	PostAcknowledgement() PostAcknowledgementStore
+	PostPersistentNotification() PostPersistentNotificationStore
 }
 
 type RetentionPolicyStore interface {
@@ -975,8 +976,6 @@ type SharedChannelStore interface {
 
 type PostPriorityStore interface {
 	GetForPost(postId string) (*model.PostPriority, error)
-	GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
-	DeletePersistentNotificationsPosts(postIds []string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -984,6 +983,11 @@ type PostAcknowledgementStore interface {
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	Save(userID, postID string) (*model.PostAcknowledgement, error)
 	Delete(userID, postID string) (*model.PostAcknowledgement, error)
+}
+
+type PostPersistentNotificationStore interface {
+	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error)
+	Delete(postIds []string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

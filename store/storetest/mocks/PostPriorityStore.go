@@ -14,20 +14,6 @@ type PostPriorityStore struct {
 	mock.Mock
 }
 
-// DeletePersistentNotificationsPosts provides a mock function with given fields: postIds
-func (_m *PostPriorityStore) DeletePersistentNotificationsPosts(postIds []string) error {
-	ret := _m.Called(postIds)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func([]string) error); ok {
-		r0 = rf(postIds)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // GetForPost provides a mock function with given fields: postId
 func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	ret := _m.Called(postId)
@@ -44,29 +30,6 @@ func (_m *PostPriorityStore) GetForPost(postId string) (*model.PostPriority, err
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetPersistentNotificationsPosts provides a mock function with given fields: params
-func (_m *PostPriorityStore) GetPersistentNotificationsPosts(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
-	ret := _m.Called(params)
-
-	var r0 []*model.PostPersistentNotifications
-	if rf, ok := ret.Get(0).(func(model.GetPersistentNotificationsPostsParams) []*model.PostPersistentNotifications); ok {
-		r0 = rf(params)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.PostPersistentNotifications)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) error); ok {
-		r1 = rf(params)
 	} else {
 		r1 = ret.Error(1)
 	}
