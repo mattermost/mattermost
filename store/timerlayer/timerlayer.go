@@ -4191,6 +4191,22 @@ func (s *TimerLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.Restore(groupID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.Restore", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	start := time.Now()
 
