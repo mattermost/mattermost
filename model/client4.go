@@ -7433,6 +7433,19 @@ func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
 	return &p, BuildResponse(r), nil
 }
 
+func (c *Client4) RestoreGroup(groupID string, etag string) (*Group, *Response, error) {
+	r, err := c.DoAPIPost(c.groupRoute(groupID)+"/restore", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var p Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &p, BuildResponse(r), nil
+}
+
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
