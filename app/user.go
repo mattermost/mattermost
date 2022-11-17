@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -316,6 +317,56 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 				return true
 			}, plugin.UserHasBeenCreatedID)
 		})
+	}
+
+	// check if it's Cloud
+	license := a.Srv().License()
+
+	if license.IsCloud() {
+		c.Logger().Error("+++++++++++++++USER++++++++++++++++++++")
+
+		var subscription *model.Subscription
+		var subErr error
+		subscription, subErr = a.Cloud().GetSubscription(ruser.Id)
+
+		if subErr != nil {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, subErr.Error(), http.StatusBadRequest)
+		}
+
+		c.Logger().Error("+++++++++++++++USER Product++++++++++++++++++++")
+		c.Logger().Error("=========Product ID: " + subscription.ProductID + "=========")
+
+		// no product ID found
+		if subscription.ProductID == "" {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, "No productID", http.StatusBadRequest)
+		}
+
+		var product *model.Product
+		var productErr error
+
+		product, productErr = a.Cloud().GetCloudProduct(ruser.Id, subscription.ProductID)
+		if productErr != nil {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.app_error", nil, productErr.Error(), http.StatusBadRequest)
+		}
+
+		c.Logger().Error("+++++++++++++++USER FIRST++++++++++++++++++++")
+		c.Logger().Error("=========Original: " + strconv.Itoa(subscription.OriginallyLicensedSeats) + "=========")
+		c.Logger().Error("=========Seats: " + strconv.Itoa(subscription.Seats) + "=========")
+
+		if product.RecurringInterval == model.RecurringIntervalYearly && subscription.OriginallyLicensedSeats < subscription.Seats {
+			c.Logger().Error("+++++++++++++++USER IF++++++++++++++++++++")
+
+			subscriptionHistoryChange := &model.SubscriptionHistoryChange{
+				Seats:    subscription.Seats,
+				CreateAt: time.Now().Unix(),
+			}
+
+			c.Logger().Error("+++++++++++++++USER HERE++++++++++++++++++++")
+
+			a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, subscription.ID, subscriptionHistoryChange)
+
+			c.Logger().Error("+++++++++++++++USER END++++++++++++++++++++")
+		}
 	}
 
 	return ruser, nil

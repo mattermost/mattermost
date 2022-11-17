@@ -164,36 +164,6 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Logger.Error("+++++++++++++++USER++++++++++++++++++++")
-
-	var subscription *model.Subscription
-	var subErr error
-	subscription, subErr = c.App.Cloud().GetSubscription(ruser.Id)
-
-	if subErr != nil {
-		c.Err = model.NewAppError(subErr.Error(), "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	c.Logger.Error("+++++++++++++++USER FIRST++++++++++++++++++++")
-	c.Logger.Error("=========Original: " + strconv.Itoa(subscription.OriginallyLicensedSeats) + "=========")
-	c.Logger.Error("=========Seats: " + strconv.Itoa(subscription.Seats) + "=========")
-
-	if subscription.OriginallyLicensedSeats > subscription.Seats {
-		c.Logger.Error("+++++++++++++++USER IF++++++++++++++++++++")
-
-		subscriptionHistoryChange := &model.SubscriptionHistoryChange{
-			Seats:    subscription.Seats,
-			CreateAt: time.Now().Unix(),
-		}
-
-		c.Logger.Error("+++++++++++++++USER HERE++++++++++++++++++++")
-
-		c.App.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, subscription.ID, subscriptionHistoryChange)
-
-		c.Logger.Error("+++++++++++++++USER END++++++++++++++++++++")
-	}
-
 	auditRec.Success()
 	auditRec.AddEventResultState(ruser)
 	auditRec.AddEventObjectType("user")
