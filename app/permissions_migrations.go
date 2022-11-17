@@ -80,10 +80,35 @@ func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool 
 	}
 }
 
+func isRoleIncludingSchemes(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		if role.Name == roleName {
+			return true
+		}
+		return isSchemeRoleAssociatedToCommonName(roleName)
+	}
+}
+
 func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		return role.Name != roleName
 	}
+}
+
+func isSchemeRoleAssociatedToCommonName(roleName string) bool {
+	roleIDToSchemeRoleDisplayName := map[string]string{
+		model.TeamAdminRoleId:      "Team Admin Role for Scheme",
+		model.TeamUserRoleId:       "Team User Role for Scheme",
+		model.ChannelAdminRoleId:   "Channel Admin Role for Scheme",
+		model.ChannelUserRoleId:    "Channel User Role for Scheme",
+		model.TeamGuestRoleId:      "Team Guest Role for Scheme",
+		model.ChannelGuestRoleId:   "Channel Guest Role for Scheme",
+		model.PlaybookAdminRoleId:  "Playbook Admin Role for Scheme",
+		model.PlaybookMemberRoleId: "Playbook Member Role for Scheme",
+		model.RunAdminRoleId:       "Run Admin Role for Scheme",
+		model.RunMemberRoleId:      "Run Member Role for Scheme",
+	}
+	return strings.Contains(roleIDToSchemeRoleDisplayName[roleName], roleName)
 }
 
 func isNotSchemeRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
