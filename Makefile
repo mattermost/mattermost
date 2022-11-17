@@ -725,6 +725,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f imports/imports.go
 endif
 
+ifeq ($(BUILD_BOARDS),true)
+	@echo Boards repository detected, temporarily removing boards_imports.go
+	rm -f imports/boards_imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
@@ -733,6 +738,10 @@ endif
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
+
+ifeq ($(BUILD_BOARDS),true)
+	cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/
 endif
 
 vet: ## Run mattermost go vet specific checks
