@@ -25,8 +25,8 @@ func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.App
 }
 
 // DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
-// Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and userID can be empty.
-func (a *App) DeletePersistentNotificationsPost(post *model.Post, userID string, checkMentionedUser bool) *model.AppError {
+// Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
+func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
 	if posts, err := a.Srv().Store().PostPriority().GetPersistentNotificationsPosts(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
 		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	} else if len(posts) == 0 {
@@ -36,8 +36,8 @@ func (a *App) DeletePersistentNotificationsPost(post *model.Post, userID string,
 
 	if checkMentionedUser {
 		if err := a.forEachPersistentNotificationPost([]*model.Post{post}, func(_ *model.Post, _ *model.Channel, _ *model.Team, mentions *ExplicitMentions, _ model.UserMap) error {
-			if !mentions.isUserMentioned(userID) {
-				return errors.Errorf("User %s is not mentioned", userID)
+			if !mentions.isUserMentioned(mentionedUserID) {
+				return errors.Errorf("User %s is not mentioned", mentionedUserID)
 			}
 			return nil
 		}); err != nil {

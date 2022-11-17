@@ -3249,7 +3249,7 @@ func (a *OpenTracingAppLayer) DeleteOutgoingWebhook(hookID string) *model.AppErr
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(post *model.Post, userID string, checkMentionedUser bool) *model.AppError {
+func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePersistentNotificationsPost")
 
@@ -3261,7 +3261,7 @@ func (a *OpenTracingAppLayer) DeletePersistentNotificationsPost(post *model.Post
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeletePersistentNotificationsPost(post, userID, checkMentionedUser)
+	resultVar0 := a.app.DeletePersistentNotificationsPost(post, mentionedUserID, checkMentionedUser)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

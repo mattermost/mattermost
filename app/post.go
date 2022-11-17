@@ -346,7 +346,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	rpost = a.PreparePostForClient(c, rpost, true, false)
 
 	if rpost.RootId != "" {
-		a.DeletePersistentNotificationsPost(rpost, rpost.UserId, true)
+		a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true)
 	}
 
 	// Make sure poster is following the thread
