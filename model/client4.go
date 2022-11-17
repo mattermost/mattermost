@@ -325,6 +325,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) hostedCustomerRoute() string {
+	return "/hosted_customer"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -8165,7 +8169,7 @@ func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest
 	if err != nil {
 		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(c.cloudRoute()+"/self-hosted-bootstrap", reqBytes)
+	r, err := c.DoAPIPostBytes(c.hostedCustomerRoute()+"/bootstrap", reqBytes)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
