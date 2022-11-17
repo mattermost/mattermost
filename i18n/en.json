@@ -1635,6 +1635,10 @@
     "translation": "Can not save draft to deleted channel"
   },
   {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
+  },
+  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch settings has unset values."
   },

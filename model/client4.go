@@ -6248,7 +6248,8 @@ func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
 	defer closeBody(r)
 
 	var df Draft
-	if err := json.NewDecoder(r.Body).Decode(&df); err != nil {
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
 		return nil, nil, NewAppError("UpsertDraft", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &df, BuildResponse(r), err
@@ -6262,7 +6263,8 @@ func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) 
 	}
 	defer closeBody(r)
 	var drafts []*Draft
-	if err := json.NewDecoder(r.Body).Decode(&drafts); err != nil {
+	err = json.NewDecoder(r.Body).Decode(&drafts)
+	if err != nil {
 		return nil, nil, NewAppError("GetDrafts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return drafts, BuildResponse(r), nil
