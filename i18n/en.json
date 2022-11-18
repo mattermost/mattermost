@@ -6152,6 +6152,10 @@
     "translation": "Unable to get postpriority for post"
   },
   {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.post_reminder_dm",
     "translation": "Hi there, here's your reminder about this message from @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
@@ -7958,10 +7962,6 @@
   {
     "id": "model.access.is_valid.user_id.app_error",
     "translation": "Invalid user id."
-  },
-  {
-    "id": "model.acknowledgement.is_valid.create_at.app_error",
-    "translation": ""
   },
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
