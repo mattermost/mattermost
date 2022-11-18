@@ -1231,3 +1231,9 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 	limits, err := api.app.Cloud().GetCloudLimits("")
 	return limits, err
 }
+
+// RegisterCollectionAndTopic informs the server that this plugin handles
+// the given collection and topic types.
+func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
+	return api.app.registerCollectionAndTopic(api.id, collectionType, topicType)
+}
