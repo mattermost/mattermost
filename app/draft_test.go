@@ -34,12 +34,12 @@ func TestGetDraft(t *testing.T) {
 		Message:   "draft",
 	}
 
-	_, appErr := th.App.UpsertDraft(th.Context, draft, "")
-	assert.Nil(t, appErr)
+	_, upsertDraftErr := th.App.UpsertDraft(th.Context, draft, "")
+	assert.Nil(t, upsertDraftErr)
 
 	t.Run("get draft", func(t *testing.T) {
-		draftResp, appErr := th.App.GetDraft(user.Id, channel.Id, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.GetDraft(user.Id, channel.Id, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft.Message, draftResp.Message)
 		assert.Equal(t, draft.ChannelId, draftResp.ChannelId)
@@ -52,8 +52,8 @@ func TestGetDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr = th.App.GetDraft(user.Id, channel.Id, "")
-		assert.NotNil(t, appErr)
+		_, err := th.App.GetDraft(user.Id, channel.Id, "")
+		assert.NotNil(t, err)
 	})
 }
 
@@ -88,12 +88,12 @@ func TestUpsertDraft(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	_, appErr := th.App.CreateDraft(th.Context, draft1, "")
-	assert.Nil(t, appErr)
+	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
+	assert.Nil(t, createDraftErr)
 
 	t.Run("upsert draft", func(t *testing.T) {
-		draftResp, appErr := th.App.UpsertDraft(th.Context, draft2, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.UpsertDraft(th.Context, draft2, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
@@ -110,8 +110,8 @@ func TestUpsertDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr := th.App.UpsertDraft(th.Context, draft1, "")
-		assert.NotNil(t, appErr)
+		_, err := th.App.UpsertDraft(th.Context, draft1, "")
+		assert.NotNil(t, err)
 	})
 }
 
@@ -149,8 +149,8 @@ func TestCreateDraft(t *testing.T) {
 	}
 
 	t.Run("create draft", func(t *testing.T) {
-		draftResp, appErr := th.App.CreateDraft(th.Context, draft1, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.CreateDraft(th.Context, draft1, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
@@ -158,17 +158,17 @@ func TestCreateDraft(t *testing.T) {
 
 	t.Run("create draft with files", func(t *testing.T) {
 		// upload file
-		sent, err := testutils.ReadTestFile("test.png")
-		require.NoError(t, err)
+		sent, readFileErr := testutils.ReadTestFile("test.png")
+		require.NoError(t, readFileErr)
 
-		fileResp, appErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
-		assert.Nil(t, appErr)
+		fileResp, uploadFileErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
+		assert.Nil(t, uploadFileErr)
 
 		draftWithFiles := draft2
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, appErr := th.App.CreateDraft(th.Context, draftWithFiles, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.CreateDraft(th.Context, draftWithFiles, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
@@ -182,8 +182,8 @@ func TestCreateDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr := th.App.CreateDraft(th.Context, draft1, "")
-		assert.NotNil(t, appErr)
+		_, err := th.App.CreateDraft(th.Context, draft1, "")
+		assert.NotNil(t, err)
 	})
 }
 
@@ -218,12 +218,12 @@ func TestUpdateDraft(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	_, appErr := th.App.CreateDraft(th.Context, draft1, "")
-	assert.Nil(t, appErr)
+	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
+	assert.Nil(t, createDraftErr)
 
 	t.Run("update draft", func(t *testing.T) {
-		draftResp, appErr := th.App.UpdateDraft(th.Context, draft2, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.UpdateDraft(th.Context, draft2, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
@@ -233,17 +233,17 @@ func TestUpdateDraft(t *testing.T) {
 
 	t.Run("update draft with files", func(t *testing.T) {
 		// upload file
-		sent, err := testutils.ReadTestFile("test.png")
-		require.NoError(t, err)
+		sent, readFileErr := testutils.ReadTestFile("test.png")
+		require.NoError(t, readFileErr)
 
-		fileResp, appErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
-		assert.Nil(t, appErr)
+		fileResp, uploadFileErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
+		assert.Nil(t, uploadFileErr)
 
 		draftWithFiles := draft1
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, appErr := th.App.UpdateDraft(th.Context, draft1, "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.UpdateDraft(th.Context, draft1, "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
@@ -257,8 +257,8 @@ func TestUpdateDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr := th.App.UpdateDraft(th.Context, draft1, "")
-		assert.NotNil(t, appErr)
+		_, err := th.App.UpdateDraft(th.Context, draft1, "")
+		assert.NotNil(t, err)
 	})
 }
 
@@ -295,15 +295,15 @@ func TestGetDraftsForUser(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	_, appErr := th.App.CreateDraft(th.Context, draft1, "")
-	assert.Nil(t, appErr)
+	_, createDraftErr1 := th.App.CreateDraft(th.Context, draft1, "")
+	assert.Nil(t, createDraftErr1)
 
-	_, appErr = th.App.CreateDraft(th.Context, draft2, "")
-	assert.Nil(t, appErr)
+	_, createDraftErr2 := th.App.CreateDraft(th.Context, draft2, "")
+	assert.Nil(t, createDraftErr2)
 
 	t.Run("get drafts", func(t *testing.T) {
-		draftResp, appErr := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft2.Message, draftResp[0].Message)
 		assert.Equal(t, draft2.ChannelId, draftResp[0].ChannelId)
@@ -314,24 +314,24 @@ func TestGetDraftsForUser(t *testing.T) {
 
 	t.Run("get drafts with files", func(t *testing.T) {
 		// upload file
-		sent, err := testutils.ReadTestFile("test.png")
-		require.NoError(t, err)
+		sent, readFileErr := testutils.ReadTestFile("test.png")
+		require.NoError(t, readFileErr)
 
-		fileResp, appErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
-		assert.Nil(t, appErr)
+		fileResp, updateDraftErr := th.App.UploadFile(th.Context, sent, channel.Id, "test.png")
+		assert.Nil(t, updateDraftErr)
 
 		draftWithFiles := draft1
 		draftWithFiles.FileIds = []string{fileResp.Id}
 
-		draftResp, appErr := th.App.UpdateDraft(th.Context, draft1, "")
-		assert.Nil(t, appErr)
+		draftResp, updateDraftErr := th.App.UpdateDraft(th.Context, draft1, "")
+		assert.Nil(t, updateDraftErr)
 
 		assert.Equal(t, draftWithFiles.Message, draftResp.Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftResp.ChannelId)
 		assert.ElementsMatch(t, draftWithFiles.FileIds, draftResp.FileIds)
 
-		draftsWithFilesResp, appErr := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
-		assert.Nil(t, appErr)
+		draftsWithFilesResp, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
 
 		assert.Equal(t, draftWithFiles.Message, draftsWithFilesResp[0].Message)
 		assert.Equal(t, draftWithFiles.ChannelId, draftsWithFilesResp[0].ChannelId)
@@ -349,8 +349,8 @@ func TestGetDraftsForUser(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
-		assert.NotNil(t, appErr)
+		_, err := th.App.GetDraftsForUser(user.Id, th.BasicTeam.Id)
+		assert.NotNil(t, err)
 	})
 }
 
@@ -376,12 +376,12 @@ func TestDeleteDraft(t *testing.T) {
 		Message:   "draft1",
 	}
 
-	_, appErr := th.App.CreateDraft(th.Context, draft1, "")
-	assert.Nil(t, appErr)
+	_, createDraftErr := th.App.CreateDraft(th.Context, draft1, "")
+	assert.Nil(t, createDraftErr)
 
 	t.Run("delete draft", func(t *testing.T) {
-		draftResp, appErr := th.App.DeleteDraft(user.Id, channel.Id, "", "")
-		assert.Nil(t, appErr)
+		draftResp, err := th.App.DeleteDraft(user.Id, channel.Id, "", "")
+		assert.Nil(t, err)
 
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
@@ -389,8 +389,8 @@ func TestDeleteDraft(t *testing.T) {
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 
-		draftResp, appErr = th.App.GetDraft(user.Id, channel.Id, "")
-		assert.Nil(t, appErr)
+		draftResp, getDraftErr := th.App.GetDraft(user.Id, channel.Id, "")
+		assert.Nil(t, getDraftErr)
 		assert.NotEqual(t, draft1.DeleteAt, draftResp.DeleteAt)
 	})
 
@@ -401,7 +401,7 @@ func TestDeleteDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, appErr := th.App.DeleteDraft(user.Id, channel.Id, "", "")
-		assert.NotNil(t, appErr)
+		_, err := th.App.DeleteDraft(user.Id, channel.Id, "", "")
+		assert.NotNil(t, err)
 	})
 }
