@@ -829,7 +829,12 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
+		user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		profiles, _, appErr = c.App.GetGroupMemberUsersSortedPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions, c.App.GetNotificationNameFormat(user))
 		if appErr != nil {
 			c.Err = appErr
 			return
