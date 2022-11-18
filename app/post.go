@@ -1271,7 +1271,9 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	}
 
-	a.DeletePersistentNotificationsPost(post, "", false)
+	if post.RootId == "" {
+		a.DeletePersistentNotificationsPost(post, "", false)
+	}
 
 	postJSON, err := json.Marshal(post)
 	if err != nil {

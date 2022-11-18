@@ -43,7 +43,9 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	a.DeletePersistentNotificationsPost(post, reaction.UserId, true)
+	if post.RootId == "" {
+		a.DeletePersistentNotificationsPost(post, reaction.UserId, true)
+	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
