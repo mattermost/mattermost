@@ -3412,7 +3412,7 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
+	_, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
 	require.NoError(t, err)
 
 	acks, appErr = th.App.GetAcknowledgementsForPost(post.Id)
