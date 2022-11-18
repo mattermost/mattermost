@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *model.AppError) {
+func (a *App) GetGroup(id string, opts *model.GetGroupOpts, viewRestrictions *model.ViewUsersRestrictions) (*model.Group, *model.AppError) {
 	group, err := a.Srv().Store.Group().Get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -26,7 +26,7 @@ func (a *App) GetGroup(id string, opts *model.GetGroupOpts) (*model.Group, *mode
 	}
 
 	if opts != nil && opts.IncludeMemberCount {
-		memberCount, err := a.Srv().Store.Group().GetMemberCount(id)
+		memberCount, err := a.Srv().Store.Group().GetMemberCountWithRestrictions(id, viewRestrictions)
 		if err != nil {
 			return nil, model.NewAppError("GetGroup", "app.member_count", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -218,8 +218,8 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, nil
 }
 
-func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
-	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+func (a *App) GetGroupMemberCount(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+	count, err := a.Srv().Store.Group().GetMemberCountWithRestrictions(groupID, viewRestrictions)
 	if err != nil {
 		return 0, model.NewAppError("GetGroupMemberCount", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -236,20 +236,21 @@ func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppErro
 	return users, nil
 }
 
-func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage)
+func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, int, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupMemberUsersPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	count, appErr := a.GetGroupMemberCount(groupID)
+	count, appErr := a.GetGroupMemberCount(groupID, viewRestrictions)
 	if appErr != nil {
 		return nil, 0, appErr
 	}
 	return a.sanitizeProfiles(members, false), int(count), nil
 }
-func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
-	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage)
+
+func (a *App) GetUsersNotInGroupPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	members, err := a.Srv().Store.Group().GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInGroupPage", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -576,8 +577,8 @@ func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.Grou
 	return groupsAssociatedByChannelId, nil
 }
 
-func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts)
+func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroups(page, perPage, opts, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetGroups", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}

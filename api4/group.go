@@ -99,11 +99,17 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
-	})
-	if err != nil {
-		c.Err = err
+	}, restrictions)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -189,7 +195,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -297,7 +303,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, groupErr := c.App.GetGroup(c.Params.GroupId, nil)
+	group, groupErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if groupErr != nil {
 		c.Err = groupErr
 		return
@@ -601,9 +607,9 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
-	if err != nil {
-		c.Err = err
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -618,9 +624,15 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, count, err := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	members, count, appErr := c.App.GetGroupMemberUsersPage(c.Params.GroupId, c.Params.Page, c.Params.PerPage, restrictions)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -656,9 +668,9 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := c.Params.GroupId
-	count, err := c.App.GetGroupMemberCount(groupID)
-	if err != nil {
-		c.Err = err
+	count, appErr := c.App.GetGroupMemberCount(groupID, nil)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -917,14 +929,37 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
-	if err != nil {
-		c.Err = err
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	var b []byte
-	var marshalErr error
+	var (
+		groups      = []*model.Group{}
+		canSee bool = true
+	)
+
+	if opts.FilterHasMember != "" {
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	if canSee {
+		groups, appErr = c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts, restrictions)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	var (
+		b          []byte
+		marshalErr error
+	)
 	if c.Params.IncludeTotalCount {
 		totalCount, countErr := c.App.Srv().Store.Group().GroupCount()
 		if countErr != nil {
@@ -954,7 +989,7 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
+	group, err := c.App.GetGroup(c.Params.GroupId, nil, nil)
 	if err != nil {
 		c.Err = err
 		return
@@ -997,9 +1032,9 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
-	if err != nil {
-		c.Err = err
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1050,9 +1085,9 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroup(c.Params.GroupId, nil)
-	if err != nil {
-		c.Err = err
+	group, appErr := c.App.GetGroup(c.Params.GroupId, nil, nil)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1100,8 +1135,8 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 // licensedAndConfiguredForGroupBySource returns an app error if not properly license or configured for the given group type. The returned app error
 // will have a blank 'Where' field, which should be subsequently set by the caller, for example:
 //
-//    err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
-//    err.Where = "Api4.getGroup"
+//	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
+//	err.Where = "Api4.getGroup"
 //
 // Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {

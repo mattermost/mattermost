@@ -17,19 +17,19 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	group, err := th.App.GetGroup(group.Id, nil)
+	group, err := th.App.GetGroup(group.Id, nil, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	nilGroup, err := th.App.GetGroup(model.NewId(), nil)
+	nilGroup, err := th.App.GetGroup(model.NewId(), nil, nil)
 	require.NotNil(t, err)
 	require.Nil(t, nilGroup)
 
-	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false})
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: false}, nil)
 	require.Nil(t, err)
 	require.Nil(t, group.MemberCount)
 
-	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true})
+	group, err = th.App.GetGroup(group.Id, &model.GetGroupOpts{IncludeMemberCount: true}, nil)
 	require.Nil(t, err)
 	require.NotNil(t, group.MemberCount)
 }
@@ -371,7 +371,7 @@ func TestGetGroups(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{})
+	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{}, nil)
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
 }

@@ -1078,7 +1078,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		return groupsMap, nil
 	}
 
-	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
+	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get groups")
 	}
