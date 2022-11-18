@@ -8458,3 +8458,26 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	}
 	return newTeamMembersList, BuildResponse(r), nil
 }
+
+func (c *Client4) AcknowledgePost(userId, postId string) (*PostAcknowledgement, *Response, error) {
+	requestBody := map[string]string{"user_id": userId}
+	r, err := c.DoAPIPost(c.postRoute(postId)+"/ack", MapToJSON(requestBody))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ack *PostAcknowledgement
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return ack, BuildResponse(r), nil
+}
+
+func (c *Client4) UnacknowledgePost(userId, postId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.postRoute(postId) + "/ack?user_id=" + userId)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}

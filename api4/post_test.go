@@ -3342,3 +3342,85 @@ func TestPostReminder(t *testing.T) {
 
 	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
 }
+
+func TestAcknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	_, resp, err := client.AcknowledgePost(th.BasicUser.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(th.BasicUser.Id, GenerateTestId())
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost("junk", post.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(th.BasicUser2.Id, post.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	client.Logout()
+	_, resp, err = client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, _, err = th.SystemAdminClient.AcknowledgePost(th.SystemAdminUser.Id, post.Id)
+	require.NoError(t, err)
+}
+
+func TestUnacknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	resp, err := client.UnacknowledgePost(th.BasicUser.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(th.BasicUser.Id, GenerateTestId())
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost("junk", post.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(th.BasicUser2.Id, post.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
+	require.NoError(t, err)
+
+	acks, appErr = th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 0)
+
+	client.Logout()
+	resp, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+}
