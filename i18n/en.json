@@ -3261,7 +3261,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Starter."
+    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subtitle2",
@@ -3340,8 +3340,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.subject",
@@ -3357,7 +3357,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Update your payment information now or downgrade to Cloud Starter below."
+    "translation": "Update your payment information now or downgrade to Cloud Free below."
   },
   {
     "id": "api.templates.delinquency_60.title",
@@ -3384,8 +3384,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -3397,11 +3397,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Starter. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Update your payment information now, or downgrade to Cloud Starter."
+    "translation": "Update your payment information now, or downgrade to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.title",
@@ -3425,7 +3425,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data may have been archived due to Cloud Starter limitations."
+    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
   },
   {
     "id": "api.templates.delinquency_90.subtitle3",
@@ -4702,6 +4702,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",

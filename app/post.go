@@ -260,6 +260,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		var metadata *model.PostMetadata
+		if post.Metadata != nil {
+			metadata = post.Metadata.Copy()
+		}
 		var rejectionError *model.AppError
 		pluginContext := pluginContext(c)
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
@@ -273,8 +277,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 				return false
 			}
 			if replacementPost != nil {
-				// the original post's metadata (if there ever was any) is lost, and will be rebuilt.
 				post = replacementPost
+				if post.Metadata != nil && metadata != nil {
+					post.Metadata.Priority = metadata.Priority
+				} else {
+					post.Metadata = metadata
+				}
 			}
 
 			return true
@@ -343,7 +351,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(c, rpost, true, false)
+	rpost = a.PreparePostForClient(c, rpost, true, false, true)
 
 	if rpost.RootId != "" {
 		a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true)
@@ -519,7 +527,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := post.ToJSON()
@@ -542,7 +550,7 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -686,7 +694,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClientWithEmbedsAndImages(c, rpost, false, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(c, rpost, false, true, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
@@ -1691,7 +1699,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		true, // Assume channel mentions are always allowed for simplicity
 	)
 
-	posts, nErr := a.Srv().Store().Thread().GetPosts(post.Id, timestamp)
+	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
 	if nErr != nil {
 		return 0, model.NewAppError("countThreadMentions", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
@@ -1751,7 +1759,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		}
 
 		var urgentCount int
-		if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
+		if a.isPostPriorityEnabled() {
 			urgentCount, nErr = a.Srv().Store().Channel().CountUrgentPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
 			if nErr != nil {
 				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_urgent_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -1791,8 +1799,12 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		count += 1
 		if post.RootId == "" {
 			countRoot += 1
-			if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
-				if *post.Metadata.Priority.Priority == model.PostPropsPriorityUrgent {
+			if a.isPostPriorityEnabled() {
+				priority, err := a.GetPriorityForPost(post.Id)
+				if err != nil {
+					return 0, 0, 0, err
+				}
+				if *priority.Priority == model.PostPriorityUrgent {
 					urgentCount += 1
 				}
 			}
@@ -1812,21 +1824,25 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 			return 0, 0, 0, err
 		}
 
+		mentionPostIds := make([]string, 0)
 		for _, postID := range postList.Order {
 			if isPostMention(user, postList.Posts[postID], keywords, postList.Posts, mentionedByThread, checkForCommentMentions) {
 				count += 1
 				if postList.Posts[postID].RootId == "" {
+					mentionPostIds = append(mentionPostIds, postID)
 					countRoot += 1
+				}
+			}
+		}
 
-					if a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority {
-						priority, err := a.GetPriorityForPost(postID)
-						if err != nil {
-							return 0, 0, 0, err
-						}
-						if *priority.Priority == model.PostPropsPriorityUrgent {
-							urgentCount += 1
-						}
-					}
+		if a.isPostPriorityEnabled() {
+			priorityList, nErr := a.Srv().Store().PostPriority().GetForPosts(mentionPostIds)
+			if err != nil {
+				return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.get_priority_for_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			for _, priority := range priorityList {
+				if *priority.Priority == model.PostPriorityUrgent {
+					urgentCount += 1
 				}
 			}
 		}
@@ -2037,7 +2053,7 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil, "")
-	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(request.EmptyContext(a.Log()), ephemeralPost, true, false)
+	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(request.EmptyContext(a.Log()), ephemeralPost, true, false, true)
 	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := ephemeralPost.ToJSON()
@@ -2119,7 +2135,7 @@ func (a *App) CheckPostReminders() {
 
 func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThreadList, userID string) (*model.TopThreadList, error) {
 	for _, topThread := range topThreadList.Items {
-		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false)
+		topThread.Post = a.PreparePostForClientWithEmbedsAndImages(c, topThread.Post, false, false, true)
 		sanitizedPost, err := a.SanitizePostMetadataForUser(c, topThread.Post, userID)
 		if err != nil {
 			return nil, err
@@ -2127,4 +2143,8 @@ func includeEmbedsAndImages(a *App, c request.CTX, topThreadList *model.TopThrea
 		topThread.Post = sanitizedPost
 	}
 	return topThreadList, nil
+}
+
+func (a *App) isPostPriorityEnabled() bool {
+	return a.Config().FeatureFlags.PostPriority && *a.Config().ServiceSettings.PostPriority
 }

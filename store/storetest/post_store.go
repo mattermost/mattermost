@@ -238,6 +238,31 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		assert.Greater(t, rchannel3.LastPostAt, rchannel2.LastPostAt)
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
 	})
+
+	t.Run("Save post with priority metadata set", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestId()
+
+		o1.Metadata = &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString("important"),
+				RequestedAck:            model.NewBool(true),
+				PersistentNotifications: model.NewBool(false),
+			},
+		}
+
+		p, err := ss.Post().Save(&o1)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, int64(0), p.ReplyCount)
+
+		pp, err := ss.PostPriority().GetForPost(p.Id)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, "important", *pp.Priority)
+		assert.Equal(t, true, *pp.RequestedAck)
+		assert.Equal(t, false, *pp.PersistentNotifications)
+	})
 }
 
 func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {

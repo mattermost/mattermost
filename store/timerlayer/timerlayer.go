@@ -4147,6 +4147,22 @@ func (s *TimerLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 	return result, err
 }
 
+func (s *TimerLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+	start := time.Now()
+
+	result, err := s.GroupStore.Restore(groupID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.Restore", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	start := time.Now()
 
@@ -5554,6 +5570,22 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsByThread(threadID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsByThread", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 	start := time.Now()
 
@@ -5905,10 +5937,10 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Delete(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Delete(userID, postID)
+	err := s.PostAcknowledgementStore.Delete(acknowledgement)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5918,7 +5950,7 @@ func (s *TimerLayerPostAcknowledgementStore) Delete(userID string, postID string
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Delete", success, elapsed)
 	}
-	return result, err
+	return err
 }
 
 func (s *TimerLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
@@ -5953,10 +5985,26 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Save(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Save(userID, postID)
+	result, err := s.PostAcknowledgementStore.GetForPosts(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetForPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6013,6 +6061,22 @@ func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPrio
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostPriorityStore) GetForPosts(ids []string) ([]*model.PostPriority, error) {
+	start := time.Now()
+
+	result, err := s.PostPriorityStore.GetForPosts(ids)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPriorityStore.GetForPosts", success, elapsed)
 	}
 	return result, err
 }
@@ -9007,22 +9071,6 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	start := time.Now()
-
-	result, err := s.ThreadStore.GetPosts(threadID, since)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetPosts", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error) {
 	start := time.Now()
 
@@ -9055,10 +9103,10 @@ func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool, postPriorityIsEnabled bool) (*model.ThreadResponse, error) {
 	start := time.Now()
 
-	result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended, postPriorityIsEnabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

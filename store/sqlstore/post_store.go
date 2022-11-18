@@ -139,7 +139,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	maxDateNewPosts := make(map[string]int64)
 	maxDateNewRootPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
-
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
@@ -183,7 +182,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 					maxDateNewRootPosts[post.ChannelId] = post.CreateAt
 				}
 			}
-
 			continue
 		}
 
@@ -1404,6 +1402,23 @@ func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOpt
 
 func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	return s.getPostsAround(false, options, sanitizeOptions)
+}
+
+func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"CreateAt": since})
+
+	result := []*model.Post{}
+	err := s.GetReplicaX().SelectBuilder(&result, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+
+	return result, nil
 }
 
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
@@ -2924,7 +2939,7 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 
 func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
 	for _, post := range posts {
-		if post.Metadata != nil && post.Metadata.Priority != nil {
+		if post.GetPriority() != nil {
 			postPriority := &model.PostPriority{
 				PostId:                  post.Id,
 				ChannelId:               post.ChannelId,

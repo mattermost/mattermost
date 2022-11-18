@@ -2527,43 +2527,23 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 }
 
 func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, userId string) (int, error) {
-	joinLeavePostTypes := []string{
-		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
-		model.PostTypeJoinLeave,
-		model.PostTypeAddRemove,
-		model.PostTypeJoinChannel,
-		model.PostTypeLeaveChannel,
-		model.PostTypeJoinTeam,
-		model.PostTypeLeaveTeam,
-		model.PostTypeAddToChannel,
-		model.PostTypeRemoveFromChannel,
-		model.PostTypeAddToTeam,
-		model.PostTypeRemoveFromTeam,
-	}
-
 	query := s.getQueryBuilder().
 		Select("count(*)").
-		From("Posts").
-		Join("PostsPriority ON Posts.Id = PostsPriority.PostId").
+		From("PostsPriority").
+		Join("Posts ON Posts.Id = PostsPriority.PostId").
 		Where(sq.And{
+			sq.Eq{"PostsPriority.Priority": model.PostPriorityUrgent},
 			sq.Eq{"Posts.ChannelId": channelId},
 			sq.Gt{"Posts.CreateAt": timestamp},
-			sq.NotEq{"Posts.Type": joinLeavePostTypes},
 			sq.Eq{"Posts.DeleteAt": 0},
-			sq.Eq{"PostsPriority.Priority": model.PostPropsPriorityUrgent},
 		})
 
 	if userId != "" {
-		query = query.Where(sq.Eq{"UserId": userId})
+		query = query.Where(sq.Eq{"Posts.UserId": userId})
 	}
 
 	var urgent int64
-	sql, args, err := query.Where(sq.Eq{"RootId": ""}).Where(query).ToSql()
-	if err != nil {
-		return 0, errors.Wrap(err, "CountUrgentPostsAfter_ToSql")
-	}
-
-	err = s.GetReplicaX().Get(&urgent, sql, args...)
+	err := s.GetReplicaX().GetBuilder(&urgent, query)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count urgent Posts")
 	}

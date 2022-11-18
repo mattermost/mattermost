@@ -10,6 +10,7 @@ BEGIN
     SELECT count(*) != 0 INTO col_exist
     FROM information_schema.columns
     WHERE table_name = 'users'
+    AND table_schema = current_schema()
     AND column_name = 'themeprops';
 
     IF col_exist THEN

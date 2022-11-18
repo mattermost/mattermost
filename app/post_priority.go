@@ -18,3 +18,17 @@ func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.App
 	}
 	return priority, nil
 }
+
+func (a *App) GetPriorityForPostList(list *model.PostList) (map[string]*model.PostPriority, *model.AppError) {
+	priority, err := a.Srv().Store().PostPriority().GetForPosts(list.Order)
+	if err != nil {
+		return nil, model.NewAppError("GetPriorityForPost", "app.post_prority.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	priorityMap := make(map[string]*model.PostPriority)
+	for _, p := range priority {
+		priorityMap[p.PostId] = p
+	}
+
+	return priorityMap, nil
+}

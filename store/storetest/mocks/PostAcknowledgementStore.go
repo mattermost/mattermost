@@ -14,27 +14,18 @@ type PostAcknowledgementStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: userID, postID
-func (_m *PostAcknowledgementStore) Delete(userID string, postID string) (*model.PostAcknowledgement, error) {
-	ret := _m.Called(userID, postID)
+// Delete provides a mock function with given fields: acknowledgement
+func (_m *PostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
+	ret := _m.Called(acknowledgement)
 
-	var r0 *model.PostAcknowledgement
-	if rf, ok := ret.Get(0).(func(string, string) *model.PostAcknowledgement); ok {
-		r0 = rf(userID, postID)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.PostAcknowledgement) error); ok {
+		r0 = rf(acknowledgement)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostAcknowledgement)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, postID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Get provides a mock function with given fields: userID, postID
@@ -83,13 +74,36 @@ func (_m *PostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAckn
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: userID, postID
-func (_m *PostAcknowledgementStore) Save(userID string, postID string) (*model.PostAcknowledgement, error) {
-	ret := _m.Called(userID, postID)
+// GetForPosts provides a mock function with given fields: postIds
+func (_m *PostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
+	ret := _m.Called(postIds)
+
+	var r0 []*model.PostAcknowledgement
+	if rf, ok := ret.Get(0).(func([]string) []*model.PostAcknowledgement); ok {
+		r0 = rf(postIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(postIds)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Save provides a mock function with given fields: userID, postID, acknowledgedAt
+func (_m *PostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	ret := _m.Called(userID, postID, acknowledgedAt)
 
 	var r0 *model.PostAcknowledgement
-	if rf, ok := ret.Get(0).(func(string, string) *model.PostAcknowledgement); ok {
-		r0 = rf(userID, postID)
+	if rf, ok := ret.Get(0).(func(string, string, int64) *model.PostAcknowledgement); ok {
+		r0 = rf(userID, postID, acknowledgedAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
@@ -97,8 +111,8 @@ func (_m *PostAcknowledgementStore) Save(userID string, postID string) (*model.P
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, postID)
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(userID, postID, acknowledgedAt)
 	} else {
 		r1 = ret.Error(1)
 	}

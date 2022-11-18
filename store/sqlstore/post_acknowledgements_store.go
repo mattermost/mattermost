@@ -21,40 +21,38 @@ func newSqlPostAcknowledgementStore(sqlStore *SqlStore) store.PostAcknowledgemen
 }
 
 func (s *SqlPostAcknowledgementStore) Get(userID, postID string) (*model.PostAcknowledgement, error) {
-	query, args, err := s.getQueryBuilder().
-		Select().
+	query := s.getQueryBuilder().
+		Select("PostId", "UserId", "AcknowledgedAt").
 		From("PostAcknowledgements").
 		Where(sq.And{
-			sq.Eq{"DeleteAt": 0},
+			sq.NotEq{"AcknowledgedAt": 0},
 			sq.Eq{"PostId": postID},
 			sq.Eq{"UserId": userID},
-		}).ToSql()
+		})
 
-	if err != nil {
-		return nil, errors.Wrap(err, "getPostAcknowledgement_ToSql")
-	}
-
-	var acknowledgement *model.PostAcknowledgement
-	err = s.GetReplicaX().Get(&acknowledgement, query, args...)
+	var acknowledgement model.PostAcknowledgement
+	err := s.GetReplicaX().GetBuilder(&acknowledgement, query)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("PostAcknowledgement", postID)
 		}
 
-		return nil, errors.Wrapf(err, "failed to get PostAcknowledgement postID=%s, for userID=%s", postID, userID)
+		return nil, err
 	}
 
-	return acknowledgement, nil
+	return &acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Save(userID, postID string) (*model.PostAcknowledgement, error) {
+func (s *SqlPostAcknowledgementStore) Save(userID, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	if acknowledgedAt == 0 {
+		acknowledgedAt = model.GetMillis()
+	}
+
 	acknowledgement := &model.PostAcknowledgement{
 		UserId:         userID,
 		PostId:         postID,
-		CreateAt:       model.GetMillis(),
-		AcknowledgedAt: model.GetMillis(),
-		DeleteAt:       0,
+		AcknowledgedAt: acknowledgedAt,
 	}
 
 	if err := acknowledgement.IsValid(); err != nil {
@@ -63,13 +61,13 @@ func (s *SqlPostAcknowledgementStore) Save(userID, postID string) (*model.PostAc
 
 	query := s.getQueryBuilder().
 		Insert("PostAcknowledgements").
-		Columns("PostId", "UserId", "CreateAt", "AcknowledgedAt", "DeleteAt").
-		Values(acknowledgement.PostId, acknowledgement.UserId, acknowledgement.CreateAt, acknowledgement.AcknowledgedAt, acknowledgement.DeleteAt)
+		Columns("PostId", "UserId", "AcknowledgedAt").
+		Values(acknowledgement.PostId, acknowledgement.UserId, acknowledgement.AcknowledgedAt)
 
 	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?, DeleteAt = ?", acknowledgement.AcknowledgedAt, acknowledgement.DeleteAt))
+		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?, DeleteAt = ?", acknowledgement.AcknowledgedAt, acknowledgement.DeleteAt))
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 	}
 
 	sql, args, err := query.ToSql()
@@ -87,47 +85,67 @@ func (s *SqlPostAcknowledgementStore) Save(userID, postID string) (*model.PostAc
 	return acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Delete(userID, postID string) (*model.PostAcknowledgement, error) {
-	acknowledgement, err := s.Get(userID, postID)
+func (s *SqlPostAcknowledgementStore) Delete(ack *model.PostAcknowledgement) error {
+	query := s.getQueryBuilder().
+		Update("PostAcknowledgements").
+		Set("AcknowledgedAt", 0).
+		Where(sq.And{
+			sq.Eq{"PostId": ack.PostId},
+			sq.Eq{"UserId": ack.UserId},
+		})
 
+	_, err := s.GetMasterX().ExecBuilder(query)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	query, args, err := s.getQueryBuilder().Update("PostAcknowledgement").Set("DeleteAt", model.GetMillis()).ToSql()
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.GetMasterX().Exec(query, args...)
-
-	if err != nil {
-		return nil, err
-	}
-
-	acknowledgement.DeleteAt = 0
-
-	return acknowledgement, nil
+	return nil
 }
 
 func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
-	query, args, err := s.getQueryBuilder().
-		Select().
+	var acknowledgements []*model.PostAcknowledgement
+
+	query := s.getQueryBuilder().
+		Select("PostId", "UserId", "AcknowledgedAt").
 		From("PostAcknowledgements").
 		Where(sq.And{
-			sq.Eq{"DeleteAt": 0},
+			sq.NotEq{"AcknowledgedAt": 0},
 			sq.Eq{"PostId": postID},
-		}).ToSql()
+		})
 
-	if err != nil {
-		return nil, errors.Wrap(err, "getPostAcknowledgement_ToSql")
-	}
-
-	var acknowledgements []*model.PostAcknowledgement
-	err = s.GetReplicaX().Select(&acknowledgements, query, args...)
+	err := s.GetReplicaX().SelectBuilder(&acknowledgements, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for postID=%s", postID)
+	}
+
+	return acknowledgements, nil
+}
+
+func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
+	var acknowledgements []*model.PostAcknowledgement
+
+	perPage := 200
+	for i := 0; i < len(postIds); i += perPage {
+		j := i + perPage
+		if len(postIds) < j {
+			j = len(postIds)
+		}
+
+		query := s.getQueryBuilder().
+			Select("PostId", "UserId", "AcknowledgedAt").
+			From("PostAcknowledgements").
+			Where(sq.And{
+				sq.NotEq{"AcknowledgedAt": 0},
+				sq.Eq{"PostId": postIds[i:j]},
+			})
+
+		var acknowledgementsBatch []*model.PostAcknowledgement
+		err := s.GetReplicaX().SelectBuilder(&acknowledgementsBatch, query)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get PostAcknowledgements for post list")
+		}
+
+		acknowledgements = append(acknowledgements, acknowledgementsBatch...)
 	}
 
 	return acknowledgements, nil

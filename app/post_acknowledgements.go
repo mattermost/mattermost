@@ -29,7 +29,8 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, userID, postID stri
 		return nil, model.NewAppError("SaveAcknowledgementForPost", "api.acknowledgement.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
-	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(userID, postID)
+	acknowledgedAt := model.GetMillis()
+	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(userID, postID, acknowledgedAt)
 
 	if nErr != nil {
 		var appErr *model.AppError
@@ -50,19 +51,19 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, userID, postID stri
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c *request.Context, userID, postID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) DeleteAcknowledgementForPost(c *request.Context, userID, postID string) *model.AppError {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	channel, err := a.GetChannel(c, post.ChannelId)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	oldAck, nErr := a.Srv().Store().PostAcknowledgement().Get(userID, postID)
@@ -71,27 +72,29 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, userID, postID st
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+			return model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 		default:
-			return nil, model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			return model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	}
 
-	if model.GetMillis()-oldAck.CreateAt > 5*60*1000 {
-		return nil, model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.deadline.app_error", nil, "", http.StatusForbidden)
+	if model.GetMillis()-oldAck.AcknowledgedAt > 5*60*1000 {
+		return model.NewAppError("DeleteAcknowledgementForPost", "api.acknowledgement.delete.deadline.app_error", nil, "", http.StatusForbidden)
 	}
 
-	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Delete(userID, postID)
+	nErr = a.Srv().Store().PostAcknowledgement().Delete(oldAck)
 
 	if nErr != nil {
-		return nil, model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete_all_with_emoji_name.get_acknowledgement.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete_all_with_emoji_name.get_acknowledgement.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	oldAck.AcknowledgedAt = 0
+
 	a.Srv().Go(func() {
-		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, acknowledgement, post)
+		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
 	})
 
-	return acknowledgement, nil
+	return nil
 }
 
 func (a *App) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError) {
@@ -106,6 +109,25 @@ func (a *App) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledg
 	}
 
 	return acknowledgements, nil
+}
+
+func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError) {
+	acknowledgements, err := a.Srv().Store().PostAcknowledgement().GetForPosts(postList.Order)
+
+	if err != nil {
+		return nil, model.NewAppError("GetPostAcknowledgementsForPostList", "app.acknowledgement.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	acknowledgementsMap := make(map[string][]*model.PostAcknowledgement)
+
+	for _, ack := range acknowledgements {
+		if _, ok := acknowledgementsMap[ack.PostId]; !ok {
+			acknowledgementsMap[ack.PostId] = make([]*model.PostAcknowledgement, 0)
+		}
+		acknowledgementsMap[ack.PostId] = append(acknowledgementsMap[ack.PostId], ack)
+	}
+
+	return acknowledgementsMap, nil
 }
 
 func (a *App) sendAcknowledgementEvent(event string, acknowledgement *model.PostAcknowledgement, post *model.Post) {
