@@ -2524,6 +2524,10 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "CWS Server is not available."
+  },
+  {
     "id": "api.server.license_up_for_renewal.error_generating_link",
     "translation": "Failed to generate the license renewal link"
   },

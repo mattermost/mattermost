@@ -35,4 +35,6 @@ type CloudInterface interface {
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (string, error)
+
+	CWSHealthCheck(userId string) error
 }
