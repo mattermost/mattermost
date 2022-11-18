@@ -50,6 +50,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
@@ -161,6 +162,17 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]Product
+
+	pluginCommandsLock     sync.RWMutex
+	pluginCommands         []*PluginCommand
+	pluginsLock            sync.RWMutex
+	pluginsEnvironment     *plugin.Environment
+	pluginConfigListenerID string
+	// collectionTypes maps from collection types to the registering plugin id
+	collectionTypes map[string]string
+	// topicTypes maps from topic types to collection types
+	topicTypes                 map[string]string
+	collectionAndTopicTypesMut sync.Mutex
 }
 
 func (s *Server) Store() store.Store {

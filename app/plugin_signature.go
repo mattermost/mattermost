@@ -73,16 +73,16 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
-	return a.ch.verifyPlugin(plugin, signature)
+	return a.ch.srv.verifyPlugin(plugin, signature)
 }
 
-func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
+func (ch *Server) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys := ch.cfgSvc.Config().PluginSettings.SignaturePublicKeyFiles
+	publicKeys := ch.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
-		pkBytes, appErr := ch.srv.getPublicKey(pk)
+		pkBytes, appErr := ch.getPublicKey(pk)
 		if appErr != nil {
 			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue

@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
@@ -39,12 +38,6 @@ type Channels struct {
 	routerSvc  *routerService
 
 	postActionCookieSecret []byte
-
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -77,12 +70,6 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
-
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {

@@ -58,7 +58,7 @@ const managedPluginFileName = ".filestore"
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
 
-func (ch *Channels) installPluginFromData(data model.PluginEventData) {
+func (ch *Server) installPluginFromData(data model.PluginEventData) {
 	mlog.Debug("Installing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	pluginSignaturePathMap, appErr := ch.getPluginsFromFolder()
@@ -72,7 +72,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 		return
 	}
 
-	reader, appErr := ch.srv.fileReader(plugin.path)
+	reader, appErr := ch.fileReader(plugin.path)
 	if appErr != nil {
 		mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
 		return
@@ -80,8 +80,8 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	defer reader.Close()
 
 	var signature filestore.ReadCloseSeeker
-	if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
-		signature, appErr = ch.srv.fileReader(plugin.signaturePath)
+	if *ch.Config().PluginSettings.RequirePluginSignature {
+		signature, appErr = ch.fileReader(plugin.signaturePath)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 			return
@@ -108,7 +108,7 @@ func (ch *Channels) installPluginFromData(data model.PluginEventData) {
 	}
 }
 
-func (ch *Channels) removePluginFromData(data model.PluginEventData) {
+func (ch *Server) removePluginFromData(data model.PluginEventData) {
 	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	if err := ch.removePluginLocally(data.Id); err != nil {
@@ -125,7 +125,7 @@ func (ch *Channels) removePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (ch *Channels) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+func (ch *Server) installPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
 	return ch.installPlugin(pluginFile, signature, installPluginLocallyAlways)
 }
 
@@ -140,10 +140,10 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 }
 
 func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	return a.ch.installPlugin(pluginFile, signature, installationStrategy)
+	return a.ch.srv.installPlugin(pluginFile, signature, installationStrategy)
 }
 
-func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Server) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	manifest, appErr := ch.installPluginLocally(pluginFile, signature, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
@@ -151,14 +151,14 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 	if signature != nil {
 		signature.Seek(0, 0)
-		if _, appErr = ch.srv.writeFile(signature, getSignatureStorePath(manifest.Id)); appErr != nil {
+		if _, appErr = ch.writeFile(signature, getSignatureStorePath(manifest.Id)); appErr != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
 	// Store bundle in the file store to allow access from other servers.
 	pluginFile.Seek(0, 0)
-	if _, appErr := ch.srv.writeFile(pluginFile, getBundleStorePath(manifest.Id)); appErr != nil {
+	if _, appErr := ch.writeFile(pluginFile, getBundleStorePath(manifest.Id)); appErr != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -186,7 +186,7 @@ func (ch *Channels) installPlugin(pluginFile, signature io.ReadSeeker, installat
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
-func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+func (ch *Server) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
 	var pluginFile, signatureFile io.ReadSeeker
 
 	prepackagedPlugin, appErr := ch.getPrepackagedPlugin(request.Id, request.Version)
@@ -204,7 +204,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
-	if *ch.cfgSvc.Config().PluginSettings.EnableRemoteMarketplace {
+	if *ch.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = ch.getRemoteMarketplacePlugin(request.Id, request.Version)
 		if appErr != nil {
@@ -226,7 +226,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		}
 
 		if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
-			downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
+			downloadedPluginBytes, err := ch.downloadFromURL(plugin.DownloadURL)
 			if err != nil {
 				return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -265,7 +265,7 @@ const (
 	installPluginLocallyAlways
 )
 
-func (ch *Channels) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (ch *Server) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -324,8 +324,8 @@ func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest
 	return manifest, extractDir, nil
 }
 
-func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	pluginsEnvironment := ch.GetPluginsEnvironment()
+func (s *Server) installExtractedPlugin(manifest *model.Manifest, fromPluginDir string, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -372,12 +372,12 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 		// Otherwise remove the existing installation prior to install below.
 		mlog.Debug("Removing existing installation of plugin before local install", mlog.String("plugin_id", existingManifest.Id), mlog.String("version", existingManifest.Version))
-		if err := ch.removePluginLocally(existingManifest.Id); err != nil {
+		if err := s.removePluginLocally(existingManifest.Id); err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id_failed_remove.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	pluginPath := filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, manifest.Id)
+	pluginPath := filepath.Join(*s.Config().PluginSettings.Directory, manifest.Id)
 	err = utils.CopyDir(fromPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -399,9 +399,9 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	}
 
 	// Activate the plugin if enabled.
-	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[manifest.Id]
+	pluginState := s.Config().PluginSettings.PluginStates[manifest.Id]
 	if pluginState != nil && pluginState.Enable {
-		if hasOverride, enabled := ch.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
+		if hasOverride, enabled := s.getPluginStateOverride(manifest.Id); hasOverride && !enabled {
 			return manifest, nil
 		}
 
@@ -417,7 +417,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	return manifest, nil
 }
 
-func (ch *Channels) RemovePlugin(id string) *model.AppError {
+func (ch *Server) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
@@ -430,14 +430,14 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 
 	// Remove bundle from the file store.
 	storePluginFileName := getBundleStorePath(id)
-	bundleExist, err := ch.srv.fileExists(storePluginFileName)
+	bundleExist, err := ch.fileExists(storePluginFileName)
 	if err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if !bundleExist {
 		return nil
 	}
-	if err = ch.srv.removeFile(storePluginFileName); err != nil {
+	if err = ch.removeFile(storePluginFileName); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err = ch.removeSignature(id); err != nil {
@@ -462,7 +462,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (ch *Channels) removePluginLocally(id string) *model.AppError {
+func (ch *Server) removePluginLocally(id string) *model.AppError {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -498,9 +498,9 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 	return nil
 }
 
-func (ch *Channels) removeSignature(pluginID string) *model.AppError {
+func (ch *Server) removeSignature(pluginID string) *model.AppError {
 	filePath := getSignatureStorePath(pluginID)
-	exists, err := ch.srv.fileExists(filePath)
+	exists, err := ch.fileExists(filePath)
 	if err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -508,7 +508,7 @@ func (ch *Channels) removeSignature(pluginID string) *model.AppError {
 		mlog.Debug("no plugin signature to remove", mlog.String("plugin_id", pluginID))
 		return nil
 	}
-	if err = ch.srv.removeFile(filePath); err != nil {
+	if err = ch.removeFile(filePath); err != nil {
 		return model.NewAppError("removeSignature", "app.plugin.remove_bundle.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
