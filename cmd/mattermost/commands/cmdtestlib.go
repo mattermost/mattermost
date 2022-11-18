@@ -70,8 +70,8 @@ func SetupWithStoreMock(t testing.TB) *testHelper {
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	licenseStore := mocks.LicenseStore{}
 	licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("System").Return(&systemStore)
-	api4TestHelper.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("System").Return(&systemStore)
+	api4TestHelper.App.Srv().Store().(*mocks.Store).On("License").Return(&licenseStore)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,

@@ -44,6 +44,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeWelcomePost            = "system_welcome_post"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
@@ -308,6 +309,7 @@ type GetPostsOptions struct {
 	FromPost                 string // PostId after which to send the items
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
+	IncludeDeleted           bool
 }
 
 type PostCountOptions struct {
@@ -390,6 +392,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeChangeChannelPrivacy,
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
+		PostTypeWelcomePost,
 		PostTypeMe:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {

@@ -9,6 +9,7 @@ BEGIN
 		information_schema.columns
 	WHERE
 		table_name = 'channels'
+		AND table_schema = current_schema()
 		AND column_name = 'lastrootpostat';
 	IF NOT column_exist THEN
 		ALTER TABLE channels ADD COLUMN lastrootpostat bigint DEFAULT '0'::bigint;

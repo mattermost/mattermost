@@ -90,7 +90,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(&emoji)
 	auditRec.AddEventObjectType("emoji")
 
-	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext, c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -114,7 +114,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listEmoji, err := c.App.GetEmojiList(c.Params.Page, c.Params.PerPage, sort)
+	listEmoji, err := c.App.GetEmojiList(c.AppContext, c.Params.Page, c.Params.PerPage, sort)
 	if err != nil {
 		c.Err = err
 		return
@@ -134,7 +134,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteEmoji", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
+	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
 	if err != nil {
 		auditRec.AddEventParameter("emoji_id", c.Params.EmojiId)
 		c.Err = err
@@ -182,7 +182,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = c.App.DeleteEmoji(emoji)
+	err = c.App.DeleteEmoji(c.AppContext, emoji)
 	if err != nil {
 		c.Err = err
 		return
@@ -204,7 +204,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
+	emoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
 	if err != nil {
 		c.Err = err
 		return
@@ -221,7 +221,7 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji, err := c.App.GetEmojiByName(c.Params.EmojiName)
+	emoji, err := c.App.GetEmojiByName(c.AppContext, c.Params.EmojiName)
 	if err != nil {
 		c.Err = err
 		return
@@ -243,7 +243,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	image, imageType, err := c.App.GetEmojiImage(c.Params.EmojiId)
+	image, imageType, err := c.App.GetEmojiImage(c.AppContext, c.Params.EmojiId)
 	if err != nil {
 		c.Err = err
 		return
@@ -266,7 +266,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PerPageMaximum)
+	emojis, err := c.App.SearchEmoji(c.AppContext, emojiSearch.Term, emojiSearch.PrefixOnly, web.PerPageMaximum)
 	if err != nil {
 		c.Err = err
 		return
@@ -285,7 +285,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(name, true, EmojiMaxAutocompleteItems)
+	emojis, err := c.App.SearchEmoji(c.AppContext, name, true, EmojiMaxAutocompleteItems)
 	if err != nil {
 		c.Err = err
 		return

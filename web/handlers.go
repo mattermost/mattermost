@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -133,8 +134,13 @@ func generateDevCSP(c Context) string {
 
 	// Add flags for Webpack dev servers used by other products during development
 	if model.BuildNumber == "dev" {
-		// Focalboard runs on http://localhost:9006
-		devCSP = append(devCSP, "http://localhost:9006")
+		boardsURL := os.Getenv("MM_BOARDS_DEV_SERVER_URL")
+		if boardsURL == "" {
+			// Focalboard runs on http://localhost:9006 by default
+			boardsURL = "http://localhost:9006"
+		}
+
+		devCSP = append(devCSP, boardsURL)
 	}
 
 	if len(devCSP) == 0 {
@@ -202,7 +208,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.AppContext.SetContext(ctx)
 
 		tmpSrv := *c.App.Srv()
-		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
+		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
 		c.App.SetServer(&tmpSrv)
 		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
@@ -217,7 +223,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		siteURLHeader = *c.App.Config().ServiceSettings.SiteURL + subpath
 	}
 	c.SetSiteURLHeader(siteURLHeader)
@@ -230,7 +236,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cloudCSP := ""
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		cloudCSP = " js.stripe.com/v3"
 	}
 
@@ -282,7 +288,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if token != "" && c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Channels().License().IsCloud() && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -325,7 +331,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
-	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
 		c.SetServerBusyError()
 	}
 

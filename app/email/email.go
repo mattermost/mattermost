@@ -69,6 +69,10 @@ func (es *Service) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, tok
 		map[string]any{"TeamDisplayName": es.config().TeamSettings.SiteName})
 	data.Props["VerifyUrl"] = link
 	data.Props["VerifyButton"] = T("api.templates.email_change_verify_body.button")
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["EmailInfo1"] = T("api.templates.email_us_anytime_at")
+	data.Props["SupportEmail"] = "feedback@mattermost.com"
+	data.Props["FooterV2"] = T("api.templates.email_footer_v2")
 
 	body, err := es.templatesContainer.RenderToString("email_change_verify_body", data)
 	if err != nil {
@@ -406,7 +410,17 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool) error {
+func (es *Service) SendInviteEmails(
+	team *model.Team,
+	senderName string,
+	senderUserId string,
+	invites []string,
+	siteURL string,
+	reminderData *model.TeamInviteReminderData,
+	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
+) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -462,7 +476,8 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
@@ -480,7 +495,19 @@ func (es *Service) SendInviteEmails(team *model.Team, senderName string, senderU
 	return nil
 }
 
-func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool) error {
+func (es *Service) SendGuestInviteEmails(
+	team *model.Team,
+	channels []*model.Channel,
+	senderName string,
+	senderUserId string,
+	senderProfileImage []byte,
+	invites []string,
+	siteURL string,
+	message string,
+	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
+) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
@@ -541,7 +568,8 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
@@ -593,6 +621,8 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 	reminderData *model.TeamInviteReminderData,
 	message string,
 	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
 ) ([]*model.EmailInviteWithError, error) {
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
@@ -690,7 +720,8 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			continue
 		}
-		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token))
+
+		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 
 		senderPhoto := ""
 		embeddedFiles := make(map[string]io.Reader)
@@ -1141,7 +1172,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	data.Props["Button"] = T("api.templates.delinquency_60.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 60 day one so its reused
@@ -1174,7 +1205,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 	data.Props["Button"] = T("api.templates.delinquency_75.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 75 day one so its reused

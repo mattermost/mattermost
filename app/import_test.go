@@ -39,7 +39,7 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
-	preferences, err := a.Srv().Store.Preference().GetCategory(userID, category)
+	preferences, err := a.Srv().Store().Preference().GetCategory(userID, category)
 	require.NoErrorf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
 	found := false
 	for _, preference := range preferences {
@@ -68,13 +68,13 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
+	result, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: teamName})
 	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, expectedCount int64) {
-	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
+	count, err := a.Srv().Store().Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.NoError(t, err, "Failed to get channel count.")
 }
@@ -266,7 +266,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userID)
+	fileInfos, err := th.App.Srv().Store().FileInfo().GetForUser(userID)
 	require.NoError(t, err)
 	return fileInfos
 }
@@ -275,7 +275,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postID := files[0].PostId
 	require.NotNil(t, postID)
 
-	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postID})
+	posts, err := th.App.Srv().Store().Post().GetPostsByIds([]string{postID})
 	require.NoError(t, err)
 
 	require.Len(t, posts, 1)

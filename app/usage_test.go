@@ -20,7 +20,7 @@ func TestGetPostsUsage(t *testing.T) {
 
 		errMsg := "Test posts count error"
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockPostStore := mocks.PostStore{}
 		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(int64(0), errors.New(errMsg))
 		mockStore.On("Post").Return(&mockPostStore)
@@ -37,7 +37,7 @@ func TestGetPostsUsage(t *testing.T) {
 		var mockCount int64 = 4321
 		var expected int64 = 4000
 
-		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockPostStore := mocks.PostStore{}
 		mockPostStore.On("AnalyticsPostCount", mock.Anything).Return(mockCount, nil)
 		mockStore.On("Post").Return(&mockPostStore)

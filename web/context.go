@@ -81,7 +81,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.AppContext.Session().UserId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
-	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+	if err := c.App.Srv().Store().Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
@@ -93,7 +93,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.AppContext.IPAddress(), Action: c.AppContext.Path(), ExtraInfo: extraInfo, SessionId: c.AppContext.Session().Id}
-	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
+	if err := c.App.Srv().Store().Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		c.LogErrorByCode(appErr)
 	}
@@ -138,7 +138,7 @@ func (c *Context) SessionRequired() {
 }
 
 func (c *Context) CloudKeyRequired() {
-	if license := c.App.Channels().License(); license == nil || !*license.Features.Cloud || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
+	if license := c.App.Channels().License(); license == nil || !license.IsCloud() || c.AppContext.Session().Props[model.SessionPropType] != model.SessionTypeCloudKey {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}

@@ -5212,10 +5212,6 @@
     "translation": "Questa squadra è gestita dai gruppi.  Questo utente non appartiene a un gruppo sincronizzato con questa squadra."
   },
   {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gli account ospite sono disattivati"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Impossibile rimuovere un utente da una squadra con vincoli di gruppo."
   },
@@ -5642,10 +5638,6 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Errore invalidando gli inviti email."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "La tua licenza non supporta gli account ospite"
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
