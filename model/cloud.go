@@ -278,6 +278,7 @@ type ProductLimits struct {
 
 type BootstrapSelfHostedSignupRequest struct {
 	Email string `json:"email"`
+	Reset bool   `json:"reset"`
 }
 
 type BootstrapSelfHostedSignupResponse struct {

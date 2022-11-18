@@ -42,6 +42,7 @@ func ensureSelfHostedAdmin(c *Context, where string) {
 
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedBootstrap"
+	reset := r.URL.Query().Get("reset") == "true"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
 		return
@@ -53,7 +54,7 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signupProgress, err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email})
+	signupProgress, err := c.App.Cloud().BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: user.Email, Reset: reset})
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError)
 		return
