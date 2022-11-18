@@ -78,7 +78,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 
 func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	// Check that channel exists and has not been deleted
@@ -117,6 +117,8 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)

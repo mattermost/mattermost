@@ -36,6 +36,7 @@ func TestUpsertDraft(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 
 	// set config
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// try to upsert draft
@@ -108,6 +109,7 @@ func TestGetDrafts(t *testing.T) {
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
 
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
@@ -168,6 +170,7 @@ func TestDeleteDraft(t *testing.T) {
 		RootId:    model.NewId(),
 	}
 
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
