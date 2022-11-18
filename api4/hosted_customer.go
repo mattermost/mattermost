@@ -37,11 +37,8 @@ func checkSelfHostedFirstTimePurchaseEnabled(c *Context) bool {
 	if config == nil {
 		return false
 	}
-	featureFlags := config.FeatureFlags
-	if featureFlags == nil {
-		return false
-	}
-	return featureFlags.SelfHostedFirstTimePurchase
+	enabled := config.ServiceSettings.SelfHostedFirstTimePurchase
+	return enabled != nil && *enabled
 }
 
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {

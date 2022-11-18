@@ -15,6 +15,9 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+var valFalse = false
+var valTrue = true
+
 func TestSelfHostedBootstrap(t *testing.T) {
 	t.Run("feature flag off returns not implemented", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -22,9 +25,9 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
-		os.Setenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE", "false")
-		defer os.Unsetenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SelfHostedFirstTimePurchase = false })
+		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valFalse })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -40,9 +43,9 @@ func TestSelfHostedBootstrap(t *testing.T) {
 		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		os.Setenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SelfHostedFirstTimePurchase = true })
+		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -57,9 +60,9 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 
-		os.Setenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SelfHostedFirstTimePurchase = true })
+		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
 		th.App.ReloadConfig()
 
 		_, r, err := th.Client.BootstrapSelfHostedSignup(model.BootstrapSelfHostedSignupRequest{Email: th.SystemAdminUser.Email})
@@ -74,9 +77,9 @@ func TestSelfHostedBootstrap(t *testing.T) {
 
 		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 
-		os.Setenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_SELFHOSTEDFIRSTTIMEPURCHASE")
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.SelfHostedFirstTimePurchase = true })
+		os.Setenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE", "true")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SELFHOSTEDFIRSTTIMEPURCHASE")
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SelfHostedFirstTimePurchase = &valTrue })
 		th.App.ReloadConfig()
 		cloud := mocks.CloudInterface{}
 
