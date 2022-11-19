@@ -549,27 +549,28 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error 
 // MarkAllAsReadByTeam marks all threads for the given user in the given team as read from the
 // current time.
 func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
-	memberships, err := s.GetMembershipsForUser(userId, teamId)
-	if err != nil {
-		return err
-	}
-	membershipIds := []string{}
-	for _, m := range memberships {
-		membershipIds = append(membershipIds, m.PostId)
-	}
 	timestamp := model.GetMillis()
-	query := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Where(sq.Eq{"PostId": membershipIds}).
-		Where(sq.Eq{"UserId": userId}).
+
+	var query sq.UpdateBuilder
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
+	} else {
+		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
+	}
+
+	query = query.
+		Where("Threads.PostId = ThreadMemberships.PostId").
+		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
+		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
 		Set("LastViewed", timestamp).
 		Set("UnreadMentions", 0).
-		Set("LastUpdated", model.GetMillis())
+		Set("LastUpdated", timestamp)
 
-	_, err = s.GetMasterX().ExecBuilder(query)
+	_, err := s.GetMasterX().ExecBuilder(query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
 	}
+
 	return nil
 }
 
@@ -776,23 +777,6 @@ func (s *SqlThreadStore) MaintainMembership(userId, postId string, opts store.Th
 	}
 
 	return membership, err
-}
-
-func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Posts").
-		Where(sq.Eq{"RootId": threadId}).
-		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.GtOrEq{"CreateAt": since})
-
-	result := []*model.Post{}
-	err := s.GetReplicaX().SelectBuilder(&result, query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to fetch thread posts")
-	}
-
-	return result, nil
 }
 
 // PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by

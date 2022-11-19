@@ -5097,6 +5097,27 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 
 }
 
+func (s *RetryLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.Restore(groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 
 	tries := 0
@@ -6884,6 +6905,27 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostsByIds(postIds)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsByThread(threadID, since)
 		if err == nil {
 			return result, nil
 		}
@@ -11228,27 +11270,6 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetMembershipsForUser(userId, teamID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.GetPosts(threadID, since)
 		if err == nil {
 			return result, nil
 		}
