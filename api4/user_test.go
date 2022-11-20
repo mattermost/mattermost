@@ -225,7 +225,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		ruser, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
 		require.NoError(t, err)
@@ -235,7 +235,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after being used")
 
 		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
@@ -250,7 +250,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		ruser, resp, err := client.CreateUserWithToken(&user, token.Token)
 		require.NoError(t, err)
@@ -260,7 +260,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after being used")
 
 		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
@@ -275,7 +275,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, _, err := th.Client.CreateUserWithToken(&user, "")
@@ -292,7 +292,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp, err := th.Client.CreateUserWithToken(&user, token.Token)
@@ -323,7 +323,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -344,7 +344,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -362,7 +362,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.NoError(t, th.App.Srv().Store.Token().Save(token))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
 		defer func() {
@@ -379,7 +379,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SystemUserRoleId, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after be used")
 	})
 }
@@ -1027,8 +1027,9 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+// This test can flake if two calls to model.NewId can return the same value.
+// Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
-	t.Skip("MM-46450")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1211,6 +1212,47 @@ func TestSearchUsers(t *testing.T) {
 
 	t.Run("Returns user in group user found in group", func(t *testing.T) {
 		users, _, err = th.SystemAdminClient.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
+
+	id = model.NewId()
+	group, appErr = th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, NotInGroupId: group.Id}
+	t.Run("Returns users not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
+
+	_, appErr = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, appErr)
+
+	t.Run("Returns empty list for not in group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
+		require.NoError(t, err)
+		assert.Len(t, users, 0)
+	})
+
+	members := &model.GroupModifyMembers{
+		UserIds: []string{th.BasicUser.Id},
+	}
+
+	_, _, delErr := th.Client.DeleteGroupMembers(group.Id, members)
+	require.NoError(t, delErr)
+
+	t.Run("Returns user not in group after they were deleted from group", func(t *testing.T) {
+		users, _, err = th.Client.SearchUsers(search)
 		require.NoError(t, err)
 		require.Equal(t, users[0].Id, th.BasicUser.Id)
 	})
@@ -1665,7 +1707,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
+	total, _ := th.Server.Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     false,
 		IncludeBotAccounts: true,
 	})
@@ -1934,7 +1976,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	_, err := th.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
+	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
 	require.NoError(t, err)
 
 	userAuth := &model.UserAuth{}
@@ -1967,7 +2009,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	_, err = th.App.Srv().Store.User().VerifyEmail(user2.Id, user2.Email)
+	_, err = th.App.Srv().Store().User().VerifyEmail(user2.Id, user2.Email)
 	require.NoError(t, err)
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
@@ -2100,11 +2142,11 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Check that we have users and posts in the database
-		users, err := th.App.Srv().Store.User().GetAll()
+		users, err := th.App.Srv().Store().User().GetAll()
 		require.NoError(t, err)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+		postCount, err := th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Greater(t, postCount, int64(0))
 
@@ -2113,11 +2155,11 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check that both user and post tables are empty
-		users, err = th.App.Srv().Store.User().GetAll()
+		users, err = th.App.Srv().Store().User().GetAll()
 		require.NoError(t, err)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{})
+		postCount, err = th.App.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{})
 		require.NoError(t, err)
 		require.Equal(t, postCount, int64(0))
 
@@ -2233,7 +2275,7 @@ func TestUpdateUserActive(t *testing.T) {
 			require.NoError(t, err)
 
 			authData := model.NewId()
-			_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+			_, err := th.App.Srv().Store().User().UpdateAuthData(user.Id, "random", &authData, "", true)
 			require.NoError(t, err)
 
 			_, err = client.UpdateUserActive(user.Id, false)
@@ -2472,7 +2514,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(user.Id)
 
 	user2, _, err := th.Client.CreateUser(&model.User{
 		Username: "a000000001" + model.NewId(),
@@ -2480,7 +2522,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	require.NoError(t, err)
-	defer th.App.Srv().Store.User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store().User().PermanentDelete(user2.Id)
 
 	rusers, _, err := th.SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
 	require.NoError(t, err)
@@ -2717,13 +2759,26 @@ func TestGetUsersInGroup(t *testing.T) {
 	})
 	assert.Nil(t, appErr)
 
+	cid := model.NewId()
+	customGroup, appErr := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + cid,
+		Name:        model.NewString("name" + cid),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + cid,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	assert.Nil(t, appErr)
+
+	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
+	assert.Nil(t, err)
+
 	t.Run("Requires ldap license", func(t *testing.T) {
 		_, response, err := th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2732,8 +2787,6 @@ func TestGetUsersInGroup(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	user1, err := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SystemUserRoleId})
-	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 	assert.Nil(t, err)
 
@@ -2748,6 +2801,26 @@ func TestGetUsersInGroup(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, users)
 	})
+
+	_, err = th.App.UpsertGroupMember(customGroup.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in custom group when called by regular user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users in custom group when called by guest user", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		th.App.DemoteUserToGuest(th.Context, th.BasicUser)
+
+		users, _, err := th.Client.GetUsersInGroup(customGroup.Id, 0, 60, "")
+		require.NoError(t, err)
+		assert.Equal(t, len(users), 0)
+	})
+
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -2789,13 +2862,13 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, appErr)
 
 		// Fake user has MFA enabled
-		err := th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		err := th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
 		require.NoError(t, err)
 
-		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		err = th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
 		require.NoError(t, err)
 
-		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+		err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
 		require.NoError(t, err)
 
 		user, _, err := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2822,10 +2895,10 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, appErr)
 
 		// Fake user has MFA enabled
-		err := th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		err := th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
 		require.NoError(t, err)
 
-		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+		err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
 		require.NoError(t, err)
 
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
@@ -3006,7 +3079,7 @@ func TestResetPassword(t *testing.T) {
 		loc += 6
 		recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TokenSize]
 	}
-	recoveryToken, err := th.App.Srv().Store.Token().GetByToken(recoveryTokenString)
+	recoveryToken, err := th.App.Srv().Store().Token().GetByToken(recoveryTokenString)
 	require.NoError(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
 	resp, err := th.Client.ResetPassword(recoveryToken.Token, "")
@@ -3036,7 +3109,7 @@ func TestResetPassword(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	_, err = th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+	_, err = th.App.Srv().Store().User().UpdateAuthData(user.Id, "random", &authData, "", true)
 	require.NoError(t, err)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		resp, err = client.SendPasswordResetEmail(user.Email)
@@ -3200,10 +3273,10 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 	admin := th.SystemAdminUser
 	th.Client.Login(admin.Email, admin.Password)
-	sessions, err := th.Server.Store.Session().GetSessions(user.Id)
+	sessions, err := th.Server.Store().Session().GetSessions(user.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
-	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
 	require.NotEmpty(t, sessions)
 	require.NoError(t, err)
 	_, err = th.Client.RevokeSessionsFromAllUsers()
@@ -3215,11 +3288,11 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	sessions, err = th.Server.Store.Session().GetSessions(user.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(user.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
 
-	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	sessions, err = th.Server.Store().Session().GetSessions(admin.Id)
 	require.Empty(t, sessions)
 	require.NoError(t, err)
 
@@ -3891,7 +3964,7 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	_, appErr := th.App.Srv().Store.User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
+	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
 	require.NoError(t, appErr)
 
 	sr = &model.SwitchRequest{
@@ -4978,7 +5051,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		th.LinkUserToTeam(user, team)
 		th.AddUserToChannel(user, channel)
 
-		th.App.SaveAndBroadcastStatus(&model.Status{
+		th.App.Srv().Platform().SaveAndBroadcastStatus(&model.Status{
 			UserId: user.Id,
 			Status: status,
 			Manual: true,
@@ -5169,7 +5242,7 @@ func TestLoginLockout(t *testing.T) {
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA enabled
-	err = th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true)
+	err = th.Server.Store().User().UpdateMfaActive(th.BasicUser2.Id, true)
 	require.NoError(t, err)
 	_, _, err = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
 	CheckErrorID(t, err, "api.user.check_user_mfa.bad_code.app_error")
@@ -5183,7 +5256,7 @@ func TestLoginLockout(t *testing.T) {
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA disabled
-	err = th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false)
+	err = th.Server.Store().User().UpdateMfaActive(th.BasicUser2.Id, false)
 	require.NoError(t, err)
 
 	//Check if lock is active
@@ -5204,6 +5277,26 @@ func TestDemoteUserToGuest(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	user := th.BasicUser
+	user2 := th.BasicUser2
+
+	t.Run("Guest Account not available in license returns forbidden", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
+
+		res, err := th.SystemAdminClient.DoAPIPost("/users/"+user2.Id+"/demote", "")
+
+		require.Equal(t, http.StatusForbidden, res.StatusCode)
+		require.True(t, strings.Contains(err.Error(), "Guest accounts are disabled"))
+		require.Error(t, err)
+	})
+
+	t.Run("Guest Account available in license returns OK", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+
+		res, err := th.SystemAdminClient.DoAPIPost("/users/"+user2.Id+"/demote", "")
+
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		require.NoError(t, err)
+	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		_, _, err := c.GetUser(user.Id, "")
@@ -5512,7 +5605,7 @@ func TestPublishUserTyping(t *testing.T) {
 		})
 	})
 
-	th.Server.Busy.Set(time.Second * 10)
+	th.Server.Platform().Busy.Set(time.Second * 10)
 
 	t.Run("should return service unavailable for non-system admin user when triggering a typing event and server busy", func(t *testing.T) {
 		resp, err := th.Client.PublishUserTyping("invalid", tr)
@@ -5643,7 +5736,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
@@ -5660,7 +5753,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.NoError(t, err)
@@ -5679,7 +5772,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Extended: true,
@@ -5701,7 +5794,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -5744,7 +5837,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
@@ -5771,7 +5864,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		rootIdBefore := rootIds[14].Id
 		rootIdAfter := rootIds[16].Id
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:  false,
@@ -5822,8 +5915,8 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:    false,
@@ -5858,8 +5951,8 @@ func TestGetThreadsForUser(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 		}
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 		uss, _, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted:     false,
@@ -5881,7 +5974,7 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 
 	t.Run("setting both threadsOnly, and totalsOnly params is not allowed", func(t *testing.T) {
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		_, resp, err := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			ThreadsOnly: true,
@@ -5966,8 +6059,8 @@ func TestThreadSocketEvents(t *testing.T) {
 
 	replyPost, appErr := th.App.CreatePostAsUser(th.Context, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.Context.Session().Id, false)
 	require.Nil(t, appErr)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser2.Id)
 
 	t.Run("Listed for update event", func(t *testing.T) {
 		var caught bool
@@ -6230,7 +6323,7 @@ func TestFollowThreads(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 		var uss *model.Threads
 		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
@@ -6332,8 +6425,8 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	})
 
 	client := th.Client
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6389,8 +6482,8 @@ func TestThreadCounts(t *testing.T) {
 	})
 
 	client := th.Client
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6409,7 +6502,7 @@ func TestThreadCounts(t *testing.T) {
 	})
 
 	// delete first thread
-	th.App.Srv().Store.Post().Delete(rpost.Id, model.GetMillis(), th.BasicUser.Id)
+	th.App.Srv().Store().Post().Delete(rpost.Id, model.GetMillis(), th.BasicUser.Id)
 
 	// we should now have 1 thread with 2 replies
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 1, &model.GetUserThreadsOpts{
@@ -6432,8 +6525,8 @@ func TestSingleThreadGet(t *testing.T) {
 	})
 
 	client := th.Client
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create a post by regular user
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6489,8 +6582,8 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		return uss, resp
 	}
 
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create regular post
 	rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
@@ -6545,7 +6638,7 @@ func TestReadThreads(t *testing.T) {
 		_, resp, err = client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		var uss, uss2 *model.Threads
 		uss, _, err = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
@@ -6567,8 +6660,8 @@ func TestReadThreads(t *testing.T) {
 	})
 
 	t.Run("1 thread by timestamp", func(t *testing.T) {
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
 		postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})
@@ -6595,8 +6688,8 @@ func TestReadThreads(t *testing.T) {
 	})
 
 	t.Run("1 thread by post id", func(t *testing.T) {
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store().Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 		rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsgC1"})
 		reply1, _ := postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReplyC1", RootId: rpost.Id})

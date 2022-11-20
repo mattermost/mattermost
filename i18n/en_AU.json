@@ -77,11 +77,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5213,7 +5213,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "You updated your email"
+    "translation": "You successfully updated your email"
   },
   {
     "id": "api.templates.email_change_verify_body.info",
@@ -5458,14 +5458,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "The channels of the invite must be part of the team of the invite."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Your licence does not support guest accounts"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Guest accounts are disabled"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9355,7 +9347,7 @@
     "translation": "Your Mattermost {{.Plan}} will be downgraded in 15 days"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Downgrade to Cloud Starter"
   },
   {
@@ -9395,7 +9387,7 @@
     "translation": "Action Required: Workspace will be downgraded in 30 days"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Downgrade to Cloud Starter"
   },
   {
@@ -9537,5 +9529,45 @@
   {
     "id": "app.cloud.get_current_plan_name.app_error",
     "translation": "Unable to get current plan name"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Error fetching last accessible file"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Error during job execution."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Unable to retrieve file: cloud storage limit exceeded."
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Invalid time range."
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} cannot be enabled in product mode."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Your workspace licence does not support guest accounts"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection type already exists."
   }
 ]

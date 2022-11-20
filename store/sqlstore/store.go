@@ -440,6 +440,15 @@ func (ss *SqlStore) GetInternalReplicaDBs() []*sql.DB {
 	return dbs
 }
 
+func (ss *SqlStore) GetInternalReplicaDB() *sql.DB {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || !ss.hasLicense() {
+		return ss.GetMasterX().DB.DB
+	}
+
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	return ss.ReplicaXs[rrNum].DB.DB
+}
+
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMasterX().Stats().OpenConnections
 }
@@ -1025,18 +1034,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 			return err
 		}
 		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db, &ms.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
@@ -1047,6 +1048,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {

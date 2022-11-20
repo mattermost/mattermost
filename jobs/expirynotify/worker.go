@@ -17,6 +17,8 @@ func MakeWorker(jobServer *jobs.JobServer, notifySessionsExpired func() error) m
 		return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 	}
 	execute := func(job *model.Job) error {
+		defer jobServer.HandleJobPanic(job)
+
 		return notifySessionsExpired()
 	}
 	return jobs.NewSimpleWorker(JobName, jobServer, execute, isEnabled)

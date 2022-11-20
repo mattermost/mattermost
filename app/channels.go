@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 
@@ -49,11 +48,6 @@ type Channels struct {
 
 	imageProxy *imageproxy.ImageProxy
 
-	asymmetricSigningKey atomic.Value
-	clientConfig         atomic.Value
-	clientConfigHash     atomic.Value
-	limitedClientConfig  atomic.Value
-
 	// cached counts that are used during notice condition validation
 	cachedPostCount   int64
 	cachedUserCount   int64
@@ -83,6 +77,12 @@ type Channels struct {
 
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
+
+	// collectionTypes maps from collection types to the registering plugin id
+	collectionTypes map[string]string
+	// topicTypes maps from topic types to collection types
+	topicTypes                 map[string]string
+	collectionAndTopicTypesMut sync.Mutex
 }
 
 func init() {
@@ -100,9 +100,11 @@ func init() {
 
 func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
-		srv:           s,
-		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap: map[string]bool{},
+		srv:             s,
+		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap:   map[string]bool{},
+		collectionTypes: map[string]string{},
+		topicTypes:      map[string]string{},
 	}
 
 	// To get another service:
@@ -267,7 +269,8 @@ func (ch *Channels) Start() error {
 
 	})
 
-	if err := ch.ensureAsymmetricSigningKey(); err != nil {
+	// TODO: This should be moved to the platform service.
+	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
