@@ -5097,6 +5097,27 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 
 }
 
+func (s *RetryLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.Restore(groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 
 	tries := 0
@@ -6905,6 +6926,27 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostsByIds(postIds)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsByThread(threadID, since)
 		if err == nil {
 			return result, nil
 		}
@@ -11265,27 +11307,6 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 
 }
 
-func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.GetPosts(threadID, since)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
 
 	tries := 0
@@ -11328,11 +11349,11 @@ func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+		result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended)
 		if err == nil {
 			return result, nil
 		}
