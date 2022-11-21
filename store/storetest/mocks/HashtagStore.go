@@ -10,36 +10,36 @@ type HashtagStore struct {
 	mock.Mock
 }
 
-func (h HashtagStore) UpdateOnPostOverwrite(posts []*model.Post) error {
+func (h *HashtagStore) UpdateOnPostOverwrite(posts []*model.Post) error {
 	panic("implement me")
 }
 
-func (h HashtagStore) UpdateOnPostEdit(oldPost *model.Post, newPost *model.Post) error {
+func (h *HashtagStore) UpdateOnPostEdit(oldPost *model.Post, newPost *model.Post) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HashtagStore) SearchForUser(phrase string, userId string) ([]*model.HashtagWithMessageCountSearch, error) {
+func (h *HashtagStore) SearchForUser(phrase string, userId string) ([]*model.HashtagWithMessageCountSearch, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HashtagStore) Save(hashtag *model.Hashtag) (*model.Hashtag, error) {
+func (h *HashtagStore) Save(hashtag *model.Hashtag) (*model.Hashtag, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HashtagStore) SaveMultipleForPosts(posts []*model.Post) ([]*model.Hashtag, error) {
+func (h *HashtagStore) SaveMultipleForPosts(posts []*model.Post) ([]*model.Hashtag, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HashtagStore) GetAll() ([]*model.Hashtag, error) {
+func (h *HashtagStore) GetAll() ([]*model.Hashtag, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (h HashtagStore) GetMostCommon(s sort.Sort) ([]*model.HashtagWithMessageCount, error) {
+func (h *HashtagStore) GetMostCommon(s sort.Sort) ([]*model.HashtagWithMessageCount, error) {
 	//TODO implement me
 	panic("implement me")
 }
