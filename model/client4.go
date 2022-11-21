@@ -3702,7 +3702,7 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response, error) {
 }
 
 func (c *Client4) GetSuggestedHashtags(searchPhrase string) ([]HashtagWithMessageCountSearch, error) {
-	resp, err := c.DoAPIGet("/hashtags/"+searchPhrase, "")
+	resp, err := c.DoAPIGet("/hashtags?query="+searchPhrase, "")
 	if err != nil {
 		return nil, err
 	}

@@ -16,12 +16,18 @@ func init() {
 
 func (api *API) InitHashtag() {
 
-	api.BaseRoutes.HashTag.Handle("", api.APISessionRequired(api.suggestHashTag)).Methods("GET")
+	api.BaseRoutes.HashTags.Handle("", api.APISessionRequired(api.getHashTags)).Methods("GET")
 	api.BaseRoutes.HashTags.Handle("", api.APISessionRequired(api.getHashTags)).Methods("GET")
 }
 
 func (api *API) getHashTags(c *Context, w http.ResponseWriter, r *http.Request) {
 	querySort := r.URL.Query().Get("sort")
+	query := r.URL.Query().Get("query")
+
+	if query != "" {
+		api.suggestHashTag(c, w, r)
+		return
+	}
 
 	var sortToUse sort.Sort
 	if querySort == "messages[asc]" {
@@ -45,7 +51,7 @@ func (api *API) getHashTags(c *Context, w http.ResponseWriter, r *http.Request) 
 }
 
 func (api *API) suggestHashTag(c *Context, w http.ResponseWriter, r *http.Request) {
-	hashtags, _ := c.App.Srv().GetStore().Hashtag().SearchForUser(c.Params.HashtagQuery, c.AppContext.Session().UserId)
+	hashtags, _ := c.App.Srv().GetStore().Hashtag().SearchForUser(r.URL.Query().Get("query"), c.AppContext.Session().UserId)
 
 	response, _ := json.Marshal(hashtags)
 	w.Write(response)

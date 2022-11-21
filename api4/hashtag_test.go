@@ -36,18 +36,18 @@ func TestSuggestHashTag(t *testing.T) {
 	require.NoError(t, err)
 
 	postsFromOneUser := map[int64]string{
-		1665847085: "We're a #people-team.",
-		1665933485: "This post is not included. No hashtags.",
-		1666019885: "But his #one will not #have the correct hashtags.",
-		1666106285: "#help-wanted\n Hi! We need help on this issue!",
-		1666192685: "We will be configuring our new production server #help-wanted!",
-		1666279085: "#testing hashtag autocompletion",
-		1666365485: "Is #testing really so hard?",
-		1666451885: "Hey, #help-wanted with #ux",
-		1666538285: "Join us! We're #hiring.",
-		1666624685: "#testing #testing #testing",
-		1666711085: "Is somebody #hiring?",
-		1666797485: "Our company Test is #hiring! Talk to us at #mattercon. #help-wanted",
+		1665352800000: "We're a #people-team.",
+		1665439200000: "This post is not included. No hashtags.",
+		1665525600000: "But his #one will not #have the correct hashtags.",
+		1665612000000: "#help-wanted\n Hi! We need help on this issue!",
+		1665698400000: "We will be configuring our new production server #help-wanted!",
+		1665784800000: "#testing hashtag autocompletion",
+		1665871200000: "Is #testing really so hard?",
+		1665957600000: "Hey, #help-wanted with #ux",
+		1666044000000: "Join us! We're #hiring.",
+		1666130400000: "#testing #testing #testing",
+		1666216800000: "Is somebody #hiring?",
+		1666303200000: "Our company Test is #hiring! Talk to us at #mattercon. #help-wanted",
 	}
 
 	for createAt, message := range postsFromOneUser {
@@ -106,12 +106,12 @@ func TestSuggestHashTag(t *testing.T) {
 	_, err = client.Logout()
 	require.NoError(t, err)
 
-	t.Run("Hashtag suggestions are sorted", func(t *testing.T) {
+	t.Run("User hashtag suggestions are sorted", func(t *testing.T) {
 		//TODO: fix on Postgres
 		expected := []string{
 			"#testing",
-			"#mattercon",
 			"#help-wanted",
+			"#mattercon",
 			"#people-team",
 			"#technology",
 			"#Mattermost",
