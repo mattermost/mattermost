@@ -106,9 +106,16 @@ func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool 
 	}
 }
 
-func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+// Deprecated: use isNotRole instead.
+func isNotExactRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		return role.Name != roleName
+	}
+}
+
+func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return role.Name != roleName && !isSchemeRoleAssociatedToCommonName(roleName, role)
 	}
 }
 
@@ -482,7 +489,7 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 	return permissionsMap{
 		permissionTransformation{
 			On: permissionAnd(
-				isNotRole(model.ChannelGuestRoleId),
+				isNotExactRole(model.ChannelGuestRoleId),
 				isNotSchemeRole(sqlstore.SchemeRoleDisplayNameChannelGuest),
 				permissionOr(permissionExists(PermissionCreatePost), permissionExists(PermissionCreatePost_PUBLIC)),
 			),
