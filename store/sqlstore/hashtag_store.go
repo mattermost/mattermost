@@ -76,7 +76,7 @@ func (s *SqlHashtagStore) SearchForUser(phrase string, userId string) ([]*model.
 						FROM Hashtags h LEFT JOIN Posts p ON h.PostId = p.Id
 						WHERE (p.UserId = ? AND SUBSTRING(h.Value, 2, LENGTH(h.Value) - 1) LIKE ?)
 							GROUP BY h.Value
-							ORDER BY MAX(p.UpdateAt) DESC LIMIT 10
+							ORDER BY MAX(p.UpdateAt) DESC, h.Value ASC LIMIT 10
 			   )
 				UNION
 				(
@@ -84,7 +84,7 @@ func (s *SqlHashtagStore) SearchForUser(phrase string, userId string) ([]*model.
 						FROM Hashtags h LEFT JOIN Posts p ON h.PostId = p.Id
 						WHERE (p.UserId = ? AND SUBSTRING(h.Value, 2, LENGTH(h.Value) - 1) LIKE ?)
 							GROUP BY h.Value
-							ORDER BY MAX(p.UpdateAt) DESC LIMIT 10)
+							ORDER BY MAX(p.UpdateAt) DESC, h.Value ASC LIMIT 10)
 				UNION
 				(
 					SELECT %s
@@ -108,12 +108,12 @@ func (s *SqlHashtagStore) SearchForUser(phrase string, userId string) ([]*model.
 		(SELECT MAX(p.UpdateAt) as UpdateAt, 30 as priority, MAX(h.Id) AS Id, MAX(h.PostId) AS PostId, h.Value as Value, COUNT(Value) as Messages
 													FROM Hashtags h LEFT JOIN Posts p ON h.PostId = p.Id
 													WHERE (p.UserId = "9skzkqrbktgo8f3a63giug7mjr" AND SUBSTRING(h.Value, 2, LENGTH(h.Value) - 1) LIKE "he%")
-														GROUP BY h.Value ORDER BY MAX(p.UpdateAt) DESC LIMIT 10)
+														GROUP BY h.Value ORDER BY MAX(p.UpdateAt) DESC, h.Value ASC LIMIT 10)
 		UNION
 		(SELECT MAX(p.UpdateAt) as UpdateAt, 20 as priority, MAX(h.Id) AS Id, MAX(h.PostId) AS PostId, h.Value as Value, COUNT(Value) as Messages
 													FROM Hashtags h LEFT JOIN Posts p ON h.PostId = p.Id
 													WHERE (p.UserId = "9skzkqrbktgo8f3a63giug7mjr" AND SUBSTRING(h.Value, 2, LENGTH(h.Value) - 1) LIKE "%he%")
-														GROUP BY h.Value ORDER BY MAX(p.UpdateAt) DESC LIMIT 10)
+														GROUP BY h.Value ORDER BY MAX(p.UpdateAt) DESC, h.Value ASC LIMIT 10)
 		UNION
 			(SELECT MAX(p.UpdateAt) as UpdateAt, 10 as priority, MAX(h.Id) AS Id, MAX(h.PostId) AS PostId, h.Value, COUNT(h.Value) as Messages FROM Hashtags h LEFT JOIN Posts p ON h.PostId = p.Id WHERE SUBSTRING(h.Value, 2, LENGTH(h.Value) - 1) LIKE "he%" GROUP BY h.Value ORDER BY Messages DESC LIMIT 10)
 		UNION
