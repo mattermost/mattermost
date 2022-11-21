@@ -9561,5 +9561,13 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type already exists."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection type already exists."
   }
 ]

@@ -165,11 +165,22 @@ func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRe
 	authData := &model.AuthData{UserId: userID, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectURI, State: authRequest.State, Scope: authRequest.Scope}
 	authData.Code = model.NewId() + model.NewId()
 
-	if _, err := a.Srv().Store().OAuth().SaveAuthData(authData); err != nil {
-		return authRequest.RedirectURI + "?error=server_error&state=" + authRequest.State, nil
+	// parse authRequest.RedirectURI to handle query parameters see: https://mattermost.atlassian.net/browse/MM-46216
+	uri, err := url.Parse(authRequest.RedirectURI)
+	if err != nil {
+		return authRequest.RedirectURI + "?error=redirect_uri_parse_error&state=" + authRequest.State, nil
 	}
-
-	return authRequest.RedirectURI + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State), nil
+	queryParams := uri.Query()
+	if _, err := a.Srv().Store().OAuth().SaveAuthData(authData); err != nil {
+		queryParams.Set("error", "server_error")
+		queryParams.Set("state", authRequest.State)
+		uri.RawQuery = queryParams.Encode()
+		return uri.String(), nil
+	}
+	queryParams.Set("code", url.QueryEscape(authData.Code))
+	queryParams.Set("state", url.QueryEscape(authData.State))
+	uri.RawQuery = queryParams.Encode()
+	return uri.String(), nil
 }
 
 func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {

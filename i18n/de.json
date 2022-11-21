@@ -9304,11 +9304,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Starter."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Starter herabgestuft. Deins {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
+    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deins {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9348,7 +9348,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Starter."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Free."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9444,7 +9444,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Starter zurückgestuft zu werden."
+    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Free zurückgestuft zu werden."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9488,7 +9488,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Starter archiviert wurden."
+    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Free archiviert wurden."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9561,5 +9561,13 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Ungültiger Zeitbereich."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Thementyp existiert schon."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection Typ existiert schon."
   }
 ]

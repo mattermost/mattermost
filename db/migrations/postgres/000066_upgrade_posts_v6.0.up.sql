@@ -8,16 +8,19 @@ BEGIN
 SELECT count(*) != 0 INTO parentid_exist
     FROM information_schema.columns
     WHERE table_name = 'posts'
+    AND table_schema = current_schema()
     AND column_name = 'parentid';
 SELECT count(*) != 0 INTO alter_fileids
     FROM information_schema.columns
     WHERE table_name = 'posts'
+    AND table_schema = current_schema()
     AND column_name = 'fileids'
     AND data_type = 'character varying'
     AND character_maximum_length != 300;
 SELECT count(*) != 0 INTO alter_props
     FROM information_schema.columns
     WHERE table_name = 'posts'
+    AND table_schema = current_schema()
     AND column_name = 'props'
     AND data_type != 'jsonb';
 IF alter_fileids OR alter_props THEN
