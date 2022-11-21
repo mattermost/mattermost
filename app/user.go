@@ -323,18 +323,13 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	license := a.Srv().License()
 
 	if license.IsCloud() {
-		c.Logger().Error("+++++++++++++++USER++++++++++++++++++++")
-
 		var subscription *model.Subscription
-		var subErr error
-		subscription, subErr = a.Cloud().GetSubscription(ruser.Id)
+		var cwsErr error
+		subscription, cwsErr = a.Cloud().GetSubscription(ruser.Id)
 
-		if subErr != nil {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, subErr.Error(), http.StatusBadRequest)
+		if cwsErr != nil {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
 		}
-
-		c.Logger().Error("+++++++++++++++USER Product++++++++++++++++++++")
-		c.Logger().Error("=========Product ID: " + subscription.ProductID + "=========")
 
 		// no product ID found
 		if subscription.ProductID == "" {
@@ -342,30 +337,38 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		}
 
 		var product *model.Product
-		var productErr error
 
-		product, productErr = a.Cloud().GetCloudProduct(ruser.Id, subscription.ProductID)
-		if productErr != nil {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.app_error", nil, productErr.Error(), http.StatusBadRequest)
+		product, cwsErr = a.Cloud().GetCloudProduct(ruser.Id, subscription.ProductID)
+		if cwsErr != nil {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
 		}
 
-		c.Logger().Error("+++++++++++++++USER FIRST++++++++++++++++++++")
-		c.Logger().Error("=========Original: " + strconv.Itoa(subscription.OriginallyLicensedSeats) + "=========")
-		c.Logger().Error("=========Seats: " + strconv.Itoa(subscription.Seats) + "=========")
+		// c.Logger().Error("+++++++++++++++USER FIRST++++++++++++++++++++")
+		// c.Logger().Error("=========Original: " + strconv.Itoa(subscription.OriginallyLicensedSeats) + "=========")
+		// c.Logger().Error("=========Seats: " + strconv.Itoa(subscription.Seats) + "=========")
 
-		if product.RecurringInterval == model.RecurringIntervalYearly && subscription.OriginallyLicensedSeats < subscription.Seats {
-			c.Logger().Error("+++++++++++++++USER IF++++++++++++++++++++")
+		usersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
+		if err != nil {
+			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+
+		// If the current number of seats is greater than the originallyLicensedSeats (for yearly plan), then the new user exceeded the number of seats available.
+		// So create a new subscriptionHistoryEvent with an updated seats value that includes the new user.
+		if product.RecurringInterval == model.RecurringIntervalYearly && subscription.OriginallyLicensedSeats < int(usersCount) {
 
 			subscriptionHistoryChange := &model.SubscriptionHistoryChange{
-				Seats:    subscription.Seats,
-				CreateAt: time.Now().Unix(),
+				SubscriptionID: subscription.ID,
+				Seats:          int(usersCount),
+				CreateAt:       time.Now().Unix(),
 			}
 
-			c.Logger().Error("+++++++++++++++USER HERE++++++++++++++++++++")
+			// var subscriptionHistoryEvent *model.SubscriptionHistory
 
-			a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, subscription.ID, subscriptionHistoryChange)
+			_, cwsErr = a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, subscription.ID, subscriptionHistoryChange)
 
-			c.Logger().Error("+++++++++++++++USER END++++++++++++++++++++")
+			if cwsErr != nil {
+				return ruser, model.NewAppError("createUserOrGuest", "app.cloud.create_or_update_subscription_history_event.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
+			}
 		}
 	}
 

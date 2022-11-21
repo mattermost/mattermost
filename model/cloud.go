@@ -167,8 +167,9 @@ type SubscriptionHistory struct {
 }
 
 type SubscriptionHistoryChange struct {
-	Seats    int   `json:"seats"`
-	CreateAt int64 `json:"create_at"`
+	SubscriptionID string `json:"subscription_id"`
+	Seats          int    `json:"seats"`
+	CreateAt       int64  `json:"create_at"`
 }
 
 // GetWorkSpaceNameFromDNS returns the work space name. For example from test.mattermost.cloud.com, it returns test
