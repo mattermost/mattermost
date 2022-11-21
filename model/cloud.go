@@ -108,6 +108,10 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
+type SubscriptionIsExpandableResponse struct {
+	IsExpandable bool `json:"is_expandable"`
+}
+
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name                  string `json:"name"`

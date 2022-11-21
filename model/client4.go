@@ -8100,6 +8100,19 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response, error) {
 	return cloudCustomer, BuildResponse(r), nil
 }
 
+func (c *Client4) GetExpandableStatus(licenseId string) (*SubscriptionIsExpandableResponse, *Response, error) {
+	r, err := c.DoAPIGet(fmt.Sprintf("%s%s?licenseID=%s", c.cloudRoute(), "/license", licenseId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var subscriptionExpandable *SubscriptionIsExpandableResponse
+	json.NewDecoder(r.Body).Decode(&subscriptionExpandable)
+
+	return subscriptionExpandable, BuildResponse(r), nil
+}
+
 func (c *Client4) GetSubscription() (*Subscription, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/subscription", "")
 	if err != nil {
