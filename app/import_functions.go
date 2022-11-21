@@ -1431,6 +1431,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 		post.Message = *line.Post.Message
 		post.UserId = user.Id
 		post.CreateAt = *line.Post.CreateAt
+		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
 		if line.Post.Type != nil {
 			post.Type = *line.Post.Type
