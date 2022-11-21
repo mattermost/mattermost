@@ -139,7 +139,7 @@ func isSchemeRoleAssociatedToCommonName(roleName string, role *model.Role) bool 
 	if !ok {
 		return false
 	}
-	return strings.Contains(role.DisplayName, displayName)
+	return strings.HasPrefix(role.DisplayName, displayName)
 }
 
 func isNotSchemeRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
