@@ -139,3 +139,11 @@ type ThreadMembership struct {
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
 }
+
+type TopicalThreadForExport struct {
+	PostForExport
+	CollectionType string
+	CollectionId   string
+	TopicType      string
+	TopicId        string
+}

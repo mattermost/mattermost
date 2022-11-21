@@ -326,6 +326,7 @@ type ThreadStore interface {
 	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
 	GetPosts(threadID string, since int64) ([]*model.Post, error)
+	GetTopicalThreadsForExportAfter(limit int, afterId string) ([]*model.TopicalThreadForExport, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
 	MarkAllAsReadByTeam(userID, teamID string) error
@@ -349,6 +350,7 @@ type ThreadStore interface {
 
 type PostStore interface {
 	SaveMultiple(teamID string, posts []*model.Post) ([]*model.Post, int, error)
+	SaveMultipleTopicalThreads(teamID string, posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	SaveWithTeamID(teamID string, post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
@@ -379,6 +381,7 @@ type PostStore interface {
 	GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error)
 	Overwrite(post *model.Post) (*model.Post, error)
 	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	OverwriteMultipleTopicalThreads(posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)

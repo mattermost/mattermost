@@ -134,6 +134,10 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 }
 
 func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*model.Post, int, error) {
+	return s.SaveMultipleTopicalThreads(teamID, posts, nil)
+}
+
+func (s *SqlPostStore) SaveMultipleTopicalThreads(teamID string, posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	channelNewRootPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
@@ -145,6 +149,15 @@ func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*mode
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
+		if len(threads) > 0 {
+			threads[idx].PostId = post.Id
+			props := post.GetProps()
+			props["topic_type"] = threads[idx].TopicType
+			props["topic_id"] = threads[idx].TopicId
+			post.SetProps(props)
+			post.TopicType = threads[idx].TopicType
+			post.TopicId = threads[idx].TopicId
+		}
 		maxPostSize := s.GetMaxPostSize()
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, idx, err
@@ -215,8 +228,19 @@ func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*mode
 		return nil, -1, errors.Wrap(err, "failed to save Post")
 	}
 
-	if err = s.updateThreadsFromPosts(transaction, teamID, posts); err != nil {
-		return nil, -1, errors.Wrap(err, "update thread from posts failed")
+	if len(threads) > 0 {
+		for idx := range threads {
+			threads[idx].PostId = posts[idx].Id
+			threads[idx].TeamId = teamID
+		}
+
+		if err := s.saveTopicalThreads(transaction, threads); err != nil {
+			return nil, -1, errors.Wrap(err, "can't insert threads")
+		}
+	} else {
+		if err = s.updateThreadsFromPosts(transaction, teamID, posts); err != nil {
+			return nil, -1, errors.Wrap(err, "update thread from posts failed")
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -412,6 +436,10 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 }
 
 func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, _ int, err error) {
+	return s.OverwriteMultipleTopicalThreads(posts, nil)
+}
+
+func (s *SqlPostStore) OverwriteMultipleTopicalThreads(posts []*model.Post, threads []*model.Thread) (_ []*model.Post, _ int, err error) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
 	for idx, post := range posts {
@@ -454,6 +482,12 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) (_ []*model.Post, 
 		if post.RootId != "" {
 			if _, err2 := tx.Exec("UPDATE Threads SET LastReplyAt = ? WHERE PostId = ?", updateAt, post.Id); err2 != nil {
 				return nil, idx, errors.Wrapf(err2, "failed to update Threads with postid=%s", post.Id)
+			}
+		}
+		if len(threads) > 0 {
+			if _, err2 := tx.Exec("UPDATE Threads SET CollectionType = ?, CollectionId = ?, TopicType = ?, TopicId = ? WHERE PostId = ?",
+				threads[idx].CollectionType, threads[idx].CollectionId, threads[idx].TopicType, threads[idx].TopicId, post.Id); err2 != nil {
+				return nil, idx, errors.Wrapf(err2, "failed to update Threads collection and topic for postid=%s", post.Id)
 			}
 		}
 	}
@@ -2944,15 +2978,18 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, teamID string, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
-	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
-		rootIds = append(rootIds, post.RootId)
 		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
 	}
+	var rootIds = make([]string, 0, len(postsByRoot))
+	for rootId := range postsByRoot {
+		rootIds = append(rootIds, rootId)
+	}
+
 	if len(rootIds) == 0 {
 		return nil
 	}
@@ -3045,11 +3082,36 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, teamID
 					ReplyCount = :ReplyCount,
 					LastReplyAt = :LastReplyAt,
 					Participants = :Participants
+					ThreadTeamId = :TeamId
 				WHERE PostId=:PostId`, thread); err != nil {
 				return err
 			}
 		}
 	}
+	return nil
+}
+
+func (s *SqlPostStore) saveTopicalThreads(transaction *sqlxTxWrapper, threads []*model.Thread) error {
+	builder := s.getQueryBuilder().Insert("Threads").Columns(
+		"PostId",
+		"CollectionType",
+		"CollectionId",
+		"TopicType",
+		"TopicId",
+		"ThreadTeamId",
+	)
+	for _, thread := range threads {
+		builder = builder.Values(thread.PostId, thread.CollectionType, thread.CollectionId, thread.TopicType, thread.TopicId, thread.TeamId)
+	}
+	topicalThreadsSql, topicalThreadsArgs, err := builder.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "saveTopicalThreads_ToSql")
+	}
+	_, err = transaction.Exec(topicalThreadsSql, topicalThreadsArgs...)
+	if err != nil {
+		return errors.Wrap(err, "failed to save topical threads")
+	}
+
 	return nil
 }
 

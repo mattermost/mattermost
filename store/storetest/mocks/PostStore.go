@@ -885,6 +885,36 @@ func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int,
 	return r0, r1, r2
 }
 
+// OverwriteMultipleTopicalThreads provides a mock function with given fields: posts, threads
+func (_m *PostStore) OverwriteMultipleTopicalThreads(posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+	ret := _m.Called(posts, threads)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post, []*model.Thread) []*model.Post); ok {
+		r0 = rf(posts, threads)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func([]*model.Post, []*model.Thread) int); ok {
+		r1 = rf(posts, threads)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func([]*model.Post, []*model.Thread) error); ok {
+		r2 = rf(posts, threads)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
@@ -1008,6 +1038,36 @@ func (_m *PostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*model.
 	var r2 error
 	if rf, ok := ret.Get(2).(func(string, []*model.Post) error); ok {
 		r2 = rf(teamID, posts)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// SaveMultipleTopicalThreads provides a mock function with given fields: teamID, posts, threads
+func (_m *PostStore) SaveMultipleTopicalThreads(teamID string, posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+	ret := _m.Called(teamID, posts, threads)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, []*model.Post, []*model.Thread) []*model.Post); ok {
+		r0 = rf(teamID, posts, threads)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 int
+	if rf, ok := ret.Get(1).(func(string, []*model.Post, []*model.Thread) int); ok {
+		r1 = rf(teamID, posts, threads)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, []*model.Post, []*model.Thread) error); ok {
+		r2 = rf(teamID, posts, threads)
 	} else {
 		r2 = ret.Error(2)
 	}

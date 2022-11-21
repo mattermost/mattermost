@@ -420,46 +420,16 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 }
 
 func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppError {
-	if data.Team == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := ValidatePostImportDataCommon(data, maxPostSize); err != nil {
+		return err
 	}
 
 	if data.Channel == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.channel_missing.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.User == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.user_missing.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.Message == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > maxPostSize {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.CreateAt == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
-			reaction := reaction
-			ValidateReactionImportData(&reaction, *data.CreateAt)
-		}
-	}
-
-	if data.Replies != nil {
-		for _, reply := range *data.Replies {
-			reply := reply
-			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
-		}
-	}
-
-	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
-		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -556,6 +526,85 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 			reply := reply
 			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
+	}
+
+	return nil
+}
+
+func ValidatePostImportDataCommon(data *PostImportData, maxPostSize int) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Team == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.team_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Message == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
+	} else if utf8.RuneCountInString(*data.Message) > maxPostSize {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.CreateAt == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
+	} else if *data.CreateAt == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Reactions != nil {
+		for _, reaction := range *data.Reactions {
+			reaction := reaction
+			ValidateReactionImportData(&reaction, *data.CreateAt)
+		}
+	}
+
+	if data.Replies != nil {
+		for _, reply := range *data.Replies {
+			reply := reply
+			ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+		}
+	}
+
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJSON(*data.Props)) > model.PostPropsMaxRunes {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// ValidateTopicalThreadImportData validates topical thread data.
+func ValidateTopicalThreadImportData(data *TopicalThreadImportData, maxPostSize int) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := ValidatePostImportDataCommon(data.PostImportData, maxPostSize); err != nil {
+		return err
+	}
+
+	if data.PostImportData.Channel != nil && *data.PostImportData.Channel != "" {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.channel_in_topical_thread.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.CollectionType == nil || *data.CollectionType == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.collection_type_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.CollectionId == nil || *data.CollectionId == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.collection_id_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.TopicType == nil || *data.TopicType == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.topic_type_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.TopicId == nil || *data.TopicId == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_topical_thread_import_data.topic_id_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

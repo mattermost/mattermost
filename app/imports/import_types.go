@@ -21,6 +21,7 @@ type LineImportData struct {
 	DirectChannel *DirectChannelImportData `json:"direct_channel,omitempty"`
 	DirectPost    *DirectPostImportData    `json:"direct_post,omitempty"`
 	Emoji         *EmojiImportData         `json:"emoji,omitempty"`
+	TopicalThread *TopicalThreadImportData `json:"topical_thread,omitempty"`
 	Version       *int                     `json:"version,omitempty"`
 }
 
@@ -216,4 +217,12 @@ type AttachmentImportData struct {
 type ComparablePreference struct {
 	Category string
 	Name     string
+}
+
+type TopicalThreadImportData struct {
+	PostImportData *PostImportData `json:"post_import_data"`
+	CollectionType *string         `json:"collection_type"`
+	CollectionId   *string         `json:"collection_id"`
+	TopicType      *string         `json:"topic_type"`
+	TopicId        *string         `json:"topic_id"`
 }

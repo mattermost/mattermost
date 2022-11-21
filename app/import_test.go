@@ -246,6 +246,77 @@ func TestImportBulkImport(t *testing.T) {
 	})
 }
 
+func TestTopicalThreadImport(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	username := model.NewId()
+	teamName := model.NewRandomTeamName()
+	channelName := model.NewId()
+	teamTheme1 := `{\"awayIndicator\":\"#DBBD4E\",\"buttonBg\":\"#23A1FF\",\"buttonColor\":\"#FFFFFF\",\"centerChannelBg\":\"#ffffff\",\"centerChannelColor\":\"#333333\",\"codeTheme\":\"github\",\"image\":\"/static/files/a4a388b38b32678e83823ef1b3e17766.png\",\"linkColor\":\"#2389d7\",\"mentionBg\":\"#2389d7\",\"mentionColor\":\"#ffffff\",\"mentionHighlightBg\":\"#fff2bb\",\"mentionHighlightLink\":\"#2f81b7\",\"newMessageSeparator\":\"#FF8800\",\"onlineIndicator\":\"#7DBE00\",\"sidebarBg\":\"#fafafa\",\"sidebarHeaderBg\":\"#3481B9\",\"sidebarHeaderTextColor\":\"#ffffff\",\"sidebarText\":\"#333333\",\"sidebarTextActiveBorder\":\"#378FD2\",\"sidebarTextActiveColor\":\"#111111\",\"sidebarTextHoverBg\":\"#e6f2fa\",\"sidebarUnreadText\":\"#333333\",\"type\":\"Mattermost\"}`
+
+	t.Run("post_id missing", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "team", "channel": "channel", "user": "user", "message": "Hello World", "create_at": 123456789012}, "collection_type": "run", "collection_id": "123", "topic_type": "status", "topic_id": "123"}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.ErrorContains(t, err, "channel")
+		require.Equal(t, 2, line)
+	})
+
+	t.Run("collection_type missing", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "team", "channel": "", "user": "user", "message": "Hello World", "create_at": 123456789012}, "collection_type": "", "collection_id": "123", "topic_type": "status", "topic_id": "123"}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.ErrorContains(t, err, "collection_type")
+		require.Equal(t, 2, line)
+	})
+
+	t.Run("collection_id missing", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "team", "channel": "", "user": "user", "message": "Hello World", "create_at": 123456789012}, "collection_type": "run", "collection_id": "", "topic_type": "status", "topic_id": "123"}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.ErrorContains(t, err, "collection_id")
+		require.Equal(t, 2, line)
+	})
+
+	t.Run("topic_type missing", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "team", "channel": "", "user": "user", "message": "Hello World", "create_at": 123456789012}, "collection_type": "run", "collection_id": "123", "topic_type": "", "topic_id": "123"}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.ErrorContains(t, err, "topic_type")
+		require.Equal(t, 2, line)
+	})
+
+	t.Run("topic_id missing", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "team", "channel": "", "user": "user", "message": "Hello World", "create_at": 123456789012}, "collection_type": "run", "collection_id": "123", "topic_type": "status", "topic_id": ""}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.ErrorContains(t, err, "topic_id")
+		require.Equal(t, 2, line)
+	})
+
+	t.Run("correct import", func(t *testing.T) {
+		data := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}		
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "topical_thread", "topical_thread": {"post_import_data": {"team": "` + teamName + `", "channel": "", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}, "collection_type": "run", "collection_id": "123", "topic_type": "status", "topic_id": "123"}}`
+
+		err, line := th.App.BulkImport(th.Context, strings.NewReader(data), nil, false, 1)
+		require.Nil(t, err)
+		require.Equal(t, 0, line)
+
+		threads, err2 := th.App.Srv().Store().Thread().GetTopicalThreadsForExportAfter(1000, "00000000000000000000000000")
+		require.Nil(t, err2)
+		require.Len(t, threads, 1)
+	})
+}
+
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data := imports.LineImportData{
 		Type:    "version",

@@ -212,3 +212,25 @@ func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *imports.LineImpor
 		},
 	}
 }
+
+func ImportLineForTopicalThread(thread *model.TopicalThreadForExport) *imports.LineImportData {
+	return &imports.LineImportData{
+		Type: "topical_thread",
+		TopicalThread: &imports.TopicalThreadImportData{
+			PostImportData: &imports.PostImportData{
+				Team:     &thread.TeamName,
+				Channel:  &thread.ChannelName,
+				User:     &thread.Username,
+				Type:     &thread.Type,
+				Message:  &thread.Message,
+				Props:    &thread.Props,
+				CreateAt: &thread.CreateAt,
+				EditAt:   &thread.EditAt,
+			},
+			CollectionType: &thread.CollectionType,
+			CollectionId:   &thread.CollectionId,
+			TopicType:      &thread.TopicType,
+			TopicId:        &thread.TopicId,
+		},
+	}
+}

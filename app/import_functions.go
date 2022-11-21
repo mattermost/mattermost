@@ -1354,13 +1354,31 @@ func getPostStrID(post *model.Post) string {
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
 func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+	return a.importMultiplePostLinesHelper(c, lines, dryRun, false)
+}
+
+// importMultipleTopicalThreadLines will return an error and the line that
+// caused it whenever possible
+func (a *App) importMultipleTopicalThreadLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+	return a.importMultiplePostLinesHelper(c, lines, dryRun, true)
+}
+
+func (a *App) importMultiplePostLinesHelper(c request.CTX, lines []imports.LineImportWorkerData, dryRun, forTopicalThreads bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
 
-	for _, line := range lines {
-		if err := imports.ValidatePostImportData(line.Post, a.MaxPostSize()); err != nil {
-			return line.LineNumber, err
+	if forTopicalThreads {
+		for _, line := range lines {
+			if err := imports.ValidateTopicalThreadImportData(line.TopicalThread, a.MaxPostSize()); err != nil {
+				return line.LineNumber, err
+			}
+		}
+	} else {
+		for _, line := range lines {
+			if err := imports.ValidatePostImportData(line.Post, a.MaxPostSize()); err != nil {
+				return line.LineNumber, err
+			}
 		}
 	}
 
@@ -1373,12 +1391,16 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	teamNames := make([]string, len(lines))
 	postsData := make([]*imports.PostImportData, len(lines))
 	for i, line := range lines {
-		usernames = append(usernames, *line.Post.User)
-		if line.Post.FlaggedBy != nil {
-			usernames = append(usernames, *line.Post.FlaggedBy...)
+		postData := line.Post
+		if forTopicalThreads {
+			postData = line.TopicalThread.PostImportData
 		}
-		teamNames[i] = *line.Post.Team
-		postsData[i] = line.Post
+		usernames = append(usernames, *postData.User)
+		if postData.FlaggedBy != nil {
+			usernames = append(usernames, *postData.FlaggedBy...)
+		}
+		teamNames[i] = *postData.Team
+		postsData[i] = postData
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
@@ -1391,84 +1413,69 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 		return 0, err
 	}
 
-	channels, err := a.getChannelsForPosts(teams, postsData)
-	if err != nil {
-		return 0, err
+	var channels map[string]map[string]*model.Channel
+	if !forTopicalThreads {
+		channels, err = a.getChannelsForPosts(teams, postsData)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	var (
-		postsWithData         = []postAndData{}
-		postsForCreateByTeam  = map[string][]*model.Post{}
-		postsForCreateMap     = map[string]int{}
-		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]int{}
+		postsWithData           = []postAndData{}
+		postsForCreateByTeam    = map[string][]*model.Post{}
+		threadsForCreateByTeam  = map[string][]*model.Thread{}
+		postsForOverwriteList   = []*model.Post{}
+		threadsForOverwriteList = []*model.Thread{}
+		postsByLineNumber       = map[string]int{}
 	)
 
 	for _, line := range lines {
-		team := teams[strings.ToLower(*line.Post.Team)]
-		channel := channels[*line.Post.Team][*line.Post.Channel]
-		user := users[strings.ToLower(*line.Post.User)]
+		var postData *imports.PostImportData
+		var channelId string
+		if forTopicalThreads {
+			postData = line.TopicalThread.PostImportData
+			channelId = ""
+		} else {
+			postData = line.Post
+			channelId = channels[*postData.Team][*postData.Channel].Id
+		}
+		team := teams[strings.ToLower(*postData.Team)]
+		user := users[strings.ToLower(*postData.User)]
 
-		// Check if this post already exists.
-		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
-		if nErr != nil {
+		post, nErr := a.getPostWithAttachments(c, postData, user.Id, team.Id, channelId)
+		if err != nil {
 			return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.post.get_posts_created_at.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
-
-		var post *model.Post
-		for _, p := range posts {
-			if p.Message == *line.Post.Message {
-				post = p
-				break
-			}
-		}
-
-		if post == nil {
-			post = &model.Post{}
-		}
-
-		post.ChannelId = channel.Id
-		post.Message = *line.Post.Message
-		post.UserId = user.Id
-		post.CreateAt = *line.Post.CreateAt
-		post.Hashtags, _ = model.ParseHashtags(post.Message)
-
-		if line.Post.Type != nil {
-			post.Type = *line.Post.Type
-		}
-		if line.Post.EditAt != nil {
-			post.EditAt = *line.Post.EditAt
-		}
-		if line.Post.Props != nil {
-			post.Props = *line.Post.Props
-		}
-		if line.Post.IsPinned != nil {
-			post.IsPinned = *line.Post.IsPinned
-		}
-
-		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
-		for _, fileID := range post.FileIds {
-			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
-			}
-		}
-		post.FileIds = make([]string, 0)
-		for fileID := range fileIDs {
-			post.FileIds = append(post.FileIds, fileID)
 		}
 
 		if post.Id == "" {
 			postsForCreateByTeam[team.Id] = append(postsForCreateByTeam[team.Id], post)
-			postsForCreateMap[getPostStrID(post)] = line.LineNumber
+			if forTopicalThreads {
+				threadsForCreateByTeam[team.Id] = append(threadsForCreateByTeam[team.Id], fromImportDataToThread(line.TopicalThread))
+			}
+			postsByLineNumber[getPostStrID(post)] = line.LineNumber
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, post)
-			postsForOverwriteMap[getPostStrID(post)] = line.LineNumber
+			if forTopicalThreads {
+				threadsForOverwriteList = append(threadsForOverwriteList, fromImportDataToThread(line.TopicalThread))
+			}
+			postsByLineNumber[getPostStrID(post)] = line.LineNumber
 		}
-		postsWithData = append(postsWithData, postAndData{post: post, postData: line.Post, team: team, lineNumber: line.LineNumber})
+
+		postsWithData = append(postsWithData, postAndData{post: post, postData: postData, team: team, lineNumber: line.LineNumber})
 	}
 
 	for teamID, postsForCreateList := range postsForCreateByTeam {
-		if _, idx, nErr := a.Srv().Store().Post().SaveMultiple(teamID, postsForCreateList); nErr != nil {
+		funcToSave := func() ([]*model.Post, int, error) {
+			return a.Srv().Store().Post().SaveMultiple(teamID, postsForCreateList)
+		}
+		if forTopicalThreads {
+			funcToSave = func() ([]*model.Post, int, error) {
+				return a.Srv().Store().Post().SaveMultipleTopicalThreads(teamID, postsForCreateList, threadsForCreateByTeam[teamID])
+			}
+		}
+
+		if _, idx, nErr := funcToSave(); nErr != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
@@ -1483,7 +1490,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 
 			if idx != -1 && idx < len(postsForCreateList) {
 				post := postsForCreateList[idx]
-				if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
+				if lineNumber, ok := postsByLineNumber[getPostStrID(post)]; ok {
 					return lineNumber, retErr
 				}
 			}
@@ -1491,57 +1498,25 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 		}
 	}
 
-	if _, idx, err := a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+	funcToOverwrite := func() ([]*model.Post, int, error) {
+		return a.Srv().Store().Post().OverwriteMultiple(postsForOverwriteList)
+	}
+	if forTopicalThreads {
+		funcToOverwrite = func() ([]*model.Post, int, error) {
+			return a.Srv().Store().Post().OverwriteMultipleTopicalThreads(postsForOverwriteList, threadsForOverwriteList)
+		}
+	}
+	if _, idx, err := funcToOverwrite(); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
-			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
+			if lineNumber, ok := postsByLineNumber[getPostStrID(post)]; ok {
 				return lineNumber, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 		}
 		return 0, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for _, postWithData := range postsWithData {
-		postWithData := postWithData
-		if postWithData.postData.FlaggedBy != nil {
-			var preferences model.Preferences
-
-			for _, username := range *postWithData.postData.FlaggedBy {
-				user := users[strings.ToLower(username)]
-
-				preferences = append(preferences, model.Preference{
-					UserId:   user.Id,
-					Category: model.PreferenceCategoryFlaggedPost,
-					Name:     postWithData.post.Id,
-					Value:    "true",
-				})
-			}
-
-			if len(preferences) > 0 {
-				if err := a.Srv().Store().Preference().Save(preferences); err != nil {
-					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError).Wrap(err)
-				}
-			}
-		}
-
-		if postWithData.postData.Reactions != nil {
-			for _, reaction := range *postWithData.postData.Reactions {
-				reaction := reaction
-				if err := a.importReaction(&reaction, postWithData.post); err != nil {
-					return postWithData.lineNumber, err
-				}
-			}
-		}
-
-		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(c, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
-			if err != nil {
-				return postWithData.lineNumber, err
-			}
-		}
-		a.updateFileInfoWithPostId(postWithData.post)
-	}
-	return 0, nil
+	return a.updatePostsWithData(c, postsWithData, users)
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
@@ -1853,6 +1828,110 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 		a.updateFileInfoWithPostId(postWithData.post)
 	}
 	return 0, nil
+}
+
+func (a *App) getPostWithAttachments(c request.CTX, postData *imports.PostImportData, userId, teamId, channelId string) (*model.Post, *model.AppError) {
+	// Check if this post already exists.
+	posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt("", *postData.CreateAt)
+	if nErr != nil {
+		return nil, model.NewAppError("importMultipleTopicalThreadLines", "app.post.get_posts_created_at.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	var post *model.Post
+	for _, p := range posts {
+		if p.Message == *postData.Message {
+			post = p
+			break
+		}
+	}
+
+	if post == nil {
+		post = &model.Post{}
+	}
+
+	post.ChannelId = channelId
+	post.Message = *postData.Message
+	post.UserId = userId
+	post.CreateAt = *postData.CreateAt
+	post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+	if postData.Type != nil {
+		post.Type = *postData.Type
+	}
+	if postData.EditAt != nil {
+		post.EditAt = *postData.EditAt
+	}
+	if postData.Props != nil {
+		post.Props = *postData.Props
+	}
+	if postData.IsPinned != nil {
+		post.IsPinned = *postData.IsPinned
+	}
+
+	fileIDs := a.uploadAttachments(c, postData.Attachments, post, teamId)
+	for _, fileID := range post.FileIds {
+		if _, ok := fileIDs[fileID]; !ok {
+			a.Srv().Store().FileInfo().PermanentDelete(fileID)
+		}
+	}
+	post.FileIds = make([]string, 0)
+	for fileID := range fileIDs {
+		post.FileIds = append(post.FileIds, fileID)
+	}
+	return post, nil
+}
+
+func (a *App) updatePostsWithData(c request.CTX, postsWithData []postAndData, users map[string]*model.User) (int, *model.AppError) {
+	for _, postWithData := range postsWithData {
+		postWithData := postWithData
+		if postWithData.postData.FlaggedBy != nil {
+			var preferences model.Preferences
+
+			for _, username := range *postWithData.postData.FlaggedBy {
+				user := users[strings.ToLower(username)]
+
+				preferences = append(preferences, model.Preference{
+					UserId:   user.Id,
+					Category: model.PreferenceCategoryFlaggedPost,
+					Name:     postWithData.post.Id,
+					Value:    "true",
+				})
+			}
+
+			if len(preferences) > 0 {
+				if err := a.Srv().Store().Preference().Save(preferences); err != nil {
+					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+		}
+
+		if postWithData.postData.Reactions != nil {
+			for _, reaction := range *postWithData.postData.Reactions {
+				reaction := reaction
+				if err := a.importReaction(&reaction, postWithData.post); err != nil {
+					return postWithData.lineNumber, err
+				}
+			}
+		}
+
+		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
+			err := a.importReplies(c, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
+			if err != nil {
+				return postWithData.lineNumber, err
+			}
+		}
+		a.updateFileInfoWithPostId(postWithData.post)
+	}
+	return 0, nil
+}
+
+func fromImportDataToThread(thread *imports.TopicalThreadImportData) *model.Thread {
+	return &model.Thread{
+		CollectionType: *thread.CollectionType,
+		CollectionId:   *thread.CollectionId,
+		TopicType:      *thread.TopicType,
+		TopicId:        *thread.TopicId,
+	}
 }
 
 func (a *App) importEmoji(data *imports.EmojiImportData, dryRun bool) *model.AppError {

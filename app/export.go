@@ -103,6 +103,13 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, opts
 		return err
 	}
 
+	ctx.Logger().Info("Bulk export: exporting topical threads")
+	threadAttachments, err := a.exportAllTopicalThreads(ctx, writer, opts.IncludeAttachments)
+	if err != nil {
+		return err
+	}
+	attachments = append(attachments, threadAttachments...)
+
 	ctx.Logger().Info("Bulk export: exporting emoji")
 	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
 	if err != nil {
@@ -409,37 +416,94 @@ func (a *App) exportAllPosts(ctx request.CTX, writer io.Writer, withAttachments 
 
 			postLine := ImportLineForPost(post)
 
-			replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
+			postImportData, postAttachments, err := a.populatePost(ctx, writer, withAttachments, post)
 			if err != nil {
 				return nil, err
 			}
+			attachments = append(attachments, postAttachments...)
 
-			if withAttachments && len(replyAttachments) > 0 {
-				attachments = append(attachments, replyAttachments...)
-			}
-
-			postLine.Post.Replies = &replies
-			postLine.Post.Reactions = &[]imports.ReactionImportData{}
-			if post.HasReactions {
-				postLine.Post.Reactions, err = a.BuildPostReactions(ctx, post.Id)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			if len(post.FileIds) > 0 {
-				postAttachments, err := a.buildPostAttachments(post.Id)
-				if err != nil {
-					return nil, err
-				}
-				postLine.Post.Attachments = &postAttachments
-
-				if withAttachments && len(postAttachments) > 0 {
-					attachments = append(attachments, postAttachments...)
-				}
-			}
+			postLine.Post.Replies = postImportData.Replies
+			postLine.Post.Reactions = postImportData.Reactions
+			postLine.Post.Attachments = postImportData.Attachments
 
 			if err := a.exportWriteLine(writer, postLine); err != nil {
+				return nil, err
+			}
+		}
+	}
+}
+
+func (a *App) populatePost(ctx request.CTX, writer io.Writer, withAttachments bool, post *model.PostForExport) (*imports.PostImportData, []imports.AttachmentImportData, *model.AppError) {
+	var postImportData *imports.PostImportData
+	var attachments []imports.AttachmentImportData
+
+	replies, replyAttachments, err := a.buildPostReplies(ctx, post.Id, withAttachments)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if withAttachments && len(replyAttachments) > 0 {
+		attachments = append(attachments, replyAttachments...)
+	}
+
+	postImportData.Replies = &replies
+	postImportData.Reactions = &[]imports.ReactionImportData{}
+	if post.HasReactions {
+		postImportData.Reactions, err = a.BuildPostReactions(ctx, post.Id)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if len(post.FileIds) > 0 {
+		postAttachments, err := a.buildPostAttachments(post.Id)
+		if err != nil {
+			return nil, nil, err
+		}
+		postImportData.Attachments = &postAttachments
+
+		if withAttachments && len(postAttachments) > 0 {
+			attachments = append(attachments, postAttachments...)
+		}
+	}
+
+	return postImportData, attachments, nil
+}
+
+func (a *App) exportAllTopicalThreads(ctx request.CTX, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+	var attachments []imports.AttachmentImportData
+	afterId := strings.Repeat("0", 26)
+
+	for {
+		threads, nErr := a.Srv().Store().Thread().GetTopicalThreadsForExportAfter(1000, afterId)
+		if nErr != nil {
+			return nil, model.NewAppError("exportTopicalThreads", "app.thread.export_topical.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+
+		if len(threads) == 0 {
+			return attachments, nil
+		}
+
+		for _, thread := range threads {
+			afterId = thread.Id
+
+			// Skip deleted.
+			if thread.DeleteAt != 0 {
+				continue
+			}
+
+			topicalThreadLine := ImportLineForTopicalThread(thread)
+
+			postImportData, postAttachments, err := a.populatePost(ctx, writer, withAttachments, &thread.PostForExport)
+			if err != nil {
+				return nil, err
+			}
+			attachments = append(attachments, postAttachments...)
+			topicalThreadLine.TopicalThread.PostImportData.Replies = postImportData.Replies
+			topicalThreadLine.TopicalThread.PostImportData.Reactions = postImportData.Reactions
+			topicalThreadLine.TopicalThread.PostImportData.Attachments = postImportData.Attachments
+
+			if err := a.exportWriteLine(writer, topicalThreadLine); err != nil {
 				return nil, err
 			}
 		}

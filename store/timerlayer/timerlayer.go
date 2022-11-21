@@ -5332,6 +5332,22 @@ func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetOrMaterializeTopicalRootPost(productBotUserId string, teamID string, collectionType string, collectionID string, topicType string, topicID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetOrMaterializeTopicalRootPost(productBotUserId, teamID, collectionType, collectionID, topicType, topicID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetOrMaterializeTopicalRootPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error) {
 	start := time.Now()
 
@@ -5699,6 +5715,22 @@ func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerPostStore) OverwriteMultipleTopicalThreads(posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.PostStore.OverwriteMultipleTopicalThreads(posts, threads)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.OverwriteMultipleTopicalThreads", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := time.Now()
 
@@ -5791,6 +5823,22 @@ func (s *TimerLayerPostStore) SaveMultiple(teamID string, posts []*model.Post) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultiple", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerPostStore) SaveMultipleTopicalThreads(teamID string, posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.PostStore.SaveMultipleTopicalThreads(teamID, posts, threads)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultipleTopicalThreads", success, elapsed)
 	}
 	return result, resultVar1, err
 }
@@ -8973,6 +9021,22 @@ func (s *TimerLayerThreadStore) GetTopThreadsForUserSince(teamID string, userID 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopThreadsForUserSince", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetTopicalThreadsForExportAfter(limit int, afterId string) ([]*model.TopicalThreadForExport, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetTopicalThreadsForExportAfter(limit, afterId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTopicalThreadsForExportAfter", success, elapsed)
 	}
 	return result, err
 }

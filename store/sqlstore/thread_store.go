@@ -1100,6 +1100,75 @@ func (s *SqlThreadStore) GetTopThreadsForUserSince(teamID string, userID string,
 	return model.GetTopThreadListWithPagination(topThreads, limit), nil
 }
 
+func (s *SqlThreadStore) GetTopicalThreadsForExportAfter(limit int, afterId string) ([]*model.TopicalThreadForExport, error) {
+	for {
+		rootIds := []string{}
+		err := s.GetReplicaX().Select(&rootIds,
+			`SELECT
+				Id
+			FROM
+				Posts
+			WHERE
+				Posts.Id > ?
+				AND Posts.RootId = ''
+				AND Posts.DeleteAt = 0
+				AND Posts.ChannelId = ''
+			ORDER BY Posts.Id
+			LIMIT ?`,
+			afterId, limit)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to find Posts")
+		}
+
+		topicalThreadsForExport := []*model.TopicalThreadForExport{}
+		if len(rootIds) == 0 {
+			return topicalThreadsForExport, nil
+		}
+
+		builder := s.getQueryBuilder().
+			Select(
+				"p1.*",
+				"Users.Username as Username",
+				"Teams.Name as TeamName",
+				"COALESCE(Threads.CollectionType, '') as CollectionType",
+				"COALESCE(Threads.CollectionId, '') as CollectionId",
+				"COALESCE(Threads.TopicType, '') as TopicType",
+				"COALESCE(Threads.TopicId, '') as TopicId",
+			).
+			FromSelect(sq.Select("*").From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
+			InnerJoin("Threads ON p1.Id = Threads.PostId").
+			InnerJoin("Teams ON Threads.ThreadTeamId = Teams.Id").
+			InnerJoin("Users ON p1.UserId = Users.Id").
+			Where(sq.And{
+				sq.Eq{"Teams.DeleteAt": 0},
+				sq.NotEq{"CollectionType": ""},
+				sq.NotEq{"CollectionId": ""},
+				sq.NotEq{"TopicType": ""},
+				sq.NotEq{"TopicId": ""},
+			}).
+			OrderBy("p1.Id")
+
+		query, args, err := builder.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "topicalThreadsForExport_toSql")
+		}
+
+		err = s.GetSearchReplicaX().Select(&topicalThreadsForExport, query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to find Threads")
+		}
+
+		if len(topicalThreadsForExport) == 0 {
+			// All of the threads were in teams that were deleted.
+			// Update the afterId and try again.
+			afterId = rootIds[len(rootIds)-1]
+			continue
+		}
+
+		return topicalThreadsForExport, nil
+	}
+}
+
 func userContains(userIDs []string, searchedUserID string) bool {
 	for _, userID := range userIDs {
 		if userID == searchedUserID {

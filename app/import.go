@@ -114,6 +114,7 @@ func processAttachments(line *imports.LineImportData, basePath string, filesMap 
 func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	postLines := []imports.LineImportWorkerData{}
 	directPostLines := []imports.LineImportWorkerData{}
+	topicalThreadLines := []imports.LineImportWorkerData{}
 	for line := range lines {
 		switch {
 		case line.LineImportData.Type == "post":
@@ -138,6 +139,17 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 				}
 				directPostLines = []imports.LineImportWorkerData{}
 			}
+		case line.LineImportData.Type == "topical_thread":
+			topicalThreadLines = append(topicalThreadLines, line)
+			if line.TopicalThread == nil {
+				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_topical_thread.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
+			}
+			if len(topicalThreadLines) >= importMultiplePostsThreshold {
+				if errLine, err := a.importMultipleTopicalThreadLines(c, topicalThreadLines, dryRun); err != nil {
+					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
+				}
+				topicalThreadLines = []imports.LineImportWorkerData{}
+			}
 		default:
 			if err := a.importLine(c, line.LineImportData, dryRun); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
@@ -152,6 +164,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	}
 	if len(directPostLines) > 0 {
 		if errLine, err := a.importMultipleDirectPostLines(c, directPostLines, dryRun); err != nil {
+			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
+		}
+	}
+	if len(topicalThreadLines) > 0 {
+		if errLine, err := a.importMultipleTopicalThreadLines(c, topicalThreadLines, dryRun); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}

@@ -4279,6 +4279,28 @@ func (a *OpenTracingAppLayer) FillInPostProps(c request.CTX, post *model.Post, c
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) FillInPostPropsGivenTeamId(c request.CTX, post *model.Post, teamID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInPostPropsGivenTeamId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.FillInPostPropsGivenTeamId(c, post, teamID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FilterNonGroupChannelMembers")

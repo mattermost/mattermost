@@ -301,6 +301,29 @@ func (_m *ThreadStore) GetTopThreadsForUserSince(teamID string, userID string, s
 	return r0, r1
 }
 
+// GetTopicalThreadsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *ThreadStore) GetTopicalThreadsForExportAfter(limit int, afterId string) ([]*model.TopicalThreadForExport, error) {
+	ret := _m.Called(limit, afterId)
+
+	var r0 []*model.TopicalThreadForExport
+	if rf, ok := ret.Get(0).(func(int, string) []*model.TopicalThreadForExport); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TopicalThreadForExport)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, string) error); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTotalThreads provides a mock function with given fields: userId, teamID, opts
 func (_m *ThreadStore) GetTotalThreads(userId string, teamID string, opts model.GetUserThreadsOpts) (int64, error) {
 	ret := _m.Called(userId, teamID, opts)

@@ -6669,6 +6669,27 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 
 }
 
+func (s *RetryLayerPostStore) GetOrMaterializeTopicalRootPost(productBotUserId string, teamID string, collectionType string, collectionID string, topicType string, topicID string) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetOrMaterializeTopicalRootPost(productBotUserId, teamID, collectionType, collectionID, topicType, topicID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string) ([]*model.PostForExport, error) {
 
 	tries := 0
@@ -7137,6 +7158,27 @@ func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 
 }
 
+func (s *RetryLayerPostStore) OverwriteMultipleTopicalThreads(posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.PostStore.OverwriteMultipleTopicalThreads(posts, threads)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 
 	tries := 0
@@ -7247,6 +7289,27 @@ func (s *RetryLayerPostStore) SaveMultiple(teamID string, posts []*model.Post) (
 	tries := 0
 	for {
 		result, resultVar1, err := s.PostStore.SaveMultiple(teamID, posts)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) SaveMultipleTopicalThreads(teamID string, posts []*model.Post, threads []*model.Thread) ([]*model.Post, int, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.PostStore.SaveMultipleTopicalThreads(teamID, posts, threads)
 		if err == nil {
 			return result, resultVar1, nil
 		}
@@ -11396,6 +11459,27 @@ func (s *RetryLayerThreadStore) GetTopThreadsForUserSince(teamID string, userID 
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetTopThreadsForUserSince(teamID, userID, since, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetTopicalThreadsForExportAfter(limit int, afterId string) ([]*model.TopicalThreadForExport, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetTopicalThreadsForExportAfter(limit, afterId)
 		if err == nil {
 			return result, nil
 		}
