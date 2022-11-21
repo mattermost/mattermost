@@ -2435,7 +2435,7 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
-			var filteredThreads []*model.ThreadResponse
+			filteredThreads := []*model.ThreadResponse{}
 			for _, thread := range threads {
 				if thread.LastReplyAt != 0 {
 					filteredThreads = append(filteredThreads, thread)
