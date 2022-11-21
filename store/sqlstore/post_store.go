@@ -1958,7 +1958,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 
 	baseQuery := s.getQueryBuilder().Select(
-		"q2.*",
+		"*",
 		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
@@ -1979,8 +1979,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	searchType := "Message"
 	if params.IsHashtag {
-		baseQuery = baseQuery.LeftJoin("Hashtags h ON h.PostId = q2.Id")
-		searchType = "h.Value"
+		searchType = "Hashtags"
 		for _, term := range strings.Split(terms, " ") {
 			termMap[strings.ToUpper(term)] = true
 		}

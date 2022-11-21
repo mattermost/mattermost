@@ -1162,9 +1162,11 @@ func testSupportTermsWithUnderscore(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchOrExcludePostsWithHashtags(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "search post with #hashtag", "", model.PostTypeDefault, 0, false)
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "search post with #hashtag", "#hashtag", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching term with hashtag", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching term with", "#hashtag", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -1176,8 +1178,9 @@ func testSearchOrExcludePostsWithHashtags(t *testing.T, th *SearchTestHelper) {
 		results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 		require.NoError(t, err)
 
-		require.Len(t, results.Posts, 1)
+		require.Len(t, results.Posts, 2)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
 	})
 
 	t.Run("Should search hashtag terms without hashtag option", func(t *testing.T) {
@@ -1723,15 +1726,15 @@ func testSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
 }
 
 func testHashtagSearchShouldSupportThreeOrMoreCharacters(t *testing.T, th *SearchTestHelper) {
-	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one char hashtag #o", "", model.PostTypeDefault, 0, false)
+	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one char hashtag #1", "#1", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelPrivate.Id, "two chars hashtag #oa", "", model.PostTypeDefault, 0, false)
+	_, err = th.createPost(th.User.Id, th.ChannelPrivate.Id, "two chars hashtag #12", "#12", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
-	p3, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "three chars hashtag #oak", "", model.PostTypeDefault, 0, false)
+	p3, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "three chars hashtag #123", "#123", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	params := &model.SearchParams{Terms: "#oak", IsHashtag: true}
+	params := &model.SearchParams{Terms: "#123", IsHashtag: true}
 	results, err := th.Store.Post().SearchPostsForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 	require.NoError(t, err)
 
