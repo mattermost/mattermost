@@ -5144,6 +5144,10 @@
     "translation": "Import data line has type \"team\" but the team object is null."
   },
   {
+    "id": "app.import.import_line.null_topical_thread.error",
+    "translation": "Topical thread is empty."
+  },
+  {
     "id": "app.import.import_line.null_user.error",
     "translation": "Import data line has type \"user\" but the user object is null."
   },
@@ -5328,6 +5332,10 @@
     "translation": "Post CreateAt property must not be zero."
   },
   {
+    "id": "app.import.validate_post_import_data.empty.error",
+    "translation": "Post import data is empty."
+  },
+  {
     "id": "app.import.validate_post_import_data.message_length.error",
     "translation": "Post Message property is longer than the maximum permitted length."
   },
@@ -5470,6 +5478,30 @@
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
     "translation": "Missing required team property: type."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.channel_in_topical_thread.error",
+    "translation": "Topical thread has channelId."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.collection_id_missing.error",
+    "translation": "CollectionId is missing."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.collection_type_missing.error",
+    "translation": "CollectionType is missing."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.empty.error",
+    "translation": "Topical thread import data is empty."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.topic_id_missing.error",
+    "translation": "TopicId is missing."
+  },
+  {
+    "id": "app.import.validate_topical_thread_import_data.topic_type_missing.error",
+    "translation": "TopicType is missing."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -6518,6 +6550,22 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.export_topical.app_error",
+    "translation": "Unable to export topical thread."
+  },
+  {
+    "id": "app.thread.materialize.app_error",
+    "translation": "Topic not found."
+  },
+  {
+    "id": "app.thread.materialize.feature_flag_disabled.app_error",
+    "translation": "ThreadsEverywhere feature flag is disabled."
+  },
+  {
+    "id": "app.thread.materialize.user_id.app_error",
+    "translation": "No user found to materialize topic."
   },
   {
     "id": "app.update_error",
@@ -8940,8 +8988,16 @@
     "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
   },
   {
+    "id": "model.post.is_valid.channel_and_topic_specified.app_error",
+    "translation": "Post is not valid. Both, channel and topic, should not be specified."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.post.is_valid.channel_or_topic_must_be_specified.app_error",
+    "translation": "Post is not valid. Channel or topic must be specified."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
