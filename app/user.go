@@ -343,10 +343,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
 		}
 
-		// c.Logger().Error("+++++++++++++++USER FIRST++++++++++++++++++++")
-		// c.Logger().Error("=========Original: " + strconv.Itoa(subscription.OriginallyLicensedSeats) + "=========")
-		// c.Logger().Error("=========Seats: " + strconv.Itoa(subscription.Seats) + "=========")
-
 		usersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 		if err != nil {
 			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
