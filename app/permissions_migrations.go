@@ -75,18 +75,17 @@ const (
 	PermissionManageRemoteClusters           = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
-// Warning: This function should only be used in cases where team and channel scheme roles definitely do not need to be migrated.
-// Otherwise, use isRoleIncludingSchemes.
-func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+// Deprecated: This function should only be used if a case arises where team and/or channel scheme roles do not need to be migrated.
+// Otherwise, use isRole.
+func isExactRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		return role.Name == roleName
 	}
 }
 
-// isRoleIncludingSchemes returns true if roleName matches a role's name field or if the a team
-// or channel scheme role matches the "common name".
-//
-// Common names that will match associated team and/or channel scheme roles are:
+// isRole returns true if roleName matches a role's name field or if the a team
+// or channel scheme role matches a "common name". A common name is one of the following role
+// that is common among the system scheme and the team and/or channel schemes:
 //
 // TeamAdmin,
 // TeamUser,
@@ -98,7 +97,7 @@ func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool 
 // PlaybookMember,
 // RunAdmin,
 // RunMember
-func isRoleIncludingSchemes(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		if role.Name == roleName {
 			return true
@@ -272,12 +271,12 @@ func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 func (a *App) getListJoinPublicPrivateTeamsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     isRole(model.SystemAdminRoleId),
+			On:     isExactRole(model.SystemAdminRoleId),
 			Add:    []string{PermissionListPrivateTeams, PermissionJoinPrivateTeams},
 			Remove: []string{},
 		},
 		permissionTransformation{
-			On:     isRole(model.SystemUserRoleId),
+			On:     isExactRole(model.SystemUserRoleId),
 			Add:    []string{PermissionListPublicTeams, PermissionJoinPublicTeams},
 			Remove: []string{},
 		},
@@ -296,7 +295,7 @@ func (a *App) removePermanentDeleteUserMigration() (permissionsMap, error) {
 func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     isRole(model.SystemAdminRoleId),
+			On:     isExactRole(model.SystemAdminRoleId),
 			Add:    []string{PermissionCreateBot, PermissionReadBots, PermissionReadOthersBots, PermissionManageBots, PermissionManageOthersBots},
 			Remove: []string{},
 		},
@@ -306,19 +305,19 @@ func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionManagePrivateChannelProperties))),
+			On:  permissionAnd(isExactRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionManagePrivateChannelProperties))),
 			Add: []string{PermissionManagePrivateChannelProperties},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionDeletePrivateChannel))),
+			On:  permissionAnd(isExactRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionDeletePrivateChannel))),
 			Add: []string{PermissionDeletePrivateChannel},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionManagePublicChannelProperties))),
+			On:  permissionAnd(isExactRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionManagePublicChannelProperties))),
 			Add: []string{PermissionManagePublicChannelProperties},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionDeletePublicChannel))),
+			On:  permissionAnd(isExactRole(model.ChannelUserRoleId), onOtherRole(model.TeamUserRoleId, permissionExists(PermissionDeletePublicChannel))),
 			Add: []string{PermissionDeletePublicChannel},
 		},
 	}, nil
@@ -327,19 +326,19 @@ func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 func (a *App) removeChannelManageDeleteFromTeamUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TeamUserRoleId), permissionExists(PermissionManagePrivateChannelProperties)),
+			On:     permissionAnd(isExactRole(model.TeamUserRoleId), permissionExists(PermissionManagePrivateChannelProperties)),
 			Remove: []string{PermissionManagePrivateChannelProperties},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TeamUserRoleId), permissionExists(PermissionDeletePrivateChannel)),
+			On:     permissionAnd(isExactRole(model.TeamUserRoleId), permissionExists(PermissionDeletePrivateChannel)),
 			Remove: []string{model.PermissionDeletePrivateChannel.Id},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TeamUserRoleId), permissionExists(PermissionManagePublicChannelProperties)),
+			On:     permissionAnd(isExactRole(model.TeamUserRoleId), permissionExists(PermissionManagePublicChannelProperties)),
 			Remove: []string{PermissionManagePublicChannelProperties},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TeamUserRoleId), permissionExists(PermissionDeletePublicChannel)),
+			On:     permissionAnd(isExactRole(model.TeamUserRoleId), permissionExists(PermissionDeletePublicChannel)),
 			Remove: []string{PermissionDeletePublicChannel},
 		},
 	}, nil
@@ -348,11 +347,11 @@ func (a *App) removeChannelManageDeleteFromTeamUser() (permissionsMap, error) {
 func (a *App) getViewMembersPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isRole(model.SystemUserRoleId),
+			On:  isExactRole(model.SystemUserRoleId),
 			Add: []string{PermissionViewMembers},
 		},
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionViewMembers},
 		},
 	}, nil
@@ -361,7 +360,7 @@ func (a *App) getViewMembersPermissionMigration() (permissionsMap, error) {
 func (a *App) getAddManageGuestsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionPromoteGuest, PermissionDemoteToGuest, PermissionInviteGuest},
 		},
 	}, nil
@@ -392,7 +391,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			// add each moderated permission to the channel admin if channel user or guest has the permission
 			trans := permissionTransformation{
 				On: permissionAnd(
-					isRole(channelAdminID),
+					isExactRole(channelAdminID),
 					permissionOr(
 						onOtherRole(channelUserID, permissionExists(perm)),
 						onOtherRole(channelGuestID, permissionExists(perm)),
@@ -405,7 +404,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			// add each moderated permission to the team admin if channel admin, user, or guest has the permission
 			trans = permissionTransformation{
 				On: permissionAnd(
-					isRole(teamAdminID),
+					isExactRole(teamAdminID),
 					permissionOr(
 						onOtherRole(channelAdminID, permissionExists(perm)),
 						onOtherRole(channelUserID, permissionExists(perm)),
@@ -423,14 +422,14 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	for _, ts := range allTeamSchemes {
 		// ensure all team scheme channel admins have create_post because it's not exposed via the UI
 		trans := permissionTransformation{
-			On:  isRole(ts.DefaultChannelAdminRole),
+			On:  isExactRole(ts.DefaultChannelAdminRole),
 			Add: []string{PermissionCreatePost},
 		}
 		transformations = append(transformations, trans)
 
 		// ensure all team scheme team admins have create_post because it's not exposed via the UI
 		trans = permissionTransformation{
-			On:  isRole(ts.DefaultTeamAdminRole),
+			On:  isExactRole(ts.DefaultTeamAdminRole),
 			Add: []string{PermissionCreatePost},
 		}
 		transformations = append(transformations, trans)
@@ -446,13 +445,13 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 
 	// ensure team admins have create_post
 	transformations = append(transformations, permissionTransformation{
-		On:  isRole(model.TeamAdminRoleId),
+		On:  isExactRole(model.TeamAdminRoleId),
 		Add: []string{PermissionCreatePost},
 	})
 
 	// ensure channel admins have create_post
 	transformations = append(transformations, permissionTransformation{
-		On:  isRole(model.ChannelAdminRoleId),
+		On:  isExactRole(model.ChannelAdminRoleId),
 		Add: []string{PermissionCreatePost},
 	})
 
@@ -466,7 +465,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 
 	// ensure system admin has all of the moderated permissions
 	transformations = append(transformations, permissionTransformation{
-		On:  isRole(model.SystemAdminRoleId),
+		On:  isExactRole(model.SystemAdminRoleId),
 		Add: append(moderatedPermissionsMinusCreatePost, PermissionCreatePost),
 	})
 
@@ -503,7 +502,7 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 	// add the new permissions to system admin
 	transformations = append(transformations,
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: permissionsToAdd,
 		})
 
@@ -552,7 +551,7 @@ func (a *App) getAddConvertChannelPermissionsMigration() (permissionsMap, error)
 func (a *App) getSystemRolesPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{model.PermissionSysconsoleReadUserManagementSystemRoles.Id, model.PermissionSysconsoleWriteUserManagementSystemRoles.Id},
 		},
 	}, nil
@@ -561,7 +560,7 @@ func (a *App) getSystemRolesPermissionsMigration() (permissionsMap, error) {
 func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionManageSharedChannels},
 		},
 	}, nil
@@ -570,7 +569,7 @@ func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, 
 func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{model.PermissionSysconsoleReadBilling.Id, model.PermissionSysconsoleWriteBilling.Id},
 		},
 	}, nil
@@ -582,14 +581,14 @@ func (a *App) getAddManageSecureConnectionsPermissionsMigration() (permissionsMa
 	// add the new permission to system admin
 	transformations = append(transformations,
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{PermissionManageSecureConnections},
 		})
 
 	// remote the deprecated permission from system admin
 	transformations = append(transformations,
 		permissionTransformation{
-			On:     isRole(model.SystemAdminRoleId),
+			On:     isExactRole(model.SystemAdminRoleId),
 			Remove: []string{PermissionManageRemoteClusters},
 		})
 
@@ -605,7 +604,7 @@ func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
 	// add the new permissions to system admin
 	transformations = append(transformations,
 		permissionTransformation{
-			On:  isRole(model.SystemAdminRoleId),
+			On:  isExactRole(model.SystemAdminRoleId),
 			Add: []string{model.PermissionDownloadComplianceExportResult.Id},
 		})
 
@@ -976,12 +975,12 @@ func (a *App) getAddCustomUserGroupsPermissions() (permissionsMap, error) {
 	}
 
 	t = append(t, permissionTransformation{
-		On:  isRole(model.SystemUserRoleId),
+		On:  isExactRole(model.SystemUserRoleId),
 		Add: customGroupPermissions,
 	})
 
 	t = append(t, permissionTransformation{
-		On:  isRole(model.SystemAdminRoleId),
+		On:  isExactRole(model.SystemAdminRoleId),
 		Add: customGroupPermissions,
 	})
 
@@ -1003,7 +1002,7 @@ func (a *App) getAddPlaybooksPermissions() (permissionsMap, error) {
 	})
 
 	transformations = append(transformations, permissionTransformation{
-		On: isRole(model.SystemAdminRoleId),
+		On: isExactRole(model.SystemAdminRoleId),
 		Add: []string{
 			model.PermissionPublicPlaybookManageProperties.Id,
 			model.PermissionPublicPlaybookManageMembers.Id,
@@ -1028,9 +1027,9 @@ func (a *App) getPlaybooksPermissionsAddManageRoles() (permissionsMap, error) {
 
 	transformations = append(transformations, permissionTransformation{
 		On: permissionOr(
-			isRole(model.PlaybookAdminRoleId),
-			isRole(model.TeamAdminRoleId),
-			isRole(model.SystemAdminRoleId),
+			isExactRole(model.PlaybookAdminRoleId),
+			isExactRole(model.TeamAdminRoleId),
+			isExactRole(model.SystemAdminRoleId),
 		),
 		Add: []string{
 			model.PermissionPublicPlaybookManageRoles.Id,
@@ -1049,13 +1048,13 @@ func (a *App) getProductsBoardsPermissions() (permissionsMap, error) {
 
 	// Give the new subsection READ permissions to any user with SYSTEM_MANAGER
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionOr(isRole(model.SystemManagerRoleId)),
+		On:  permissionOr(isExactRole(model.SystemManagerRoleId)),
 		Add: permissionsProductsRead,
 	})
 
 	// Give the new subsection WRITE permissions to any user with SYSTEM_ADMIN
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionOr(isRole(model.SystemAdminRoleId)),
+		On:  permissionOr(isExactRole(model.SystemAdminRoleId)),
 		Add: permissionsProductsWrite,
 	})
 

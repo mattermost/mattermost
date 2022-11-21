@@ -138,7 +138,7 @@ func TestApplyPermissionsMap(t *testing.T) {
 				},
 			},
 			permissionsMap{permissionTransformation{
-				On:  isRole("system_admin"),
+				On:  isExactRole("system_admin"),
 				Add: []string{"test4"},
 			}},
 			[]string{"test1", "test2", "test3", "test4"},
@@ -153,7 +153,7 @@ func TestApplyPermissionsMap(t *testing.T) {
 				},
 			},
 			permissionsMap{permissionTransformation{
-				On:  isRole("system_user"),
+				On:  isExactRole("system_user"),
 				Add: []string{"test4"},
 			}},
 			[]string{"test1", "test2", "test3"},
@@ -221,7 +221,7 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 				},
 			},
 			permissionsMap{permissionTransformation{
-				On:  isRoleIncludingSchemes(model.TeamAdminRoleId),
+				On:  isRole(model.TeamAdminRoleId),
 				Add: []string{"test2"},
 			}},
 			[]string{"test1", "test2"},
@@ -234,7 +234,7 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 				},
 			},
 			permissionsMap{permissionTransformation{
-				On:  isRoleIncludingSchemes(model.ChannelAdminRoleId),
+				On:  isRole(model.ChannelAdminRoleId),
 				Add: []string{"test2"},
 			}},
 			[]string{"test1"},
