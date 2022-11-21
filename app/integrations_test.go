@@ -42,7 +42,7 @@ func TestGetIntegrationsUsage(t *testing.T) {
 		}, []string{"otherplugin", "mattermost-autolink", "playbooks", "focalboard", "com.mattermost.calls", "com.mattermost.nps", "com.mattermost.apps"},
 		true, th.App, th.Context)
 
-	integrations, appErr := th.App.ch.getInstalledIntegrations()
+	integrations, appErr := th.App.PluginService().getInstalledIntegrations()
 	require.Nil(t, appErr)
 
 	expected := []*model.InstalledIntegration{

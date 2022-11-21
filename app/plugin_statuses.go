@@ -10,7 +10,7 @@ import (
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
-func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+func (s *PluginService) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
 	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatus", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -37,11 +37,11 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 
 // GetPluginStatus returns the status for a plugin installed on this server.
 func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	return a.ch.srv.GetPluginStatus(id)
+	return a.ch.srv.pluginService.GetPluginStatus(id)
 }
 
 // GetPluginStatuses returns the status for plugins installed on this server.
-func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (s *PluginService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -66,21 +66,21 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.ch.srv.GetPluginStatuses()
+	return a.ch.srv.pluginService.GetPluginStatuses()
 }
 
 // GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.ch.srv.getClusterPluginStatuses()
+	return a.ch.srv.pluginService.getClusterPluginStatuses()
 }
 
-func (s *Server) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (s *PluginService) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	pluginStatuses, err := s.GetPluginStatuses()
 	if err != nil {
 		return nil, err
 	}
 
-	if s.platform.Cluster() != nil && *s.Config().ClusterSettings.Enable {
+	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
 		clusterPluginStatuses, err := s.platform.Cluster().GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -92,7 +92,7 @@ func (s *Server) getClusterPluginStatuses() (model.PluginStatuses, *model.AppErr
 	return pluginStatuses, nil
 }
 
-func (s *Server) notifyPluginStatusesChanged() error {
+func (s *PluginService) notifyPluginStatusesChanged() error {
 	pluginStatuses, err := s.getClusterPluginStatuses()
 	if err != nil {
 		return err

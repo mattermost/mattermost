@@ -28,7 +28,7 @@ func (a *App) checkIntegrationLimitsForConfigSave(oldConfig, newConfig *model.Co
 	return nil
 }
 
-func (s *Server) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
+func (s *PluginService) getInstalledIntegrations() ([]*model.InstalledIntegration, *model.AppError) {
 	out := []*model.InstalledIntegration{}
 
 	pluginsEnvironment := s.GetPluginsEnvironment()
@@ -41,7 +41,7 @@ func (s *Server) getInstalledIntegrations() ([]*model.InstalledIntegration, *mod
 		return nil, model.NewAppError("getInstalledIntegrations", "app.plugin.sync.read_local_folder.app_error", nil, "", 0).Wrap(err)
 	}
 
-	pluginStates := s.Config().PluginSettings.PluginStates
+	pluginStates := s.platform.Config().PluginSettings.PluginStates
 	for _, p := range plugins {
 		if _, ok := model.InstalledIntegrationsIgnoredPlugins[p.Manifest.Id]; !ok {
 			enabled := false
@@ -91,7 +91,7 @@ func (a *App) checkIfIntegrationsMeetFreemiumLimits(originalPluginIds []string) 
 		return nil
 	}
 
-	installed, appErr := a.ch.srv.getInstalledIntegrations()
+	installed, appErr := a.ch.srv.pluginService.getInstalledIntegrations()
 	if appErr != nil {
 		a.Log().Error("Failed to get installed integrations to check cloud limit", mlog.Err(appErr))
 		return nil

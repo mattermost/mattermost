@@ -50,7 +50,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/jobs/product_notices"
 	"github.com/mattermost/mattermost-server/v6/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/plugin/scheduler"
 	"github.com/mattermost/mattermost-server/v6/product"
 	"github.com/mattermost/mattermost-server/v6/services/awsmeter"
@@ -144,6 +143,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
+	pluginService    *PluginService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -162,17 +162,6 @@ type Server struct {
 	tracer *tracing.Tracer
 
 	products map[string]Product
-
-	pluginCommandsLock     sync.RWMutex
-	pluginCommands         []*PluginCommand
-	pluginsLock            sync.RWMutex
-	pluginsEnvironment     *plugin.Environment
-	pluginConfigListenerID string
-	// collectionTypes maps from collection types to the registering plugin id
-	collectionTypes map[string]string
-	// topicTypes maps from topic types to collection types
-	topicTypes                 map[string]string
-	collectionAndTopicTypesMut sync.Mutex
 }
 
 func (s *Server) Store() store.Store {
@@ -758,6 +747,8 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	s.pluginService.ShutDownPlugins()
+
 	if err = s.platform.Shutdown(); err != nil {
 		s.Log().Warn("Failed to stop platform", mlog.Err(err))
 	}
@@ -860,6 +851,11 @@ func (s *Server) Start() error {
 	if err := s.products["channels"].Start(); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
 	}
+
+	if err := s.InitializePluginService(); err != nil {
+		return errors.Wrap(err, "Unable to start plugin service")
+	}
+
 	for name, product := range s.products {
 		if name == "channels" {
 			continue

@@ -6,14 +6,11 @@ package app
 import (
 	"fmt"
 	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
-	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/product"
@@ -87,11 +84,9 @@ func init() {
 
 func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	ch := &Channels{
-		srv:             s,
-		imageProxy:      imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
-		uploadLockMap:   map[string]bool{},
-		collectionTypes: map[string]string{},
-		topicTypes:      map[string]string{},
+		srv:           s,
+		imageProxy:    imageproxy.MakeImageProxy(s.platform, s.httpService, s.Log()),
+		uploadLockMap: map[string]bool{},
 	}
 
 	// To get another service:
@@ -188,10 +183,6 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 	services[RouterKey] = ch.routerSvc
 
 	// Setup routes.
-	pluginsRoute := ch.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
 	services[PostKey] = &postServiceWrapper{
 		app: &App{ch: ch},
@@ -223,39 +214,6 @@ func NewChannels(s *Server, services map[ServiceKey]any) (*Channels, error) {
 }
 
 func (ch *Channels) Start() error {
-	// Start plugins
-	ctx := request.EmptyContext(ch.srv.Log())
-	ch.initPlugins(ctx, *ch.cfgSvc.Config().PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
-
-	ch.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		// We compute the difference between configs
-		// to ensure we don't re-init plugins unnecessarily.
-		diffs, err := config.Diff(prevCfg, cfg)
-		if err != nil {
-			ch.srv.Log().Warn("Error in comparing configs", mlog.Err(err))
-			return
-		}
-
-		hasDiff := false
-		// TODO: This could be a method on ConfigDiffs itself
-		for _, diff := range diffs {
-			if strings.HasPrefix(diff.Path, "PluginSettings.") {
-				hasDiff = true
-				break
-			}
-		}
-
-		// Do only if some plugin related settings has changed.
-		if hasDiff {
-			if *cfg.PluginSettings.Enable {
-				ch.initPlugins(ctx, *cfg.PluginSettings.Directory, *ch.cfgSvc.Config().PluginSettings.ClientDirectory)
-			} else {
-				ch.ShutDownPlugins()
-			}
-		}
-
-	})
-
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -269,8 +227,6 @@ func (ch *Channels) Start() error {
 }
 
 func (ch *Channels) Stop() error {
-	ch.ShutDownPlugins()
-
 	ch.dndTaskMut.Lock()
 	if ch.dndTask != nil {
 		ch.dndTask.Cancel()
@@ -305,9 +261,9 @@ type hooksService struct {
 }
 
 func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	if s.ch.pluginsEnvironment == nil {
+	if s.ch.srv.pluginService.pluginsEnvironment == nil {
 		return errors.New("could not find plugins environment")
 	}
 
-	return s.ch.pluginsEnvironment.AddProduct(productID, hooks)
+	return s.ch.srv.pluginService.pluginsEnvironment.AddProduct(productID, hooks)
 }

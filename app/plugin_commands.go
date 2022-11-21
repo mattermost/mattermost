@@ -22,6 +22,10 @@ type PluginCommand struct {
 }
 
 func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) error {
+	return a.Srv().pluginService.registerPluginCommand(pluginID, command)
+}
+
+func (s *PluginService) registerPluginCommand(pluginID string, command *model.Command) error {
 	if command.Trigger == "" {
 		return errors.New("invalid command")
 	}
@@ -55,10 +59,10 @@ func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) err
 		AutocompleteIconData: command.AutocompleteIconData,
 	}
 
-	a.ch.srv.pluginCommandsLock.Lock()
-	defer a.ch.srv.pluginCommandsLock.Unlock()
+	s.pluginCommandsLock.Lock()
+	defer s.pluginCommandsLock.Unlock()
 
-	for _, pc := range a.ch.srv.pluginCommands {
+	for _, pc := range s.pluginCommands {
 		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
 			if pc.PluginId == pluginID {
 				pc.Command = command
@@ -67,7 +71,7 @@ func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) err
 		}
 	}
 
-	a.ch.srv.pluginCommands = append(a.ch.srv.pluginCommands, &PluginCommand{
+	s.pluginCommands = append(s.pluginCommands, &PluginCommand{
 		Command:  command,
 		PluginId: pluginID,
 	})
@@ -75,21 +79,25 @@ func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) err
 }
 
 func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
+	a.Srv().pluginService.unregisterPluginCommand(pluginID, teamID, trigger)
+}
+
+func (s *PluginService) unregisterPluginCommand(pluginID, teamID, trigger string) {
 	trigger = strings.ToLower(trigger)
 
-	a.ch.srv.pluginCommandsLock.Lock()
-	defer a.ch.srv.pluginCommandsLock.Unlock()
+	s.pluginCommandsLock.Lock()
+	defer s.pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.ch.srv.pluginCommands {
+	for _, pc := range s.pluginCommands {
 		if pc.Command.TeamId != teamID || pc.Command.Trigger != trigger {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.ch.srv.pluginCommands = remaining
+	s.pluginCommands = remaining
 }
 
-func (s *Server) unregisterPluginCommands(pluginID string) {
+func (s *PluginService) unregisterPluginCommands(pluginID string) {
 	s.pluginCommandsLock.Lock()
 	defer s.pluginCommandsLock.Unlock()
 
@@ -103,16 +111,38 @@ func (s *Server) unregisterPluginCommands(pluginID string) {
 }
 
 func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
-	a.ch.srv.pluginCommandsLock.RLock()
-	defer a.ch.srv.pluginCommandsLock.RUnlock()
+	return a.Srv().pluginService.PluginCommandsForTeam(teamID)
+}
+
+func (s *PluginService) PluginCommandsForTeam(teamID string) []*model.Command {
+	s.pluginCommandsLock.RLock()
+	defer s.pluginCommandsLock.RUnlock()
 
 	var commands []*model.Command
-	for _, pc := range a.ch.srv.pluginCommands {
+	for _, pc := range s.pluginCommands {
 		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}
 	return commands
+}
+
+func (s *PluginService) getPluginCommandFromArgs(args *model.CommandArgs) *PluginCommand {
+	parts := strings.Split(args.Command, " ")
+	trigger := parts[0][1:]
+	trigger = strings.ToLower(trigger)
+
+	var matched *PluginCommand
+	s.pluginCommandsLock.RLock()
+	for _, pc := range s.pluginCommands {
+		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
+			matched = pc
+			break
+		}
+	}
+	s.pluginCommandsLock.RUnlock()
+
+	return matched
 }
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
@@ -122,15 +152,7 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
 
-	var matched *PluginCommand
-	a.ch.srv.pluginCommandsLock.RLock()
-	for _, pc := range a.ch.srv.pluginCommands {
-		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
-			matched = pc
-			break
-		}
-	}
-	a.ch.srv.pluginCommandsLock.RUnlock()
+	matched := a.Srv().pluginService.getPluginCommandFromArgs(args)
 	if matched == nil {
 		return nil, nil, nil
 	}
