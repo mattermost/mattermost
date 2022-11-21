@@ -1400,6 +1400,23 @@ func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOpti
 	return s.getPostsAround(false, options, sanitizeOptions)
 }
 
+func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"CreateAt": since})
+
+	result := []*model.Post{}
+	err := s.GetReplicaX().SelectBuilder(&result, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+
+	return result, nil
+}
+
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
