@@ -1424,13 +1424,10 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
-		a.Srv().Go(func() {
-			systemBot, err := a.GetSystemBot()
-			if err != nil {
-				c.Logger().Error("Failed to post archive message", mlog.Err(err))
-				return
-			}
-
+		systemBot, err := a.GetSystemBot()
+		if err != nil {
+			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
+		} else {
 			post := &model.Post{
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
@@ -1442,9 +1439,9 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			}
 
 			if _, err := a.CreatePost(c, post, channel, false, true); err != nil {
-				c.Logger().Error("Failed to post archive message", mlog.Err(err))
+				c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 			}
-		})
+		}
 	}
 
 	now := model.GetMillis()
@@ -2713,7 +2710,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(c request.CTX, postID st
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true)
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
