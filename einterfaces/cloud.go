@@ -36,5 +36,6 @@ type CloudInterface interface {
 	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (string, error)
 	SelfHostedSignupAvailable() error
+
 	HandleLicenseChange() error
 }

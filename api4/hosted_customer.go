@@ -17,7 +17,6 @@ import (
 // APIs for self-hosted workspaces to communicate with the backing customer & payments system.
 // Endpoints for cloud installations should not go in this file.
 func (api *API) InitHostedCustomer() {
-
 	// POST /api/v4/hosted_customer/available
 	api.BaseRoutes.HostedCustomer.Handle("/signup_available", api.APISessionRequired(handleSignupAvailable)).Methods("GET")
 	// POST /api/v4/hosted_customer/bootstrap
@@ -31,8 +30,8 @@ func (api *API) InitHostedCustomer() {
 func ensureSelfHostedAdmin(c *Context, where string) {
 	license := c.App.Channels().License()
 
-	if license != nil && license.Features != nil && license.Features.Cloud != nil && *license.Features.Cloud {
-		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusInternalServerError)
+	if license.IsCloud() {
+		c.Err = model.NewAppError(where, "api.cloud.license_error", nil, "Cloud installations do not use this endpoint", http.StatusBadRequest)
 		return
 	}
 
@@ -42,8 +41,21 @@ func ensureSelfHostedAdmin(c *Context, where string) {
 	}
 }
 
+func checkSelfHostedFirstTimePurchaseEnabled(c *Context) bool {
+	config := c.App.Config()
+	if config == nil {
+		return false
+	}
+	enabled := config.ServiceSettings.SelfHostedFirstTimePurchase
+	return enabled != nil && *enabled
+}
+
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedBootstrap"
+	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 	reset := r.URL.Query().Get("reset") == "true"
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
@@ -73,6 +85,9 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedPayment"
 	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -106,6 +121,9 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedConfirm"
 	fmt.Println(where + " A")
 	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	fmt.Println(where + " B")
@@ -150,6 +168,10 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.handleCWSHealthCheck"
+	ensureSelfHostedAdmin(c, where)
+	if c.Err != nil {
+		return
+	}
 	if err := c.App.Cloud().SelfHostedSignupAvailable(); err != nil {
 		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusInternalServerError)
 		return

@@ -37,20 +37,6 @@ func (_m *CloudInterface) BootstrapSelfHostedSignup(req model.BootstrapSelfHoste
 	return r0, r1
 }
 
-// CWSHealthCheck provides a mock function with given fields: userId
-func (_m *CloudInterface) CWSHealthCheck(userId string) error {
-	ret := _m.Called(userId)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
 func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
 	ret := _m.Called(userID, subscriptionID, subscriptionChange)
