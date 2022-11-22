@@ -477,10 +477,19 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
-	for _, collectionType := range ch.collectionTypes[id] {
-		delete(ch.topicTypes, collectionType)
+	// find all collectionTypes registered by plugin
+	for collectionTypeToRemove, existingPluginId := range ch.collectionTypes {
+		if existingPluginId != id {
+			continue
+		}
+		// find all topicTypes for existing collectionType
+		for topicTypeToRemove, existingCollectionType := range ch.topicTypes {
+			if existingCollectionType == collectionTypeToRemove {
+				delete(ch.topicTypes, topicTypeToRemove)
+			}
+		}
+		delete(ch.collectionTypes, collectionTypeToRemove)
 	}
-	delete(ch.collectionTypes, id)
 
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {

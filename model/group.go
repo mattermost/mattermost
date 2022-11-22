@@ -247,3 +247,11 @@ type GroupsWithCount struct {
 	Groups     []*Group `json:"groups"`
 	TotalCount int64    `json:"total_count"`
 }
+
+type CreateDefaultMembershipParams struct {
+	Since               int64
+	ReAddRemovedMembers bool
+	ScopedUserID        *string
+	ScopedTeamID        *string
+	ScopedChannelID     *string
+}

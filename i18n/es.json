@@ -9285,7 +9285,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Starter."
+    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9309,11 +9309,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Starter."
+    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Tu workspace será degradado a Cloud Starter. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu workspace podrían ser archivados hasta que liquides completamente tu saldo pendiente."
+    "translation": "Tu espacio de trabajo será degradado a Cloud Free. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9324,7 +9324,7 @@
     "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9353,7 +9353,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Starter abajo."
+    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Free abajo."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9368,7 +9368,7 @@
     "translation": "Acción requerida: El workspace será degradado en 30 días"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9449,7 +9449,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu workspace está en riesgo de ser degradado a Cloud Starter."
+    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9558,5 +9558,13 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Intervalo de tiempo inválido."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "El tipo de tema ya existe."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "El tipo de colección ya existe."
   }
 ]

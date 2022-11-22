@@ -9324,7 +9324,7 @@
     "translation": "あなたのMattermostワークスペースは15日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Cloud Starterへダウングレード"
   },
   {
@@ -9360,7 +9360,7 @@
     "translation": "対応が必要です: ワークスペースは30日後にダウングレードされます"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Cloud Starterへのダウングレード"
   },
   {
