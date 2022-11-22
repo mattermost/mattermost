@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/store"
+	"github.com/mattermost/mattermost-server/v6/utils"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 )
@@ -22,39 +23,48 @@ func newSqlPostPersistentNotificationStore(sqlStore *SqlStore) store.PostPersist
 	}
 }
 
-func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 	andCond := sq.And{
 		sq.Eq{"DeleteAt": 0},
 	}
 
-	if len(params.PostID) > 0 {
+	if params.PostID != "" {
 		andCond = append(andCond, sq.Eq{"PostId": params.PostID})
 	}
 	if params.MaxCreateAt > 0 {
 		andCond = append(andCond, sq.LtOrEq{"CreateAt": params.MaxCreateAt})
 	}
 
-	query, args, err := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Select("*").
 		From("PersistentNotifications").
-		Where(andCond).
-		Limit(1000).
-		ToSql()
+		Where(andCond)
 
+	builder = getPersistentNotificationsPaginationBuilder(builder, params.Pagination)
+
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	var posts []*model.PostPersistentNotifications
 	err = s.GetReplicaX().Select(&posts, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return make([]*model.PostPersistentNotifications, 0), nil
+			return []*model.PostPersistentNotifications{}, false, nil
 		}
-		return nil, errors.Wrap(err, "failed to get posts for persistent notifications")
+		return nil, false, errors.Wrap(err, "failed to get posts for persistent notifications")
 	}
 
-	return posts, nil
+	var hasNext bool
+	if params.Pagination.PerPage != 0 {
+		if len(posts) == utils.MinInt(params.Pagination.PerPage, paginationLimit)+1 {
+			// Shave off the next-page item.
+			posts = posts[:len(posts)-1]
+			hasNext = true
+		}
+	}
+	return posts, hasNext, nil
 }
 
 func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
@@ -78,4 +88,57 @@ func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
 	}
 
 	return nil
+}
+
+func getPersistentNotificationsPaginationBuilder(builder sq.SelectBuilder, pagination model.CursorPagination) sq.SelectBuilder {
+	var sort string
+	if pagination.Direction != "" {
+		if pagination.Direction == "up" {
+			sort = "DESC"
+		} else if pagination.Direction == "down" {
+			sort = "ASC"
+		}
+	}
+	if sort != "" {
+		builder = builder.OrderBy("CreateAt " + sort + ", PostId " + sort)
+	}
+
+	if pagination.FromCreateAt != 0 {
+		if pagination.Direction == "down" {
+			direction := sq.Gt{"CreateAt": pagination.FromCreateAt}
+			if pagination.FromID != "" {
+				builder = builder.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"CreateAt": pagination.FromCreateAt},
+						sq.Gt{"PostId": pagination.FromID},
+					},
+				})
+			} else {
+				builder = builder.Where(direction)
+			}
+		} else {
+			direction := sq.Lt{"CreateAt": pagination.FromCreateAt}
+			if pagination.FromID != "" {
+				builder = builder.Where(sq.Or{
+					direction,
+					sq.And{
+						sq.Eq{"CreateAt": pagination.FromCreateAt},
+						sq.Lt{"PostId": pagination.FromID},
+					},
+				})
+
+			} else {
+				builder = builder.Where(direction)
+			}
+		}
+	}
+
+	if pagination.PerPage != 0 {
+		builder = builder.Limit(uint64(utils.MinInt(pagination.PerPage, paginationLimit) + 1))
+	} else {
+		builder = builder.Limit(uint64(paginationLimit + 1))
+	}
+
+	return builder
 }

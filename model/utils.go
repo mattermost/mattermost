@@ -247,6 +247,13 @@ func (si *StringInterface) UnmarshalGraphQL(input any) error {
 	return nil
 }
 
+type CursorPagination struct {
+	Direction    string // Only accepts up|down. Indicates the order in which to send the items.
+	FromID       string // ID after which to send the items
+	FromCreateAt int64  // CreateAt after which to send the items
+	PerPage      int
+}
+
 var translateFunc i18n.TranslateFunc
 var translateFuncOnce sync.Once
 

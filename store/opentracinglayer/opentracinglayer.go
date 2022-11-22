@@ -6672,7 +6672,7 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) Delete(postIds []strin
 	return err
 }
 
-func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostPersistentNotificationStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6681,13 +6681,13 @@ func (s *OpenTracingLayerPostPersistentNotificationStore) Get(params model.GetPe
 	}()
 
 	defer span.Finish()
-	result, err := s.PostPersistentNotificationStore.Get(params)
+	result, resultVar1, err := s.PostPersistentNotificationStore.Get(params)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {

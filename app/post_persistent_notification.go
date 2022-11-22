@@ -17,7 +17,7 @@ import (
 // DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
 // Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
 func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
-	if posts, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
+	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
 		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	} else if len(posts) == 0 {
 		// Either the notification post already deleted or was never a notification post
@@ -44,60 +44,78 @@ func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserI
 
 func (a *App) SendPersistentNotifications() error {
 	// notificationInterval := a.Config().ServiceSettings.PersistenceNotificationInterval
-	notificationInterval, err := time.ParseDuration("5m")
+	notificationInterval, err := time.ParseDuration("2m")
 	if err != nil {
 		return errors.Wrap(err, "failed to parse persistent notifications interval")
+	}
+	// notificationMaxDuration := a.Config().ServiceSettings.PersistenceNotificationMaxDuration
+	notificationMaxDuration, err := time.ParseDuration("23h")
+	if err != nil {
+		return errors.Wrap(err, "failed to parse persistent notifications max duration")
 	}
 
 	// fetch posts for which first notificationInterval duration has passed
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
-	notificationPosts, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{MaxCreateAt: maxCreateAt})
-	if err != nil {
-		return errors.Wrap(err, "failed to get posts for persistent notifications")
-	}
 
-	// No posts available at the moment for persistent notifications
-	if len(notificationPosts) == 0 {
-		return nil
+	pagination := model.CursorPagination{
+		Direction: "down",
+		PerPage:   2, //500,
 	}
+	for {
+		notificationPosts, hasNext, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
+			MaxCreateAt: maxCreateAt,
+			Pagination:  pagination,
+		})
+		if err != nil {
+			return errors.Wrap(err, "failed to get posts for persistent notifications")
+		}
 
-	postIds := make([]string, len(notificationPosts))
-	for _, p := range notificationPosts {
-		postIds = append(postIds, p.PostId)
-	}
-	posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
-	if err != nil {
-		return errors.Wrap(err, "failed to get posts by IDs")
-	}
+		// No posts available at the moment for persistent notifications
+		if len(notificationPosts) == 0 {
+			return nil
+		}
+		pagination.FromID = notificationPosts[len(notificationPosts)-1].PostId
+		pagination.FromCreateAt = notificationPosts[len(notificationPosts)-1].CreateAt
 
-	// notificationMaxDuration := a.Config().ServiceSettings.PersistenceNotificationMaxDuration
-	notificationMaxDuration, err := time.ParseDuration("30m")
-	if err != nil {
-		return errors.Wrap(err, "failed to parse persistent notifications max duration")
-	}
-	var expiredPosts []*model.Post
-	var validPosts []*model.Post
-	for _, p := range posts {
-		expireAt := time.UnixMilli(p.CreateAt).Add(notificationMaxDuration)
-		if time.Now().UTC().After(expireAt) {
-			expiredPosts = append(expiredPosts, p)
-		} else {
-			validPosts = append(validPosts, p)
+		postIds := make([]string, 0, len(notificationPosts))
+		for _, p := range notificationPosts {
+			postIds = append(postIds, p.PostId)
+		}
+		posts, err := a.Srv().Store().Post().GetPostsByIds(postIds)
+		if err != nil {
+			return errors.Wrap(err, "failed to get posts by IDs")
+		}
+
+		var expiredPosts []*model.Post
+		var validPosts []*model.Post
+		for _, p := range posts {
+			expireAt := time.UnixMilli(p.CreateAt).Add(notificationMaxDuration)
+			if time.Now().UTC().After(expireAt) {
+				expiredPosts = append(expiredPosts, p)
+			} else {
+				validPosts = append(validPosts, p)
+			}
+		}
+
+		expiredPostsIds := make([]string, 0, len(expiredPosts))
+		for _, p := range expiredPosts {
+			expiredPostsIds = append(expiredPostsIds, p.Id)
+		}
+		// Delete expired notifications posts
+		if err := a.Srv().Store().PostPersistentNotification().Delete(expiredPostsIds); err != nil {
+			return errors.Wrapf(err, "failed to delete expired notifications: %v", expiredPostsIds)
+		}
+
+		// Send notifications to validPosts
+		// return a.sendPersistentNotifications(validPosts)
+		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
+			return err
+		}
+		if !hasNext {
+			break
 		}
 	}
-
-	expiredPostsIds := make([]string, len(expiredPosts))
-	for _, p := range expiredPosts {
-		expiredPostsIds = append(expiredPostsIds, p.Id)
-	}
-	// Delete expired notifications posts
-	if err := a.Srv().Store().PostPersistentNotification().Delete(expiredPostsIds); err != nil {
-		return errors.Wrapf(err, "failed to delete expired notifications: %v", expiredPostsIds)
-	}
-
-	// Send notifications to validPosts
-	// return a.sendPersistentNotifications(validPosts)
-	return a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications)
+	return nil
 }
 
 func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
@@ -125,7 +143,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			teamIds.Add(c.TeamId)
 		}
 	}
-	teams := make([]*model.Team, len(teamIds))
+	teams := make([]*model.Team, 0, len(teamIds))
 	if len(teamIds) > 0 {
 		teams, err = a.Srv().Store().Team().GetMany(teamIds.Val())
 		if err != nil {
@@ -198,7 +216,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 }
 
 func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error {
-	mentionedUsersList := make(model.StringArray, 0)
+	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 	}

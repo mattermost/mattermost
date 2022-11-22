@@ -178,8 +178,9 @@ type PostPersistentNotifications struct {
 }
 
 type GetPersistentNotificationsPostsParams struct {
-	PostID      string
-	MaxCreateAt int64
+	PostID      string // To fetch specific single item with PostID
+	MaxCreateAt int64  // To fetch multiple items created before MaxCreateAt
+	Pagination  CursorPagination
 }
 
 type SearchParameter struct {

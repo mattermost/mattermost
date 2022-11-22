@@ -29,7 +29,7 @@ func (_m *PostPersistentNotificationStore) Delete(postIds []string) error {
 }
 
 // Get provides a mock function with given fields: params
-func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 	ret := _m.Called(params)
 
 	var r0 []*model.PostPersistentNotifications
@@ -41,12 +41,19 @@ func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotific
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) error); ok {
+	var r1 bool
+	if rf, ok := ret.Get(1).(func(model.GetPersistentNotificationsPostsParams) bool); ok {
 		r1 = rf(params)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(bool)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(model.GetPersistentNotificationsPostsParams) error); ok {
+		r2 = rf(params)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }

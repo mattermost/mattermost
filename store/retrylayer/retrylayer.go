@@ -7566,21 +7566,21 @@ func (s *RetryLayerPostPersistentNotificationStore) Delete(postIds []string) err
 
 }
 
-func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, error) {
+func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostPersistentNotificationStore.Get(params)
+		result, resultVar1, err := s.PostPersistentNotificationStore.Get(params)
 		if err == nil {
-			return result, nil
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
-			return result, err
+			return result, resultVar1, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
+			return result, resultVar1, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
