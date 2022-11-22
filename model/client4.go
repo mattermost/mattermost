@@ -8516,3 +8516,12 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	}
 	return newTeamMembersList, BuildResponse(r), nil
 }
+
+func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
+	r, err := c.DoAPIPost(c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
