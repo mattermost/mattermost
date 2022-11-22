@@ -20,19 +20,18 @@ func newSqlPostAcknowledgementStore(sqlStore *SqlStore) store.PostAcknowledgemen
 	return &SqlPostAcknowledgementStore{sqlStore}
 }
 
-func (s *SqlPostAcknowledgementStore) Get(userID, postID string) (*model.PostAcknowledgement, error) {
+func (s *SqlPostAcknowledgementStore) Get(postID, userID string) (*model.PostAcknowledgement, error) {
 	query := s.getQueryBuilder().
 		Select("PostId", "UserId", "AcknowledgedAt").
 		From("PostAcknowledgements").
 		Where(sq.And{
-			sq.NotEq{"AcknowledgedAt": 0},
 			sq.Eq{"PostId": postID},
 			sq.Eq{"UserId": userID},
+			sq.NotEq{"AcknowledgedAt": 0},
 		})
 
 	var acknowledgement model.PostAcknowledgement
 	err := s.GetReplicaX().GetBuilder(&acknowledgement, query)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("PostAcknowledgement", postID)
@@ -44,7 +43,7 @@ func (s *SqlPostAcknowledgementStore) Get(userID, postID string) (*model.PostAck
 	return &acknowledgement, nil
 }
 
-func (s *SqlPostAcknowledgementStore) Save(userID, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *SqlPostAcknowledgementStore) Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	if acknowledgedAt == 0 {
 		acknowledgedAt = model.GetMillis()
 	}
@@ -70,14 +69,7 @@ func (s *SqlPostAcknowledgementStore) Save(userID, postID string, acknowledgedAt
 		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 	}
 
-	sql, args, err := query.ToSql()
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = s.GetMasterX().Exec(sql, args...)
-
+	_, err := s.GetMasterX().ExecBuilder(query)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +127,8 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 			Select("PostId", "UserId", "AcknowledgedAt").
 			From("PostAcknowledgements").
 			Where(sq.And{
-				sq.NotEq{"AcknowledgedAt": 0},
 				sq.Eq{"PostId": postIds[i:j]},
+				sq.NotEq{"AcknowledgedAt": 0},
 			})
 
 		var acknowledgementsBatch []*model.PostAcknowledgement

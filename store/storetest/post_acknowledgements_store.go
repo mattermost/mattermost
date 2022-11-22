@@ -35,13 +35,13 @@ func testPostAcknowledgementsStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("consecutive saves should just update the acknowledged at", func(t *testing.T) {
-		_, err := ss.PostAcknowledgement().Save(userId1, p1.Id, 0)
+		_, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
 		require.NoError(t, err)
 
-		_, err = ss.PostAcknowledgement().Save(userId1, p1.Id, 0)
+		_, err = ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
 		require.NoError(t, err)
 
-		ack1, err := ss.PostAcknowledgement().Save(userId1, p1.Id, 0)
+		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPost(p1.Id)
@@ -70,11 +70,11 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("get acknowledgements for post", func(t *testing.T) {
-		ack1, err := ss.PostAcknowledgement().Save(userId1, p1.Id, 0)
+		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(userId2, p1.Id, 0)
+		ack2, err := ss.PostAcknowledgement().Save(p1.Id, userId2, 0)
 		require.NoError(t, err)
-		ack3, err := ss.PostAcknowledgement().Save(userId3, p1.Id, 0)
+		ack3, err := ss.PostAcknowledgement().Save(p1.Id, userId3, 0)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPost(p1.Id)
@@ -133,13 +133,13 @@ func testPostAcknowledgementsStoreGetForPosts(t *testing.T, ss store.Store) {
 	require.Equal(t, -1, errIdx)
 
 	t.Run("get acknowledgements for post", func(t *testing.T) {
-		ack1, err := ss.PostAcknowledgement().Save(userId1, p1.Id, 0)
+		ack1, err := ss.PostAcknowledgement().Save(p1.Id, userId1, 0)
 		require.NoError(t, err)
-		ack2, err := ss.PostAcknowledgement().Save(userId2, p1.Id, 0)
+		ack2, err := ss.PostAcknowledgement().Save(p1.Id, userId2, 0)
 		require.NoError(t, err)
-		ack3, err := ss.PostAcknowledgement().Save(userId2, p2.Id, 0)
+		ack3, err := ss.PostAcknowledgement().Save(p2.Id, userId2, 0)
 		require.NoError(t, err)
-		ack4, err := ss.PostAcknowledgement().Save(userId3, p2.Id, 0)
+		ack4, err := ss.PostAcknowledgement().Save(p2.Id, userId3, 0)
 		require.NoError(t, err)
 
 		acknowledgements, err := ss.PostAcknowledgement().GetForPosts([]string{p1.Id})

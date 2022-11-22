@@ -7451,11 +7451,11 @@ func (s *RetryLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostA
 
 }
 
-func (s *RetryLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *RetryLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostAcknowledgementStore.Get(userID, postID)
+		result, err := s.PostAcknowledgementStore.Get(postID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -7514,11 +7514,11 @@ func (s *RetryLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 
 }
 
-func (s *RetryLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 		if err == nil {
 			return result, nil
 		}

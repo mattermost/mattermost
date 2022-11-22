@@ -2860,7 +2860,7 @@ func (a *OpenTracingAppLayer) DefaultChannelNames(c request.CTX) []string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteAcknowledgementForPost(c *request.Context, userID string, postID string) *model.AppError {
+func (a *OpenTracingAppLayer) DeleteAcknowledgementForPost(c *request.Context, postID string, userID string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteAcknowledgementForPost")
 
@@ -2872,7 +2872,7 @@ func (a *OpenTracingAppLayer) DeleteAcknowledgementForPost(c *request.Context, u
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DeleteAcknowledgementForPost(c, userID, postID)
+	resultVar0 := a.app.DeleteAcknowledgementForPost(c, postID, userID)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14422,7 +14422,7 @@ func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*mode
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SaveAcknowledgementForPost(c *request.Context, userID string, postID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *OpenTracingAppLayer) SaveAcknowledgementForPost(c *request.Context, postID string, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAcknowledgementForPost")
 
@@ -14434,7 +14434,7 @@ func (a *OpenTracingAppLayer) SaveAcknowledgementForPost(c *request.Context, use
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SaveAcknowledgementForPost(c, userID, postID)
+	resultVar0, resultVar1 := a.app.SaveAcknowledgementForPost(c, postID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -980,10 +980,10 @@ type PostPriorityStore interface {
 }
 
 type PostAcknowledgementStore interface {
-	Get(userID, postID string) (*model.PostAcknowledgement, error)
+	Get(postID, userID string) (*model.PostAcknowledgement, error)
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
-	Save(userID, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
+	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
 }
 

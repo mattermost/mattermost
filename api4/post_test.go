@@ -3346,10 +3346,11 @@ func TestPostReminder(t *testing.T) {
 func TestAcknowledgePost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 	client := th.Client
 
 	post := th.BasicPost
-	ack, _, err := client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
@@ -3357,38 +3358,39 @@ func TestAcknowledgePost(t *testing.T) {
 	require.Len(t, acks, 1)
 	require.Equal(t, acks[0], ack)
 
-	_, resp, err := client.AcknowledgePost(th.BasicUser.Id, "junk")
+	_, resp, err := client.AcknowledgePost("junk", th.BasicUser.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AcknowledgePost(th.BasicUser.Id, GenerateTestId())
+	_, resp, err = client.AcknowledgePost(GenerateTestId(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.AcknowledgePost("junk", post.Id)
+	_, resp, err = client.AcknowledgePost(post.Id, "junk")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.AcknowledgePost(th.BasicUser2.Id, post.Id)
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
 	client.Logout()
-	_, resp, err = client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, _, err = th.SystemAdminClient.AcknowledgePost(th.SystemAdminUser.Id, post.Id)
+	_, _, err = th.SystemAdminClient.AcknowledgePost(post.Id, th.SystemAdminUser.Id)
 	require.NoError(t, err)
 }
 
 func TestUnacknowledgePost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 	client := th.Client
 
 	post := th.BasicPost
-	ack, _, err := client.AcknowledgePost(th.BasicUser.Id, post.Id)
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
@@ -3396,23 +3398,23 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Len(t, acks, 1)
 	require.Equal(t, acks[0], ack)
 
-	resp, err := client.UnacknowledgePost(th.BasicUser.Id, "junk")
+	resp, err := client.UnacknowledgePost("junk", th.BasicUser.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost(th.BasicUser.Id, GenerateTestId())
+	resp, err = client.UnacknowledgePost(GenerateTestId(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost("junk", post.Id)
+	resp, err = client.UnacknowledgePost(post.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser2.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost(th.BasicUser2.Id, post.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
-
-	_, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
+	_, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	acks, appErr = th.App.GetAcknowledgementsForPost(post.Id)
@@ -3420,7 +3422,7 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Len(t, acks, 0)
 
 	client.Logout()
-	resp, err = client.UnacknowledgePost(th.BasicUser.Id, post.Id)
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }

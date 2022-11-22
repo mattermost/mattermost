@@ -5943,10 +5943,10 @@ func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostA
 	return err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Get(userID, postID)
+	result, err := s.PostAcknowledgementStore.Get(postID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -5991,10 +5991,10 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

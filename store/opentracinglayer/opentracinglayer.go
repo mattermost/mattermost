@@ -6572,7 +6572,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Delete(acknowledgement *model
 	return err
 }
 
-func (s *OpenTracingLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *OpenTracingLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6581,7 +6581,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Get(userID string, postID str
 	}()
 
 	defer span.Finish()
-	result, err := s.PostAcknowledgementStore.Get(userID, postID)
+	result, err := s.PostAcknowledgementStore.Get(postID, userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6626,7 +6626,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) GetForPosts(postIds []string)
 	return result, err
 }
 
-func (s *OpenTracingLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *OpenTracingLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -6635,7 +6635,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Save(userID string, postID st
 	}()
 
 	defer span.Finish()
-	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
