@@ -113,7 +113,7 @@ func isNotExactRole(roleName string) func(*model.Role, map[string]map[string]boo
 	}
 }
 
-func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool { //nolint:golint,unused
+func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool { //nolint:deadcode
 	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		return role.Name != roleName && !isSchemeRoleAssociatedToCommonName(roleName, role)
 	}
