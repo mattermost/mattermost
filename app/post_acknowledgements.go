@@ -82,7 +82,7 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID st
 
 	nErr = a.Srv().Store().PostAcknowledgement().Delete(oldAck)
 	if nErr != nil {
-		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete_all_with_emoji_name.get_acknowledgement.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	a.Srv().Go(func() {

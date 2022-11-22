@@ -60,6 +60,18 @@
     "translation": "September"
   },
   {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "You cannot remove an acknowledgment in an archived channel."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "You cannot delete an acknowledgment after 5min have passed."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "You cannot acknowledgment in an archived channel."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -4452,6 +4464,22 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Unable to get acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Unable to save acknowledgement for post."
+  },
+  {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
     "translation": "Could not decode the XML metadata information received from the Identity Provider."
   },
@@ -7925,6 +7953,14 @@
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Invalid post id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
     "translation": "Invalid user id."
   },
   {
