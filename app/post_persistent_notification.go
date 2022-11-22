@@ -59,7 +59,7 @@ func (a *App) SendPersistentNotifications() error {
 
 	pagination := model.CursorPagination{
 		Direction: "down",
-		PerPage:   2, //500,
+		PerPage:   500,
 	}
 	for {
 		notificationPosts, hasNext, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
