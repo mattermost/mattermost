@@ -31,6 +31,8 @@ type RouterService interface {
 // The service shall be registered via app.PostKey service key.
 type PostService interface {
 	CreatePost(context *request.Context, post *model.Post) (*model.Post, *model.AppError)
+	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
+	SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post
 }
 
 // PermissionService provides permissions related utilities. For now, the service implementation

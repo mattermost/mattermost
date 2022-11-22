@@ -16,5 +16,6 @@ then
         txt="${txt}use ../focalboard/server\nuse ../focalboard/mattermost-plugin\n"
     fi
     
+    txt="${txt}use ../mattermost-plugin-playbooks\n"
     printf "$txt" > "go.work"
 fi 
