@@ -113,9 +113,6 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	acknowledgementsMap := make(map[string][]*model.PostAcknowledgement)
 
 	for _, ack := range acknowledgements {
-		if _, ok := acknowledgementsMap[ack.PostId]; !ok {
-			acknowledgementsMap[ack.PostId] = make([]*model.PostAcknowledgement, 0)
-		}
 		acknowledgementsMap[ack.PostId] = append(acknowledgementsMap[ack.PostId], ack)
 	}
 
