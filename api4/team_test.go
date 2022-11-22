@@ -1830,7 +1830,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 		*th.App.Config().PrivacySettings.ShowEmailAddress = false
-		rteams, _, err = th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		rteams, _, err2 := th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		require.NoError(t, err2)
 		for _, rteam := range rteams {
 			if rteam.Id != team.Id && rteam.Id != team2.Id {
 				continue
