@@ -1392,7 +1392,6 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 			default:
 				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
-
 		}
 		if systemValue != nil {
 			// Previous value was set, so we must clear it
