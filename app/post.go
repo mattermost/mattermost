@@ -1693,7 +1693,7 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 		true, // Assume channel mentions are always allowed for simplicity
 	)
 
-	posts, nErr := a.Srv().Store().Thread().GetPosts(post.Id, timestamp)
+	posts, nErr := a.Srv().Store().Post().GetPostsByThread(post.Id, timestamp)
 	if nErr != nil {
 		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

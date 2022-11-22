@@ -1012,6 +1012,29 @@ func (_m *GroupStore) PermittedSyncableAdmins(syncableID string, syncableType mo
 	return r0, r1
 }
 
+// Restore provides a mock function with given fields: groupID
+func (_m *GroupStore) Restore(groupID string) (*model.Group, error) {
+	ret := _m.Called(groupID)
+
+	var r0 *model.Group
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Group)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage
 func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	ret := _m.Called(teamID, groupIDs, page, perPage)

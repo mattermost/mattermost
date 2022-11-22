@@ -4512,6 +4512,24 @@ func (s *OpenTracingLayerGroupStore) PermittedSyncableAdmins(syncableID string, 
 	return result, err
 }
 
+func (s *OpenTracingLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.Restore")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.GroupStore.Restore(groupID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.TeamMembersMinusGroupMembers")
@@ -6081,6 +6099,24 @@ func (s *OpenTracingLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Po
 
 	defer span.Finish()
 	result, err := s.PostStore.GetPostsByIds(postIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostsByThread")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetPostsByThread(threadID, since)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -9836,24 +9872,6 @@ func (s *OpenTracingLayerThreadStore) GetMembershipsForUser(userId string, teamI
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetPosts")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.ThreadStore.GetPosts(threadID, since)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetTeamsUnreadForUser")
@@ -9890,7 +9908,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadFollowers(threadID string, fetchO
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *OpenTracingLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -9899,7 +9917,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadForUser(teamID string, threadMemb
 	}()
 
 	defer span.Finish()
-	result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+	result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

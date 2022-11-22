@@ -323,9 +323,8 @@ type ThreadStore interface {
 	GetTotalThreads(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalUnreadMentions(userId, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetThreadsForUser(userId, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
-	GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
+	GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error)
-	GetPosts(threadID string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userID string, threadIds []string) error
 	MarkAllAsReadByTeam(userID, teamID string) error
@@ -364,6 +363,7 @@ type PostStore interface {
 	GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
@@ -832,6 +832,7 @@ type GroupStore interface {
 	GetByUser(userID string) ([]*model.Group, error)
 	Update(group *model.Group) (*model.Group, error)
 	Delete(groupID string) (*model.Group, error)
+	Restore(groupID string) (*model.Group, error)
 
 	GetMemberUsers(groupID string) ([]*model.User, error)
 	GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
