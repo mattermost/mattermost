@@ -7,11 +7,13 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -157,9 +159,17 @@ func (a *App) exportWriteLine(w io.Writer, line *imports.LineImportData) *model.
 
 func (a *App) exportVersion(writer io.Writer) *model.AppError {
 	version := 1
+
+	info := &imports.VersionInfoImportData{
+		Generator: "mattermost-server",
+		Version:   fmt.Sprintf("%s (%s, enterprise: %s)", model.CurrentVersion, model.BuildHash, model.BuildEnterpriseReady),
+		Created:   time.Now(),
+	}
+
 	versionLine := &imports.LineImportData{
 		Type:    "version",
 		Version: &version,
+		Info:    info,
 	}
 
 	return a.exportWriteLine(writer, versionLine)
