@@ -9,15 +9,15 @@ package worktemplates
 func init() {
 	registerWorkTemplateCategory("product_teams", wtc846b565cd80043537945134a54812e07)
 	registerWorkTemplate("product_teams/feature_release:v1", wt00a1b44a5831c0a3acb14787b3fdd352)
-	registerWorkTemplate("product_teams/some_other_usecase:v1", wt1e50a5b712f2155cfa93d564c0067eed)
 
 	// Register categories strings
 	_ = T("worktemplate.category.product_teams")
 
 	// Register translation strings
-	_ = T("worktemplate.product_teams.description.channel")
-	_ = T("worktemplate.other_usecase.description.channel")
-	_ = T("worktemplate.other_usecase.description.playbook")
+	_ = T("worktemplate.product_teams.feature_release.description.channel")
+	_ = T("worktemplate.product_teams.feature_release.description.board")
+	_ = T("worktemplate.product_teams.feature_release.description.playbook")
+	_ = T("worktemplate.product_teams.feature_release.description.integration")
 }
 
 var wtc846b565cd80043537945134a54812e07 = &WorkTemplateCategory{
@@ -29,51 +29,48 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 	ID:           "product_teams/feature_release:v1",
 	Category:     "product_teams",
 	UseCase:      "Feature Release",
-	Illustration: "/images/illustrations/feature-release.png",
+	Illustration: "https://via.placeholder.com/204x123.png",
 	Visibility:   "public",
-	FeatureFlag: &FeatureFlag{
-		Name:  "feature_release_work_template",
-		Value: "on",
-	},
+
 	Description: Description{
 		Channel: &TranslatableString{
-			ID:             "worktemplate.product_teams.description.channel",
-			DefaultMessage: "This is the channels section description",
+			ID:             "worktemplate.product_teams.feature_release.description.channel",
+			DefaultMessage: "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots.",
 			Illustration:   "",
 		},
 		Board: &TranslatableString{
-			ID:             "",
-			DefaultMessage: "This is the boards section description",
+			ID:             "worktemplate.product_teams.feature_release.description.board",
+			DefaultMessage: "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way.",
 			Illustration:   "",
 		},
 		Playbook: &TranslatableString{
-			ID:             "",
-			DefaultMessage: "This is the playbooks section description",
+			ID:             "worktemplate.product_teams.feature_release.description.playbook",
+			DefaultMessage: "Create transparent workflows across development teams to ensure your feature development process is seamless.",
 			Illustration:   "",
 		},
 		Integration: &TranslatableString{
-			ID:             "",
-			DefaultMessage: "This is the integrations section description",
-			Illustration:   "/images/worktemplates/integrations/jira-github.png",
+			ID:             "worktemplate.product_teams.feature_release.description.integration",
+			DefaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you.",
+			Illustration:   "https://via.placeholder.com/509x352.png?text=Integrations",
 		},
 	},
 	Content: []Content{
 		{
 			Channel: &Channel{
 				ID:           "feature-release",
-				Name:         "feature release channel",
-				Purpose:      "this channel is for the feature release team.",
+				Name:         "Feature Release",
+				Purpose:      "",
 				Playbook:     "product-release-playbook",
-				Illustration: "/images/worktemplates/channels/feature-release.png",
+				Illustration: "https://via.placeholder.com/509x352.png?text=Channel&#43;feature&#43;release",
 			},
 		},
 		{
 			Board: &Board{
 				ID:           "board-meeting-agenda",
 				Template:     "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o",
-				Name:         "meeting agenda board",
+				Name:         "Meeting Agenda",
 				Channel:      "feature-release",
-				Illustration: "/images/worktemplates/boards/meeting-agenda.png",
+				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;meeting&#43;agenda",
 			},
 		},
 		{
@@ -82,103 +79,25 @@ var wt00a1b44a5831c0a3acb14787b3fdd352 = &WorkTemplate{
 				Template:     "project task|bmttiziw35irgtmztewd9upyqdy",
 				Name:         "project task board",
 				Channel:      "feature-release",
-				Illustration: "/images/worktemplates/boards/project-task.png",
+				Illustration: "https://via.placeholder.com/509x352.png?text=Board&#43;project&#43;task",
 			},
 		},
 		{
 			Playbook: &Playbook{
 				Template:     "product release",
-				Name:         "feature release playbook",
+				Name:         "Feature release",
 				ID:           "product-release-playbook",
-				Illustration: "/images/worktemplates/boards/project-task.png",
+				Illustration: "https://via.placeholder.com/509x352.png?text=Playbook&#43;feature&#43;release",
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "marketplace-plugin-jira",
+				ID: "jira",
 			},
 		},
 		{
 			Integration: &Integration{
-				ID: "marketplace-plugin-github",
-			},
-		},
-	},
-}
-
-var wt1e50a5b712f2155cfa93d564c0067eed = &WorkTemplate{
-	ID:           "product_teams/some_other_usecase:v1",
-	Category:     "product_teams",
-	UseCase:      "Other use case",
-	Illustration: "/images/illustrations/feature-release.png",
-	Visibility:   "public",
-
-	Description: Description{
-		Channel: &TranslatableString{
-			ID:             "worktemplate.other_usecase.description.channel",
-			DefaultMessage: "This is the channels section description",
-			Illustration:   "",
-		},
-		Board: &TranslatableString{
-			ID:             "",
-			DefaultMessage: "This is the boards section description",
-			Illustration:   "",
-		},
-		Playbook: &TranslatableString{
-			ID:             "worktemplate.other_usecase.description.playbook",
-			DefaultMessage: "This is the playbooks section description",
-			Illustration:   "",
-		},
-		Integration: &TranslatableString{
-			ID:             "",
-			DefaultMessage: "This is the integrations section description",
-			Illustration:   "/images/worktemplates/integrations/jira-github.png",
-		},
-	},
-	Content: []Content{
-		{
-			Channel: &Channel{
-				ID:           "feature-release",
-				Name:         "feature release channel",
-				Purpose:      "this channel is for the feature release team.",
-				Playbook:     "product-release-playbook",
-				Illustration: "/images/worktemplates/channels/feature-release.png",
-			},
-		},
-		{
-			Board: &Board{
-				ID:           "board-meeting-agenda",
-				Template:     "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o",
-				Name:         "meeting agenda board",
-				Channel:      "feature-release",
-				Illustration: "/images/worktemplates/boards/meeting-agenda.png",
-			},
-		},
-		{
-			Board: &Board{
-				ID:           "board-project-task",
-				Template:     "project task|bmttiziw35irgtmztewd9upyqdy",
-				Name:         "project task board",
-				Channel:      "feature-release",
-				Illustration: "/images/worktemplates/boards/project-task.png",
-			},
-		},
-		{
-			Playbook: &Playbook{
-				Template:     "product release",
-				Name:         "feature release playbook",
-				ID:           "product-release-playbook",
-				Illustration: "/images/worktemplates/boards/project-task.png",
-			},
-		},
-		{
-			Integration: &Integration{
-				ID: "marketplace-plugin-jira",
-			},
-		},
-		{
-			Integration: &Integration{
-				ID: "marketplace-plugin-github",
+				ID: "github",
 			},
 		},
 	},

@@ -127,6 +127,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// print all translatable content
+	fmt.Println("\nTranslation helpers:\n====================")
+	for _, t := range ts {
+		translationHelper(t.Description.Channel)
+		translationHelper(t.Description.Board)
+		translationHelper(t.Description.Playbook)
+		translationHelper(t.Description.Integration)
+	}
+}
+
+var translationHelperTemplate = `{
+    "id": %q,
+    "translation": %q
+},`
+
+func translationHelper(t *worktemplates.TranslatableString) {
+	if t != nil && t.ID != "" && t.DefaultMessage != "" {
+		fmt.Printf(translationHelperTemplate, t.ID, t.DefaultMessage)
+		fmt.Println("")
+	}
 }
 
 //go:embed worktemplate.tmpl
