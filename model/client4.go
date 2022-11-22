@@ -7433,6 +7433,19 @@ func (c *Client4) DeleteGroup(groupID string) (*Group, *Response, error) {
 	return &p, BuildResponse(r), nil
 }
 
+func (c *Client4) RestoreGroup(groupID string, etag string) (*Group, *Response, error) {
+	r, err := c.DoAPIPost(c.groupRoute(groupID)+"/restore", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var p Group
+	if jsonErr := json.NewDecoder(r.Body).Decode(&p); jsonErr != nil {
+		return nil, nil, NewAppError("DeleteGroup", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return &p, BuildResponse(r), nil
+}
+
 func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response, error) {
 	payload, err := json.Marshal(patch)
 	if err != nil {
@@ -8458,4 +8471,13 @@ func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
 		return nil, nil, NewAppError("GetPostInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return info, BuildResponse(r), nil
+}
+
+func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
+	r, err := c.DoAPIPost(c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
