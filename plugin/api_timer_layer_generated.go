@@ -1246,3 +1246,10 @@ func (api *apiTimerLayer) EnsureBotUser(bot *model.Bot) (string, error) {
 	api.recordTime(startTime, "EnsureBotUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
+
+func (api *apiTimerLayer) RegisterCollectionAndTopic(collectionType, topicType string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterCollectionAndTopic(collectionType, topicType)
+	api.recordTime(startTime, "RegisterCollectionAndTopic", _returnsA == nil)
+	return _returnsA
+}

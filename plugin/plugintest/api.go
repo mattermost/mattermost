@@ -2941,6 +2941,20 @@ func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// RegisterCollectionAndTopic provides a mock function with given fields: collectionType, topicType
+func (_m *API) RegisterCollectionAndTopic(collectionType string, topicType string) error {
+	ret := _m.Called(collectionType, topicType)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(collectionType, topicType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RegisterCommand provides a mock function with given fields: command
 func (_m *API) RegisterCommand(command *model.Command) error {
 	ret := _m.Called(command)

@@ -43,6 +43,12 @@ const (
 	OnInstallID                     = 25
 	OnSendDailyTelemetryID          = 26
 	OnCloudLimitsUpdatedID          = 27
+	UserHasPermissionToCollectionID = 28
+	GetAllUserIdsForCollectionID    = 29
+	GetAllCollectionIDsForUserID    = 30
+	GetTopicRedirectID              = 31
+	GetCollectionMetadataByIdsID    = 32
+	GetTopicMetadataByIdsID         = 33
 	TotalHooksID                    = iota
 )
 
@@ -270,4 +276,64 @@ type Hooks interface {
 	//
 	// Minimum server version: 7.0
 	OnCloudLimitsUpdated(limits *model.ProductLimits)
+
+	// UserHasPermissionToCollection determines if the given user has access to
+	// the given collection. Plugins are only expected to handle their own
+	// collections, and should return an error for unknown collections.
+	//
+	// For Threads Everywhere, products are expected to support at least the
+	// following permissions: create_post, edit_post, delete_post,
+	// edit_others_posts, and delete_others_posts.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	UserHasPermissionToCollection(c *Context, userID string, collectionType, collectionId string, permission *model.Permission) (bool, error)
+
+	// GetAllCollectionIDsForUser returns the set of collection ids to which
+	// the given user has access. Plugins are only expected to handle their
+	// own collections, and should return an error unknown types.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	GetAllCollectionIDsForUser(c *Context, userID, collectionType string) ([]string, error)
+
+	// GetAllCollectionIDsForUser returns the set of collection ids to which
+	// the given user has access. Plugins are only expected to handle their
+	// own collections, and should return an error for unknown types.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	GetAllUserIdsForCollection(c *Context, collectionType, collectionID string) ([]string, error)
+
+	// GetTopicRedirect returns a relative URL to which to redirect a user
+	// following a topic permalink. Plugins are only expected to handle their
+	// own topic types, and should return an empty string and error for unknown // types.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	GetTopicRedirect(c *Context, topicType, topicID string) (string, error)
+
+	// GetCollectionMetadataByIds returns collection metadata for the passed ids.
+	// Returned type is a map with keys of collectionId and value CollectionMetadata.
+	// Plugins are only expected to handle their own collections, and should
+	// return an error for unknown types.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	GetCollectionMetadataByIds(c *Context, collectionType string, collectionIds []string) (map[string]*model.CollectionMetadata, error)
+
+	// GetTopicMetadataByIds returns topic metadata for the passed ids.
+	// Returned type is a map with keys of topicId and value CollectionMetadata.
+	// Plugins are only expected to handle their own topics, and should
+	// return an error for unknown types.
+	//
+	// EXPERIMENTAL: This hook is experimental and can be changed without advance notice.
+	//
+	// Minimum server version: 7.6
+	GetTopicMetadataByIds(c *Context, topicType string, topicIds []string) (map[string]*model.TopicMetadata, error)
 }

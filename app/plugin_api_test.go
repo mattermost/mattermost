@@ -196,6 +196,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -2047,4 +2048,87 @@ func TestPluginAPIIsEnterpriseReady(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	assert.Equal(t, true, api.IsEnterpriseReady())
+}
+
+func TestRegisterCollectionAndTopic(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_THREADSEVERYWHERE", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_THREADSEVERYWHERE")
+	th := Setup(t)
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ThreadsEverywhere = true
+	})
+	api := th.SetupPluginAPI()
+
+	err := api.RegisterCollectionAndTopic("collection1", "topic1")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection1", "topic1")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection1", "topic2")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection2", "topic3")
+	assert.NoError(t, err)
+	err = api.RegisterCollectionAndTopic("collection2", "topic1")
+	assert.Error(t, err)
+
+	pluginCode := `
+    package main
+
+    import (
+	  "github.com/pkg/errors"
+      "github.com/mattermost/mattermost-server/v6/plugin"
+    )
+
+    type MyPlugin struct {
+      plugin.MattermostPlugin
+    }
+
+	func (p *MyPlugin) OnActivate() error {
+		if err := p.API.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some topic"); err != nil {
+			return errors.Wrap(err, "cannot register collection")
+		}
+		if err := p.API.RegisterCollectionAndTopic("some collection", "topicToBeRepeated"); err != nil {
+			return errors.Wrap(err, "cannot register collection")
+		}
+		return nil
+	}
+
+    func main() {
+      plugin.ClientMain(&MyPlugin{})
+    }
+  `
+	pluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Directory = pluginDir
+		*cfg.PluginSettings.ClientDirectory = webappPluginDir
+	})
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	err = api.RegisterCollectionAndTopic("collectionTypeToBeRepeated", "some other topic")
+	assert.Error(t, err)
+	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
+	assert.Error(t, err)
 }

@@ -167,6 +167,29 @@ func (_m *PreferenceStore) GetCategory(userID string, category string) (model.Pr
 	return r0, r1
 }
 
+// GetCategoryAndName provides a mock function with given fields: category, nane
+func (_m *PreferenceStore) GetCategoryAndName(category string, nane string) (model.Preferences, error) {
+	ret := _m.Called(category, nane)
+
+	var r0 model.Preferences
+	if rf, ok := ret.Get(0).(func(string, string) model.Preferences); ok {
+		r0 = rf(category, nane)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.Preferences)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(category, nane)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteByUser provides a mock function with given fields: userID
 func (_m *PreferenceStore) PermanentDeleteByUser(userID string) error {
 	ret := _m.Called(userID)

@@ -4677,11 +4677,11 @@ func (s *RetryLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 
 }
 
-func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
+func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetGroups(page, perPage, opts)
+		result, err := s.GroupStore.GetGroups(page, perPage, opts, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}
@@ -4803,6 +4803,27 @@ func (s *RetryLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 
 }
 
+func (s *RetryLayerGroupStore) GetMemberCountWithRestrictions(groupID string, viewRestrictions *model.ViewUsersRestrictions) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.GetMemberCountWithRestrictions(groupID, viewRestrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 
 	tries := 0
@@ -4866,11 +4887,11 @@ func (s *RetryLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 
 }
 
-func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+		result, err := s.GroupStore.GetMemberUsersPage(groupID, page, perPage, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}
@@ -4887,11 +4908,11 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 
 }
 
-func (s *RetryLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
+func (s *RetryLayerGroupStore) GetNonMemberUsersPage(groupID string, page int, perPage int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage)
+		result, err := s.GroupStore.GetNonMemberUsersPage(groupID, page, perPage, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}
@@ -5060,6 +5081,27 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 	tries := 0
 	for {
 		result, err := s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerGroupStore) Restore(groupID string) (*model.Group, error) {
+
+	tries := 0
+	for {
+		result, err := s.GroupStore.Restore(groupID)
 		if err == nil {
 			return result, nil
 		}
@@ -6879,6 +6921,27 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, er
 
 }
 
+func (s *RetryLayerPostStore) GetPostsByThread(threadID string, since int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsByThread(threadID, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*model.Post, error) {
 
 	tries := 0
@@ -7478,6 +7541,27 @@ func (s *RetryLayerPreferenceStore) GetCategory(userID string, category string) 
 	tries := 0
 	for {
 		result, err := s.PreferenceStore.GetCategory(userID, category)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, nane string) (model.Preferences, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.GetCategoryAndName(category, nane)
 		if err == nil {
 			return result, nil
 		}
@@ -11202,27 +11286,6 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 
 }
 
-func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-
-	tries := 0
-	for {
-		result, err := s.ThreadStore.GetPosts(threadID, since)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
 
 	tries := 0
@@ -11265,11 +11328,11 @@ func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyAct
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(teamID, threadMembership, extended)
+		result, err := s.ThreadStore.GetThreadForUser(threadMembership, extended)
 		if err == nil {
 			return result, nil
 		}
