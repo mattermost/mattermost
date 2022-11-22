@@ -11,7 +11,6 @@ type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetSelfHostedProducts(userID string) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
-	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
@@ -36,6 +35,6 @@ type CloudInterface interface {
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error)
 	ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (string, error)
-
 	SelfHostedSignupAvailable() error
+	HandleLicenseChange() error
 }
