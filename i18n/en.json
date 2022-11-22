@@ -148,6 +148,10 @@
     "translation": "Missing content type."
   },
   {
+    "id": "api.admin.syncables_error",
+    "translation": "failed to add user to group-teams and group-channels"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
@@ -3249,7 +3253,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Starter."
+    "translation": "We weren't able to charge the credit card we have on file. This means your workspace is at risk of being downgraded to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subtitle2",
@@ -3328,8 +3332,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_60.subject",
@@ -3345,7 +3349,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Update your payment information now or downgrade to Cloud Starter below."
+    "translation": "Update your payment information now or downgrade to Cloud Free below."
   },
   {
     "id": "api.templates.delinquency_60.title",
@@ -3372,8 +3376,8 @@
     "translation": "Update payment"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Downgrade to Cloud Starter"
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Downgrade to Cloud Free"
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -3385,11 +3389,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Your workspace will be downgraded to Cloud Starter. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
+    "translation": "Your workspace will be downgraded to Cloud Free. Your {{.Plan}} features will be locked and some of your workspace data may be archived until your full outstanding balance is settled."
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Update your payment information now, or downgrade to Cloud Starter."
+    "translation": "Update your payment information now, or downgrade to Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.title",
@@ -3413,7 +3417,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "In addition, your data may have been archived due to Cloud Starter limitations."
+    "translation": "In addition, your data may have been archived due to Cloud Free limitations."
   },
   {
     "id": "api.templates.delinquency_90.subtitle3",
@@ -3930,6 +3934,10 @@
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "not an ldap user"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -9501,7 +9509,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

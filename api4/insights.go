@@ -99,13 +99,8 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	// license and guest user check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
-		return
-	}
-	permissionErr = rejectGuests(c)
+	// guest user check
+	permissionErr := rejectGuests(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
@@ -233,13 +228,8 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	// license and guest user check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
-		return
-	}
-	permissionErr = rejectGuests(c)
+	// guest user check
+	permissionErr := rejectGuests(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
@@ -367,13 +357,8 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	// license and guest user check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
-		return
-	}
-	permissionErr = rejectGuests(c)
+	// guest user check
+	permissionErr := rejectGuests(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
@@ -433,13 +418,8 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 
 // Top DMs
 func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	// license and guest user check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
-		return
-	}
-	permissionErr = rejectGuests(c)
+	// guest user check
+	permissionErr := rejectGuests(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
@@ -540,13 +520,8 @@ func getTopInactiveChannelsForTeamSince(c *Context, w http.ResponseWriter, r *ht
 // top inactive channels
 
 func getTopInactiveChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
-	// license and guest user check
-	permissionErr := minimumProfessionalLicense(c)
-	if permissionErr != nil {
-		c.Err = permissionErr
-		return
-	}
-	permissionErr = rejectGuests(c)
+	// guest user check
+	permissionErr := rejectGuests(c)
 	if permissionErr != nil {
 		c.Err = permissionErr
 		return
