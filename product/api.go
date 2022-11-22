@@ -160,6 +160,7 @@ type CloudService interface {
 // The service shall be registered via app.KVStoreKey service key.
 type KVStoreService interface {
 	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	KVGet(productID, key string) ([]byte, *model.AppError)
 }
 
 // LogService is the API for accessing the log service APIs.
