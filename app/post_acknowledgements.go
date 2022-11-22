@@ -85,8 +85,6 @@ func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID st
 		return model.NewAppError("DeleteAcknowledgementForPost", "app.acknowledgement.delete_all_with_emoji_name.get_acknowledgement.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	oldAck.AcknowledgedAt = 0
-
 	a.Srv().Go(func() {
 		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementRemoved, oldAck, post)
 	})
