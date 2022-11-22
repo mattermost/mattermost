@@ -14,6 +14,43 @@ type CloudInterface struct {
 	mock.Mock
 }
 
+// BootstrapSelfHostedSignup provides a mock function with given fields: req
+func (_m *CloudInterface) BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error) {
+	ret := _m.Called(req)
+
+	var r0 *model.BootstrapSelfHostedSignupResponse
+	if rf, ok := ret.Get(0).(func(model.BootstrapSelfHostedSignupRequest) *model.BootstrapSelfHostedSignupResponse); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.BootstrapSelfHostedSignupResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.BootstrapSelfHostedSignupRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CWSHealthCheck provides a mock function with given fields: userId
+func (_m *CloudInterface) CWSHealthCheck(userId string) error {
+	ret := _m.Called(userId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
 func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
 	ret := _m.Called(userID, subscriptionID, subscriptionChange)
@@ -51,6 +88,27 @@ func (_m *CloudInterface) ConfirmCustomerPayment(userID string, confirmRequest *
 	return r0
 }
 
+// ConfirmSelfHostedSignup provides a mock function with given fields: req
+func (_m *CloudInterface) ConfirmSelfHostedSignup(req model.SelfHostedConfirmPaymentMethodRequest) (string, error) {
+	ret := _m.Called(req)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(model.SelfHostedConfirmPaymentMethodRequest) string); ok {
+		r0 = rf(req)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.SelfHostedConfirmPaymentMethodRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateCustomerPayment provides a mock function with given fields: userID
 func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error) {
 	ret := _m.Called(userID)
@@ -67,6 +125,29 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateCustomerSelfHostedSignup provides a mock function with given fields: req
+func (_m *CloudInterface) CreateCustomerSelfHostedSignup(req model.SelfHostedCustomerForm) (*model.SelfHostedSignupCustomerResponse, error) {
+	ret := _m.Called(req)
+
+	var r0 *model.SelfHostedSignupCustomerResponse
+	if rf, ok := ret.Get(0).(func(model.SelfHostedCustomerForm) *model.SelfHostedSignupCustomerResponse); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SelfHostedSignupCustomerResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.SelfHostedCustomerForm) error); ok {
+		r1 = rf(req)
 	} else {
 		r1 = ret.Error(1)
 	}

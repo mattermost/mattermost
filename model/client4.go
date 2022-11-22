@@ -8458,3 +8458,14 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	}
 	return newTeamMembersList, BuildResponse(r), nil
 }
+
+func (c *Client4) CWSHealthCheck(userId string) (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
