@@ -119,29 +119,6 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*m
 	return r0, r1
 }
 
-// GetPosts provides a mock function with given fields: threadID, since
-func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	ret := _m.Called(threadID, since)
-
-	var r0 []*model.Post
-	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
-		r0 = rf(threadID, since)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Post)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(threadID, since)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetTeamsUnreadForUser provides a mock function with given fields: userID, teamIDs
 func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string) (map[string]*model.TeamUnread, error) {
 	ret := _m.Called(userID, teamIDs)
