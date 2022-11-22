@@ -50,9 +50,6 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	// GET /api/v4/cloud/cws-health-check
-	api.BaseRoutes.Cloud.Handle("/cws-health-check", api.APIHandler(handleCWSHealthCheck)).Methods("GET")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -665,15 +662,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	default:
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.cws_webhook_event_missing_error", nil, "", http.StatusNotFound)
-		return
-	}
-
-	ReturnStatusOK(w)
-}
-
-func handleCWSHealthCheck(c *Context, w http.ResponseWriter, r *http.Request) {
-	if err := c.App.Cloud().CWSHealthCheck(c.AppContext.Session().UserId); err != nil {
-		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 

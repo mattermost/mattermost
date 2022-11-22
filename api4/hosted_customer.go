@@ -18,6 +18,8 @@ import (
 // Endpoints for cloud installations should not go in this file.
 func (api *API) InitHostedCustomer() {
 
+	// POST /api/v4/hosted_customer/available
+	api.BaseRoutes.HostedCustomer.Handle("/signup_available", api.APISessionRequired(handleSignupAvailable)).Methods("GET")
 	// POST /api/v4/hosted_customer/bootstrap
 	api.BaseRoutes.HostedCustomer.Handle("/bootstrap", api.APISessionRequired(selfHostedBootstrap)).Methods("POST")
 	// POST /api/v4/hosted_customer/customer
@@ -144,4 +146,14 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = w.Write(clientLicense)
+}
+
+func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
+	where := "Api4.handleCWSHealthCheck"
+	if err := c.App.Cloud().SelfHostedSignupAvailable(); err != nil {
+		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	ReturnStatusOK(w)
 }

@@ -2528,8 +2528,8 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "CWS Server is not available."
+    "id": "api.server.hosted_signup_unavailable.error",
+    "translation": "Portal unavailable for self-hosted signup."
   },
   {
     "id": "api.server.license_up_for_renewal.error_generating_link",
