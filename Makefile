@@ -195,6 +195,16 @@ else
 	IGNORE:=$(shell rm -f imports/boards_imports.go)
 endif
 
+# Playbooks
+BUILD_PLAYBOOKS_DIR ?= ../mattermost-plugin-playbooks
+BUILD_PLAYBOOKS ?= false
+
+ifeq ($(BUILD_PLAYBOOKS),true)
+IGNORE:=$(shell cp $(BUILD_PLAYBOOKS_DIR)/product/imports/playbooks_imports.go imports/)
+else
+	IGNORE:=$(shell rm -f imports/playbooks_imports.go)
+endif
+
 all: run ## Alias for 'run'.
 
 -include config.override.mk

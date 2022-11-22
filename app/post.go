@@ -46,6 +46,14 @@ func (s *postServiceWrapper) CreatePost(ctx *request.Context, post *model.Post) 
 	return s.app.CreatePostMissingChannel(ctx, post, true)
 }
 
+func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
+	return s.app.GetPostsByIds(postIDs)
+}
+
+func (s *postServiceWrapper) SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post {
+	return s.app.SendEphemeralPost(ctx, userID, post)
+}
+
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(post.ChannelId, true)
