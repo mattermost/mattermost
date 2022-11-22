@@ -1168,6 +1168,24 @@ type API interface {
 	//
 	// Minimum server version: 7.6
 	RegisterCollectionAndTopic(collectionType, topicType string) error
+
+	// CreateUploadSession creates and returns a new (resumable) upload session.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error)
+
+	// UploadData uploads the data for a given upload session.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error)
+
+	// GetUploadSession returns the upload session for the provided id.
+	//
+	// @tag Upload
+	// Minimum server version: 7.6
+	GetUploadSession(uploadID string) (*model.UploadSession, error)
 }
 
 var handshake = plugin.HandshakeConfig{

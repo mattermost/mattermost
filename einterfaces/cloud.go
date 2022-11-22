@@ -10,7 +10,6 @@ import (
 type CloudInterface interface {
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
-	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
@@ -33,4 +32,5 @@ type CloudInterface interface {
 	InvalidateCaches() error
 
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
+	HandleLicenseChange() error
 }

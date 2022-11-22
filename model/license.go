@@ -78,12 +78,18 @@ type TrialLicenseRequest struct {
 }
 
 type Features struct {
-	Users                     *int  `json:"users"`
-	LDAP                      *bool `json:"ldap"`
-	LDAPGroups                *bool `json:"ldap_groups"`
-	MFA                       *bool `json:"mfa"`
-	GoogleOAuth               *bool `json:"google_oauth"`
-	Office365OAuth            *bool `json:"office365_oauth"`
+	Users      *int  `json:"users"`
+	LDAP       *bool `json:"ldap"`
+	LDAPGroups *bool `json:"ldap_groups"`
+	MFA        *bool `json:"mfa"`
+
+	// Deprecated: This feature will be removed from the license because it's available without a license.
+	GoogleOAuth *bool `json:"google_oauth"`
+
+	// Deprecated: This feature will be removed from the license because it's available without a license.
+	Office365OAuth *bool `json:"office365_oauth"`
+
+	// Deprecated: This feature will be removed from the license because it's available without a license.
 	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
@@ -165,15 +171,15 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.GoogleOAuth == nil {
-		f.GoogleOAuth = NewBool(*f.FutureFeatures)
+		f.GoogleOAuth = NewBool(true)
 	}
 
 	if f.Office365OAuth == nil {
-		f.Office365OAuth = NewBool(*f.FutureFeatures)
+		f.Office365OAuth = NewBool(true)
 	}
 
 	if f.OpenId == nil {
-		f.OpenId = NewBool(*f.FutureFeatures)
+		f.OpenId = NewBool(true)
 	}
 
 	if f.Compliance == nil {
