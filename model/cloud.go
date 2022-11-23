@@ -16,6 +16,8 @@ const (
 	EventTypeTriggerDelinquencyEmail      = "trigger-delinquency-email"
 )
 
+const UpcomingInvoice = "upcoming"
+
 var MockCWS string
 
 type BillingScheme string
