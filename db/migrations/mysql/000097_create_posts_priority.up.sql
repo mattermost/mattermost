@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS PostsPriority (
     PostId varchar(26) NOT NULL,
     ChannelId varchar(26) NOT NULL,
-    Priority varchar(32),
+    Priority varchar(32) NOT NULL,
     RequestedAck tinyint(1),
     PersistentNotifications tinyint(1),
     PRIMARY KEY (PostId)
@@ -14,7 +14,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'UrgentMentionCount'
     ),
-    'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20);',
+    'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20) DEFAULT 0;',
     'SELECT 1;'
 ));
 
