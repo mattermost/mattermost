@@ -2324,8 +2324,8 @@
     "translation": "Unable to parse the request body."
   },
   {
-    "id": "api.post.search_posts.invalid_body.exclusive_parameters",
-    "translation": "Request contains mutually exclusive parameters."
+    "id": "api.post.search_posts.invalid_body.search_mentions_is_or_search",
+    "translation": "Parameter is_or_search must be true when parameter search_mentions is true."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",

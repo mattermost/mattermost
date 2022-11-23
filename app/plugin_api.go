@@ -546,12 +546,12 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	hasUserMention := false
-	if searchParams.HasUserMention != nil {
-		hasUserMention = *searchParams.HasUserMention
+	searchMentions := false
+	if searchParams.SearchMentions != nil {
+		searchMentions = *searchParams.SearchMentions
 	}
 
-	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages, hasUserMention)
+	results, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage, model.ModifierMessages, searchMentions)
 	if results != nil {
 		results = results.ForPlugin()
 	}

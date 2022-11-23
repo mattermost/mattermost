@@ -1534,7 +1534,7 @@ func (a *App) getMentionKeysForUserSearch(c *request.Context) ([]string, *model.
 	return keywords, nil
 }
 
-func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string, hasUserMention bool) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int, modifier string, searchMentions bool) (*model.PostSearchResults, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnablePostSearch {
 		return nil, model.NewAppError("SearchPostsForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
 	}
@@ -1542,7 +1542,7 @@ func (a *App) SearchPostsForUser(c *request.Context, terms string, userID string
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
-	if hasUserMention {
+	if searchMentions {
 		keywords, err := a.getMentionKeysForUserSearch(c)
 		if err != nil {
 			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

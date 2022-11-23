@@ -2570,11 +2570,11 @@ func TestSearchMentionPosts(t *testing.T) {
 
 	terms := ""
 	isOrSearch := true
-	hasUserMention := true
+	searchMentions := true
 	params := model.SearchParameter{
 		Terms:          &terms,
 		IsOrSearch:     &isOrSearch,
-		HasUserMention: &hasUserMention,
+		SearchMentions: &searchMentions,
 	}
 
 	posts, _, err := th.Client.SearchPostsWithParams("", &params)

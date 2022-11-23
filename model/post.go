@@ -166,7 +166,10 @@ type SearchParameter struct {
 	PerPage                *int    `json:"per_page"`
 	IncludeDeletedChannels *bool   `json:"include_deleted_channels"`
 	Modifier               *string `json:"modifier"` // whether it's messages or file
-	HasUserMention         *bool   `json:"has_user_mention"`
+
+	// Whether to search only posts that contain mentions for the current user, including group mentions and mention keys.
+	// If true, is_or_search must be true.
+	SearchMentions *bool `json:"search_mentions"`
 }
 
 type AnalyticsPostCountsOptions struct {
