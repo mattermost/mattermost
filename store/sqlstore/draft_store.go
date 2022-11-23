@@ -144,7 +144,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 
 	if teamID != "" {
 		query = query.
-			LeftJoin("Channels ON Drafts.ChannelId = Channels.Id").
+			Join("Channels ON Drafts.ChannelId = Channels.Id").
 			Where(sq.Or{
 				sq.Eq{"Channels.TeamId": teamID},
 				sq.Eq{"Channels.TeamId": ""},
