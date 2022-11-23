@@ -11,7 +11,6 @@ type CloudInterface interface {
 	GetCloudProduct(userID string, productID string) (*model.Product, error)
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
-	UpdateSubscriptionFromHook(*model.ProductLimits, *model.Subscription) error
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
@@ -34,4 +33,5 @@ type CloudInterface interface {
 	InvalidateCaches() error
 
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, subscriptionID string, subscriptionHistoryChange *model.SubscriptionHistoryChange) (*model.SubscriptionHistory, error)
+	HandleLicenseChange() error
 }
