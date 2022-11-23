@@ -2100,3 +2100,98 @@ func TestRegisterCollectionAndTopic(t *testing.T) {
 	err = api.RegisterCollectionAndTopic("some other collection", "topicToBeRepeated")
 	assert.Error(t, err)
 }
+
+func TestPluginUploadsAPI(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginCode := fmt.Sprintf(`
+    package main
+
+    import (
+		  "fmt"
+			"bytes"
+
+      "github.com/mattermost/mattermost-server/v6/model"
+      "github.com/mattermost/mattermost-server/v6/plugin"
+    )
+
+    type TestPlugin struct {
+      plugin.MattermostPlugin
+    }
+
+	  func (p *TestPlugin) OnActivate() error {
+		  data := []byte("some content to upload")
+			us, err := p.API.CreateUploadSession(&model.UploadSession{
+			  Id: "%s",
+				UserId: "%s",
+				ChannelId: "%s",
+				Type: model.UploadTypeAttachment,
+			  FileSize: int64(len(data)),
+				Filename: "upload.test",
+			})
+			if err != nil {
+			  return fmt.Errorf("failed to create upload session: %%w", err)
+			}
+
+			us2, err := p.API.GetUploadSession(us.Id)
+			if err != nil {
+			  return fmt.Errorf("failed to get upload session: %%w", err)
+			}
+
+			if us.Id != us2.Id {
+			  return fmt.Errorf("upload sessions should match")
+			}
+
+			fi, err := p.API.UploadData(us, bytes.NewBuffer(data))
+			if err != nil {
+			  return fmt.Errorf("failed to upload data: %%w", err)
+			}
+
+			if fi == nil || fi.Id == "" {
+			  return fmt.Errorf("fileinfo should be set")
+			}
+
+			fileData, appErr := p.API.GetFile(fi.Id)
+			if appErr != nil {
+			  return fmt.Errorf("failed to get file data: %%w", err)
+			}
+
+			if !bytes.Equal(data, fileData) {
+			  return fmt.Errorf("file data should match")
+			}
+
+		  return nil
+	  }
+
+    func main() {
+      plugin.ClientMain(&TestPlugin{})
+    }
+  `, model.NewId(), th.BasicUser.Id, th.BasicChannel.Id)
+
+	pluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := os.MkdirTemp("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	newPluginAPI := func(manifest *model.Manifest) plugin.API {
+		return th.App.NewPluginAPI(th.Context, manifest)
+	}
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	require.NoError(t, err)
+
+	th.App.ch.SetPluginsEnvironment(env)
+
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+}

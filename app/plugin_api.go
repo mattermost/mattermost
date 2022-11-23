@@ -1237,3 +1237,27 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
 	return api.app.Srv().pluginService.registerCollectionAndTopic(api.id, collectionType, topicType)
 }
+
+func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
+	us, err := api.app.CreateUploadSession(api.ctx, us)
+	if err != nil {
+		return nil, err
+	}
+	return us, nil
+}
+
+func (api *PluginAPI) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error) {
+	fi, err := api.app.UploadData(api.ctx, us, rd)
+	if err != nil {
+		return nil, err
+	}
+	return fi, nil
+}
+
+func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, error) {
+	fi, err := api.app.GetUploadSession(uploadID)
+	if err != nil {
+		return nil, err
+	}
+	return fi, nil
+}

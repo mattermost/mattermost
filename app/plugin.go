@@ -292,10 +292,6 @@ func (s *PluginService) syncPluginsActiveState() {
 	if err := s.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
-
-	if err := s.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
-	}
 }
 
 func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
@@ -516,12 +512,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
-	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
-	if appErr != nil {
-		return appErr
-	}
-
-	return a.ch.srv.pluginService.enablePlugin(id)
+	return a.PluginService().enablePlugin(id)
 }
 
 func (s *PluginService) enablePlugin(id string) *model.AppError {
@@ -627,20 +618,6 @@ func (s *PluginService) disablePlugin(id string) *model.AppError {
 	if _, _, err := s.platform.SaveConfig(s.platform.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	return nil
-}
-
-func (s *PluginService) notifyIntegrationsUsageChanged() *model.AppError {
-	usage, appErr := s.getIntegrationsUsage()
-	if appErr != nil {
-		return appErr
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil, "")
-	message.Add("usage", usage)
-	message.GetBroadcast().ContainsSensitiveData = true
-	s.platform.Publish(message)
 
 	return nil
 }

@@ -1057,17 +1057,6 @@ func TestEnablePluginWithCloudLimits(t *testing.T) {
 	appErr = th.App.EnablePlugin("testplugin")
 	checkNoError(t, appErr)
 
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkError(t, appErr)
-	require.Equal(t, "app.install_integration.reached_max_limit.error", appErr.Id)
-
-	th.App.Srv().RemoveLicense()
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkNoError(t, appErr)
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-	appErr = th.App.EnablePlugin("testplugin2")
-	checkError(t, appErr)
-
 	// Let enable succeed if a CWS error occurs
 	cloud = &mocks.CloudInterface{}
 	th.App.Srv().Cloud = cloud

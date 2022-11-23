@@ -69,8 +69,6 @@ type AppIface interface {
 	// If includeRemovedMembers is true, then channel members who left or were removed from the channel will
 	// be included; otherwise, they will be excluded.
 	ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, *model.AppError)
-	// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
-	CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError
 	// CheckProviderAttributes returns the empty string if the patch can be applied without
 	// overriding attributes set by the user's login provider; otherwise, the name of the offending
 	// field is returned.
@@ -93,7 +91,7 @@ type AppIface interface {
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
 	// If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 	// be re-added; otherwise, they will not be re-added.
-	CreateDefaultMemberships(c *request.Context, since int64, includeRemovedMembers bool) error
+	CreateDefaultMemberships(c *request.Context, params model.CreateDefaultMembershipParams) error
 	// CreateGuest creates a guest and sets several fields of the returned User struct to
 	// their zero values.
 	CreateGuest(c request.CTX, user *model.User) (*model.User, *model.AppError)
@@ -184,8 +182,6 @@ type AppIface interface {
 	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 	GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
-	// GetIntegrationsUsage returns usage information on enabled integrations
-	GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError)
 	// GetKnownUsers returns the list of user ids of users with any direct
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.

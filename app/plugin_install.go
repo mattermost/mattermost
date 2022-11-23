@@ -102,10 +102,6 @@ func (s *PluginService) installPluginFromData(data model.PluginEventData) {
 	if err2 := s.notifyPluginStatusesChanged(); err2 != nil {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err2))
 	}
-
-	if err2 := s.notifyIntegrationsUsageChanged(); err2 != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err2))
-	}
 }
 
 func (s *PluginService) removePluginFromData(data model.PluginEventData) {
@@ -117,10 +113,6 @@ func (s *PluginService) removePluginFromData(data model.PluginEventData) {
 
 	if err := s.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := s.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 }
 
@@ -175,10 +167,6 @@ func (s *PluginService) installPlugin(pluginFile, signature io.ReadSeeker, insta
 
 	if err := s.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := s.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -453,10 +441,6 @@ func (s *PluginService) RemovePlugin(id string) *model.AppError {
 
 	if err := s.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
-
-	if err := s.notifyIntegrationsUsageChanged(); err != nil {
-		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
 	}
 
 	return nil
