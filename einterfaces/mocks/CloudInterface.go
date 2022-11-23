@@ -233,6 +233,20 @@ func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, e
 	return r0, r1
 }
 
+// HandleLicenseChange provides a mock function with given fields:
+func (_m *CloudInterface) HandleLicenseChange() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // InvalidateCaches provides a mock function with given fields:
 func (_m *CloudInterface) InvalidateCaches() error {
 	ret := _m.Called()
@@ -314,20 +328,6 @@ func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *mod
 	}
 
 	return r0, r1
-}
-
-// UpdateSubscriptionFromHook provides a mock function with given fields: _a0, _a1
-func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _a1 *model.Subscription) error {
-	ret := _m.Called(_a0, _a1)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.ProductLimits, *model.Subscription) error); ok {
-		r0 = rf(_a0, _a1)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // ValidateBusinessEmail provides a mock function with given fields: userID, email
