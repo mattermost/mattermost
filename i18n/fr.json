@@ -8748,10 +8748,6 @@
     "translation": "Impossible d'obtenir tous les travaux par type et statuts."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Vous avez atteint la limite maximale de {{.NumIntegrations}} d'intégrations activées. Pour installer un nombre illimité d'intégrations, effectuez une mise à niveau vers l'un de nos plans payants."
-  },
-  {
     "id": "app.insights.feature_disabled",
     "translation": "La fonctionnalité des aperçus est désactivée."
   },
