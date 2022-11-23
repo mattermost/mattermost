@@ -4956,10 +4956,6 @@
     "translation": "Unable to save the Draft."
   },
   {
-    "id": "app.draft.save.existing.app_error",
-    "translation": "You cannot create an existing Draft."
-  },
-  {
     "id": "app.draft.update.app_error",
     "translation": "Unable to update the Draft."
   },
