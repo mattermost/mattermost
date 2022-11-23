@@ -8449,8 +8449,7 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 }
 
 func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
-	requestBody := map[string]string{"user_id": userId}
-	r, err := c.DoAPIPost(c.postRoute(postId)+"/ack", MapToJSON(requestBody))
+	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -8463,7 +8462,7 @@ func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, 
 }
 
 func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
-	r, err := c.DoAPIDelete(c.postRoute(postId) + "/ack/" + userId)
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.postRoute(postId) + "/ack")
 	if err != nil {
 		return BuildResponse(r), err
 	}

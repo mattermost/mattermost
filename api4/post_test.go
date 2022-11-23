@@ -3368,7 +3368,7 @@ func TestAcknowledgePost(t *testing.T) {
 
 	_, resp, err = client.AcknowledgePost(post.Id, "junk")
 	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser2.Id)
 	require.Error(t, err)

@@ -51,12 +51,11 @@ type Routes struct {
 	ChannelModerations       *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/moderations'
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
 
-	Posts                *mux.Router // 'api/v4/posts'
-	Post                 *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
-	PostsForChannel      *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
-	PostsForUser         *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts'
-	PostForUser          *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
-	PostAcknowledgements *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}/ack'
+	Posts           *mux.Router // 'api/v4/posts'
+	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
+	PostsForChannel *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/posts'
+	PostsForUser    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts'
+	PostForUser     *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}'
 
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
@@ -265,8 +264,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
 
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
-
-	api.BaseRoutes.PostAcknowledgements = api.BaseRoutes.Post.PathPrefix("/ack").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
