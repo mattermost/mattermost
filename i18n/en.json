@@ -148,6 +148,10 @@
     "translation": "Missing content type."
   },
   {
+    "id": "api.admin.syncables_error",
+    "translation": "failed to add user to group-teams and group-channels"
+  },
+  {
     "id": "api.admin.test_email.body",
     "translation": "It appears your Mattermost email is setup correctly!"
   },
@@ -482,10 +486,6 @@
   {
     "id": "api.cloud.request_error",
     "translation": "Error processing request to CWS."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error updating subscription from webhook."
   },
   {
     "id": "api.cloud.teams_limit_reached.create",
@@ -3908,6 +3908,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
     "id": "api.upload.get_upload.forbidden.app_error",
     "translation": "Failed to get upload."
   },
@@ -3930,6 +3934,10 @@
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
     "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "not an ldap user"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -5620,10 +5628,6 @@
     "translation": "Insights feature is disabled."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6546,10 +6550,6 @@
   {
     "id": "app.upload.create.save.app_error",
     "translation": "Failed to save upload."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Unable to upload file. File is too large."
   },
   {
     "id": "app.upload.get.app_error",
@@ -9513,7 +9513,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
