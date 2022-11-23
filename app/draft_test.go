@@ -387,10 +387,6 @@ func TestDeleteDraft(t *testing.T) {
 
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-
-		draftResp, getDraftErr := th.App.GetDraft(user.Id, channel.Id, "")
-		assert.Nil(t, getDraftErr)
-		assert.NotEqual(t, draft1.DeleteAt, draftResp.DeleteAt)
 	})
 
 	t.Run("get drafts feature flag", func(t *testing.T) {
