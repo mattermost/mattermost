@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 
@@ -323,48 +322,17 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	license := a.Srv().License()
 
 	if license.IsCloud() {
-		var subscription *model.Subscription
-		var cwsErr error
-		subscription, cwsErr = a.Cloud().GetSubscription(ruser.Id)
-
-		if cwsErr != nil {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
-		}
-
-		// no product ID found
-		if subscription.ProductID == "" {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_subscription.app_error", nil, "No productID", http.StatusBadRequest)
-		}
-
-		var product *model.Product
-
-		product, cwsErr = a.Cloud().GetCloudProduct(ruser.Id, subscription.ProductID)
-		if cwsErr != nil {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
-		}
-
-		usersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
+		// Get user count
+		userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 		if err != nil {
-			return ruser, model.NewAppError("createUserOrGuest", "app.cloud.get_product.fail_get_user_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			c.Logger().Error("Failed to get the user count", mlog.Err(err))
+			return ruser, nil
 		}
 
-		// If the current number of seats is greater than the originallyLicensedSeats (for yearly plan), then the new user exceeded the number of seats available.
-		// So create a new subscriptionHistoryEvent with an updated seats value that includes the new user.
-		if product.RecurringInterval == model.RecurringIntervalYearly && subscription.OriginallyLicensedSeats < int(usersCount) {
-
-			subscriptionHistoryChange := &model.SubscriptionHistoryChange{
-				SubscriptionID: subscription.ID,
-				Seats:          int(usersCount),
-				CreateAt:       time.Now().Unix(),
-			}
-
-			// var subscriptionHistoryEvent *model.SubscriptionHistory
-
-			_, cwsErr = a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, subscription.ID, subscriptionHistoryChange)
-
-			if cwsErr != nil {
-				return ruser, model.NewAppError("createUserOrGuest", "app.cloud.create_or_update_subscription_history_event.app_error", nil, cwsErr.Error(), http.StatusBadRequest)
-			}
+		_, cwsErr := a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, int(userCount))
+		if cwsErr != nil {
+			c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(cwsErr))
+			return ruser, nil
 		}
 	}
 

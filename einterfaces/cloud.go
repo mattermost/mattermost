@@ -32,6 +32,6 @@ type CloudInterface interface {
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
 
-	CreateOrUpdateSubscriptionHistoryEvent(userID string, subscriptionID string, subscriptionHistoryChange *model.SubscriptionHistoryChange) (*model.SubscriptionHistory, error)
+	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
 }

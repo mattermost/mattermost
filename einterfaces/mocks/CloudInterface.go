@@ -75,12 +75,12 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 }
 
 // CreateOrUpdateSubscriptionHistoryEvent provides a mock function with given fields: userID, subscriptionID, subscriptionHistoryChange
-func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, subscriptionID string, subscriptionHistoryChange *model.SubscriptionHistoryChange) (*model.SubscriptionHistory, error) {
-	ret := _m.Called(userID, subscriptionID, subscriptionHistoryChange)
+func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error) {
+	ret := _m.Called(userID, userCount)
 
 	var r0 *model.SubscriptionHistory
-	if rf, ok := ret.Get(0).(func(string, string, *model.SubscriptionHistoryChange) *model.SubscriptionHistory); ok {
-		r0 = rf(userID, subscriptionID, subscriptionHistoryChange)
+	if rf, ok := ret.Get(0).(func(string, int) *model.SubscriptionHistory); ok {
+		r0 = rf(userID, userCount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SubscriptionHistory)
@@ -88,8 +88,8 @@ func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, *model.SubscriptionHistoryChange) error); ok {
-		r1 = rf(userID, subscriptionID, subscriptionHistoryChange)
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, userCount)
 	} else {
 		r1 = ret.Error(1)
 	}
