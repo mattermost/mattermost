@@ -4789,7 +4789,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9308,7 +9308,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deins {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
+    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9569,5 +9569,13 @@
   {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Collection Typ existiert schon."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "Kein LDAP-Benutzer"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "Fehlschlag beim Hinzufügen des Benutzers zu Gruppen-Teams und -Kanälen"
   }
 ]
