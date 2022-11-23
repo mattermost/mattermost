@@ -239,6 +239,32 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 			}},
 			[]string{"test1"},
 		},
+		{
+			"Doesn't add a permission to a role with a the same exact name",
+			map[string]map[string]bool{
+				schemeRoleName: {
+					"test1": true,
+				},
+			},
+			permissionsMap{permissionTransformation{
+				On:  isNotRole(schemeRoleName),
+				Add: []string{"test2"},
+			}},
+			[]string{"test1"},
+		},
+		{
+			"Doesn't add a permission to a role with a different exact name but the same common name",
+			map[string]map[string]bool{
+				schemeRoleName: {
+					"test1": true,
+				},
+			},
+			permissionsMap{permissionTransformation{
+				On:  isNotRole(model.TeamAdminRoleId),
+				Add: []string{"test2"},
+			}},
+			[]string{"test1"},
+		},
 	}
 
 	for _, tc := range tt {
