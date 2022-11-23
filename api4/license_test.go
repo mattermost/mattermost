@@ -242,6 +242,7 @@ func TestRequestTrialLicense(t *testing.T) {
 	})
 
 	t.Run("trial license user count less than current users", func(t *testing.T) {
+		t.Skip("MM-48416")
 		nUsers := 1
 		license := model.NewTestLicense()
 		license.Features.Users = model.NewInt(nUsers)

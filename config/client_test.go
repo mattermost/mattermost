@@ -195,7 +195,7 @@ func TestGetClientConfig(t *testing.T) {
 				SkuShortName: "other",
 			},
 			map[string]string{
-				"InsightsEnabled": "false",
+				"InsightsEnabled": "true",
 			},
 		},
 		{
