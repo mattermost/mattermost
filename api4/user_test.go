@@ -6571,6 +6571,8 @@ func TestSingleThreadGet(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.PostPriority = false
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.PostPriority = true
+		cfg.FeatureFlags.PostPriority = true
 	})
 
 	client := th.Client
@@ -6602,6 +6604,10 @@ func TestSingleThreadGet(t *testing.T) {
 	require.NotNil(t, tr)
 	require.Equal(t, threads.Threads[0].PostId, tr.PostId)
 	require.Empty(t, tr.Participants[0].Username)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = false
+	})
 
 	tr, _, err = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
 	require.NoError(t, err)

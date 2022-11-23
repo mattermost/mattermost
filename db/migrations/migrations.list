@@ -194,8 +194,11 @@ db/migrations/mysql/000096_threads_threadteamid.down.sql
 db/migrations/mysql/000096_threads_threadteamid.up.sql
 db/migrations/mysql/000097_create_posts_priority.down.sql
 db/migrations/mysql/000097_create_posts_priority.up.sql
+<<<<<<< HEAD
 db/migrations/mysql/000098_create_post_acknowledgements.down.sql
 db/migrations/mysql/000098_create_post_acknowledgements.up.sql
+=======
+>>>>>>> upstream/master
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql

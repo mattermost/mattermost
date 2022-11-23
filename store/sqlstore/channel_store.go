@@ -477,7 +477,20 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 func (s *SqlChannelStore) initializeQueries() {
 	s.channelMembersForTeamWithSchemeSelectQuery = s.getQueryBuilder().
 		Select(
-			"ChannelMembers.*",
+			"ChannelMembers.ChannelId",
+			"ChannelMembers.UserId",
+			"ChannelMembers.Roles",
+			"ChannelMembers.LastViewedAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.MentionCountRoot",
+			"COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount",
+			"ChannelMembers.MsgCountRoot",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastUpdateAt",
+			"ChannelMembers.SchemeUser",
+			"ChannelMembers.SchemeAdmin",
+			"ChannelMembers.SchemeGuest",
 			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
 			"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
 			"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
@@ -785,7 +798,7 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 	var unreadChannel model.ChannelUnread
 	err := s.GetReplicaX().Get(&unreadChannel,
 		`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, (Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, ChannelMembers.UrgentMentionCount UrgentMentionCount, ChannelMembers.NotifyProps NotifyProps
+				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, (Channels.TotalMsgCountRoot - ChannelMembers.MsgCountRoot) MsgCountRoot, ChannelMembers.MentionCount MentionCount, ChannelMembers.MentionCountRoot MentionCountRoot, COALESCE(ChannelMembers.UrgentMentionCount, 0) UrgentMentionCount, ChannelMembers.NotifyProps NotifyProps
 			FROM
 				Channels, ChannelMembers
 			WHERE
@@ -1618,7 +1631,20 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 
 var channelMembersWithSchemeSelectQuery = `
 	SELECT
-		ChannelMembers.*,
+		ChannelMembers.ChannelId,
+		ChannelMembers.UserId,
+		ChannelMembers.Roles,
+		ChannelMembers.LastViewedAt,
+		ChannelMembers.MsgCount,
+		ChannelMembers.MentionCount,
+		ChannelMembers.MentionCountRoot,
+		COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
+		ChannelMembers.MsgCountRoot,
+		ChannelMembers.NotifyProps,
+		ChannelMembers.LastUpdateAt,
+		ChannelMembers.SchemeUser,
+		ChannelMembers.SchemeAdmin,
+		ChannelMembers.SchemeGuest,
 		COALESCE(Teams.DisplayName, '') TeamDisplayName,
 		COALESCE(Teams.Name, '') TeamName,
 		COALESCE(Teams.UpdateAt, 0) TeamUpdateAt,
@@ -2054,7 +2080,20 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
-			ChannelMembers.*,
+			ChannelMembers.ChannelId,
+			ChannelMembers.UserId,
+			ChannelMembers.Roles,
+			ChannelMembers.LastViewedAt,
+			ChannelMembers.MsgCount,
+			ChannelMembers.MentionCount,
+			ChannelMembers.MentionCountRoot,
+			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
+			ChannelMembers.MsgCountRoot,
+			ChannelMembers.NotifyProps,
+			ChannelMembers.LastUpdateAt,
+			ChannelMembers.SchemeUser,
+			ChannelMembers.SchemeAdmin,
+			ChannelMembers.SchemeGuest,
 			TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
 			TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
 			TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
@@ -2661,7 +2700,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 		cm.MsgCountRoot MsgCountRoot,
 		cm.MentionCount MentionCount,
 		cm.MentionCountRoot MentionCountRoot,
-		cm.UrgentMentionCount UrgentMentionCount,
+		COALESCE(cm.UrgentMentionCount, 0) UrgentMentionCount,
 		cm.LastViewedAt LastViewedAt,
 		cm.NotifyProps NotifyProps
 	FROM
@@ -2875,7 +2914,21 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 
 func (s SqlChannelStore) GetMembersForUserWithCursor(userID, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
 	query := s.getQueryBuilder().
-		Select("ChannelMembers.*",
+		Select(
+			"ChannelMembers.ChannelId",
+			"ChannelMembers.UserId",
+			"ChannelMembers.Roles",
+			"ChannelMembers.LastViewedAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.MentionCountRoot",
+			"COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount",
+			"ChannelMembers.MsgCountRoot",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastUpdateAt",
+			"ChannelMembers.SchemeUser",
+			"ChannelMembers.SchemeAdmin",
+			"ChannelMembers.SchemeGuest",
 			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
 			"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
 			"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",
@@ -3976,7 +4029,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 			ChannelMembers.MsgCount,
 			ChannelMembers.MentionCount,
 			ChannelMembers.MentionCountRoot,
-			ChannelMembers.UrgentMentionCount,
+			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
 			ChannelMembers.NotifyProps,
 			ChannelMembers.LastUpdateAt,
 			ChannelMembers.SchemeUser,
@@ -4026,7 +4079,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		channelIds = append(channelIds, channel.Id)
 	}
 	query = s.getQueryBuilder().
-		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, COALESCE(UrgentMentionCount, 0) UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.And{

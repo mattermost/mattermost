@@ -14,7 +14,7 @@ SET @preparedStatement = (SELECT IF(
         AND table_schema = DATABASE()
         AND column_name = 'UrgentMentionCount'
     ),
-    'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20) DEFAULT 0;',
+    'ALTER TABLE ChannelMembers ADD COLUMN UrgentMentionCount bigint(20);',
     'SELECT 1;'
 ));
 

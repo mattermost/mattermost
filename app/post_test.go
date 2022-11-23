@@ -2946,7 +2946,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
 	})
 
-	t.Run("Do NOT update the time, if cloud limit is NOT applicable", func(t *testing.T) {
+	t.Run("Remove the time if cloud limit is NOT applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
@@ -2960,13 +2960,15 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessiblePostTime, Value: "10"}, nil)
+		mockSystemStore.On("PermanentDeleteByName", mock.Anything).Return(nil, nil)
 		mockStore.On("System").Return(&mockSystemStore)
 
 		err := th.App.ComputeLastAccessiblePostTime()
 		assert.NoError(t, err)
 
 		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
 	})
 }
 
