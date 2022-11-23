@@ -55,6 +55,7 @@ func genStore() *mocks.Store {
 	mock.On("Webhook").Return(&mocks.WebhookStore{})
 	mock.On("NotifyAdmin").Return(&mocks.NotifyAdminStore{})
 	mock.On("Draft").Return(&mocks.DraftStore{})
+	mock.On("PostPriority").Return(&mocks.PostPriorityStore{})
 	return mock
 }
 

@@ -4560,6 +4560,10 @@
     "translation": "Unable to count messages since given date."
   },
   {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Unable to count urgent posts since given date."
+  },
+  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel."
   },
@@ -4686,6 +4690,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -6146,6 +6154,10 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Unable to get postpriority for post"
   },
   {
     "id": "app.post_reminder_dm",

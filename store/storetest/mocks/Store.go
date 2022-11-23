@@ -491,6 +491,22 @@ func (_m *Store) Post() store.PostStore {
 	return r0
 }
 
+// PostPriority provides a mock function with given fields:
+func (_m *Store) PostPriority() store.PostPriorityStore {
+	ret := _m.Called()
+
+	var r0 store.PostPriorityStore
+	if rf, ok := ret.Get(0).(func() store.PostPriorityStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPriorityStore)
+		}
+	}
+
+	return r0
+}
+
 // Preference provides a mock function with given fields:
 func (_m *Store) Preference() store.PreferenceStore {
 	ret := _m.Called()

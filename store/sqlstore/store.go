@@ -110,6 +110,7 @@ type SqlStoreStores struct {
 	sharedchannel        store.SharedChannelStore
 	draft                store.DraftStore
 	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
 }
 
 type SqlStore struct {
@@ -216,6 +217,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.productNotices = newSqlProductNoticesStore(store)
 	store.stores.draft = newSqlDraftStore(store, metrics)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -955,6 +957,10 @@ func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
 
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
+}
+
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
 }
 
 func (ss *SqlStore) Draft() store.DraftStore {
