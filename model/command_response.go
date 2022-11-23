@@ -30,32 +30,23 @@ type CommandResponse struct {
 }
 
 func CommandResponseFromHTTPBody(body io.Reader) (*CommandResponse, error) {
-	if commandResponse, err := CommandResponseFromJSON(body); err == nil {
+	if bodyRaw, err := io.ReadAll(body); err != nil {
+		return nil, nil
+	} else if commandResponse, err := CommandResponseFromJSON(bodyRaw); err == nil {
 		return commandResponse, nil
 	} else {
-		return CommandResponseFromPlainText(body)
-	}
-}
-
-func CommandResponseFromPlainText(body io.Reader) (*CommandResponse, error) {
-	if b, err := io.ReadAll(body); err == nil {
 		return &CommandResponse{
-			Text: string(b),
+			Text: string(bodyRaw),
 		}, nil
 	}
-	return nil, nil
 }
 
-func CommandResponseFromJSON(data io.Reader) (*CommandResponse, error) {
-	b, err := io.ReadAll(data)
-	if err != nil {
-		return nil, err
-	}
+func CommandResponseFromJSON(bodyRaw []byte) (*CommandResponse, error) {
 
 	var o CommandResponse
-	err = json.Unmarshal(b, &o)
+	err := json.Unmarshal(bodyRaw, &o)
 	if err != nil {
-		return nil, jsonutils.HumanizeJSONError(err, b)
+		return nil, jsonutils.HumanizeJSONError(err, bodyRaw)
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
