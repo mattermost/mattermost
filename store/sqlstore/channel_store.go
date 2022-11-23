@@ -58,10 +58,6 @@ type channelMember struct {
 }
 
 func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
-	urgentMentionCount := int64(0)
-	if cm.UrgentMentionCount != nil {
-		urgentMentionCount = *cm.UrgentMentionCount
-	}
 	return map[string]any{
 		"ChannelId":          cm.ChannelId,
 		"UserId":             cm.UserId,
@@ -70,7 +66,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"MsgCount":           cm.MsgCount,
 		"MentionCount":       cm.MentionCount,
 		"MentionCountRoot":   cm.MentionCountRoot,
-		"UrgentMentionCount": urgentMentionCount,
+		"UrgentMentionCount": cm.UrgentMentionCount,
 		"MsgCountRoot":       cm.MsgCountRoot,
 		"NotifyProps":        cm.NotifyProps,
 		"LastUpdateAt":       cm.LastUpdateAt,
@@ -88,7 +84,7 @@ type channelMemberWithSchemeRoles struct {
 	MsgCount                      int64
 	MentionCount                  int64
 	MentionCountRoot              int64
-	UrgentMentionCount            *int64
+	UrgentMentionCount            int64
 	NotifyProps                   model.StringMap
 	LastUpdateAt                  int64
 	SchemeGuest                   sql.NullBool
@@ -117,11 +113,6 @@ func channelMemberSliceColumns() []string {
 }
 
 func channelMemberToSlice(member *model.ChannelMember) []any {
-	urgentMentionCount := int64(0)
-	if member.UrgentMentionCount != nil {
-		urgentMentionCount = *member.UrgentMentionCount
-	}
-
 	resultSlice := []any{}
 	resultSlice = append(resultSlice, member.ChannelId)
 	resultSlice = append(resultSlice, member.UserId)
@@ -131,7 +122,7 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	resultSlice = append(resultSlice, member.MsgCountRoot)
 	resultSlice = append(resultSlice, member.MentionCount)
 	resultSlice = append(resultSlice, member.MentionCountRoot)
-	resultSlice = append(resultSlice, urgentMentionCount)
+	resultSlice = append(resultSlice, member.UrgentMentionCount)
 	resultSlice = append(resultSlice, model.MapToJSON(member.NotifyProps))
 	resultSlice = append(resultSlice, member.LastUpdateAt)
 	resultSlice = append(resultSlice, member.SchemeUser)
