@@ -2179,10 +2179,10 @@ func TestPluginUploadsAPI(t *testing.T) {
 	newPluginAPI := func(manifest *model.Manifest) plugin.API {
 		return th.App.NewPluginAPI(th.Context, manifest)
 	}
-	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv()), pluginDir, webappPluginDir, th.App.Log(), nil)
+	env, err := plugin.NewEnvironment(newPluginAPI, NewDriverImpl(th.App.Srv().Platform()), pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
-	th.App.ch.SetPluginsEnvironment(env)
+	th.App.PluginService().SetPluginsEnvironment(env)
 
 	pluginID := "testplugin"
 	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`

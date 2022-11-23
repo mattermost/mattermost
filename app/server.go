@@ -738,6 +738,10 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	// Stop the plugin service, we need to stop plugin service before stopping the
+	// product as products are being consumed by this service.
+	s.pluginService.ShutDownPlugins()
+
 	// Stop products.
 	// This needs to happen last because products are dependent
 	// on parent services.
@@ -746,8 +750,6 @@ func (s *Server) Shutdown() {
 			s.Log().Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
 		}
 	}
-
-	s.pluginService.ShutDownPlugins()
 
 	if err = s.platform.Shutdown(); err != nil {
 		s.Log().Warn("Failed to stop platform", mlog.Err(err))
@@ -846,12 +848,14 @@ func stripPort(hostport string) string {
 func (s *Server) Start() error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
-
 	// make sure channels starts first
 	if err := s.products["channels"].Start(); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
 	}
 
+	// This should actually be started after products, but we have a product hooks
+	// dependency for now, once that get sorted out, this should be moved to the appropriate
+	// order.
 	if err := s.InitializePluginService(); err != nil {
 		return errors.Wrap(err, "Unable to start plugin service")
 	}
