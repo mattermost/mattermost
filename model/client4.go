@@ -5520,7 +5520,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5529,6 +5529,8 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response, error) {
 		opts.Q,
 		opts.FilterParentTeamPermitted,
 		opts.Source,
+		opts.IncludeChannelMemberCount,
+		opts.IncludeTimezones,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -8486,19 +8488,6 @@ func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	defer closeBody(r)
 
 	var usage *TeamsUsage
-	err = json.NewDecoder(r.Body).Decode(&usage)
-	return usage, BuildResponse(r), err
-}
-
-// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
-func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var usage *IntegrationsUsage
 	err = json.NewDecoder(r.Body).Decode(&usage)
 	return usage, BuildResponse(r), err
 }
