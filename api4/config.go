@@ -68,7 +68,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		js, jsonErr := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if jsonErr != nil {
 			c.Err = model.NewAppError("getConfig", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
@@ -156,13 +156,13 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
 	}
 
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
+	if cfg.PluginSettings.PluginStates[model.PluginIdFocalboard].Enable && cfg.FeatureFlags.BoardsProduct {
+		c.Err = model.NewAppError("EnablePlugin", "app.plugin.product_mode.app_error", map[string]any{"Name": model.PluginIdFocalboard}, "", http.StatusInternalServerError)
 		return
 	}
 
 	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		// Both of them cannot be nil since cfg.SetDefaults is called earlier for cfg,
 		// and appCfg is the existing earlier config and if it's nil, server sets a default value.
 		if *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
@@ -209,7 +209,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if err != nil {
 			c.Err = model.NewAppError("updateConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -239,9 +239,9 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var config map[string]string
 	if c.AppContext.Session().UserId == "" {
-		config = c.App.LimitedClientConfigWithComputed()
+		config = c.App.Srv().Platform().LimitedClientConfigWithComputed()
 	} else {
-		config = c.App.ClientConfigWithComputed()
+		config = c.App.Srv().Platform().ClientConfigWithComputed()
 	}
 
 	w.Write([]byte(model.MapToJSON(config)))
@@ -299,13 +299,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if appErr := c.App.CheckFreemiumLimitsForConfigSave(appCfg, cfg); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	// There are some settings that cannot be changed in a cloud env
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		if cfg.ComplianceSettings.Directory != nil && *appCfg.ComplianceSettings.Directory != *cfg.ComplianceSettings.Directory {
 			c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ComplianceSettings.Directory"}, "", http.StatusForbidden)
 			return
@@ -359,7 +354,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud {
+	if c.App.Channels().License().IsCloud() {
 		js, err := cfg.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
 		if err != nil {
 			c.Err = model.NewAppError("patchConfig", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)

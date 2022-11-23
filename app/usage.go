@@ -10,41 +10,10 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// CheckFreemiumLimitsForConfigSave returns an error if the configuration being saved violates a cloud plan's limits
-func (a *App) CheckFreemiumLimitsForConfigSave(oldConfig, newConfig *model.Config) *model.AppError {
-	appErr := a.checkIntegrationLimitsForConfigSave(oldConfig, newConfig)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
-
-// GetIntegrationsUsage returns usage information on enabled integrations
-func (a *App) GetIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
-	return a.ch.getIntegrationsUsage()
-}
-
-func (ch *Channels) getIntegrationsUsage() (*model.IntegrationsUsage, *model.AppError) {
-	installed, appErr := ch.getInstalledIntegrations()
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	var count = 0
-	for _, i := range installed {
-		if i.Enabled {
-			count++
-		}
-	}
-
-	return &model.IntegrationsUsage{Enabled: count}, nil
-}
-
 // GetPostsUsage returns the total posts count rounded down to the most
 // significant digit
 func (a *App) GetPostsUsage() (int64, *model.AppError) {
-	count, err := a.Srv().Store.Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true, AllowFromCache: true})
+	count, err := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true, UsersPostsOnly: true, AllowFromCache: true})
 	if err != nil {
 		return 0, model.NewAppError("GetPostsUsage", "app.post.analytics_posts_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -54,7 +23,7 @@ func (a *App) GetPostsUsage() (int64, *model.AppError) {
 
 // GetStorageUsage returns the sum of files' sizes stored on this instance
 func (a *App) GetStorageUsage() (int64, *model.AppError) {
-	usage, err := a.Srv().Store.FileInfo().GetStorageUsage(true, false)
+	usage, err := a.Srv().Store().FileInfo().GetStorageUsage(true, false)
 	if err != nil {
 		return 0, model.NewAppError("GetStorageUsage", "app.usage.get_storage_usage.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -64,7 +33,7 @@ func (a *App) GetStorageUsage() (int64, *model.AppError) {
 func (a *App) GetTeamsUsage() (*model.TeamsUsage, *model.AppError) {
 	usage := &model.TeamsUsage{}
 	includeDeleted := false
-	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &includeDeleted})
+	teamCount, err := a.Srv().Store().Team().AnalyticsTeamCount(&model.TeamSearch{IncludeDeleted: &includeDeleted})
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUsage", "app.post.analytics_teams_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -1,0 +1,3 @@
+<mj-column css-class="messageAvatarCol">
+    <mj-image css-class="messageAvatar" src="cid:{{.SenderPhoto}}" padding="0px" />
+</mj-column>

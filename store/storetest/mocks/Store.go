@@ -305,6 +305,22 @@ func (_m *Store) GetInternalMasterDB() *sql.DB {
 	return r0
 }
 
+// GetInternalReplicaDB provides a mock function with given fields:
+func (_m *Store) GetInternalReplicaDB() *sql.DB {
+	ret := _m.Called()
+
+	var r0 *sql.DB
+	if rf, ok := ret.Get(0).(func() *sql.DB); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sql.DB)
+		}
+	}
+
+	return r0
+}
+
 // GetInternalReplicaDBs provides a mock function with given fields:
 func (_m *Store) GetInternalReplicaDBs() []*sql.DB {
 	ret := _m.Called()
@@ -453,6 +469,22 @@ func (_m *Store) Post() store.PostStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PostStore)
+		}
+	}
+
+	return r0
+}
+
+// PostPriority provides a mock function with given fields:
+func (_m *Store) PostPriority() store.PostPriorityStore {
+	ret := _m.Called()
+
+	var r0 store.PostPriorityStore
+	if rf, ok := ret.Get(0).(func() store.PostPriorityStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostPriorityStore)
 		}
 	}
 

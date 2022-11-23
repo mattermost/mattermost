@@ -354,6 +354,9 @@ var PermissionRunManageProperties *Permission
 var PermissionRunManageMembers *Permission
 var PermissionRunView *Permission
 
+var PermissionSysconsoleReadProductsBoards *Permission
+var PermissionSysconsoleWriteProductsBoards *Permission
+
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
 // admin functions but not others
@@ -2070,6 +2073,19 @@ func initializePermissions() {
 		PermissionScopeRun,
 	}
 
+	PermissionSysconsoleReadProductsBoards = &Permission{
+		"sysconsole_read_products_boards",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteProductsBoards = &Permission{
+		"sysconsole_write_products_boards",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2125,6 +2141,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatures,
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadExperimentalBleve,
+		PermissionSysconsoleReadProductsBoards,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2182,6 +2199,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatures,
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteExperimentalBleve,
+		PermissionSysconsoleWriteProductsBoards,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{

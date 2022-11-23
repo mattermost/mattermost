@@ -1777,7 +1777,7 @@
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Je hebt je e-mailadres bijgewerkt"
+    "translation": "Je hebt je e-mailadres succesvol bijgewerkt"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -4325,7 +4325,7 @@
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd bevatten"
+    "translation": "Aangemaakt op moet een geldige tijd bevatten."
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
@@ -4781,11 +4781,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 44+"
+    "translation": "Versie 95+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 100+"
+    "translation": "Versie 106+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5606,14 +5606,6 @@
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
     "translation": "De kanalen van de uitgenodigde moet een kanaal dat deel uitmaakt van het team."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Je licentie ondersteunt geen gastgebruikers"
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Gast accounts zijn uitgeschakeld"
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -9227,10 +9219,6 @@
     "translation": "Niet gelukt om het aan aantal teams op te halen"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
-  },
-  {
     "id": "api.cloud.teams_limit_reached.restore",
     "translation": "Kan het team niet herstellen omdat de teamlimiet bereikt is"
   },
@@ -9351,7 +9339,7 @@
     "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9467,7 +9455,7 @@
     "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9537,5 +9525,45 @@
   {
     "id": "api.templates.delinquency_90.title",
     "translation": "Jouw Mattermost-werkruimte werd gedowngraded"
+  },
+  {
+    "id": "app.job.error",
+    "translation": "Fout tijdens het uitvoeren van de opdracht."
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "groepsnaam bestaat al als een gereserveerde naam"
+  },
+  {
+    "id": "app.plugin.product_mode.app_error",
+    "translation": "Plugin {{.Name}} kan niet worden ingeschakeld in de productmodus."
+  },
+  {
+    "id": "app.last_accessible_file.app_error",
+    "translation": "Fout bij het ophalen van het laatst toegankelijke bestand"
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Kan het bestand niet ophalen omdat dit bestand over de limiet van het cloud plan is."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.license.error",
+    "translation": "Jouw licentie ondersteunt geen gastaccounts"
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.disabled.error",
+    "translation": "Gastaccounts zijn uitgeschakeld"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ongeldig tijdsbereik."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topictype bestaat al."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collectietype bestaat al."
   }
 ]
