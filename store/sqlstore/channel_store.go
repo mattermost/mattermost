@@ -4029,7 +4029,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 			ChannelMembers.MsgCount,
 			ChannelMembers.MentionCount,
 			ChannelMembers.MentionCountRoot,
-			COALESCE(ChannelMembers.UrgentMentionCount, 0),
+			COALESCE(ChannelMembers.UrgentMentionCount, 0) AS UrgentMentionCount,
 			ChannelMembers.NotifyProps,
 			ChannelMembers.LastUpdateAt,
 			ChannelMembers.SchemeUser,
