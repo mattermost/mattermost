@@ -9204,10 +9204,6 @@
     "translation": "Nem kérdezhető le a csapatok száma"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Elérte az engedélyezett integrációk maximális számát {{.NumIntegrations}}. Korlátlan számú integráció telepítéséhez frissítsen valamelyik fizetős csomagunkra."
-  },
-  {
     "id": "app.post.analytics_teams_count.app_error",
     "translation": "Nem kérdezhető le a csapat használtság"
   },
