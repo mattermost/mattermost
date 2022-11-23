@@ -17,7 +17,7 @@ import (
 
 func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
 	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID)
@@ -49,27 +49,12 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	if dt == nil {
 		dt, err = a.CreateDraft(c, draft, connectionID)
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
-				return nil, appErr
-			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("UpsertDraft", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				return nil, model.NewAppError("UpsertDraft", "app.insert_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, err
 		}
 	} else {
 		dt, err = a.UpdateDraft(c, draft, connectionID)
 		if err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
-				return nil, appErr
-			default:
-				return nil, model.NewAppError("UpsertGroupSyncable", "app.update_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, err
 		}
 	}
 
@@ -95,27 +80,12 @@ func (a *App) CreateDraft(c *request.Context, draft *model.Draft, connectionID s
 
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreateDraft", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Save(draft)
 	if nErr != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("CreateDraft", "app.draft.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
-		default:
-			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
@@ -139,35 +109,23 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 	// Check that channel exists and has not been deleted
 	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
 	if errCh != nil {
-		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, errCh.Error(), http.StatusBadRequest)
+		err := model.NewAppError("UpdateDraft", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "draft.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
+		err := model.NewAppError("UpdateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreateDraft", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("UpdateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	dt, nErr := a.Srv().Store().Draft().Update(draft)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("UpdateDraft", "app.draft.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("UpdateDraft", "app.draft.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
@@ -184,8 +142,8 @@ func (a *App) UpdateDraft(c *request.Context, draft *model.Draft, connectionID s
 }
 
 func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+		return nil, model.NewAppError("GetDraftsForUser", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	drafts, err := a.Srv().Store().Draft().GetDraftsForUser(userID, teamID)
@@ -202,7 +160,7 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 
 func (a *App) prepareDraftWithFileInfos(userID string, draft *model.Draft) *model.Draft {
 	if fileInfos, err := a.getFileInfosForDraft(draft); err != nil {
-		mlog.Warn("Failed to get files for a user's drafts", mlog.String("user_id", userID), mlog.Err(err))
+		mlog.Error("Failed to get files for a user's drafts", mlog.String("user_id", userID), mlog.Err(err))
 	} else {
 		draft.Metadata = &model.PostMetadata{}
 		draft.Metadata.Files = fileInfos
@@ -227,8 +185,8 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 }
 
 func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
-	if !a.Config().FeatureFlags.GlobalDrafts {
-		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
+		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID)
@@ -237,13 +195,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*mode
 	}
 
 	if err := a.Srv().Store().Draft().Delete(userID, channelID, rootID); err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	draftJSON, jsonErr := json.Marshal(draft)

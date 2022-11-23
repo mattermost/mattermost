@@ -98,7 +98,6 @@ func TestUpsertDraft(t *testing.T) {
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
 		assert.Equal(t, draft2.CreateAt, draftResp.CreateAt)
-		assert.Equal(t, draft2.CreateAt, draftResp.CreateAt)
 
 		assert.NotEqual(t, draft1.UpdateAt, draftResp.UpdateAt)
 	})

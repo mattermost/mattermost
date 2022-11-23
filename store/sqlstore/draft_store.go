@@ -57,6 +57,7 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, err
 			"UserId":    userId,
 			"ChannelId": channelId,
 			"RootId":    rootId,
+			"DeleteAt":  0,
 		})
 
 	dt := model.Draft{}
@@ -103,12 +104,7 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 
 	query := s.getQueryBuilder().
 		Update("Drafts").
-		Set("CreateAt", draft.CreateAt).
 		Set("UpdateAt", draft.UpdateAt).
-		Set("DeleteAt", draft.DeleteAt).
-		Set("UserId", draft.UserId).
-		Set("ChannelId", draft.ChannelId).
-		Set("RootId", draft.RootId).
 		Set("Message", draft.Message).
 		Set("Props", draft.Props).
 		Set("FileIds", draft.FileIds).
@@ -116,6 +112,7 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 			"UserId":    draft.UserId,
 			"ChannelId": draft.ChannelId,
 			"RootId":    draft.RootId,
+			"DeleteAt":  0,
 		})
 
 	sql, args, err := query.ToSql()
@@ -139,7 +136,6 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
 		Where(sq.And{
-			sq.NotEq{"Drafts.Message": ""},
 			sq.Eq{"Drafts.DeleteAt": 0},
 			sq.Eq{"Drafts.UserId": userID},
 			sq.Eq{"ChannelMembers.UserId": userID},
