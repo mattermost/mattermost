@@ -56,9 +56,18 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false, false)
 
 		list.Posts[id] = post
+	}
+
+	if a.isPostPriorityEnabled() {
+		priority, _ := a.GetPriorityForPostList(list)
+		for _, id := range list.Order {
+			if _, ok := priority[id]; ok {
+				list.Posts[id].Metadata.Priority = priority[id]
+			}
+		}
 	}
 
 	return list
@@ -90,7 +99,7 @@ func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 	}
 }
 
-func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
+func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -123,11 +132,20 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 		post.Metadata.Files = fileInfos
 	}
 
+	if includePriority && a.isPostPriorityEnabled() && post.RootId == "" {
+		// Post's Priority if any
+		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
+			mlog.Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+		} else {
+			post.Metadata.Priority = priority
+		}
+	}
+
 	return post
 }
 
-func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost bool) *model.Post {
-	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost)
+func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
+	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost, includePriority)
 	post = a.getEmbedsAndImages(c, post, isNewPost)
 	return post
 }
@@ -562,7 +580,7 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 		} else {
 			// referencedPost does not contain a permalink: we get its metadata
-			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false)
+			referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
 			permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 		}
 	} else {

@@ -65,6 +65,13 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
+
+	if us.FileSize > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("createUpload", "api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
 	rus, err := c.App.CreateUploadSession(c.AppContext, &us)
 	if err != nil {
 		c.Err = err

@@ -1741,13 +1741,14 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 		} else {
 			teamIDs = append(teamIDs, id)
 			membersMap[id] = unreads(data[i], &model.TeamUnread{
-				MsgCount:           0,
-				MentionCount:       0,
-				MentionCountRoot:   0,
-				MsgCountRoot:       0,
-				ThreadCount:        0,
-				ThreadMentionCount: 0,
-				TeamId:             id,
+				MsgCount:                 0,
+				MentionCount:             0,
+				MentionCountRoot:         0,
+				MsgCountRoot:             0,
+				ThreadCount:              0,
+				ThreadMentionCount:       0,
+				ThreadUrgentMentionCount: 0,
+				TeamId:                   id,
 			})
 		}
 	}
@@ -1755,7 +1756,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	includeCollapsedThreads = includeCollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	if includeCollapsedThreads {
-		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs)
+		teamUnreads, err := a.Srv().Store().Thread().GetTeamsUnreadForUser(userID, teamIDs, a.isPostPriorityEnabled())
 		if err != nil {
 			return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1763,6 +1764,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 			if _, ok := teamUnreads[teamID]; ok {
 				member.ThreadCount = teamUnreads[teamID].ThreadCount
 				member.ThreadMentionCount = teamUnreads[teamID].ThreadMentionCount
+				member.ThreadUrgentMentionCount = teamUnreads[teamID].ThreadUrgentMentionCount
 			}
 		}
 	}
