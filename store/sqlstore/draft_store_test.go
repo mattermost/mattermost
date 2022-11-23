@@ -15,7 +15,6 @@ import (
 
 func TestDraftStore(t *testing.T) {
 	StoreTestWithSqlStore(t, storetest.TestDraftStore)
-	// t.Run("GetDraftsForUser", func(t *testing.T) { testGetDraftsForUser(t, ss) })
 }
 
 func TestSaveDraft(t *testing.T) {
