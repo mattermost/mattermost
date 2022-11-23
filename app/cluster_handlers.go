@@ -37,6 +37,9 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 	pluginID := msg.Props["PluginID"]
+	if pluginID == "" {
+		pluginID = msg.Props["ProductID"]
+	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
