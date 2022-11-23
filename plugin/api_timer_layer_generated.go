@@ -1246,3 +1246,24 @@ func (api *apiTimerLayer) RegisterCollectionAndTopic(collectionType, topicType s
 	api.recordTime(startTime, "RegisterCollectionAndTopic", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateUploadSession(us)
+	api.recordTime(startTime, "CreateUploadSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UploadData(us, rd)
+	api.recordTime(startTime, "UploadData", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetUploadSession(uploadID string) (*model.UploadSession, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetUploadSession(uploadID)
+	api.recordTime(startTime, "GetUploadSession", _returnsB == nil)
+	return _returnsA, _returnsB
+}

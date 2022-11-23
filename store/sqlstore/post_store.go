@@ -1400,6 +1400,23 @@ func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOpti
 	return s.getPostsAround(false, options, sanitizeOptions)
 }
 
+func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"CreateAt": since})
+
+	result := []*model.Post{}
+	err := s.GetReplicaX().SelectBuilder(&result, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+
+	return result, nil
+}
+
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
@@ -1670,7 +1687,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			FROM
 				Posts
 			WHERE
-				ChannelId = ? ` + deleteAtCondition + ` 
+				ChannelId = ? ` + deleteAtCondition + `
 			ORDER BY CreateAt DESC
 			LIMIT ? OFFSET ?) q
 		WHERE q.RootId != ''`
@@ -1757,30 +1774,18 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
                 FROM
                     Posts
                 WHERE
-                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+` 
+                    Posts.ChannelId = ? `+deleteAtSubQueryCondition+`
                 ORDER BY Posts.CreateAt DESC
                 LIMIT ? OFFSET ?) q3
             WHERE q3.RootId != '') q1
             ON `+onStatement+`
         WHERE
-            q2.ChannelId = ? `+deleteAtQueryCondition+` 
+            q2.ChannelId = ? `+deleteAtQueryCondition+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
 	}
 	return posts, nil
-}
-
-var specialSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	"@",
-	":",
 }
 
 // GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
@@ -1972,8 +1977,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range s.specialSearchChars() {
 		terms = strings.Replace(terms, c, " ", -1)
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
