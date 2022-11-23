@@ -259,6 +259,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
+	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
+		post.Metadata.Priority = nil
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var metadata *model.PostMetadata
 		if post.Metadata != nil {
@@ -351,7 +355,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(c, rpost, true, false, true)
+	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
+	// so we just return the one that was passed with post
+	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
