@@ -1804,7 +1804,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				if err != nil {
 					return 0, 0, 0, err
 				}
-				if *priority.Priority == model.PostPriorityUrgent {
+				if priority != nil && *priority.Priority == model.PostPriorityUrgent {
 					urgentCount += 1
 				}
 			}
