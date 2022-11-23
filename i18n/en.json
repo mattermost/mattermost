@@ -5656,10 +5656,6 @@
     "translation": "Insights feature is disabled."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },

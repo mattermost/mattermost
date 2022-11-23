@@ -9152,10 +9152,6 @@
     "translation": " "
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Has alcanzado el límite máximo de {{.NumIntegrations}} integraciones activas. Para instalar integraciones ilimitadas, actualiza a uno de unos planes de pago."
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "El Nombre debe tener 1 o más caracteres alfanuméricos en minúsculas."
   },
