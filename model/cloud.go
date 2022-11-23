@@ -99,7 +99,13 @@ type SelfHostedSignupCustomerResponse struct {
 
 // SelfHostedSignupConfirmResponse contains data received on successful self hosted signup
 type SelfHostedSignupConfirmResponse struct {
-	License string
+	License  string
+	Progress string `json:"progress"`
+}
+
+type SelfHostedSignupConfirmClientResponse struct {
+	License  map[string]string
+	Progress string `json:"progress"`
 }
 
 // Customer model represents a customer on the system.

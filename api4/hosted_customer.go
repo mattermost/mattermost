@@ -140,13 +140,13 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	licensePayload, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm)
+	confirmResponse, err := c.App.Cloud().ConfirmSelfHostedSignup(confirm)
 	fmt.Println(where + " D")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	license, err := c.App.Srv().Platform().SaveLicense([]byte(licensePayload))
+	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
 	fmt.Println(where + " E")
 	if err != nil {
 		valErr := reflect.ValueOf(err)
@@ -156,14 +156,17 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	clientLicense, err := json.Marshal(utils.GetClientLicense(license))
+	clientResponse, err := json.Marshal(model.SelfHostedSignupConfirmClientResponse{
+		License:  utils.GetClientLicense(license),
+		Progress: confirmResponse.Progress,
+	})
 	fmt.Println(where + " F")
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	_, _ = w.Write(clientLicense)
+	_, _ = w.Write(clientResponse)
 }
 
 func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
