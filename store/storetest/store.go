@@ -56,6 +56,7 @@ type Store struct {
 	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 	NotifyAdminStore          mocks.NotifyAdminStore
+	PostPriorityStore         mocks.PostPriorityStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -100,6 +101,7 @@ func (s *Store) NotifyAdmin() store.NotifyAdminStore     { return &s.NotifyAdmin
 func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
 func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
+func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
 func (s *Store) MarkSystemRanUnitTests()                 { /* do nothing */ }
 func (s *Store) Close()                                  { /* do nothing */ }
 func (s *Store) LockToMaster()                           { /* do nothing */ }
@@ -158,5 +160,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ProductNoticesStore,
 		&s.SharedChannelStore,
 		&s.NotifyAdminStore,
+		&s.PostPriorityStore,
 	)
 }

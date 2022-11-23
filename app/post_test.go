@@ -1598,7 +1598,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1637,7 +1637,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1676,7 +1676,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1713,7 +1713,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1755,7 +1755,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1809,7 +1809,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -1863,7 +1863,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 and post5 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1912,7 +1912,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// should be mentioned by post2 and post3
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
@@ -1942,12 +1942,12 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 2, count)
 
-		count, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
+		count, _, _, err = th.App.countMentionsFromPost(th.Context, user1, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 0, count)
@@ -1984,7 +1984,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post1 and post3 should mention the user, but we only count post3
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post2)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post2)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2015,7 +2015,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post2 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2062,7 +2062,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post4 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post3)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2102,7 +2102,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// post3 should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, 1, count)
@@ -2138,10 +2138,69 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		// Every post should mention the user
 
-		count, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+		count, _, _, err := th.App.countMentionsFromPost(th.Context, user2, post1)
 
 		assert.Nil(t, err)
 		assert.Equal(t, numPosts, count)
+	})
+
+	t.Run("should count urgent mentions", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_POSTPRIORITY", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_POSTPRIORITY")
+
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			cfg.FeatureFlags.PostPriority = true
+		})
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+
+		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
+
+		post1, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "apple",
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority: model.NewString(model.PostPriorityUrgent),
+				},
+			},
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// all posts mention the user but only post1, post3 are urgent
+
+		_, _, count, err := th.App.countMentionsFromPost(th.Context, user2, post1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, 2, count)
 	})
 }
 
