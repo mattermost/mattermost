@@ -9364,7 +9364,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Starter."
+    "translation": "Vi kunde inte debitera det kreditkort som vi har registrerat. Detta innebär att din arbetsyta riskerar att nedgraderas till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9428,7 +9428,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Starter."
+    "translation": "Dessutom kan dina data ha arkiverats på grund av begränsningar i Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9452,11 +9452,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Starter."
+    "translation": "Uppdatera din betalningsinformation nu, eller nedgradera till Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Starter. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
+    "translation": "Din arbetsplats kommer att nedgraderas till Cloud Free. Dina {{.Plan}}-funktioner kommer att spärras och delar av dina arbetsytedata kan komma att arkiveras tills hela ditt utestående belopp är betalt."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9496,7 +9496,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Starter nedan."
+    "translation": "Uppdatera din betalningsinformation nu eller nedgradera till Cloud Free nedan."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
