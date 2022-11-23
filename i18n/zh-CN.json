@@ -6636,10 +6636,6 @@
     "translation": "获取上传失败。"
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "无法上传文件。文件过大。"
-  },
-  {
     "id": "app.upload.create.incorrect_channel_id.app_error",
     "translation": "无法上传到指定的频道。"
   },
@@ -9202,10 +9198,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "无法创建团队，因为已达到团队限制"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "从 webhook 更新订阅时出错。"
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",

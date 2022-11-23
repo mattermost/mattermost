@@ -6600,10 +6600,6 @@
     "translation": "{{.Filename}} wymiary ({{.width}} według {{.Height}} pikseli) przekraczają limity."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu. Plik jest zbyt duży."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nie można utworzyć wiadomości na usuniętym kanale."
   },
@@ -9190,10 +9186,6 @@
   {
     "id": "api.templates.server_inactivity_footer_disclaimer",
     "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Błąd aktualizacji subskrypcji z webhooka."
   },
   {
     "id": "api.file.cloud_upload.app_error",

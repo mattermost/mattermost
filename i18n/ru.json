@@ -6976,10 +6976,6 @@
     "translation": "Не удалось получить загрузки."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Невозможно загрузить файл. Он слишком большой."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Невозможно создать пост в удаленном канале."
   },
@@ -9242,10 +9238,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Невозможно создать команду, потому что достигнут лимит команд"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Ошибка обновления подписки из webhook."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",

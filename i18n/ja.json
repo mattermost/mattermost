@@ -6636,10 +6636,6 @@
     "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "ユーザーがチームリストに所属するかどうか確認できませんでした。"
   },
@@ -9190,10 +9186,6 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
   },
   {
     "id": "app.install_integration.reached_max_limit.error",
