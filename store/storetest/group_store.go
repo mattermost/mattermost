@@ -971,20 +971,19 @@ func testGroupGetMemberUsersSortedPage(t *testing.T, ss store.Store) {
 
 	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
 	require.NoError(t, err)
-	/*
-		// Check nickname ordering, paged
-		groupMembers, err := ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowNicknameFullName)
-		require.NoError(t, err)
-		require.Equal(t, 2, len(groupMembers))
-		require.ElementsMatch(t, []*model.User{user1, user2}, groupMembers)
-		groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowNicknameFullName)
-		require.NoError(t, err)
-		require.Equal(t, 1, len(groupMembers))
-		require.ElementsMatch(t, []*model.User{user3}, groupMembers)
-	*/
+
+	// Check nickname ordering, paged
+	groupMembers, err := ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowNicknameFullName)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user1, user2}, groupMembers)
+	groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowNicknameFullName)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user3}, groupMembers)
 
 	// Check full name ordering, paged
-	groupMembers, err := ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowFullName)
+	groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowFullName)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
 	require.ElementsMatch(t, []*model.User{user2, user3}, groupMembers)
@@ -992,17 +991,16 @@ func testGroupGetMemberUsersSortedPage(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
 	require.ElementsMatch(t, []*model.User{user1}, groupMembers)
-	/*
-	   // Check username ordering
-	   groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowUsername)
-	   require.NoError(t, err)
-	   require.Equal(t, 2, len(groupMembers))
-	   require.ElementsMatch(t, []*model.User{user3, user1}, groupMembers)
-	   groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowUsername)
-	   require.NoError(t, err)
-	   require.Equal(t, 1, len(groupMembers))
-	   require.ElementsMatch(t, []*model.User{user2}, groupMembers)
-	*/
+
+	// Check username ordering
+	groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowUsername)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user3, user1}, groupMembers)
+	groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowUsername)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user2}, groupMembers)
 }
 
 func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
