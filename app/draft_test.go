@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -13,6 +14,11 @@ import (
 )
 
 func TestGetDraft(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -46,6 +52,11 @@ func TestGetDraft(t *testing.T) {
 	})
 
 	t.Run("get draft feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
@@ -103,6 +114,11 @@ func TestUpsertDraft(t *testing.T) {
 	})
 
 	t.Run("upsert draft feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
@@ -175,6 +191,11 @@ func TestCreateDraft(t *testing.T) {
 	})
 
 	t.Run("create draft feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
@@ -250,6 +271,11 @@ func TestUpdateDraft(t *testing.T) {
 	})
 
 	t.Run("create draft feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
@@ -342,6 +368,11 @@ func TestGetDraftsForUser(t *testing.T) {
 	})
 
 	t.Run("get drafts feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 
@@ -390,6 +421,11 @@ func TestDeleteDraft(t *testing.T) {
 	})
 
 	t.Run("get drafts feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+		os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+		defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = false })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 

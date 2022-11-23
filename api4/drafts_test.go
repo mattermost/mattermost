@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -13,8 +14,17 @@ import (
 )
 
 func TestUpsertDraft(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// set config
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -28,16 +38,6 @@ func TestUpsertDraft(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "original",
 	}
-
-	// try to upsert draft without config setting set to true
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-	_, resp, err := client.UpsertDraft(draft)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
-
-	// set config
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// try to upsert draft
 	draftResp, _, err := client.UpsertDraft(draft)
@@ -70,14 +70,31 @@ func TestUpsertDraft(t *testing.T) {
 	draftInvalidChannel := draft
 	draftInvalidChannel.ChannelId = "12345"
 
-	_, resp, err = client.UpsertDraft(draft)
+	_, resp, err := client.UpsertDraft(draft)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// try to upsert draft without config setting set to true
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
+
+	_, resp, err = client.UpsertDraft(draft)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetDrafts(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client
 	channel1 := th.BasicChannel
@@ -103,17 +120,11 @@ func TestGetDrafts(t *testing.T) {
 		Message:   "draft2",
 	}
 
-	// try to get drafts when config is turned off
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
-	_, resp, err := client.GetDrafts(user.Id, team.Id)
-	require.Error(t, err)
-	CheckNotImplementedStatus(t, resp)
-
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
-	_, _, err = client.UpsertDraft(draft1)
+	_, _, err := client.UpsertDraft(draft1)
 	require.NoError(t, err)
 
 	// upsert draft2
@@ -135,14 +146,30 @@ func TestGetDrafts(t *testing.T) {
 	assert.Len(t, draftResp, 2)
 
 	// try to get drafts on invalid team
-	_, resp, err = client.GetDrafts(user.Id, "12345")
+	_, resp, err := client.GetDrafts(user.Id, "12345")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
+
+	// try to get drafts when config is turned off
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "false")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
+	_, resp, err = client.GetDrafts(user.Id, team.Id)
+	require.Error(t, err)
+	CheckNotImplementedStatus(t, resp)
 }
 
 func TestDeleteDraft(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_GLOBALDRAFTS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_GLOBALDRAFTS")
+	os.Setenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS", "true")
+	defer os.Unsetenv("MM_SERVICESETTINGS_ALLOWSYNCEDDRAFTS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	client := th.Client
 	channel1 := th.BasicChannel
@@ -169,9 +196,6 @@ func TestDeleteDraft(t *testing.T) {
 		Message:   "draft2",
 		RootId:    model.NewId(),
 	}
-
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	// upsert draft1
 	_, _, err := client.UpsertDraft(draft1)
