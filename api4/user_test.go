@@ -6569,6 +6569,7 @@ func TestSingleThreadGet(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.PostPriority = false
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
 	})
 
