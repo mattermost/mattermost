@@ -430,17 +430,17 @@ func (s *SqlGroupStore) GetMemberUsersSortedPage(groupID string, page int, perPa
 		orderQuery = orderQuery.OrderBy(`
 		CASE 
 			WHEN u.Nickname != '' THEN u.Nickname 
-			WHEN u.Firstname != '' AND u.Lastname!= '' THEN u.Firstname || ' ' || u.Lastname 
-			WHEN u.Firstname != '' THEN u.Firstname 
-			WHEN u.Lastname != '' THEN u.Lastname 
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN u.FirstName || ' ' || u.LastName 
+			WHEN u.FirstName != '' THEN u.FirstName 
+			WHEN u.LastName != '' THEN u.LastName 
 			ELSE u.Username 
 		END`)
 	} else if teammateNameDisplay == model.ShowFullName {
 		orderQuery = orderQuery.OrderBy(`
 		CASE 
-			WHEN u.Firstname != '' AND u.Lastname!= '' THEN u.Firstname || ' ' || u.Lastname 
-			WHEN u.Firstname != '' THEN u.Firstname 
-			WHEN u.Lastname != '' THEN u.Lastname 
+			WHEN u.FirstName !=  '' AND u.LastName != '' THEN u.FirstName || ' ' || u.LastName 
+			WHEN u.FirstName != '' THEN u.FirstName 
+			WHEN u.LastName != '' THEN u.LastName 
 			ELSE u.Username 
 		END`)
 	} else {

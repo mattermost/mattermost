@@ -35,6 +35,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
+	t.Run("GetMemberUsersSortedPage", func(t *testing.T) { testGroupGetMemberUsersSortedPage(t, ss) })
 
 	t.Run("GetMemberUsersInTeam", func(t *testing.T) { testGroupGetMemberUsersInTeam(t, ss) })
 	t.Run("GetMemberUsersNotInChannel", func(t *testing.T) { testGroupGetMemberUsersNotInChannel(t, ss) })
@@ -865,6 +866,89 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
+}
+
+func testGroupGetMemberUsersSortedPage(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+	group, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+
+	// First by nickname, third by full name, second by username
+	u1 := &model.User{
+		Email:     MakeEmail(),
+		Username:  "y" + model.NewId(),
+		Nickname:  "a" + model.NewId(),
+		FirstName: "z" + model.NewId(),
+		LastName:  "z" + model.NewId(),
+	}
+	user1, nErr := ss.User().Save(u1)
+	require.NoError(t, nErr)
+
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.NoError(t, err)
+
+	// Second by nickname, first by full name, third by username
+	u2 := &model.User{
+		Email:     MakeEmail(),
+		Username:  "z" + model.NewId(),
+		FirstName: "b" + model.NewId(),
+		LastName:  "b" + model.NewId(),
+	}
+	user2, nErr := ss.User().Save(u2)
+	require.NoError(t, nErr)
+
+	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
+	require.NoError(t, err)
+
+	// Third by nickname, second by full name, first by username
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: "d" + model.NewId(),
+	}
+	user3, nErr := ss.User().Save(u3)
+	require.NoError(t, nErr)
+
+	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
+	require.NoError(t, err)
+	/*
+		// Check nickname ordering, paged
+		groupMembers, err := ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowNicknameFullName)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(groupMembers))
+		require.ElementsMatch(t, []*model.User{user1, user2}, groupMembers)
+		groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowNicknameFullName)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(groupMembers))
+		require.ElementsMatch(t, []*model.User{user3}, groupMembers)
+	*/
+
+	// Check full name ordering, paged
+	groupMembers, err := ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowFullName)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user2, user3}, groupMembers)
+	groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowFullName)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(groupMembers))
+	require.ElementsMatch(t, []*model.User{user1}, groupMembers)
+	/*
+	   // Check username ordering
+	   groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 0, 2, nil, model.ShowUsername)
+	   require.NoError(t, err)
+	   require.Equal(t, 2, len(groupMembers))
+	   require.ElementsMatch(t, []*model.User{user3, user1}, groupMembers)
+	   groupMembers, err = ss.Group().GetMemberUsersSortedPage(group.Id, 1, 2, nil, model.ShowUsername)
+	   require.NoError(t, err)
+	   require.Equal(t, 1, len(groupMembers))
+	   require.ElementsMatch(t, []*model.User{user2}, groupMembers)
+	*/
 }
 
 func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
