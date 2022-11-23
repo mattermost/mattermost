@@ -957,7 +957,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental_features,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental_features"`
 	EnableRemoteClusterService      *bool   `access:"experimental_features"`
-	EnableAppBar                    *bool   `access:"experimental_features"`
+	DisableAppBar                   *bool   `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -989,8 +989,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnableRemoteClusterService = NewBool(false)
 	}
 
-	if s.EnableAppBar == nil {
-		s.EnableAppBar = NewBool(false)
+	if s.DisableAppBar == nil {
+		s.DisableAppBar = NewBool(false)
 	}
 }
 

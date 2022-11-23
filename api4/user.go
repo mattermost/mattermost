@@ -175,6 +175,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	ptof("getUser")
 	c.RequireUserId()
 	if c.Err != nil {
 		return
