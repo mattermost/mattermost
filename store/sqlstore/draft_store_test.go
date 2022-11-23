@@ -203,7 +203,7 @@ func TestDeleteDraft(t *testing.T) {
 		_, err = ss.Draft().Save(draft2)
 		require.NoError(t, err)
 
-		t.Run("save drafts", func(t *testing.T) {
+		t.Run("delete drafts", func(t *testing.T) {
 			err := ss.Draft().Delete(user.Id, channel.Id, "")
 			assert.NoError(t, err)
 
