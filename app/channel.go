@@ -2741,7 +2741,11 @@ func (a *App) sendWebSocketPostUnreadEvent(c request.CTX, channelUnread *model.C
 	}
 	message.Add("mention_count", channelUnread.MentionCount)
 	message.Add("mention_count_root", channelUnread.MentionCountRoot)
-	message.Add("urgent_mention_count", channelUnread.UrgentMentionCount)
+	if channelUnread.UrgentMentionCount == nil {
+		message.Add("urgent_mention_count", 0)
+	} else {
+		message.Add("urgent_mention_count", *channelUnread.UrgentMentionCount)
+	}
 	message.Add("last_viewed_at", channelUnread.LastViewedAt)
 	message.Add("post_id", postID)
 	a.Publish(message)
