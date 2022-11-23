@@ -141,7 +141,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false)
+	rp = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, rp, true, false, true)
 	rp, err := c.App.SanitizePostMetadataForUser(c.AppContext, rp, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -420,7 +420,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false)
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, false, false, true)
 	post, err = c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -479,7 +479,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		post = c.App.PreparePostForClient(post, false, false)
+		post = c.App.PreparePostForClient(c.AppContext, post, false, false, true)
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}

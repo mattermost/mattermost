@@ -21,8 +21,8 @@ func (ps *PlatformService) Go(f func()) {
 	}()
 }
 
-// WaitForGoroutines blocks until all goroutines created by App.Go exit.
-func (ps *PlatformService) WaitForGoroutines() {
+// waitForGoroutines blocks until all goroutines created by PlatformService.Go() exit.
+func (ps *PlatformService) waitForGoroutines() {
 	for atomic.LoadInt32(&ps.goroutineCount) != 0 {
 		<-ps.goroutineExitSignal
 	}

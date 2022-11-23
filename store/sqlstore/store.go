@@ -109,6 +109,7 @@ type SqlStoreStores struct {
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
 	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
 }
 
 type SqlStore struct {
@@ -214,6 +215,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -333,6 +335,28 @@ func (ss *SqlStore) initConnection() {
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
@@ -933,6 +957,10 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
 }
 
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
+}
+
 func (ss *SqlStore) DropAllTables() {
 	if ss.DriverName() == model.DatabaseDriverPostgres {
 		ss.masterX.Exec(`DO
@@ -1034,18 +1062,10 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 			return err
 		}
 		db := setupConnection("master", dataSource, ss.settings)
-		driver, err = ms.WithInstance(db, &ms.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ms.WithInstance(db)
 		defer db.Close()
 	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB, &ps.Config{
-			Config: drivers.Config{
-				StatementTimeoutInSecs: *ss.settings.MigrationsStatementTimeoutSeconds,
-			},
-		})
+		driver, err = ps.WithInstance(ss.GetMasterX().DB.DB)
 	default:
 		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
 	}
@@ -1056,6 +1076,7 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	opts := []morph.EngineOption{
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
+		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
 	}
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {

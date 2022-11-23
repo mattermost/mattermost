@@ -9219,10 +9219,6 @@
     "translation": "Niet gelukt om het aan aantal teams op te halen"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
-  },
-  {
     "id": "api.cloud.teams_limit_reached.restore",
     "translation": "Kan het team niet herstellen omdat de teamlimiet bereikt is"
   },
@@ -9343,7 +9339,7 @@
     "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9459,7 +9455,7 @@
     "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9557,5 +9553,17 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "Gastaccounts zijn uitgeschakeld"
+  },
+  {
+    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
+    "translation": "Ongeldig tijdsbereik."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topictype bestaat al."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collectietype bestaat al."
   }
 ]

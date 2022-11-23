@@ -32,6 +32,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
+	t.Run("Restore", func(t *testing.T) { testGroupStoreRestore(t, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
@@ -741,6 +742,59 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	require.True(t, errors.As(err, &nfErr))
 }
 
+func testGroupStoreRestore(t *testing.T, ss store.Store) {
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewString(model.NewId()),
+	}
+
+	d1, err := ss.Group().Create(g1)
+	require.NoError(t, err)
+	require.Len(t, d1.Id, 26)
+
+	// Check the group is retrievable
+	_, err = ss.Group().Get(d1.Id)
+	require.NoError(t, err)
+
+	// Delete the group
+	_, err = ss.Group().Delete(d1.Id)
+	require.NoError(t, err)
+
+	// Get the before count
+	d7, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	beforeCount := len(d7)
+
+	// restore the group
+	_, err = ss.Group().Restore(d1.Id)
+	require.NoError(t, err)
+
+	// Check the group is restored
+	d4, err := ss.Group().Get(d1.Id)
+	require.NoError(t, err)
+	require.Zero(t, d4.DeleteAt)
+
+	// Check the after count
+	d5, err := ss.Group().GetAllBySource(model.GroupSourceLdap)
+	require.NoError(t, err)
+	afterCount := len(d5)
+	require.Condition(t, func() bool { return beforeCount == afterCount-1 })
+
+	// Try and restore a nonexistent group
+	_, err = ss.Group().Delete(model.NewId())
+	require.Error(t, err)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
+	// Cannot restore again
+	_, err = ss.Group().Restore(d1.Id)
+	require.True(t, errors.As(err, &nfErr))
+}
+
 func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	// Save a group
 	g1 := &model.Group{
@@ -844,14 +898,13 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(groupMembers))
-	require.Equal(t, user3.Id, groupMembers[0].Id)
-	require.Equal(t, user2.Id, groupMembers[1].Id)
+	require.ElementsMatch(t, []*model.User{user2, user3}, groupMembers)
 
 	// Check page 2
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 1, 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(groupMembers))
-	require.Equal(t, user1.Id, groupMembers[0].Id)
+	require.ElementsMatch(t, []*model.User{user1}, groupMembers)
 
 	// Check madeup id
 	groupMembers, err = ss.Group().GetMemberUsersPage(model.NewId(), 0, 100, nil)
