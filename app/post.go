@@ -1441,6 +1441,24 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 	}
 
 	if limit == 0 {
+		// All posts are accessible - we must check if a previous value was set so we can clear it
+		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessiblePostTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// There was no previous value, nothing to do
+				return nil
+			default:
+				return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+		if systemValue != nil {
+			// Previous value was set, so we must clear it
+			if _, err = a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessiblePostTime); err != nil {
+				return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
 		// Cloud limit is not applicable
 		return nil
 	}
