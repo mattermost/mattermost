@@ -4749,7 +4749,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9570,5 +9570,17 @@
   {
     "id": "app.collection.add_collection.exists.app_error",
     "translation": "Typ kolekcji już istnieje."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "nie jest użytkownikiem ldap"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "nie udało się dodać użytkownika do group-teams i group-channels"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Nie można przesłać pliku. Plik jest zbyt duży."
   }
 ]
