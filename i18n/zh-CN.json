@@ -9232,10 +9232,6 @@
     "translation": "您好，这是您关于此消息的提醒 @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "您已达到启用 {{.NumIntegrations}} 集成的最大限制。 要安装无限集成，请升级到我们的付费计划之一。"
-  },
-  {
     "id": "app.usage.get_storage_usage.app_error",
     "translation": "无法获取存储使用情况。"
   },
