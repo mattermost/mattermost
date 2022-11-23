@@ -6592,10 +6592,6 @@
     "translation": "La taille de {{.Filename}} ({{.Width}} sur {{.Height}} pixels) dépasse la limitée autorisée."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Impossible d'envoyer le fichier. Le fichier est trop volumineux."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Impossible d'envoyer un message dans un canal supprimé."
   },
@@ -8678,10 +8674,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Impossible de créer l'équipe, car la limite des équipes a été atteinte"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Erreur de mise à jour de l'abonnement à partir du point d'ancrage Web."
   },
   {
     "id": "app.user.store_is_empty.app_error",

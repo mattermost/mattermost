@@ -6604,10 +6604,6 @@
     "translation": "{{.Filename}} Dimensionen ({{.Width}} mal {{.Height}} Pixel) überschreiten die Limits."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Kann nicht in gelöschten Kanal senden."
   },
@@ -9193,10 +9189,6 @@
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fehler bei der Aktualisierung des Abonnements über Webhook."
   },
   {
     "id": "app.recent_searches.app_error",

@@ -6752,10 +6752,6 @@
     "translation": "Las dimensiones de {{.Filename}} son ({{.Width}} por {{.Height}} pixels) exceden el limite."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "No se pudo cargar el archivo. El archivo es muy grande."
-  },
-  {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "No se puede determinar si el usuario pertenece a la lista de equipos."
   },
@@ -8994,10 +8990,6 @@
   {
     "id": "api.custom_groups.no_remote_id",
     "translation": " "
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error al actualizar la suscripción desde el webhook."
   },
   {
     "id": "app.system.get_onboarding_request.app_error",

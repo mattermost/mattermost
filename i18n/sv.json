@@ -2124,10 +2124,6 @@
     "translation": "Kunde inte ta fram den uppladdade flen."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Kunde inte ladda upp. Filen är för stor."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "Misslyckades att spara det uppladdade."
   },
@@ -9189,10 +9185,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch-inställningarna har odefinierade värden."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fel vid uppdatering av prenumeration från webhook."
   },
   {
     "id": "app.recent_searches.app_error",
