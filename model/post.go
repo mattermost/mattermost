@@ -71,6 +71,10 @@ const (
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
 
 	PostPropsPreviewedPost = "previewed_post"
+
+	PostPriorityUrgent               = "urgent"
+	PostPropsRequestedAck            = "requested_ack"
+	PostPropsPersistentNotifications = "persistent_notifications"
 )
 
 const (
@@ -156,6 +160,15 @@ type PostReminder struct {
 	// These fields are only used internally for interacting with DB.
 	PostId string `json:",omitempty"`
 	UserId string `json:",omitempty"`
+}
+
+type PostPriority struct {
+	Priority                *string `json:"priority"`
+	RequestedAck            *bool   `json:"requested_ack"`
+	PersistentNotifications *bool   `json:"persistent_notifications"`
+	// These fields are only used internally for interacting with DB.
+	PostId    string `json:",omitempty"`
+	ChannelId string `json:",omitempty"`
 }
 
 type SearchParameter struct {
@@ -306,6 +319,7 @@ type GetPostsOptions struct {
 	FromCreateAt             int64  // CreateAt after which to send the items
 	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
 	IncludeDeleted           bool
+	IncludePostPriority      bool
 }
 
 type PostCountOptions struct {
@@ -769,4 +783,21 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
+}
+
+func (o *Post) GetPriority() *PostPriority {
+	if o.Metadata != nil && o.Metadata.Priority != nil {
+		return o.Metadata.Priority
+	}
+
+	return nil
+}
+
+func (o *Post) IsUrgent() bool {
+	postPriority := o.GetPriority()
+	if postPriority == nil {
+		return false
+	}
+
+	return *postPriority.Priority == PostPriorityUrgent
 }
