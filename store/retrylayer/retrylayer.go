@@ -30,6 +30,7 @@ type RetryLayer struct {
 	CommandStore              store.CommandStore
 	CommandWebhookStore       store.CommandWebhookStore
 	ComplianceStore           store.ComplianceStore
+	DraftStore                store.DraftStore
 	EmojiStore                store.EmojiStore
 	FileInfoStore             store.FileInfoStore
 	GroupStore                store.GroupStore
@@ -40,6 +41,7 @@ type RetryLayer struct {
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
+	PostAcknowledgementStore  store.PostAcknowledgementStore
 	PostPriorityStore         store.PostPriorityStore
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
@@ -95,6 +97,10 @@ func (s *RetryLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
 }
 
+func (s *RetryLayer) Draft() store.DraftStore {
+	return s.DraftStore
+}
+
 func (s *RetryLayer) Emoji() store.EmojiStore {
 	return s.EmojiStore
 }
@@ -133,6 +139,10 @@ func (s *RetryLayer) Plugin() store.PluginStore {
 
 func (s *RetryLayer) Post() store.PostStore {
 	return s.PostStore
+}
+
+func (s *RetryLayer) PostAcknowledgement() store.PostAcknowledgementStore {
+	return s.PostAcknowledgementStore
 }
 
 func (s *RetryLayer) PostPriority() store.PostPriorityStore {
@@ -259,6 +269,11 @@ type RetryLayerComplianceStore struct {
 	Root *RetryLayer
 }
 
+type RetryLayerDraftStore struct {
+	store.DraftStore
+	Root *RetryLayer
+}
+
 type RetryLayerEmojiStore struct {
 	store.EmojiStore
 	Root *RetryLayer
@@ -306,6 +321,11 @@ type RetryLayerPluginStore struct {
 
 type RetryLayerPostStore struct {
 	store.PostStore
+	Root *RetryLayer
+}
+
+type RetryLayerPostAcknowledgementStore struct {
+	store.PostAcknowledgementStore
 	Root *RetryLayer
 }
 
@@ -3588,6 +3608,111 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	tries := 0
 	for {
 		result, err := s.ComplianceStore.Update(compliance)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.Delete(userID, channelID, rootID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Get(userID, channelID, rootID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Save(d)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Update(d)
 		if err == nil {
 			return result, nil
 		}
@@ -7404,6 +7529,111 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	tries := 0
 	for {
 		result, err := s.PostStore.Update(newPost, oldPost)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
+
+	tries := 0
+	for {
+		err := s.PostAcknowledgementStore.Delete(acknowledgement)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.Get(postID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.GetForPost(postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.GetForPosts(postIds)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 		if err == nil {
 			return result, nil
 		}
@@ -14345,6 +14575,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &RetryLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &RetryLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DraftStore = &RetryLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &RetryLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &RetryLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &RetryLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}
@@ -14355,6 +14586,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.OAuthStore = &RetryLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &RetryLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &RetryLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
+	newStore.PostAcknowledgementStore = &RetryLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPriorityStore = &RetryLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
 	newStore.PreferenceStore = &RetryLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &RetryLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
