@@ -24,7 +24,7 @@ func TestServePluginPublicRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(th.App.PluginService().ServePluginPublicRequest)
+		handler := http.HandlerFunc(th.App.ch.ServePluginPublicRequest)
 		handler.ServeHTTP(rr, req)
 
 		assert.Equal(t, http.StatusNotFound, rr.Code)
