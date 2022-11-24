@@ -927,6 +927,10 @@
     "translation": "{{.User}} added to {{.Channel}} channel."
   },
   {
+    "id": "api.command_invite.success_multiple",
+    "translation": "{{.User}} added to {{.Channel}} channels."
+  },
+  {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} is already in the channel."
   },

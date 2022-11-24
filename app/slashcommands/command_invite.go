@@ -71,8 +71,13 @@ func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	}
 
 	if len(targetChannelsNames) > 0 {
+		translationID := "api.command_invite.success_multiple"
+		if len(targetChannelsNames) == 1 {
+			translationID = "api.command_invite.success"
+		}
+
 		return &model.CommandResponse{
-			Text: args.T("api.command_invite.success", map[string]any{
+			Text: args.T(translationID, map[string]any{
 				"User":    strings.Join(targetUsernames, ", "),
 				"Channel": strings.Join(targetChannelsNames, ", "),
 			}),
