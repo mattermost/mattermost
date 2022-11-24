@@ -37,7 +37,7 @@ jobs:
     - name: Build
       run: |
         make setup-go-work
-        make build-linux
+        make build-linux-amd64
 
     # Perform Analysis
     - name: Perform CodeQL Analysis
