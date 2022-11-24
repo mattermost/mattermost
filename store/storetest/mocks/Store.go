@@ -475,6 +475,22 @@ func (_m *Store) Post() store.PostStore {
 	return r0
 }
 
+// PostAcknowledgement provides a mock function with given fields:
+func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
+	ret := _m.Called()
+
+	var r0 store.PostAcknowledgementStore
+	if rf, ok := ret.Get(0).(func() store.PostAcknowledgementStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostAcknowledgementStore)
+		}
+	}
+
+	return r0
+}
+
 // PostPriority provides a mock function with given fields:
 func (_m *Store) PostPriority() store.PostPriorityStore {
 	ret := _m.Called()

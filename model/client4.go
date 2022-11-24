@@ -8448,6 +8448,28 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	return newTeamMembersList, BuildResponse(r), nil
 }
 
+func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
+	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ack *PostAcknowledgement
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return ack, BuildResponse(r), nil
+}
+
+func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.postRoute(postId) + "/ack")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	r, err := c.DoAPIPost(c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
 	if err != nil {
