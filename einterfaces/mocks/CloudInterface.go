@@ -74,7 +74,7 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 	return r0, r1
 }
 
-// CreateOrUpdateSubscriptionHistoryEvent provides a mock function with given fields: userID, subscriptionID, subscriptionHistoryChange
+// CreateOrUpdateSubscriptionHistoryEvent provides a mock function with given fields: userID, userCount
 func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error) {
 	ret := _m.Called(userID, userCount)
 
