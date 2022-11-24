@@ -95,7 +95,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 	targetChannels := make([]*model.Channel, 0)
 
 	for j, msg := range splitMessage {
-		if len(msg) == 0 {
+		if msg == "" {
 			continue
 		}
 

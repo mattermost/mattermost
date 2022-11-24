@@ -113,9 +113,9 @@ func TestInviteProvider(t *testing.T) {
 			isMember: []check{{th.BasicUser2.Id, channel.Id}},
 		},
 		{
-			desc: "add multiple users to multiple channels",
+			desc:     "add multiple users to multiple channels",
 			expected: "api.command_invite.success_multiple",
-			msg: multipleUsersAndChannels,
+			msg:      multipleUsersAndChannels,
 			isMember: []check{
 				{th.BasicUser2.Id, channel2.Id},
 				{th.BasicUser2.Id, channel3.Id},
@@ -174,9 +174,9 @@ func TestInviteProvider(t *testing.T) {
 			msg:      deactivatedUserPublicChannel,
 		},
 		{
-			desc:     "try to add bot to a public channel",
-			expected: "api.command_invite.user_not_in_team.app_error",
-			msg:      "@bot1",
+			desc:        "try to add bot to a public channel",
+			expected:    "api.command_invite.user_not_in_team.app_error",
+			msg:         "@bot1",
 			isNotMember: []check{{bot1.UserId, th.BasicChannel.Id}},
 		},
 		{
@@ -186,9 +186,9 @@ func TestInviteProvider(t *testing.T) {
 			isMember: []check{{bot2.UserId, th.BasicChannel.Id}},
 		},
 		{
-			desc:     "try to add bot removed from a team to a public channel",
-			expected: "api.command_invite.user_not_in_team.app_error",
-			msg:      "@bot3",
+			desc:        "try to add bot removed from a team to a public channel",
+			expected:    "api.command_invite.user_not_in_team.app_error",
+			msg:         "@bot3",
 			isNotMember: []check{{bot3.UserId, th.BasicChannel.Id}},
 		},
 	}
