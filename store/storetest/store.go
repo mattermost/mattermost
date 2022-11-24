@@ -58,6 +58,7 @@ type Store struct {
 	context                   context.Context
 	NotifyAdminStore          mocks.NotifyAdminStore
 	PostPriorityStore         mocks.PostPriorityStore
+	PostAcknowledgementStore  mocks.PostAcknowledgementStore
 }
 
 func (s *Store) SetContext(context context.Context)                { s.context = context }
@@ -104,17 +105,20 @@ func (s *Store) Group() store.GroupStore                 { return &s.GroupStore 
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
 func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
 func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
-func (s *Store) MarkSystemRanUnitTests()                 { /* do nothing */ }
-func (s *Store) Close()                                  { /* do nothing */ }
-func (s *Store) LockToMaster()                           { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
-func (s *Store) DropAllTables()                          { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)       { return "", nil }
-func (s *Store) GetInternalMasterDB() *sql.DB            { return nil }
-func (s *Store) GetInternalReplicaDB() *sql.DB           { return nil }
-func (s *Store) GetInternalReplicaDBs() []*sql.DB        { return nil }
-func (s *Store) RecycleDBConnections(time.Duration)      {}
-func (s *Store) GetDBSchemaVersion() (int, error)        { return 1, nil }
+func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
+	return &s.PostAcknowledgementStore
+}
+func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
+func (s *Store) Close()                             { /* do nothing */ }
+func (s *Store) LockToMaster()                      { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                  { /* do nothing */ }
+func (s *Store) DropAllTables()                     { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)  { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB       { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB      { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB   { return nil }
+func (s *Store) RecycleDBConnections(time.Duration) {}
+func (s *Store) GetDBSchemaVersion() (int, error)   { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }
@@ -164,5 +168,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.DraftStore,
 		&s.NotifyAdminStore,
 		&s.PostPriorityStore,
+		&s.PostAcknowledgementStore,
 	)
 }

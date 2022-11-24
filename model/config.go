@@ -846,7 +846,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PostPriority == nil {
-		s.PostPriority = NewBool(false)
+		s.PostPriority = NewBool(true)
 	}
 
 	if s.AllowSyncedDrafts == nil {

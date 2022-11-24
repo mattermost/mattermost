@@ -37,6 +37,7 @@ type TimerLayer struct {
 	OAuthStore                store.OAuthStore
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
+	PostAcknowledgementStore  store.PostAcknowledgementStore
 	PostPriorityStore         store.PostPriorityStore
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
@@ -134,6 +135,10 @@ func (s *TimerLayer) Plugin() store.PluginStore {
 
 func (s *TimerLayer) Post() store.PostStore {
 	return s.PostStore
+}
+
+func (s *TimerLayer) PostAcknowledgement() store.PostAcknowledgementStore {
+	return s.PostAcknowledgementStore
 }
 
 func (s *TimerLayer) PostPriority() store.PostPriorityStore {
@@ -312,6 +317,11 @@ type TimerLayerPluginStore struct {
 
 type TimerLayerPostStore struct {
 	store.PostStore
+	Root *TimerLayer
+}
+
+type TimerLayerPostAcknowledgementStore struct {
+	store.PostAcknowledgementStore
 	Root *TimerLayer
 }
 
@@ -6007,6 +6017,86 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	return result, err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
+	start := time.Now()
+
+	err := s.PostAcknowledgementStore.Delete(acknowledgement)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.Get(postID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.GetForPost(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.GetForPosts(postIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.GetForPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	start := time.Now()
+
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostPriorityStore) GetForPost(postId string) (*model.PostPriority, error) {
 	start := time.Now()
 
@@ -11435,6 +11525,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
+	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPriorityStore = &TimerLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}

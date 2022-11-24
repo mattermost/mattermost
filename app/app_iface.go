@@ -510,6 +510,7 @@ type AppIface interface {
 	DeactivateGuests(c *request.Context) *model.AppError
 	DeactivateMfa(userID string) *model.AppError
 	DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError
+	DeleteAcknowledgementForPost(c *request.Context, postID, userID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
 	DeleteAllKeysForPlugin(pluginID string) *model.AppError
 	DeleteBrandImage() *model.AppError
@@ -569,6 +570,8 @@ type AppIface interface {
 	GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
 	GenerateSupportPacket() []model.FileData
+	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
+	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
 	GetAllChannels(c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError)
@@ -988,6 +991,7 @@ type AppIface interface {
 	SanitizeProfile(user *model.User, asAdmin bool)
 	SanitizeTeam(session model.Session, team *model.Team) *model.Team
 	SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team
+	SaveAcknowledgementForPost(c *request.Context, postID, userID string) (*model.PostAcknowledgement, *model.AppError)
 	SaveAdminNotification(userId string, notifyData *model.NotifyAdminToUpgradeRequest) *model.AppError
 	SaveAdminNotifyData(data *model.NotifyAdminData) (*model.NotifyAdminData, *model.AppError)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError

@@ -79,6 +79,8 @@ const (
 	WebsocketEventDraftCreated                        = "draft_created"
 	WebsocketEventDraftUpdated                        = "draft_updated"
 	WebsocketEventDraftDeleted                        = "draft_deleted"
+	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
+	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
 )
 
 type WebSocketMessage interface {
