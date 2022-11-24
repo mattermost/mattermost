@@ -886,7 +886,7 @@ func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
 }
 
 func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
-	return api.app.Srv().pluginService.RemovePlugin(id)
+	return api.app.Channels().RemovePlugin(id)
 }
 
 func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
@@ -1235,7 +1235,7 @@ func (api *PluginAPI) GetCloudLimits() (*model.ProductLimits, error) {
 // RegisterCollectionAndTopic informs the server that this plugin handles
 // the given collection and topic types.
 func (api *PluginAPI) RegisterCollectionAndTopic(collectionType, topicType string) error {
-	return api.app.Srv().pluginService.registerCollectionAndTopic(api.id, collectionType, topicType)
+	return api.app.registerCollectionAndTopic(api.id, collectionType, topicType)
 }
 
 func (api *PluginAPI) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
