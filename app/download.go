@@ -22,10 +22,10 @@ const (
 )
 
 func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
-	return a.Srv().downloadFromURL(downloadURL)
+	return a.Srv().pluginService.downloadFromURL(downloadURL)
 }
 
-func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
+func (s *PluginService) downloadFromURL(downloadURL string) ([]byte, error) {
 	if !model.IsValidHTTPURL(downloadURL) {
 		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
@@ -38,7 +38,7 @@ func (s *Server) downloadFromURL(downloadURL string) ([]byte, error) {
 		return nil, errors.Errorf("insecure url not allowed %s", downloadURL)
 	}
 
-	client := s.HTTPService().MakeClient(true)
+	client := s.httpService.MakeClient(true)
 	client.Timeout = HTTPRequestTimeout
 
 	var resp *http.Response
