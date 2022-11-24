@@ -687,11 +687,11 @@ func (a *App) HandleIncomingWebhook(c *request.Context, hookID string, req *mode
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(result.NErr)
 	}
 	hook = result.Data.(*model.IncomingWebhook)
-	
+
 	if !hook.Enabled {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
-	
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)

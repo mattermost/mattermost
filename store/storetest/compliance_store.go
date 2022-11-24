@@ -782,7 +782,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	assert.Equal(t, user1.Username, *messageExportMap[post.Id].Username)
 }
 
-//post,edit,export
+// post,edit,export
 func testEditExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
@@ -874,7 +874,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	}
 }
 
-//post, export, edit, export
+// post, export, edit, export
 func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
@@ -985,7 +985,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	}
 }
 
-//post, delete, export
+// post, delete, export
 func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
@@ -1070,7 +1070,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	assert.Equal(t, user1.Username, *v.Username)
 }
 
-//post,export,delete,export
+// post,export,delete,export
 func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	defer cleanupStoreState(t, ss)
 	// get the starting number of message export entries
