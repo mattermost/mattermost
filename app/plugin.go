@@ -84,26 +84,6 @@ func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
 	return handler, ok
 }
 
-func NewPluginService(platform *platform.PlatformService, channels *Channels, httpService httpservice.HTTPService, router *mux.Router) *PluginService {
-	ps := &PluginService{
-		platform:        platform,
-		channels:        channels,
-		fileStore:       platform.FileBackend(),
-		httpService:     httpService,
-		collectionTypes: make(map[string]string),
-		topicTypes:      make(map[string]string),
-	}
-
-	pluginsRoute := router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", ps.ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", ps.ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", ps.ServePluginRequest)
-
-	ps.initPlugins(request.EmptyContext(platform.Log()), *platform.Config().PluginSettings.Directory, *platform.Config().PluginSettings.ClientDirectory)
-
-	return ps
-}
-
 func (a *App) PluginService() *PluginService {
 	return a.ch.srv.pluginService
 }
@@ -117,7 +97,23 @@ func (s *Server) InitializePluginService() error {
 	if !ok {
 		return errors.New("unable to cast product to channels product")
 	}
-	s.pluginService = NewPluginService(s.platform, channels, s.httpService, s.Router)
+
+	ps := &PluginService{
+		platform:        s.platform,
+		channels:        channels,
+		fileStore:       s.platform.FileBackend(),
+		httpService:     s.httpService,
+		collectionTypes: make(map[string]string),
+		topicTypes:      make(map[string]string),
+	}
+	s.pluginService = ps
+
+	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", ps.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", ps.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", ps.ServePluginRequest)
+
+	ps.initPlugins(request.EmptyContext(s.platform.Log()), *s.platform.Config().PluginSettings.Directory, *s.platform.Config().PluginSettings.ClientDirectory)
 
 	// Start plugins
 	ctx := request.EmptyContext(s.platform.Log())
