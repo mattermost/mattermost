@@ -696,6 +696,19 @@ func (s *OpenTracingLayerChannelStore) ClearCaches() {
 
 }
 
+func (s *OpenTracingLayerChannelStore) ClearMembersForUserCache() {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.ClearMembersForUserCache")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	s.ChannelStore.ClearMembersForUserCache()
+
+}
+
 func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.ClearSidebarOnTeamLeave")
