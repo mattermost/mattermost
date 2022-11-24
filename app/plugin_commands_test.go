@@ -106,7 +106,7 @@ func TestPluginCommand(t *testing.T) {
 			require.NotEqual(t, "plugin", commands.Trigger)
 		}
 
-		th.App.ch.RemovePlugin(pluginIDs[0])
+		th.App.PluginService().RemovePlugin(pluginIDs[0])
 	})
 
 	t.Run("re-entrant command registration on config change", func(t *testing.T) {
@@ -207,7 +207,7 @@ func TestPluginCommand(t *testing.T) {
 			killed = true
 		}
 
-		th.App.ch.RemovePlugin(pluginIDs[0])
+		th.App.PluginService().RemovePlugin(pluginIDs[0])
 		require.False(t, killed, "execute command appears to have deadlocked")
 	})
 
@@ -285,7 +285,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Equal(t, model.CommandResponseTypeEphemeral, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
 
-		th.App.ch.RemovePlugin(pluginIDs[0])
+		th.App.PluginService().RemovePlugin(pluginIDs[0])
 	})
 	t.Run("plugin has crashed before execution of command", func(t *testing.T) {
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
@@ -329,7 +329,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_error.error.app_error")
-		th.App.ch.RemovePlugin(pluginIDs[0])
+		th.App.PluginService().RemovePlugin(pluginIDs[0])
 	})
 
 	t.Run("plugin has crashed due to the execution of the command", func(t *testing.T) {
@@ -374,7 +374,7 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, resp)
 		require.NotNil(t, err)
 		require.Equal(t, err.Id, "model.plugin_command_crash.error.app_error")
-		th.App.ch.RemovePlugin(pluginIDs[0])
+		th.App.PluginService().RemovePlugin(pluginIDs[0])
 	})
 
 	t.Run("plugin returning status code 0", func(t *testing.T) {
