@@ -9,6 +9,7 @@ import (
 	"database/sql/driver"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/v6/app/platform"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
@@ -18,7 +19,7 @@ import (
 // a new entry tracked centrally in a map. Further requests operate on the
 // object ID.
 type DriverImpl struct {
-	s       *Server
+	ps      *platform.PlatformService
 	connMut sync.RWMutex
 	connMap map[string]*sql.Conn
 	txMut   sync.Mutex
@@ -29,9 +30,9 @@ type DriverImpl struct {
 	rowsMap map[string]driver.Rows
 }
 
-func NewDriverImpl(s *Server) *DriverImpl {
+func NewDriverImpl(s *platform.PlatformService) *DriverImpl {
 	return &DriverImpl{
-		s:       s,
+		ps:      s,
 		connMap: make(map[string]*sql.Conn),
 		txMap:   make(map[string]driver.Tx),
 		stMap:   make(map[string]driver.Stmt),
@@ -40,9 +41,9 @@ func NewDriverImpl(s *Server) *DriverImpl {
 }
 
 func (d *DriverImpl) Conn(isMaster bool) (string, error) {
-	dbFunc := d.s.Platform().Store.GetInternalMasterDB
+	dbFunc := d.ps.Store.GetInternalMasterDB
 	if !isMaster {
-		dbFunc = d.s.Platform().Store.GetInternalReplicaDB
+		dbFunc = d.ps.Store.GetInternalReplicaDB
 	}
 	conn, err := dbFunc().Conn(context.Background())
 	if err != nil {

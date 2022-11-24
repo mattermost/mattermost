@@ -10,8 +10,8 @@ import (
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
-func (ch *Channels) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	pluginsEnvironment := ch.GetPluginsEnvironment()
+func (s *PluginService) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatus", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -24,8 +24,8 @@ func (ch *Channels) GetPluginStatus(id string) (*model.PluginStatus, *model.AppE
 	for _, status := range pluginStatuses {
 		if status.PluginId == id {
 			// Add our cluster ID
-			if ch.srv.platform.Cluster() != nil {
-				status.ClusterId = ch.srv.platform.Cluster().GetClusterId()
+			if s.platform.Cluster() != nil {
+				status.ClusterId = s.platform.Cluster().GetClusterId()
 			}
 
 			return status, nil
@@ -37,12 +37,12 @@ func (ch *Channels) GetPluginStatus(id string) (*model.PluginStatus, *model.AppE
 
 // GetPluginStatus returns the status for a plugin installed on this server.
 func (a *App) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	return a.ch.GetPluginStatus(id)
+	return a.ch.srv.pluginService.GetPluginStatus(id)
 }
 
 // GetPluginStatuses returns the status for plugins installed on this server.
-func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	pluginsEnvironment := ch.GetPluginsEnvironment()
+func (s *PluginService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -54,8 +54,8 @@ func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) 
 
 	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		if ch.srv.platform.Cluster() != nil {
-			status.ClusterId = ch.srv.platform.Cluster().GetClusterId()
+		if s.platform.Cluster() != nil {
+			status.ClusterId = s.platform.Cluster().GetClusterId()
 		} else {
 			status.ClusterId = ""
 		}
@@ -66,22 +66,22 @@ func (ch *Channels) GetPluginStatuses() (model.PluginStatuses, *model.AppError) 
 
 // GetPluginStatuses returns the status for plugins installed on this server.
 func (a *App) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.ch.GetPluginStatuses()
+	return a.ch.srv.pluginService.GetPluginStatuses()
 }
 
 // GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return a.ch.getClusterPluginStatuses()
+	return a.ch.srv.pluginService.getClusterPluginStatuses()
 }
 
-func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	pluginStatuses, err := ch.GetPluginStatuses()
+func (s *PluginService) getClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	pluginStatuses, err := s.GetPluginStatuses()
 	if err != nil {
 		return nil, err
 	}
 
-	if ch.srv.platform.Cluster() != nil && *ch.cfgSvc.Config().ClusterSettings.Enable {
-		clusterPluginStatuses, err := ch.srv.platform.Cluster().GetPluginStatuses()
+	if s.platform.Cluster() != nil && *s.platform.Config().ClusterSettings.Enable {
+		clusterPluginStatuses, err := s.platform.Cluster().GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -92,8 +92,8 @@ func (ch *Channels) getClusterPluginStatuses() (model.PluginStatuses, *model.App
 	return pluginStatuses, nil
 }
 
-func (ch *Channels) notifyPluginStatusesChanged() error {
-	pluginStatuses, err := ch.getClusterPluginStatuses()
+func (s *PluginService) notifyPluginStatusesChanged() error {
+	pluginStatuses, err := s.getClusterPluginStatuses()
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (ch *Channels) notifyPluginStatusesChanged() error {
 	message := model.NewWebSocketEvent(model.WebsocketEventPluginStatusesChanged, "", "", "", nil, "")
 	message.Add("plugin_statuses", pluginStatuses)
 	message.GetBroadcast().ContainsSensitiveData = true
-	ch.srv.platform.Publish(message)
+	s.platform.Publish(message)
 
 	return nil
 }
