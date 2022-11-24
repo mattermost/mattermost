@@ -318,25 +318,28 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		})
 	}
 
-	// check if it's Cloud
-	license := a.Srv().License()
-
-	if license.IsCloud() {
-		// Get user count
-		userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
-		if err != nil {
-			c.Logger().Error("Failed to get the user count", mlog.Err(err))
-			return ruser, nil
-		}
-
-		_, cwsErr := a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(ruser.Id, int(userCount))
-		if cwsErr != nil {
-			c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(cwsErr))
-			return ruser, nil
-		}
+	_, cwsErr := a.SendSubscriptionHistoryEvent(ruser.Id)
+	if cwsErr != nil {
+		c.Logger().Error("Failed to create/update the SubscriptionHistoryEvent", mlog.Err(cwsErr))
 	}
 
 	return ruser, nil
+}
+
+func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error) {
+	license := a.Srv().License()
+
+	// No need to create a Subscription History Event if the license isn't cloud
+	if !license.IsCloud() {
+		return nil, nil
+	}
+
+	// Get user count
+	userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
 }
 
 func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {

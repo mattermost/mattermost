@@ -1852,3 +1852,98 @@ func TestIsFirstAdmin(t *testing.T) {
 		require.True(t, isFirstAdmin)
 	})
 }
+
+func TestSendSubscriptionHistoryEvent(t *testing.T) {
+	cloudProducts := []*model.Product{
+		{
+			ID:                "prod_test1",
+			Name:              "name1",
+			Description:       "description1",
+			PricePerSeat:      1000,
+			SKU:               "sku1",
+			PriceID:           "price_id1",
+			Family:            "family1",
+			RecurringInterval: "year",
+			BillingScheme:     "billing_scheme1",
+			CrossSellsTo:      "prod_test2",
+		},
+		{
+			ID:                "prod_test2",
+			Name:              "name2",
+			Description:       "description2",
+			PricePerSeat:      100,
+			SKU:               "sku2",
+			PriceID:           "price_id2",
+			Family:            "family2",
+			RecurringInterval: "month",
+			BillingScheme:     "billing_scheme2",
+			CrossSellsTo:      "prod_test1",
+		},
+	}
+
+	subscription := &model.Subscription{
+		ID:         "MySubscriptionID",
+		CustomerID: "MyCustomer",
+		ProductID:  "SomeProductId",
+		AddOns:     []string{},
+		StartAt:    1000000000,
+		EndAt:      2000000000,
+		CreateAt:   1000000000,
+		Seats:      10,
+		DNS:        "some.dns.server",
+		IsPaidTier: "false",
+	}
+
+	subscriptionHistory := &model.SubscriptionHistory{
+		ID:             "sub_history",
+		SubscriptionID: "MySubscriptionID",
+		Seats:          10,
+		CreateAt:       1000000000,
+	}
+
+	t.Run("SendSubscriptionHistoryEvent with no license", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		userID := "123"
+
+		subscriptionHistory, err := th.App.SendSubscriptionHistoryEvent(userID)
+		require.NoError(t, err)
+		require.Nil(t, subscriptionHistory)
+	})
+
+	t.Run("SendSubscriptionHistoryEvent with cloud license", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		// return the monthly product
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(cloudProducts[0], nil)
+		cloud.Mock.On("CreateOrUpdateSubscriptionHistoryEvent", mock.Anything, mock.Anything).Return(subscriptionHistory, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+
+		userID := "123"
+
+		subscriptionHistory, err := th.App.SendSubscriptionHistoryEvent(userID)
+		require.NoError(t, err)
+		require.Equal(t, subscription.ID, subscriptionHistory.SubscriptionID, "subscription ID doesn't match")
+		require.Equal(t, 10, subscriptionHistory.Seats, "Number of seats doesn't match")
+	})
+}
