@@ -312,7 +312,7 @@ CREATE TABLE public.incomingwebhooks (
     username character varying(255),
     iconurl character varying(1024),
     channellocked boolean,
-    enabled boolean
+    enabled boolean DEFAULT true NOT NULL
 );
 
 
