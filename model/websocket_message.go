@@ -76,6 +76,8 @@ const (
 	WebsocketEventThreadFollowChanged                 = "thread_follow_changed"
 	WebsocketEventThreadReadChanged                   = "thread_read_changed"
 	WebsocketFirstAdminVisitMarketplaceStatusReceived = "first_admin_visit_marketplace_status_received"
+	WebsocketEventAcknowledgementAdded                = "post_acknowledgement_added"
+	WebsocketEventAcknowledgementRemoved              = "post_acknowledgement_removed"
 )
 
 type WebSocketMessage interface {
