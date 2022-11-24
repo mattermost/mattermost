@@ -1854,31 +1854,17 @@ func TestIsFirstAdmin(t *testing.T) {
 }
 
 func TestSendSubscriptionHistoryEvent(t *testing.T) {
-	cloudProducts := []*model.Product{
-		{
-			ID:                "prod_test1",
-			Name:              "name1",
-			Description:       "description1",
-			PricePerSeat:      1000,
-			SKU:               "sku1",
-			PriceID:           "price_id1",
-			Family:            "family1",
-			RecurringInterval: "year",
-			BillingScheme:     "billing_scheme1",
-			CrossSellsTo:      "prod_test2",
-		},
-		{
-			ID:                "prod_test2",
-			Name:              "name2",
-			Description:       "description2",
-			PricePerSeat:      100,
-			SKU:               "sku2",
-			PriceID:           "price_id2",
-			Family:            "family2",
-			RecurringInterval: "month",
-			BillingScheme:     "billing_scheme2",
-			CrossSellsTo:      "prod_test1",
-		},
+	cloudProduct := &model.Product{
+		ID:                "prod_test1",
+		Name:              "name1",
+		Description:       "description1",
+		PricePerSeat:      1000,
+		SKU:               "sku1",
+		PriceID:           "price_id1",
+		Family:            "family1",
+		RecurringInterval: "year",
+		BillingScheme:     "billing_scheme1",
+		CrossSellsTo:      "prod_test2",
 	}
 
 	subscription := &model.Subscription{
@@ -1914,7 +1900,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		require.Nil(t, subscriptionHistoryEvent)
 	})
 
-	t.Run("SendSubscriptionHistoryEvent with cloud license", func(t *testing.T) {
+	t.Run("SendSubscriptionHistoryEvent with cloud license and yearly product", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
@@ -1924,7 +1910,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
 		// return the monthly product
-		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(cloudProducts[0], nil)
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(cloudProduct, nil)
 		cloud.Mock.On("CreateOrUpdateSubscriptionHistoryEvent", mock.Anything, mock.Anything).Return(subscriptionHistory, nil)
 
 		cloudImpl := th.App.Srv().Cloud
