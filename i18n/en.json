@@ -2320,6 +2320,10 @@
     "translation": "Unable to parse the request body."
   },
   {
+    "id": "api.post.search_files.invalid_body.search_mentions",
+    "translation": "Paramter search_mentions is not supported for files search."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },

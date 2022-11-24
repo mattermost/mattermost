@@ -775,6 +775,11 @@ func searchFiles(c *Context, w http.ResponseWriter, r *http.Request, teamID stri
 	}
 	terms := *params.Terms
 
+	if params.SearchMentions != nil && *params.SearchMentions {
+		c.Err = model.NewAppError("searchFiles", "api.post.search_files.invalid_body.search_mentions", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	timeZoneOffset := 0
 	if params.TimeZoneOffset != nil {
 		timeZoneOffset = *params.TimeZoneOffset
