@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
-	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
 type InviteProvider struct {
@@ -118,7 +117,6 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 				targetUsers = append(targetUsers, userProfile)
 			case '~':
 				targetChannelName := strings.TrimPrefix(msg, "~")
-				mlog.Debug("targetChannelName", mlog.String("targetChannelName", targetChannelName))
 				channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
 				if err != nil {
 					return targetUsers, targetChannels, &model.CommandResponse{
@@ -168,7 +166,6 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User {
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(username)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
 		return nil
 	}
 
