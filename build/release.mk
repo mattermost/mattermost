@@ -1,6 +1,8 @@
 dist: | check-style test package
 
-build-linux:
+build-linux: build-linux-amd64 build-linux-arm64
+
+build-linux-amd64:
 	@echo Build Linux amd64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
@@ -8,6 +10,8 @@ else
 	mkdir -p $(GOBIN)/linux_amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
 endif
+
+build-linux-arm64:
 	@echo Build Linux arm64
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_arm64")
 	env GOOS=linux GOARCH=arm64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...

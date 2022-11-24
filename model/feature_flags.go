@@ -79,6 +79,8 @@ type FeatureFlags struct {
 	ReduceOnBoardingTaskList bool
 
 	ThreadsEverywhere bool
+
+	GlobalDrafts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -109,6 +111,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
+	f.GlobalDrafts = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
