@@ -1887,7 +1887,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		CreateAt:       1000000000,
 	}
 
-	t.Run("SendSubscriptionHistoryEvent with no license", func(t *testing.T) {
+	t.Run("Should not create SubscriptionHistoryEvent if the license is not cloud", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -1900,7 +1900,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		require.Nil(t, subscriptionHistoryEvent)
 	})
 
-	t.Run("SendSubscriptionHistoryEvent with cloud license and yearly product", func(t *testing.T) {
+	t.Run("Should create SubscriptionHistoryEvent if the license is cloud and the product is yearly", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
@@ -1908,8 +1908,8 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 
+		// mock the cloud functions
 		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
-		// return the monthly product
 		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(cloudProduct, nil)
 		cloud.Mock.On("CreateOrUpdateSubscriptionHistoryEvent", mock.Anything, mock.Anything).Return(subscriptionHistory, nil)
 
@@ -1919,6 +1919,7 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
+		// Mock to get the user count
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
