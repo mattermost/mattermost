@@ -649,7 +649,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[имя пользователя] ~[канал]"
+    "translation": "@[имя пользователя]... ~[канал]..."
   },
   {
     "id": "api.command_invite.missing_message.app_error",

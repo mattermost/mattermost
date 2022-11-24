@@ -38,7 +38,7 @@ func (*InviteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_message.app_error"),
@@ -46,49 +46,141 @@ func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 		}
 	}
 
-	splitMessage := strings.SplitN(message, " ", 2)
-	targetUsername := splitMessage[0]
-	targetUsername = strings.TrimPrefix(targetUsername, "@")
+	targetUsers, targetChannels, resp := i.parseMessage(a, c, args, message)
+	if resp != nil {
+		return resp
+	}
 
-	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
-	if nErr != nil {
-		mlog.Error(nErr.Error())
+	for _, targetUser := range targetUsers {
+		for _, targetChannel := range targetChannels {
+			if resp = i.addUserToChannel(a, c, args, targetUser, targetChannel); resp != nil {
+				return resp
+			}
+		}
+	}
+
+	targetUsernames := make([]string, 0, len(targetUsers))
+	for _, targetUser := range targetUsers {
+		targetUsernames = append(targetUsernames, targetUser.Username)
+	}
+
+	targetChannelsNames := make([]string, 0, len(targetChannels))
+	for _, targetChannel := range targetChannels {
+		if args.ChannelId != targetChannel.Id {
+			targetChannelsNames = append(targetChannelsNames, targetChannel.Name)
+		}
+	}
+
+	if len(targetChannelsNames) > 0 {
 		return &model.CommandResponse{
-			Text:         args.T("api.command_invite.missing_user.app_error"),
+			Text: args.T("api.command_invite.success", map[string]any{
+				"User":    strings.Join(targetUsernames, ", "),
+				"Channel": strings.Join(targetChannelsNames, ", "),
+			}),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
 
-	if userProfile.DeleteAt != 0 {
-		return &model.CommandResponse{
-			Text:         args.T("api.command_invite.missing_user.app_error"),
-			ResponseType: model.CommandResponseTypeEphemeral,
-		}
-	}
+	return &model.CommandResponse{}
+}
 
-	var channelToJoin *model.Channel
-	var err *model.AppError
-	// User set a channel to add the invited user
-	if len(splitMessage) > 1 && splitMessage[1] != "" {
-		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")
+func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.CommandArgs, message string) ([]*model.User, []*model.Channel, *model.CommandResponse) {
+	splitMessage := strings.Split(message, " ")
 
-		if channelToJoin, err = a.GetChannelByName(c, targetChannelName, args.TeamId, false); err != nil {
-			return &model.CommandResponse{
-				Text: args.T("api.command_invite.channel.error", map[string]any{
-					"Channel": targetChannelName,
-				}),
+	targetUsers := make([]*model.User, 0, 1)
+	targetChannels := make([]*model.Channel, 0)
+
+	if len(splitMessage) == 1 {
+		userProfile := i.getUserProfile(a, strings.TrimPrefix(splitMessage[0], "@"))
+		if userProfile == nil {
+			return targetUsers, targetChannels, &model.CommandResponse{
+				Text:         args.T("api.command_invite.missing_user.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
+		targetUsers = append(targetUsers, userProfile)
 	} else {
-		channelToJoin, err = a.GetChannel(c, args.ChannelId)
+		for _, msg := range splitMessage {
+			if len(msg) == 0 {
+				continue
+			}
+
+			switch msg[0] {
+			case '@':
+				targetUsername := strings.TrimPrefix(msg, "@")
+				userProfile := i.getUserProfile(a, targetUsername)
+				if userProfile == nil {
+					return targetUsers, targetChannels, &model.CommandResponse{
+						Text:         args.T("api.command_invite.missing_user.app_error"),
+						ResponseType: model.CommandResponseTypeEphemeral,
+					}
+				}
+				targetUsers = append(targetUsers, userProfile)
+			case '~':
+				targetChannelName := strings.TrimPrefix(msg, "~")
+				mlog.Debug("targetChannelName", mlog.String("targetChannelName", targetChannelName))
+				channelToJoin, err := a.GetChannelByName(c, targetChannelName, args.TeamId, false)
+				if err != nil {
+					return targetUsers, targetChannels, &model.CommandResponse{
+						Text: args.T("api.command_invite.channel.error", map[string]any{
+							"Channel": targetChannelName,
+						}),
+						ResponseType: model.CommandResponseTypeEphemeral,
+					}
+				}
+				targetChannels = append(targetChannels, channelToJoin)
+			default:
+				channelToJoin, err := a.GetChannelByName(c, msg, args.TeamId, false)
+				if err != nil {
+					return targetUsers, targetChannels, &model.CommandResponse{
+						Text: args.T("api.command_invite.channel.error", map[string]any{
+							"Channel": msg,
+						}),
+						ResponseType: model.CommandResponseTypeEphemeral,
+					}
+				}
+				targetChannels = append(targetChannels, channelToJoin)
+			}
+		}
+	}
+
+	if len(targetUsers) == 0 {
+		return targetUsers, targetChannels, &model.CommandResponse{
+			Text:         args.T("api.command_invite.missing_user.app_error"),
+			ResponseType: model.CommandResponseTypeEphemeral,
+		}
+	}
+
+	if len(targetChannels) == 0 {
+		channelToJoin, err := a.GetChannel(c, args.ChannelId)
 		if err != nil {
-			return &model.CommandResponse{
+			return targetUsers, targetChannels, &model.CommandResponse{
 				Text:         args.T("api.command_invite.channel.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
+		targetChannels = append(targetChannels, channelToJoin)
 	}
+
+	return targetUsers, targetChannels, nil
+}
+
+func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User {
+	userProfile, nErr := a.Srv().Store().User().GetByUsername(username)
+	if nErr != nil {
+		mlog.Error(nErr.Error())
+		return nil
+	}
+
+	if userProfile.DeleteAt != 0 {
+		return nil
+	}
+
+	return userProfile
+}
+
+func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) *model.CommandResponse {
+	var err *model.AppError
 
 	// Permissions Check
 	switch channelToJoin.Type {
@@ -140,7 +232,7 @@ func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 		}
 	}
 
-	if _, err := a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{
+	if _, err = a.AddChannelMember(c, userProfile.Id, channelToJoin, app.ChannelMemberOpts{
 		UserRequestorID: args.UserId,
 	}); err != nil {
 		var text string
@@ -160,15 +252,5 @@ func (*InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 		}
 	}
 
-	if args.ChannelId != channelToJoin.Id {
-		return &model.CommandResponse{
-			Text: args.T("api.command_invite.success", map[string]any{
-				"User":    userProfile.Username,
-				"Channel": channelToJoin.Name,
-			}),
-			ResponseType: model.CommandResponseTypeEphemeral,
-		}
-	}
-
-	return &model.CommandResponse{}
+	return nil
 }
