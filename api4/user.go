@@ -1921,6 +1921,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	var loginID string
 	var token string
+	var urlPath = *c.App.Config().ServiceSettings.SiteURL
 	if len(r.Form) > 0 {
 		for key, value := range r.Form {
 			if key == "login_id" {
@@ -1928,6 +1929,9 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if key == "cws_token" {
 				token = value[0]
+			}
+			if key == "url_path" {
+				urlPath += value[0]
 			}
 		}
 	}
@@ -1952,7 +1956,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
-	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, http.StatusFound)
+	http.Redirect(w, r, urlPath, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
