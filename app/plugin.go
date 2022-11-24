@@ -177,6 +177,12 @@ func (s *PluginService) GetPluginsEnvironment() *plugin.Environment {
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
 func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	// TODO: Telemetry service starts before products start, so we need to check if the plugin service is initialized.
+	// Move the telemetry service to start after products start.
+	if a.ch.srv.pluginService == nil {
+		return nil
+	}
+
 	return a.ch.srv.pluginService.GetPluginsEnvironment()
 }
 
