@@ -1643,6 +1643,14 @@
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
   {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Can not save draft to deleted channel"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
+  },
+  {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch settings has unset values."
   },
@@ -4958,6 +4966,34 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Unable to delete the Draft."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Unable to get the Draft."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Unable to get user's Drafts."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Unable to get files for Draft."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Unable to update the Draft."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -8626,6 +8662,38 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Invalid message."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Invalid props."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Invalid root id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.emoji.create_at.app_error",

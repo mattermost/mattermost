@@ -474,6 +474,7 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
 	CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError)
+	CreateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
 	CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError)
 	CreateGroup(group *model.Group) (*model.Group, *model.AppError)
 	CreateGroupChannel(c request.CTX, userIDs []string, creatorId string) (*model.Channel, *model.AppError)
@@ -515,6 +516,7 @@ type AppIface interface {
 	DeleteBrandImage() *model.AppError
 	DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
+	DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError)
 	DeleteEmoji(c request.CTX, emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userID, postID string)
 	DeleteExport(name string) *model.AppError
@@ -626,6 +628,8 @@ type AppIface interface {
 	GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError)
 	GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	GetDeletedChannels(c request.CTX, teamID string, offset int, limit int, userID string) (model.ChannelList, *model.AppError)
+	GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError)
+	GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError)
 	GetEmoji(c request.CTX, emojiId string) (*model.Emoji, *model.AppError)
 	GetEmojiByName(c request.CTX, emojiName string) (*model.Emoji, *model.AppError)
 	GetEmojiImage(c request.CTX, emojiId string) ([]byte, string, *model.AppError)
@@ -1096,6 +1100,7 @@ type AppIface interface {
 	UpdateChannelPrivacy(c request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError)
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
+	UpdateDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
 	UpdateEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
 	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
@@ -1141,6 +1146,7 @@ type AppIface interface {
 	UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(c *request.Context, us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError
+	UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	UpsertGroupMembers(groupID string, userIDs []string) ([]*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)

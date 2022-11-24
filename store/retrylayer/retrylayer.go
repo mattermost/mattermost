@@ -30,6 +30,7 @@ type RetryLayer struct {
 	CommandStore              store.CommandStore
 	CommandWebhookStore       store.CommandWebhookStore
 	ComplianceStore           store.ComplianceStore
+	DraftStore                store.DraftStore
 	EmojiStore                store.EmojiStore
 	FileInfoStore             store.FileInfoStore
 	GroupStore                store.GroupStore
@@ -94,6 +95,10 @@ func (s *RetryLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *RetryLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *RetryLayer) Draft() store.DraftStore {
+	return s.DraftStore
 }
 
 func (s *RetryLayer) Emoji() store.EmojiStore {
@@ -261,6 +266,11 @@ type RetryLayerCommandWebhookStore struct {
 
 type RetryLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *RetryLayer
+}
+
+type RetryLayerDraftStore struct {
+	store.DraftStore
 	Root *RetryLayer
 }
 
@@ -3598,6 +3608,111 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	tries := 0
 	for {
 		result, err := s.ComplianceStore.Update(compliance)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.Delete(userID, channelID, rootID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Get(userID, channelID, rootID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Save(d)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
+
+	tries := 0
+	for {
+		result, err := s.DraftStore.Update(d)
 		if err == nil {
 			return result, nil
 		}
@@ -14460,6 +14575,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &RetryLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &RetryLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DraftStore = &RetryLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &RetryLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &RetryLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &RetryLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}
