@@ -6,7 +6,7 @@ SET @preparedStatement = (SELECT IF(
         AND column_name = 'Enabled'
     ) > 0,
     'SELECT 1',
-    'ALTER TABLE OutgoingWebhooks ADD Enabled tinyint(1) NOT NULL DEFAULT TRUE;'
+    'ALTER TABLE OutgoingWebhooks ADD Enabled tinyint(1) DEFAULT 1;'
 ));
 
 PREPARE alterIfNotExists FROM @preparedStatement;
