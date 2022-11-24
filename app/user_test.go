@@ -1909,9 +1909,9 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 
 		userID := "123"
 
-		subscriptionHistory, err := th.App.SendSubscriptionHistoryEvent(userID)
+		subscriptionHistoryEvent, err := th.App.SendSubscriptionHistoryEvent(userID)
 		require.NoError(t, err)
-		require.Nil(t, subscriptionHistory)
+		require.Nil(t, subscriptionHistoryEvent)
 	})
 
 	t.Run("SendSubscriptionHistoryEvent with cloud license", func(t *testing.T) {
@@ -1941,9 +1941,9 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 
 		userID := "123"
 
-		subscriptionHistory, err := th.App.SendSubscriptionHistoryEvent(userID)
+		subscriptionHistoryEvent, err := th.App.SendSubscriptionHistoryEvent(userID)
 		require.NoError(t, err)
-		require.Equal(t, subscription.ID, subscriptionHistory.SubscriptionID, "subscription ID doesn't match")
-		require.Equal(t, 10, subscriptionHistory.Seats, "Number of seats doesn't match")
+		require.Equal(t, subscription.ID, subscriptionHistoryEvent.SubscriptionID, "subscription ID doesn't match")
+		require.Equal(t, 10, subscriptionHistoryEvent.Seats, "Number of seats doesn't match")
 	})
 }
