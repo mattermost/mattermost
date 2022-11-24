@@ -835,11 +835,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "display_name" {
-			user, appErr := c.App.GetUser(c.AppContext.Session().UserId)
+			var user *model.User
+
+			user, appErr = c.App.GetUser(c.AppContext.Session().UserId)
 			if appErr != nil {
 				c.Err = appErr
 				return
 			}
+
 			profiles, _, appErr = c.App.GetGroupMemberUsersSortedPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions, c.App.GetNotificationNameFormat(user))
 		} else {
 			profiles, _, appErr = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage, userGetOptions.ViewRestrictions)
