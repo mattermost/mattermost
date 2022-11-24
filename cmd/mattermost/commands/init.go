@@ -20,7 +20,11 @@ func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool)
 		panic(err)
 	}
 
-	a.Srv().InitializePluginService()
+	err = a.Srv().InitializePluginService()
+	if err != nil {
+		return nil, err
+	}
+
 	a.DoAppMigrations()
 
 	return a, nil
