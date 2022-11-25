@@ -37,7 +37,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 	pluginID := msg.Props["PluginID"]
-	// if plugin is empty, the message cloud come from a product
+	// if the plugin key is empty, the message might be coming from a product.
 	if pluginID == "" {
 		pluginID = msg.Props["ProductID"]
 	}
