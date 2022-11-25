@@ -980,7 +980,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If they don't specify a source and custom groups are disabled, ensure they only get ldap groups in the response
-	if !c.App.Config().FeatureFlags.CustomGroups || !*c.App.Config().ServiceSettings.EnableCustomGroups {
+	if !*c.App.Config().ServiceSettings.EnableCustomGroups {
 		source = model.GroupSourceLdap
 	}
 
@@ -1345,7 +1345,7 @@ func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupS
 		return model.NewAppError("", "api.custom_groups.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	if source == model.GroupSourceCustom && (!app.Config().FeatureFlags.CustomGroups || !*app.Config().ServiceSettings.EnableCustomGroups) {
+	if source == model.GroupSourceCustom && !*app.Config().ServiceSettings.EnableCustomGroups {
 		return model.NewAppError("", "api.custom_groups.feature_disabled", nil, "", http.StatusBadRequest)
 	}
 
