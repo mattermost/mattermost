@@ -114,7 +114,7 @@ func TestInviteProvider(t *testing.T) {
 		},
 		{
 			desc:     "add multiple users to multiple channels",
-			expected: "api.command_invite.success_multiple",
+			expected: "api.command_invite.success\napi.command_invite.success\napi.command_invite.success\napi.command_invite.success",
 			msg:      multipleUsersAndChannels,
 			isMember: []check{
 				{th.BasicUser2.Id, channel2.Id},
