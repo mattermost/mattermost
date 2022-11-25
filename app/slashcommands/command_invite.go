@@ -50,37 +50,24 @@ func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		return resp
 	}
 
+	resultText := make([]string, 0, len(targetUsers))
 	for _, targetUser := range targetUsers {
 		for _, targetChannel := range targetChannels {
 			if resp = i.addUserToChannel(a, c, args, targetUser, targetChannel); resp != nil {
 				return resp
 			}
+			if args.ChannelId != targetChannel.Id {
+				resultText = append(resultText, args.T("api.command_invite.success", map[string]any{
+					"User":    targetUser.Username,
+					"Channel": targetChannel.Name,
+				}))
+			}
 		}
 	}
 
-	targetUsernames := make([]string, 0, len(targetUsers))
-	for _, targetUser := range targetUsers {
-		targetUsernames = append(targetUsernames, targetUser.Username)
-	}
-
-	targetChannelsNames := make([]string, 0, len(targetChannels))
-	for _, targetChannel := range targetChannels {
-		if args.ChannelId != targetChannel.Id {
-			targetChannelsNames = append(targetChannelsNames, targetChannel.Name)
-		}
-	}
-
-	if len(targetChannelsNames) > 0 {
-		translationID := "api.command_invite.success_multiple"
-		if len(targetChannelsNames) == 1 {
-			translationID = "api.command_invite.success"
-		}
-
+	if len(resultText) > 0 {
 		return &model.CommandResponse{
-			Text: args.T(translationID, map[string]any{
-				"User":    strings.Join(targetUsernames, ", "),
-				"Channel": strings.Join(targetChannelsNames, ", "),
-			}),
+			Text: strings.Join(resultText, "\n"),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}

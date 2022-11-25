@@ -648,7 +648,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[kullanıcıadı]... ~[kanal]..."
+    "translation": "@[kullanıcıadı] ~[kanal]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",

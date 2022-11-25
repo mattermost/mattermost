@@ -647,7 +647,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[用户名]... ~[频道]..."
+    "translation": "@[用户名] ~[频道]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",

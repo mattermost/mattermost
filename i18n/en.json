@@ -900,7 +900,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username]... ~[channel]..."
+    "translation": "@[username] ~[channel]"
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -925,10 +925,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} added to {{.Channel}} channel."
-  },
-  {
-    "id": "api.command_invite.success_multiple",
-    "translation": "{{.User}} added to {{.Channel}} channels."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",

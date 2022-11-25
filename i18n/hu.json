@@ -8314,7 +8314,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[felhasználó]... ~[csatorna]..."
+    "translation": "@[felhasználó] ~[csatorna]"
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",

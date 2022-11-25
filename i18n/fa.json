@@ -7894,7 +7894,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username]... ~[channel]..."
+    "translation": "@[username] ~[channel]"
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
