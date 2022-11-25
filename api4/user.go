@@ -1914,7 +1914,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.Cloud {
+	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
 		return
 	}
@@ -3029,7 +3029,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(c.Params.TeamId, threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return
