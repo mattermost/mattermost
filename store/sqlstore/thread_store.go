@@ -243,6 +243,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Eq{"ThreadMemberships.Following": true})
 
+	// filter out threads where all replies have been deleted
+	query = query.Where(sq.Gt{"Threads.LastReplyAt": 0})
+
 	// If a team is specified, constrain to channels in that team or DMs/GMs without
 	// a team at all.
 	if teamId != "" {
