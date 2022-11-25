@@ -591,30 +591,61 @@ func TestGetLastAccessibleFileTime(t *testing.T) {
 }
 
 func TestComputeLastAccessibleFileTime(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
+	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
 
-	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-	cloud := &eMocks.CloudInterface{}
-	th.App.Srv().Cloud = cloud
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
 
-	cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-		Files: &model.FilesLimits{
-			TotalStorage: model.NewInt64(1),
-		},
-	}, nil)
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
+			Files: &model.FilesLimits{
+				TotalStorage: model.NewInt64(1),
+			},
+		}, nil)
 
-	mockStore := th.App.Srv().Store().(*storemocks.Store)
-	mockFileStore := storemocks.FileInfoStore{}
-	mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
-	mockSystemStore := storemocks.SystemStore{}
-	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
-	mockStore.On("FileInfo").Return(&mockFileStore)
-	mockStore.On("System").Return(&mockSystemStore)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockStore.On("FileInfo").Return(&mockFileStore)
+		mockStore.On("System").Return(&mockSystemStore)
 
-	err := th.App.ComputeLastAccessibleFileTime()
-	require.NoError(t, err)
+		err := th.App.ComputeLastAccessibleFileTime()
+		require.NoError(t, err)
 
-	mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "SaveOrUpdate", mock.Anything)
+	})
+
+	t.Run("Removes the time, if cloud limit is not applicable", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := &eMocks.CloudInterface{}
+		th.App.Srv().Cloud = cloud
+
+		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(nil, nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		mockFileStore.On("GetUptoNSizeFileTime", mock.Anything).Return(int64(1), nil)
+		mockSystemStore := storemocks.SystemStore{}
+		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemLastAccessibleFileTime, Value: "10"}, nil)
+		mockSystemStore.On("PermanentDeleteByName", mock.Anything).Return(nil, nil)
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+		mockStore.On("FileInfo").Return(&mockFileStore)
+		mockStore.On("System").Return(&mockSystemStore)
+
+		err := th.App.ComputeLastAccessibleFileTime()
+		require.NoError(t, err)
+
+		mockSystemStore.AssertNotCalled(t, "SaveOrUpdate", mock.Anything)
+		mockSystemStore.AssertCalled(t, "PermanentDeleteByName", mock.Anything)
+
+	})
 }
