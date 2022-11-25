@@ -5584,14 +5584,6 @@
     "translation": "Les canaux présents dans l'invitation doivent faire partie de la même équipe pour laquelle vous êtes invité."
   },
   {
-    "id": "api.team.invate_guests_to_channels.license.error",
-    "translation": "Votre licence ne prend pas en charge les comptes invités."
-  },
-  {
-    "id": "api.team.invate_guests_to_channels.disabled.error",
-    "translation": "Les comptes invités sont désactivés"
-  },
-  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Une erreur s'est produite lors de l'invalidation des e-mails d'invitation."
   },
@@ -8754,10 +8746,6 @@
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Impossible d'obtenir tous les travaux par type et statuts."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Vous avez atteint la limite maximale de {{.NumIntegrations}} d'intégrations activées. Pour installer un nombre illimité d'intégrations, effectuez une mise à niveau vers l'un de nos plans payants."
   },
   {
     "id": "app.insights.feature_disabled",

@@ -383,6 +383,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
+	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -845,7 +846,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PostPriority == nil {
-		s.PostPriority = NewBool(false)
+		s.PostPriority = NewBool(true)
+	}
+
+	if s.AllowSyncedDrafts == nil {
+		s.AllowSyncedDrafts = NewBool(true)
 	}
 }
 
@@ -2747,6 +2752,20 @@ func (s *CloudSettings) SetDefaults() {
 	}
 }
 
+type ProductSettings struct {
+	EnablePublicSharedBoards *bool
+}
+
+func (s *ProductSettings) SetDefaults(plugins map[string]map[string]any) {
+	if s.EnablePublicSharedBoards == nil {
+		if p, ok := plugins[PluginIdFocalboard]; ok {
+			s.EnablePublicSharedBoards = NewBool(p["enablepublicsharedboards"].(bool))
+		} else {
+			s.EnablePublicSharedBoards = NewBool(false)
+		}
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
@@ -3136,6 +3155,7 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
+	ProductSettings           ProductSettings
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
@@ -3235,6 +3255,7 @@ func (o *Config) SetDefaults() {
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
 	o.PluginSettings.SetDefaults(o.LogSettings)
+	o.ProductSettings.SetDefaults(o.PluginSettings.Plugins)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()

@@ -4,10 +4,13 @@
 package platform
 
 import (
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
@@ -124,6 +127,7 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
+		t.Skip("MM-47635")
 		th := Setup(t, StartMetrics())
 		defer th.TearDown()
 
@@ -151,5 +155,26 @@ func TestMetrics(t *testing.T) {
 		_ = th.CreateUserOrGuest(false)
 
 		mockMetricsImpl.AssertExpectations(t)
+	})
+}
+
+func TestShutdown(t *testing.T) {
+	t.Run("should shutdown gracefully", func(t *testing.T) {
+		th := Setup(t)
+		rand.Seed(time.Now().UnixNano())
+
+		// we create plenty of go routines to make sure we wait for all of them
+		// to finish before shutting down
+		for i := 0; i < 1000; i++ {
+			th.Service.Go(func() {
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(20)))
+			})
+		}
+
+		err := th.Service.Shutdown()
+		require.NoError(t, err)
+
+		// assert that there are no more go routines running
+		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
 	})
 }

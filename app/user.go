@@ -209,6 +209,19 @@ func (a *App) IsFirstUserAccount() bool {
 	return a.ch.srv.platform.IsFirstUserAccount()
 }
 
+func (a *App) IsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	adminID, err := a.Srv().Store().User().GetFirstSystemAdminID()
+	if err != nil {
+		return false
+	}
+
+	return adminID == user.Id
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(c request.CTX, user *model.User) (*model.User, *model.AppError) {
@@ -2378,6 +2391,10 @@ func (a *App) ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.U
 func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
+	postPriorityIsEnabled := a.isPostPriorityEnabled()
+	if postPriorityIsEnabled {
+		options.IncludeIsUrgent = true
+	}
 
 	if !options.ThreadsOnly {
 		eg.Go(func() error {
@@ -2414,6 +2431,18 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 			return nil
 		})
+
+		if postPriorityIsEnabled {
+			eg.Go(func() error {
+				totalUnreadUrgentMentions, err := a.Srv().Store().Thread().GetTotalUnreadUrgentMentions(userID, teamID, options)
+				if err != nil {
+					return errors.Wrapf(err, "failed to count urgent mentioned threads for user id=%s", userID)
+				}
+				result.TotalUnreadUrgentMentions = totalUnreadUrgentMentions
+
+				return nil
+			})
+		}
 	}
 
 	if !options.TotalsOnly {
@@ -2455,8 +2484,8 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
-func (a *App) GetThreadForUser(teamID string, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, threadMembership, extended)
+func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, err := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.isPostPriorityEnabled())
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2538,7 +2567,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(c request.CTX, userID, tea
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(teamID, tm, true)
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.isPostPriorityEnabled())
 
 	if err != nil {
 		var errNotFound *store.ErrNotFound
@@ -2620,7 +2649,7 @@ func (a *App) UpdateThreadReadForUser(c request.CTX, currentSessionId, userID, t
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	thread, err := a.GetThreadForUser(teamID, membership, false)
+	thread, err := a.GetThreadForUser(membership, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2657,4 +2686,26 @@ func getProfileImagePath(userID string) string {
 
 func getProfileImageDirectory(userID string) string {
 	return filepath.Join("users", userID)
+}
+
+func (a *App) UserIsFirstAdmin(user *model.User) bool {
+	if !user.IsSystemAdmin() {
+		return false
+	}
+
+	systemAdminUsers, errServer := a.Srv().Store().User().GetSystemAdminProfiles()
+	if errServer != nil {
+		mlog.Warn("Failed to get system admins to check for first admin from Mattermost.")
+		return false
+	}
+
+	for _, systemAdminUser := range systemAdminUsers {
+		systemAdminUser := systemAdminUser
+
+		if systemAdminUser.CreateAt < user.CreateAt {
+			return false
+		}
+	}
+
+	return true
 }
