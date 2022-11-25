@@ -1328,8 +1328,6 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 //
 //	err := licensedAndConfiguredForGroupBySource(c.App, group.Source)
 //	err.Where = "Api4.getGroup"
-//
-// Temporarily, this function also checks for the CustomGroups feature flag.
 func licensedAndConfiguredForGroupBySource(app app.AppIface, source model.GroupSource) *model.AppError {
 	lic := app.Srv().License()
 
