@@ -67,7 +67,7 @@ func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 
 	if len(resultText) > 0 {
 		return &model.CommandResponse{
-			Text: strings.Join(resultText, "\n"),
+			Text:         strings.Join(resultText, "\n"),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
