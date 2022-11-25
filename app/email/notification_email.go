@@ -60,6 +60,12 @@ func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 }
 
+/*
+MM-48521: following functions along with FieldRow, EmailMessageAttachment are duplicate of code in app/notification_email.go
+
+A subsequent ticket MM-48635 will help clean the same.
+*/
+
 func (es *Service) processMessageAttachments(post *model.Post) []*EmailMessageAttachment {
 	emailMessageAttachments := []*EmailMessageAttachment{}
 
