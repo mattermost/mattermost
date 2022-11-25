@@ -42,12 +42,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	// Enable Create First Channel
-	GuidedChannelCreation bool
-
-	// A/B test for whether radio buttons or toggle button is more effective in in-screen invite to team modal ("none", "toggle")
-	InviteToTeam string
-
 	CustomGroups bool
 
 	// Enable DataRetention for Boards
@@ -70,9 +64,23 @@ type FeatureFlags struct {
 	// Enable Boards as a product (multi-product architecture)
 	BoardsProduct bool
 
-	PlanUpgradeButtonText string
+	// A/B Test on posting a welcome message
+	SendWelcomePost bool
+
+	WorkTemplate bool
 
 	PostPriority bool
+
+	PeopleProduct bool
+
+	AnnualSubscription bool
+
+	// A/B Test on reduced onboarding task list item
+	ReduceOnBoardingTaskList bool
+
+	ThreadsEverywhere bool
+
+	GlobalDrafts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -86,8 +94,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PermalinkPreviews = true
 	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
-	f.GuidedChannelCreation = false
-	f.InviteToTeam = "none"
 	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
@@ -98,8 +104,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CommandPalette = false
 	f.CallsEnabled = true
 	f.BoardsProduct = false
-	f.PlanUpgradeButtonText = "upgrade"
+	f.SendWelcomePost = true
 	f.PostPriority = false
+	f.PeopleProduct = false
+	f.WorkTemplate = false
+	f.AnnualSubscription = false
+	f.ReduceOnBoardingTaskList = false
+	f.ThreadsEverywhere = false
+	f.GlobalDrafts = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -48,7 +48,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		if c.App.Srv().License().IsCloud() {
 			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -65,6 +65,13 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.AppContext.Session().UserId != "" {
 		us.UserId = c.AppContext.Session().UserId
 	}
+
+	if us.FileSize > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("createUpload", "api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
 	rus, err := c.App.CreateUploadSession(c.AppContext, &us)
 	if err != nil {
 		c.Err = err
@@ -127,7 +134,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		if c.App.Srv().License().IsCloud() {
 			c.Err = model.NewAppError("UploadData", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
 			return
 		}

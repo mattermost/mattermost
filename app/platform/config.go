@@ -32,17 +32,7 @@ type ServiceConfig struct {
 	ConfigStore *config.Store
 	Store       store.Store
 	// Optional fields
-	Metrics einterfaces.MetricsInterface
 	Cluster einterfaces.ClusterInterface
-}
-
-func (c *ServiceConfig) validate() error {
-	// Mandatory fields need to be checked here
-	if c.ConfigStore == nil {
-		return errors.New("ConfigStore is required")
-	}
-
-	return nil
 }
 
 // ensure the config wrapper implements `product.ConfigService`

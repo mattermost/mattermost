@@ -181,6 +181,7 @@ func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error)
 			"Width":           info.Width,
 			"Height":          info.Height,
 			"HasPreviewImage": info.HasPreviewImage,
+			"MiniPreview":     info.MiniPreview,
 			"Content":         info.Content,
 			"RemoteId":        info.RemoteId,
 		}).
@@ -605,8 +606,7 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		terms := params.Terms
 		excludedTerms := params.ExcludedTerms
 
-		// these chars have special meaning and can be treated as spaces
-		for _, c := range specialSearchChar {
+		for _, c := range fs.specialSearchChars() {
 			terms = strings.Replace(terms, c, " ", -1)
 			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 		}

@@ -23,7 +23,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/gitlab"
+	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost-server/v6/store"
 	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -1799,5 +1799,56 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
+	})
+}
+
+func TestIsFirstAdmin(t *testing.T) {
+	t.Run("should return false if user is not sysadmin", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemUserRoleId,
+		})
+		require.False(t, isFirstAdmin)
+	})
+
+	t.Run("should return false if user is sysadmin but not the first one", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetFirstSystemAdminID").Return(model.NewId(), nil)
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockStore.On("User").Return(&mockUserStore)
+
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemAdminRoleId,
+		})
+		require.False(t, isFirstAdmin)
+	})
+
+	t.Run("should return true if user is sysadmin and the first one", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		Id := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetFirstSystemAdminID").Return(Id, nil)
+		mockStore.On("User").Return(&mockUserStore)
+
+		isFirstAdmin := th.App.IsFirstAdmin(&model.User{
+			Id:    Id,
+			Roles: model.SystemAdminRoleId,
+		})
+		require.True(t, isFirstAdmin)
 	})
 }

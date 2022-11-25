@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
@@ -59,7 +61,24 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	return us
 }
 
+func (us SqlUserStore) validateAutoResponderMessageSize(notifyProps model.StringMap) error {
+	if notifyProps != nil {
+		maxPostSize := us.Post().GetMaxPostSize()
+		msg := notifyProps[model.AutoResponderMessageNotifyProp]
+		msgSize := utf8.RuneCountInString(msg)
+		if msgSize > maxPostSize {
+			mlog.Warn("auto_responder_message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int("received_size", msgSize))
+			return errors.New("Auto responder message size can't be more than the allowed Post size")
+		}
+	}
+	return nil
+}
+
 func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	query := `INSERT INTO Users
 		(Id, CreateAt, UpdateAt, DeleteAt, Username, Password, AuthData, AuthService,
 			Email, EmailVerified, Nickname, FirstName, LastName, Position, Roles, AllowMarketing,
@@ -150,6 +169,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, err
 	}
 
+	if err := us.validateAutoResponderMessageSize(user.NotifyProps); err != nil {
+		return nil, err
+	}
+
 	oldUser := model.User{}
 	err := us.GetMasterX().Get(&oldUser, "SELECT * FROM Users WHERE Id=?", user.Id)
 	if err != nil {
@@ -228,6 +251,10 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	if err := us.validateAutoResponderMessageSize(props); err != nil {
+		return err
+	}
+
 	buf, err := json.Marshal(props)
 	if err != nil {
 		return errors.Wrap(err, "failed marshalling session props")
@@ -714,6 +741,8 @@ func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*m
 	} else if options.Active {
 		query = query.Where("u.DeleteAt = 0")
 	}
+
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, us.DriverName() == model.DatabaseDriverPostgres)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1498,7 +1527,7 @@ func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model
 func (us SqlUserStore) SearchNotInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
 		LeftJoin("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
-		Where("gm.UserId IS NULL").
+		Where("(gm.UserId IS NULL OR gm.deleteat != 0)").
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
 
@@ -1721,6 +1750,16 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
+func (us SqlUserStore) GetFirstSystemAdminID() (string, error) {
+	var id string
+	err := us.GetReplicaX().Get(&id, "SELECT Id FROM Users WHERE Roles LIKE ? ORDER BY CreateAt ASC LIMIT 1", "%system_admin%")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get first system admin")
+	}
+
+	return id, nil
+}
+
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, err := us.usersQuery.
@@ -1766,7 +1805,16 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 			`).
 		From("ChannelMembers cm").
 		Join("Channels c ON cm.ChannelId = c.Id").
-		Where(sq.Eq{"c.Type": model.ChannelTypeOpen, "cm.UserId": userIds}).
+		Where(sq.And{
+			sq.Eq{
+				"cm.UserId": userIds,
+			},
+			sq.Or{
+				sq.Eq{"c.Type": model.ChannelTypeOpen},
+				sq.Eq{"c.Type": model.ChannelTypeDirect},
+				sq.Eq{"c.Type": model.ChannelTypeGroup},
+			},
+		}).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "GetUsersBatchForIndexing_ToSql2")

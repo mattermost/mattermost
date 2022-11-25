@@ -127,11 +127,6 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 }
 
 func (a *App) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
-	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
-			map[string]any{"channelId": us.ChannelId}, "", http.StatusRequestEntityTooLarge)
-	}
-
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
@@ -298,8 +293,8 @@ func (a *App) UploadData(c *request.Context, us *model.UploadSession, rd io.Read
 		}
 
 		nameWithoutExtension := info.Name[:strings.LastIndex(info.Name, ".")]
-		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb.jpg"
+		info.PreviewPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_preview." + getFileExtFromMimeType(info.MimeType)
+		info.ThumbnailPath = filepath.Dir(info.Path) + "/" + nameWithoutExtension + "_thumb." + getFileExtFromMimeType(info.MimeType)
 		imgData, fileErr := a.ReadFile(uploadPath)
 		if fileErr != nil {
 			return nil, fileErr
