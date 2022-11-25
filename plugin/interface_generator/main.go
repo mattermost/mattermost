@@ -35,6 +35,7 @@ var excludedPluginHooks = []string{
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",
+	"UploadData",
 }
 
 var excludedProductHooks = []string{

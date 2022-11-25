@@ -90,6 +90,7 @@ type Params struct {
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
 	FilterHasMember           string
+	IncludeChannelMemberCount string
 
 	// Cloud
 	InvoiceId string
@@ -208,6 +209,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 	params.FilterAllowReference, _ = strconv.ParseBool(query.Get("filter_allow_reference"))
 	params.FilterParentTeamPermitted, _ = strconv.ParseBool(query.Get("filter_parent_team_permitted"))
+	params.IncludeChannelMemberCount = query.Get("include_channel_member_count")
 
 	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
 		params.Paginate = &val

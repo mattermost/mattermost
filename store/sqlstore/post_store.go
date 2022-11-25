@@ -219,6 +219,10 @@ func (s *SqlPostStore) SaveMultiple(teamID string, posts []*model.Post) ([]*mode
 		return nil, -1, errors.Wrap(err, "update thread from posts failed")
 	}
 
+	if err = s.savePostsPriority(transaction, posts); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save PostPriority")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
 		return posts, -1, errors.Wrap(err, "commit_transaction")
@@ -1417,6 +1421,23 @@ func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOpti
 	return s.getPostsAround(false, options, sanitizeOptions)
 }
 
+func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"CreateAt": since})
+
+	result := []*model.Post{}
+	err := s.GetReplicaX().SelectBuilder(&result, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+
+	return result, nil
+}
+
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.Page < 0 {
 		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
@@ -1788,18 +1809,6 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
 	return posts, nil
 }
 
-var specialSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	"@",
-	":",
-}
-
 // GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 func (s *SqlPostStore) GetNthRecentPostTime(n int64) (int64, error) {
 	if n <= 0 {
@@ -1989,8 +1998,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialSearchChar {
+	for _, c := range s.specialSearchChars() {
 		terms = strings.Replace(terms, c, " ", -1)
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
@@ -2928,6 +2936,24 @@ func (s *SqlPostStore) updateThreadAfterReplyDeletion(transaction *sqlxTxWrapper
 
 		if err != nil {
 			return errors.Wrap(err, "failed to update Threads")
+		}
+	}
+	return nil
+}
+
+func (s *SqlPostStore) savePostsPriority(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	for _, post := range posts {
+		if post.GetPriority() != nil {
+			postPriority := &model.PostPriority{
+				PostId:                  post.Id,
+				ChannelId:               post.ChannelId,
+				Priority:                post.Metadata.Priority.Priority,
+				RequestedAck:            post.Metadata.Priority.RequestedAck,
+				PersistentNotifications: post.Metadata.Priority.PersistentNotifications,
+			}
+			if _, err := transaction.NamedExec(`INSERT INTO PostsPriority (PostId, ChannelId, Priority, RequestedAck, PersistentNotifications) VALUES (:PostId, :ChannelId, :Priority, :RequestedAck, :PersistentNotifications)`, postPriority); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
