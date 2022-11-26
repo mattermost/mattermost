@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
 
@@ -31,16 +32,23 @@ type CommandResponse struct {
 	ExtraResponses   []*CommandResponse `json:"extra_responses"`
 }
 
-func CommandResponseFromHTTPBody(body io.Reader) (*CommandResponse, error) {
+func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {
 	if bodyRaw, err := io.ReadAll(body); err != nil {
 		return nil, nil
 	} else if commandResponse, err := CommandResponseFromJSON(bodyRaw); err == nil {
 		return commandResponse, nil
+	} else if ContentTypeIs(contentType, "application/json") {
+		return nil, err
 	} else {
 		return &CommandResponse{
 			Text: string(bodyRaw),
 		}, nil
 	}
+}
+
+func ContentTypeIs(rawContentType string, expectedContentType string) bool {
+	givenContentType := strings.TrimSpace(strings.Split(rawContentType, ";")[0])
+	return givenContentType == expectedContentType
 }
 
 func CommandResponseFromJSON(bodyRaw []byte) (*CommandResponse, error) {

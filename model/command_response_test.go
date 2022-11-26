@@ -12,25 +12,29 @@ import (
 
 func TestCommandResponseFromHTTPBody(t *testing.T) {
 	for _, test := range []struct {
+		ContentType  string
 		Body         string
 		ExpectedText string
 	}{
-		{"foo", "foo"},
-		{"foo", "foo"},
-		{`{"text": "foo"}`, "foo"},
-		{`{"text": "foo"}`, "foo"},
-		{`{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing": true}`,
+		{"", "foo", "foo"},
+		{"text/plain", "foo", "foo"},
+		{"application/json", `{"text": "foo"}`, "foo"},
+		{"x-www-form-urlencoded", `{"text": "foo"}`, "foo"},
+		{"any", `{"text": "foo"}`, "foo"},
+		{"", `{"text": "foo"}`, "foo"},
+		{"application/json; charset=utf-8", `{"text": "foo"}`, "foo"},
+		{"application/json", `{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing": true}`,
 			"```haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n```",
 		},
 	} {
-		response, err := CommandResponseFromHTTPBody(strings.NewReader(test.Body))
+		response, err := CommandResponseFromHTTPBody(test.ContentType, strings.NewReader(test.Body))
 		assert.NoError(t, err)
 		assert.Equal(t, test.ExpectedText, response.Text)
 	}
 }
 
 func TestCommandResponseFromPlainText(t *testing.T) {
-	response, err := CommandResponseFromHTTPBody(strings.NewReader("foo"))
+	response, err := CommandResponseFromHTTPBody("any", strings.NewReader("foo"))
 	assert.Equal(t, "foo", response.Text)
 	assert.NoError(t, err)
 }

@@ -6435,7 +6435,7 @@ func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromHTTPBody(r.Body)
+	response, err := CommandResponseFromHTTPBody("application/json", r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommand", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -6460,7 +6460,7 @@ func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*Co
 	}
 	defer closeBody(r)
 
-	response, err := CommandResponseFromHTTPBody(r.Body)
+	response, err := CommandResponseFromHTTPBody("application/json", r.Body)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ExecuteCommandWithTeam", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
