@@ -57,7 +57,6 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, err
 			"UserId":    userId,
 			"ChannelId": channelId,
 			"RootId":    rootId,
-			"DeleteAt":  0,
 		})
 
 	dt := model.Draft{}
