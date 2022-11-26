@@ -30,7 +30,7 @@ func TestCommandResponseFromHTTPBody(t *testing.T) {
 }
 
 func TestCommandResponseFromPlainText(t *testing.T) {
-	response, err := CommandResponseFromPlainText("foo")
+	response, err := CommandResponseFromHTTPBody(strings.NewReader("foo"))
 	assert.Equal(t, "foo", response.Text)
 	assert.NoError(t, err)
 }
@@ -208,7 +208,7 @@ func TestCommandResponseFromJSON(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 
-			response, err := CommandResponseFromJSON(strings.NewReader(testCase.Json))
+			response, err := CommandResponseFromJSON([]byte(testCase.Json))
 			if testCase.ShouldError {
 				assert.Nil(t, response)
 			} else {

@@ -525,7 +525,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 	}
 
-	response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), body)
+	response, err := model.CommandResponseFromHTTPBody(body)
 	if err != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	} else if response == nil {
