@@ -5,7 +5,9 @@ package model
 
 import (
 	"encoding/json"
+
 	"github.com/mattermost/mattermost-server/v6/utils/jsonutils"
+
 	"io"
 )
 
