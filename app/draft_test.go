@@ -44,7 +44,7 @@ func TestGetDraft(t *testing.T) {
 	assert.Nil(t, upsertDraftErr)
 
 	t.Run("get draft", func(t *testing.T) {
-		draftResp, err := th.App.GetDraft(user.Id, channel.Id, "", false)
+		draftResp, err := th.App.GetDraft(user.Id, channel.Id, "")
 		assert.Nil(t, err)
 
 		assert.Equal(t, draft.Message, draftResp.Message)
@@ -63,7 +63,7 @@ func TestGetDraft(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.GlobalDrafts = true })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, err := th.App.GetDraft(user.Id, channel.Id, "", false)
+		_, err := th.App.GetDraft(user.Id, channel.Id, "")
 		assert.NotNil(t, err)
 	})
 }

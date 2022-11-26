@@ -268,12 +268,12 @@ func TestGetDraft(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("get drafts", func(t *testing.T) {
-			draftResp, err := ss.Draft().Get(user.Id, channel.Id, "", false)
+			draftResp, err := ss.Draft().Get(user.Id, channel.Id, "")
 			assert.NoError(t, err)
 			assert.Equal(t, draft1.Message, draftResp.Message)
 			assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 
-			draftResp, err = ss.Draft().Get(user.Id, channel2.Id, "", false)
+			draftResp, err = ss.Draft().Get(user.Id, channel2.Id, "")
 			assert.NoError(t, err)
 			assert.Equal(t, draft2.Message, draftResp.Message)
 			assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)

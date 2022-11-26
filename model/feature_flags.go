@@ -101,13 +101,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.BoardsProduct = false
 	f.SendWelcomePost = true
-	f.PostPriority = true
+	f.PostPriority = false
 	f.PeopleProduct = false
 	f.WorkTemplate = false
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
-	f.GlobalDrafts = true
+	f.GlobalDrafts = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
