@@ -5892,7 +5892,7 @@ func (a *OpenTracingAppLayer) GetDeletedChannels(c request.CTX, teamID string, o
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID string) (*model.Draft, *model.AppError) {
+func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID string, inclDeleted bool) (*model.Draft, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDraft")
 
@@ -5904,7 +5904,7 @@ func (a *OpenTracingAppLayer) GetDraft(userID string, channelID string, rootID s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetDraft(userID, channelID, rootID)
+	resultVar0, resultVar1 := a.app.GetDraft(userID, channelID, rootID, inclDeleted)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

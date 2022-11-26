@@ -49,7 +49,7 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 	}
 }
 
-func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, error) {
+func (s *SqlDraftStore) Get(userId, channelId, rootId string, inclDeleted bool) (*model.Draft, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Drafts").
@@ -57,8 +57,11 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, err
 			"UserId":    userId,
 			"ChannelId": channelId,
 			"RootId":    rootId,
-			"DeleteAt":  0,
 		})
+
+	if !inclDeleted {
+		query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	dt := model.Draft{}
 	err := s.GetReplicaX().GetBuilder(&dt, query)

@@ -2981,10 +2981,10 @@ func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID st
 	return err
 }
 
-func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
+func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string, inclDeleted bool) (*model.Draft, error) {
 	start := time.Now()
 
-	result, err := s.DraftStore.Get(userID, channelID, rootID)
+	result, err := s.DraftStore.Get(userID, channelID, rootID, inclDeleted)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

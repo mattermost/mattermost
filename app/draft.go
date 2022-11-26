@@ -15,12 +15,12 @@ import (
 	"github.com/mattermost/mattermost-server/v6/store"
 )
 
-func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.AppError) {
+func (a *App) GetDraft(userID, channelID, rootID string, inclDeleted bool) (*model.Draft, *model.AppError) {
 	if !a.Config().FeatureFlags.GlobalDrafts || !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID)
+	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID, inclDeleted)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -39,7 +39,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
+	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, false)
 	var notFoundErr *store.ErrNotFound
 	if dErr != nil && !errors.As(dErr, &notFoundErr) {
 		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, dErr.Error(), http.StatusInternalServerError)
@@ -189,7 +189,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*mode
 		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID)
+	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}
