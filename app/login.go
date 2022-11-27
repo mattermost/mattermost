@@ -63,7 +63,6 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	if user, err = a.GetUserForLogin(id, loginId); err != nil {
 		return nil, err
 	}
-
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
 	if IsCWSLogin(a, cwsToken) {
