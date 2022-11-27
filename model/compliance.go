@@ -17,6 +17,11 @@ const (
 
 	ComplianceTypeDaily = "daily"
 	ComplianceTypeAdhoc = "adhoc"
+
+	ComplianceCursorLastBoardUpdateAt = "LastBoardUpdateAt"
+	ComplianceCursorLastBoardID       = "LastBoardID"
+	ComplianceCursorLastBlockUpdateAt = "LastBlockUpdateAt"
+	ComplianceCursorLastBlockID       = "LastBlockID"
 )
 
 type Compliance struct {

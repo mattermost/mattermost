@@ -7256,6 +7256,10 @@
     "translation": "Unable to add attachment to the CSV export."
   },
   {
+    "id": "ent.compliance.csv.exporter.csv_export.appError",
+    "translation": "Unable to run exporter CSV export process."
+  },
+  {
     "id": "ent.compliance.csv.file.creation.appError",
     "translation": "Unable to create temporary CSV export file."
   },
@@ -7310,6 +7314,10 @@
   {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
+  },
+  {
+    "id": "ent.compliance.run_export.product_exporter.appError",
+    "translation": "Unable to get exporter from product."
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
@@ -7718,6 +7726,10 @@
   {
     "id": "ent.message_export.csv_export.get_attachment_error",
     "translation": "Failed to get file info for a post."
+  },
+  {
+    "id": "ent.message_export.get_product_exporter.app_error",
+    "translation": "Unable get product exporter when running a CSV export job."
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",

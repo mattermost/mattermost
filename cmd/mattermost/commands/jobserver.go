@@ -40,6 +40,10 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
+	if err := a.Srv().StartProducts(); err != nil {
+		return err
+	}
+
 	a.Srv().LoadLicense()
 
 	// Run jobs

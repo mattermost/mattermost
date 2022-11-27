@@ -160,6 +160,10 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		}
 		defer a.Srv().Shutdown()
 
+		if pErr := a.Srv().StartProducts(); err != nil {
+			return pErr
+		}
+
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
 			return errors.New("exportFrom flag error")

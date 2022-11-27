@@ -50,7 +50,7 @@ func (s *Server) initializeProducts(
 			if err != nil {
 				return fmt.Errorf("error initializing product %q: %w", product, err)
 			}
-			s.products[product] = prod
+			s.Products[product] = prod
 
 			// we remove this product from the map to not try to initialize it again
 			delete(pmap, product)

@@ -71,13 +71,13 @@ func TestInitializeProducts(t *testing.T) {
 		}
 
 		server := &Server{
-			products: make(map[string]product.Product),
+			Products: make(map[string]product.Product),
 			platform: ps,
 		}
 
 		err = server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
-		require.Len(t, server.products, 2)
+		require.Len(t, server.Products, 2)
 	})
 
 	t.Run("2 products and circular dependency", func(t *testing.T) {
@@ -110,7 +110,7 @@ func TestInitializeProducts(t *testing.T) {
 			},
 		}
 		server := &Server{
-			products: make(map[string]product.Product),
+			Products: make(map[string]product.Product),
 			platform: ps,
 		}
 
@@ -139,13 +139,13 @@ func TestInitializeProducts(t *testing.T) {
 			},
 		}
 		server := &Server{
-			products: make(map[string]product.Product),
+			Products: make(map[string]product.Product),
 			platform: ps,
 		}
 
 		err := server.initializeProducts(products, serviceMap)
 		require.NoError(t, err)
-		require.Len(t, server.products, 2)
+		require.Len(t, server.Products, 2)
 	})
 
 	t.Run("boards product to be blocked", func(t *testing.T) {
