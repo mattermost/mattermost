@@ -1962,12 +1962,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
-	if len(campaign) > 0 {
+	if campaign != "" {
 		if url, ok := campaignToURL[campaign]; ok {
 			redirectURL += url
 		}
 	}
-	http.Redirect(w, r, redirectURL , http.StatusFound)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
