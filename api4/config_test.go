@@ -17,9 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/config"
-	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest/mock"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -247,59 +245,6 @@ func TestUpdateConfig(t *testing.T) {
 		cfg2, _, err = th.SystemAdminClient.UpdateConfig(cfg2)
 		require.NoError(t, err)
 		assert.Equal(t, newURL, *cfg2.PluginSettings.MarketplaceURL)
-	})
-
-	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Integrations: &model.IntegrationsLimits{
-				Enabled: model.NewInt(0),
-			},
-		}, nil).Once()
-
-		// Exceed freemium limit. Should throw error.
-		cfg1 := th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		_, _, err1 := th.SystemAdminClient.UpdateConfig(cfg1)
-		require.Error(t, err1)
-
-		// No attempt to enable a plugin. Should not throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: false}
-		_, _, err1 = th.SystemAdminClient.UpdateConfig(cfg1)
-		require.NoError(t, err1)
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Integrations: &model.IntegrationsLimits{
-				Enabled: model.NewInt(1),
-			},
-		}, nil).Twice()
-
-		// Exceed freemium limit while enabling more than one plugin. Should throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		cfg1.PluginSettings.PluginStates["new-plugin2"] = &model.PluginState{Enable: true}
-		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
-		require.Error(t, err1)
-
-		// Match freemium limit. Should not throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		_, _, err1 = th.SystemAdminClient.UpdateConfig(cfg1)
-		require.NoError(t, err1)
-
-		// Save same config with same plugin enabled. Should not throw error.
-		_, _, err1 = th.SystemAdminClient.UpdateConfig(cfg1)
-		require.NoError(t, err1)
 	})
 
 	t.Run("Should not be able to modify ComplianceSettings.Directory in cloud", func(t *testing.T) {
@@ -845,59 +790,6 @@ func TestPatchConfig(t *testing.T) {
 		cfg, _, err = th.SystemAdminClient.PatchConfig(cfg)
 		require.NoError(t, err)
 		assert.Equal(t, newURL, *cfg.PluginSettings.MarketplaceURL)
-	})
-
-	t.Run("Should not be able to save config if the new config exceeds Freemium limits", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		defer th.App.Srv().RemoveLicense()
-
-		cloud := &mocks.CloudInterface{}
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
-		th.App.Srv().Cloud = cloud
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Integrations: &model.IntegrationsLimits{
-				Enabled: model.NewInt(0),
-			},
-		}, nil).Once()
-
-		// Exceed freemium limit. Should throw error.
-		cfg1 := th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		_, _, err1 := th.SystemAdminClient.PatchConfig(cfg1)
-		require.Error(t, err1)
-
-		// No attempt to enable a plugin. Should not throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: false}
-		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
-		require.NoError(t, err1)
-
-		cloud.Mock.On("GetCloudLimits", mock.Anything).Return(&model.ProductLimits{
-			Integrations: &model.IntegrationsLimits{
-				Enabled: model.NewInt(1),
-			},
-		}, nil).Twice()
-
-		// Exceed freemium limit while enabling more than one plugin. Should throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		cfg1.PluginSettings.PluginStates["new-plugin2"] = &model.PluginState{Enable: true}
-		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
-		require.Error(t, err1)
-
-		// Match freemium limit. Should not throw error.
-		cfg1 = th.App.Config().Clone()
-		cfg1.PluginSettings.PluginStates["new-plugin"] = &model.PluginState{Enable: true}
-		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
-		require.NoError(t, err1)
-
-		// Save same config with same plugin enabled. Should not throw error.
-		_, _, err1 = th.SystemAdminClient.PatchConfig(cfg1)
-		require.NoError(t, err1)
 	})
 
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {

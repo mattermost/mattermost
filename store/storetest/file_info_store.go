@@ -810,6 +810,7 @@ func testFileInfoGetStorageUsage(t *testing.T, ss store.Store) {
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, ss store.Store) {
+	t.Skip("MM-48627")
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)

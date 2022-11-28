@@ -108,7 +108,10 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
 	notifyAdmin          store.NotifyAdminStore
+	postPriority         store.PostPriorityStore
+	postAcknowledgement  store.PostAcknowledgementStore
 }
 
 type SqlStore struct {
@@ -213,7 +216,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.draft = newSqlDraftStore(store, metrics)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
+	store.stores.postPriority = newSqlPostPriorityStore(store)
+	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -333,6 +339,28 @@ func (ss *SqlStore) initConnection() {
 
 func (ss *SqlStore) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+// specialSearchChars have special meaning and can be treated as spaces
+func (ss *SqlStore) specialSearchChars() []string {
+	chars := []string{
+		"<",
+		">",
+		"+",
+		"-",
+		"(",
+		")",
+		"~",
+		":",
+	}
+
+	// Postgres can handle "@" without any errors
+	// Also helps postgres in enabling search for EmailAddresses
+	if ss.DriverName() != model.DatabaseDriverPostgres {
+		chars = append(chars, "@")
+	}
+
+	return chars
 }
 
 // computeBinaryParam returns whether the data source uses binary_parameters
@@ -931,6 +959,18 @@ func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
 
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
+}
+
+func (ss *SqlStore) PostPriority() store.PostPriorityStore {
+	return ss.stores.postPriority
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
+}
+
+func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
+	return ss.stores.postAcknowledgement
 }
 
 func (ss *SqlStore) DropAllTables() {
