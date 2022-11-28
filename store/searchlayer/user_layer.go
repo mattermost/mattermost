@@ -149,6 +149,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 }
 
 // getListOfAllowedChannels return the list of allowed channels to search user based on the
+//
 //	next scenarios:
 //		- If there isn't view restrictions (team or channel) and no team id to filter them, then all
 //		  channels are allowed (nil return)

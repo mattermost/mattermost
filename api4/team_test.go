@@ -871,11 +871,21 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	assert.NotEqual(t, team.InviteId, "")
 	assert.NotEqual(t, team.InviteId, "inviteid0")
 
+	*th.App.Config().PrivacySettings.ShowEmailAddress = true
 	rteam, _, err := client.RegenerateTeamInviteId(team.Id)
 	require.NoError(t, err)
 
 	assert.NotEqual(t, team.InviteId, rteam.InviteId)
 	assert.NotEqual(t, team.InviteId, "")
+	assert.NotEqual(t, rteam.Email, "")
+
+	*th.App.Config().PrivacySettings.ShowEmailAddress = false
+	rteam, _, err = client.RegenerateTeamInviteId(team.Id)
+	require.NoError(t, err)
+
+	assert.NotEqual(t, team.InviteId, rteam.InviteId)
+	assert.NotEqual(t, team.InviteId, "")
+	assert.Equal(t, rteam.Email, "")
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
@@ -1817,6 +1827,17 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 			}
 
 			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
+		}
+		*th.App.Config().PrivacySettings.ShowEmailAddress = false
+		rteams, _, err2 := th.Client.GetTeamsForUser(th.BasicUser.Id, "")
+		require.NoError(t, err2)
+		for _, rteam := range rteams {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			require.Empty(t, rteam.Email, "should have sanitized email")
 			require.NotEmpty(t, rteam.InviteId, "should have not sanitized inviteid")
 		}
 	})

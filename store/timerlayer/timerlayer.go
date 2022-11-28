@@ -669,6 +669,21 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 	}
 }
 
+func (s *TimerLayerChannelStore) ClearMembersForUserCache() {
+	start := time.Now()
+
+	s.ChannelStore.ClearMembersForUserCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ClearMembersForUserCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) error {
 	start := time.Now()
 
