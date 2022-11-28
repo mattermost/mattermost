@@ -39,8 +39,6 @@ type FeatureFlags struct {
 	// A dash separated list for feature flags to turn on for Boards
 	BoardsFeatureFlags string
 
-	CustomGroups bool
-
 	// Enable DataRetention for Boards
 	BoardsDataRetention bool
 
@@ -90,7 +88,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
 	f.BoardsFeatureFlags = ""
-	f.CustomGroups = true
 	f.BoardsDataRetention = false
 	f.NormalizeLdapDNs = false
 	f.EnableInactivityCheckJob = true
