@@ -150,6 +150,11 @@ func (_m *ChannelStore) ClearCaches() {
 	_m.Called()
 }
 
+// ClearMembersForUserCache provides a mock function with given fields:
+func (_m *ChannelStore) ClearMembersForUserCache() {
+	_m.Called()
+}
+
 // ClearSidebarOnTeamLeave provides a mock function with given fields: userID, teamID
 func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) error {
 	ret := _m.Called(userID, teamID)
