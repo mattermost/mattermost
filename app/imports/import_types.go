@@ -6,7 +6,6 @@ package imports
 import (
 	"archive/zip"
 	"encoding/json"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )
@@ -30,7 +29,7 @@ type LineImportData struct {
 type VersionInfoImportData struct {
 	Generator  string          `json:"generator"`
 	Version    string          `json:"version"`
-	Created    time.Time       `json:"created"`
+	Created    string          `json:"created"`
 	Additional json.RawMessage `json:"additional,omitempty"`
 }
 
