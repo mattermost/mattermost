@@ -50,6 +50,11 @@ func (i *InviteProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		return resp
 	}
 
+	// Verify that the inviter has permissions to invite users to the every channel.
+	if resp = i.checkPermissions(a, c, args, targetUsers[0], targetChannels); resp != nil {
+		return resp
+	}
+
 	resultText := make([]string, 0, len(targetUsers))
 	for _, targetUser := range targetUsers {
 		for _, targetChannel := range targetChannels {
@@ -145,50 +150,53 @@ func (i *InviteProvider) getUserProfile(a *app.App, username string) *model.User
 	return userProfile
 }
 
-func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) *model.CommandResponse {
+func (i *InviteProvider) checkPermissions(a *app.App, c request.CTX, args *model.CommandArgs, targetUser *model.User, targetChannels []*model.Channel) *model.CommandResponse {
 	var err *model.AppError
-
-	// Permissions Check
-	switch channelToJoin.Type {
-	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, channelToJoin.Id, model.PermissionManagePublicChannelMembers) {
-			return &model.CommandResponse{
-				Text: args.T("api.command_invite.permission.app_error", map[string]any{
-					"User":    userProfile.Username,
-					"Channel": channelToJoin.Name,
-				}),
-				ResponseType: model.CommandResponseTypeEphemeral,
-			}
-		}
-	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, channelToJoin.Id, model.PermissionManagePrivateChannelMembers) {
-			if _, err = a.GetChannelMember(c, channelToJoin.Id, args.UserId); err == nil {
-				// User doing the inviting is a member of the channel.
+	for _, targetChannel := range targetChannels {
+		switch targetChannel.Type {
+		case model.ChannelTypeOpen:
+			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePublicChannelMembers) {
 				return &model.CommandResponse{
 					Text: args.T("api.command_invite.permission.app_error", map[string]any{
-						"User":    userProfile.Username,
-						"Channel": channelToJoin.Name,
+						"User":    targetUser.Username,
+						"Channel": targetChannel.Name,
 					}),
 					ResponseType: model.CommandResponseTypeEphemeral,
 				}
 			}
-			// User doing the inviting is *not* a member of the channel.
+		case model.ChannelTypePrivate:
+			if !a.HasPermissionToChannel(c, args.UserId, targetChannel.Id, model.PermissionManagePrivateChannelMembers) {
+				if _, err = a.GetChannelMember(c, targetChannel.Id, args.UserId); err == nil {
+					// User doing the inviting is a member of the channel.
+					return &model.CommandResponse{
+						Text: args.T("api.command_invite.permission.app_error", map[string]any{
+							"User":    targetUser.Username,
+							"Channel": targetChannel.Name,
+						}),
+						ResponseType: model.CommandResponseTypeEphemeral,
+					}
+				}
+				// User doing the inviting is *not* a member of the channel.
+				return &model.CommandResponse{
+					Text: args.T("api.command_invite.private_channel.app_error", map[string]any{
+						"Channel": targetChannel.Name,
+					}),
+					ResponseType: model.CommandResponseTypeEphemeral,
+				}
+			}
+		default:
 			return &model.CommandResponse{
-				Text: args.T("api.command_invite.private_channel.app_error", map[string]any{
-					"Channel": channelToJoin.Name,
-				}),
+				Text:         args.T("api.command_invite.directchannel.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
-	default:
-		return &model.CommandResponse{
-			Text:         args.T("api.command_invite.directchannel.app_error"),
-			ResponseType: model.CommandResponseTypeEphemeral,
-		}
 	}
+	return nil
+}
 
+func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model.CommandArgs, userProfile *model.User, channelToJoin *model.Channel) *model.CommandResponse {
 	// Check if user is already in the channel
-	_, err = a.GetChannelMember(c, channelToJoin.Id, userProfile.Id)
+	_, err := a.GetChannelMember(c, channelToJoin.Id, userProfile.Id)
 	if err == nil {
 		return &model.CommandResponse{
 			Text: args.T("api.command_invite.user_already_in_channel.app_error", map[string]any{
