@@ -60,15 +60,20 @@ type Environment struct {
 	dbDriver               Driver
 	pluginDir              string
 	webappPluginDir        string
+	patchReactDOM          bool
 	prepackagedPlugins     []*PrepackagedPlugin
 	prepackagedPluginsLock sync.RWMutex
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc,
+func NewEnvironment(
+	newAPIImpl apiImplCreatorFunc,
 	dbDriver Driver,
-	pluginDir string, webappPluginDir string,
+	pluginDir string,
+	webappPluginDir string,
+	patchReactDOM bool,
 	logger *mlog.Logger,
-	metrics einterfaces.MetricsInterface) (*Environment, error) {
+	metrics einterfaces.MetricsInterface,
+) (*Environment, error) {
 	return &Environment{
 		logger:          logger,
 		metrics:         metrics,
@@ -76,6 +81,7 @@ func NewEnvironment(newAPIImpl apiImplCreatorFunc,
 		dbDriver:        dbDriver,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
+		patchReactDOM:   patchReactDOM,
 	}, nil
 }
 
@@ -474,12 +480,14 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 		return nil, errors.Wrapf(err, "unable to read webapp bundle: %v", id)
 	}
 
-	newContents, changed := patchReactDOM(sourceBundleFileContents)
-	if changed {
-		sourceBundleFileContents = newContents
-		err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
-		if err != nil {
-			return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
+	if env.patchReactDOM {
+		newContents, changed := patchReactDOM(sourceBundleFileContents)
+		if changed {
+			sourceBundleFileContents = newContents
+			err = os.WriteFile(sourceBundleFilepath, sourceBundleFileContents, 0644)
+			if err != nil {
+				return nil, errors.Wrapf(err, "unable to overwrite webapp bundle: %v", id)
+			}
 		}
 	}
 
