@@ -6784,10 +6784,6 @@
     "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Dosya yüklenemedi. Dosya çok büyük."
-  },
-  {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
   },
@@ -9189,10 +9185,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
   },
   {
     "id": "app.recent_searches.app_error",
