@@ -315,7 +315,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
-				MessageAttachments:       es.processMessageAttachments(notification.post),
+				MessageAttachments:       ProcessMessageAttachments(notification.post),
 			})
 		}
 	}

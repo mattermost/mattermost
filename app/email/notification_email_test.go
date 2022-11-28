@@ -17,7 +17,6 @@ func TestProcessMessageAttachments(t *testing.T) {
 	post := &model.Post{
 		Message: "This is the message",
 	}
-	job := NewEmailBatchingJob(th.service, 128)
 
 	messageAttachments := []*model.SlackAttachment{
 		{
@@ -64,7 +63,7 @@ func TestProcessMessageAttachments(t *testing.T) {
 
 	model.ParseSlackAttachment(post, messageAttachments)
 
-	processedAttachcmentsPost := job.service.processMessageAttachments(post)
+	processedAttachcmentsPost := ProcessMessageAttachments(post)
 	require.NotNil(t, processedAttachcmentsPost)
 	require.Len(t, processedAttachcmentsPost, 2)
 	require.Equal(t, processedAttachcmentsPost[0].Color, "#FF0000")

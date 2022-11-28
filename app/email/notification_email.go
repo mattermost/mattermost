@@ -60,20 +60,14 @@ func (es *Service) GetMessageForNotification(post *model.Post, translateFunc i18
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
 }
 
-/*
-MM-48521: following functions along with FieldRow, EmailMessageAttachment are duplicate of code in app/notification_email.go
-
-A subsequent ticket MM-48635 will help clean the same.
-*/
-
-func (es *Service) processMessageAttachments(post *model.Post) []*EmailMessageAttachment {
+func ProcessMessageAttachments(post *model.Post) []*EmailMessageAttachment {
 	emailMessageAttachments := []*EmailMessageAttachment{}
 
 	for _, messageAttachment := range post.Attachments() {
 		emailMessageAttachment := &EmailMessageAttachment{
 			SlackAttachment: *messageAttachment,
-			Pretext:         es.prepareTextForEmail(messageAttachment.Pretext),
-			Text:            es.prepareTextForEmail(messageAttachment.Text),
+			Pretext:         prepareTextForEmail(messageAttachment.Pretext),
+			Text:            prepareTextForEmail(messageAttachment.Text),
 		}
 
 		stripedTitle, err := utils.StripMarkdown(emailMessageAttachment.Title)
@@ -98,7 +92,7 @@ func (es *Service) processMessageAttachments(post *model.Post) []*EmailMessageAt
 			}
 
 			if stringValue, ok := field.Value.(string); ok {
-				field.Value = es.prepareTextForEmail(stringValue)
+				field.Value = prepareTextForEmail(stringValue)
 			}
 
 			if !field.Short {
@@ -130,7 +124,7 @@ func (es *Service) processMessageAttachments(post *model.Post) []*EmailMessageAt
 	return emailMessageAttachments
 }
 
-func (es *Service) prepareTextForEmail(text string) template.HTML {
+func prepareTextForEmail(text string) template.HTML {
 	escapedText := html.EscapeString(text)
 	markdownText, err := utils.MarkdownToHTML(escapedText)
 	if err != nil {
