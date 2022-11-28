@@ -40,25 +40,25 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	return a.GetUsersFromProfiles(userOptions)
 }
 
-func getCurrentPlanName(a *App) (string, *model.AppError) {
+func getCurrentPlan(a *App) (*model.Product, *model.AppError) {
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_subscription.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_subscription.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if subscription == nil {
-		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	products, err := a.Cloud().GetCloudProducts("", false)
 	if err != nil {
-		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if products == nil {
-		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	planName := getCurrentProduct(subscription.ProductID, products).Name
-	return planName, nil
+	plan := getCurrentProduct(subscription.ProductID, products)
+	return plan, nil
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
@@ -67,10 +67,11 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 		return err
 	}
 
-	planName, err := getCurrentPlanName(a)
-	if err != nil {
+	plan, err := getCurrentPlan(a)
+	if err != nil || plan == nil {
 		return model.NewAppError("SendPaymentFailedEmail", "app.cloud.get_current_plan_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	planName := plan.Name
 
 	for _, admin := range sysAdmins {
 		_, err := a.Srv().EmailService.SendPaymentFailedEmail(admin.Email, admin.Locale, failedPayment, planName, *a.Config().ServiceSettings.SiteURL)
@@ -95,10 +96,11 @@ func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.Ap
 	if aErr != nil {
 		return aErr
 	}
-	planName, aErr := getCurrentPlanName(a)
-	if aErr != nil {
+	plan, aErr := getCurrentPlan(a)
+	if aErr != nil || plan == nil {
 		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_current_plan_name.app_error", nil, aErr.Error(), http.StatusInternalServerError)
 	}
+	planName := plan.Name
 
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
@@ -189,6 +191,13 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	plan, aErr := getCurrentPlan(a)
+	if aErr != nil || plan == nil {
+		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_current_plan_name.app_error", nil, aErr.Error(), http.StatusInternalServerError)
+	}
+
+	isYearly := plan.IsYearly()
+
 	billingDate := getNextBillingDateString()
 
 	// we want to at least have one email sent out to an admin
@@ -200,7 +209,7 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 			name = admin.Username
 		}
 
-		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS())
+		err := a.Srv().EmailService.SendCloudUpgradeConfirmationEmail(admin.Email, name, billingDate, admin.Locale, *a.Config().ServiceSettings.SiteURL, subscription.GetWorkSpaceNameFromDNS(), isYearly)
 		if err != nil {
 			a.Log().Error("Error sending trial ended email to", mlog.String("email", admin.Email), mlog.Err(err))
 			countNotOks++

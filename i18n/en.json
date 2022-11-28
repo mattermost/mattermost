@@ -3240,6 +3240,10 @@
     "translation": "Your workspace is ready to go!"
   },
   {
+    "id": "api.templates.cloud_welcome_email.yearly_plan_button",
+    "translation": "View your invoice"
+  },
+  {
     "id": "api.templates.copyright",
     "translation": "© 2021 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },

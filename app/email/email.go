@@ -233,7 +233,7 @@ func (es *Service) SendWelcomeEmail(userID string, email string, verified bool, 
 	return nil
 }
 
-func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string) error {
+func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, locale, siteURL, workspaceName string, isYearly bool) error {
 	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.cloud_upgrade_confirmation.subject")
 
@@ -246,6 +246,11 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+
+	if isYearly {
+		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
+		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
+	}
 
 	body, err := es.templatesContainer.RenderToString("cloud_upgrade_confirmation", data)
 	if err != nil {

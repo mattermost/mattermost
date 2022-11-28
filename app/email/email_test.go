@@ -281,7 +281,12 @@ func TestSendCloudUpgradedEmail(t *testing.T) {
 		}
 		mail.DeleteMailBox(emailTo)
 
-		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName")
+		// Send Update to Monthly Plan email
+		err := th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false)
+		require.NoError(t, err)
+
+		// Send Update to Yearly Plan email
+		err = th.service.SendCloudUpgradeConfirmationEmail(emailTo, emailToUsername, "June 23, 2200", th.BasicUser.Locale, "https://example.com", "SomeName", false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
