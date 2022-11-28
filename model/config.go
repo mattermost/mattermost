@@ -384,6 +384,7 @@ type ServiceSettings struct {
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
+	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -846,7 +847,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PostPriority == nil {
-		s.PostPriority = NewBool(false)
+		s.PostPriority = NewBool(true)
+	}
+
+	if s.AllowSyncedDrafts == nil {
+		s.AllowSyncedDrafts = NewBool(true)
 	}
 
 	if s.SelfHostedFirstTimePurchase == nil {

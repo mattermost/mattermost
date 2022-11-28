@@ -42,6 +42,7 @@ const (
 	StatusFail                      = "FAIL"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
+	ConnectionId                    = "Connection-Id"
 
 	ClientDir = "client"
 
@@ -435,6 +436,10 @@ func (c *Client4) commandRoute(commandId string) string {
 
 func (c *Client4) commandMoveRoute(commandId string) string {
 	return fmt.Sprintf(c.commandsRoute()+"/%v/move", commandId)
+}
+
+func (c *Client4) draftsRoute() string {
+	return "/drafts"
 }
 
 func (c *Client4) emojisRoute() string {
@@ -6233,6 +6238,59 @@ func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*
 	return &channels, BuildResponse(r), nil
 }
 
+// Drafts Sections
+
+// UpsertDraft will create a new draft or update a draft if it already exists
+func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
+	buf, err := json.Marshal(draft)
+	if err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(c.draftsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df Draft
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &df, BuildResponse(r), err
+}
+
+// GetDrafts will get all drafts for a user
+func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) {
+	r, err := c.DoAPIGet(c.userRoute(userId)+c.teamRoute(teamId)+"/drafts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var drafts []*Draft
+	err = json.NewDecoder(r.Body).Decode(&drafts)
+	if err != nil {
+		return nil, nil, NewAppError("GetDrafts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return drafts, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteDraft(userId, channelId, rootId string) (*Draft, *Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.channelRoute(channelId) + "/drafts")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df *Draft
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DeleteDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return df, BuildResponse(r), nil
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
@@ -8468,19 +8526,6 @@ func (c *Client4) GetTeamsUsage() (*TeamsUsage, *Response, error) {
 	return usage, BuildResponse(r), err
 }
 
-// GetIntegrationsUsage returns usage information on integrations, including the count of enabled integrations
-func (c *Client4) GetIntegrationsUsage() (*IntegrationsUsage, *Response, error) {
-	r, err := c.DoAPIGet(c.usageRoute()+"/integrations", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-
-	var usage *IntegrationsUsage
-	err = json.NewDecoder(r.Body).Decode(&usage)
-	return usage, BuildResponse(r), err
-}
-
 func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page int, perPage int) (*NewTeamMembersList, *Response, error) {
 	query := fmt.Sprintf("?time_range=%v&page=%v&per_page=%v", timeRange, page, perPage)
 	r, err := c.DoAPIGet(c.teamRoute(teamID)+"/top/team_members"+query, "")
@@ -8503,6 +8548,28 @@ func (c *Client4) CWSHealthCheck(userId string) (*Response, error) {
 	}
 	defer closeBody(r)
 
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
+	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ack *PostAcknowledgement
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return ack, BuildResponse(r), nil
+}
+
+func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.postRoute(postId) + "/ack")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
 	return BuildResponse(r), nil
 }
 

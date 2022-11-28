@@ -251,6 +251,7 @@ type CloudWorkspaceOwner struct {
 }
 type SubscriptionChange struct {
 	ProductID string `json:"product_id"`
+	Seats     int    `json:"seats"`
 }
 
 type BoardsLimits struct {
