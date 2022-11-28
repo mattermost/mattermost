@@ -6772,10 +6772,6 @@
     "translation": "無法取得上傳檔。"
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "無法上傳檔案。檔案過大。"
-  },
-  {
     "id": "app.upload.create.incorrect_channel_id.app_error",
     "translation": "無法上傳至指定頻道。"
   },
@@ -7270,10 +7266,6 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "錯誤 無效快取"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "從 Webhook 更新訂閱時發生錯誤。"
   },
   {
     "id": "api.cloud.request_error",

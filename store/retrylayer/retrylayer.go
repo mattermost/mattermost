@@ -750,6 +750,12 @@ func (s *RetryLayerChannelStore) ClearCaches() {
 
 }
 
+func (s *RetryLayerChannelStore) ClearMembersForUserCache() {
+
+	s.ChannelStore.ClearMembersForUserCache()
+
+}
+
 func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) error {
 
 	tries := 0
