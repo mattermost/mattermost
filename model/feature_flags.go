@@ -33,9 +33,6 @@ type FeatureFlags struct {
 
 	PermalinkPreviews bool
 
-	// Enable Calls plugin support in the mobile app
-	CallsMobile bool
-
 	// CallsEnabled controls whether or not the Calls plugin should be enabled
 	CallsEnabled bool
 
@@ -79,6 +76,8 @@ type FeatureFlags struct {
 	ReduceOnBoardingTaskList bool
 
 	ThreadsEverywhere bool
+
+	GlobalDrafts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -90,7 +89,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.PluginApps = ""
 	f.PluginFocalboard = ""
 	f.PermalinkPreviews = true
-	f.CallsMobile = false
 	f.BoardsFeatureFlags = ""
 	f.CustomGroups = true
 	f.BoardsDataRetention = false
@@ -109,6 +107,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AnnualSubscription = false
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
+	f.GlobalDrafts = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

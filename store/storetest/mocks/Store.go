@@ -187,6 +187,22 @@ func (_m *Store) Context() context.Context {
 	return r0
 }
 
+// Draft provides a mock function with given fields:
+func (_m *Store) Draft() store.DraftStore {
+	ret := _m.Called()
+
+	var r0 store.DraftStore
+	if rf, ok := ret.Get(0).(func() store.DraftStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.DraftStore)
+		}
+	}
+
+	return r0
+}
+
 // DropAllTables provides a mock function with given fields:
 func (_m *Store) DropAllTables() {
 	_m.Called()
@@ -469,6 +485,22 @@ func (_m *Store) Post() store.PostStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.PostStore)
+		}
+	}
+
+	return r0
+}
+
+// PostAcknowledgement provides a mock function with given fields:
+func (_m *Store) PostAcknowledgement() store.PostAcknowledgementStore {
+	ret := _m.Called()
+
+	var r0 store.PostAcknowledgementStore
+	if rf, ok := ret.Get(0).(func() store.PostAcknowledgementStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostAcknowledgementStore)
 		}
 	}
 
