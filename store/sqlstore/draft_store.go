@@ -24,7 +24,7 @@ type SqlDraftStore struct {
 }
 
 func draftSliceColumns() []string {
-	return []string{"CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "UserId", "FileIds", "Props"}
+	return []string{"CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "UserId", "FileIds", "Props", "Priority"}
 }
 
 func draftToSlice(draft *model.Draft) []interface{} {
@@ -38,6 +38,7 @@ func draftToSlice(draft *model.Draft) []interface{} {
 		draft.UserId,
 		model.ArrayToJSON(draft.FileIds),
 		model.StringInterfaceToJSON(draft.Props),
+		model.StringInterfaceToJSON(draft.Priority),
 	}
 }
 
@@ -49,16 +50,30 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 	}
 }
 
-func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, error) {
+func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted bool) (*model.Draft, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(
+			"Drafts.CreateAt",
+			"Drafts.UpdateAt",
+			"Drafts.DeleteAt",
+			"Drafts.Message",
+			"Drafts.RootId",
+			"Drafts.ChannelId",
+			"Drafts.UserId",
+			"Drafts.FileIds",
+			"Drafts.Props",
+			"Drafts.Priority",
+		).
 		From("Drafts").
 		Where(sq.Eq{
 			"UserId":    userId,
 			"ChannelId": channelId,
 			"RootId":    rootId,
-			"DeleteAt":  0,
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	dt := model.Draft{}
 	err := s.GetReplicaX().GetBuilder(&dt, query)
@@ -108,6 +123,7 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 		Set("Message", draft.Message).
 		Set("Props", draft.Props).
 		Set("FileIds", draft.FileIds).
+		Set("Priority", draft.Priority).
 		Where(sq.Eq{
 			"UserId":    draft.UserId,
 			"ChannelId": draft.ChannelId,
@@ -132,7 +148,18 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 	var drafts []*model.Draft
 
 	query := s.getQueryBuilder().
-		Select("Drafts.*").
+		Select(
+			"Drafts.CreateAt",
+			"Drafts.UpdateAt",
+			"Drafts.DeleteAt",
+			"Drafts.Message",
+			"Drafts.RootId",
+			"Drafts.ChannelId",
+			"Drafts.UserId",
+			"Drafts.FileIds",
+			"Drafts.Props",
+			"Drafts.Priority",
+		).
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
 		Where(sq.And{

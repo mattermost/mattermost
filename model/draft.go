@@ -23,6 +23,7 @@ type Draft struct {
 	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
 	FileIds  StringArray     `json:"file_ids,omitempty"`
 	Metadata *PostMetadata   `json:"metadata,omitempty"`
+	Priority StringInterface `json:"priority,omitempty"`
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
