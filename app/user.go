@@ -326,22 +326,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	return ruser, nil
 }
 
-func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error) {
-	license := a.Srv().License()
-
-	// No need to create a Subscription History Event if the license isn't cloud
-	if !license.IsCloud() {
-		return nil, nil
-	}
-
-	// Get user count
-	userCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
-}
-
 func (a *App) CreateOAuthUser(c *request.Context, service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
