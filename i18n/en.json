@@ -60,6 +60,18 @@
     "translation": "September"
   },
   {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "You cannot remove an acknowledgment in an archived channel."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "You cannot delete an acknowledgment after 5min have passed."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "You cannot acknowledgment in an archived channel."
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -1629,6 +1641,14 @@
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Can not save draft to deleted channel"
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
@@ -3245,7 +3265,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
@@ -3293,7 +3313,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "if no action is taken, your workspace will be downgraded and the following data may be archived:"
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
   },
   {
     "id": "api.templates.delinquency_30.title",
@@ -3309,7 +3329,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
+    "translation": "We've been unable to collect payment for outstanding invoices since {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -3357,7 +3377,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "We couldn't process your most recent payment"
+    "translation": "We couldn't process your most recent payment."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
@@ -3381,7 +3401,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
@@ -4460,6 +4480,22 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Unable to get acknowledgement."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Unable to get acknowledgement for post."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Unable to save acknowledgement for post."
+  },
+  {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
     "translation": "Could not decode the XML metadata information received from the Identity Provider."
   },
@@ -4550,6 +4586,10 @@
   {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Unable to count urgent posts since given date."
   },
   {
     "id": "app.channel.create_channel.internal_error",
@@ -4678,6 +4718,10 @@
   {
     "id": "app.channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -4922,6 +4966,34 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "group name is not unique"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Unable to delete the Draft."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Unable to get the Draft."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Unable to get user's Drafts."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Unable to get files for Draft."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Unable to update the Draft."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -5620,10 +5692,6 @@
     "translation": "Insights feature is disabled."
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "You've reached the max limit of {{.NumIntegrations}} enabled integrations. To install unlimited integrations, upgrade to one of our paid plans."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -6114,6 +6182,10 @@
   {
     "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Unable to get postpriority for post"
   },
   {
     "id": "app.post_reminder_dm",
@@ -7920,6 +7992,14 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Invalid post id."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
+  },
+  {
     "id": "model.authorize.is_valid.auth_code.app_error",
     "translation": "Invalid authorization code."
   },
@@ -8582,6 +8662,38 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Invalid file ids."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Invalid message."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Invalid props."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Invalid root id."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Invalid user id."
   },
   {
     "id": "model.emoji.create_at.app_error",

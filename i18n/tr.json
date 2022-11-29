@@ -6784,10 +6784,6 @@
     "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Dosya yüklenemedi. Dosya çok büyük."
-  },
-  {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
   },
@@ -9191,20 +9187,12 @@
     "translation": "Elasticsearch yapılandırmasında ayarlanmamış değerler var."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Abonelik web bağlantısından güncellenirken sorun çıktı."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Son aramalar alınırken sorun çıktı"
   },
   {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Bir Bulut kopyasına mmctl ile yükleme desteklenmiyor. Lütfen şu makaleye bakın: https://docs.mattermost.com/manage/cloud-data-export.html."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Kullanabileceğiniz en fazla {{.NumIntegrations}} bütünleştirme sınırına ulaştınız. Sınırsız bütünleştirme için ücretli tarifelerimizden birine geçin."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",

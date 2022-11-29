@@ -32,7 +32,7 @@ func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 }
 
 func testThreadStorePopulation(t *testing.T, ss store.Store) {
-	makeSomePosts := func() []*model.Post {
+	makeSomePosts := func(urgent bool) []*model.Post {
 
 		u1 := model.User{
 			Email:    MakeEmail(),
@@ -60,6 +60,16 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o.ChannelId = c.Id
 		o.UserId = u.Id
 		o.Message = NewTestId()
+
+		if urgent {
+			o.Metadata = &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewString(model.PostPriorityUrgent),
+					RequestedAck:            model.NewBool(false),
+					PersistentNotifications: model.NewBool(false),
+				},
+			}
+		}
 
 		otmp, err3 := ss.Post().Save(&o)
 		require.NoError(t, err3)
@@ -100,7 +110,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		return newPosts
 	}
 	t.Run("Save replies creates a thread", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 		thread, err := ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
@@ -133,7 +143,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Delete a reply updates count on a thread", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 		thread, err := ss.Thread().Get(newPosts[0].Id)
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
@@ -307,7 +317,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Thread membership 'viewed' timestamp is updated properly", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
@@ -341,7 +351,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Thread membership 'viewed' timestamp is updated properly for new membership", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
@@ -356,7 +366,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Updating post does not make thread unread", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
@@ -366,14 +376,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		}
 		m, err := ss.Thread().MaintainMembership(newPosts[0].UserId, newPosts[0].Id, opts)
 		require.NoError(t, err)
-		th, err := ss.Thread().GetThreadForUser(m, false)
+		th, err := ss.Thread().GetThreadForUser(m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(2), th.UnreadReplies)
 
 		m.LastViewed = newPosts[2].UpdateAt + 1
 		_, err = ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
-		th, err = ss.Thread().GetThreadForUser(m, false)
+		th, err = ss.Thread().GetThreadForUser(m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 
@@ -382,13 +392,13 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		_, err = ss.Post().Update(editedPost, newPosts[2])
 		require.NoError(t, err)
 
-		th, err = ss.Thread().GetThreadForUser(m, false)
+		th, err = ss.Thread().GetThreadForUser(m, false, false)
 		require.NoError(t, err)
 		require.Equal(t, int64(0), th.UnreadReplies)
 	})
 
 	t.Run("Empty participantID should not appear in thread response", func(t *testing.T) {
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
@@ -399,7 +409,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		m, err := ss.Thread().MaintainMembership("", newPosts[0].Id, opts)
 		require.NoError(t, err)
 		m.UserId = newPosts[0].UserId
-		th, err := ss.Thread().GetThreadForUser(m, true)
+		th, err := ss.Thread().GetThreadForUser(m, true, false)
 		require.NoError(t, err)
 		for _, user := range th.Participants {
 			require.NotNil(t, user)
@@ -407,7 +417,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
 		t.Skip("MM-41797")
-		newPosts := makeSomePosts()
+		newPosts := makeSomePosts(false)
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
@@ -435,6 +445,36 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, int64(2), unreads)
 	})
+
+	testCases := []bool{true, false}
+
+	for _, isUrgent := range testCases {
+		t.Run("Return is urgent for user thread/s", func(t *testing.T) {
+			newPosts := makeSomePosts(isUrgent)
+			opts := store.ThreadMembershipOpts{
+				Following:             true,
+				IncrementMentions:     false,
+				UpdateFollowing:       true,
+				UpdateViewedTimestamp: true,
+				UpdateParticipants:    false,
+			}
+
+			userID := newPosts[0].UserId
+			_, e := ss.Thread().MaintainMembership(userID, newPosts[0].Id, opts)
+			require.NoError(t, e)
+
+			m, e := ss.Thread().GetMembershipForUser(userID, newPosts[0].Id)
+			require.NoError(t, e)
+
+			th, e := ss.Thread().GetThreadForUser(m, false, true)
+			require.NoError(t, e)
+			require.Equal(t, isUrgent, th.IsUrgent)
+
+			threads, e := ss.Thread().GetThreadsForUser(userID, "", model.GetUserThreadsOpts{IncludeIsUrgent: true})
+			require.NoError(t, e)
+			require.Equal(t, isUrgent, threads[0].IsUrgent)
+		})
+	}
 }
 
 func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, userID string, createAt int64) *model.Post {
@@ -660,7 +700,7 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	threadStoreCreateReply(t, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+	teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team1.Id].ThreadCount)
@@ -674,7 +714,7 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	threadStoreCreateReply(t, ss, channel1.Id, post.Id, post.UserId, model.GetMillis())
 	createThreadMembership(userID, post.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, true)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -693,16 +733,24 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}, -1)
 	require.NoError(t, err)
+
 	post2, err := ss.Post().Save(&model.Post{
 		ChannelId: channel2.Id,
 		UserId:    userID,
 		Message:   model.NewRandomString(10),
+		Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString(model.PostPriorityUrgent),
+				RequestedAck:            model.NewBool(false),
+				PersistentNotifications: model.NewBool(false),
+			},
+		},
 	})
 	require.NoError(t, err)
 	threadStoreCreateReply(t, ss, channel2.Id, post2.Id, post2.UserId, model.GetMillis())
 	createThreadMembership(userID, post2.Id)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id})
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id, team2.Id}, true)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 2)
 	assert.Equal(t, int64(2), teamsUnread[team1.Id].ThreadCount)
@@ -715,11 +763,12 @@ func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
 	_, err = ss.Thread().MaintainMembership(userID, post2.Id, opts)
 	require.NoError(t, err)
 
-	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id})
+	teamsUnread, err = ss.Thread().GetTeamsUnreadForUser(userID, []string{team2.Id}, true)
 	require.NoError(t, err)
 	assert.Len(t, teamsUnread, 1)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadCount)
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadMentionCount)
+	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
 }
 
 type byPostId []*model.Post
@@ -831,6 +880,13 @@ func testVarious(t *testing.T, ss store.Store) {
 		ChannelId: team1channel1.Id,
 		UserId:    user1ID,
 		Message:   model.NewRandomString(10),
+		Metadata: &model.PostMetadata{
+			Priority: &model.PostPriority{
+				Priority:                model.NewString(model.PostPriorityUrgent),
+				RequestedAck:            model.NewBool(false),
+				PersistentNotifications: model.NewBool(false),
+			},
+		},
 	})
 	require.NoError(t, err)
 
@@ -1032,6 +1088,33 @@ func testVarious(t *testing.T, ss store.Store) {
 		}
 	})
 
+	t.Run("GetTotalUnreadUrgentMentions", func(t *testing.T) {
+		testCases := []struct {
+			Description     string
+			UserID          string
+			TeamID          string
+			Options         model.GetUserThreadsOpts
+			ExpectedThreads []*model.Post
+		}{
+			{"all teams, user1", user1ID, "", model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post3,
+			}},
+			{"team1, user1", user1ID, team1.Id, model.GetUserThreadsOpts{}, []*model.Post{
+				team1channel1post3,
+			}},
+			{"team2, user1", user1ID, team2.Id, model.GetUserThreadsOpts{}, []*model.Post{}},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				totalUnreadUrgentMentions, err := ss.Thread().GetTotalUnreadUrgentMentions(testCase.UserID, testCase.TeamID, testCase.Options)
+				require.NoError(t, err)
+
+				assert.EqualValues(t, int64(len(testCase.ExpectedThreads)), totalUnreadUrgentMentions)
+			})
+		}
+	})
+
 	assertThreadPosts := func(t *testing.T, threads []*model.ThreadResponse, expectedPosts []*model.Post) {
 		t.Helper()
 
@@ -1166,7 +1249,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	assertThreadReplyCount := func(t *testing.T, userID string, count int64) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id})
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{team1.Id}, false)
 		require.NoError(t, err)
 		require.Len(t, teamsUnread, 1, "unexpected unread teams count")
 		assert.Equal(t, count, teamsUnread[team1.Id].ThreadCount, "unexpected thread count")
@@ -1623,7 +1706,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	assertThreadReplyCount := func(t *testing.T, userID, teamID string, count int64, message string) {
 		t.Helper()
 
-		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID})
+		teamsUnread, err := ss.Thread().GetTeamsUnreadForUser(userID, []string{teamID}, true)
 		require.NoError(t, err)
 		require.Lenf(t, teamsUnread, 1, "unexpected unread teams count: %s", message)
 		assert.Equalf(t, count, teamsUnread[teamID].ThreadCount, "unexpected thread count: %s", message)
