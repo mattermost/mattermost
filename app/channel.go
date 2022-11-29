@@ -1624,22 +1624,14 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 
 func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = a.GetUser(userID); err != nil {
+	user, err := a.GetUser(userID)
+	if err != nil {
 		return nil, err
 	}
 
 	teamMember, nErr := a.GetTeamMember(channel.TeamId, user.Id)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("AddPreviewerToChannel", "app.team.get_member.missing.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return nil, model.NewAppError("AddPreviewerToChannel", "app.team.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-		}
+		return nil, nErr
 	}
 
 	if teamMember.DeleteAt > 0 {
@@ -1650,7 +1642,7 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	channelMember, nErr := a.GetChannelMember(context.Background(), channel.Id, user.Id)
+	channelMember, nErr := a.GetChannelMember(c, channel.Id, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(nErr, &nfErr) {
@@ -1669,8 +1661,8 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 		SchemeUser:    false,
 	}
 
-	newMember, nErr = a.Srv().Store().Channel().SaveMember(newMember)
-	if nErr != nil {
+	newMember, mErr := a.Srv().Store().Channel().SaveMember(newMember)
+	if mErr != nil {
 		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
 			fmt.Sprintf("failed to add member: %v, user_id: %s, channel_id: %s", nErr, user.Id, channel.Id), http.StatusInternalServerError)
 	}
@@ -1681,6 +1673,7 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 
 	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
+
 	return newMember, nil
 }
 

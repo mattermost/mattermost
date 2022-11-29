@@ -1558,9 +1558,7 @@ func TestAddChannelPreviewer(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-	ruser, _ := th.App.CreateUser(th.Context, &user)
-	defer th.App.PermanentDeleteUser(th.Context, &user)
+	ruser := th.CreateUser()
 
 	th.App.AddTeamMember(th.Context, th.BasicTeam.Id, ruser.Id)
 

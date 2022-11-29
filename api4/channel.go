@@ -1854,8 +1854,7 @@ func addChannelPreviewer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isSelfAdd := member.UserId == c.AppContext.Session().UserId
-	if !isSelfAdd {
+	if member.UserId != c.AppContext.Session().UserId {
 		c.Err = model.NewAppError("addChannelPreviewer", "api.channel.not_self_preview.error", nil, "", http.StatusBadRequest)
 		return
 	}
