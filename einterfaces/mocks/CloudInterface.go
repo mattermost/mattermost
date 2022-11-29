@@ -74,6 +74,29 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 	return r0, r1
 }
 
+// CreateOrUpdateSubscriptionHistoryEvent provides a mock function with given fields: userID, userCount
+func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error) {
+	ret := _m.Called(userID, userCount)
+
+	var r0 *model.SubscriptionHistory
+	if rf, ok := ret.Get(0).(func(string, int) *model.SubscriptionHistory); ok {
+		r0 = rf(userID, userCount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionHistory)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, userCount)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCloudCustomer provides a mock function with given fields: userID
 func (_m *CloudInterface) GetCloudCustomer(userID string) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID)
@@ -113,6 +136,29 @@ func (_m *CloudInterface) GetCloudLimits(userID string) (*model.ProductLimits, e
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudProduct provides a mock function with given fields: userID, productID
+func (_m *CloudInterface) GetCloudProduct(userID string, productID string) (*model.Product, error) {
+	ret := _m.Called(userID, productID)
+
+	var r0 *model.Product
+	if rf, ok := ret.Get(0).(func(string, string) *model.Product); ok {
+		r0 = rf(userID, productID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Product)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, productID)
 	} else {
 		r1 = ret.Error(1)
 	}
