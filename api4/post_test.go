@@ -3092,7 +3092,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 	time.Sleep(1 * time.Millisecond)
 
-	t.Run("undedited post", func(t *testing.T) {
+	t.Run("unedited post", func(t *testing.T) {
 		history, resp, err := client.GetEditHistoryForPost(rpost.Id)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
@@ -3124,8 +3124,8 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		CheckOKStatus(t, response3)
 
 		require.Len(t, history, 2)
-		require.Equal(t, history[0].Message, "new message edited")
-		require.Equal(t, history[1].Message, "new message")
+		require.Equal(t, "new message edited", history[0].Message)
+		require.Equal(t, "new message", history[1].Message)
 	})
 
 	t.Run("logged out", func(t *testing.T) {

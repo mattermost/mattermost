@@ -2339,7 +2339,10 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 
 	queryString, args, err := builder.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "postsForExport_toSql")
+		if err == sql.ErrNoRows {
+  		return nil, store.NewErrNotFound("Post", postId)
+		}
+		return nil, errors.Wrap(err, "failed to find post history")
 	}
 
 	posts := []*model.Post{}
@@ -2349,7 +2352,7 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 	}
 
 	if len(posts) == 0 {
-		return nil, store.NewErrNotFound("Post", fmt.Sprintf("postId=%v", postId))
+		return nil, store.NewErrNotFound("Post", postId)
 	}
 
 	return posts, nil
