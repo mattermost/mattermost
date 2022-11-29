@@ -33,6 +33,7 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	draft.DeleteAt = 0
 	draft.UserId = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 

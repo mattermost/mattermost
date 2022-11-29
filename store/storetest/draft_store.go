@@ -201,13 +201,19 @@ func testDeleteDraft(t *testing.T, ss store.Store) {
 		err = ss.Draft().Delete(user.Id, channel2.Id, "")
 		assert.NoError(t, err)
 
-		_, err = ss.Draft().Get(user.Id, channel.Id, "")
+		_, err = ss.Draft().Get(user.Id, channel.Id, "", false)
 		require.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
 
-		_, err = ss.Draft().Get(user.Id, channel2.Id, "")
+		_, err = ss.Draft().Get(user.Id, channel.Id, "", true)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Get(user.Id, channel2.Id, "", false)
 		assert.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
+
+		_, err = ss.Draft().Get(user.Id, channel2.Id, "", true)
+		assert.NoError(t, err)
 	})
 }
 
@@ -264,12 +270,12 @@ func testGetDraft(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("get drafts", func(t *testing.T) {
-		draftResp, err := ss.Draft().Get(user.Id, channel.Id, "")
+		draftResp, err := ss.Draft().Get(user.Id, channel.Id, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, draft1.Message, draftResp.Message)
 		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 
-		draftResp, err = ss.Draft().Get(user.Id, channel2.Id, "")
+		draftResp, err = ss.Draft().Get(user.Id, channel2.Id, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)

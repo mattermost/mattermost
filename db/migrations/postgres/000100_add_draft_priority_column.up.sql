@@ -1,3 +1,1 @@
 ALTER TABLE drafts ADD COLUMN IF NOT EXISTS priority text;
-
-ALTER TABLE drafts DROP COLUMN IF EXISTS deleteat;

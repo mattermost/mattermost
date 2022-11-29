@@ -27,6 +27,7 @@ func draftSliceColumns() []string {
 	return []string{
 		"CreateAt",
 		"UpdateAt",
+		"DeleteAt",
 		"Message",
 		"RootId",
 		"ChannelId",
@@ -41,6 +42,7 @@ func draftToSlice(draft *model.Draft) []interface{} {
 	return []interface{}{
 		draft.CreateAt,
 		draft.UpdateAt,
+		draft.DeleteAt,
 		draft.Message,
 		draft.RootId,
 		draft.ChannelId,
@@ -59,7 +61,7 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 	}
 }
 
-func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, error) {
+func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted bool) (*model.Draft, error) {
 	query := s.getQueryBuilder().
 		Select(draftSliceColumns()...).
 		From("Drafts").
@@ -68,6 +70,10 @@ func (s *SqlDraftStore) Get(userId, channelId, rootId string) (*model.Draft, err
 			"ChannelId": channelId,
 			"RootId":    rootId,
 		})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
 
 	dt := model.Draft{}
 	err := s.GetReplicaX().GetBuilder(&dt, query)
@@ -122,15 +128,10 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 			"UserId":    draft.UserId,
 			"ChannelId": draft.ChannelId,
 			"RootId":    draft.RootId,
+			"DeleteAt":  0,
 		})
 
-	sql, args, err := query.ToSql()
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to convert to sql")
-	}
-
-	if _, err = s.GetMasterX().Exec(sql, args...); err != nil {
+	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
 		return nil, errors.Wrapf(err, "failed to update Draft with channelid=%s", draft.ChannelId)
 	}
 
@@ -144,6 +145,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 		Select(
 			"Drafts.CreateAt",
 			"Drafts.UpdateAt",
+			"Drafts.DeleteAt",
 			"Drafts.Message",
 			"Drafts.RootId",
 			"Drafts.ChannelId",
@@ -155,6 +157,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
 		Where(sq.And{
+			sq.Eq{"Drafts.DeleteAt": 0},
 			sq.Eq{"Drafts.UserId": userID},
 			sq.Eq{"ChannelMembers.UserId": userID},
 		}).
@@ -179,15 +182,23 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 }
 
 func (s *SqlDraftStore) Delete(userID, channelID, rootID string) error {
+	time := model.GetMillis()
 	query := s.getQueryBuilder().
-		Delete("Drafts").
+		Update("Drafts").
+		Set("UpdateAt", time).
+		Set("DeleteAt", time).
 		Where(sq.Eq{
 			"UserId":    userID,
 			"ChannelId": channelID,
 			"RootId":    rootID,
 		})
 
-	_, err := s.GetMasterX().ExecBuilder(query)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to convert to sql")
+	}
+
+	_, err = s.GetMasterX().Exec(sql, args...)
 
 	if err != nil {
 		return errors.Wrap(err, "failed to delete Draft")
