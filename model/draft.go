@@ -84,6 +84,7 @@ func (o *Draft) PreSave() {
 	}
 
 	o.UpdateAt = o.CreateAt
+	o.DeleteAt = 0
 	o.PreCommit()
 }
 

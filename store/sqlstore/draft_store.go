@@ -124,11 +124,11 @@ func (s *SqlDraftStore) Update(draft *model.Draft) (*model.Draft, error) {
 		Set("Props", draft.Props).
 		Set("FileIds", draft.FileIds).
 		Set("Priority", draft.Priority).
+		Set("DeleteAt", 0).
 		Where(sq.Eq{
 			"UserId":    draft.UserId,
 			"ChannelId": draft.ChannelId,
 			"RootId":    draft.RootId,
-			"DeleteAt":  0,
 		})
 
 	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
@@ -145,7 +145,6 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 		Select(
 			"Drafts.CreateAt",
 			"Drafts.UpdateAt",
-			"Drafts.DeleteAt",
 			"Drafts.Message",
 			"Drafts.RootId",
 			"Drafts.ChannelId",
