@@ -83,6 +83,8 @@ type AppIface interface {
 	ConvertBotToUser(c request.CTX, bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
+	// Create/ Update a subscription history event
+	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
@@ -1022,7 +1024,6 @@ type AppIface interface {
 	SendNotifyAdminPosts(c *request.Context, workspaceName string, currentSKU string, trial bool) *model.AppError
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
-	SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHistory, error)
 	SendTestPushNotification(deviceID string) string
 	SendUpgradeConfirmationEmail() *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
