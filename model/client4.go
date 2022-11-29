@@ -8540,8 +8540,8 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	return newTeamMembersList, BuildResponse(r), nil
 }
 
-func (c *Client4) CWSHealthCheck(userId string) (*Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+func (c *Client4) SelfHostedSignupAvailable() (*Response, error) {
+	r, err := c.DoAPIGet(c.hostedCustomerRoute()+"/signup_available", "")
 
 	if err != nil {
 		return BuildResponse(r), err

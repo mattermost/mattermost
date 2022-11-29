@@ -88,6 +88,10 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -122,6 +126,10 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	fmt.Println(where + " A")
 	ensureSelfHostedAdmin(c, where)
 	if c.Err != nil {
+		return
+	}
+	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -175,8 +183,12 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
 	if err := c.App.Cloud().SelfHostedSignupAvailable(); err != nil {
-		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError(where, "api.server.hosted_signup_unavailable.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
