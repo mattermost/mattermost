@@ -91,7 +91,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			continue
 		}
 
-		if msg[0] == '@' || j == 0 {
+		if msg[0] == '@' || (msg[0] != '~' && j == 0) {
 			targetUsername := strings.TrimPrefix(msg, "@")
 			userProfile := i.getUserProfile(a, targetUsername)
 			if userProfile == nil {
