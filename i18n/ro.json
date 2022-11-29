@@ -6700,10 +6700,6 @@
     "translation": "{{.Filename}} dimensiuni ({{.Width}} de {{.Height}} pixeli) depășesc limitele."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Imposibil de încărcat fișierul. Fișierul este prea mare."
-  },
-  {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de echipe."
   },
