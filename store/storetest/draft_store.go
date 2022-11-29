@@ -205,15 +205,9 @@ func testDeleteDraft(t *testing.T, ss store.Store) {
 		require.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
 
-		_, err = ss.Draft().Get(user.Id, channel.Id, "", true)
-		require.NoError(t, err)
-
 		_, err = ss.Draft().Get(user.Id, channel2.Id, "", false)
 		assert.Error(t, err)
 		assert.IsType(t, &store.ErrNotFound{}, err)
-
-		_, err = ss.Draft().Get(user.Id, channel2.Id, "", true)
-		assert.NoError(t, err)
 	})
 }
 
@@ -279,6 +273,24 @@ func testGetDraft(t *testing.T, ss store.Store) {
 		assert.NoError(t, err)
 		assert.Equal(t, draft2.Message, draftResp.Message)
 		assert.Equal(t, draft2.ChannelId, draftResp.ChannelId)
+	})
+
+	t.Run("get draft including deleted", func(t *testing.T) {
+		draftResp, err := ss.Draft().Get(user.Id, channel.Id, "", false)
+		assert.NoError(t, err)
+		assert.Equal(t, draft1.Message, draftResp.Message)
+		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
+
+		err = ss.Draft().Delete(user.Id, channel.Id, "")
+		assert.NoError(t, err)
+		_, err = ss.Draft().Get(user.Id, channel.Id, "", false)
+		assert.Error(t, err)
+		assert.IsType(t, &store.ErrNotFound{}, err)
+
+		draftResp, err = ss.Draft().Get(user.Id, channel.Id, "", true)
+		assert.NoError(t, err)
+		assert.Equal(t, draft1.Message, draftResp.Message)
+		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 	})
 }
 
