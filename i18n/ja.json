@@ -6636,10 +6636,6 @@
     "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
-  },
-  {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "ユーザーがチームリストに所属するかどうか確認できませんでした。"
   },
@@ -9192,8 +9188,8 @@
     "translation": "クラウドインスタンスへのmmctlによるアップロードはサポートされていません。こちらのドキュメントを確認してください：https://docs.mattermost.com/manage/cloud-data-export.html。"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "ウェブフックからサブスクリプションを更新する際にエラーが発生しました。"
+    "id": "app.install_integration.reached_max_limit.error",
+    "translation": "有効な統合機能数の上限 {{.NumIntegrations}} に達しました。無制限に統合機能をインストールするには、いずれかの有料プランにアップグレードしてください。"
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9277,7 +9273,7 @@
   },
   {
     "id": "app.cloud.get_cloud_products.app_error",
-    "translation": "クラウド製品を取得できませんでした"
+    "translation": "クラウドプロダクトを取得できませんでした"
   },
   {
     "id": "api.templates.delinquency_90.title",
@@ -9289,7 +9285,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "加えて、Cloud Starterの制限により、あなたのデータがアーカイブされている可能性があります。"
+    "translation": "加えて、Cloud Freeの制限により、あなたのデータがアーカイブされている可能性があります。"
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9309,11 +9305,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、Cloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、Cloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "ワークスペースは Cloud Starter にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
+    "translation": "ワークスペースは Cloud Free にダウングレードされます。{{.Plan}}の機能はロックされ、ワークスペースのデータの一部は未払い金の全額が支払われるまでアーカイブされる場合があります。"
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9345,7 +9341,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Starterにダウングレードしてください。"
+    "translation": "今すぐ支払い情報を更新するか、以下よりCloud Freeにダウングレードしてください。"
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9425,7 +9421,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Starterにダウングレードされる危険性があることを意味します。"
+    "translation": "登録されているクレジットカードに課金することができませんでした。これは、お客様のワークスペースがCloud Freeにダウングレードされる危険性があることを意味します。"
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9550,5 +9546,13 @@
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
     "translation": "ゲストアカウントは無効化されています"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topic type はすでに存在しています。"
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection typeはすでに存在しています。"
   }
 ]
