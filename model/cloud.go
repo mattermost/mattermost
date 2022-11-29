@@ -273,3 +273,11 @@ type ProductLimits struct {
 	Messages     *MessagesLimits     `json:"messages,omitempty"`
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
+
+func (p *Product) IsYearly() bool {
+	return p.RecurringInterval == RecurringIntervalYearly
+}
+
+func (p *Product) IsMonthly() bool {
+	return p.RecurringInterval == RecurringIntervalMonthly
+}
