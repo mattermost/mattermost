@@ -1634,7 +1634,7 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 		return nil, err
 	}
 
-	teamMember, nErr := a.Srv().Store().Team().GetMember(context.Background(), channel.TeamId, user.Id)
+	teamMember, nErr := a.GetTeamMember(channel.TeamId, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1653,7 +1653,7 @@ func (a *App) AddPreviewerToChannel(c request.CTX, userID string, channel *model
 		return nil, model.NewAppError("AddPreviewerToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	channelMember, nErr := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, nErr := a.GetChannelMember(context.Background(), channel.Id, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(nErr, &nfErr) {
