@@ -274,6 +274,19 @@ type ProductLimits struct {
 	Teams        *TeamsLimits        `json:"teams,omitempty"`
 }
 
+type BootstrapSelfHostedSignupRequest struct {
+	Email string `json:"email"`
+}
+
+type BootstrapSelfHostedSignupResponse struct {
+	Progress string `json:"progress"`
+}
+
+type BootstrapSelfHostedSignupResponseInternal struct {
+	Progress string `json:"progress"`
+	License  string `json:"license"`
+}
+
 func (p *Product) IsYearly() bool {
 	return p.RecurringInterval == RecurringIntervalYearly
 }
