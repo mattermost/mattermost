@@ -239,7 +239,7 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["Title"] = T("api.templates.cloud_upgrade_confirmation.title")
-	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
+	data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_monthly.subtitle", map[string]any{"WorkspaceName": workspaceName, "Date": date})
 	data.Props["SiteURL"] = siteURL
 	data.Props["ButtonURL"] = siteURL
 	data.Props["Button"] = T("api.templates.cloud_welcome_email.button")
@@ -248,6 +248,7 @@ func (es *Service) SendCloudUpgradeConfirmationEmail(userEmail, name, date, loca
 	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
 
 	if isYearly {
+		data.Props["SubTitle"] = T("api.templates.cloud_upgrade_confirmation_yearly.subtitle", map[string]any{"WorkspaceName": workspaceName})
 		data.Props["ButtonURL"] = siteURL + "/admin_console/billing/billing_history"
 		data.Props["Button"] = T("api.templates.cloud_welcome_email.yearly_plan_button")
 	}

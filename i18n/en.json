@@ -3164,8 +3164,12 @@
     "translation": "Mattermost Upgrade Confirmation"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
+    "id": "api.templates.cloud_upgrade_confirmation_monthly.subtitle",
     "translation": "Your {{.WorkspaceName}} workspace has now been upgraded. You'll be billed from {{.Date}}"
+  },
+  {
+    "id": "api.templates.cloud_upgrade_confirmation_yearly.subtitle",
+    "translation": "Your {{.WorkspaceName}} workspace has now been upgraded."
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.title",
