@@ -15,6 +15,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/app/teams"
@@ -25,13 +26,16 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-//
 // -- Bulk Import Functions --
 // These functions import data directly into the database. Security and permission checks are bypassed but validity is
 // still enforced.
-//
+func (a *App) importScheme(c request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Name != nil {
+		fields = append(fields, mlog.String("schema_name", *data.Name))
+	}
+	c.Logger().Info("Validating schema", fields...)
 
-func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.AppError {
 	if err := imports.ValidateSchemeImportData(data); err != nil {
 		return err
 	}
@@ -40,6 +44,8 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing schema", fields...)
 
 	scheme, err := a.GetSchemeByName(*data.Name)
 	if err != nil {
@@ -68,12 +74,12 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 
 	if scheme.Scope == model.SchemeScopeTeam {
 		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
-		if err := a.importRole(data.DefaultTeamAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
-		if err := a.importRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -83,19 +89,19 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
-		if err := a.importRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultTeamGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
 
 	if scheme.Scope == model.SchemeScopeTeam || scheme.Scope == model.SchemeScopeChannel {
 		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
-		if err := a.importRole(data.DefaultChannelAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
-		if err := a.importRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -105,7 +111,7 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
-		if err := a.importRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(c, data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
@@ -113,8 +119,15 @@ func (a *App) importScheme(data *imports.SchemeImportData, dryRun bool) *model.A
 	return nil
 }
 
-func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(c request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Name != nil {
+		fields = append(fields, mlog.String("role_name", *data.Name))
+	}
+
 	if !isSchemeRole {
+		c.Logger().Info("Validating role", fields...)
+
 		if err := imports.ValidateRoleImportData(data); err != nil {
 			return err
 		}
@@ -124,6 +137,8 @@ func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing role", fields...)
 
 	role, err := a.GetRoleByName(context.Background(), *data.Name)
 	if err != nil {
@@ -160,6 +175,12 @@ func (a *App) importRole(data *imports.RoleImportData, dryRun bool, isSchemeRole
 }
 
 func (a *App) importTeam(c request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Name != nil {
+		fields = append(fields, mlog.String("team_name", *data.Name))
+	}
+	c.Logger().Info("Validating team", fields...)
+
 	if err := imports.ValidateTeamImportData(data); err != nil {
 		return err
 	}
@@ -168,6 +189,8 @@ func (a *App) importTeam(c request.CTX, data *imports.TeamImportData, dryRun boo
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing team", fields...)
 
 	var team *model.Team
 	team, err := a.Srv().Store().Team().GetByName(*data.Name)
@@ -228,6 +251,12 @@ func (a *App) importTeam(c request.CTX, data *imports.TeamImportData, dryRun boo
 }
 
 func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryRun bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Name != nil {
+		fields = append(fields, mlog.String("channel_name", *data.Name))
+	}
+	c.Logger().Info("Validating channel", fields...)
+
 	if err := imports.ValidateChannelImportData(data); err != nil {
 		return err
 	}
@@ -236,6 +265,8 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing channel", fields...)
 
 	team, err := a.Srv().Store().Team().GetByName(*data.Team)
 	if err != nil {
@@ -293,6 +324,12 @@ func (a *App) importChannel(c request.CTX, data *imports.ChannelImportData, dryR
 }
 
 func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Username != nil {
+		fields = append(fields, mlog.String("user_name", *data.Username))
+	}
+	c.Logger().Info("Validating user", fields...)
+
 	if err := imports.ValidateUserImportData(data); err != nil {
 		return err
 	}
@@ -301,6 +338,8 @@ func (a *App) importUser(c request.CTX, data *imports.UserImportData, dryRun boo
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing user", fields...)
 
 	// We want to avoid database writes if nothing has changed.
 	hasUserChanged := false
@@ -1214,6 +1253,8 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 		defer zipFile.Close()
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
+
+		c.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint64("file_size", data.Data.UncompressedSize64))
 	} else {
 		realFile, err := os.Open(*data.Path)
 		if err != nil {
@@ -1222,6 +1263,12 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 		defer realFile.Close()
 		name = realFile.Name()
 		file = realFile
+
+		fields := []logr.Field{mlog.String("file_name", name)}
+		if info, err := realFile.Stat(); err != nil {
+			fields = append(fields, mlog.Int64("file_size", info.Size()))
+		}
+		c.Logger().Info("Preparing file upload from file system", fields...)
 	}
 
 	timestamp := utils.TimeFromMillis(post.CreateAt)
@@ -1241,7 +1288,8 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 			if oldFile.Name != path.Base(name) || oldFile.Size != int64(len(fileData)) {
 				continue
 			}
-			// check md5
+
+			// check sha1
 			newHash := sha1.Sum(fileData)
 			oldFileData, err := a.getFileIgnoreCloudLimit(oldFile.Id)
 			if err != nil {
@@ -1260,7 +1308,7 @@ func (a *App) importAttachment(c request.CTX, data *imports.AttachmentImportData
 
 	fileInfo, appErr := a.DoUploadFile(c, timestamp, teamID, post.ChannelId, post.UserId, name, fileData)
 	if appErr != nil {
-		mlog.Error("Failed to upload file:", mlog.Err(appErr))
+		mlog.Error("Failed to upload file", mlog.Err(appErr), mlog.String("file_name", name))
 		return nil, appErr
 	}
 
@@ -1277,7 +1325,7 @@ type postAndData struct {
 	directPostData *imports.DirectPostImportData
 	replyData      *imports.ReplyImportData
 	team           *model.Team
-	lineNumber     int
+	lineNumber     uint64
 }
 
 func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *model.AppError) {
@@ -1353,10 +1401,12 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (uint64, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
+
+	c.Logger().Info("Validating post lines", mlog.Int("count", len(lines)), mlog.Uint64("first_line", lines[0].LineNumber))
 
 	for _, line := range lines {
 		if err := imports.ValidatePostImportData(line.Post, a.MaxPostSize()); err != nil {
@@ -1368,6 +1418,8 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	if dryRun {
 		return 0, nil
 	}
+
+	c.Logger().Info("Importing post lines", mlog.Int("count", len(lines)), mlog.Uint64("first_line", lines[0].LineNumber))
 
 	usernames := []string{}
 	teamNames := make([]string, len(lines))
@@ -1399,9 +1451,9 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]int{}
+		postsForCreateMap     = map[string]uint64{}
 		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]int{}
+		postsForOverwriteMap  = map[string]uint64{}
 	)
 
 	for _, line := range lines {
@@ -1658,7 +1710,7 @@ func (a *App) importDirectChannel(c request.CTX, data *imports.DirectChannelImpo
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (uint64, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1691,9 +1743,9 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]int{}
+		postsForCreateMap     = map[string]uint64{}
 		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]int{}
+		postsForOverwriteMap  = map[string]uint64{}
 	)
 
 	for _, line := range lines {
@@ -1855,7 +1907,13 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 	return 0, nil
 }
 
-func (a *App) importEmoji(data *imports.EmojiImportData, dryRun bool) *model.AppError {
+func (a *App) importEmoji(c request.CTX, data *imports.EmojiImportData, dryRun bool) *model.AppError {
+	var fields []logr.Field
+	if data != nil && data.Name != nil {
+		fields = append(fields, mlog.String("emoji_name", *data.Name))
+	}
+	c.Logger().Info("Validating emoji", fields...)
+
 	aerr := imports.ValidateEmojiImportData(data)
 	if aerr != nil {
 		if aerr.Id == "model.emoji.system_emoji_name.app_error" {
@@ -1869,6 +1927,8 @@ func (a *App) importEmoji(data *imports.EmojiImportData, dryRun bool) *model.App
 	if dryRun {
 		return nil
 	}
+
+	c.Logger().Info("Importing emoji", fields...)
 
 	var emoji *model.Emoji
 
