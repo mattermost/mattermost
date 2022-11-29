@@ -3269,7 +3269,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
@@ -3317,7 +3317,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "if no action is taken, your workspace will be downgraded and the following data may be archived:"
+    "translation": "If no action is taken, your workspace will be downgraded and the following data may be archived:"
   },
   {
     "id": "api.templates.delinquency_30.title",
@@ -3333,7 +3333,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "We've been unable to collect payment for outstanding invoices dated {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
+    "translation": "We've been unable to collect payment for outstanding invoices since {{.DelinquencyDate}}. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subtitle2",
@@ -3381,7 +3381,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "We couldn't process your most recent payment"
+    "translation": "We couldn't process your most recent payment."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
@@ -3405,7 +3405,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}"
+    "translation": "This is a final reminder that we haven’t received payment for your Mattermost Cloud workspace since {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",

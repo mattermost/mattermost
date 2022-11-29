@@ -8,6 +8,7 @@ import (
 )
 
 type CloudInterface interface {
+	GetCloudProduct(userID string, productID string) (*model.Product, error)
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
 
@@ -30,5 +31,7 @@ type CloudInterface interface {
 	// GetLicenseRenewalStatus checks on the portal whether it is possible to use token to renew a license
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
+
+	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
 }
