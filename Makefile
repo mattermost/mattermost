@@ -349,6 +349,9 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
+generate-worktemplates: ## Generate work templates
+	$(GO) generate $(GOFLAGS) ./app/worktemplates
+
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GO) install github.com/mattermost/morph/cmd/morph@master
 	@echo "Generating new migration for mysql"
