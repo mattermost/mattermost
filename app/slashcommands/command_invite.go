@@ -96,7 +96,9 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 			userProfile := i.getUserProfile(a, targetUsername)
 			if userProfile == nil {
 				return targetUsers, targetChannels, &model.CommandResponse{
-					Text:         args.T("api.command_invite.missing_user.app_error"),
+					Text: args.T("api.command_invite.missing_user.app_error", map[string]any{
+						"User": targetUsername,
+					}),
 					ResponseType: model.CommandResponseTypeEphemeral,
 				}
 			}
@@ -118,7 +120,7 @@ func (i *InviteProvider) parseMessage(a *app.App, c request.CTX, args *model.Com
 
 	if len(targetUsers) == 0 {
 		return targetUsers, targetChannels, &model.CommandResponse{
-			Text:         args.T("api.command_invite.missing_user.app_error"),
+			Text:         args.T("api.command_invite.missing_message.app_error"),
 			ResponseType: model.CommandResponseTypeEphemeral,
 		}
 	}
