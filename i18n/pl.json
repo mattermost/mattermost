@@ -4749,7 +4749,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6598,10 +6598,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} wymiary ({{.width}} według {{.Height}} pikseli) przekraczają limity."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Nie udało się wgrać obrazu. Plik jest zbyt duży."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -9192,20 +9188,12 @@
     "translation": "Otrzymałeś tę jednorazową wiadomość e-mail, ponieważ Twój serwer Mattermost był nieaktywny przez ponad {{.Hours}} godzin. Ta wiadomość e-mail została automatycznie wygenerowana przez serwer Mattermost."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Błąd aktualizacji subskrypcji z webhooka."
-  },
-  {
     "id": "api.file.cloud_upload.app_error",
     "translation": "Przesyłanie danych do instancji Chmury za pomocą mmctl nie jest obsługiwane. Proszę sprawdzić dokumentację tutaj: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
     "id": "app.recent_searches.app_error",
     "translation": "Błąd pobierania ostatnich wyszukiwań"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Osiągnąłeś maksymalny limit {{.NumIntegrations}} włączonych integracji. Aby zainstalować nieograniczoną liczbę integracji, uaktualnij do jednego z naszych płatnych planów."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -9321,7 +9309,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Nie byliśmy w stanie obciążyć karty kredytowej, którą mamy w pliku. Oznacza to, że Twój obszar roboczy może zostać zdegradowany do wersji Cloud Starter."
+    "translation": "Nie byliśmy w stanie obciążyć karty kredytowej, którą mamy w pliku. Oznacza to, że Twój obszar roboczy może zostać zdegradowany do wersji Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9337,7 +9325,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Twój obszar roboczy zostanie zdegradowany do Cloud Starter. Funkcje Twojego {{.Plan}} zostaną zablokowane, a niektóre dane z Twojego obszaru roboczego mogą zostać zarchiwizowane do czasu uregulowania całego zaległego salda."
+    "translation": "Twój obszar roboczy zostanie zdegradowany do Cloud Free. Funkcje Twojego {{.Plan}} zostaną zablokowane, a niektóre dane z Twojego obszaru roboczego mogą zostać zarchiwizowane do czasu uregulowania całego zaległego salda."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9348,7 +9336,7 @@
     "translation": "Twój Mattermost {{.Plan}} zostanie zdegradowany za 15 dni"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9377,7 +9365,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Zaktualizuj swoje informacje o płatnościach teraz lub przejdź do wersji Cloud Starter poniżej."
+    "translation": "Zaktualizuj swoje informacje o płatnościach teraz lub przejdź do wersji Cloud Free poniżej."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9392,7 +9380,7 @@
     "translation": "Wymagane działanie: Obszar roboczy zostanie zdegradowany w ciągu 30 dni"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Obniż na Cloud Starter"
   },
   {
@@ -9449,7 +9437,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Ponadto Twoje dane mogły zostać zarchiwizowane z powodu ograniczeń Cloud Starter."
+    "translation": "Ponadto Twoje dane mogły zostać zarchiwizowane z powodu ograniczeń Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9473,7 +9461,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Zaktualizuj teraz swoje informacje o płatnościach lub przejdź do wersji Cloud Starter."
+    "translation": "Zaktualizuj teraz swoje informacje o płatnościach lub przejdź do wersji Cloud Free."
   },
   {
     "id": "api.templates.delinquency_30.limits_documentation",
@@ -9562,5 +9550,25 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Nieprawidłowy zakres czasu."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Typ tematu już istnieje."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Typ kolekcji już istnieje."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "nie jest użytkownikiem ldap"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "nie udało się dodać użytkownika do group-teams i group-channels"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Nie można przesłać pliku. Plik jest zbyt duży."
   }
 ]

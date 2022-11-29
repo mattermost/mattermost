@@ -4789,7 +4789,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6602,10 +6602,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} Dimensionen ({{.Width}} mal {{.Height}} Pixel) überschreiten die Limits."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -9195,16 +9191,8 @@
     "translation": "Hochladen über mmctl zu einer Cloud Instanz wird nicht unterstützt. Bitte prüfe die Dokumentation: https://docs.mattermost.com/manage/cloud-data-export.html."
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fehler bei der Aktualisierung des Abonnements über Webhook."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Fehler beim Holen der letzten Suchen"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Du hast das Maximum von {{.NumIntegrations}} aktivierten Integrationen erreicht. Um Integrationen ohne Beschränkungen zu installieren, upgrade auf ein bezahltes Abonnements."
   },
   {
     "id": "app.teams.analytics_teams_count.app_error",
@@ -9304,11 +9292,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Starter."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele zu Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Dein Arbeitsbereich wird auf Cloud Starter herabgestuft. Deins {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
+    "translation": "Dein Arbeitsbereich wird auf Cloud Free herabgestuft. Deine {{.Plan}}-Funktionen werden gesperrt und einige deiner Arbeitsbereichsdaten können archiviert werden, bis dein ausstehender Betrag vollständig beglichen ist."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9319,7 +9307,7 @@
     "translation": "Dein Mattermost {{.Plan}} wird in 15 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Herunterstufen zu Cloud Starter"
   },
   {
@@ -9348,7 +9336,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Starter."
+    "translation": "Aktualisiere jetzt deine Zahlungsinformationen oder wechsele unten zu Cloud Free."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9363,7 +9351,7 @@
     "translation": "Aktion notwendig: Arbeitsbereich wird in 30 Tagen herabgestuft"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Herabstufen zu Cloud Starter"
   },
   {
@@ -9444,7 +9432,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Starter zurückgestuft zu werden."
+    "translation": "Wir konnten die hinterlegte Kreditkarte nicht belasten. Das bedeutet, dass ein Risiko besteht auf Cloud Free zurückgestuft zu werden."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9488,7 +9476,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Starter archiviert wurden."
+    "translation": "Außerdem kann es sein, dass deine Daten aufgrund der Beschränkungen von Cloud Free archiviert wurden."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9561,5 +9549,21 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Ungültiger Zeitbereich."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Thementyp existiert schon."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collection Typ existiert schon."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "Kein LDAP-Benutzer"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "Fehlschlag beim Hinzufügen des Benutzers zu Gruppen-Teams und -Kanälen"
   }
 ]

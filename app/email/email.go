@@ -1037,7 +1037,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.payment_failed.subject")
+	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
@@ -1172,7 +1172,7 @@ func (es *Service) SendDelinquencyEmail60(email, locale, siteURL string) error {
 	data.Props["Button"] = T("api.templates.delinquency_60.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_60.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 60 day one so its reused
@@ -1205,7 +1205,7 @@ func (es *Service) SendDelinquencyEmail75(email, locale, siteURL, planName, deli
 	data.Props["Button"] = T("api.templates.delinquency_75.button")
 	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	data.Props["IncludeSecondaryActionButton"] = true
-	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_starter")
+	data.Props["SecondaryActionButtonText"] = T("api.templates.delinquency_75.downgrade_to_free")
 	data.Props["Footer"] = T("api.templates.copyright")
 
 	// 45 day template is the same as the 75 day one so its reused

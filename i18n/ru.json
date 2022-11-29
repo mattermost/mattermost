@@ -5573,7 +5573,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -6974,10 +6974,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Не удалось получить загрузки."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -9193,7 +9189,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Starter."
+    "translation": "Мы не смогли снять деньги с имеющейся у нас кредитной карты. Это означает, что ваше рабочее пространство может быть переведено в категорию Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9242,10 +9238,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Невозможно создать команду, потому что достигнут лимит команд"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Ошибка обновления подписки из webhook."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9409,7 +9401,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Starter."
+    "translation": "Кроме того, ваши данные могут быть заархивированы из-за ограничений Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9433,11 +9425,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter."
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Starter. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
+    "translation": "Ваше рабочее пространство будет понижено до уровня Cloud Free. Ваши функции {{.Plan}} будут заблокированы, а некоторые данные рабочего пространства могут быть заархивированы до полного погашения задолженности."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9446,10 +9438,6 @@
   {
     "id": "api.templates.delinquency_75.subject",
     "translation": "Ваш Mattermost {{.Plan}} будет понижен через 15 дней"
-  },
-  {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
   },
   {
     "id": "api.templates.delinquency_75.button",
@@ -9477,7 +9465,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Starter ниже."
+    "translation": "Обновите свою платёжную информацию сейчас или перейдите на Cloud Free ниже."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9490,10 +9478,6 @@
   {
     "id": "api.templates.delinquency_60.subject",
     "translation": "Необходимые действия: Рабочее пространство будет понижено в течение 30 дней"
-  },
-  {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
-    "translation": "Понижение статуса до Cloud Starter"
   },
   {
     "id": "api.templates.delinquency_60.button",
@@ -9562,5 +9546,33 @@
   {
     "id": "api.templates.delinquency_30.bullet.cards",
     "translation": "Карточки с Ваших Boards"
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Тип темы уже существует."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Тип коллекции уже существует."
+  },
+  {
+    "id": "api.templates.delinquency_75.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.templates.delinquency_60.downgrade_to_free",
+    "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "не является пользователем ldap"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Невозможно загрузить файл. Он слишком большой."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не удалось добавить пользователя в group-teams и group-channels"
   }
 ]
