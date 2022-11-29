@@ -1037,7 +1037,7 @@ func (es *Service) SendNoCardPaymentFailedEmail(email string, locale string, sit
 func (es *Service) SendDelinquencyEmail7(email, locale, siteURL, planName string) error {
 	T := i18n.GetUserTranslations(locale)
 
-	subject := T("api.templates.payment_failed.subject")
+	subject := T("api.templates.payment_failed.subject", map[string]any{"Plan": planName})
 
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL

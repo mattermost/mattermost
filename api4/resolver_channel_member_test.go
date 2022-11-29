@@ -61,17 +61,18 @@ func TestGraphQLChannelMembers(t *testing.T) {
 				SchemeManaged bool     `json:"schemeManaged"`
 				BuiltIn       bool     `json:"builtIn"`
 			} `json:"roles"`
-			LastViewedAt     float64         `json:"lastViewedAt"`
-			LastUpdateAt     float64         `json:"lastUpdateAt"`
-			MsgCount         float64         `json:"msgCount"`
-			MentionCount     float64         `json:"mentionCount"`
-			MentionCountRoot float64         `json:"mentionCountRoot"`
-			MsgCountRoot     float64         `json:"msgCountRoot"`
-			NotifyProps      model.StringMap `json:"notifyProps"`
-			SchemeGuest      bool            `json:"schemeGuest"`
-			SchemeUser       bool            `json:"schemeUser"`
-			SchemeAdmin      bool            `json:"schemeAdmin"`
-			Cursor           string          `json:"cursor"`
+			LastViewedAt       float64         `json:"lastViewedAt"`
+			LastUpdateAt       float64         `json:"lastUpdateAt"`
+			MsgCount           float64         `json:"msgCount"`
+			MentionCount       float64         `json:"mentionCount"`
+			MentionCountRoot   float64         `json:"mentionCountRoot"`
+			UrgentMentionCount float64         `json:"urgentMentionCount"`
+			MsgCountRoot       float64         `json:"msgCountRoot"`
+			NotifyProps        model.StringMap `json:"notifyProps"`
+			SchemeGuest        bool            `json:"schemeGuest"`
+			SchemeUser         bool            `json:"schemeUser"`
+			SchemeAdmin        bool            `json:"schemeAdmin"`
+			Cursor             string          `json:"cursor"`
 		} `json:"channelMembers"`
 	}
 
@@ -101,6 +102,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	  	msgCount
 	  	mentionCount
 	  	mentionCountRoot
+			urgentMentionCount
 		msgCountRoot
 	  	schemeGuest
 	  	schemeUser
@@ -181,6 +183,7 @@ func TestGraphQLChannelMembers(t *testing.T) {
 	  	msgCount
 	  	mentionCount
 	  	mentionCountRoot
+			urgentMentionCount
 	  }
 	}
 	`,
