@@ -383,7 +383,7 @@ type ServiceSettings struct {
 	CollapsedThreads                                  *string `access:"experimental_features"`
 	ManagedResourcePaths                              *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
-	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
+	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 }
 
@@ -854,8 +854,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.AllowSyncedDrafts = NewBool(true)
 	}
 
-	if s.SelfHostedFirstTimePurchase == nil {
-		s.SelfHostedFirstTimePurchase = NewBool(false)
+	if s.SelfHostedPurchase == nil {
+		s.SelfHostedPurchase = NewBool(false)
 	}
 }
 

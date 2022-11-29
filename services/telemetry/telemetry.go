@@ -450,7 +450,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_link_previews":                                  isDefault(*cfg.ServiceSettings.RestrictLinkPreviews, ""),
 		"enable_custom_groups":                                    *cfg.ServiceSettings.EnableCustomGroups,
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
-		"self_hosted_first_time_purchase":                         *cfg.ServiceSettings.SelfHostedFirstTimePurchase,
+		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 	})
 

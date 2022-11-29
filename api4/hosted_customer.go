@@ -41,18 +41,18 @@ func ensureSelfHostedAdmin(c *Context, where string) {
 	}
 }
 
-func checkSelfHostedFirstTimePurchaseEnabled(c *Context) bool {
+func checkSelfHostedPurchaseEnabled(c *Context) bool {
 	config := c.App.Config()
 	if config == nil {
 		return false
 	}
-	enabled := config.ServiceSettings.SelfHostedFirstTimePurchase
+	enabled := config.ServiceSettings.SelfHostedPurchase
 	return enabled != nil && *enabled
 }
 
 func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	where := "Api4.selfHostedBootstrap"
-	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -88,7 +88,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -128,7 +128,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -183,7 +183,7 @@ func handleSignupAvailable(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	if !checkSelfHostedFirstTimePurchaseEnabled(c) {
+	if !checkSelfHostedPurchaseEnabled(c) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
