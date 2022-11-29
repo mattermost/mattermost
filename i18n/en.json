@@ -8680,6 +8680,10 @@
     "translation": "Invalid message."
   },
   {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
+  },
+  {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Invalid props."
   },

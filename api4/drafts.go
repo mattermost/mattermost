@@ -120,7 +120,12 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelID := c.Params.ChannelId
 
 	draft, err := c.App.GetDraft(userID, channelID, rootID)
-	if err != nil || c.AppContext.Session().UserId != draft.UserId {
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.AppContext.Session().UserId != draft.UserId {
 		c.SetPermissionError(model.PermissionDeletePost)
 		return
 	}

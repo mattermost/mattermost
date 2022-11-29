@@ -33,7 +33,6 @@ func TestUpsertDraft(t *testing.T) {
 	draft := &model.Draft{
 		CreateAt:  12345,
 		UpdateAt:  12345,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel.Id,
 		Message:   "original",
@@ -105,7 +104,6 @@ func TestGetDrafts(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel1.Id,
 		Message:   "draft1",
@@ -114,7 +112,6 @@ func TestGetDrafts(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  11111,
 		UpdateAt:  32222,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
@@ -180,7 +177,6 @@ func TestDeleteDraft(t *testing.T) {
 	draft1 := &model.Draft{
 		CreateAt:  00001,
 		UpdateAt:  00001,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel1.Id,
 		Message:   "draft1",
@@ -190,7 +186,6 @@ func TestDeleteDraft(t *testing.T) {
 	draft2 := &model.Draft{
 		CreateAt:  11111,
 		UpdateAt:  32222,
-		DeleteAt:  0,
 		UserId:    user.Id,
 		ChannelId: channel2.Id,
 		Message:   "draft2",
