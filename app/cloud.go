@@ -40,25 +40,25 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	return a.GetUsersFromProfiles(userOptions)
 }
 
-func getCurrentPlan(a *App) (*model.Product, *model.AppError) {
+func getCurrentPlanName(a *App) (string, *model.AppError) {
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
-		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_subscription.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_subscription.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if subscription == nil {
-		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
+		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_subscription.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	products, err := a.Cloud().GetCloudProducts("", false)
 	if err != nil {
-		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if products == nil {
-		return nil, model.NewAppError("getCurrentPlan", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
+		return "", model.NewAppError("getCurrentPlanName", "app.cloud.get_cloud_products.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	plan := getCurrentProduct(subscription.ProductID, products)
-	return plan, nil
+	planName := getCurrentProduct(subscription.ProductID, products).Name
+	return planName, nil
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
@@ -67,11 +67,10 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 		return err
 	}
 
-	plan, err := getCurrentPlan(a)
-	if err != nil || plan == nil {
+	planName, err := getCurrentPlanName(a)
+	if err != nil {
 		return model.NewAppError("SendPaymentFailedEmail", "app.cloud.get_current_plan_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	planName := plan.Name
 
 	for _, admin := range sysAdmins {
 		_, err := a.Srv().EmailService.SendPaymentFailedEmail(admin.Email, admin.Locale, failedPayment, planName, *a.Config().ServiceSettings.SiteURL)
@@ -96,11 +95,10 @@ func (a *App) SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.Ap
 	if aErr != nil {
 		return aErr
 	}
-	plan, aErr := getCurrentPlan(a)
-	if aErr != nil || plan == nil {
+	planName, aErr := getCurrentPlanName(a)
+	if aErr != nil {
 		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_current_plan_name.app_error", nil, aErr.Error(), http.StatusInternalServerError)
 	}
-	planName := plan.Name
 
 	subscription, err := a.Cloud().GetSubscription("")
 	if err != nil {
@@ -176,7 +174,7 @@ func getNextBillingDateString() string {
 	return fmt.Sprintf("%s %d, %d", t.Month(), t.Day(), t.Year())
 }
 
-func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
+func (a *App) SendUpgradeConfirmationEmail(isYearly bool) *model.AppError {
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
 	if e != nil {
 		return e
@@ -190,13 +188,6 @@ func (a *App) SendUpgradeConfirmationEmail() *model.AppError {
 	if err != nil {
 		return model.NewAppError("app.SendCloudUpgradeConfirmationEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
-
-	plan, aErr := getCurrentPlan(a)
-	if aErr != nil || plan == nil {
-		return model.NewAppError("SendDelinquencyEmail", "app.cloud.get_current_plan_name.app_error", nil, aErr.Error(), http.StatusInternalServerError)
-	}
-
-	isYearly := plan.IsYearly()
 
 	billingDate := getNextBillingDateString()
 
