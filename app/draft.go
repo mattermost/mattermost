@@ -20,7 +20,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 		return nil, model.NewAppError("GetDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
+	draft, err := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -39,7 +39,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("UpsertDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId, true)
+	dt, dErr := a.Srv().Store().Draft().Get(draft.UserId, draft.ChannelId, draft.RootId)
 	var notFoundErr *store.ErrNotFound
 	if dErr != nil && !errors.As(dErr, &notFoundErr) {
 		return nil, model.NewAppError("UpsertDraft", "app.select_error", nil, dErr.Error(), http.StatusInternalServerError)
@@ -189,7 +189,7 @@ func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*mode
 		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
+	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID)
 	if nErr != nil {
 		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
 	}

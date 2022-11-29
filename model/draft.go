@@ -12,7 +12,6 @@ import (
 type Draft struct {
 	CreateAt  int64  `json:"create_at"`
 	UpdateAt  int64  `json:"update_at"`
-	DeleteAt  int64  `json:"delete_at"`
 	UserId    string `json:"user_id"`
 	ChannelId string `json:"channel_id"`
 	RootId    string `json:"root_id"`
@@ -57,6 +56,10 @@ func (o *Draft) IsValid(maxDraftSize int) *AppError {
 
 	if utf8.RuneCountInString(StringInterfaceToJSON(o.GetProps())) > PostPropsMaxRunes {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.props.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(StringInterfaceToJSON(o.Priority)) > PostPropsMaxRunes {
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.priority.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	return nil

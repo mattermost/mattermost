@@ -33,7 +33,6 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	draft.DeleteAt = 0
 	draft.UserId = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
@@ -120,13 +119,13 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelID := c.Params.ChannelId
 
 	draft, err := c.App.GetDraft(userID, channelID, rootID)
-	if c.AppContext.Session().UserId != draft.UserId {
-		c.SetPermissionError(model.PermissionDeletePost)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	if err != nil {
-		c.Err = err
+	if c.AppContext.Session().UserId != draft.UserId {
+		c.SetPermissionError(model.PermissionDeletePost)
 		return
 	}
 

@@ -1,1 +1,3 @@
 ALTER TABLE drafts DROP COLUMN IF EXISTS priority;
+
+ALTER TABLE drafts ADD COLUMN IF NOT EXISTS deleteat bigint DEFAULT 0;

@@ -3651,11 +3651,11 @@ func (s *RetryLayerDraftStore) Delete(userID string, channelID string, rootID st
 
 }
 
-func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string) (*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.Get(userID, channelID, rootID, includeDeleted)
+		result, err := s.DraftStore.Get(userID, channelID, rootID)
 		if err == nil {
 			return result, nil
 		}
