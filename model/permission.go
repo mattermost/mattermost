@@ -48,6 +48,7 @@ var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
 var PermissionEditOtherUsers *Permission
 var PermissionReadChannel *Permission
+var PermissionReadTopic *Permission
 var PermissionReadPublicChannelGroups *Permission
 var PermissionReadPrivateChannelGroups *Permission
 var PermissionReadPublicChannel *Permission
@@ -556,6 +557,12 @@ func initializePermissions() {
 		"authentication.permissions.read_channel.name",
 		"authentication.permissions.read_channel.description",
 		PermissionScopeChannel,
+	}
+	PermissionReadTopic = &Permission{
+		"read_topic",
+		"authentication.permissions.read_topic.name",
+		"authentication.permissions.read_topic.description",
+		PermissionScopeChannel, //TODO Let's introduce PermissionScopeCollection
 	}
 	PermissionReadPublicChannelGroups = &Permission{
 		"read_public_channel_groups",
@@ -2318,6 +2325,7 @@ func initializePermissions() {
 		PermissionDeletePublicChannel,
 		PermissionDeletePrivateChannel,
 		PermissionReadChannel,
+		PermissionReadTopic,
 		PermissionReadPublicChannelGroups,
 		PermissionReadPrivateChannelGroups,
 		PermissionAddReaction,
