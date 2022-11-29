@@ -32,6 +32,7 @@ type CloudInterface interface {
 	GetLicenseRenewalStatus(userID, token string) error
 	InvalidateCaches() error
 
+	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
 }

@@ -140,6 +140,8 @@ type Routes struct {
 
 	Usage *mux.Router // 'api/v4/usage'
 
+	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
+
 	Drafts *mux.Router // 'api/v4/drafts'
 }
 
@@ -267,6 +269,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
 
+	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
+
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
 
 	api.InitUser()
@@ -312,6 +316,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitExport()
 	api.InitInsights()
 	api.InitUsage()
+	api.InitHostedCustomer()
 	api.InitDrafts()
 	if err := api.InitGraphQL(); err != nil {
 		return nil, err
