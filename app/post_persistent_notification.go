@@ -17,6 +17,13 @@ import (
 // DeletePersistentNotificationsPost stops persistent notifications, if mentioned user reacts, reply or ack on the post.
 // Or if post-owner deletes the original post, in which case "checkMentionedUser" must be false and "mentionedUserID" can be empty.
 func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserID string, checkMentionedUser bool) *model.AppError {
+	license := a.License()
+	cfg := a.Config()
+	if !(license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority) {
+		mlog.Debug("DeletePersistentNotificationsPost: Persistent Notification feature is not enabled")
+		return nil
+	}
+
 	if posts, _, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{PostID: post.Id}); err != nil {
 		return model.NewAppError("DeletePersistentNotificationsPost", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	} else if len(posts) == 0 {
@@ -43,16 +50,21 @@ func (a *App) DeletePersistentNotificationsPost(post *model.Post, mentionedUserI
 }
 
 func (a *App) SendPersistentNotifications() error {
+	license := a.License()
+	cfg := a.Config()
+	if !(license != nil && (license.SkuShortName == model.LicenseShortSkuProfessional || license.SkuShortName == model.LicenseShortSkuEnterprise) && cfg != nil && cfg.FeatureFlags != nil && cfg.FeatureFlags.PostPriority && cfg.ServiceSettings.PostPriority != nil && *cfg.ServiceSettings.PostPriority) {
+		mlog.Debug("SendPersistentNotifications: Persistent Notification feature is not enabled")
+		return nil
+	}
+
 	// notificationInterval := a.Config().ServiceSettings.PersistenceNotificationInterval
-	notificationInterval, err := time.ParseDuration("2m")
+	notificationInterval, err := time.ParseDuration("5m")
 	if err != nil {
 		return errors.Wrap(err, "failed to parse persistent notifications interval")
 	}
-	// notificationMaxDuration := a.Config().ServiceSettings.PersistenceNotificationMaxDuration
-	notificationMaxDuration, err := time.ParseDuration("23h")
-	if err != nil {
-		return errors.Wrap(err, "failed to parse persistent notifications max duration")
-	}
+	// notificationMaxCount := a.Config().ServiceSettings.PersistenceNotificationMaxCount
+	notificationMaxCount := int64(6)
+	notificationMaxDuration := time.Duration(notificationInterval.Nanoseconds() * notificationMaxCount)
 
 	// fetch posts for which first notificationInterval duration has passed
 	maxCreateAt := time.Now().Add(-notificationInterval).UnixMilli()
@@ -61,6 +73,8 @@ func (a *App) SendPersistentNotifications() error {
 		Direction: "down",
 		PerPage:   500,
 	}
+
+	// Pagination loop
 	for {
 		notificationPosts, hasNext, err := a.Srv().Store().PostPersistentNotification().Get(model.GetPersistentNotificationsPostsParams{
 			MaxCreateAt: maxCreateAt,
@@ -107,7 +121,6 @@ func (a *App) SendPersistentNotifications() error {
 		}
 
 		// Send notifications to validPosts
-		// return a.sendPersistentNotifications(validPosts)
 		if err := a.forEachPersistentNotificationPost(validPosts, a.sendPersistentNotifications); err != nil {
 			return err
 		}
@@ -119,11 +132,6 @@ func (a *App) SendPersistentNotifications() error {
 }
 
 func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(post *model.Post, channel *model.Channel, team *model.Team, mentions *ExplicitMentions, profileMap model.UserMap) error) error {
-	// postsMentions, err := a.getMentionsForPersistentNotifications(posts)
-	// if err != nil {
-	// 	return err
-	// }
-
 	channelIds := make(model.StringSet)
 	for _, p := range posts {
 		channelIds.Add(p.ChannelId)
@@ -174,12 +182,17 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		if err != nil {
 			return errors.Wrapf(err, "failed to get profiles for channel %s", c.Id)
 		}
-		channelProfileMap[c.Id] = profileMap
 
 		channelKeywords[c.Id] = make(map[string][]string, len(profileMap))
+		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for k, v := range profileMap {
+			if v.IsBot {
+				continue
+			}
+			validProfileMap[k] = v
 			channelKeywords[c.Id]["@"+v.Username] = []string{k}
 		}
+		channelProfileMap[c.Id] = validProfileMap
 	}
 
 	for _, post := range posts {
@@ -229,30 +242,30 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 		Sender:     sender,
 	}
 
-	// TODO: remove false
-	if false && *a.Config().EmailSettings.SendEmailNotifications {
+	if *a.Config().EmailSettings.SendEmailNotifications {
 		mentionedUsersList = model.RemoveDuplicateStrings(mentionedUsersList)
 
 		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
+			user := profileMap[id]
+			if user == nil {
 				continue
 			}
 
 			//If email verification is required and user email is not verified don't send email.
-			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+			if *a.Config().EmailSettings.RequireEmailVerification && !user.EmailVerified {
+				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", user.Email), mlog.String("user_id", id))
 				continue
 			}
 
-			// if a.userAllowsEmail(c, profileMap[id], channelMemberNotifyPropsMap[id], post) {
-			senderProfileImage, _, err := a.GetProfileImage(sender)
-			if err != nil {
-				a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+			if user.NotifyProps[model.EmailNotifyProp] != "false" && a.persistentNotificationsAllowedForStatus(id) {
+				senderProfileImage, _, err := a.GetProfileImage(sender)
+				if err != nil {
+					a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", sender.Id), mlog.Err(err))
+				}
+				if err := a.sendNotificationEmail(request.EmptyContext(a.Log()), notification, user, team, senderProfileImage); err != nil {
+					mlog.Warn("Unable to send notification email.", mlog.Err(err))
+				}
 			}
-			if err := a.sendNotificationEmail(request.EmptyContext(a.Log()), notification, profileMap[id], team, senderProfileImage); err != nil {
-				mlog.Warn("Unable to send notification email.", mlog.Err(err))
-			}
-			// }
 		}
 	}
 
@@ -263,23 +276,17 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 
 	if a.canSendPushNotifications() {
 		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
+			user := profileMap[id]
+			if user == nil {
 				continue
 			}
 
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-			}
-
-			// if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-			if status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice {
+			if user.NotifyProps[model.PushNotifyProp] != model.UserNotifyNone && a.persistentNotificationsAllowedForStatus(id) {
 				mentionType := mentions.Mentions[id]
 
 				a.sendPushNotification(
 					notification,
-					profileMap[id],
+					user,
 					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
 					mentionType == ChannelMention,
 					"",
@@ -289,4 +296,14 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	return nil
+}
+
+func (a *App) persistentNotificationsAllowedForStatus(userID string) bool {
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(userID); err != nil {
+		status = &model.Status{UserId: userID, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	return status.Status != model.StatusDnd && status.Status != model.StatusOutOfOffice
 }
