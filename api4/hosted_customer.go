@@ -156,13 +156,11 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	license, err := c.App.Srv().Platform().SaveLicense([]byte(confirmResponse.License))
 	fmt.Println(where + " E")
-	if err != nil {
-		valErr := reflect.ValueOf(err)
-		if !valErr.IsNil() {
-			fmt.Println(where + " E1")
-			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			return
-		}
+	// dealing with an AppError
+	if !(reflect.ValueOf(err).Kind() == reflect.Ptr && reflect.ValueOf(err).IsNil()) {
+		fmt.Println(where + " E1")
+		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
 	}
 	clientResponse, err := json.Marshal(model.SelfHostedSignupConfirmClientResponse{
 		License:  utils.GetClientLicense(license),
