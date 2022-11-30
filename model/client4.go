@@ -8551,6 +8551,48 @@ func (c *Client4) SelfHostedSignupAvailable() (*Response, error) {
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) SelfHostedSignupCustomer(form *SelfHostedCustomerForm) (*Response, *SelfHostedSignupCustomerResponse, error) {
+	payloadBytes, err := json.Marshal(form)
+	if err != nil {
+		return nil, nil, NewAppError("SelfHostedSignupCustomer", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/customer", string(payloadBytes))
+
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+	defer closeBody(r)
+
+	response := SelfHostedSignupCustomerResponse{}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	return BuildResponse(r), &response, nil
+}
+
+func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRequest) (*Response, error) {
+	payloadBytes, err := json.Marshal(form)
+	if err != nil {
+		return nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
 	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
 	if err != nil {

@@ -106,13 +106,13 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	confirmResponse, err := c.App.Cloud().CreateCustomerSelfHostedSignup(*form)
+	customerResponse, err := c.App.Cloud().CreateCustomerSelfHostedSignup(*form)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
-	json, err := json.Marshal(confirmResponse)
+	json, err := json.Marshal(customerResponse)
 	if err != nil {
 		c.Err = model.NewAppError(where, "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
