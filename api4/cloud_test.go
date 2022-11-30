@@ -758,3 +758,49 @@ func TestGetSelfHostedProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[1].CrossSellsTo, "")
 	})
 }
+
+func TestCWSHealthCheck(t *testing.T) {
+	t.Run("CWS healthz running returns 200", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("CWSHealthCheck", mock.Anything, mock.Anything).Return(nil, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.CWSHealthCheck(th.BasicUser.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Expected 500 Server Error")
+	})
+
+	t.Run("CWS healthz not running returns 500", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("CWSHealthCheck", mock.Anything, mock.Anything).Return(errors.New("received status code 500 from CWS"), nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		r, err := th.Client.CWSHealthCheck(th.BasicUser.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusInternalServerError, r.StatusCode, "Expected 500 Server Error")
+	})
+}

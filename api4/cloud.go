@@ -53,7 +53,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
 	// GET /api/v4/cloud/cws-health-check
-	api.BaseRoutes.HostedCustomer.Handle("/cws-health-check", api.APIHandler(handleCWSHealthCheck)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/cws-health-check", api.APIHandler(handleCWSHealthCheck)).Methods("GET")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {

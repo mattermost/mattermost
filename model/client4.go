@@ -8603,7 +8603,7 @@ func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, 
 }
 
 func (c *Client4) CWSHealthCheck(userId string) (*Response, error) {
-	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+	r, err := c.DoAPIGet(c.cloudRoute()+"/cws-health-check", "")
 
 	if err != nil {
 		return BuildResponse(r), err
