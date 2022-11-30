@@ -143,7 +143,6 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 	userService      *users.UserService
 	teamService      *teams.TeamService
-	pluginService    *PluginService
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -742,10 +741,6 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	// Stop the plugin service, we need to stop plugin service before stopping the
-	// product as products are being consumed by this service.
-	s.pluginService.ShutDownPlugins()
-
 	// Stop products.
 	// This needs to happen last because products are dependent
 	// on parent services.
@@ -852,18 +847,11 @@ func stripPort(hostport string) string {
 func (s *Server) Start() error {
 	// Start products.
 	// This needs to happen before because products are dependent on the HTTP server.
+
 	// make sure channels starts first
 	if err := s.products["channels"].Start(); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
 	}
-
-	// This should actually be started after products, but we have a product hooks
-	// dependency for now, once that get sorted out, this should be moved to the appropriate
-	// order.
-	if err := s.InitializePluginService(); err != nil {
-		return errors.Wrap(err, "Unable to start plugin service")
-	}
-
 	for name, product := range s.products {
 		if name == "channels" {
 			continue

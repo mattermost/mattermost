@@ -16,7 +16,7 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.pluginService.installPluginFromData(data)
+	s.Channels().installPluginFromData(data)
 }
 
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
@@ -24,11 +24,11 @@ func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
 		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
-	s.pluginService.removePluginFromData(data)
+	s.Channels().removePluginFromData(data)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
-	env := s.pluginService.GetPluginsEnvironment()
+	env := s.Channels().GetPluginsEnvironment()
 	if env == nil {
 		return
 	}
@@ -37,6 +37,10 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 		return
 	}
 	pluginID := msg.Props["PluginID"]
+	// if the plugin key is empty, the message might be coming from a product.
+	if pluginID == "" {
+		pluginID = msg.Props["ProductID"]
+	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
 		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",

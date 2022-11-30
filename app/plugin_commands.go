@@ -22,10 +22,6 @@ type PluginCommand struct {
 }
 
 func (a *App) RegisterPluginCommand(pluginID string, command *model.Command) error {
-	return a.Srv().pluginService.registerPluginCommand(pluginID, command)
-}
-
-func (s *PluginService) registerPluginCommand(pluginID string, command *model.Command) error {
 	if command.Trigger == "" {
 		return errors.New("invalid command")
 	}
@@ -59,10 +55,10 @@ func (s *PluginService) registerPluginCommand(pluginID string, command *model.Co
 		AutocompleteIconData: command.AutocompleteIconData,
 	}
 
-	s.pluginCommandsLock.Lock()
-	defer s.pluginCommandsLock.Unlock()
+	a.ch.pluginCommandsLock.Lock()
+	defer a.ch.pluginCommandsLock.Unlock()
 
-	for _, pc := range s.pluginCommands {
+	for _, pc := range a.ch.pluginCommands {
 		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
 			if pc.PluginId == pluginID {
 				pc.Command = command
@@ -71,7 +67,7 @@ func (s *PluginService) registerPluginCommand(pluginID string, command *model.Co
 		}
 	}
 
-	s.pluginCommands = append(s.pluginCommands, &PluginCommand{
+	a.ch.pluginCommands = append(a.ch.pluginCommands, &PluginCommand{
 		Command:  command,
 		PluginId: pluginID,
 	})
@@ -79,70 +75,44 @@ func (s *PluginService) registerPluginCommand(pluginID string, command *model.Co
 }
 
 func (a *App) UnregisterPluginCommand(pluginID, teamID, trigger string) {
-	a.Srv().pluginService.unregisterPluginCommand(pluginID, teamID, trigger)
-}
-
-func (s *PluginService) unregisterPluginCommand(pluginID, teamID, trigger string) {
 	trigger = strings.ToLower(trigger)
 
-	s.pluginCommandsLock.Lock()
-	defer s.pluginCommandsLock.Unlock()
+	a.ch.pluginCommandsLock.Lock()
+	defer a.ch.pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range s.pluginCommands {
+	for _, pc := range a.ch.pluginCommands {
 		if pc.Command.TeamId != teamID || pc.Command.Trigger != trigger {
 			remaining = append(remaining, pc)
 		}
 	}
-	s.pluginCommands = remaining
+	a.ch.pluginCommands = remaining
 }
 
-func (s *PluginService) unregisterPluginCommands(pluginID string) {
-	s.pluginCommandsLock.Lock()
-	defer s.pluginCommandsLock.Unlock()
+func (ch *Channels) unregisterPluginCommands(pluginID string) {
+	ch.pluginCommandsLock.Lock()
+	defer ch.pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range s.pluginCommands {
+	for _, pc := range ch.pluginCommands {
 		if pc.PluginId != pluginID {
 			remaining = append(remaining, pc)
 		}
 	}
-	s.pluginCommands = remaining
+	ch.pluginCommands = remaining
 }
 
 func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
-	return a.Srv().pluginService.PluginCommandsForTeam(teamID)
-}
-
-func (s *PluginService) PluginCommandsForTeam(teamID string) []*model.Command {
-	s.pluginCommandsLock.RLock()
-	defer s.pluginCommandsLock.RUnlock()
+	a.ch.pluginCommandsLock.RLock()
+	defer a.ch.pluginCommandsLock.RUnlock()
 
 	var commands []*model.Command
-	for _, pc := range s.pluginCommands {
+	for _, pc := range a.ch.pluginCommands {
 		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}
 	return commands
-}
-
-func (s *PluginService) getPluginCommandFromArgs(args *model.CommandArgs) *PluginCommand {
-	parts := strings.Split(args.Command, " ")
-	trigger := parts[0][1:]
-	trigger = strings.ToLower(trigger)
-
-	var matched *PluginCommand
-	s.pluginCommandsLock.RLock()
-	for _, pc := range s.pluginCommands {
-		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
-			matched = pc
-			break
-		}
-	}
-	s.pluginCommandsLock.RUnlock()
-
-	return matched
 }
 
 // tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
@@ -152,7 +122,15 @@ func (a *App) tryExecutePluginCommand(c request.CTX, args *model.CommandArgs) (*
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)
 
-	matched := a.Srv().pluginService.getPluginCommandFromArgs(args)
+	var matched *PluginCommand
+	a.ch.pluginCommandsLock.RLock()
+	for _, pc := range a.ch.pluginCommands {
+		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
+			matched = pc
+			break
+		}
+	}
+	a.ch.pluginCommandsLock.RUnlock()
 	if matched == nil {
 		return nil, nil, nil
 	}
