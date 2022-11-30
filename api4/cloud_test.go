@@ -652,14 +652,14 @@ func TestGetCloudProducts(t *testing.T) {
 	})
 }
 
-func Test_GetExpandableStatusFroS(t *testing.T) {
+func Test_GetExpandStatsForSubscription(t *testing.T) {
 	isExpandable := &model.SubscriptionExpandStats{
 		IsExpandable: true,
 	}
 
 	licenseId := "licenseID"
 
-	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {
+	t.Run("NON Admin users are UNABLE to request expand stats for the subscription", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -703,7 +703,7 @@ func Test_GetExpandableStatusFroS(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
 	})
 
-	t.Run("Admin users are ABLE to request licenses is expendable because id is sended", func(t *testing.T) {
+	t.Run("Admin users are ABLE to request licenses is expendable because id is provided", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
