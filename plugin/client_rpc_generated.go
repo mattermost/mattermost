@@ -5968,3 +5968,63 @@ func (s *apiRPCServer) RegisterCollectionAndTopic(args *Z_RegisterCollectionAndT
 	}
 	return nil
 }
+
+type Z_CreateUploadSessionArgs struct {
+	A *model.UploadSession
+}
+
+type Z_CreateUploadSessionReturns struct {
+	A *model.UploadSession
+	B error
+}
+
+func (g *apiRPCClient) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error) {
+	_args := &Z_CreateUploadSessionArgs{us}
+	_returns := &Z_CreateUploadSessionReturns{}
+	if err := g.client.Call("Plugin.CreateUploadSession", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateUploadSession API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateUploadSession(args *Z_CreateUploadSessionArgs, returns *Z_CreateUploadSessionReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateUploadSession(us *model.UploadSession) (*model.UploadSession, error)
+	}); ok {
+		returns.A, returns.B = hook.CreateUploadSession(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API CreateUploadSession called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetUploadSessionArgs struct {
+	A string
+}
+
+type Z_GetUploadSessionReturns struct {
+	A *model.UploadSession
+	B error
+}
+
+func (g *apiRPCClient) GetUploadSession(uploadID string) (*model.UploadSession, error) {
+	_args := &Z_GetUploadSessionArgs{uploadID}
+	_returns := &Z_GetUploadSessionReturns{}
+	if err := g.client.Call("Plugin.GetUploadSession", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUploadSession API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUploadSession(args *Z_GetUploadSessionArgs, returns *Z_GetUploadSessionReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUploadSession(uploadID string) (*model.UploadSession, error)
+	}); ok {
+		returns.A, returns.B = hook.GetUploadSession(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetUploadSession called but not implemented."))
+	}
+	return nil
+}
