@@ -1325,7 +1325,7 @@ type postAndData struct {
 	directPostData *imports.DirectPostImportData
 	replyData      *imports.ReplyImportData
 	team           *model.Team
-	lineNumber     uint64
+	lineNumber     int
 }
 
 func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *model.AppError) {
@@ -1401,12 +1401,12 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (uint64, *model.AppError) {
+func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
 
-	c.Logger().Info("Validating post lines", mlog.Int("count", len(lines)), mlog.Uint64("first_line", lines[0].LineNumber))
+	c.Logger().Info("Validating post lines", mlog.Int("count", len(lines)), mlog.Int("first_line", lines[0].LineNumber))
 
 	for _, line := range lines {
 		if err := imports.ValidatePostImportData(line.Post, a.MaxPostSize()); err != nil {
@@ -1419,7 +1419,7 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 		return 0, nil
 	}
 
-	c.Logger().Info("Importing post lines", mlog.Int("count", len(lines)), mlog.Uint64("first_line", lines[0].LineNumber))
+	c.Logger().Info("Importing post lines", mlog.Int("count", len(lines)), mlog.Int("first_line", lines[0].LineNumber))
 
 	usernames := []string{}
 	teamNames := make([]string, len(lines))
@@ -1451,9 +1451,9 @@ func (a *App) importMultiplePostLines(c request.CTX, lines []imports.LineImportW
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]uint64{}
+		postsForCreateMap     = map[string]int{}
 		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]uint64{}
+		postsForOverwriteMap  = map[string]int{}
 	)
 
 	for _, line := range lines {
@@ -1710,7 +1710,7 @@ func (a *App) importDirectChannel(c request.CTX, data *imports.DirectChannelImpo
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (uint64, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1743,9 +1743,9 @@ func (a *App) importMultipleDirectPostLines(c request.CTX, lines []imports.LineI
 	var (
 		postsWithData         = []postAndData{}
 		postsForCreateList    = []*model.Post{}
-		postsForCreateMap     = map[string]uint64{}
+		postsForCreateMap     = map[string]int{}
 		postsForOverwriteList = []*model.Post{}
-		postsForOverwriteMap  = map[string]uint64{}
+		postsForOverwriteMap  = map[string]int{}
 	)
 
 	for _, line := range lines {

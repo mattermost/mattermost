@@ -28,7 +28,7 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
-	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, uint64)
+	BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int)
 	Log() *mlog.Logger
 }
 
@@ -103,7 +103,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) model.Worker {
 		// do the actual import.
 		appErr, lineNumber := app.BulkImportWithPath(appContext, jsonFile, importZipReader, false, runtime.NumCPU(), model.ExportDataDir)
 		if appErr != nil {
-			job.Data["line_number"] = strconv.FormatUint(lineNumber, 10)
+			job.Data["line_number"] = strconv.Itoa(lineNumber)
 			return appErr
 		}
 

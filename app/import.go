@@ -170,11 +170,11 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 	}
 }
 
-func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, uint64) {
+func (a *App) BulkImport(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, "")
 }
 
-func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, uint64) {
+func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	return a.bulkImport(c, jsonlReader, attachmentsReader, dryRun, workers, importPath)
 }
 
@@ -182,12 +182,12 @@ func (a *App) BulkImportWithPath(c *request.Context, jsonlReader io.Reader, atta
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, uint64) {
+func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
 
-	lineNumber := uint64(0)
+	lineNumber := 0
 
 	a.Srv().Store().LockToMaster()
 	defer a.Srv().Store().UnlockFromMaster()
@@ -208,7 +208,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 	for scanner.Scan() {
 		lineNumber++
 		if lineNumber%8192 == 0 {
-			c.Logger().Info("Reader progress", mlog.Uint64("processed_lines", lineNumber))
+			c.Logger().Info("Reader progress", mlog.Int("processed_lines", lineNumber))
 		}
 
 		var line imports.LineImportData

@@ -209,12 +209,12 @@ type RoleImportData struct {
 
 type LineImportWorkerData struct {
 	LineImportData
-	LineNumber uint64
+	LineNumber int
 }
 
 type LineImportWorkerError struct {
 	Error      *model.AppError
-	LineNumber uint64
+	LineNumber int
 }
 
 type AttachmentImportData struct {
