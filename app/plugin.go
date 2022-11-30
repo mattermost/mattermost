@@ -986,34 +986,61 @@ func (ch *Channels) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepa
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
 	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
+	log := func(s string) {
+		if pluginPath.path != "/mattermost/prepackaged_plugins/mattermost-plugin-github-v2.1.4-linux-amd64.tar.gz" {
+			return
+		}
+
+		mlog.Debug(s)
+	}
+
+	log("MICHAEL TEST 1")
+
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
+		log("MICHAEL TEST 2")
+
 		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
 	}
 	defer fileReader.Close()
 
+	log("MICHAEL TEST 3")
+
 	tmpDir, err := os.MkdirTemp("", "plugintmp")
 	if err != nil {
+		log("MICHAEL TEST 4")
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
 	defer os.RemoveAll(tmpDir)
 
+	log("MICHAEL TEST 5")
 	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
+		log("MICHAEL TEST 6")
 		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
+	log("MICHAEL TEST 7")
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		log("MICHAEL TEST 8")
 		return plugin, nil
 	}
+	log("MICHAEL TEST 9")
 
 	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
+		log("MICHAEL TEST 10")
+		if pluginState == nil {
+			log("MICHAEL TEST pluginState == nil")
+		} else {
+			log("MICHAEL TEST !pluginState.Enable")
+		}
 		return plugin, nil
 	}
 
+	log("MICHAEL TEST 11")
 	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
 	if _, err := ch.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
 		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
