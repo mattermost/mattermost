@@ -76,8 +76,6 @@ type FeatureFlags struct {
 	ThreadsEverywhere bool
 
 	GlobalDrafts bool
-
-	UrlMappingForCWS bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -107,7 +105,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ReduceOnBoardingTaskList = false
 	f.ThreadsEverywhere = false
 	f.GlobalDrafts = false
-	f.UrlMappingForCWS = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
