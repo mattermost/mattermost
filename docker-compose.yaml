@@ -103,6 +103,7 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
@@ -139,6 +140,7 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
@@ -175,6 +177,7 @@ services:
       dockerfile: ./build/Dockerfile.buildenv
     working_dir: '/home/mattermost-server'
     environment:
+      - "MM_SQLSETTINGS_DRIVERNAME=postgres"
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
       - "MM_NO_DOCKER=true"
       - "RUN_SERVER_IN_BACKGROUND=false"
