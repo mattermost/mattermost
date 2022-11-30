@@ -326,6 +326,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) hostedCustomerRoute() string {
+	return "/hosted_customer"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -8233,6 +8237,23 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	return customer, BuildResponse(r), nil
 }
 
+func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(c.hostedCustomerRoute()+"/bootstrap", reqBytes)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var res *BootstrapSelfHostedSignupResponse
+	json.NewDecoder(r.Body).Decode(&res)
+
+	return res, BuildResponse(r), nil
+}
+
 func (c *Client4) ListImports() ([]string, *Response, error) {
 	r, err := c.DoAPIGet(c.importsRoute(), "")
 	if err != nil {
@@ -8548,4 +8569,35 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// Worktemplates sections
+
+func (c *Client4) worktemplatesRoute() string {
+	return "/worktemplates"
+}
+
+// GetWorktemplateCategories returns categories of worktemplates
+func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var categories []*WorkTemplateCategory
+	err = json.NewDecoder(r.Body).Decode(&categories)
+	return categories, BuildResponse(r), err
+}
+
+func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var templates []*WorkTemplate
+	err = json.NewDecoder(r.Body).Decode(&templates)
+	return templates, BuildResponse(r), err
 }

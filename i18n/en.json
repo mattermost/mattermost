@@ -6992,6 +6992,14 @@
     "translation": "Unable to update the webhook."
   },
   {
+    "id": "app.worktemplates.get_categories.app_error",
+    "translation": "Unable to get work template categories"
+  },
+  {
+    "id": "app.worktemplates.get_templates.app_error",
+    "translation": "Unable to get work templates"
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -8680,6 +8688,10 @@
     "translation": "Invalid message."
   },
   {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
+  },
+  {
     "id": "model.draft.is_valid.props.app_error",
     "translation": "Invalid props."
   },
@@ -9682,5 +9694,25 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
   }
 ]
