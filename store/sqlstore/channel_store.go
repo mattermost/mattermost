@@ -451,6 +451,10 @@ var channelByNameCache = cache.NewLRU(cache.LRUOptions{
 	Size: model.ChannelCacheSize,
 })
 
+func (s SqlChannelStore) ClearMembersForUserCache() {
+	allChannelMembersForUserCache.Purge()
+}
+
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
 	allChannelMembersNotifyPropsForChannelCache.Purge()
