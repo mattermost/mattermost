@@ -407,6 +407,10 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), patchedTeam)
 
+	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
+		patchedTeam.Email = ""
+	}
+
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedTeam)
 	auditRec.AddEventObjectType("team")
@@ -492,6 +496,12 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
+
+	if !*c.App.Config().PrivacySettings.ShowEmailAddress && !c.IsSystemAdmin() {
+		for _, team := range teams {
+			team.Email = ""
+		}
+	}
 
 	js, err := json.Marshal(teams)
 	if err != nil {

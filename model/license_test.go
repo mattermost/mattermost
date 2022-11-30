@@ -158,6 +158,11 @@ func TestIsCloud(t *testing.T) {
 
 	l1.Features = nil
 	assert.False(t, l1.IsCloud())
+
+	t.Run("false if license is nil", func(t *testing.T) {
+		var license *License
+		assert.False(t, license.IsCloud())
+	})
 }
 
 func TestLicenseRecordIsValid(t *testing.T) {

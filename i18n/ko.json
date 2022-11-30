@@ -6608,10 +6608,6 @@
     "translation": "{{.Filename}}의 해상도({{.Width}} x {{.Height}} 픽셀)가 제한 사항을 초과했습니다."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "파일을 업로드할 수 없습니다. 파일 크기가 너무 큽니다."
-  },
-  {
     "id": "app.team.user_belongs_to_teams.app_error",
     "translation": "사용자가 팀 목록에 속하는지 확인할 수 없습니다."
   },
@@ -7896,10 +7892,6 @@
     "translation": "사용자 정의 그룹을 위한 라이선스가 없습니다"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "웹훅에서 구독을 업데이트하는 동안 오류가 발생했습니다."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "이미 관리자에게 통지됨"
   },
@@ -7962,5 +7954,9 @@
   {
     "id": "api.command_marketplace.name",
     "translation": "마켓플레이스"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "{{.Remote}} 원격 사이트가 오프라인이기 때문에 하나 또는 그 이상의 포스트가 전송되지 않았습니다. 포스트는 해당 사이트가 온라인일 때 전송될 것입니다."
   }
 ]

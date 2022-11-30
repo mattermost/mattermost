@@ -160,7 +160,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.0
-PLUGIN_PACKAGES += focalboard-v7.5.0
+PLUGIN_PACKAGES += focalboard-v7.5.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.1.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
@@ -348,6 +348,9 @@ telemetry-mocks: ## Creates mock files.
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
+
+generate-worktemplates: ## Generate work templates
+	$(GO) generate $(GOFLAGS) ./app/worktemplates
 
 new-migration: ## Creates a new migration. Run with make new-migration name=<>
 	$(GO) install github.com/mattermost/morph/cmd/morph@master
@@ -725,6 +728,11 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f imports/imports.go
 endif
 
+ifeq ($(BUILD_BOARDS),true)
+	@echo Boards repository detected, temporarily removing boards_imports.go
+	rm -f imports/boards_imports.go
+endif
+
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
@@ -733,6 +741,10 @@ endif
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
+endif
+
+ifeq ($(BUILD_BOARDS),true)
+	cp $(BUILD_BOARDS_DIR)/mattermost-plugin/product/imports/boards_imports.go imports/
 endif
 
 vet: ## Run mattermost go vet specific checks

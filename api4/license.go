@@ -139,7 +139,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Channels().License().IsCloud() {
 		// If cloud, invalidate the caches when a new license is loaded
-		defer c.App.Srv().Cloud.InvalidateCaches()
+		defer c.App.Srv().Cloud.HandleLicenseChange()
 	}
 
 	auditRec.Success()
