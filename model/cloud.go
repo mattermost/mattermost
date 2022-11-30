@@ -108,7 +108,7 @@ type ValidateBusinessEmailResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-type SubscriptionIsExpandableResponse struct {
+type SubscriptionExpandStats struct {
 	IsExpandable bool `json:"is_expandable"`
 }
 

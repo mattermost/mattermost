@@ -39,7 +39,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.APISessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/expandable", api.APISessionRequired(getExpandableStatusForSubscription)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/expand", api.APISessionRequired(getLicenseExpandStats)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription", api.APISessionRequired(changeSubscription)).Methods("PUT")
 
 	// GET /api/v4/cloud/request-trial
@@ -366,29 +366,29 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-func getExpandableStatusForSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadLicenseInformation) {
-		c.SetPermissionError(model.PermissionReadLicenseInformation)
+func getLicenseExpandStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
 		return
 	}
 
 	licenseID := r.URL.Query().Get("licenseID")
 	if licenseID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		c.Err = model.NewAppError("Api4.getExpandableStatusForSubscription", "api.cloud.request_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	res, err := c.App.Cloud().GetExpandableStatus(c.AppContext.Session().UserId, licenseID)
+	res, err := c.App.Cloud().GetLicenseExpandStats(c.AppContext.Session().UserId, licenseID)
 
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getExpandableStatusForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
 	json, err := json.Marshal(res)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getExpandableStatusForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.getLicenseExpandStatsForSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

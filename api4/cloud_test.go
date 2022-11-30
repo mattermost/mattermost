@@ -651,3 +651,77 @@ func TestGetCloudProducts(t *testing.T) {
 		require.Equal(t, returnedProducts[2].CrossSellsTo, "prod_test2")
 	})
 }
+
+func Test_GetExpandableStatusFroS(t *testing.T) {
+	isExpandable := &model.SubscriptionExpandStats{
+		IsExpandable: true,
+	}
+
+	licenseId := "licenseID"
+
+	t.Run("NON Admin users are UNABLE to request the trial", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStats", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats(licenseId)
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusForbidden, r.StatusCode, "403 Forbidden")
+	})
+
+	t.Run("Admin users are UNABLE to request licenses is expendable due missing the id", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStats", mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandable, r, err := th.Client.GetExpandStats("")
+		require.Error(t, err)
+		require.Nil(t, subscriptionExpandable)
+		require.Equal(t, http.StatusBadRequest, r.StatusCode, "400 Bad Request")
+	})
+
+	t.Run("Admin users are ABLE to request licenses is expendable because id is sended", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.Client.Login(th.SystemAdminUser.Email, th.SystemAdminUser.Password)
+
+		cloud := mocks.CloudInterface{}
+
+		cloud.Mock.On("GetLicenseExpandStats", mock.Anything, mock.Anything).Return(isExpandable, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		subscriptionExpandableResponse, r, err := th.Client.GetExpandStats(licenseId)
+		require.NoError(t, err)
+		require.Equal(t, subscriptionExpandableResponse, isExpandable)
+		require.Equal(t, http.StatusOK, r.StatusCode, "Status OK")
+	})
+}

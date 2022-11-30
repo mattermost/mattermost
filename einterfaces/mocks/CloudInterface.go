@@ -143,29 +143,6 @@ func (_m *CloudInterface) GetCloudProducts(userID string, includeLegacyProducts 
 	return r0, r1
 }
 
-// GetExpandableStatus provides a mock function with given fields: userID, licenseID
-func (_m *CloudInterface) GetExpandableStatus(userID string, licenseID string) (*model.SubscriptionIsExpandableResponse, error) {
-	ret := _m.Called(userID, licenseID)
-
-	var r0 *model.SubscriptionIsExpandableResponse
-	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionIsExpandableResponse); ok {
-		r0 = rf(userID, licenseID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.SubscriptionIsExpandableResponse)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, licenseID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetInvoicePDF provides a mock function with given fields: userID, invoiceID
 func (_m *CloudInterface) GetInvoicePDF(userID string, invoiceID string) ([]byte, string, error) {
 	ret := _m.Called(userID, invoiceID)
@@ -212,6 +189,29 @@ func (_m *CloudInterface) GetInvoicesForSubscription(userID string) ([]*model.In
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLicenseExpandStats provides a mock function with given fields: userID, licenseID
+func (_m *CloudInterface) GetLicenseExpandStats(userID string, licenseID string) (*model.SubscriptionExpandStats, error) {
+	ret := _m.Called(userID, licenseID)
+
+	var r0 *model.SubscriptionExpandStats
+	if rf, ok := ret.Get(0).(func(string, string) *model.SubscriptionExpandStats); ok {
+		r0 = rf(userID, licenseID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionExpandStats)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, licenseID)
 	} else {
 		r1 = ret.Error(1)
 	}

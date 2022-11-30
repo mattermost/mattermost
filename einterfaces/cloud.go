@@ -16,7 +16,7 @@ type CloudInterface interface {
 	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
 	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
-	GetExpandableStatus(userID string, licenseID string) (*model.SubscriptionIsExpandableResponse, error)
+	GetLicenseExpandStats(userID string, licenseID string) (*model.SubscriptionExpandStats, error)
 	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
 	UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error)
 
