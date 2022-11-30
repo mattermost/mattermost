@@ -36,4 +36,6 @@ type CloudInterface interface {
 	BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error)
 	CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error)
 	HandleLicenseChange() error
+
+	CWSHealthCheck(userId string) error
 }

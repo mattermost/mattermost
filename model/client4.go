@@ -8601,3 +8601,14 @@ func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, 
 	err = json.NewDecoder(r.Body).Decode(&templates)
 	return templates, BuildResponse(r), err
 }
+
+func (c *Client4) CWSHealthCheck(userId string) (*Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/healthz", "")
+
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r), nil
+}

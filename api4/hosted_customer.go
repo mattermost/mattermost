@@ -16,6 +16,9 @@ func (api *API) InitHostedCustomer() {
 
 	// POST /api/v4/hosted_customer/bootstrap
 	api.BaseRoutes.HostedCustomer.Handle("/bootstrap", api.APISessionRequired(selfHostedBootstrap)).Methods("POST")
+
+	// GET /api/v4/cloud/cws-health-check
+	api.BaseRoutes.HostedCustomer.Handle("/cws-health-check", api.APIHandler(handleCWSHealthCheck)).Methods("GET")
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -70,4 +73,13 @@ func selfHostedBootstrap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+}
+
+func handleCWSHealthCheck(c *Context, w http.ResponseWriter, r *http.Request) {
+	if err := c.App.Cloud().CWSHealthCheck(c.AppContext.Session().UserId); err != nil {
+		c.Err = model.NewAppError("Api4.handleCWSHealthCheck", "api.server.cws.health_check.app_error", nil, "", http.StatusInternalServerError)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
