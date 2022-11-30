@@ -28,7 +28,7 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 }
 
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
-	pluginsEnvironment := a.Srv().pluginService.GetPluginsEnvironment()
+	pluginsEnvironment := a.Channels().GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return a.markAdminOnboardingComplete(c)
 	}
@@ -41,7 +41,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 			installRequest := &model.InstallMarketplacePluginRequest{
 				Id: id,
 			}
-			_, appErr := a.Srv().pluginService.InstallMarketplacePlugin(installRequest)
+			_, appErr := a.Channels().InstallMarketplacePlugin(installRequest)
 			if appErr != nil {
 				mlog.Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
 				return

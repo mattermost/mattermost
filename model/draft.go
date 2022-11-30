@@ -23,6 +23,7 @@ type Draft struct {
 	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
 	FileIds  StringArray     `json:"file_ids,omitempty"`
 	Metadata *PostMetadata   `json:"metadata,omitempty"`
+	Priority StringInterface `json:"priority,omitempty"`
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
@@ -58,6 +59,10 @@ func (o *Draft) IsValid(maxDraftSize int) *AppError {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.props.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
+	if utf8.RuneCountInString(StringInterfaceToJSON(o.Priority)) > PostPropsMaxRunes {
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.priority.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -79,6 +84,7 @@ func (o *Draft) PreSave() {
 	}
 
 	o.UpdateAt = o.CreateAt
+	o.DeleteAt = 0
 	o.PreCommit()
 }
 

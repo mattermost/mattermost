@@ -5573,7 +5573,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -6974,10 +6974,6 @@
   {
     "id": "app.upload.get.app_error",
     "translation": "Не удалось получить загрузки."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
@@ -9244,10 +9240,6 @@
     "translation": "Невозможно создать команду, потому что достигнут лимит команд"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Ошибка обновления подписки из webhook."
-  },
-  {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
     "translation": "Администратор уже уведомлен"
   },
@@ -9570,5 +9562,17 @@
   {
     "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Понижение статуса до Cloud Free"
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "не является пользователем ldap"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Невозможно загрузить файл. Он слишком большой."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "не удалось добавить пользователя в group-teams и group-channels"
   }
 ]
