@@ -753,13 +753,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return wc.GetConnectionID() == msg.GetBroadcast().ConnectionId
 	}
 
+	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
+		return false
+	}
+
 	// If the event is destined to a specific user
 	if msg.GetBroadcast().UserId != "" {
 		return wc.UserId == msg.GetBroadcast().UserId
-	}
-
-	if wc.GetConnectionID() == msg.GetBroadcast().OmitConnectionId {
-		return false
 	}
 
 	// if the user is omitted don't send the message
