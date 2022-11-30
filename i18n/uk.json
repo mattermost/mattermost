@@ -6584,10 +6584,6 @@
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Неможливо розмістити публікацію на видаленому каналі."
   },

@@ -3668,10 +3668,6 @@
     "translation": "Не можа да се вземе качването."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Не може да се качи файл. Файлът е прекалено голям."
-  },
-  {
     "id": "app.upload.create.save.app_error",
     "translation": "Не можа да се запише качването."
   },

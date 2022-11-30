@@ -14,6 +14,29 @@ type CloudInterface struct {
 	mock.Mock
 }
 
+// BootstrapSelfHostedSignup provides a mock function with given fields: req
+func (_m *CloudInterface) BootstrapSelfHostedSignup(req model.BootstrapSelfHostedSignupRequest) (*model.BootstrapSelfHostedSignupResponse, error) {
+	ret := _m.Called(req)
+
+	var r0 *model.BootstrapSelfHostedSignupResponse
+	if rf, ok := ret.Get(0).(func(model.BootstrapSelfHostedSignupRequest) *model.BootstrapSelfHostedSignupResponse); ok {
+		r0 = rf(req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.BootstrapSelfHostedSignupResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.BootstrapSelfHostedSignupRequest) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ChangeSubscription provides a mock function with given fields: userID, subscriptionID, subscriptionChange
 func (_m *CloudInterface) ChangeSubscription(userID string, subscriptionID string, subscriptionChange *model.SubscriptionChange) (*model.Subscription, error) {
 	ret := _m.Called(userID, subscriptionID, subscriptionChange)
@@ -74,6 +97,29 @@ func (_m *CloudInterface) CreateCustomerPayment(userID string) (*model.StripeSet
 	return r0, r1
 }
 
+// CreateOrUpdateSubscriptionHistoryEvent provides a mock function with given fields: userID, userCount
+func (_m *CloudInterface) CreateOrUpdateSubscriptionHistoryEvent(userID string, userCount int) (*model.SubscriptionHistory, error) {
+	ret := _m.Called(userID, userCount)
+
+	var r0 *model.SubscriptionHistory
+	if rf, ok := ret.Get(0).(func(string, int) *model.SubscriptionHistory); ok {
+		r0 = rf(userID, userCount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SubscriptionHistory)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, userCount)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCloudCustomer provides a mock function with given fields: userID
 func (_m *CloudInterface) GetCloudCustomer(userID string) (*model.CloudCustomer, error) {
 	ret := _m.Called(userID)
@@ -113,6 +159,29 @@ func (_m *CloudInterface) GetCloudLimits(userID string) (*model.ProductLimits, e
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetCloudProduct provides a mock function with given fields: userID, productID
+func (_m *CloudInterface) GetCloudProduct(userID string, productID string) (*model.Product, error) {
+	ret := _m.Called(userID, productID)
+
+	var r0 *model.Product
+	if rf, ok := ret.Get(0).(func(string, string) *model.Product); ok {
+		r0 = rf(userID, productID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Product)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userID, productID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -233,6 +302,29 @@ func (_m *CloudInterface) GetLicenseRenewalStatus(userID string, token string) e
 	return r0
 }
 
+// GetSelfHostedProducts provides a mock function with given fields: userID
+func (_m *CloudInterface) GetSelfHostedProducts(userID string) ([]*model.Product, error) {
+	ret := _m.Called(userID)
+
+	var r0 []*model.Product
+	if rf, ok := ret.Get(0).(func(string) []*model.Product); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Product)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSubscription provides a mock function with given fields: userID
 func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, error) {
 	ret := _m.Called(userID)
@@ -254,6 +346,20 @@ func (_m *CloudInterface) GetSubscription(userID string) (*model.Subscription, e
 	}
 
 	return r0, r1
+}
+
+// HandleLicenseChange provides a mock function with given fields:
+func (_m *CloudInterface) HandleLicenseChange() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // InvalidateCaches provides a mock function with given fields:
@@ -337,20 +443,6 @@ func (_m *CloudInterface) UpdateCloudCustomerAddress(userID string, address *mod
 	}
 
 	return r0, r1
-}
-
-// UpdateSubscriptionFromHook provides a mock function with given fields: _a0, _a1
-func (_m *CloudInterface) UpdateSubscriptionFromHook(_a0 *model.ProductLimits, _a1 *model.Subscription) error {
-	ret := _m.Called(_a0, _a1)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.ProductLimits, *model.Subscription) error); ok {
-		r0 = rf(_a0, _a1)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // ValidateBusinessEmail provides a mock function with given fields: userID, email

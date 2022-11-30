@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
@@ -22,6 +21,8 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/products", api.APISessionRequired(getCloudProducts)).Methods("GET")
 	// GET /api/v4/cloud/limits
 	api.BaseRoutes.Cloud.Handle("/limits", api.APISessionRequired(getCloudLimits)).Methods("GET")
+
+	api.BaseRoutes.Cloud.Handle("/products/selfhosted", api.APISessionRequired(getSelfHostedProducts)).Methods("GET")
 
 	// POST /api/v4/cloud/payment
 	// POST /api/v4/cloud/payment/confirm
@@ -276,6 +277,40 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getSelfHostedProducts(c *Context, w http.ResponseWriter, r *http.Request) {
+	products, err := c.App.Cloud().GetSelfHostedProducts(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	byteProductsData, err := json.Marshal(products)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadBilling) {
+		sanitizedProducts := []model.UserFacingProduct{}
+		err = json.Unmarshal(byteProductsData, &sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		byteSanitizedProductsData, err := json.Marshal(sanitizedProducts)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.getSelfHostedProducts", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+
+		w.Write(byteSanitizedProductsData)
+		return
+	}
+
+	w.Write(byteProductsData)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -660,23 +695,6 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("SendCloudWelcomeEmail", "api.user.send_cloud_welcome_email.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	case model.EventTypeSubscriptionChanged:
-		// event.ProductLimits is nil if there was no change
-		if event.ProductLimits != nil {
-			if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
-				pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-					hooks.OnCloudLimitsUpdated(event.ProductLimits)
-					return true
-				}, plugin.OnCloudLimitsUpdatedID)
-			}
-			c.App.AdjustInProductLimits(event.ProductLimits, event.Subscription)
-		}
-
-		if err := c.App.Cloud().UpdateSubscriptionFromHook(event.ProductLimits, event.Subscription); err != nil {
-			c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.subscription.update_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		c.Logger.Info("Updated subscription from webhook event")
 	case model.EventTypeTriggerDelinquencyEmail:
 		var emailToTrigger model.DelinquencyEmail
 		if event.DelinquencyEmail != nil {
