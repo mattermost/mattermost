@@ -1,0 +1,46 @@
+id: "product_teams/feature_release:v1"
+category: product_teams
+useCase: Feature Release
+illustration: https://via.placeholder.com/204x123.png
+visibility: public
+description:
+    channel:
+        id: "worktemplate.product_teams.feature_release.description.channel"
+        defaultMessage: "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+    board:
+        id: "worktemplate.product_teams.feature_release.description.board"
+        defaultMessage: "Use our Meeting Agenda board template for recurring meetings like standup and our Project Tasks board to manage the progress of tasks along the way."
+    playbook:
+        id: "worktemplate.product_teams.feature_release.description.playbook"
+        defaultMessage: "Create transparent workflows across development teams to ensure your feature development process is seamless."
+    integration:
+        id: "worktemplate.product_teams.feature_release.description.integration"
+        defaultMessage: "Increase productivity in your channel by integrating a Jira bot and Github bot. These will be downloaded for you."
+        illustration: "https://via.placeholder.com/509x352.png?text=Integrations"
+content:
+  - channel:
+      id: feature-release
+      name: Feature Release
+      playbook: product-release-playbook # playbook id. if set the channel will be created by the playbook run.
+      illustration: "https://via.placeholder.com/509x352.png?text=Channel+feature+release"
+  - board:
+      id: "board-meeting-agenda"
+      template: "meeting agenda|bwps66irhr7b9dxgayf9kz33g5o" # <-- have to find a way to target the board template... could hardcode the ids but need to verify that they don't change?
+      name: Meeting Agenda
+      channel: feature-release # <-- optional. we use the channel "id" from above
+      illustration: "https://via.placeholder.com/509x352.png?text=Board+meeting+agenda"
+  - board:
+      id: "board-project-task"
+      template: "project task|bmttiziw35irgtmztewd9upyqdy"
+      name: project task board
+      channel: feature-release
+      illustration: "https://via.placeholder.com/509x352.png?text=Board+project+task"
+  - playbook:
+      template: "product release" # <-- playbooks templates don't have ids, have to rely on name
+      name: "Feature release"
+      id: product-release-playbook
+      illustration: "https://via.placeholder.com/509x352.png?text=Playbook+feature+release"
+  - integration:
+      id: jira
+  - integration:
+      id: github
