@@ -8577,20 +8577,33 @@ func (c *Client4) SelfHostedSignupCustomer(form *SelfHostedCustomerForm) (*Respo
 	return BuildResponse(r), &response, nil
 }
 
-func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRequest) (*Response, error) {
+func (c *Client4) SelfHostedSignupConfirm(form *SelfHostedConfirmPaymentMethodRequest) (*Response, *SelfHostedSignupConfirmClientResponse, error) {
 	payloadBytes, err := json.Marshal(form)
 	if err != nil {
-		return nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, NewAppError("SelfHostedSignupConfirm", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	r, err := c.DoAPIPost(c.hostedCustomerRoute()+"/confirm", string(payloadBytes))
 
 	if err != nil {
-		return BuildResponse(r), err
+		return BuildResponse(r), nil, err
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return BuildResponse(r), nil, err
 	}
 	defer closeBody(r)
 
-	return BuildResponse(r), nil
+	response := SelfHostedSignupConfirmClientResponse{}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return BuildResponse(r), nil, err
+	}
+
+	defer closeBody(r)
+
+	return BuildResponse(r), &response, nil
 }
 
 func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
