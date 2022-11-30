@@ -334,7 +334,7 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, h
 	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
 }
 
-func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
+func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 	var hooks plugin.Hooks
 	if env := ch.pluginsEnvironment; env != nil {
 		// we intentionally ignore the error here, because the id can be a product id

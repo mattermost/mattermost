@@ -100,8 +100,6 @@ type PlatformService struct {
 
 type HookRunner interface {
 	RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int)
-	HooksForPlugin(id string) (plugin.Hooks, error)
-
 	GetPluginsEnvironment() *plugin.Environment
 }
 
