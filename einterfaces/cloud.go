@@ -10,6 +10,7 @@ import (
 type CloudInterface interface {
 	GetCloudProduct(userID string, productID string) (*model.Product, error)
 	GetCloudProducts(userID string, includeLegacyProducts bool) ([]*model.Product, error)
+	GetSelfHostedProducts(userID string) ([]*model.Product, error)
 	GetCloudLimits(userID string) (*model.ProductLimits, error)
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
