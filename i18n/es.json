@@ -4757,7 +4757,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6750,10 +6750,6 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "Las dimensiones de {{.Filename}} son ({{.Width}} por {{.Height}} pixels) exceden el limite."
-  },
-  {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "No se pudo cargar el archivo. El archivo es muy grande."
   },
   {
     "id": "app.team.user_belongs_to_teams.app_error",
@@ -8996,10 +8992,6 @@
     "translation": " "
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Error al actualizar la suscripción desde el webhook."
-  },
-  {
     "id": "app.system.get_onboarding_request.app_error",
     "translation": "No se pudo obtener el estado de finalización de inducción."
   },
@@ -9152,10 +9144,6 @@
     "translation": " "
   },
   {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Has alcanzado el límite máximo de {{.NumIntegrations}} integraciones activas. Para instalar integraciones ilimitadas, actualiza a uno de unos planes de pago."
-  },
-  {
     "id": "model.channel.is_valid.1_or_more.app_error",
     "translation": "El Nombre debe tener 1 o más caracteres alfanuméricos en minúsculas."
   },
@@ -9289,7 +9277,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Starter."
+    "translation": "Además, tus datos pueden haber sido archivados debido a las limitaciones de Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9313,11 +9301,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Starter."
+    "translation": "Actualiza ahora tu información de pago, o degrada a Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Tu workspace será degradado a Cloud Starter. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu workspace podrían ser archivados hasta que liquides completamente tu saldo pendiente."
+    "translation": "Tu espacio de trabajo será degradado a Cloud Free. Las características de tu {{.Plan}} serán bloqueadas y algunos de los datos de tu espacio de trabajo podrían ser archivados hasta que liquides completamente tu saldo pendiente."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9328,7 +9316,7 @@
     "translation": "Tu {{.Plan}} Mattermost será degradado en 15 días"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9357,7 +9345,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Starter abajo."
+    "translation": "Actualiza tu información de pago ahora o degrada a Cloud Free abajo."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9372,7 +9360,7 @@
     "translation": "Acción requerida: El workspace será degradado en 30 días"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Degradar a Cloud Starter"
   },
   {
@@ -9453,7 +9441,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu workspace está en riesgo de ser degradado a Cloud Starter."
+    "translation": "No pudimos realizar el cargo a la tarjeta de crédito que tenemos registrada. Por lo cual tu espacio de trabajo está en riesgo de ser degradado a Cloud Free."
   },
   {
     "id": "api.templates.delinquency_14.subject",
@@ -9562,5 +9550,25 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Intervalo de tiempo inválido."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "El tipo de tema ya existe."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "El tipo de colección ya existe."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "no es un usuario ldap"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "No es posible subir el archivo. El archivo es muy grande."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
   }
 ]

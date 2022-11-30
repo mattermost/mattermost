@@ -4333,11 +4333,11 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Ongeldige bestandsnaamen"
+    "translation": "Ongeldige bestandsnaamen."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Ongeldige hashtags"
+    "translation": "Ongeldige hashtags."
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -7204,10 +7204,6 @@
     "translation": "Fout bij het ophalen van de uploads van de gebruiker."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Fout bij het uploaden van bestanden. Bestand is te groot."
-  },
-  {
     "id": "app.upload.create.incorrect_channel_id.app_error",
     "translation": "Kan niet uploaden naar het opgegeven kanaal."
   },
@@ -9191,10 +9187,6 @@
     "translation": "Bevestiging Mattermost upgrade"
   },
   {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Fout met bijwerken inschrijving vanuit webhook."
-  },
-  {
     "id": "app.recent_searches.app_error",
     "translation": "Fout bij ophalen van de recente zoekopdrachten"
   },
@@ -9217,10 +9209,6 @@
   {
     "id": "app.teams.analytics_teams_count.app_error",
     "translation": "Niet gelukt om het aan aantal teams op te halen"
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Je bereikte de maximumlimiet van {{.NumIntegrations}} ingeschakelde integraties. Om onbeperkte integraties te installeren, upgrade naar een van onze betaalde plannen."
   },
   {
     "id": "api.cloud.teams_limit_reached.restore",
@@ -9328,7 +9316,7 @@
   },
   {
     "id": "api.templates.delinquency_60.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Starter hieronder."
+    "translation": "Werk nu jouw betalingsgegevens bij of downgrade naar Cloud Free hieronder."
   },
   {
     "id": "api.templates.delinquency_60.subtitle2",
@@ -9343,7 +9331,7 @@
     "translation": "Actie vereist: Werkruimte zal binnen 30 dagen gedowngraded worden"
   },
   {
-    "id": "api.templates.delinquency_60.downgrade_to_starter",
+    "id": "api.templates.delinquency_60.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9424,7 +9412,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subtitle1",
-    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Starter."
+    "translation": "We waren niet in staat om de kredietkaart die we in ons bestand hebben in rekening te brengen. Dit betekent dat jouw werkruimte het risico loopt te worden gedegradeerd naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subject",
@@ -9444,11 +9432,11 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle3",
-    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Starter."
+    "translation": "Werk nu jouw betalingsgegevens bij, of downgrade naar Cloud Free."
   },
   {
     "id": "api.templates.delinquency_75.subtitle2",
-    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Starter. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
+    "translation": "Jouw werkruimte zal worden gedowngrade naar Cloud Free. Jouw {{.Plan}} functies zullen worden vergrendeld en sommige van jouw werkruimtegegevens kunnen worden gearchiveerd totdat je jouw volledige uitstaande saldo hebt voldaan."
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
@@ -9459,7 +9447,7 @@
     "translation": "Jouw Mattermost {{.Plan}} zal over 15 dagen worden gedowngraded"
   },
   {
-    "id": "api.templates.delinquency_75.downgrade_to_starter",
+    "id": "api.templates.delinquency_75.downgrade_to_free",
     "translation": "Downgraden naar Cloud Starter"
   },
   {
@@ -9472,7 +9460,7 @@
   },
   {
     "id": "api.templates.delinquency_90.subtitle2",
-    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Starter."
+    "translation": "Bovendien kunnen jouw gegevens gearchiveerd worden als gevolg van de beperkingen bij Cloud Free."
   },
   {
     "id": "api.templates.delinquency_90.subtitle1",
@@ -9561,5 +9549,21 @@
   {
     "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
     "translation": "Ongeldig tijdsbereik."
+  },
+  {
+    "id": "app.collection.add_topic.exists.app_error",
+    "translation": "Topictype bestaat al."
+  },
+  {
+    "id": "app.collection.add_collection.exists.app_error",
+    "translation": "Collectietype bestaat al."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "geen ldap-gebruiker"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "kon gebruiker niet toevoegen aan groep-teams en groep-kanalen"
   }
 ]

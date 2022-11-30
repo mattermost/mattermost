@@ -1380,6 +1380,28 @@ func (a *App) ComputeLastAccessibleFileTime() error {
 		return appErr
 	}
 
+	if limit == 0 {
+		// All files are accessible - we must check if a previous value was set so we can clear it
+		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessibleFileTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// All files are already accessible
+				return nil
+			default:
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		if systemValue != nil {
+			// Previous value was set, so we must clear it
+			if _, err := a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessibleFileTime); err != nil {
+				return model.NewAppError("ComputeLastAccessibleFileTime", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
+	}
+
 	createdAt, err := a.Srv().GetStore().FileInfo().GetUptoNSizeFileTime(limit)
 	if err != nil {
 		var nfErr *store.ErrNotFound

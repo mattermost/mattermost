@@ -3033,7 +3033,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(th.BasicUser.Id, rootPost1.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(th.BasicTeam.Id, threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(2), thread.UnreadMentions)
 		require.Equal(t, int64(3), thread.UnreadReplies)
@@ -3341,4 +3341,88 @@ func TestPostReminder(t *testing.T) {
 	}()
 
 	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
+}
+
+func TestAcknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	_, resp, err := client.AcknowledgePost("junk", th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(GenerateTestId(), th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(post.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	client.Logout()
+	_, resp, err = client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, _, err = th.SystemAdminClient.AcknowledgePost(post.Id, th.SystemAdminUser.Id)
+	require.NoError(t, err)
+}
+
+func TestUnacknowledgePost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	client := th.Client
+
+	post := th.BasicPost
+	ack, _, err := client.AcknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr := th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 1)
+	require.Equal(t, acks[0], ack)
+
+	resp, err := client.UnacknowledgePost("junk", th.BasicUser.Id)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(GenerateTestId(), th.BasicUser.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(post.Id, "junk")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser2.Id)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+
+	_, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
+	require.NoError(t, err)
+
+	acks, appErr = th.App.GetAcknowledgementsForPost(post.Id)
+	require.Nil(t, appErr)
+	require.Len(t, acks, 0)
+
+	client.Logout()
+	resp, err = client.UnacknowledgePost(post.Id, th.BasicUser.Id)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }
