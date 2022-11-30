@@ -2340,7 +2340,7 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 	queryString, args, err := builder.ToSql()
 	if err != nil {
 		if err == sql.ErrNoRows {
-  		return nil, store.NewErrNotFound("Post", postId)
+			return nil, store.NewErrNotFound("Post", postId)
 		}
 		return nil, errors.Wrap(err, "failed to find post history")
 	}
