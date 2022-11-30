@@ -2352,7 +2352,7 @@ func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, erro
 	}
 
 	if len(posts) == 0 {
-		return nil, store.NewErrNotFound("Post", postId)
+		return nil, store.NewErrNotFound("failed to find post history", postId)
 	}
 
 	return posts, nil
