@@ -325,11 +325,30 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
 }
 
-func (ch *Channels) RunHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	if env := ch.pluginsEnvironment; env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
 
 	// run hook for the products
-	ch.srv.hooksManager.RunHook(hookRunnerFunc, hookId)
+	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
+}
+
+func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
+	var hooks plugin.Hooks
+	if env := ch.pluginsEnvironment; env != nil {
+		// we intentionally ignore the error here, because the id can be a product id
+		// we are going to check if we have the hooks or not
+		hooks, _ = env.HooksForPlugin(id)
+		if hooks != nil {
+			return hooks, nil
+		}
+	}
+
+	hooks = ch.srv.hooksManager.HooksForProduct(id)
+	if hooks != nil {
+		return hooks, nil
+	}
+
+	return nil, fmt.Errorf("could not find hooks for id %s", id)
 }

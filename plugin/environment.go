@@ -478,12 +478,6 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 		}
 	}
 
-	if p, ok := env.registeredProducts.Load(id); ok {
-		rp := p.(*registeredProduct)
-
-		return rp.adapter, nil
-	}
-
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 

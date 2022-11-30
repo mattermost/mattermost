@@ -42,7 +42,7 @@ func (m *HooksManager) RemoveProduct(productID string) {
 	m.registeredProducts.Delete(productID)
 }
 
-func (m *HooksManager) RunHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+func (m *HooksManager) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	startTime := time.Now()
 
 	m.registeredProducts.Range(func(key, value any) bool {
@@ -67,4 +67,13 @@ func (m *HooksManager) RunHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hoo
 		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 		m.metrics.ObservePluginMultiHookDuration(elapsedTime)
 	}
+}
+
+func (m *HooksManager) HooksForProduct(id string) plugin.Hooks {
+	if value, ok := m.registeredProducts.Load(id); ok {
+		rp := value.(*plugin.RegisteredProduct)
+		return rp.Adapter
+	}
+
+	return nil
 }
