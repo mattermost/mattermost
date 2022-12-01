@@ -155,7 +155,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
 	}
 
-	err = store.migrate(migrationsDirectionUp)
+	err = store.migrate(migrationsDirectionUp, false)
 	if err != nil {
 		mlog.Fatal("Failed to apply database migrations.", mlog.Err(err))
 	}

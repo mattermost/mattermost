@@ -4,15 +4,21 @@
 package commands
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
+	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/store/sqlstore"
+	"github.com/mattermost/morph"
+	"github.com/mattermost/morph/models"
 )
 
 var DbCmd = &cobra.Command{
@@ -52,6 +58,14 @@ var MigrateCmd = &cobra.Command{
 	RunE:  migrateCmdF,
 }
 
+var DowngradeCmd = &cobra.Command{
+	Use:   "downgrade",
+	Short: "Downgrade the database with the given plan or migration numbers",
+	Long:  "Downgrade the database with the given plan or migration numbers.",
+	RunE:  downgradeCmdF,
+	Args:  cobra.ExactArgs(1),
+}
+
 var DBVersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Returns the recent applied version number",
@@ -62,11 +76,17 @@ func init() {
 	ResetCmd.Flags().Bool("confirm", false, "Confirm you really want to delete everything and a DB backup has been performed.")
 	DBVersionCmd.Flags().Bool("all", false, "Returns all applied migrations")
 	MigrateCmd.Flags().Bool("auto-recover", false, "Recover the database to it's existing state after a failed migration.")
+	MigrateCmd.Flags().Bool("save-plan", false, "Saves the migration plan to be able to be used in the future.")
+	MigrateCmd.Flags().Bool("dry-run", false, "Runs the migration plan without applying it.")
+
+	DowngradeCmd.Flags().Bool("auto-recover", false, "Recover the database to it's existing state after a failed migration.")
+	DowngradeCmd.Flags().Bool("dry-run", false, "Runs the migration plan without applying it.")
 
 	DbCmd.AddCommand(
 		InitDbCmd,
 		ResetCmd,
 		MigrateCmd,
+		DowngradeCmd,
 		DBVersionCmd,
 	)
 
@@ -135,24 +155,99 @@ func resetCmdF(command *cobra.Command, args []string) error {
 func migrateCmdF(command *cobra.Command, args []string) error {
 	cfgDSN := getConfigDSN(command, config.GetEnvironment())
 	recoverFlag, _ := command.Flags().GetBool("auto-recover")
+	savePlan, _ := command.Flags().GetBool("save-plan")
+	dryRun, _ := command.Flags().GetBool("dry-run")
 	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 	config := cfgStore.Get()
 
-	if recoverFlag {
-		err = sqlstore.MigrateWithPlan(config.SqlSettings)
-		if err != nil {
-			return errors.Wrap(err, "failed to load configuration")
+	plan, err := sqlstore.GeneratePlan(config.SqlSettings, recoverFlag)
+	if err != nil {
+		return errors.Wrap(err, "failed to generate migration plan")
+	}
+
+	if savePlan {
+		backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
+		if err2 != nil {
+			return fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
-	} else {
-		store := sqlstore.New(config.SqlSettings, nil)
-		defer store.Close()
+
+		b, mErr := json.MarshalIndent(plan, "", "  ")
+		if mErr != nil {
+			return fmt.Errorf("failed to marshal plan: %w", mErr)
+		}
+
+		_, err = backend.WriteFile(bytes.NewReader(b), "migration_plan.json")
+		if err != nil {
+			return fmt.Errorf("failed to write migration plan: %w", err)
+		}
+
+		CommandPrettyPrintln("The migration plan has been saved.")
+	}
+
+	err = sqlstore.MigrateWithPlan(config.SqlSettings, plan, dryRun)
+	if err != nil {
+		return errors.Wrap(err, "failed to load configuration")
 	}
 
 	CommandPrettyPrintln("Database successfully migrated")
 
+	return nil
+}
+
+func downgradeCmdF(command *cobra.Command, args []string) error {
+	cfgDSN := getConfigDSN(command, config.GetEnvironment())
+	cfgStore, err := config.NewStoreFromDSN(cfgDSN, true, nil, true)
+	if err != nil {
+		return errors.Wrap(err, "failed to load configuration")
+	}
+	config := cfgStore.Get()
+
+	dryRun, _ := command.Flags().GetBool("dry-run")
+	recoverFlag, _ := command.Flags().GetBool("auto-recover")
+
+	backend, err2 := filestore.NewFileBackend(config.FileSettings.ToFileBackendSettings(false, true))
+	if err2 != nil {
+		return fmt.Errorf("failed to initialize filebackend: %w", err2)
+	}
+
+	// check if the input is version numbers or a file
+	// if the input is given as a file, we assume it's a migration plan
+	versions := strings.Split(args[0], ",")
+	if _, sErr := strconv.Atoi(versions[0]); sErr == nil {
+		CommandPrettyPrintln("Database will be downgraded with the following versions: ", versions)
+
+		err = sqlstore.DowngradeMigrations(config.SqlSettings, dryRun, versions...)
+		if err != nil {
+			return errors.Wrap(err, "failed to downgrade migrations")
+		}
+
+		CommandPrettyPrintln("Database successfully downgraded")
+		return nil
+	}
+
+	b, err := backend.ReadFile(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to read plan: %w", err)
+	}
+
+	var plan models.Plan
+	err = json.Unmarshal(b, &plan)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal plan: %w", err)
+	}
+
+	morph.SwapPlanDirection(&plan)
+	plan.Auto = recoverFlag
+
+	err = sqlstore.MigrateWithPlan(config.SqlSettings, &plan, dryRun)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate")
+	}
+
+	CommandPrettyPrintln("Database successfully downgraded")
 	return nil
 }
 

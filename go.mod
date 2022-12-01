@@ -37,7 +37,7 @@ require (
 	github.com/mattermost/gziphandler v0.0.1
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr/v2 v2.0.15
-	github.com/mattermost/morph v1.0.5-0.20221115094356-4c18a75b1f5e
+	github.com/mattermost/morph v1.0.5-0.20221124085857-f868119a5c28
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/squirrel v0.2.0
 	github.com/mholt/archiver/v3 v3.5.1

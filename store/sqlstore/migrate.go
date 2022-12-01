@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"sort"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/db"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,7 +22,7 @@ import (
 	mbindata "github.com/mattermost/morph/sources/embedded"
 )
 
-func (ss *SqlStore) initMorph() (*morph.Morph, func() error, error) {
+func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, func() error, error) {
 	assets := db.Assets()
 
 	assetsList, err := assets.ReadDir(filepath.Join("migrations", ss.DriverName()))
@@ -71,7 +73,9 @@ func (ss *SqlStore) initMorph() (*morph.Morph, func() error, error) {
 		morph.WithLogger(log.New(&morphWriter{}, "", log.Lshortfile)),
 		morph.WithLock("mm-lock-key"),
 		morph.SetStatementTimeoutInSeconds(*ss.settings.MigrationsStatementTimeoutSeconds),
+		morph.SetDryRun(dryRun),
 	}
+
 	engine, err := morph.New(context.Background(), driver, src, opts...)
 	if err != nil {
 		return nil, nil, err
@@ -80,8 +84,8 @@ func (ss *SqlStore) initMorph() (*morph.Morph, func() error, error) {
 	return engine, engine.Close, nil
 }
 
-func (ss *SqlStore) migrate(direction migrationDirection) error {
-	engine, close, err := ss.initMorph()
+func (ss *SqlStore) migrate(direction migrationDirection, dryRun bool) error {
+	engine, close, err := ss.initMorph(dryRun)
 	if err != nil {
 		return err
 	}
@@ -96,15 +100,42 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	}
 }
 
-// MigrateWithPlan migrates the database to the latest version using the provided plan.
-func MigrateWithPlan(settings model.SqlSettings) error {
+func GeneratePlan(settings model.SqlSettings, recover bool) (*models.Plan, error) {
 	ss := &SqlStore{
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
 	}
 	defer ss.Close()
+	ss.initConnection()
 
+	engine, close, err := ss.initMorph(false)
+	if err != nil {
+		return nil, err
+	}
+	defer close()
+
+	diff, err := engine.Diff(models.Up)
+	if err != nil {
+		return nil, err
+	}
+
+	plan, err := engine.GeneratePlan(diff, recover)
+	if err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}
+
+// MigrateWithPlan migrates the database to the latest version using the provided plan.
+func MigrateWithPlan(settings model.SqlSettings, plan *models.Plan, dryRun bool) error {
+	ss := &SqlStore{
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
+	}
+	defer ss.Close()
 	ss.initConnection()
 
 	ver, err := ss.GetDbVersion(true)
@@ -122,18 +153,67 @@ func MigrateWithPlan(settings model.SqlSettings) error {
 		mlog.Fatal("Error while checking DB collation.", mlog.Err(err))
 	}
 
-	engine, close, err := ss.initMorph()
+	engine, close, err := ss.initMorph(dryRun)
 	if err != nil {
 		return err
 	}
 	defer close()
 
-	diff, err := engine.Diff(models.Up)
+	return engine.ApplyPlan(plan)
+}
+
+func DowngradeMigrations(settings model.SqlSettings, dryRun bool, versions ...string) error {
+	ss := &SqlStore{
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
+	}
+	defer ss.Close()
+	ss.initConnection()
+
+	ver, err := ss.GetDbVersion(true)
+	if err != nil {
+		mlog.Fatal("Error while getting DB version.", mlog.Err(err))
+	}
+
+	ok, err := ss.ensureMinimumDBVersion(ver)
+	if !ok {
+		mlog.Fatal("Error while checking DB version.", mlog.Err(err))
+	}
+
+	engine, close, err := ss.initMorph(dryRun)
+	if err != nil {
+		return err
+	}
+	defer close()
+
+	migrations, err := engine.Diff(models.Down)
 	if err != nil {
 		return err
 	}
 
-	plan, err := engine.GeneratePlan(diff)
+	migrationsToDowngrade := make([]*models.Migration, 0, len(versions))
+	for _, version := range versions {
+		for _, migration := range migrations {
+			versionNumber, sErr := strconv.Atoi(version)
+			if sErr != nil {
+				return sErr
+			}
+			if migration.Version == uint32(versionNumber) {
+				migrationsToDowngrade = append(migrationsToDowngrade, migration)
+			}
+		}
+	}
+
+	sort.Slice(migrationsToDowngrade, func(i, j int) bool {
+		return migrationsToDowngrade[i].Version > migrationsToDowngrade[j].Version
+	})
+
+	if len(migrationsToDowngrade) != len(versions) {
+		mlog.Warn("could not match give migration versions, going to downgrade only the migrations those are available.")
+	}
+
+	plan, err := engine.GeneratePlan(migrationsToDowngrade, false)
 	if err != nil {
 		return err
 	}

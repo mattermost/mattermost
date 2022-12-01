@@ -723,7 +723,7 @@ func TestReplicaLagQuery(t *testing.T) {
 
 		store.initConnection()
 		store.stores.post = newSqlPostStore(store, mockMetrics)
-		err := store.migrate(migrationsDirectionUp)
+		err := store.migrate(migrationsDirectionUp, false)
 		require.NoError(t, err)
 
 		defer store.Close()
