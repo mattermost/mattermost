@@ -181,6 +181,7 @@ func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, error) {
 		Select("*").
 		From("Preferences").
 		Where(sq.Eq{"UserId": userId}).
+		Limit(1000).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not build sql query to get preference")
