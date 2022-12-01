@@ -7,7 +7,7 @@ stages:
 
 include:
   - project: mattermost/ci/mattermost-server
-    ref: master
+    ref: release-7.6
     file: private.yml
 
 variables:
