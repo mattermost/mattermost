@@ -27,6 +27,7 @@ type OpenTracingLayer struct {
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
+	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
@@ -92,6 +93,10 @@ func (s *OpenTracingLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *OpenTracingLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *OpenTracingLayer) Draft() store.DraftStore {
+	return s.DraftStore
 }
 
 func (s *OpenTracingLayer) Emoji() store.EmojiStore {
@@ -263,6 +268,11 @@ type OpenTracingLayerCommandWebhookStore struct {
 
 type OpenTracingLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *OpenTracingLayer
+}
+
+type OpenTracingLayerDraftStore struct {
+	store.DraftStore
 	Root *OpenTracingLayer
 }
 
@@ -693,6 +703,19 @@ func (s *OpenTracingLayerChannelStore) ClearCaches() {
 
 	defer span.Finish()
 	s.ChannelStore.ClearCaches()
+
+}
+
+func (s *OpenTracingLayerChannelStore) ClearMembersForUserCache() {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.ClearMembersForUserCache")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	s.ChannelStore.ClearMembersForUserCache()
 
 }
 
@@ -3230,6 +3253,96 @@ func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (
 
 	defer span.Finish()
 	result, err := s.ComplianceStore.Update(compliance)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Delete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.DraftStore.Delete(userID, channelID, rootID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.DraftStore.Get(userID, channelID, rootID, includeDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.GetDraftsForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Save")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.DraftStore.Save(d)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.Update")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.DraftStore.Update(d)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6582,7 +6695,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Delete(acknowledgement *model
 	return err
 }
 
-func (s *OpenTracingLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *OpenTracingLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6591,7 +6704,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Get(userID string, postID str
 	}()
 
 	defer span.Finish()
-	result, err := s.PostAcknowledgementStore.Get(userID, postID)
+	result, err := s.PostAcknowledgementStore.Get(postID, userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6636,7 +6749,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) GetForPosts(postIds []string)
 	return result, err
 }
 
-func (s *OpenTracingLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *OpenTracingLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostAcknowledgementStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -6645,7 +6758,7 @@ func (s *OpenTracingLayerPostAcknowledgementStore) Save(userID string, postID st
 	}()
 
 	defer span.Finish()
-	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -12727,6 +12840,7 @@ func New(childStore store.Store, ctx context.Context) *OpenTracingLayer {
 	newStore.CommandStore = &OpenTracingLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &OpenTracingLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &OpenTracingLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DraftStore = &OpenTracingLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &OpenTracingLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &OpenTracingLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &OpenTracingLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}

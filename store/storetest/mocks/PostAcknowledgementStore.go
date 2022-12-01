@@ -28,13 +28,13 @@ func (_m *PostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledg
 	return r0
 }
 
-// Get provides a mock function with given fields: userID, postID
-func (_m *PostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
-	ret := _m.Called(userID, postID)
+// Get provides a mock function with given fields: postID, userID
+func (_m *PostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
+	ret := _m.Called(postID, userID)
 
 	var r0 *model.PostAcknowledgement
 	if rf, ok := ret.Get(0).(func(string, string) *model.PostAcknowledgement); ok {
-		r0 = rf(userID, postID)
+		r0 = rf(postID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
@@ -43,7 +43,7 @@ func (_m *PostAcknowledgementStore) Get(userID string, postID string) (*model.Po
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(userID, postID)
+		r1 = rf(postID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -97,13 +97,13 @@ func (_m *PostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Post
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: userID, postID, acknowledgedAt
-func (_m *PostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
-	ret := _m.Called(userID, postID, acknowledgedAt)
+// Save provides a mock function with given fields: postID, userID, acknowledgedAt
+func (_m *PostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+	ret := _m.Called(postID, userID, acknowledgedAt)
 
 	var r0 *model.PostAcknowledgement
 	if rf, ok := ret.Get(0).(func(string, string, int64) *model.PostAcknowledgement); ok {
-		r0 = rf(userID, postID, acknowledgedAt)
+		r0 = rf(postID, userID, acknowledgedAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostAcknowledgement)
@@ -112,7 +112,7 @@ func (_m *PostAcknowledgementStore) Save(userID string, postID string, acknowled
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
-		r1 = rf(userID, postID, acknowledgedAt)
+		r1 = rf(postID, userID, acknowledgedAt)
 	} else {
 		r1 = ret.Error(1)
 	}

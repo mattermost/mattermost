@@ -196,8 +196,12 @@ db/migrations/mysql/000097_create_posts_priority.down.sql
 db/migrations/mysql/000097_create_posts_priority.up.sql
 db/migrations/mysql/000098_create_post_acknowledgements.down.sql
 db/migrations/mysql/000098_create_post_acknowledgements.up.sql
-db/migrations/mysql/000099_create_persistent_notifications.down.sql
-db/migrations/mysql/000099_create_persistent_notifications.up.sql
+db/migrations/mysql/000099_create_drafts.down.sql
+db/migrations/mysql/000099_create_drafts.up.sql
+db/migrations/mysql/000100_add_draft_priority_column.down.sql
+db/migrations/mysql/000100_add_draft_priority_column.up.sql
+db/migrations/mysql/000101_create_persistent_notifications.down.sql
+db/migrations/mysql/000101_create_persistent_notifications.up.sql
 db/migrations/postgres/000001_create_teams.down.sql
 db/migrations/postgres/000001_create_teams.up.sql
 db/migrations/postgres/000002_create_team_members.down.sql
@@ -394,5 +398,9 @@ db/migrations/postgres/000097_create_posts_priority.down.sql
 db/migrations/postgres/000097_create_posts_priority.up.sql
 db/migrations/postgres/000098_create_post_acknowledgements.down.sql
 db/migrations/postgres/000098_create_post_acknowledgements.up.sql
-db/migrations/postgres/000099_create_persistent_notifications.down.sql
-db/migrations/postgres/000099_create_persistent_notifications.up.sql
+db/migrations/postgres/000099_create_drafts.down.sql
+db/migrations/postgres/000099_create_drafts.up.sql
+db/migrations/postgres/000100_add_draft_priority_column.down.sql
+db/migrations/postgres/000100_add_draft_priority_column.up.sql
+db/migrations/postgres/000101_create_persistent_notifications.down.sql
+db/migrations/postgres/000101_create_persistent_notifications.up.sql

@@ -59,6 +59,7 @@ type Store interface {
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
+	Draft() DraftStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -267,6 +268,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamID string, channelType model.ChannelType) (int64, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	ClearCaches()
+	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
@@ -980,11 +982,19 @@ type PostPriorityStore interface {
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 }
 
+type DraftStore interface {
+	Save(d *model.Draft) (*model.Draft, error)
+	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	Delete(userID, channelID, rootID string) error
+	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
+	Update(d *model.Draft) (*model.Draft, error)
+}
+
 type PostAcknowledgementStore interface {
-	Get(userID, postID string) (*model.PostAcknowledgement, error)
+	Get(postID, userID string) (*model.PostAcknowledgement, error)
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
 	GetForPosts(postIds []string) ([]*model.PostAcknowledgement, error)
-	Save(userID, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
+	Save(postID, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
 }
 

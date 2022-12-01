@@ -54,6 +54,7 @@ type Store struct {
 	LinkMetadataStore               mocks.LinkMetadataStore
 	SharedChannelStore              mocks.SharedChannelStore
 	ProductNoticesStore             mocks.ProductNoticesStore
+	DraftStore                      mocks.DraftStore
 	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
@@ -96,6 +97,7 @@ func (s *Store) Role() store.RoleStore                             { return &s.R
 func (s *Store) Scheme() store.SchemeStore                         { return &s.SchemeStore }
 func (s *Store) TermsOfService() store.TermsOfServiceStore         { return &s.TermsOfServiceStore }
 func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.UserTermsOfServiceStore }
+func (s *Store) Draft() store.DraftStore                           { return &s.DraftStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
@@ -104,20 +106,23 @@ func (s *Store) Group() store.GroupStore                 { return &s.GroupStore 
 func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
 func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
 func (s *Store) PostPriority() store.PostPriorityStore   { return &s.PostPriorityStore }
-func (s *Store) Close()                                  { /* do nothing */ }
-func (s *Store) DropAllTables()                          { /* do nothing */ }
-func (s *Store) GetDBSchemaVersion() (int, error)        { return 1, nil }
-func (s *Store) GetDbVersion(bool) (string, error)       { return "", nil }
-func (s *Store) GetInternalMasterDB() *sql.DB            { return nil }
-func (s *Store) GetInternalReplicaDB() *sql.DB           { return nil }
-func (s *Store) GetInternalReplicaDBs() []*sql.DB        { return nil }
-func (s *Store) LockToMaster()                           { /* do nothing */ }
-func (s *Store) MarkSystemRanUnitTests()                 { /* do nothing */ }
-func (s *Store) RecycleDBConnections(time.Duration)      {}
-func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
 func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 	return &s.PostAcknowledgementStore
 }
+func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
+	return &s.PostPersistentNotificationStore
+}
+func (s *Store) MarkSystemRanUnitTests()            { /* do nothing */ }
+func (s *Store) Close()                             { /* do nothing */ }
+func (s *Store) LockToMaster()                      { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                  { /* do nothing */ }
+func (s *Store) DropAllTables()                     { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)  { return "", nil }
+func (s *Store) GetInternalMasterDB() *sql.DB       { return nil }
+func (s *Store) GetInternalReplicaDB() *sql.DB      { return nil }
+func (s *Store) GetInternalReplicaDBs() []*sql.DB   { return nil }
+func (s *Store) RecycleDBConnections(time.Duration) {}
+func (s *Store) GetDBSchemaVersion() (int, error)   { return 1, nil }
 func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 	return []model.AppliedMigration{}, nil
 }
@@ -129,9 +134,6 @@ func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 }
 func (s *Store) ReplicaLagAbs() error  { return nil }
 func (s *Store) ReplicaLagTime() error { return nil }
-func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
-	return &s.PostPersistentNotificationStore
-}
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
@@ -167,6 +169,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ThreadStore,
 		&s.ProductNoticesStore,
 		&s.SharedChannelStore,
+		&s.DraftStore,
 		&s.NotifyAdminStore,
 		&s.PostPriorityStore,
 		&s.PostAcknowledgementStore,

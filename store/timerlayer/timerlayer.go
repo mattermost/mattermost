@@ -26,6 +26,7 @@ type TimerLayer struct {
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
+	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
@@ -91,6 +92,10 @@ func (s *TimerLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *TimerLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *TimerLayer) Draft() store.DraftStore {
+	return s.DraftStore
 }
 
 func (s *TimerLayer) Emoji() store.EmojiStore {
@@ -262,6 +267,11 @@ type TimerLayerCommandWebhookStore struct {
 
 type TimerLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *TimerLayer
+}
+
+type TimerLayerDraftStore struct {
+	store.DraftStore
 	Root *TimerLayer
 }
 
@@ -666,6 +676,21 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ClearCaches", success, elapsed)
+	}
+}
+
+func (s *TimerLayerChannelStore) ClearMembersForUserCache() {
+	start := time.Now()
+
+	s.ChannelStore.ClearMembersForUserCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.ClearMembersForUserCache", success, elapsed)
 	}
 }
 
@@ -2961,6 +2986,86 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ComplianceStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID string) error {
+	start := time.Now()
+
+	err := s.DraftStore.Delete(userID, channelID, rootID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.Get(userID, channelID, rootID, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) GetDraftsForUser(userID string, teamID string) ([]*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetDraftsForUser(userID, teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetDraftsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) Save(d *model.Draft) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.Save(d)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) Update(d *model.Draft) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.Update(d)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Update", success, elapsed)
 	}
 	return result, err
 }
@@ -5953,10 +6058,10 @@ func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostA
 	return err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Get(userID string, postID string) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Get(userID, postID)
+	result, err := s.PostAcknowledgementStore.Get(postID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6001,10 +6106,10 @@ func (s *TimerLayerPostAcknowledgementStore) GetForPosts(postIds []string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerPostAcknowledgementStore) Save(userID string, postID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
+func (s *TimerLayerPostAcknowledgementStore) Save(postID string, userID string, acknowledgedAt int64) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
-	result, err := s.PostAcknowledgementStore.Save(userID, postID, acknowledgedAt)
+	result, err := s.PostAcknowledgementStore.Save(postID, userID, acknowledgedAt)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11466,6 +11571,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &TimerLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &TimerLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}

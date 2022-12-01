@@ -23,7 +23,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v6/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/gitlab"
+	oauthgitlab "github.com/mattermost/mattermost-server/v6/model/oauthproviders/gitlab"
 	"github.com/mattermost/mattermost-server/v6/store"
 	storemocks "github.com/mattermost/mattermost-server/v6/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
@@ -1850,5 +1850,87 @@ func TestIsFirstAdmin(t *testing.T) {
 			Roles: model.SystemAdminRoleId,
 		})
 		require.True(t, isFirstAdmin)
+	})
+}
+
+func TestSendSubscriptionHistoryEvent(t *testing.T) {
+	cloudProduct := &model.Product{
+		ID:                "prod_test1",
+		Name:              "name1",
+		Description:       "description1",
+		PricePerSeat:      1000,
+		SKU:               "sku1",
+		PriceID:           "price_id1",
+		Family:            "family1",
+		RecurringInterval: "year",
+		BillingScheme:     "billing_scheme1",
+		CrossSellsTo:      "prod_test2",
+	}
+
+	subscription := &model.Subscription{
+		ID:         "MySubscriptionID",
+		CustomerID: "MyCustomer",
+		ProductID:  "SomeProductId",
+		AddOns:     []string{},
+		StartAt:    1000000000,
+		EndAt:      2000000000,
+		CreateAt:   1000000000,
+		Seats:      10,
+		DNS:        "some.dns.server",
+		IsPaidTier: "false",
+	}
+
+	subscriptionHistory := &model.SubscriptionHistory{
+		ID:             "sub_history",
+		SubscriptionID: "MySubscriptionID",
+		Seats:          10,
+		CreateAt:       1000000000,
+	}
+
+	t.Run("Should not create SubscriptionHistoryEvent if the license is not cloud", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+
+		userID := "123"
+
+		subscriptionHistoryEvent, err := th.App.SendSubscriptionHistoryEvent(userID)
+		require.NoError(t, err)
+		require.Nil(t, subscriptionHistoryEvent)
+	})
+
+	t.Run("Should create SubscriptionHistoryEvent if the license is cloud and the product is yearly", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		cloud := mocks.CloudInterface{}
+
+		// mock the cloud functions
+		cloud.Mock.On("GetSubscription", mock.Anything).Return(subscription, nil)
+		cloud.Mock.On("GetCloudProduct", mock.Anything, mock.Anything).Return(cloudProduct, nil)
+		cloud.Mock.On("CreateOrUpdateSubscriptionHistoryEvent", mock.Anything, mock.Anything).Return(subscriptionHistory, nil)
+
+		cloudImpl := th.App.Srv().Cloud
+		defer func() {
+			th.App.Srv().Cloud = cloudImpl
+		}()
+		th.App.Srv().Cloud = &cloud
+
+		// Mock to get the user count
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+
+		userID := "123"
+
+		subscriptionHistoryEvent, err := th.App.SendSubscriptionHistoryEvent(userID)
+		require.NoError(t, err)
+		require.Equal(t, subscription.ID, subscriptionHistoryEvent.SubscriptionID, "subscription ID doesn't match")
+		require.Equal(t, 10, subscriptionHistoryEvent.Seats, "Number of seats doesn't match")
 	})
 }

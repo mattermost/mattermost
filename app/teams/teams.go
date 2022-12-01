@@ -43,7 +43,6 @@ func (ts *TeamService) GetTeams(teamIDs []string) ([]*model.Team, error) {
 }
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-//
 func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, error) {
 	displayNames := map[string]string{
 		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
@@ -192,11 +191,25 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
 func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
-	message := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", nil, "")
-	message.Add("user_id", teamMember.UserId)
-	message.Add("team_id", teamMember.TeamId)
-	ts.wh.Publish(message)
+	/*
+		MM-43850: send leave_team event to user using `ReliableClusterSend` to improve safety
+	*/
+	// message for other team members
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[teamMember.UserId] = true
+	messageTeam := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, teamMember.TeamId, "", "", omitUsers, "")
+	messageTeam.Add("user_id", teamMember.UserId)
+	messageTeam.Add("team_id", teamMember.TeamId)
+	ts.wh.Publish(messageTeam)
 
+	// message for teamMember.UserId
+	messageUser := model.NewWebSocketEvent(model.WebsocketEventLeaveTeam, "", "", teamMember.UserId, nil, "")
+	messageUser.Add("user_id", teamMember.UserId)
+	messageUser.Add("team_id", teamMember.TeamId)
+
+	ts.wh.Publish(messageUser)
+
+	// delete team member
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 

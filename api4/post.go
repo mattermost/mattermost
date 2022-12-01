@@ -40,6 +40,9 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.Post.Handle("/pin", api.APISessionRequired(pinPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/unpin", api.APISessionRequired(unpinPost)).Methods("POST")
+
+	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(acknowledgePost)).Methods("POST")
+	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods("DELETE")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -943,9 +946,20 @@ func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	saveIsPinnedPost(c, w, false)
 }
 
-func acknowledgePost(c *Context, w http.ResponseWriter, _ *http.Request) {
+func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -954,14 +968,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	_, appErr := c.App.GetSinglePost(c.Params.PostId, false)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.UserId, c.Params.PostId)
-
+	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -976,9 +983,20 @@ func acknowledgePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	w.Write(js)
 }
 
-func unacknowledgePost(c *Context, w http.ResponseWriter, _ *http.Request) {
+func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
+	// license check
+	permissionErr := minimumProfessionalLicense(c)
+	if permissionErr != nil {
+		c.Err = permissionErr
+		return
+	}
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
 
@@ -993,8 +1011,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	appErr := c.App.DeleteAcknowledgementForPost(c.AppContext, c.Params.UserId, c.Params.PostId)
-
+	appErr := c.App.DeleteAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -259,6 +259,10 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		}
 	}
 
+	if !a.isPostPriorityEnabled() && post.GetPriority() != nil {
+		post.Metadata.Priority = nil
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var metadata *model.PostMetadata
 		if post.Metadata != nil {
@@ -351,8 +355,9 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(c, rpost, true, false, true)
-
+	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
+	// so we just return the one that was passed with post
+	rpost = a.PreparePostForClient(c, rpost, true, false, false)
 	if rpost.RootId != "" {
 		a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true)
 	}
@@ -1457,6 +1462,24 @@ func (a *App) ComputeLastAccessiblePostTime() error {
 	}
 
 	if limit == 0 {
+		// All posts are accessible - we must check if a previous value was set so we can clear it
+		systemValue, err := a.Srv().Store().System().GetByName(model.SystemLastAccessiblePostTime)
+		if err != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				// There was no previous value, nothing to do
+				return nil
+			default:
+				return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+		if systemValue != nil {
+			// Previous value was set, so we must clear it
+			if _, err = a.Srv().Store().System().PermanentDeleteByName(model.SystemLastAccessiblePostTime); err != nil {
+				return model.NewAppError("ComputeLastAccessiblePostTime", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
 		// Cloud limit is not applicable
 		return nil
 	}
@@ -1806,7 +1829,7 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 				if err != nil {
 					return 0, 0, 0, err
 				}
-				if *priority.Priority == model.PostPriorityUrgent {
+				if priority != nil && *priority.Priority == model.PostPriorityUrgent {
 					urgentCount += 1
 				}
 			}
