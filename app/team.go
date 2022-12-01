@@ -308,6 +308,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		return nil, model.NewAppError("UpdateTeamScheme", "app.team.clear_cache.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	a.Srv().Store().Channel().ClearMembersForUserCache()
+
 	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
 		return nil, appErr
 	}
