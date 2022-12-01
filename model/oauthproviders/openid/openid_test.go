@@ -74,6 +74,29 @@ func TestOpenIdUserFromJSON(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("valid GitLab user", func(t *testing.T) {
+		glu := OpenIdUser{
+			Id:       ou.Id,
+			Email:    ou.Email,
+			Nickname: ou.Nickname,
+			Name:     ou.FirstName + " " + ou.LastName + " another-lastname",
+		}
+
+		b, err := json.Marshal(glu)
+		require.NoError(t, err)
+
+		gitLabProvider := &OpenIdProvider{
+			CacheData: &CacheData{
+				Service: model.ServiceGitlab,
+			},
+		}
+		userData, err := gitLabProvider.GetUserFromJSON(bytes.NewReader(b), nil)
+		require.NoError(t, err)
+		require.Equal(t, ou.Nickname, userData.Username)
+		require.Equal(t, ou.FirstName, userData.FirstName)
+		require.Equal(t, ou.LastName+" another-lastname", userData.LastName)
+	})
+
 	t.Run("empty body should fail without panic", func(t *testing.T) {
 		_, err := provider.GetUserFromJSON(strings.NewReader("{}"), nil)
 		require.NoError(t, err)

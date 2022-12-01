@@ -56,18 +56,33 @@ func (o *OpenIdProvider) userFromOpenIdUser(u *OpenIdUser) *model.User {
 
 	user.Email = u.Email
 	user.Username = model.CleanUsername(strings.Split(user.Email, "@")[0])
-	if o.CacheData.Service == model.ServiceGitlab && u.Nickname != "" {
-		user.Username = u.Nickname
-	}
 
 	user.FirstName = u.FirstName
 	user.LastName = u.LastName
 	user.Nickname = u.Nickname
 
+	if o.CacheData.Service == model.ServiceGitlab {
+		o.handleGitLabUser(user, u)
+	}
+
 	user.AuthData = new(string)
 	*user.AuthData = o.getAuthData(u)
 
 	return user
+}
+
+func (o *OpenIdProvider) handleGitLabUser(user *model.User, u *OpenIdUser) {
+	if u.Nickname != "" {
+		user.Username = u.Nickname
+	}
+
+	splitName := strings.SplitN(strings.TrimSpace(u.Name), " ", 2)
+	if len(splitName) == 2 {
+		user.FirstName = splitName[0]
+		user.LastName = splitName[1]
+	} else {
+		user.FirstName = u.Name
+	}
 }
 
 func (o *OpenIdProvider) getAuthData(u *OpenIdUser) string {
