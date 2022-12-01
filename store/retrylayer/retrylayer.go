@@ -7687,6 +7687,48 @@ func (s *RetryLayerPostPersistentNotificationStore) Delete(postIds []string) err
 
 }
 
+func (s *RetryLayerPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
+
+	tries := 0
+	for {
+		err := s.PostPersistentNotificationStore.DeleteByChannel(channelIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
+
+	tries := 0
+	for {
+		err := s.PostPersistentNotificationStore.DeleteByTeam(teamIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 
 	tries := 0

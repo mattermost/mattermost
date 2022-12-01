@@ -1837,6 +1837,10 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		return err
 	}
 
+	if err := a.Srv().Store().PostPersistentNotification().DeleteByTeam([]string{team.Id}); err != nil {
+		return model.NewAppError("SoftDeleteTeam", "app.post_persistent_notification.delete_by_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	team.DeleteAt = model.GetMillis()
 	team, nErr := a.Srv().Store().Team().Update(team)
 	if nErr != nil {

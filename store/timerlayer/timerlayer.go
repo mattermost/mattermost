@@ -6138,6 +6138,38 @@ func (s *TimerLayerPostPersistentNotificationStore) Delete(postIds []string) err
 	return err
 }
 
+func (s *TimerLayerPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
+	start := time.Now()
+
+	err := s.PostPersistentNotificationStore.DeleteByChannel(channelIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.DeleteByChannel", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
+	start := time.Now()
+
+	err := s.PostPersistentNotificationStore.DeleteByTeam(teamIds)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostPersistentNotificationStore.DeleteByTeam", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 	start := time.Now()
 

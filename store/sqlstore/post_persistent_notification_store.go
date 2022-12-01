@@ -42,18 +42,13 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 
 	builder = getPersistentNotificationsPaginationBuilder(builder, params.Pagination)
 
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, false, err
-	}
-
 	var posts []*model.PostPersistentNotifications
-	err = s.GetReplicaX().Select(&posts, query, args...)
+	err := s.GetReplicaX().SelectBuilder(&posts, builder)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []*model.PostPersistentNotifications{}, false, nil
 		}
-		return nil, false, errors.Wrap(err, "failed to get posts for persistent notifications")
+		return nil, false, errors.Wrap(err, "failed to get notifications")
 	}
 
 	var hasNext bool
@@ -67,24 +62,107 @@ func (s *SqlPostPersistentNotificationStore) Get(params model.GetPersistentNotif
 	return posts, hasNext, nil
 }
 
+// Delete in batches of 1000
 func (s *SqlPostPersistentNotificationStore) Delete(postIds []string) error {
-	if len(postIds) == 0 {
+	count := len(postIds)
+	if count == 0 {
 		return nil
 	}
 
-	query, args, err := s.getQueryBuilder().
-		Update("PersistentNotifications").
-		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"PostId": postIds}).
-		ToSql()
+	deleteAt := model.GetMillis()
+	for i := 0; i < count; i += paginationLimit {
+		j := utils.MinInt(i+paginationLimit, count)
 
-	if err != nil {
-		return err
+		builder := s.getQueryBuilder().
+			Update("PersistentNotifications").
+			Set("DeleteAt", deleteAt).
+			Where(sq.Eq{"PostId": postIds[i:j]})
+
+		_, err := s.GetMasterX().ExecBuilder(builder)
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete notifications for posts %s", postIds[i:j])
+		}
 	}
 
-	_, err = s.GetMasterX().Exec(query, args...)
-	if err != nil {
-		return errors.Wrapf(err, "failed to mark posts %s as deleted", postIds)
+	return nil
+}
+
+// DeleteByChannel in batches of 1000
+func (s *SqlPostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
+	count := len(channelIds)
+	if count == 0 {
+		return nil
+	}
+
+	deleteAt := model.GetMillis()
+	for i := 0; i < count; i += paginationLimit {
+		j := utils.MinInt(i+paginationLimit, count)
+
+		var builder sq.UpdateBuilder
+		builderType := s.getQueryBuilder()
+		if s.DriverName() == model.DatabaseDriverMysql {
+			builder = builderType.
+				Update("PersistentNotifications, Posts").
+				Set("PersistentNotifications.DeleteAt", deleteAt)
+		}
+
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			builder = builderType.
+				Update("PersistentNotifications").
+				Set("DeleteAt", deleteAt).
+				From("Posts")
+		}
+
+		builder = builder.Where(sq.And{
+			sq.Expr("Id = PostId"),
+			sq.Eq{"ChannelId": channelIds[i:j]},
+		})
+
+		_, err := s.GetMasterX().ExecBuilder(builder)
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete notifications for channels %s", channelIds[i:j])
+		}
+	}
+
+	return nil
+}
+
+// DeleteByTeam in batches of 1000
+func (s *SqlPostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
+	count := len(teamIds)
+	if count == 0 {
+		return nil
+	}
+
+	deleteAt := model.GetMillis()
+	for i := 0; i < count; i += paginationLimit {
+		j := utils.MinInt(i+paginationLimit, count)
+
+		var builder sq.UpdateBuilder
+		builderType := s.getQueryBuilder()
+		if s.DriverName() == model.DatabaseDriverMysql {
+			builder = builderType.
+				Update("PersistentNotifications, Posts, Channels").
+				Set("PersistentNotifications.DeleteAt", deleteAt)
+		}
+
+		if s.DriverName() == model.DatabaseDriverPostgres {
+			builder = builderType.
+				Update("PersistentNotifications").
+				Set("DeleteAt", deleteAt).
+				From("Posts, Channels")
+		}
+
+		builder = builder.Where(sq.And{
+			sq.Expr("Posts.Id = PersistentNotifications.PostId"),
+			sq.Expr("Posts.ChannelId = Channels.Id"),
+			sq.Eq{"Channels.TeamId": teamIds[i:j]},
+		})
+
+		_, err := s.GetMasterX().ExecBuilder(builder)
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete notifications for teams %s", teamIds[i:j])
+		}
 	}
 
 	return nil

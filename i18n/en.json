@@ -6184,6 +6184,14 @@
     "translation": "Unable to update the Post."
   },
   {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Unable to delete the persistent notifications by channel."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Unable to delete the persistent notifications by team."
+  },
+  {
     "id": "app.post_priority.delete_persistent_notification_post.app_error",
     "translation": "Failed to delete persistent notification post"
   },

@@ -28,6 +28,34 @@ func (_m *PostPersistentNotificationStore) Delete(postIds []string) error {
 	return r0
 }
 
+// DeleteByChannel provides a mock function with given fields: channelIds
+func (_m *PostPersistentNotificationStore) DeleteByChannel(channelIds []string) error {
+	ret := _m.Called(channelIds)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(channelIds)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteByTeam provides a mock function with given fields: teamIds
+func (_m *PostPersistentNotificationStore) DeleteByTeam(teamIds []string) error {
+	ret := _m.Called(teamIds)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(teamIds)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: params
 func (_m *PostPersistentNotificationStore) Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error) {
 	ret := _m.Called(params)

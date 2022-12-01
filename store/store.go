@@ -1001,6 +1001,8 @@ type PostAcknowledgementStore interface {
 type PostPersistentNotificationStore interface {
 	Get(params model.GetPersistentNotificationsPostsParams) ([]*model.PostPersistentNotifications, bool, error)
 	Delete(postIds []string) error
+	DeleteByChannel(channelIds []string) error
+	DeleteByTeam(teamIds []string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
