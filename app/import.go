@@ -25,6 +25,7 @@ type ReactionImportData = imports.ReactionImportData // part of the app interfac
 const (
 	importMultiplePostsThreshold = 1000
 	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
+	statusUpdateAfterLines       = 8192
 )
 
 func stopOnError(c request.CTX, err imports.LineImportWorkerError) bool {
@@ -153,7 +154,7 @@ func (a *App) bulkImportWorker(c request.CTX, dryRun bool, wg *sync.WaitGroup, l
 		}
 
 		processedLines++
-		if processedLines%8192 == 0 {
+		if processedLines%statusUpdateAfterLines == 0 {
 			c.Logger().Info("Worker progress", mlog.String("bulk_import_worker_id", workerID), mlog.Uint64("processed_lines", processedLines))
 		}
 	}
@@ -207,7 +208,7 @@ func (a *App) bulkImport(c request.CTX, jsonlReader io.Reader, attachmentsReader
 
 	for scanner.Scan() {
 		lineNumber++
-		if lineNumber%8192 == 0 {
+		if lineNumber%statusUpdateAfterLines == 0 {
 			c.Logger().Info("Reader progress", mlog.Int("processed_lines", lineNumber))
 		}
 
