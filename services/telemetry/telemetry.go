@@ -452,6 +452,7 @@ func (ts *TelemetryService) trackConfig() {
 		"post_priority":                                           *cfg.ServiceSettings.PostPriority,
 		"self_hosted_first_time_purchase":                         *cfg.ServiceSettings.SelfHostedFirstTimePurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
+		"experimental_max_user_preferences":                       *cfg.ServiceSettings.ExperimentalMaxUserPreferences,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
