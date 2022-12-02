@@ -11,6 +11,7 @@ import (
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
@@ -171,6 +172,13 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
+	go func() {
+		err := c.App.Cloud().ConfirmSelfHostedSignupLicenseApplication()
+		if err != nil {
+			c.Logger.Warn("Error confirming license", mlog.Err(err))
+		}
+	}()
 
 	_, _ = w.Write(clientResponse)
 }
