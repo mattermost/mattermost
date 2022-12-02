@@ -45,6 +45,17 @@ func TestCreateUpload(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
+	t.Run("FileSize over limit", func(t *testing.T) {
+		maxFileSize := *th.App.Config().FileSettings.MaxFileSize
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = us.FileSize - 1 })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
+		us.ChannelId = th.BasicChannel.Id
+		u, resp, err := th.Client.CreateUpload(us)
+		require.Nil(t, u)
+		CheckErrorID(t, err, "api.upload.create.upload_too_large.app_error")
+		require.Equal(t, http.StatusRequestEntityTooLarge, resp.StatusCode)
+	})
+
 	t.Run("not allowed in cloud", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		defer th.App.Srv().RemoveLicense()

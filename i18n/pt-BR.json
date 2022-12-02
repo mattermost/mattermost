@@ -6912,10 +6912,6 @@
     "translation": "{{.Filename}} dimensão ({{.Width}} por {{.Height}} pixels) excede os limites."
   },
   {
-    "id": "app.upload.create.upload_too_large.app_error",
-    "translation": "Não foi possível enviar o arquivo. Arquivo é muito grande."
-  },
-  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Não é possível publicar em um canal excluído."
   },
@@ -8626,10 +8622,6 @@
   {
     "id": "api.cloud.teams_limit_reached.create",
     "translation": "Não foi possível criar equipe porque o limite de equipes foi atingido"
-  },
-  {
-    "id": "api.cloud.subscription.update_error",
-    "translation": "Erro ao atualizar a assinatura do webhook."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",

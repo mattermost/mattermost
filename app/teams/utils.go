@@ -10,11 +10,13 @@ import (
 )
 
 // By default the list will be (not necessarily in this order):
+//
 //	['town-square', 'off-topic']
+//
 // However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 // 'off-topic' and be included in the return results in addition to 'town-square'. For example:
-//	['town-square', 'game-of-thrones', 'wow']
 //
+//	['town-square', 'game-of-thrones', 'wow']
 func (ts *TeamService) DefaultChannelNames() []string {
 	names := []string{"town-square"}
 
