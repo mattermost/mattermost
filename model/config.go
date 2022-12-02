@@ -385,6 +385,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	ExperimentalMaxUserPreferences                    *int    `access:"experimental_features,site_users_and_teams"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -856,6 +857,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedFirstTimePurchase == nil {
 		s.SelfHostedFirstTimePurchase = NewBool(false)
+	}
+
+	if s.ExperimentalMaxUserPreferences == nil {
+		s.ExperimentalMaxUserPreferences = NewInt(1000)
 	}
 }
 

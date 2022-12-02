@@ -121,13 +121,13 @@ func (_m *PreferenceStore) Get(userID string, category string, name string) (*mo
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: userID
-func (_m *PreferenceStore) GetAll(userID string) (model.Preferences, error) {
-	ret := _m.Called(userID)
+// GetAll provides a mock function with given fields: userID, limit
+func (_m *PreferenceStore) GetAll(userID string, limit int) (model.Preferences, error) {
+	ret := _m.Called(userID, limit)
 
 	var r0 model.Preferences
-	if rf, ok := ret.Get(0).(func(string) model.Preferences); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, int) model.Preferences); ok {
+		r0 = rf(userID, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.Preferences)
@@ -135,8 +135,8 @@ func (_m *PreferenceStore) GetAll(userID string) (model.Preferences, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(string, int) error); ok {
+		r1 = rf(userID, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
