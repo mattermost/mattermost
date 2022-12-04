@@ -89,13 +89,10 @@ func getTopReactionsForTeamSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	js, err := json.Marshal(topReactionList)
-	if err != nil {
-		c.Err = model.NewAppError("getTopReactionsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topReactionList); err != nil {
+		c.Err = model.NewAppError("getTopReactionsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -149,13 +146,10 @@ func getTopReactionsForUserSince(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	js, err := json.Marshal(topReactionList)
-	if err != nil {
-		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topReactionList); err != nil {
+		c.Err = model.NewAppError("getTopReactionsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Channels
@@ -218,13 +212,10 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, err := json.Marshal(topChannels)
-	if err != nil {
-		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -285,13 +276,10 @@ func getTopChannelsForUserSince(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	js, jsonErr := json.Marshal(topChannels)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	if err := json.NewEncoder(w).Encode(topChannels); err != nil {
+		c.Err = model.NewAppError("getTopChannelsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Threads
@@ -347,13 +335,10 @@ func getTopThreadsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, jsonError := json.Marshal(topThreads)
-	if jsonError != nil {
-		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := json.NewEncoder(w).Encode(topThreads); err != nil {
+		c.Err = model.NewAppError("getTopThreadsForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -407,13 +392,10 @@ func getTopThreadsForUserSince(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	js, jsonErr := json.Marshal(topThreads)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	if err := json.NewEncoder(w).Encode(topThreads); err != nil {
+		c.Err = model.NewAppError("getTopThreadsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top DMs
@@ -448,13 +430,10 @@ func getTopDMsForUserSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, jsonErr := json.Marshal(topDMs)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(topDMs); err != nil {
+		c.Err = model.NewAppError("getTopDMsForUserSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
 
 // Top Channels
@@ -651,11 +630,8 @@ func getNewTeamMembersSince(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	ntms.TotalCount = count
 
-	js, jsonErr := json.Marshal(ntms)
-	if jsonErr != nil {
-		c.Err = model.NewAppError("getNewTeamembersForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(ntms); err != nil {
+		c.Err = model.NewAppError("getNewTeamembersForTeamSince", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Write(js)
 }
