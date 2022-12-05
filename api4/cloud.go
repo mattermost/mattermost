@@ -145,7 +145,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	starterSku := fmt.Sprintf("%s-%s", model.SubscriptionFamilyCloud, model.ProductSkuStarter)
-	if product.SKU != starterSku {
+	if product.SKU == starterSku {
 		w.Write(json)
 		return
 	}
