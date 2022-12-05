@@ -9172,10 +9172,6 @@
     "translation": "Zostałeś uaktualniony!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Twoja {{.WorkspaceName}} została zaktualizowana. Opłaty będą naliczane od {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Potwierdzenie Aktualizacji Mattermost"
   },

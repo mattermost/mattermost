@@ -9172,10 +9172,6 @@
     "translation": "Обновление прошло успешно!"
   },
   {
-    "id": "api.templates.cloud_upgrade_confirmation.subtitle",
-    "translation": "Ваше рабочее пространство {{.WorkspaceName}} обновлено. Вам будет выставлен счет с {{.Date}}"
-  },
-  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Подтверждение обновления Mattermost"
   },
@@ -9342,10 +9338,6 @@
   {
     "id": "app.job.error",
     "translation": "Ошибка во время выполнения задания."
-  },
-  {
-    "id": "app.install_integration.reached_max_limit.error",
-    "translation": "Вы достигли лимита включенных интеграций - {{.NumIntegrations}} . Чтобы установить неограниченное количество интеграций, перейдите на один из наших платных тарифных планов."
   },
   {
     "id": "app.insights.feature_disabled",
