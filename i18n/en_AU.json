@@ -9324,7 +9324,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}"
+    "translation": "This is a final reminder that payment for your Mattermost Cloud workspace hasn't been received since {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9344,7 +9344,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Your most recent payment couldn't be processed"
+    "translation": "Your most recent payment couldn't be processed."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9392,7 +9392,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Payment for outstanding invoices dated {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
+    "translation": "Payment for outstanding invoices since {{.DelinquencyDate}} have not been able to be collected. Your workspace is at risk of being downgraded."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9452,7 +9452,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Payment is overdue for your Mattermost {{.Plan}}."
+    "translation": "Payment is overdue for your Mattermost {{.Plan}}"
   },
   {
     "id": "api.templates.delinquency_14.button",
@@ -9565,5 +9565,117 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Failed to add user to group-teams and group-channels"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Invalid root ID."
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Invalid props."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Invalid message."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Invalid file IDs."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.user_id.app_error",
+    "translation": "Invalid user ID."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.post_id.app_error",
+    "translation": "Invalid post ID."
+  },
+  {
+    "id": "app.post_prority.get_for_post.app_error",
+    "translation": "Unable to get post priority for post"
+  },
+  {
+    "id": "app.draft.update.app_error",
+    "translation": "Unable to update the draft."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Unable to save the draft."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Unable to get files for draft."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Unable to get user's drafts."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Unable to get the draft."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Unable to delete the draft."
+  },
+  {
+    "id": "app.channel.get_priority_for_posts.app_error",
+    "translation": "Unable to get the priority for posts"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Unable to delete acknowledgement."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Drafts feature is disabled."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "You cannot remove an acknowledgment in an archived channel."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.playbook",
+    "translation": "Create transparent workflows across development teams to ensure your feature development process is seamless."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.integration",
+    "translation": "Increase productivity in your channel by integrating a Jira bot and GitHub bot. These will be downloaded for you."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.channel",
+    "translation": "Chat with your team in a Feature Release channel that connects easily with your boards, playbooks and app bots."
+  },
+  {
+    "id": "worktemplate.product_teams.feature_release.description.board",
+    "translation": "Use the Meeting Agenda board template for recurring meetings like standup and the Project Tasks board to manage the progress of tasks along the way."
+  },
+  {
+    "id": "worktemplate.category.product_teams",
+    "translation": "Product Teams"
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Invalid priority"
   }
 ]
