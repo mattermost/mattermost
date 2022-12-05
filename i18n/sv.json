@@ -65,7 +65,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.14+"
+    "translation": "macOS 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9300,7 +9300,7 @@
   },
   {
     "id": "api.templates.delinquency_45.subtitle1",
-    "translation": "Vi har inte kunnat få betalt för utestående fakturor med datum {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
+    "translation": "Vi har inte kunnat få betalt för utestående fakturor sedan {{.DelinquencyDate}}. Din arbetsyta riskerar att nedgraderas."
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -9316,7 +9316,7 @@
   },
   {
     "id": "api.templates.delinquency_30.subtitle2",
-    "translation": "om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
+    "translation": "Om ingen åtgärd vidtas kommer din arbetsyta att nedgraderas och följande uppgifter kan komma att arkiveras:"
   },
   {
     "id": "api.templates.delinquency_30.subtitle1",
@@ -9352,7 +9352,7 @@
   },
   {
     "id": "api.templates.delinquency_14.subject",
-    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad."
+    "translation": "Betalningen för din Mattermost {{.Plan}} är försenad"
   },
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
@@ -9444,7 +9444,7 @@
   },
   {
     "id": "api.templates.delinquency_75.subtitle1",
-    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}"
+    "translation": "Detta är en sista påminnelse. Vi har inte mottagit betalning för din Mattermost Cloud-arbetsyta sedan {{.DelinquencyDate}}."
   },
   {
     "id": "api.templates.delinquency_75.subject",
@@ -9468,7 +9468,7 @@
   },
   {
     "id": "api.templates.delinquency_7.subtitle1",
-    "translation": "Vi kunde inte behandla din senaste betalning"
+    "translation": "Vi kunde inte behandla din senaste betalning."
   },
   {
     "id": "api.templates.delinquency_7.button",
@@ -9553,5 +9553,53 @@
   {
     "id": "app.collection.add_topic.exists.app_error",
     "translation": "Ämnestypen finns redan."
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Kunde inte att radera utkastet."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Det går inte att få en bekräftelse för publiceringen."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Det går inte att få en bekräftelse."
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Det går inte att radera bekräftelsen."
+  },
+  {
+    "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
+    "translation": "inte en ldap-användare"
+  },
+  {
+    "id": "api.upload.create.upload_too_large.app_error",
+    "translation": "Kunde inte ladda upp fil. Filen är för stor."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "Funktionen Utkast är inaktiverad."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "Kan inte spara utkast i en borttagen kanal"
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "misslyckades med att lägga till användaren i gruppens team och gruppens kanaler"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Du kan inte bekräfta i en arkiverad kanal."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Du kan inte radera en bekräftelse efter att 5 minuter har gått."
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
   }
 ]
