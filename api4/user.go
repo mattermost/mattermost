@@ -3322,7 +3322,7 @@ func deleteRecentSearch(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var params model.SearchParams
 	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
-		c.Err = model.NewAppError("deleteRecentSearch", "api.post.search_posts.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		c.Err = model.NewAppError("deleteRecentSearch", "api.post.delete_recent_search.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
 		return
 	}
 

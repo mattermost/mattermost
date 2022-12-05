@@ -2809,7 +2809,7 @@ func (s *SqlPostStore) GetRecentSearchesForUser(userID string) ([]*model.SearchP
 func (s *SqlPostStore) DeleteRecentSearchForUser(userID string, searchQuery *model.SearchParams) error {
 	searchQueryJSON, err := json.Marshal(searchQuery)
 	if err != nil {
-		return errors.Wrap(err, "failed marshalling job data")
+		return errors.Wrapf(err, "failed marshalling recent search query for user=%s", userID)
 	}
 	if _, err := s.GetReplicaX().Exec("DELETE FROM RecentSearches WHERE userid = ? AND query = ?", userID, string(searchQueryJSON)); err != nil {
 		return errors.Wrap(err, "failed to delete RecentSearch")

@@ -2266,6 +2266,10 @@
     "translation": "Can not delete a post in a deleted channel."
   },
   {
+    "id": "api.post.delete_recent_search.invalid_body.app_error",
+    "translation": "Cannot delete recent search, invalid body request."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all has been disabled because the channel has more than {{.Users}} users."
   },
