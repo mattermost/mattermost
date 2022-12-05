@@ -141,7 +141,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	changedProduct, err := c.App.Cloud().GetCloudProduct(userId, changedSub.ProductID)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.changeSubscription", "api_cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	starterSku := fmt.Sprintf("%s-%s", model.SubscriptionFamilyCloud, model.ProductSkuStarter)
