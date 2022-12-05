@@ -14,24 +14,14 @@ executors:
       COMPOSE_PROJECT_NAME: "circleci"
 
 jobs:
-  setup-mattermost-server:
+  setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
-      - image: cimg/base:2022.08@sha256:35e5e29930ab565475a4f2aa9b4124998ed67dbc7b0e2dd5f420a4189d08d0d2
+      - image: mattermost/mattermost-build-webapp:20220802_node-16.10.0@sha256:3272aa759f10c2ef1719ed08cc82ddb07224bec5be86f09800c72f5e2a623c3d
     resource_class: xlarge
     # Use `--retry-all-errors` instead of `until` after curl version >= 7.71.0; `retry` will not work, since it only retries on transient errors, 403 is not one of them.
     steps:
       - checkout
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-server
-  setup-mattermost-webapp:
-    working_directory: ~/mattermost/mattermost-webapp
-    docker:
-      - image: mattermost/mattermost-build-webapp:20220802_node-16.10.0@sha256:3272aa759f10c2ef1719ed08cc82ddb07224bec5be86f09800c72f5e2a623c3d
-    resource_class: xlarge
-    steps:
       - run: |
           cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
@@ -39,8 +29,10 @@ jobs:
           git checkout $CIRCLE_BRANCH || git checkout release-7.3
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
+
           FILE_DIST=dist.tar.gz
           curl --version
+
           runtime="2 minute"
           endtime=$(date -ud "$runtime" +%s)
           while [[ $(date -u +%s) -le $endtime ]]; do
@@ -61,22 +53,7 @@ jobs:
           root: ~/mattermost
           paths:
             - mattermost-webapp
-  setup-focalboard:
-    working_directory: ~/mattermost/focalboard
-    docker:
-      - image: cimg/base:2022.08@sha256:35e5e29930ab565475a4f2aa9b4124998ed67dbc7b0e2dd5f420a4189d08d0d2
-    resource_class: xlarge
-    steps:
-      - run: |
-          cd ../
-          git clone --depth=10 --no-single-branch https://github.com/mattermost/focalboard.git
-          cd focalboard
-          git checkout $CIRCLE_BRANCH || git checkout main
-          echo $(git rev-parse HEAD)
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - focalboard
+            - mattermost-server
 
   check-deps:
     parameters:
@@ -156,6 +133,7 @@ jobs:
             cd mattermost-server
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
   check-go-mod-tidy:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
@@ -168,6 +146,7 @@ jobs:
             cd mattermost-server
             make modules-tidy
             if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; exit 1; fi
+
   check-store-layers:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
@@ -180,6 +159,7 @@ jobs:
             cd mattermost-server
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
   check-mocks:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
@@ -192,6 +172,7 @@ jobs:
             cd mattermost-server
             make mocks
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make mocks`"; exit 1; fi
+
   check-email-templates:
     docker:
       - image: cimg/go:1.17-node
@@ -205,6 +186,7 @@ jobs:
             sudo npm install -g mjml@4.9.0
             make build-templates
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the email templates using `make build-templates`"; exit 1; fi
+
   check-gen-serialized:
     docker:
       - image: cimg/go:1.17
@@ -217,6 +199,7 @@ jobs:
             cd mattermost-server
             make gen-serialized
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
+
   check-migrations:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
@@ -229,6 +212,7 @@ jobs:
             cd mattermost-server
             make migrations-extract
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the migrations using make migrations-extract"; exit 1; fi
+
   # Dedicated job for golangci-lint it does not need anything only the server code for that
   # and to make more clear when the job fails
   check-golangci-lint:
@@ -256,6 +240,7 @@ jobs:
             make config-reset
             make plugin-checker
             make vet BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+
   # Dedicate job for sentry it does not need anything only the server code for that
   # and to make more clear when the job fails
   sentry:
@@ -269,6 +254,7 @@ jobs:
           command: |
             sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
             sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -288,7 +274,7 @@ jobs:
           paths:
             - mattermost-api-reference
 
-  build-mattermost-server:
+  build:
     docker:
       - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
     resource_class: xlarge
@@ -317,38 +303,6 @@ jobs:
           paths:
             - mattermost-server
             - mattermost-webapp
-
-  build-focalboard:
-    docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
-    resource_class: xlarge
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd focalboard
-            make server-linux
-  configure-multirepo:
-    docker:
-      - image: mattermost/mattermost-build-server:20220415_golang-1.18.1
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            cd mattermost-server
-            make setup-go-work
-            cd ../focalboard
-            EXCLUDE_ENTERPRISE=TRUE make templates-archive
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-server
-            - mattermost-webapp
-            - focalboard
 
   test:
     executor:
@@ -456,11 +410,13 @@ jobs:
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='db migrate' run-cli"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
             echo "Removing databases created for db comparison"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+
             echo "Generating diff"
             diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
@@ -474,6 +430,7 @@ jobs:
             echo "Importing mysql dump from version 6.0.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-6.0.0.sql
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "INSERT INTO Systems (Name, Value) VALUES ('Version', '6.0.0')"
+
             docker run -it --net circleci_mm-test \
               --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
@@ -482,11 +439,14 @@ jobs:
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20220415_golang-1.18.1 \
               bash -c "ulimit -n 8096; make ARGS='db migrate' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='db migrate' run-cli"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
             docker-compose --no-ansi exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+
             echo "Removing databases created for db comparison"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
+
             echo "Generating diff"
             diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
           no_output_timeout: 1h
@@ -535,28 +495,19 @@ jobs:
       - run:
           command: |
             export TAG="${CIRCLE_SHA1:0:7}"
+
             cd mattermost-server
+
             export DOCKER_CLI_EXPERIMENTAL=enabled
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             export MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/mattermost-team-linux-amd64.tar.gz
             docker buildx build --push --build-arg MM_PACKAGE=$MM_PACKAGE -t mattermost/mm-te-test:${TAG} build
+
 workflows:
   version: 2
   untagged-build:
     jobs:
-      - setup-mattermost-server:
-          filters:
-            branches:
-              ignore:
-                - master
-                - /^release-.*/
-      - setup-mattermost-webapp:
-          filters:
-            branches:
-              ignore:
-                - master
-                - /^release-.*/
-      - setup-focalboard:
+      - setup:
           filters:
             branches:
               ignore:
@@ -573,8 +524,7 @@ workflows:
       #       - setup
       - check-go-mod-tidy:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-golangci-lint:
           filters:
             branches:
@@ -583,46 +533,29 @@ workflows:
                 - /^release-.*/
       - check-app-layers:
           requires:
-            - configure-multirepo
+            - setup
       - check-store-layers:
           requires:
-            - configure-multirepo
+            - setup
       - check-mocks:
           requires:
-            - configure-multirepo
+            - setup
       - check-email-templates:
           requires:
-            - configure-multirepo
+            - setup
       - check-gen-serialized:
           requires:
-            - configure-multirepo
+            - setup
       - check-mattermost-vet:
           requires:
-            - configure-multirepo
+            - setup
       - check-migrations:
           requires:
-            - configure-multirepo
+            - setup
       - build-api-spec:
           requires:
-            - configure-multirepo
-      - configure-multirepo:
-         requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
-            - setup-focalboard
-      - build-mattermost-server:
-          requires:
-            - check-go-mod-tidy
-            - check-app-layers
-            - check-store-layers
-            - check-mocks
-            - check-email-templates
-            - check-gen-serialized
-            - check-mattermost-vet
-            - check-golangci-lint
-            - check-migrations
-            - build-api-spec
-      - build-focalboard:
+            - setup
+      - build:
           requires:
             - check-go-mod-tidy
             - check-app-layers
@@ -637,13 +570,11 @@ workflows:
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
-            - build-mattermost-server
-            - build-focalboard
+            - build
       - upload-s3:
           context: mattermost-ci-pr-builds-s3
           requires:
-            - build-mattermost-server
-            - build-focalboard
+            - build
       - build-docker:
           context: matterbuild-docker
           requires:
@@ -690,21 +621,13 @@ workflows:
             - check-gen-serialized
   release-build:
     jobs:
-      - setup-mattermost-server:
+      - setup:
           filters:
             branches:
               only:
                 - master
                 - /^release-.*/
                 - cloud
-      - setup-mattermost-webapp:
-          filters:
-            branches:
-              only:
-                - master
-                - /^release-.*/
-                - cloud
-
       # Disabling check-deps since the new version is not on bintray and all builds will fail
       # we've are on top of this, and it's going to be temporary.
       #- check-deps:
@@ -723,36 +646,28 @@ workflows:
                 - cloud
       - check-go-mod-tidy:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-app-layers:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-store-layers:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - build-api-spec:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-mocks:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-email-templates:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-gen-serialized:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - check-mattermost-vet:
           requires:
-            - setup-mattermost-server
-            - setup-mattermost-webapp
+            - setup
       - sentry:
           context: matterbuild-sentry
           requires:
@@ -765,7 +680,7 @@ workflows:
             - check-mattermost-vet
             - check-golangci-lint
             - build-api-spec
-      - build-mattermost-server:
+      - build:
           requires:
             - check-go-mod-tidy
             - check-app-layers
