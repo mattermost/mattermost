@@ -95,7 +95,12 @@ type PlatformService struct {
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 	sharedChannelService      SharedChannelServiceIFace
 
-	pluginEnv *plugin.Environment
+	pluginEnv HookRunner
+}
+
+type HookRunner interface {
+	RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int)
+	GetPluginsEnvironment() *plugin.Environment
 }
 
 // New creates a new PlatformService.
@@ -426,17 +431,17 @@ func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) 
 	ps.sharedChannelService = s
 }
 
-func (ps *PlatformService) SetPluginsEnvironment(env *plugin.Environment) {
-	ps.pluginEnv = env
+func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
+	ps.pluginEnv = runner
 }
 
 // GetPluginStatuses meant to be used by cluster implementation
 func (ps *PlatformService) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	if ps.pluginEnv == nil {
+	if ps.pluginEnv == nil || ps.pluginEnv.GetPluginsEnvironment() == nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	pluginStatuses, err := ps.pluginEnv.Statuses()
+	pluginStatuses, err := ps.pluginEnv.GetPluginsEnvironment().Statuses()
 	if err != nil {
 		return nil, model.NewAppError("GetPluginStatuses", "app.plugin.get_statuses.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

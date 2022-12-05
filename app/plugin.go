@@ -93,7 +93,7 @@ func (ch *Channels) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment
 	defer ch.pluginsLock.Unlock()
 
 	ch.pluginsEnvironment = pluginsEnvironment
-	ch.srv.Platform().SetPluginsEnvironment(pluginsEnvironment)
+	ch.srv.Platform().SetPluginsEnvironment(ch)
 }
 
 func (ch *Channels) syncPluginsActiveState() {
@@ -213,7 +213,7 @@ func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string)
 func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
-		ch.srv.Platform().SetPluginsEnvironment(ch.pluginsEnvironment)
+		ch.srv.Platform().SetPluginsEnvironment(ch)
 	}()
 
 	ch.pluginsLock.RLock()
@@ -279,7 +279,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 			ch.syncPluginsActiveState()
 		}
 		if pluginsEnvironment := ch.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			ch.RunMultiHook(func(hooks plugin.Hooks) bool {
 				if err := hooks.OnConfigurationChange(); err != nil {
 					ch.srv.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
 				}
