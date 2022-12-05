@@ -385,7 +385,7 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedFirstTimePurchase                       *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
-	ExperimentalMaxUserPreferences                    *int    `access:"experimental_features,site_users_and_teams"`
+	ExperimentalMaxUserPreferences                    *int
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
