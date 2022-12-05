@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -96,6 +97,8 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	userId := c.AppContext.Session().UserId
+
 	if !c.App.Channels().License().IsCloud() {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
 		return
@@ -118,13 +121,13 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
+	currentSubscription, appErr := c.App.Cloud().GetSubscription(userId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		return
 	}
 
-	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
+	changedSub, err := c.App.Cloud().ChangeSubscription(userId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -133,6 +136,17 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	changedProduct, err := c.App.Cloud().GetCloudProduct(userId, changedSub.ProductID)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.changeSubscription", "api_cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	starterSku := fmt.Sprintf("%s-%s", model.SubscriptionFamilyCloud, model.ProductSkuStarter)
+	if changedProduct.SKU != starterSku {
+		w.Write(json)
 		return
 	}
 
