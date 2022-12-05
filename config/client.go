@@ -315,6 +315,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
+	props["AllowPersistentNotificationsForGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.AllowPersistentNotifications)
 	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
 
 	if license != nil {

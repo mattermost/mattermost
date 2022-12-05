@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -31,7 +32,6 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 
 	acknowledgedAt := model.GetMillis()
 	acknowledgement, nErr := a.Srv().Store().PostAcknowledgement().Save(postID, userID, acknowledgedAt)
-
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -42,7 +42,28 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 		}
 	}
 
-	a.DeletePersistentNotificationsPost(post, acknowledgement.UserId, true)
+	isGuestAllowed := true
+	if !*a.Config().GuestAccountsSettings.AllowPersistentNotifications {
+		user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("SaveAcknowledgementForPost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+			default:
+				return nil, model.NewAppError("SaveAcknowledgementForPost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if user.IsGuest() {
+			isGuestAllowed = false
+		}
+	}
+
+	if isGuestAllowed {
+		if appErr := a.DeletePersistentNotificationsPost(post, userID, true); appErr != nil {
+			return nil, appErr
+		}
+	}
 
 	a.Srv().Go(func() {
 		a.sendAcknowledgementEvent(model.WebsocketEventAcknowledgementAdded, acknowledgement, post)

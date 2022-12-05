@@ -358,8 +358,11 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(c, rpost, true, false, false)
-	if rpost.RootId != "" {
-		a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true)
+
+	if rpost.RootId != "" && (!user.IsGuest() || *a.Config().GuestAccountsSettings.AllowPersistentNotifications) {
+		if appErr := a.DeletePersistentNotificationsPost(parentPostList.Posts[post.RootId], rpost.UserId, true); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	// Make sure poster is following the thread
@@ -1277,7 +1280,28 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 	}
 
 	if post.RootId == "" {
-		a.DeletePersistentNotificationsPost(post, "", false)
+		isGuestAllowed := true
+		if !*a.Config().GuestAccountsSettings.AllowPersistentNotifications {
+			user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
+			if nErr != nil {
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(nErr, &nfErr):
+					return nil, model.NewAppError("DeletePost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+				default:
+					return nil, model.NewAppError("DeletePost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			}
+			if user.IsGuest() {
+				isGuestAllowed = false
+			}
+		}
+
+		if isGuestAllowed {
+			if appErr := a.DeletePersistentNotificationsPost(post, "", false); appErr != nil {
+				return nil, appErr
+			}
+		}
 	}
 
 	postJSON, err := json.Marshal(post)

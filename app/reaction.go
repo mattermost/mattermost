@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
+	"github.com/mattermost/mattermost-server/v6/store"
 )
 
 func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -26,7 +28,7 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 	}
 
 	if channel.DeleteAt > 0 {
-		return nil, model.NewAppError("deleteReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
@@ -40,12 +42,33 @@ func (a *App) SaveReactionForPost(c *request.Context, reaction *model.Reaction) 
 		}
 	}
 
+	if post.RootId == "" {
+		isGuestAllowed := true
+		if !*a.Config().GuestAccountsSettings.AllowPersistentNotifications {
+			user, nErr := a.Srv().Store().User().Get(context.Background(), c.Session().UserId)
+			if nErr != nil {
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(nErr, &nfErr):
+					return nil, model.NewAppError("DeletePost", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+				default:
+					return nil, model.NewAppError("DeletePost", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+				}
+			}
+			if user.IsGuest() {
+				isGuestAllowed = false
+			}
+		}
+
+		if isGuestAllowed {
+			if appErr := a.DeletePersistentNotificationsPost(post, reaction.UserId, true); appErr != nil {
+				return nil, appErr
+			}
+		}
+	}
+
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
-
-	if post.RootId == "" {
-		a.DeletePersistentNotificationsPost(post, reaction.UserId, true)
-	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {

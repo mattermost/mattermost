@@ -2973,6 +2973,7 @@ func (s *DisplaySettings) SetDefaults() {
 type GuestAccountsSettings struct {
 	Enable                           *bool   `access:"authentication_guest_access"`
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
+	AllowPersistentNotifications     *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
 }
@@ -2984,6 +2985,10 @@ func (s *GuestAccountsSettings) SetDefaults() {
 
 	if s.AllowEmailAccounts == nil {
 		s.AllowEmailAccounts = NewBool(true)
+	}
+
+	if s.AllowPersistentNotifications == nil {
+		s.AllowPersistentNotifications = NewBool(false)
 	}
 
 	if s.EnforceMultifactorAuthentication == nil {
