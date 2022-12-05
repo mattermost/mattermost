@@ -15,5 +15,5 @@ max_connections = 900
 character-set-server = utf8
 sql_mode = ""
 innodb = FORCE
-default-storage-engine = Memory
+default-storage-engine = InnoDB
 max_allowed_packet = 256M
