@@ -326,9 +326,11 @@ func (s *hooksService) RegisterHooks(productID string, hooks any) error {
 }
 
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+	ch.pluginsLock.RLock()
 	if env := ch.pluginsEnvironment; env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
+	ch.pluginsLock.RUnlock()
 
 	// run hook for the products
 	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
