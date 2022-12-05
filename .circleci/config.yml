@@ -644,10 +644,9 @@ workflows:
       - setup-focalboard-product:
           filters:
             branches:
-              only:
+              ignore:
                 - master
                 - /^release-.*/
-                - cloud
           requires:
             - setup-multi-product-repositories
       - check-go-mod-tidy:
