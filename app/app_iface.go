@@ -712,6 +712,7 @@ type AppIface interface {
 	GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError)
 	GetPostIfAuthorized(c request.CTX, postID string, session *model.Session, includeDeleted bool) (*model.Post, *model.AppError)
+	GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model.AppError)
 	GetPostThread(postID string, opts model.GetPostsOptions, userID string) (*model.PostList, *model.AppError)
 	GetPosts(channelID string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -1037,7 +1038,7 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendTestPushNotification(deviceID string) string
-	SendUpgradeConfirmationEmail() *model.AppError
+	SendUpgradeConfirmationEmail(isYearly bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool

@@ -72,15 +72,15 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
-	sessionExpiresAt   int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	Platform           *PlatformService
-	Suite              SuiteIFace
-	PluginsEnvironment func() *plugin.Environment
-	WebSocket          *websocket.Conn
-	T                  i18n.TranslateFunc
-	Locale             string
-	Sequence           int64
-	UserId             string
+	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	Platform         *PlatformService
+	Suite            SuiteIFace
+	HookRunner       HookRunner
+	WebSocket        *websocket.Conn
+	T                i18n.TranslateFunc
+	Locale           string
+	Sequence         int64
+	UserId           string
 
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
@@ -162,7 +162,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 }
 
 // NewWebConn returns a new WebConn instance.
-func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, envFn func() *plugin.Environment) *WebConn {
+func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runner HookRunner) *WebConn {
 	if cfg.Session.UserId != "" {
 		ps.Go(func() {
 			suite.SetStatusOnline(cfg.Session.UserId, false)
@@ -200,7 +200,7 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, envF
 	wc := &WebConn{
 		Platform:           ps,
 		Suite:              suite,
-		PluginsEnvironment: envFn,
+		HookRunner:         runner,
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
 		deadQueuePointer:   cfg.deadQueuePointer,
@@ -222,14 +222,12 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, envF
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
 
-	if pluginsEnvironment := wc.PluginsEnvironment(); pluginsEnvironment != nil {
-		wc.Platform.Go(func() {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
-				return true
-			}, plugin.OnWebSocketConnectID)
-		})
-	}
+	wc.Platform.Go(func() {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.OnWebSocketConnect(wc.GetConnectionID(), wc.UserId)
+			return true
+		}, plugin.OnWebSocketConnectID)
+	})
 
 	return wc
 }
@@ -238,12 +236,10 @@ func (wc *WebConn) pluginPostedConsumer(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for msg := range wc.pluginPosted {
-		if pluginsEnvironment := wc.PluginsEnvironment(); pluginsEnvironment != nil {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
-				return true
-			}, plugin.WebSocketMessageHasBeenPostedID)
-		}
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.WebSocketMessageHasBeenPosted(msg.connectionID, msg.userID, msg.req)
+			return true
+		}, plugin.WebSocketMessageHasBeenPostedID)
 	}
 }
 
@@ -328,14 +324,12 @@ func (wc *WebConn) Pump() {
 	wc.Platform.HubUnregister(wc)
 	close(wc.pumpFinished)
 
-	if pluginsEnvironment := wc.PluginsEnvironment(); pluginsEnvironment != nil {
-		wc.Platform.Go(func() {
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
-				return true
-			}, plugin.OnWebSocketDisconnectID)
-		})
-	}
+	wc.Platform.Go(func() {
+		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), wc.UserId)
+			return true
+		}, plugin.OnWebSocketDisconnectID)
+	})
 }
 
 func (wc *WebConn) readPump() {

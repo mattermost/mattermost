@@ -5,6 +5,7 @@ package platform
 
 import (
 	"bytes"
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -18,13 +19,27 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
+type hookRunner struct {
+}
+
+func (h *hookRunner) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
+
+}
+func (h *hookRunner) HooksForPlugin(id string) (plugin.Hooks, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (h *hookRunner) GetPluginsEnvironment() *plugin.Environment {
+	return nil
+}
+
 func TestWebConnAddDeadQueue(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
-	}, th.Suite, func() *plugin.Environment { return nil })
+	}, th.Suite, &hookRunner{})
 
 	for i := 0; i < 2; i++ {
 		msg := &model.WebSocketEvent{}
@@ -53,7 +68,7 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
-	}, th.Suite, func() *plugin.Environment { return nil })
+	}, th.Suite, &hookRunner{})
 
 	var i int
 	for ; i < 2; i++ {
@@ -114,7 +129,7 @@ func TestWebConnClearDeadQueue(t *testing.T) {
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
-	}, th.Suite, func() *plugin.Environment { return nil })
+	}, th.Suite, &hookRunner{})
 
 	var i int
 	for ; i < 2; i++ {
@@ -140,7 +155,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		cfg := &WebConnConfig{
 			WebSocket: c,
 		}
-		return th.Service.NewWebConn(cfg, th.Suite, func() *plugin.Environment { return nil })
+		return th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
 	}
 
 	t.Run("Empty Queue", func(t *testing.T) {
