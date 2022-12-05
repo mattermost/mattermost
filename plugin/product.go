@@ -7,13 +7,13 @@ import (
 	"net/http"
 )
 
-type registeredProduct struct {
-	productID string
-	adapter   Hooks
+type RegisteredProduct struct {
+	ProductID string
+	Adapter   Hooks
 }
 
-func (rp *registeredProduct) Implements(hookId int) bool {
-	adapter, ok := rp.adapter.(*hooksAdapter)
+func (rp *RegisteredProduct) Implements(hookId int) bool {
+	adapter, ok := rp.Adapter.(*HooksAdapter)
 	if !ok {
 		return false
 	}
@@ -23,19 +23,19 @@ func (rp *registeredProduct) Implements(hookId int) bool {
 }
 
 // Implemented method is overridden intentionally to prevent calling it from outside.
-func (a *hooksAdapter) Implemented() ([]string, error) {
+func (a *HooksAdapter) Implemented() ([]string, error) {
 	return nil, nil
 }
 
 // OnActivate is overridden intentionally as product should not call it.
-func (a *hooksAdapter) OnActivate() error {
+func (a *HooksAdapter) OnActivate() error {
 	return nil
 }
 
 // OnDeactivate is overridden intentionally as product should not call it.
-func (a *hooksAdapter) OnDeactivate() error {
+func (a *HooksAdapter) OnDeactivate() error {
 	return nil
 }
 
 // ServeHTTP is overridden intentionally as product should not call it.
-func (a *hooksAdapter) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {}
+func (a *HooksAdapter) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {}
