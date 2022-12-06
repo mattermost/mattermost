@@ -108,8 +108,10 @@ type SqlStoreStores struct {
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
 	sharedchannel        store.SharedChannelStore
+	draft                store.DraftStore
 	notifyAdmin          store.NotifyAdminStore
 	postPriority         store.PostPriorityStore
+	postAcknowledgement  store.PostAcknowledgementStore
 }
 
 type SqlStore struct {
@@ -214,8 +216,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
+	store.stores.draft = newSqlDraftStore(store, metrics)
 	store.stores.notifyAdmin = newSqlNotifyAdminStore(store)
 	store.stores.postPriority = newSqlPostPriorityStore(store)
+	store.stores.postAcknowledgement = newSqlPostAcknowledgementStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -959,6 +963,14 @@ func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 
 func (ss *SqlStore) PostPriority() store.PostPriorityStore {
 	return ss.stores.postPriority
+}
+
+func (ss *SqlStore) Draft() store.DraftStore {
+	return ss.stores.draft
+}
+
+func (ss *SqlStore) PostAcknowledgement() store.PostAcknowledgementStore {
+	return ss.stores.postAcknowledgement
 }
 
 func (ss *SqlStore) DropAllTables() {

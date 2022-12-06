@@ -42,6 +42,7 @@ const (
 	StatusFail                      = "FAIL"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
+	ConnectionId                    = "Connection-Id"
 
 	ClientDir = "client"
 
@@ -325,6 +326,10 @@ func (c *Client4) cloudRoute() string {
 	return "/cloud"
 }
 
+func (c *Client4) hostedCustomerRoute() string {
+	return "/hosted_customer"
+}
+
 func (c *Client4) testEmailRoute() string {
 	return "/email/test"
 }
@@ -431,6 +436,10 @@ func (c *Client4) commandRoute(commandId string) string {
 
 func (c *Client4) commandMoveRoute(commandId string) string {
 	return fmt.Sprintf(c.commandsRoute()+"/%v/move", commandId)
+}
+
+func (c *Client4) draftsRoute() string {
+	return "/drafts"
 }
 
 func (c *Client4) emojisRoute() string {
@@ -6229,6 +6238,59 @@ func (c *Client4) GetChannelPoliciesForUser(userID string, offset, limit int) (*
 	return &channels, BuildResponse(r), nil
 }
 
+// Drafts Sections
+
+// UpsertDraft will create a new draft or update a draft if it already exists
+func (c *Client4) UpsertDraft(draft *Draft) (*Draft, *Response, error) {
+	buf, err := json.Marshal(draft)
+	if err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(c.draftsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df Draft
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
+		return nil, nil, NewAppError("UpsertDraft", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &df, BuildResponse(r), err
+}
+
+// GetDrafts will get all drafts for a user
+func (c *Client4) GetDrafts(userId, teamId string) ([]*Draft, *Response, error) {
+	r, err := c.DoAPIGet(c.userRoute(userId)+c.teamRoute(teamId)+"/drafts", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var drafts []*Draft
+	err = json.NewDecoder(r.Body).Decode(&drafts)
+	if err != nil {
+		return nil, nil, NewAppError("GetDrafts", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return drafts, BuildResponse(r), nil
+}
+
+func (c *Client4) DeleteDraft(userId, channelId, rootId string) (*Draft, *Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.channelRoute(channelId) + "/drafts")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var df *Draft
+	err = json.NewDecoder(r.Body).Decode(&df)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("DeleteDraft", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return df, BuildResponse(r), nil
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
@@ -7979,6 +8041,19 @@ func (c *Client4) GetCloudProducts() ([]*Product, *Response, error) {
 	return cloudProducts, BuildResponse(r), nil
 }
 
+func (c *Client4) GetSelfHostedProducts() ([]*Product, *Response, error) {
+	r, err := c.DoAPIGet(c.cloudRoute()+"/products/selfhosted", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var products []*Product
+	json.NewDecoder(r.Body).Decode(&products)
+
+	return products, BuildResponse(r), nil
+}
+
 func (c *Client4) GetProductLimits() (*ProductLimits, *Response, error) {
 	r, err := c.DoAPIGet(c.cloudRoute()+"/limits", "")
 	if err != nil {
@@ -8160,6 +8235,23 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r), nil
+}
+
+func (c *Client4) BootstrapSelfHostedSignup(req BootstrapSelfHostedSignupRequest) (*BootstrapSelfHostedSignupResponse, *Response, error) {
+	reqBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, NewAppError("BootstrapSelfHostedSignup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(c.hostedCustomerRoute()+"/bootstrap", reqBytes)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var res *BootstrapSelfHostedSignupResponse
+	json.NewDecoder(r.Body).Decode(&res)
+
+	return res, BuildResponse(r), nil
 }
 
 func (c *Client4) ListImports() ([]string, *Response, error) {
@@ -8448,6 +8540,42 @@ func (c *Client4) GetNewTeamMembersSince(teamID string, timeRange string, page i
 	return newTeamMembersList, BuildResponse(r), nil
 }
 
+func (c *Client4) GetPostInfo(postId string) (*PostInfo, *Response, error) {
+	r, err := c.DoAPIGet(c.postRoute(postId)+"/info", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var info *PostInfo
+	if err = json.NewDecoder(r.Body).Decode(&info); err != nil {
+		return nil, nil, NewAppError("GetPostInfo", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return info, BuildResponse(r), nil
+}
+
+func (c *Client4) AcknowledgePost(postId, userId string) (*PostAcknowledgement, *Response, error) {
+	r, err := c.DoAPIPost(c.userRoute(userId)+c.postRoute(postId)+"/ack", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var ack *PostAcknowledgement
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
+		return nil, nil, NewAppError("AcknowledgePost", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return ack, BuildResponse(r), nil
+}
+
+func (c *Client4) UnacknowledgePost(postId, userId string) (*Response, error) {
+	r, err := c.DoAPIDelete(c.userRoute(userId) + c.postRoute(postId) + "/ack")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	r, err := c.DoAPIPost(c.ldapRoute()+"/users/"+userID+"/group_sync_memberships", "")
 	if err != nil {
@@ -8455,4 +8583,35 @@ func (c *Client4) AddUserToGroupSyncables(userID string) (*Response, error) {
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// Worktemplates sections
+
+func (c *Client4) worktemplatesRoute() string {
+	return "/worktemplates"
+}
+
+// GetWorktemplateCategories returns categories of worktemplates
+func (c *Client4) GetWorktemplateCategories() ([]*WorkTemplateCategory, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var categories []*WorkTemplateCategory
+	err = json.NewDecoder(r.Body).Decode(&categories)
+	return categories, BuildResponse(r), err
+}
+
+func (c *Client4) GetWorkTemplatesByCategory(category string) ([]*WorkTemplate, *Response, error) {
+	r, err := c.DoAPIGet(c.worktemplatesRoute()+"/categories/"+category+"/templates", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var templates []*WorkTemplate
+	err = json.NewDecoder(r.Body).Decode(&templates)
+	return templates, BuildResponse(r), err
 }
