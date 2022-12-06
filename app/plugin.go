@@ -151,6 +151,10 @@ func (s *Server) InitializePluginService() error {
 	return nil
 }
 
+func (s *Server) GetPluginsEnvironment() *plugin.Environment {
+	return s.pluginService.GetPluginsEnvironment()
+}
+
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
 //

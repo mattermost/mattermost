@@ -28,11 +28,6 @@ func (a *App) markAdminOnboardingComplete(c *request.Context) *model.AppError {
 }
 
 func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnboardingRequest) *model.AppError {
-	pluginsEnvironment := a.Srv().pluginService.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return a.markAdminOnboardingComplete(c)
-	}
-
 	pluginContext := pluginContext(c)
 
 	for _, pluginID := range request.InstallPlugins {
@@ -53,7 +48,7 @@ func (a *App) CompleteOnboarding(c *request.Context, request *model.CompleteOnbo
 				return
 			}
 
-			hooks, err := a.ch.HooksForPluginOrProduct(id)
+			hooks, err := a.Srv().HooksForPluginOrProduct(id)
 			if err != nil {
 				mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", id), mlog.Err(err))
 				return

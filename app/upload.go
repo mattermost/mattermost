@@ -67,7 +67,7 @@ func (a *App) runPluginsHook(c *request.Context, info *model.FileInfo, file io.R
 		var rejErr *model.AppError
 		var once sync.Once
 		pluginContext := pluginContext(c)
-		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+		a.Srv().RunMultiHook(func(hooks plugin.Hooks) bool {
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
